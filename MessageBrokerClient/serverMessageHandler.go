@@ -11,7 +11,7 @@ func (client *Client) handleServerMessages(serverConnection *serverConnection) {
 		messageBytes, err := serverConnection.receive()
 		if err != nil {
 			serverConnection.close()
-			if !strings.Contains(err.Error(), "use of closed network connection") { // Ignore error if connection is closed from client side
+			if !strings.Contains(err.Error(), "use of closed network connection") { // do not attempt to reconnect if the connection was closed from the client side
 				client.attemptToReconnect(serverConnection)
 			}
 			return
