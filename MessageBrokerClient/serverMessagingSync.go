@@ -6,13 +6,18 @@ import (
 )
 
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
-func (client *Client) SyncMessage(message *Message.Message) (*Message.Message, error) {
+func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
+	message := Message.NewSync(topic, origin, payload)
 	if message.GetSyncRequestToken() == "" {
 		return nil, Error.New("SyncRequestToken not set", nil)
 	}
-	err := client.AsyncMessage(message)
+	serverConnection, err := client.getServerConnectionForTopic(message.GetTopic())
 	if err != nil {
-		return nil, Error.New("Error sending async message", err)
+		return nil, Error.New("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
+	}
+	err = serverConnection.send(message)
+	if err != nil {
+		return nil, Error.New("Error sending sync request message", err)
 	}
 	return client.receiveSyncResponse(message)
 }
