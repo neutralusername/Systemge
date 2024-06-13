@@ -2,4 +2,4 @@ Library for building message based distributed systems through async and sync TC
   
 Clients can subscribe to message topics, to receive a copy for each published message of this topic.
 
-![Leeres Diagramm(7)](https://github.com/neutralusername/Systemge/assets/39095721/1ed35806-384a-490c-8f6d-7fae0bf85150)
+![Leeres Diagramm(8)](https://github.com/neutralusername/Systemge/assets/39095721/56a8234f-5bef-48c7-8384-6f97e8afc439)
