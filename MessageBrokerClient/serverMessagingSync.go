@@ -22,14 +22,6 @@ func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Messa
 	return client.receiveSyncResponse(message)
 }
 
-func (client *Client) syncMessage(serverConnection *serverConnection, message *Message.Message) (*Message.Message, error) {
-	err := serverConnection.send(message)
-	if err != nil {
-		return nil, Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to message broker server", err)
-	}
-	return client.receiveSyncResponse(message)
-}
-
 func (client *Client) receiveSyncResponse(message *Message.Message) (*Message.Message, error) {
 	responseChannel := client.addMessageWaitingForResponse(message)
 	select {
