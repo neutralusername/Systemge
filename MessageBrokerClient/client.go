@@ -44,7 +44,7 @@ func New(name, topicResolutionServerAddress string, logger *Utilities.Logger, we
 
 		websocketServer: websocketServer,
 
-		handleServerMessagesConcurrently: false,
+		handleServerMessagesConcurrently: true,
 	}
 }
 
