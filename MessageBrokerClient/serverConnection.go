@@ -89,6 +89,7 @@ func (client *Client) attemptToReconnect(serverConnection *serverConnection) {
 	serverConnection.topics = make(map[string]bool)
 	serverConnection.mapOperationMutex.Unlock()
 	client.mapOperationMutex.Unlock()
+
 	for _, topic := range topicsToReconnect {
 		newServerConnection, err := client.getServerConnectionForTopic(topic)
 		if err != nil {

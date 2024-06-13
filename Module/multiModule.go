@@ -1,6 +1,9 @@
 package Module
 
-import "Systemge/Error"
+import (
+	"Systemge/Application"
+	"Systemge/Error"
+)
 
 type MultiModule struct {
 	Modules []Module
@@ -33,4 +36,15 @@ func (mm *MultiModule) Stop() error {
 		}
 	}
 	return nil
+}
+
+// in the case of a conflict, the last custom command handler will be used
+func MergeCustomCommandHandlers(customCommandHandlers ...map[string]Application.CustomCommandHandler) map[string]Application.CustomCommandHandler {
+	merged := map[string]Application.CustomCommandHandler{}
+	for _, customCommandHandler := range customCommandHandlers {
+		for key, value := range customCommandHandler {
+			merged[key] = value
+		}
+	}
+	return merged
 }

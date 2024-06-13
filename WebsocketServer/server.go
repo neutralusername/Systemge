@@ -15,7 +15,7 @@ type Server struct {
 	websocketApplication Application.WebsocketApplication
 	websocketHTTPServer  *HTTP.Server
 	websocketConnChannel chan *websocket.Conn
-	websocketClients     map[string]*WebsocketClient.Client            // websocketId -> websocketClient
+	clients              map[string]*WebsocketClient.Client            // websocketId -> websocketClient
 	groups               map[string]map[string]*WebsocketClient.Client // groupId -> map[websocketId]websocketClient
 	clientGroups         map[string]map[string]bool                    // websocketId -> map[groupId]bool
 
@@ -33,7 +33,7 @@ func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshak
 		websocketApplication: nil,
 		websocketHTTPServer:  websocketHandshakeHandler,
 		websocketConnChannel: nil,
-		websocketClients:     nil,
+		clients:              nil,
 		groups:               make(map[string]map[string]*WebsocketClient.Client),
 		clientGroups:         make(map[string]map[string]bool),
 
@@ -84,7 +84,7 @@ func (server *Server) Start() error {
 		return err
 	}
 	server.operationMutex.Lock()
-	server.websocketClients = make(map[string]*WebsocketClient.Client)
+	server.clients = make(map[string]*WebsocketClient.Client)
 	server.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	server.stopChannel = make(chan bool)
 	server.isStarted = true
@@ -110,7 +110,7 @@ func (server *Server) Stop() error {
 		return Error.New("Websocket listener not started", nil)
 	}
 	server.websocketHTTPServer.Stop()
-	for _, websocketClient := range server.websocketClients {
+	for _, websocketClient := range server.clients {
 		websocketClient.Disconnect()
 	}
 	server.operationMutex.Lock()

@@ -8,7 +8,7 @@ import (
 func (server *Server) AddToGroup(groupId string, websocketId string) error {
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
-	client := server.websocketClients[websocketId]
+	client := server.clients[websocketId]
 	if client == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
 	}
@@ -18,7 +18,7 @@ func (server *Server) AddToGroup(groupId string, websocketId string) error {
 	if server.groups[groupId] == nil {
 		server.groups[groupId] = make(map[string]*WebsocketClient.Client)
 	}
-	server.groups[groupId][websocketId] = server.websocketClients[websocketId]
+	server.groups[groupId][websocketId] = server.clients[websocketId]
 	server.clientGroups[websocketId][groupId] = true
 	return nil
 }
@@ -32,7 +32,7 @@ func (server *Server) RemoveFromGroup(groupId string, websocketId string) error 
 	if server.groups[groupId][websocketId] == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" is not in group "+groupId, nil)
 	}
-	if server.websocketClients[websocketId] == nil {
+	if server.clients[websocketId] == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
 	}
 	if server.clientGroups[websocketId] == nil {
@@ -62,7 +62,7 @@ func (server *Server) GetGroupMembers(groupId string) []string {
 func (server *Server) GetGroups(websocketId string) []string {
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
-	if server.websocketClients[websocketId] == nil {
+	if server.clients[websocketId] == nil {
 		return nil
 	}
 	if server.clientGroups[websocketId] == nil {
