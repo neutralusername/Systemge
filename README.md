@@ -4,7 +4,8 @@ Library for building message based distributed systems through async and sync TC
 - Clients communicate with each through "Brokers".  
 - Each Broker is responsible for a set of Topics.  
 - If a Client wants to publish a message it will ask the "Resolver" which Broker is responsible for this Topic.  
-- The Resolver replies with the Brokers address as well as its TLS certificate. The Client will remember this.  
+- The Resolver replies with the Brokers address as well as its TLS certificate.
+- The Client will remember resolutions until issues arise and then resolve again.  
 - Clients can connect to Brokers and subscribe to a subset of Topics.  
 - If a Broker receives a Message it will distribute this message to every subscriber of its Topic.
 
