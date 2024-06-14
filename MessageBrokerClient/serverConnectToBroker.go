@@ -12,7 +12,7 @@ func (client *Client) connectToBroker(brokerAddress string) (*serverConnection, 
 	if err != nil {
 		return nil, Error.New("Error connecting to message broker server", err)
 	}
-	err = TCP.Send(netConn, []byte(Message.NewAsync("connect", client.name, "").Serialize()), DEFAULT_TCP_TIMEOUT)
+	err = TCP.Send(netConn, Message.NewAsync("connect", client.name, "").Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Error sending connection request", err)

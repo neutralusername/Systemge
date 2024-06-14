@@ -40,7 +40,7 @@ func (serverConnection *serverConnection) send(message *Message.Message) error {
 	if serverConnection.netConn == nil {
 		return Error.New("Connection is closed", nil)
 	}
-	err := TCP.Send(serverConnection.netConn, []byte(message.Serialize()), DEFAULT_TCP_TIMEOUT)
+	err := TCP.Send(serverConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("Error sending message", err)
 	}

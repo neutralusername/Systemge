@@ -69,7 +69,7 @@ func (message *Message) NewResponse(topic, origin, payload string) *Message {
 	}
 }
 
-func (message *Message) Serialize() string {
+func (message *Message) Serialize() []byte {
 	messageData := messageData{
 		Topic:             message.topic,
 		Origin:            message.origin,
@@ -79,9 +79,9 @@ func (message *Message) Serialize() string {
 	}
 	bytes, err := json.Marshal(messageData)
 	if err != nil {
-		return ""
+		return nil
 	}
-	return string(bytes)
+	return bytes
 }
 
 func Deserialize(bytes []byte) *Message {

@@ -1,6 +1,9 @@
 package WebsocketServer
 
-func (server *Server) Broadcast(messageBytes []byte) {
+import "Systemge/Message"
+
+func (server *Server) Broadcast(message *Message.Message) {
+	messageBytes := message.Serialize()
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	for _, websocketClient := range server.clients {

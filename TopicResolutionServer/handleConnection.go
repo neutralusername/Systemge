@@ -26,7 +26,7 @@ func (server *Server) handleConnection(netConn net.Conn) {
 		server.logger.Log(Error.New("Topic not found: \""+message.GetPayload()+"\" by "+message.GetOrigin(), nil).Error())
 		return
 	}
-	err = TCP.Send(netConn, []byte(Message.NewAsync("resolution", server.name, messageBrokerAddress).Serialize()), DEFAULT_TCP_TIMEOUT)
+	err = TCP.Send(netConn, Message.NewAsync("resolution", server.name, messageBrokerAddress).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		server.logger.Log(Error.New("Failed to send resolution to \""+message.GetOrigin()+"\"", err).Error())
 	}

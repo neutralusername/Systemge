@@ -12,7 +12,7 @@ func (client *Client) resolveBrokerAddressForTopic(topic string) (string, error)
 	if err != nil {
 		return "", Error.New("Error connecting to topic resolution server", err)
 	}
-	err = TCP.Send(netConn, []byte(Message.NewAsync("resolve", client.name, topic).Serialize()), DEFAULT_TCP_TIMEOUT)
+	err = TCP.Send(netConn, Message.NewAsync("resolve", client.name, topic).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return "", Error.New("Error sending topic resolution request", err)

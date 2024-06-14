@@ -51,7 +51,7 @@ func (server *Server) handleMessage(websocketClient *WebsocketClient.Client, mes
 	}
 	err := server.websocketApplication.GetWebsocketMessageHandlers()[message.GetTopic()](websocketClient, message)
 	if err != nil {
-		websocketClient.Send([]byte(Message.NewAsync("error", websocketClient.GetId(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", err).Error()).Serialize()))
+		websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
 	}
 	return nil
 }

@@ -39,7 +39,7 @@ func NewClienn(name string, netConn net.Conn) *Client {
 func (client *Client) send(message *Message.Message) error {
 	client.sendMutex.Lock()
 	defer client.sendMutex.Unlock()
-	return TCP.Send(client.netConn, []byte(message.Serialize()), DEFAULT_TCP_TIMEOUT)
+	return TCP.Send(client.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 }
 
 func (client *Client) receive() ([]byte, error) {
