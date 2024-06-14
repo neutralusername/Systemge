@@ -77,10 +77,10 @@ func (client *Client) disconnect() error {
 func (server *Server) addClient(client *Client) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if server.clients[client.name] != nil {
+	if server.connectedClients[client.name] != nil {
 		return Error.New("client with name \""+client.name+"\" already exists", nil)
 	}
-	server.clients[client.name] = client
+	server.connectedClients[client.name] = client
 	client.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
 		server.removeClient(client)
 	})
@@ -91,7 +91,7 @@ func (server *Server) removeClient(client *Client) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
-	if server.clients[client.name] == nil {
+	if server.connectedClients[client.name] == nil {
 		return Error.New("Subscriber with name \""+client.name+"\" does not exist", nil)
 	}
 	client.watchdog = nil
@@ -102,6 +102,6 @@ func (server *Server) removeClient(client *Client) error {
 	for _, message := range client.openSyncRequests {
 		delete(server.openSyncRequests, message.GetSyncRequestToken())
 	}
-	delete(server.clients, client.name)
+	delete(server.connectedClients, client.name)
 	return nil
 }

@@ -28,7 +28,7 @@ func (server *Server) handleClientMessages(client *Client) {
 				server.logger.Log(Error.New("Failed to handle sync response from client \""+client.name+"\"", err).Error())
 			}
 		} else {
-			err := server.handleMessage(client, message)
+			err = server.handleMessage(client, message)
 			if err != nil {
 				server.logger.Log(Error.New("Failed to handle message from client \""+client.name+"\"", err).Error())
 			}
@@ -40,7 +40,7 @@ func (server *Server) handleMessage(client *Client, message *Message.Message) er
 	if message.GetSyncRequestToken() != "" {
 		if err := server.handleSyncRequest(client, message); err != nil {
 			if err := client.send(message.NewResponse("error", server.name, Error.New("", err).Error())); err != nil {
-				return Error.New("Failed to send error response to client \""+client.name+"\"", err)
+				return Error.New("Failed to send error response to sync request from \""+client.name+"\"", err)
 			}
 		}
 	}
@@ -83,6 +83,10 @@ func (server *Server) handleMessage(client *Client, message *Message.Message) er
 		}
 	default:
 		server.mutex.Lock()
+		if !server.asyncTopics[message.GetTopic()] && !server.syncTopics[message.GetTopic()] {
+			server.mutex.Unlock()
+			return Error.New("Topic \""+message.GetTopic()+"\" does not exist", nil)
+		}
 		clients := server.getSubscribers(message.GetTopic())
 		server.mutex.Unlock()
 		server.propagateMessage(clients, message)
@@ -93,6 +97,9 @@ func (server *Server) handleMessage(client *Client, message *Message.Message) er
 func (server *Server) handleSyncRequest(client *Client, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	if !server.syncTopics[message.GetTopic()] {
+		return Error.New("broker does not accept sync messages for topic \""+message.GetTopic()+"\"", nil)
+	}
 	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
 		return Error.New("token already in use", nil)
 	}
@@ -106,6 +113,7 @@ func (server *Server) handleSyncRequest(client *Client, message *Message.Message
 	client.openSyncRequests[message.GetSyncRequestToken()] = message
 	return nil
 }
+
 func (server *Server) handleSyncResponse(message *Message.Message) error {
 	server.mutex.Lock()
 	waitingClient := server.openSyncRequests[message.GetSyncResponseToken()]

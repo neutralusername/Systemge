@@ -8,11 +8,14 @@ import (
 func (server *Server) addSubscription(client *Client, topic string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if server.subscriptions[topic] == nil {
-		return Error.New("Topic \""+topic+"\" does not exist", nil)
+	if !server.asyncTopics[topic] && !server.syncTopics[topic] {
+		return Error.New("Topic \""+topic+"\" does not exist on server \""+server.name+"\"", nil)
 	}
 	if client.subscribedTopics[topic] {
 		return Error.New("Client \""+client.name+"\" is already subscribed to topic \""+topic+"\"", nil)
+	}
+	if server.subscriptions[topic] == nil {
+		server.subscriptions[topic] = map[string]*Client{}
 	}
 	server.subscriptions[topic][client.name] = client
 	client.subscribedTopics[topic] = true
@@ -30,6 +33,9 @@ func (server *Server) removeSubscription(client *Client, topic string) error {
 	}
 	delete(server.subscriptions[topic], client.name)
 	delete(client.subscribedTopics, topic)
+	if len(server.subscriptions[topic]) == 0 {
+		delete(server.subscriptions, topic)
+	}
 	return nil
 }
 

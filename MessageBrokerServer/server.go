@@ -8,8 +8,11 @@ import (
 )
 
 type Server struct {
+	syncTopics  map[string]bool
+	asyncTopics map[string]bool
+
 	subscriptions    map[string]map[string]*Client // topic -> [client name-> client]
-	clients          map[string]*Client            // client name -> Client
+	connectedClients map[string]*Client            // client name -> Client
 	openSyncRequests map[string]*Client            // sync request token -> client
 	mutex            sync.Mutex
 
@@ -24,8 +27,14 @@ type Server struct {
 
 func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
 	return &Server{
-		subscriptions:    map[string]map[string]*Client{},
-		clients:          nil,
+		syncTopics: map[string]bool{
+			"subscribe":   true,
+			"unsubscribe": true,
+		},
+		asyncTopics: map[string]bool{},
+
+		subscriptions:    nil,
+		connectedClients: nil,
 		openSyncRequests: nil,
 
 		mutex: sync.Mutex{},
@@ -50,8 +59,9 @@ func (server *Server) Start() error {
 	if err != nil {
 		return Error.New("Failed to start server: ", err)
 	}
-	server.clients = map[string]*Client{}
+	server.connectedClients = map[string]*Client{}
 	server.openSyncRequests = map[string]*Client{}
+	server.subscriptions = map[string]map[string]*Client{}
 	server.tcpListener = tcpListener
 	server.isStarted = true
 	go server.handleConnections()
@@ -71,7 +81,7 @@ func (server *Server) Stop() error {
 	server.isStarted = false
 	for _, clients := range server.subscriptions {
 		for _, client := range clients {
-			delete(server.clients, client.name)
+			delete(server.connectedClients, client.name)
 		}
 	}
 	server.tcpListener.Close()

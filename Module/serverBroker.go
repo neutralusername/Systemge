@@ -6,11 +6,14 @@ import (
 	"strings"
 )
 
-func NewBrokerServer(name string, port string, loggerPath string, topics ...string) *MessageBrokerServer.Server {
+func NewBrokerServer(name string, port string, loggerPath string, asyncTopics []string, syncTopics []string) *MessageBrokerServer.Server {
 	logger := Utilities.NewLogger(loggerPath)
 	messageBrokerServer := MessageBrokerServer.New(name, port, logger)
-	for _, topic := range topics {
-		messageBrokerServer.AddTopics(topic)
+	for _, topic := range asyncTopics {
+		messageBrokerServer.AddAsyncTopics(topic)
+	}
+	for _, topic := range syncTopics {
+		messageBrokerServer.AddSyncTopics(topic)
 	}
 	return messageBrokerServer
 }
@@ -28,7 +31,8 @@ func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *M
 		name = fileNameSegments[0]
 	}
 	port := ""
-	topics := []string{}
+	asyncTopics := []string{}
+	syncTopics := []string{}
 	for i, line := range Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath)) {
 		if len(line) == 0 {
 			continue
@@ -58,8 +62,18 @@ func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *M
 			}
 			port = line
 		default:
-			topics = append(topics, line)
+			lineSegments := strings.Split(line, " ")
+			if len(lineSegments) != 2 {
+				panic("error reading file. invalid topic line")
+			}
+			if lineSegments[1] == "sync" {
+				syncTopics = append(syncTopics, lineSegments[0])
+			} else if lineSegments[1] == "async" {
+				asyncTopics = append(asyncTopics, lineSegments[0])
+			} else {
+				panic("error reading file. invalid topic type")
+			}
 		}
 	}
-	return NewBrokerServer(name, port, errorLogPath, topics...)
+	return NewBrokerServer(name, port, errorLogPath, asyncTopics, syncTopics)
 }
