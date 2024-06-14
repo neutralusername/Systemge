@@ -8,8 +8,8 @@ import (
 )
 
 type Server struct {
-	knownBrokers     map[string]*Broker // broker-name -> broker
-	registeredTopics map[string]*Broker // topic -> broker
+	knownBrokers     map[string]*Resolution // broker-name -> broker
+	registeredTopics map[string]*Resolution // topic -> broker
 	mutex            sync.Mutex
 
 	name         string
@@ -22,8 +22,8 @@ type Server struct {
 
 func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
 	return &Server{
-		knownBrokers:     map[string]*Broker{},
-		registeredTopics: map[string]*Broker{},
+		knownBrokers:     map[string]*Resolution{},
+		registeredTopics: map[string]*Resolution{},
 		name:             name,
 		listenerPort:     listenerPort,
 		logger:           logger,

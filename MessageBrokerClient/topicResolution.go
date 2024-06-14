@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func (client *Client) resolveBrokerForTopic(topic string) (*ResolverServer.Broker, error) {
+func (client *Client) resolveBrokerForTopic(topic string) (*ResolverServer.Resolution, error) {
 	netConn, err := net.Dial("tcp", client.topicResolutionServerAddress)
 	if err != nil {
 		return nil, Error.New("Error connecting to topic resolution server", err)
@@ -28,12 +28,12 @@ func (client *Client) resolveBrokerForTopic(topic string) (*ResolverServer.Broke
 		netConn.Close()
 		return nil, Error.New("Invalid response \""+string(messageBytes)+"\"", nil)
 	}
-	broker := ResolverServer.UnmarshalBroker(message.GetPayload())
-	if broker == nil {
+	resolution := ResolverServer.UnmarshalResolution(message.GetPayload())
+	if resolution == nil {
 		netConn.Close()
 		return nil, Error.New("Error unmarshalling broker", nil)
 	}
-	return broker, nil
+	return resolution, nil
 }
 
 func (client *Client) addTopicResolution(topic string, serverConnection *serverConnection) error {

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func NewResolverServer(name string, port string, loggerPath string, brokers map[string]*ResolverServer.Broker, topics map[string]*ResolverServer.Broker) *ResolverServer.Server {
+func NewResolverServer(name string, port string, loggerPath string, brokers map[string]*ResolverServer.Resolution, topics map[string]*ResolverServer.Resolution) *ResolverServer.Server {
 	logger := Utilities.NewLogger(loggerPath)
 	resolutionServer := ResolverServer.New(name, port, logger)
 	for _, broker := range brokers {
@@ -31,8 +31,8 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 		name = fileNameSegments[0]
 	}
 	port := ""
-	topics := map[string]*ResolverServer.Broker{}  // topic -> broker
-	brokers := map[string]*ResolverServer.Broker{} // broker-name -> broker
+	topics := map[string]*ResolverServer.Resolution{}  // topic -> broker
+	brokers := map[string]*ResolverServer.Resolution{} // broker-name -> broker
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 2 {
 		panic("error reading file")
@@ -84,7 +84,7 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 					panic("error reading file. cert file not found")
 				}
 				cert := Utilities.GetFileContent(lineSegments[2])
-				broker := ResolverServer.NewBroker(name, address, cert)
+				broker := ResolverServer.NewResolution(name, address, cert)
 				brokers[name] = broker
 			} else {
 				panic("error reading file. invalid topic line")

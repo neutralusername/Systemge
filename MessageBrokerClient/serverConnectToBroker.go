@@ -9,12 +9,12 @@ import (
 	"crypto/x509"
 )
 
-func (client *Client) connectToBroker(broker *ResolverServer.Broker) (*serverConnection, error) {
+func (client *Client) connectToBroker(resolution *ResolverServer.Resolution) (*serverConnection, error) {
 	rootCAs := x509.NewCertPool()
-	if !rootCAs.AppendCertsFromPEM([]byte(broker.Certificate)) {
+	if !rootCAs.AppendCertsFromPEM([]byte(resolution.Certificate)) {
 		return nil, Error.New("Error adding certificate to root CAs", nil)
 	}
-	netConn, err := tls.Dial("tcp", broker.Address, &tls.Config{
+	netConn, err := tls.Dial("tcp", resolution.Address, &tls.Config{
 		RootCAs: rootCAs,
 	})
 	if err != nil {
@@ -39,7 +39,7 @@ func (client *Client) connectToBroker(broker *ResolverServer.Broker) (*serverCon
 		netConn.Close()
 		return nil, Error.New("Invalid response topic \""+message.GetTopic()+"\"", nil)
 	}
-	serverConnection := newServerConnection(netConn, broker, client.logger)
+	serverConnection := newServerConnection(netConn, resolution, client.logger)
 	err = client.addServerConnection(serverConnection)
 	if err != nil {
 		serverConnection.close()

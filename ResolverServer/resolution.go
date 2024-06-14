@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 )
 
-type Broker struct {
+type Resolution struct {
 	Name        string `json:"name"`
 	Address     string `json:"address"`
 	Certificate string `json:"certificate"`
 	topics      map[string]bool
 }
 
-func NewBroker(name, address, certPath string) *Broker {
-	return &Broker{
+func NewResolution(name, address, certPath string) *Resolution {
+	return &Resolution{
 		Name:        name,
 		Address:     address,
 		Certificate: certPath,
@@ -21,18 +21,18 @@ func NewBroker(name, address, certPath string) *Broker {
 	}
 }
 
-func (broker *Broker) Marshal() string {
+func (broker *Resolution) Marshal() string {
 	json, _ := json.Marshal(broker)
 	return string(json)
 }
 
-func UnmarshalBroker(data string) *Broker {
-	broker := &Broker{}
+func UnmarshalResolution(data string) *Resolution {
+	broker := &Resolution{}
 	json.Unmarshal([]byte(data), broker)
 	return broker
 }
 
-func (server *Server) RegisterBroker(broker *Broker) error {
+func (server *Server) RegisterBroker(broker *Resolution) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.knownBrokers[broker.Name] != nil {

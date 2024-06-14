@@ -11,9 +11,9 @@ import (
 )
 
 type serverConnection struct {
-	netConn net.Conn
-	broker  *ResolverServer.Broker
-	logger  *Utilities.Logger
+	netConn    net.Conn
+	resolution *ResolverServer.Resolution
+	logger     *Utilities.Logger
 
 	topics            map[string]bool
 	mapOperationMutex sync.Mutex
@@ -22,11 +22,11 @@ type serverConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newServerConnection(netConn net.Conn, broker *ResolverServer.Broker, logger *Utilities.Logger) *serverConnection {
+func newServerConnection(netConn net.Conn, resolution *ResolverServer.Resolution, logger *Utilities.Logger) *serverConnection {
 	return &serverConnection{
-		netConn: netConn,
-		broker:  broker,
-		logger:  logger,
+		netConn:    netConn,
+		resolution: resolution,
+		logger:     logger,
 
 		topics: make(map[string]bool),
 	}
@@ -79,7 +79,7 @@ func (serverConnection *serverConnection) close() error {
 func (client *Client) attemptToReconnect(serverConnection *serverConnection) {
 	client.mapOperationMutex.Lock()
 	serverConnection.mapOperationMutex.Lock()
-	delete(client.serverConnections, serverConnection.broker.Name)
+	delete(client.serverConnections, serverConnection.resolution.Name)
 	topicsToReconnect := make([]string, 0)
 	for topic := range serverConnection.topics {
 		delete(client.topicResolutions, topic)
