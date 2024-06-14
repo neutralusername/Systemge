@@ -6,7 +6,10 @@ Library for building message based distributed systems through async and sync TC
 - If a Client wants to publish a message it will ask the "Resolver" which Broker is responsible for this Topic.  
 - The Resolver replies with the Brokers address as well as its TLS certificate.  
 - Clients can connect to Brokers and subscribe to a subset of Topics.  
-- If a Broker receives a Message it will distribute this message to every subscriber of its Topic.  
+- If a Broker receives a Message it will distribute this message to every subscriber of its Topic.
+
+Most steps are handled by the library.  
+The goal is that developers can concentrate on writing the application without having to care much about the networking aspects.  
 
 For informations on how to use this library check out the samples:  
 https://github.com/neutralusername/Systemge-Sample-PingPong  
