@@ -5,6 +5,6 @@ The Topic Resolver resolves the address and tls-cert of a broker corresponding t
 
 ![Leeres Diagramm(9)](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
 
-Please contact me if you experience issues using this library
+Please contact me if you encounter issues using this library
 
 stuck.fabian@gmail.com
