@@ -37,6 +37,10 @@ func (server *Server) handleClientMessages(client *Client) {
 }
 
 func (server *Server) handleMessage(client *Client, message *Message.Message) error {
+	err := server.validateMessageTopic(message)
+	if err != nil {
+		return Error.New("Failed to validate message topic", err)
+	}
 	if message.GetSyncRequestToken() != "" {
 		if err := server.handleSyncRequest(client, message); err != nil {
 			if err := client.send(message.NewResponse("error", server.name, Error.New("", err).Error())); err != nil {
@@ -83,10 +87,6 @@ func (server *Server) handleMessage(client *Client, message *Message.Message) er
 		}
 	default:
 		server.mutex.Lock()
-		if !server.asyncTopics[message.GetTopic()] && !server.syncTopics[message.GetTopic()] {
-			server.mutex.Unlock()
-			return Error.New("Topic \""+message.GetTopic()+"\" does not exist", nil)
-		}
 		clients := server.getSubscribers(message.GetTopic())
 		server.mutex.Unlock()
 		server.propagateMessage(clients, message)
@@ -97,9 +97,6 @@ func (server *Server) handleMessage(client *Client, message *Message.Message) er
 func (server *Server) handleSyncRequest(client *Client, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if !server.syncTopics[message.GetTopic()] {
-		return Error.New("broker does not accept sync messages for topic \""+message.GetTopic()+"\"", nil)
-	}
 	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
 		return Error.New("token already in use", nil)
 	}
