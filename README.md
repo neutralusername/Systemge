@@ -1,8 +1,18 @@
 Library for building message based distributed systems through async and sync TCP/TLS communication as well as featuring custom http-server and websocket-server implementations for serving frontends, websocket endpoints or creating a rest-api.  
   
-Clients can subscribe to message topics to receive a copy for each published message of this topic.  
-The Topic Resolver resolves the address and tls-cert of a broker corresponding to the given topic. This happens after initializing the resolver automatically in the background.  
+Each "Client" has an "Application" that offers Sync as well as Async Message Handlers for each chosen Topic.  
+Clients communicate with each through "Brokers".  
+Each Broker is responsible for a set of Topics.  
+If a Client wants to publish a message it will ask the "Resolver" which Broker is responsible for this Topic.  
+The Resolver replies with the Brokers address as well as its TLS certificate.  
+Clients can connect to Brokers and subscribe to a subset of Topics.  
+If a Broker receives a Message it will distribute this message to every subscriber of its Topic.  
 
+For informations on how to use this library check out the samples:  
+https://github.com/neutralusername/Systemge-Sample-PingPong  
+https://github.com/neutralusername/Systemge-Sample-Chat  
+https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife  
+  
 ![Leeres Diagramm(9)](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
 
 Please contact me if you encounter issues using this library
