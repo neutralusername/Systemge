@@ -11,7 +11,8 @@ func (server *Server) Broadcast(message *Message.Message) {
 	}
 }
 
-func (server *Server) Unicast(id string, messageBytes []byte) {
+func (server *Server) Unicast(id string, message *Message.Message) {
+	messageBytes := message.Serialize()
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	if websocketClient, exists := server.clients[id]; exists {
@@ -19,7 +20,8 @@ func (server *Server) Unicast(id string, messageBytes []byte) {
 	}
 }
 
-func (server *Server) Multicast(ids []string, messageBytes []byte) {
+func (server *Server) Multicast(ids []string, message *Message.Message) {
+	messageBytes := message.Serialize()
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	for _, id := range ids {
@@ -29,7 +31,8 @@ func (server *Server) Multicast(ids []string, messageBytes []byte) {
 	}
 }
 
-func (server *Server) Groupcast(groupId string, messageBytes []byte) {
+func (server *Server) Groupcast(groupId string, message *Message.Message) {
+	messageBytes := message.Serialize()
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	if server.groups[groupId] == nil {
