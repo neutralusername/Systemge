@@ -58,32 +58,43 @@ func (server *Server) handleMessage(client *Client, message *Message.Message) er
 	case "unsubscribe":
 		err := server.removeSubscription(client, message.GetPayload())
 		if err != nil {
-			err = server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+			err := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+			if err != nil {
+				return Error.New("Failed to unsubscribe client \""+client.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", err)
+			}
 			return Error.New("Failed to unsubscribe client \""+client.name+"\" from topic \""+message.GetPayload()+"\"", err)
 		}
 		err = server.handleSyncResponse(message.NewResponse("unsubscribed", server.name, ""))
 		if err != nil {
-			return Error.New("Failed to send response to client \""+client.name+"\"", err)
+			return Error.New("Failed to send unsubscribe response to client \""+client.name+"\"", err)
 		}
 		return nil
 	case "subscribe":
 		err := server.addSubscription(client, message.GetPayload())
 		if err != nil {
-			err = server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+			err := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+			if err != nil {
+				return Error.New("Failed to subscribe client \""+client.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", err)
+			}
 			return Error.New("Failed to subscribe client \""+client.name+"\" to topic \""+message.GetPayload()+"\"", err)
 		}
 		err = server.handleSyncResponse(message.NewResponse("subscribed", server.name, ""))
 		if err != nil {
-			return Error.New("Failed to send response to client \""+client.name+"\"", err)
+			return Error.New("Failed to send subscribe response to client \""+client.name+"\"", err)
 		}
 		return nil
 	case "consume":
 		message := client.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
 		if message == nil {
+			err := server.handleSyncResponse(message.NewResponse("error", server.name, "No message to consume"))
+			if err != nil {
+				return Error.New("Failed to send error response to client \""+client.name+"\" and no message to consume", err)
+			}
 			return Error.New("No message to consume for client \""+client.name+"\"", nil)
 		}
-		if err := client.send(message); err != nil {
-			return Error.New("Failed to send message to client \""+client.name+"\"", err)
+		err := server.handleSyncResponse(message)
+		if err != nil {
+			return Error.New("Failed to send response to client \""+client.name+"\"", err)
 		}
 	default:
 		server.mutex.Lock()
