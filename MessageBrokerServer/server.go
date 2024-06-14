@@ -31,7 +31,10 @@ func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
 			"subscribe":   true,
 			"unsubscribe": true,
 		},
-		asyncTopics: map[string]bool{},
+		asyncTopics: map[string]bool{
+			"heartbeat": true,
+			"consume":   true,
+		},
 
 		subscriptions:    nil,
 		connectedClients: nil,
