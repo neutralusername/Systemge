@@ -18,7 +18,7 @@ type Client struct {
 	websocketServer *WebsocketServer.Server
 	application     Application.Application
 
-	serverConnections          map[string]*serverConnection     // address -> serverConnection
+	serverConnections          map[string]*serverConnection     // brokerName -> serverConnection
 	topicResolutions           map[string]*serverConnection     // topic -> serverConnection
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 	mapOperationMutex          sync.Mutex

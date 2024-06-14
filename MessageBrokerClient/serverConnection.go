@@ -3,6 +3,7 @@ package MessageBrokerClient
 import (
 	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/ResolverServer"
 	"Systemge/TCP"
 	"Systemge/Utilities"
 	"net"
@@ -11,7 +12,7 @@ import (
 
 type serverConnection struct {
 	netConn net.Conn
-	address string
+	broker  *ResolverServer.Broker
 	logger  *Utilities.Logger
 
 	topics            map[string]bool
@@ -21,10 +22,10 @@ type serverConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newServerConnection(netConn net.Conn, address string, logger *Utilities.Logger) *serverConnection {
+func newServerConnection(netConn net.Conn, broker *ResolverServer.Broker, logger *Utilities.Logger) *serverConnection {
 	return &serverConnection{
 		netConn: netConn,
-		address: address,
+		broker:  broker,
 		logger:  logger,
 
 		topics: make(map[string]bool),
@@ -78,7 +79,7 @@ func (serverConnection *serverConnection) close() error {
 func (client *Client) attemptToReconnect(serverConnection *serverConnection) {
 	client.mapOperationMutex.Lock()
 	serverConnection.mapOperationMutex.Lock()
-	delete(client.serverConnections, serverConnection.address)
+	delete(client.serverConnections, serverConnection.broker.Name)
 	topicsToReconnect := make([]string, 0)
 	for topic := range serverConnection.topics {
 		delete(client.topicResolutions, topic)

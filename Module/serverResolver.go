@@ -1,21 +1,24 @@
 package Module
 
 import (
-	"Systemge/TopicResolutionServer"
+	"Systemge/ResolverServer"
 	"Systemge/Utilities"
 	"strings"
 )
 
-func NewResolverServer(name string, port string, loggerPath string, topicAddresses map[string]string) *TopicResolutionServer.Server {
+func NewResolverServer(name string, port string, loggerPath string, brokers map[string]*ResolverServer.Broker, topics map[string]*ResolverServer.Broker) *ResolverServer.Server {
 	logger := Utilities.NewLogger(loggerPath)
-	resolutionServer := TopicResolutionServer.New(name, port, logger)
-	for topic, address := range topicAddresses {
-		resolutionServer.RegisterTopics(address, topic)
+	resolutionServer := ResolverServer.New(name, port, logger)
+	for _, broker := range brokers {
+		resolutionServer.RegisterBroker(broker)
+	}
+	for topic, broker := range topics {
+		resolutionServer.RegisterTopics(broker.Name, topic)
 	}
 	return resolutionServer
 }
 
-func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) *TopicResolutionServer.Server {
+func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) *ResolverServer.Server {
 	if !Utilities.FileExists(sytemgeConfigPath) {
 		panic("provided file does not exist")
 	}
@@ -28,7 +31,8 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 		name = fileNameSegments[0]
 	}
 	port := ""
-	topics := map[string]string{}
+	topics := map[string]*ResolverServer.Broker{}  // topic -> broker
+	brokers := map[string]*ResolverServer.Broker{} // broker-name -> broker
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 2 {
 		panic("error reading file")
@@ -42,14 +46,14 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 			if len(line) < 2 {
 				panic("error reading file. missing config type")
 			}
-			segments := strings.Split(line, " ")
-			if len(segments) != 2 {
+			lineSegments := strings.Split(line, " ")
+			if len(lineSegments) != 2 {
 				panic("error reading file. incomplete config type")
 			}
-			if segments[0] != "#" {
+			if lineSegments[0] != "#" {
 				panic("error reading file. missing config type identifier (#)")
 			}
-			if segments[1] != "resolver" {
+			if lineSegments[1] != "resolver" {
 				panic("error reading file. invalid config type (want: resolver)")
 			}
 			continue
@@ -62,15 +66,31 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 			}
 			port = line
 		default:
-			segments := strings.Split(line, " ")
-			if len(segments) != 2 {
-				panic("error reading file. incomplete topic/address pair")
+			lineSegments := strings.Split(line, " ")
+			if len(lineSegments) == 2 {
+				if len(lineSegments[0]) < 1 || len(lineSegments[1]) < 1 {
+					panic("error reading file. Missing topic or address")
+				}
+				broker := brokers[lineSegments[1]]
+				if broker == nil {
+					panic("error reading file. Broker not found")
+				}
+				topics[lineSegments[0]] = broker
+			} else if len(lineSegments) == 3 {
+				name := lineSegments[0]
+				address := lineSegments[1]
+				if !Utilities.FileExists(lineSegments[2]) {
+					println(lineSegments[2])
+					panic("error reading file. cert file not found")
+				}
+				cert := Utilities.GetFileContent(lineSegments[2])
+				broker := ResolverServer.NewBroker(name, address, cert)
+				brokers[name] = broker
+			} else {
+				panic("error reading file. invalid topic line")
 			}
-			if len(segments[0]) < 1 || len(segments[1]) < 1 {
-				panic("error reading file. Missing topic or address")
-			}
-			topics[segments[0]] = segments[1]
+
 		}
 	}
-	return NewResolverServer(name, port, errorLogPath, topics)
+	return NewResolverServer(name, port, errorLogPath, brokers, topics)
 }

@@ -3,12 +3,20 @@ package MessageBrokerClient
 import (
 	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/ResolverServer"
 	"Systemge/TCP"
-	"net"
+	"crypto/tls"
+	"crypto/x509"
 )
 
-func (client *Client) connectToBroker(brokerAddress string) (*serverConnection, error) {
-	netConn, err := net.Dial("tcp", brokerAddress)
+func (client *Client) connectToBroker(broker *ResolverServer.Broker) (*serverConnection, error) {
+	rootCAs := x509.NewCertPool()
+	if !rootCAs.AppendCertsFromPEM([]byte(broker.Certificate)) {
+		return nil, Error.New("Error adding certificate to root CAs", nil)
+	}
+	netConn, err := tls.Dial("tcp", broker.Address, &tls.Config{
+		RootCAs: rootCAs,
+	})
 	if err != nil {
 		return nil, Error.New("Error connecting to message broker server", err)
 	}
@@ -31,7 +39,7 @@ func (client *Client) connectToBroker(brokerAddress string) (*serverConnection, 
 		netConn.Close()
 		return nil, Error.New("Invalid response topic \""+message.GetTopic()+"\"", nil)
 	}
-	serverConnection := newServerConnection(netConn, brokerAddress, client.logger)
+	serverConnection := newServerConnection(netConn, broker, client.logger)
 	err = client.addServerConnection(serverConnection)
 	if err != nil {
 		serverConnection.close()

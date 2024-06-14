@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-func (server *Server) handleConnections() {
+func (server *Server) handleTlsConnections() {
 	for server.IsStarted() {
-		netConn, err := server.tcpListener.Accept()
+		netConn, err := server.tlsListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
 				panic(err)

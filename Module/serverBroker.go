@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-func NewBrokerServer(name string, port string, loggerPath string, asyncTopics []string, syncTopics []string) *MessageBrokerServer.Server {
+func NewBrokerServer(name, tlsListenerPort, tlsCertPath, tlsKeyPath, loggerPath string, asyncTopics []string, syncTopics []string) *MessageBrokerServer.Server {
 	logger := Utilities.NewLogger(loggerPath)
-	messageBrokerServer := MessageBrokerServer.New(name, port, logger)
+	messageBrokerServer := MessageBrokerServer.New(name, tlsListenerPort, tlsCertPath, tlsKeyPath, logger)
 	for _, topic := range asyncTopics {
 		messageBrokerServer.AddAsyncTopics(topic)
 	}
@@ -30,7 +30,9 @@ func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *M
 	} else {
 		name = fileNameSegments[0]
 	}
-	port := ""
+	tlsListenerPort := ""
+	tlsCertPath := ""
+	tlsKeyPath := ""
 	asyncTopics := []string{}
 	syncTopics := []string{}
 	for i, line := range Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath)) {
@@ -60,7 +62,31 @@ func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *M
 			if line[0] != ':' {
 				panic("error reading file. Missing port number")
 			}
-			port = line
+			tlsListenerPort = line
+		case 2:
+			lineSegments := strings.Split(line, " ")
+			if len(lineSegments) != 2 {
+				panic("error reading file. invalid cert or key line")
+			}
+			if lineSegments[0] == "cert" {
+				tlsCertPath = lineSegments[1]
+			} else if lineSegments[0] == "key" {
+				tlsKeyPath = lineSegments[1]
+			} else {
+				panic("error reading file. invalid cert or key type")
+			}
+		case 3:
+			lineSegments := strings.Split(line, " ")
+			if len(lineSegments) != 2 {
+				panic("error reading file. invalid cert or key line")
+			}
+			if lineSegments[0] == "cert" {
+				tlsCertPath = lineSegments[1]
+			} else if lineSegments[0] == "key" {
+				tlsKeyPath = lineSegments[1]
+			} else {
+				panic("error reading file. invalid cert or key type")
+			}
 		default:
 			lineSegments := strings.Split(line, " ")
 			if len(lineSegments) != 2 {
@@ -75,5 +101,5 @@ func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *M
 			}
 		}
 	}
-	return NewBrokerServer(name, port, errorLogPath, asyncTopics, syncTopics)
+	return NewBrokerServer(name, tlsListenerPort, tlsCertPath, tlsKeyPath, errorLogPath, asyncTopics, syncTopics)
 }

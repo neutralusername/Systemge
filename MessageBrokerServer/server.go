@@ -3,6 +3,7 @@ package MessageBrokerServer
 import (
 	"Systemge/Error"
 	"Systemge/Utilities"
+	"crypto/tls"
 	"net"
 	"sync"
 )
@@ -16,16 +17,18 @@ type Server struct {
 	openSyncRequests map[string]*Client            // sync request token -> client
 	mutex            sync.Mutex
 
-	name         string
-	listenerPort string
-	logger       *Utilities.Logger
+	name   string
+	logger *Utilities.Logger
 
 	isStarted bool
 
-	tcpListener net.Listener
+	tlsCertPath     string
+	tlsKeyPath      string
+	tlsListenerPort string
+	tlsListener     net.Listener
 }
 
-func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
+func New(name, tlsListerPort, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
 	return &Server{
 		syncTopics: map[string]bool{
 			"subscribe":   true,
@@ -36,19 +39,12 @@ func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
 			"heartbeat": true,
 		},
 
-		subscriptions:    nil,
-		connectedClients: nil,
-		openSyncRequests: nil,
+		name:   name,
+		logger: logger,
 
-		mutex: sync.Mutex{},
-
-		name:         name,
-		listenerPort: listenerPort,
-		logger:       logger,
-
-		isStarted: false,
-
-		tcpListener: nil,
+		tlsCertPath:     tlsCertPath,
+		tlsKeyPath:      tlsKeyPath,
+		tlsListenerPort: tlsListerPort,
 	}
 }
 
@@ -58,16 +54,27 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Error.New("Server already started", nil)
 	}
-	tcpListener, err := net.Listen("tcp", server.listenerPort)
+	var tlsListener net.Listener
+	if server.tlsCertPath == "" || server.tlsKeyPath == "" || server.tlsListenerPort == "" {
+		return Error.New("TLS certificate path, TLS key path, and TLS listener port must be provided", nil)
+	}
+	tlsCert, err := tls.LoadX509KeyPair(server.tlsCertPath, server.tlsKeyPath)
+	if err != nil {
+		return Error.New("Failed to load TLS certificate: ", err)
+	}
+	tlsListener, err = tls.Listen("tcp", server.tlsListenerPort, &tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		Certificates: []tls.Certificate{tlsCert},
+	})
 	if err != nil {
 		return Error.New("Failed to start server: ", err)
 	}
 	server.connectedClients = map[string]*Client{}
 	server.openSyncRequests = map[string]*Client{}
 	server.subscriptions = map[string]map[string]*Client{}
-	server.tcpListener = tcpListener
+	server.tlsListener = tlsListener
+	go server.handleTlsConnections()
 	server.isStarted = true
-	go server.handleConnections()
 	return nil
 }
 
@@ -87,8 +94,8 @@ func (server *Server) Stop() error {
 			delete(server.connectedClients, client.name)
 		}
 	}
-	server.tcpListener.Close()
-	server.tcpListener = nil
+	server.tlsListener.Close()
+	server.tlsListener = nil
 	return nil
 }
 

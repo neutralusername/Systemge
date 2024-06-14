@@ -1,4 +1,4 @@
-package TopicResolutionServer
+package ResolverServer
 
 import (
 	"Systemge/Error"
@@ -8,7 +8,8 @@ import (
 )
 
 type Server struct {
-	registeredTopics map[string]string // topic -> message-broker-server-address
+	knownBrokers     map[string]*Broker // broker-name -> broker
+	registeredTopics map[string]*Broker // topic -> broker
 	mutex            sync.Mutex
 
 	name         string
@@ -21,25 +22,12 @@ type Server struct {
 
 func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
 	return &Server{
-		registeredTopics: make(map[string]string),
+		knownBrokers:     map[string]*Broker{},
+		registeredTopics: map[string]*Broker{},
 		name:             name,
 		listenerPort:     listenerPort,
 		logger:           logger,
 	}
-}
-
-func (server *Server) RegisterTopics(messageBrokerAddress string, topics ...string) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	for _, topic := range topics {
-		server.registeredTopics[topic] = messageBrokerAddress
-	}
-}
-
-func (server *Server) UnregisterTopic(topic string) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	delete(server.registeredTopics, topic)
 }
 
 func (server *Server) Start() error {

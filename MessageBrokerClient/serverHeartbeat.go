@@ -10,7 +10,7 @@ func (client *Client) heartbeatLoop(serverConnection *serverConnection) {
 	for serverConnection.netConn != nil {
 		err := serverConnection.send(Message.NewAsync("heartbeat", client.name, ""))
 		if err != nil {
-			client.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+serverConnection.address+"\"", err).Error())
+			client.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+serverConnection.broker.Address+"\"", err).Error())
 			return
 		}
 		sleepChannel := make(chan bool)
