@@ -4,7 +4,6 @@ Clients can subscribe to message topics, to receive a copy for each published me
 
 ![Leeres Diagramm(9)](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
 
-
 Please contact me if you experience issues using this library
 
 stuck.fabian@gmail.com
