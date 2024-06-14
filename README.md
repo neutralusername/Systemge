@@ -1,4 +1,4 @@
-Library for building message based distributed systems through async and sync TCP/TLS communication as well as featuring custom http-server and websocket-server implementations for serving frontends, websocket endpoints or creating a rest-api.  
+Library for building message based distributed systems through async and sync TCP/TLS communication as well as featuring custom http-server and websocket-server implementations for serving frontends, websocket clients or creating a rest-api.  
   
 - Each "Client" must have an "Application" that offers Sync as well as Async Message Handlers for a set of Topics.  
 - Clients communicate with each through "Brokers".  
