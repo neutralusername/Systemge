@@ -69,9 +69,6 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 			if len(segments[0]) < 1 || len(segments[1]) < 1 {
 				panic("error reading file. Missing topic or address")
 			}
-			if segments[1][0] != ':' {
-				panic("error reading file. Missing port number")
-			}
 			topics[segments[0]] = segments[1]
 		}
 	}
