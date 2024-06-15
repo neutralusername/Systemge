@@ -18,18 +18,18 @@ func (server *Server) handleBrokerConnections() {
 			}
 		}
 		go func() {
-			client, err := server.handleConnectionRequest(netConn)
+			client, err := server.handleBrokerConnectionRequest(netConn)
 			if err != nil {
 				netConn.Close()
 				server.logger.Log(Utilities.NewError("Failed to handle connection request", err).Error())
 				return
 			}
-			server.handleClientMessages(client)
+			server.handleBrokerClientMessages(client)
 		}()
 	}
 }
 
-func (server *Server) handleConnectionRequest(netConn net.Conn) (*clientConnection, error) {
+func (server *Server) handleBrokerConnectionRequest(netConn net.Conn) (*clientConnection, error) {
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return nil, Utilities.NewError("Failed to receive connection request", err)
