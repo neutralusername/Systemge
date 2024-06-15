@@ -28,6 +28,7 @@ func (server *Server) AddAsyncTopics(topics ...string) {
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		server.asyncTopics[topic] = true
+		server.clientSubscriptions[topic] = map[string]*clientConnection{}
 	}
 }
 
@@ -37,6 +38,7 @@ func (server *Server) AddSyncTopics(topics ...string) {
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		server.syncTopics[topic] = true
+		server.clientSubscriptions[topic] = map[string]*clientConnection{}
 	}
 }
 
@@ -46,12 +48,11 @@ func (server *Server) RemoveAsyncTopics(topics ...string) {
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		delete(server.asyncTopics, topic)
-		if server.subscriptions[topic] != nil {
-			for _, client := range server.subscriptions[topic] {
-				delete(client.subscribedTopics, topic)
-				delete(server.subscriptions[topic], client.name)
-			}
+		for _, client := range server.clientSubscriptions[topic] {
+			delete(client.subscribedTopics, topic)
+			delete(server.clientSubscriptions[topic], client.name)
 		}
+		delete(server.clientSubscriptions, topic)
 	}
 }
 
@@ -61,11 +62,10 @@ func (server *Server) RemoveSyncTopics(topics ...string) {
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		delete(server.syncTopics, topic)
-		if server.subscriptions[topic] != nil {
-			for _, client := range server.subscriptions[topic] {
-				delete(client.subscribedTopics, topic)
-				delete(server.subscriptions[topic], client.name)
-			}
+		for _, client := range server.clientSubscriptions[topic] {
+			delete(client.subscribedTopics, topic)
+			delete(server.clientSubscriptions[topic], client.name)
 		}
+		delete(server.clientSubscriptions, topic)
 	}
 }

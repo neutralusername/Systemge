@@ -7,8 +7,8 @@ func (server *Server) GetCustomCommandHandlers() map[string]Application.CustomCo
 	return map[string]Application.CustomCommandHandler{
 		"brokerClients": func(args []string) error {
 			server.mutex.Lock()
-			for _, client := range server.connectedClients {
-				println(client.name)
+			for _, clientConnection := range server.clientConnections {
+				println(clientConnection.name)
 			}
 			server.mutex.Unlock()
 			return nil

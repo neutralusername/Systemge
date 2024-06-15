@@ -31,7 +31,7 @@ func (server *Server) handleTlsConnections() {
 	}
 }
 
-func (server *Server) handleConnectionRequest(netConn net.Conn) (*ClientConnection, error) {
+func (server *Server) handleConnectionRequest(netConn net.Conn) (*clientConnection, error) {
 	messageBytes, err := TCP.Receive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
@@ -40,14 +40,14 @@ func (server *Server) handleConnectionRequest(netConn net.Conn) (*ClientConnecti
 	if message == nil || message.GetTopic() != "connect" || message.GetOrigin() == "" {
 		return nil, Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
-	client := NewClienn(message.GetOrigin(), netConn)
-	err = server.addClient(client)
+	clientConnection := newClientConnection(message.GetOrigin(), netConn)
+	err = server.addClient(clientConnection)
 	if err != nil {
 		return nil, err
 	}
-	err = client.send(Message.NewAsync("connected", server.name, ""))
+	err = clientConnection.send(Message.NewAsync("connected", server.name, ""))
 	if err != nil {
-		return nil, Error.New("Failed to send connection response to client \""+client.name+"\"", err)
+		return nil, Error.New("Failed to send connection response to client \""+clientConnection.name+"\"", err)
 	}
-	return client, nil
+	return clientConnection, nil
 }

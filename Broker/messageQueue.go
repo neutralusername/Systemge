@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-func (client *ClientConnection) queueMessage(message *Message.Message) {
-	client.messageQueue <- message
+func (clientConnection *clientConnection) queueMessage(message *Message.Message) {
+	clientConnection.messageQueue <- message
 }
 
-func (client *ClientConnection) dequeueMessage_Timeout(timeoutMs int) *Message.Message {
+func (clientConnection *clientConnection) dequeueMessage_Timeout(timeoutMs int) *Message.Message {
 	timeoutChannel := make(chan bool)
 	go func() {
 		time.Sleep(time.Millisecond * time.Duration(timeoutMs))
 		timeoutChannel <- true
 	}()
 	select {
-	case message := <-client.messageQueue:
+	case message := <-clientConnection.messageQueue:
 		return message
 	case <-timeoutChannel:
 		return nil

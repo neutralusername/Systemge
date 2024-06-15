@@ -12,10 +12,10 @@ type Server struct {
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
-	subscriptions    map[string]map[string]*ClientConnection // topic -> [client name-> client]
-	connectedClients map[string]*ClientConnection            // client name -> Client
-	openSyncRequests map[string]*ClientConnection            // sync request token -> client
-	mutex            sync.Mutex
+	clientSubscriptions map[string]map[string]*clientConnection // topic -> [clientName-> client]
+	clientConnections   map[string]*clientConnection            // clientName -> Client
+	openSyncRequests    map[string]*clientConnection            // sync request token -> client
+	mutex               sync.Mutex
 
 	name   string
 	logger *Utilities.Logger
@@ -69,9 +69,9 @@ func (server *Server) Start() error {
 	if err != nil {
 		return Error.New("Failed to start server: ", err)
 	}
-	server.connectedClients = map[string]*ClientConnection{}
-	server.openSyncRequests = map[string]*ClientConnection{}
-	server.subscriptions = map[string]map[string]*ClientConnection{}
+	server.clientConnections = map[string]*clientConnection{}
+	server.openSyncRequests = map[string]*clientConnection{}
+	server.clientSubscriptions = map[string]map[string]*clientConnection{}
 	server.tlsListener = tlsListener
 	go server.handleTlsConnections()
 	server.isStarted = true
@@ -89,9 +89,9 @@ func (server *Server) Stop() error {
 		return Error.New("Server is not started", nil)
 	}
 	server.isStarted = false
-	for _, clients := range server.subscriptions {
-		for _, client := range clients {
-			delete(server.connectedClients, client.name)
+	for _, clients := range server.clientSubscriptions {
+		for _, clientConnection := range clients {
+			delete(server.clientConnections, clientConnection.name)
 		}
 	}
 	server.tlsListener.Close()
