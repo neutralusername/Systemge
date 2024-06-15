@@ -4,32 +4,15 @@ import (
 	"Systemge/Message"
 	"Systemge/Resolver"
 	"Systemge/Utilities"
-	"net"
 )
 
 func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution, error) {
-	netConn, err := net.Dial("tcp", client.resolverAddress)
+	response, err := client.tcpExchange(Message.NewAsync("resolve", client.name, topic), client.resolverAddress)
 	if err != nil {
-		return nil, Utilities.NewError("Error connecting to topic resolution server", err)
+		return nil, Utilities.NewError("Error resolving broker", err)
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("resolve", client.name, topic).Serialize(), DEFAULT_TCP_TIMEOUT)
-	if err != nil {
-		netConn.Close()
-		return nil, Utilities.NewError("Error sending topic resolution request", err)
-	}
-	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
-	if err != nil {
-		netConn.Close()
-		return nil, Utilities.NewError("Error receiving topic resolution response", err)
-	}
-	message := Message.Deserialize(messageBytes)
-	if message == nil || message.GetTopic() != "resolution" {
-		netConn.Close()
-		return nil, Utilities.NewError("Invalid response \""+string(messageBytes)+"\"", nil)
-	}
-	resolution := Resolver.UnmarshalResolution(message.GetPayload())
+	resolution := Resolver.UnmarshalResolution(response.GetPayload())
 	if resolution == nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Error unmarshalling broker", nil)
 	}
 	return resolution, nil
