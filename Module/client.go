@@ -1,14 +1,14 @@
 package Module
 
 import (
-	"Systemge/MessageBrokerClient"
+	"Systemge/Client"
 	"Systemge/Utilities"
 )
 
-func NewClient(name string, port string, loggerPath string, newApplicationFunc NewApplicationFunc) *MessageBrokerClient.Client {
+func NewClient(name string, port string, loggerPath string, newApplicationFunc NewApplicationFunc, args []string) *Client.Client {
 	logger := Utilities.NewLogger(loggerPath)
-	mbc := MessageBrokerClient.New(name, port, logger, nil)
-	application := newApplicationFunc(logger, mbc)
-	mbc.SetApplication(application)
-	return mbc
+	client := Client.New(name, port, logger, nil)
+	application := newApplicationFunc(client, args)
+	client.SetApplication(application)
+	return client
 }

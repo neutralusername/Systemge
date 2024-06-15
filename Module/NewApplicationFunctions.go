@@ -2,9 +2,8 @@ package Module
 
 import (
 	"Systemge/Application"
-	"Systemge/MessageBrokerClient"
-	"Systemge/Utilities"
+	"Systemge/Client"
 )
 
-type NewApplicationFunc func(*Utilities.Logger, *MessageBrokerClient.Client) Application.Application
-type NewWebsocketApplicationFunc func(*Utilities.Logger, *MessageBrokerClient.Client) Application.WebsocketApplication
+type NewApplicationFunc func(*Client.Client, []string) Application.Application
+type NewWebsocketApplicationFunc func(*Client.Client, []string) Application.WebsocketApplication
