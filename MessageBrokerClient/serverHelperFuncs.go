@@ -46,11 +46,11 @@ func (client *Client) attemptToReconnect(serverConnection *serverConnection) {
 	for _, topic := range topicsToReconnect {
 		newServerConnection, err := client.getServerConnectionForTopic(topic)
 		if err != nil {
-			panic(err)
+			panic(Error.New("Unable to obtain new broker for topic \""+topic+"\"", err))
 		}
 		err = client.subscribeTopic(newServerConnection, topic)
 		if err != nil {
-			panic(err)
+			panic(Error.New("Unable to subscribe to topic \""+topic+"\"", err))
 		}
 	}
 }
