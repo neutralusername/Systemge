@@ -18,7 +18,6 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution,
 	}
 	resolution := Resolver.UnmarshalResolution(response.GetPayload())
 	if resolution == nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Error unmarshalling broker", nil)
 	}
 	return resolution, nil
