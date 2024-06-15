@@ -12,12 +12,11 @@ func (client *Client) connectToBroker(resolution *Resolver.Resolution) (*brokerC
 		return nil, Utilities.NewError("Error connecting to message broker server", err)
 	}
 	response, err := client.tcpExchange(netConn, Message.NewAsync("connect", client.name, ""))
+	netConn.Close()
 	if err != nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Error sending connection request", err)
 	}
 	if response.GetTopic() != "connected" {
-		netConn.Close()
 		return nil, Utilities.NewError("Invalid response topic \""+response.GetTopic()+"\"", nil)
 	}
 	return newBrokerConnection(netConn, resolution, client.logger), nil

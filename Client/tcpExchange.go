@@ -25,17 +25,14 @@ func (client *Client) tlsDial(address string, tlsCertificate string) (net.Conn, 
 func (client *Client) tcpExchange(netConn net.Conn, message *Message.Message) (*Message.Message, error) {
 	err := Utilities.TcpSend(netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Error sending message", err)
 	}
 	responseBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Error receiving response", err)
 	}
 	message = Message.Deserialize(responseBytes)
 	if message == nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Invalid response \""+string(responseBytes)+"\"", nil)
 	}
 	return message, nil

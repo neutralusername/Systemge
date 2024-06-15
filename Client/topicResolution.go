@@ -12,8 +12,8 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution,
 		return nil, Utilities.NewError("Error dialing resolver", err)
 	}
 	response, err := client.tcpExchange(netConn, Message.NewAsync("resolve", client.name, topic))
+	netConn.Close()
 	if err != nil {
-		netConn.Close()
 		return nil, Utilities.NewError("Error resolving broker", err)
 	}
 	resolution := Resolver.UnmarshalResolution(response.GetPayload())
