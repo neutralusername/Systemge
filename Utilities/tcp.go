@@ -14,14 +14,14 @@ func TcpDial(address string) (net.Conn, error) {
 	return net.Dial("tcp", address)
 }
 
-func TlsDial(address string, SNI string, tlsCertificate string) (net.Conn, error) {
+func TlsDial(address string, ServerNameIndication string, tlsCertificate string) (net.Conn, error) {
 	rootCAs := x509.NewCertPool()
 	if !rootCAs.AppendCertsFromPEM([]byte(tlsCertificate)) {
 		return nil, NewError("Error adding certificate to root CAs", nil)
 	}
 	return tls.Dial("tcp", address, &tls.Config{
 		RootCAs:    rootCAs,
-		ServerName: SNI,
+		ServerName: ServerNameIndication,
 	})
 }
 
