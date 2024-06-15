@@ -6,7 +6,7 @@ import (
 	"net"
 )
 
-func (server *Server) handleConnection(netConn net.Conn) {
+func (server *Server) handleResolverConnections(netConn net.Conn) {
 	defer netConn.Close()
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
@@ -28,5 +28,6 @@ func (server *Server) handleConnection(netConn net.Conn) {
 	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", server.name, broker.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		server.logger.Log(Utilities.NewError("Failed to send resolution to \""+message.GetOrigin()+"\"", err).Error())
+		return
 	}
 }

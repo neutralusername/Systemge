@@ -7,8 +7,7 @@ import (
 )
 
 func NewBroker(name, tlsListenerPort, tlsCertPath, tlsKeyPath, loggerPath string, asyncTopics []string, syncTopics []string) *Broker.Server {
-	logger := Utilities.NewLogger(loggerPath)
-	broker := Broker.New(name, tlsListenerPort, tlsCertPath, tlsKeyPath, logger)
+	broker := Broker.New(name, tlsListenerPort, tlsCertPath, tlsKeyPath, Utilities.NewLogger(loggerPath))
 	for _, topic := range asyncTopics {
 		broker.AddAsyncTopics(topic)
 	}

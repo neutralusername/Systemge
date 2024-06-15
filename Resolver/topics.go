@@ -16,14 +16,15 @@ func (server *Server) RegisterTopics(brokerName string, topics ...string) error 
 	return nil
 }
 
-func (server *Server) UnregisterTopic(topic string) error {
+func (server *Server) UnregisterTopic(topics ...string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	broker := server.registeredTopics[topic]
-	if broker == nil {
-		return Utilities.NewError("Topic not found", nil)
+	for _, topic := range topics {
+		broker := server.registeredTopics[topic]
+		if broker == nil {
+			continue
+		}
+		delete(server.registeredTopics, topic)
+		delete(broker.topics, topic)
 	}
-	delete(server.registeredTopics, topic)
-	delete(broker.topics, topic)
-	return nil
 }

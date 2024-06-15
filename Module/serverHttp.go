@@ -7,9 +7,8 @@ import (
 	"strings"
 )
 
-func NewHTTPServer(name string, port string, loggerPath string, tlsCert string, tlsKey string, patterns map[string]HTTP.RequestHandler) *HTTP.Server {
-	logger := Utilities.NewLogger(loggerPath)
-	httpServer := HTTP.New(port, name, tlsCert, tlsKey, logger)
+func NewHTTPServer(name string, port string, loggerPath string, tlsCertPath string, tlsKeyPath string, patterns map[string]HTTP.RequestHandler) *HTTP.Server {
+	httpServer := HTTP.New(port, name, tlsCertPath, tlsKeyPath, Utilities.NewLogger(loggerPath))
 	for pattern, handler := range patterns {
 		httpServer.RegisterPattern(pattern, handler)
 	}

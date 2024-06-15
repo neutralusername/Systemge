@@ -2,6 +2,7 @@ package Resolver
 
 import (
 	"Systemge/Utilities"
+	"crypto/tls"
 	"net"
 	"sync"
 )
@@ -11,21 +12,32 @@ type Server struct {
 	registeredTopics map[string]*Resolution // topic -> broker
 	mutex            sync.Mutex
 
-	name         string
-	listenerPort string
-	logger       *Utilities.Logger
+	name   string
+	logger *Utilities.Logger
 
-	isStarted   bool
-	tcpListener net.Listener
+	isStarted bool
+
+	resolverPort        string
+	tcpListenerResolver net.Listener
+
+	configPort        string
+	tlsCertPath       string
+	tlsKeyPath        string
+	tlsListenerConfig net.Listener
 }
 
-func New(name string, listenerPort string, logger *Utilities.Logger) *Server {
+func New(name, resolverPort, configPort, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
 	return &Server{
+		name:             name,
+		logger:           logger,
 		knownBrokers:     map[string]*Resolution{},
 		registeredTopics: map[string]*Resolution{},
-		name:             name,
-		listenerPort:     listenerPort,
-		logger:           logger,
+
+		resolverPort: resolverPort,
+
+		configPort:  configPort,
+		tlsCertPath: tlsCertPath,
+		tlsKeyPath:  tlsKeyPath,
 	}
 }
 
@@ -36,21 +48,44 @@ func (server *Server) Start() error {
 		return Utilities.NewError("Server already started", nil)
 	}
 	server.isStarted = true
-	tcpListener, err := net.Listen("tcp", server.listenerPort)
+	tcpListener, err := net.Listen("tcp", server.resolverPort)
 	if err != nil {
 		return Utilities.NewError("", err)
 	}
-	server.tcpListener = tcpListener
+	tlsCert, err := tls.LoadX509KeyPair(server.tlsCertPath, server.tlsKeyPath)
+	if err != nil {
+		return Utilities.NewError("Failed to load TLS certificate: ", err)
+	}
+	tlsListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+	})
+	if err != nil {
+		return Utilities.NewError("", err)
+	}
+	server.tcpListenerResolver = tcpListener
+	server.tlsListenerConfig = tlsListener
 	go func() {
 		for server.IsStarted() {
-			netConn, err := server.tcpListener.Accept()
+			netConn, err := server.tcpListenerResolver.Accept()
 			if err != nil {
 				if server.IsStarted() {
 					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
 				}
 				return
 			}
-			go server.handleConnection(netConn)
+			go server.handleResolverConnections(netConn)
+		}
+	}()
+	go func() {
+		for server.IsStarted() {
+			netConn, err := server.tlsListenerConfig.Accept()
+			if err != nil {
+				if server.IsStarted() {
+					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
+				}
+				return
+			}
+			go server.handleConfigConnections(netConn)
 		}
 	}()
 	return nil
@@ -67,8 +102,10 @@ func (server *Server) Stop() error {
 		return Utilities.NewError("Server is not started", nil)
 	}
 	server.isStarted = false
-	server.tcpListener.Close()
-	server.tcpListener = nil
+	server.tcpListenerResolver.Close()
+	server.tcpListenerResolver = nil
+	server.tlsListenerConfig.Close()
+	server.tlsListenerConfig = nil
 	return nil
 }
 

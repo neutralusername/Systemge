@@ -8,27 +8,27 @@ import (
 )
 
 type Server struct {
-	httpServer *http.Server
-	address    string
-	tlsCert    string
-	tlsKey     string
-	name       string
-	mux        *http.ServeMux
-	logger     *Utilities.Logger
-	isStarted  bool
-	mutex      sync.Mutex
+	httpServer  *http.Server
+	address     string
+	tlsCertPath string
+	tlsKeyPath  string
+	name        string
+	mux         *http.ServeMux
+	logger      *Utilities.Logger
+	isStarted   bool
+	mutex       sync.Mutex
 }
 
-func New(port, name, tlsCert, tlsKey string, logger *Utilities.Logger) *Server {
+func New(port, name, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
 	server := &Server{
-		httpServer: nil,
-		address:    port,
-		tlsCert:    tlsCert,
-		tlsKey:     tlsKey,
-		name:       name,
-		mux:        http.NewServeMux(),
-		logger:     logger,
-		isStarted:  false,
+		httpServer:  nil,
+		address:     port,
+		tlsCertPath: tlsCertPath,
+		tlsKeyPath:  tlsKeyPath,
+		name:        name,
+		mux:         http.NewServeMux(),
+		logger:      logger,
+		isStarted:   false,
 	}
 	return server
 }
@@ -39,7 +39,7 @@ func (server *Server) SetKey(key string) error {
 	if server.isStarted {
 		return Utilities.NewError("Can not set key while server is running", nil)
 	}
-	server.tlsKey = key
+	server.tlsKeyPath = key
 	return nil
 }
 
@@ -49,7 +49,7 @@ func (server *Server) SetCert(cert string) error {
 	if server.isStarted {
 		return Utilities.NewError("Can not set cert while server is running", nil)
 	}
-	server.tlsCert = cert
+	server.tlsCertPath = cert
 	return nil
 }
 
@@ -71,8 +71,8 @@ func (server *Server) Start() error {
 	}
 	errorChannel := make(chan error)
 	go func() {
-		if server.tlsCert != "" && server.tlsKey != "" {
-			err := httpServer.ListenAndServeTLS(server.tlsCert, server.tlsKey)
+		if server.tlsCertPath != "" && server.tlsKeyPath != "" {
+			err := httpServer.ListenAndServeTLS(server.tlsCertPath, server.tlsKeyPath)
 			if err != nil {
 				if !server.isStarted {
 					errorChannel <- err
