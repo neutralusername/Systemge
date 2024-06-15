@@ -76,8 +76,12 @@ func (serverConnection *serverConnection) close() error {
 	return nil
 }
 
-func (serverConnection *serverConnection) addTopic(topic string) {
+func (serverConnection *serverConnection) addTopic(topic string) error {
 	serverConnection.mapOperationMutex.Lock()
+	defer serverConnection.mapOperationMutex.Unlock()
+	if serverConnection.topics[topic] {
+		return Error.New("Topic already exists", nil)
+	}
 	serverConnection.topics[topic] = true
-	serverConnection.mapOperationMutex.Unlock()
+	return nil
 }

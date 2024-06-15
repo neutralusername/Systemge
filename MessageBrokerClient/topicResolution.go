@@ -36,19 +36,22 @@ func (client *Client) resolveBrokerForTopic(topic string) (*ResolverServer.Resol
 	return resolution, nil
 }
 
+func (client *Client) getTopicResolution(topic string) *serverConnection {
+	client.mapOperationMutex.Lock()
+	defer client.mapOperationMutex.Unlock()
+	return client.topicResolutions[topic]
+}
+
 func (client *Client) addTopicResolution(topic string, serverConnection *serverConnection) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
 	if client.topicResolutions[topic] != nil {
 		return Error.New("Topic resolution already exists", nil)
 	}
+	err := serverConnection.addTopic(topic)
+	if err != nil {
+		return Error.New("Error adding topic to server connection", err)
+	}
 	client.topicResolutions[topic] = serverConnection
-	serverConnection.addTopic(topic)
 	return nil
-}
-
-func (client *Client) getTopicResolution(topic string) *serverConnection {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
-	return client.topicResolutions[topic]
 }
