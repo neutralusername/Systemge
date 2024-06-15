@@ -13,10 +13,12 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution,
 	}
 	response, err := client.tcpExchange(netConn, Message.NewAsync("resolve", client.name, topic))
 	if err != nil {
+		netConn.Close()
 		return nil, Utilities.NewError("Error resolving broker", err)
 	}
 	resolution := Resolver.UnmarshalResolution(response.GetPayload())
 	if resolution == nil {
+		netConn.Close()
 		return nil, Utilities.NewError("Error unmarshalling broker", nil)
 	}
 	return resolution, nil
