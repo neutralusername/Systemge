@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (client *Client) handleServerMessages(serverConnection *serverConnection) {
+func (client *Client) handleServerMessages(serverConnection *brokerConnection) {
 	for serverConnection.netConn != nil {
 		messageBytes, err := serverConnection.receive()
 		if err != nil {
@@ -36,7 +36,7 @@ func (client *Client) handleServerMessages(serverConnection *serverConnection) {
 	}
 }
 
-func (client *Client) handleMessage(message *Message.Message, serverConnection *serverConnection) {
+func (client *Client) handleMessage(message *Message.Message, serverConnection *brokerConnection) {
 	if !client.handleServerMessagesConcurrently {
 		client.handleServerMessagesConcurrentlyMutex.Lock()
 	}

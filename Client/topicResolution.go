@@ -36,13 +36,13 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution,
 	return resolution, nil
 }
 
-func (client *Client) getTopicResolution(topic string) *serverConnection {
+func (client *Client) getTopicResolution(topic string) *brokerConnection {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
 	return client.topicResolutions[topic]
 }
 
-func (client *Client) addTopicResolution(topic string, serverConnection *serverConnection) error {
+func (client *Client) addTopicResolution(topic string, serverConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
 	if client.topicResolutions[topic] != nil {

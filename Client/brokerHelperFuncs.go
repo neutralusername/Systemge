@@ -2,7 +2,7 @@ package Client
 
 import "Systemge/Error"
 
-func (client *Client) getServerConnectionForTopic(topic string) (*serverConnection, error) {
+func (client *Client) getServerConnectionForTopic(topic string) (*brokerConnection, error) {
 	serverConnection := client.getTopicResolution(topic)
 	if serverConnection == nil {
 		broker, err := client.resolveBrokerForTopic(topic)
@@ -28,10 +28,10 @@ func (client *Client) getServerConnectionForTopic(topic string) (*serverConnecti
 	return serverConnection, nil
 }
 
-func (client *Client) attemptToReconnect(serverConnection *serverConnection) {
+func (client *Client) attemptToReconnect(serverConnection *brokerConnection) {
 	client.mapOperationMutex.Lock()
 	serverConnection.mapOperationMutex.Lock()
-	delete(client.activeServerConnections, serverConnection.resolution.Address)
+	delete(client.activeBrokerConnections, serverConnection.resolution.Address)
 	topicsToReconnect := make([]string, 0)
 	for topic := range serverConnection.topics {
 		delete(client.topicResolutions, topic)

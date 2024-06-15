@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-type serverConnection struct {
+type brokerConnection struct {
 	netConn    net.Conn
 	resolution *Resolver.Resolution
 	logger     *Utilities.Logger
@@ -22,8 +22,8 @@ type serverConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newServerConnection(netConn net.Conn, resolution *Resolver.Resolution, logger *Utilities.Logger) *serverConnection {
-	return &serverConnection{
+func newServerConnection(netConn net.Conn, resolution *Resolver.Resolution, logger *Utilities.Logger) *brokerConnection {
+	return &brokerConnection{
 		netConn:    netConn,
 		resolution: resolution,
 		logger:     logger,
@@ -32,7 +32,7 @@ func newServerConnection(netConn net.Conn, resolution *Resolver.Resolution, logg
 	}
 }
 
-func (serverConnection *serverConnection) send(message *Message.Message) error {
+func (serverConnection *brokerConnection) send(message *Message.Message) error {
 	if serverConnection == nil {
 		return Error.New("Server connection is nil", nil)
 	}
@@ -48,7 +48,7 @@ func (serverConnection *serverConnection) send(message *Message.Message) error {
 	return nil
 }
 
-func (serverConnection *serverConnection) receive() ([]byte, error) {
+func (serverConnection *brokerConnection) receive() ([]byte, error) {
 	if serverConnection == nil {
 		return nil, Error.New("Server connection is nil", nil)
 	}
@@ -64,7 +64,7 @@ func (serverConnection *serverConnection) receive() ([]byte, error) {
 	return messageBytes, nil
 }
 
-func (serverConnection *serverConnection) close() error {
+func (serverConnection *brokerConnection) close() error {
 	if serverConnection == nil {
 		return Error.New("Server connection is nil", nil)
 	}
@@ -76,7 +76,7 @@ func (serverConnection *serverConnection) close() error {
 	return nil
 }
 
-func (serverConnection *serverConnection) addTopic(topic string) error {
+func (serverConnection *brokerConnection) addTopic(topic string) error {
 	serverConnection.mapOperationMutex.Lock()
 	defer serverConnection.mapOperationMutex.Unlock()
 	if serverConnection.topics[topic] {

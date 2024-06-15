@@ -20,8 +20,8 @@ type Client struct {
 
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 
-	activeServerConnections map[string]*serverConnection // brokerAddress -> serverConnection
-	topicResolutions        map[string]*serverConnection // topic -> serverConnection
+	activeBrokerConnections map[string]*brokerConnection // brokerAddress -> serverConnection
+	topicResolutions        map[string]*brokerConnection // topic -> serverConnection
 	mapOperationMutex       sync.Mutex
 
 	// handleServerMessagesConcurrently is a flag that determines whether the client will handle messages concurrently
@@ -108,9 +108,9 @@ func (client *Client) Start() error {
 	if client.isStarted {
 		return Error.New("Client already connected", nil)
 	}
-	client.topicResolutions = make(map[string]*serverConnection)
+	client.topicResolutions = make(map[string]*brokerConnection)
 	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
-	client.activeServerConnections = make(map[string]*serverConnection)
+	client.activeBrokerConnections = make(map[string]*brokerConnection)
 	client.mapOperationMutex.Unlock()
 
 	if client.websocketServer != nil {
@@ -165,11 +165,11 @@ func (client *Client) Stop() error {
 		}
 	}
 	client.mapOperationMutex.Lock()
-	for _, connection := range client.activeServerConnections {
+	for _, connection := range client.activeBrokerConnections {
 		connection.close()
 	}
-	client.activeServerConnections = make(map[string]*serverConnection)
-	client.topicResolutions = make(map[string]*serverConnection)
+	client.activeBrokerConnections = make(map[string]*brokerConnection)
+	client.topicResolutions = make(map[string]*brokerConnection)
 	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
 	client.isStarted = false
 	close(client.stopChannel)

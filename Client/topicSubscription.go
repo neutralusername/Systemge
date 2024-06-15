@@ -6,7 +6,7 @@ import (
 )
 
 // subscribes to a topic from the provided server connection
-func (client *Client) subscribeTopic(serverConnection *serverConnection, topic string) error {
+func (client *Client) subscribeTopic(serverConnection *brokerConnection, topic string) error {
 	message := Message.NewSync("subscribe", client.name, topic)
 	err := serverConnection.send(message)
 	if err != nil {

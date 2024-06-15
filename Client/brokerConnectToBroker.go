@@ -9,7 +9,7 @@ import (
 	"crypto/x509"
 )
 
-func (client *Client) connectToBroker(resolution *Resolver.Resolution) (*serverConnection, error) {
+func (client *Client) connectToBroker(resolution *Resolver.Resolution) (*brokerConnection, error) {
 	rootCAs := x509.NewCertPool()
 	if !rootCAs.AppendCertsFromPEM([]byte(resolution.Certificate)) {
 		return nil, Error.New("Error adding certificate to root CAs", nil)

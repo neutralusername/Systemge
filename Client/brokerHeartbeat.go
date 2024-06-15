@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (client *Client) heartbeatLoop(serverConnection *serverConnection) {
+func (client *Client) heartbeatLoop(serverConnection *brokerConnection) {
 	for serverConnection.netConn != nil {
 		err := serverConnection.send(Message.NewAsync("heartbeat", client.name, ""))
 		if err != nil {
