@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-func NewResolver(name, resolverPort, configPort, tlsCertPath, tlsKeyPath, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
-	resolver := Resolver.New(name, resolverPort, configPort, tlsCertPath, tlsKeyPath, Utilities.NewLogger(loggerPath))
+func NewResolver(name, resolverPort, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
+	resolver := Resolver.New(name, resolverPort, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
 	for _, broker := range brokers {
 		resolver.RegisterBroker(broker)
 	}
