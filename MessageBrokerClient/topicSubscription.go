@@ -19,5 +19,5 @@ func (client *Client) subscribeTopic(serverConnection *serverConnection, topic s
 	if response.GetTopic() != "subscribed" {
 		return Error.New("Invalid response topic \""+response.GetTopic()+"\"", nil)
 	}
-	return client.addTopicResolution(topic, serverConnection)
+	return nil
 }

@@ -46,11 +46,6 @@ func (client *Client) addTopicResolution(topic string, serverConnection *serverC
 	serverConnection.addTopic(topic)
 	return nil
 }
-func (serverConnection *serverConnection) addTopic(topic string) {
-	serverConnection.mapOperationMutex.Lock()
-	serverConnection.topics[topic] = true
-	serverConnection.mapOperationMutex.Unlock()
-}
 
 func (client *Client) getTopicResolution(topic string) *serverConnection {
 	client.mapOperationMutex.Lock()

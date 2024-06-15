@@ -76,29 +76,8 @@ func (serverConnection *serverConnection) close() error {
 	return nil
 }
 
-func (client *Client) attemptToReconnect(serverConnection *serverConnection) {
-	client.mapOperationMutex.Lock()
+func (serverConnection *serverConnection) addTopic(topic string) {
 	serverConnection.mapOperationMutex.Lock()
-	delete(client.serverConnections, serverConnection.resolution.Name)
-	topicsToReconnect := make([]string, 0)
-	for topic := range serverConnection.topics {
-		delete(client.topicResolutions, topic)
-		if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-			topicsToReconnect = append(topicsToReconnect, topic)
-		}
-	}
-	serverConnection.topics = make(map[string]bool)
+	serverConnection.topics[topic] = true
 	serverConnection.mapOperationMutex.Unlock()
-	client.mapOperationMutex.Unlock()
-
-	for _, topic := range topicsToReconnect {
-		newServerConnection, err := client.getServerConnectionForTopic(topic)
-		if err != nil {
-			panic(err)
-		}
-		err = client.subscribeTopic(newServerConnection, topic)
-		if err != nil {
-			panic(err)
-		}
-	}
 }

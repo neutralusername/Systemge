@@ -18,10 +18,11 @@ type Client struct {
 	websocketServer *WebsocketServer.Server
 	application     Application.Application
 
-	serverConnections          map[string]*serverConnection     // brokerName -> serverConnection
-	topicResolutions           map[string]*serverConnection     // topic -> serverConnection
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-	mapOperationMutex          sync.Mutex
+
+	activeServerConnections map[string]*serverConnection // brokerAddress -> serverConnection
+	topicResolutions        map[string]*serverConnection // topic -> serverConnection
+	mapOperationMutex       sync.Mutex
 
 	// handleServerMessagesConcurrently is a flag that determines whether the client will handle messages concurrently
 	// If this is set to true, the client will handle messages concurrently, otherwise it will handle messages sequentially
@@ -101,7 +102,7 @@ func (client *Client) Start() error {
 	}
 	client.topicResolutions = make(map[string]*serverConnection)
 	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
-	client.serverConnections = make(map[string]*serverConnection)
+	client.activeServerConnections = make(map[string]*serverConnection)
 	client.stopChannel = make(chan bool)
 	client.isStarted = true
 	client.mapOperationMutex.Unlock()
@@ -157,10 +158,10 @@ func (client *Client) Stop() error {
 		}
 	}
 	client.mapOperationMutex.Lock()
-	for _, connection := range client.serverConnections {
+	for _, connection := range client.activeServerConnections {
 		connection.close()
 	}
-	client.serverConnections = make(map[string]*serverConnection)
+	client.activeServerConnections = make(map[string]*serverConnection)
 	client.topicResolutions = make(map[string]*serverConnection)
 	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
 	client.isStarted = false
