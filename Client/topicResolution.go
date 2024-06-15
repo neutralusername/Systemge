@@ -12,12 +12,12 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution,
 	if err != nil {
 		return nil, Utilities.NewError("Error connecting to topic resolution server", err)
 	}
-	err = Utilities.Send(netConn, Message.NewAsync("resolve", client.name, topic).Serialize(), DEFAULT_TCP_TIMEOUT)
+	err = Utilities.TcpSend(netConn, Message.NewAsync("resolve", client.name, topic).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return nil, Utilities.NewError("Error sending topic resolution request", err)
 	}
-	messageBytes, err := Utilities.Receive(netConn, DEFAULT_TCP_TIMEOUT)
+	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return nil, Utilities.NewError("Error receiving topic resolution response", err)

@@ -39,7 +39,7 @@ func (brokerConnection *brokerConnection) send(message *Message.Message) error {
 	if brokerConnection.netConn == nil {
 		return Utilities.NewError("Connection is closed", nil)
 	}
-	err := Utilities.Send(brokerConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	err := Utilities.TcpSend(brokerConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Utilities.NewError("Error sending message", err)
 	}
@@ -55,7 +55,7 @@ func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 	if brokerConnection.netConn == nil {
 		return nil, Utilities.NewError("Connection is closed", nil)
 	}
-	messageBytes, err := Utilities.Receive(brokerConnection.netConn, 0)
+	messageBytes, err := Utilities.TcpReceive(brokerConnection.netConn, 0)
 	if err != nil {
 		return nil, Utilities.NewError("Error receiving message", err)
 	}

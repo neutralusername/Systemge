@@ -31,7 +31,7 @@ func (server *Server) handleTlsConnections() {
 }
 
 func (server *Server) handleConnectionRequest(netConn net.Conn) (*clientConnection, error) {
-	messageBytes, err := Utilities.Receive(netConn, DEFAULT_TCP_TIMEOUT)
+	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return nil, Utilities.NewError("Failed to receive connection request", err)
 	}

@@ -8,7 +8,7 @@ import (
 
 func (server *Server) handleConnection(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Utilities.Receive(netConn, DEFAULT_TCP_TIMEOUT)
+	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		server.logger.Log(Utilities.NewError("", err).Error())
 		return
@@ -25,7 +25,7 @@ func (server *Server) handleConnection(netConn net.Conn) {
 		server.logger.Log(Utilities.NewError("Topic not found: \""+message.GetPayload()+"\" by "+message.GetOrigin(), nil).Error())
 		return
 	}
-	err = Utilities.Send(netConn, Message.NewAsync("resolution", server.name, broker.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
+	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", server.name, broker.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		server.logger.Log(Utilities.NewError("Failed to send resolution to \""+message.GetOrigin()+"\"", err).Error())
 	}

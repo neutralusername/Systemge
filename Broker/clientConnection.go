@@ -38,13 +38,13 @@ func newClientConnection(name string, netConn net.Conn) *clientConnection {
 func (clientConnection *clientConnection) send(message *Message.Message) error {
 	clientConnection.sendMutex.Lock()
 	defer clientConnection.sendMutex.Unlock()
-	return Utilities.Send(clientConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	return Utilities.TcpSend(clientConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 }
 
 func (clientConnection *clientConnection) receive() ([]byte, error) {
 	clientConnection.receiveMutex.Lock()
 	defer clientConnection.receiveMutex.Unlock()
-	messageBytes, err := Utilities.Receive(clientConnection.netConn, 0)
+	messageBytes, err := Utilities.TcpReceive(clientConnection.netConn, 0)
 	if err != nil {
 		return nil, err
 	}

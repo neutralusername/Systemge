@@ -7,7 +7,7 @@ import (
 
 const ENDOFMESSAGE = "\x04"
 
-func Send(netConn net.Conn, msg []byte, timeoutMs int) error {
+func TcpSend(netConn net.Conn, msg []byte, timeoutMs int) error {
 	if netConn == nil {
 		return NewError("net.Conn is nil", nil)
 	}
@@ -23,7 +23,7 @@ func Send(netConn net.Conn, msg []byte, timeoutMs int) error {
 	return nil
 }
 
-func Receive(netConn net.Conn, timeoutMs int) ([]byte, error) {
+func TcpReceive(netConn net.Conn, timeoutMs int) ([]byte, error) {
 	if netConn == nil {
 		return nil, NewError("net.Conn is nil", nil)
 	}
