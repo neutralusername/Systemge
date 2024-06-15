@@ -65,13 +65,13 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 			tlsCertPath = lineSegments[2]
 			tlsKeyPath = lineSegments[3]
 		default:
-			if len(lineSegments) < 3 {
+			if len(lineSegments) < 4 {
 				panic("broker line is invalid \"" + line + "\"")
 			}
-			if !Utilities.FileExists(lineSegments[2]) {
+			if !Utilities.FileExists(lineSegments[3]) {
 				panic("certificate file does not exist \"" + lineSegments[2] + "\"")
 			}
-			resolution := Resolver.NewResolution(lineSegments[0], lineSegments[1], Utilities.GetFileContent(lineSegments[2]))
+			resolution := Resolver.NewResolution(lineSegments[0], lineSegments[1], lineSegments[2], Utilities.GetFileContent(lineSegments[3]))
 			brokers[lineSegments[0]] = resolution
 			for _, topic := range lineSegments[3:] {
 				topics[topic] = resolution

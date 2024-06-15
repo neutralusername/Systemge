@@ -7,15 +7,17 @@ import (
 
 type Resolution struct {
 	Name        string `json:"name"`
-	Address     string `json:"address"`
+	Address     string `json:"port"`
+	SNI         string `json:"sni"`
 	Certificate string `json:"certificate"`
 	topics      map[string]bool
 }
 
-func NewResolution(name, address, cert string) *Resolution {
+func NewResolution(name, address, sni, cert string) *Resolution {
 	return &Resolution{
 		Name:        name,
 		Address:     address,
+		SNI:         sni,
 		Certificate: cert,
 		topics:      map[string]bool{},
 	}
