@@ -45,6 +45,8 @@ func New(name, tlsListerPort, tlsCertPath, tlsKeyPath string, logger *Utilities.
 		tlsCertPath:     tlsCertPath,
 		tlsKeyPath:      tlsKeyPath,
 		tlsListenerPort: tlsListerPort,
+
+		clientSubscriptions: map[string]map[string]*clientConnection{},
 	}
 }
 
@@ -71,7 +73,6 @@ func (server *Server) Start() error {
 	}
 	server.clientConnections = map[string]*clientConnection{}
 	server.openSyncRequests = map[string]*clientConnection{}
-	server.clientSubscriptions = map[string]map[string]*clientConnection{}
 	server.tlsListener = tlsListener
 	go server.handleTlsConnections()
 	server.isStarted = true
