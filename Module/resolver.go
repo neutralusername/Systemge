@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func NewResolverServer(name string, port string, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
+func NewResolver(name string, port string, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
 	logger := Utilities.NewLogger(loggerPath)
 	resolver := Resolver.New(name, port, logger)
 	for _, broker := range brokers {
@@ -18,7 +18,7 @@ func NewResolverServer(name string, port string, loggerPath string, brokers map[
 	return resolver
 }
 
-func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) *Resolver.Server {
+func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resolver.Server {
 	if !Utilities.FileExists(sytemgeConfigPath) {
 		panic("provided file does not exist")
 	}
@@ -92,5 +92,5 @@ func NewResolverServerFromConfig(sytemgeConfigPath string, errorLogPath string) 
 
 		}
 	}
-	return NewResolverServer(name, port, errorLogPath, brokers, topics)
+	return NewResolver(name, port, errorLogPath, brokers, topics)
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func NewBrokerServer(name, tlsListenerPort, tlsCertPath, tlsKeyPath, loggerPath string, asyncTopics []string, syncTopics []string) *Broker.Server {
+func NewBroker(name, tlsListenerPort, tlsCertPath, tlsKeyPath, loggerPath string, asyncTopics []string, syncTopics []string) *Broker.Server {
 	logger := Utilities.NewLogger(loggerPath)
 	broker := Broker.New(name, tlsListenerPort, tlsCertPath, tlsKeyPath, logger)
 	for _, topic := range asyncTopics {
@@ -18,7 +18,7 @@ func NewBrokerServer(name, tlsListenerPort, tlsCertPath, tlsKeyPath, loggerPath 
 	return broker
 }
 
-func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.Server {
+func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.Server {
 	if !Utilities.FileExists(sytemgeConfigPath) {
 		panic("provided file does not exist")
 	}
@@ -101,5 +101,5 @@ func NewBrokerServerFromConfig(sytemgeConfigPath string, errorLogPath string) *B
 			}
 		}
 	}
-	return NewBrokerServer(name, tlsListenerPort, tlsCertPath, tlsKeyPath, errorLogPath, asyncTopics, syncTopics)
+	return NewBroker(name, tlsListenerPort, tlsCertPath, tlsKeyPath, errorLogPath, asyncTopics, syncTopics)
 }
