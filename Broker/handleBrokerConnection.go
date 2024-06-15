@@ -14,8 +14,7 @@ func (server *Server) handleBrokerConnections() {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
 				panic(err)
 			} else {
-				server.Stop()
-				return
+				continue
 			}
 		}
 		go func() {

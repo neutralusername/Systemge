@@ -4,20 +4,20 @@ import (
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
+	"strings"
 )
 
 func (server *Server) handleConfigConnections() {
 	for server.IsStarted() {
-		for server.IsStarted() {
-			netConn, err := server.tlsConfigListener.Accept()
-			if err != nil {
-				if server.IsStarted() {
-					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
-				}
-				return
+		netConn, err := server.tlsBrokerListener.Accept()
+		if err != nil {
+			if !strings.Contains(err.Error(), "use of closed network connection") {
+				panic(err)
+			} else {
+				continue
 			}
-			go server.handleConfigConnection(netConn)
 		}
+		go server.handleConfigConnection(netConn)
 	}
 }
 
@@ -34,7 +34,12 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		return
 	}
 	switch message.GetTopic() {
+	case "addTopic":
 
+	case "removeTopic":
+
+	default:
+		err = Utilities.NewError("Invalid config request", nil)
 	}
 	if err != nil {
 		server.logger.Log(Utilities.NewError("Failed to handle config request", err).Error())
