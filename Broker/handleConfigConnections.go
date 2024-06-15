@@ -34,10 +34,14 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		return
 	}
 	switch message.GetTopic() {
-	case "addTopic":
-
-	case "removeTopic":
-
+	case "addSyncTopic":
+		server.AddSyncTopics(message.GetPayload())
+	case "removeSyncTopic":
+		server.RemoveSyncTopics(message.GetPayload())
+	case "addAsyncTopic":
+		server.AddAsyncTopics(message.GetPayload())
+	case "removeAsyncTopic":
+		server.RemoveAsyncTopics(message.GetPayload())
 	default:
 		err = Utilities.NewError("Invalid config request", nil)
 	}
