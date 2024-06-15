@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-func (client *Client) heartbeatLoop(serverConnection *brokerConnection) {
-	for serverConnection.netConn != nil {
-		err := serverConnection.send(Message.NewAsync("heartbeat", client.name, ""))
+func (client *Client) heartbeatLoop(brokerConnection *brokerConnection) {
+	for brokerConnection.netConn != nil {
+		err := brokerConnection.send(Message.NewAsync("heartbeat", client.name, ""))
 		if err != nil {
-			client.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+serverConnection.resolution.Address+"\"", err).Error())
+			client.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+brokerConnection.resolution.Address+"\"", err).Error())
 			return
 		}
 		sleepChannel := make(chan bool)

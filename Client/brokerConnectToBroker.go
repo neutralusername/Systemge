@@ -39,5 +39,5 @@ func (client *Client) connectToBroker(resolution *Resolver.Resolution) (*brokerC
 		netConn.Close()
 		return nil, Error.New("Invalid response topic \""+message.GetTopic()+"\"", nil)
 	}
-	return newServerConnection(netConn, resolution, client.logger), nil
+	return newBrokerConnection(netConn, resolution, client.logger), nil
 }

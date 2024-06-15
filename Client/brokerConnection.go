@@ -22,7 +22,7 @@ type brokerConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newServerConnection(netConn net.Conn, resolution *Resolver.Resolution, logger *Utilities.Logger) *brokerConnection {
+func newBrokerConnection(netConn net.Conn, resolution *Resolver.Resolution, logger *Utilities.Logger) *brokerConnection {
 	return &brokerConnection{
 		netConn:    netConn,
 		resolution: resolution,
@@ -32,56 +32,56 @@ func newServerConnection(netConn net.Conn, resolution *Resolver.Resolution, logg
 	}
 }
 
-func (serverConnection *brokerConnection) send(message *Message.Message) error {
-	if serverConnection == nil {
+func (brokerConnection *brokerConnection) send(message *Message.Message) error {
+	if brokerConnection == nil {
 		return Error.New("Server connection is nil", nil)
 	}
-	serverConnection.sendMutex.Lock()
-	defer serverConnection.sendMutex.Unlock()
-	if serverConnection.netConn == nil {
+	brokerConnection.sendMutex.Lock()
+	defer brokerConnection.sendMutex.Unlock()
+	if brokerConnection.netConn == nil {
 		return Error.New("Connection is closed", nil)
 	}
-	err := TCP.Send(serverConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	err := TCP.Send(brokerConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("Error sending message", err)
 	}
 	return nil
 }
 
-func (serverConnection *brokerConnection) receive() ([]byte, error) {
-	if serverConnection == nil {
+func (brokerConnection *brokerConnection) receive() ([]byte, error) {
+	if brokerConnection == nil {
 		return nil, Error.New("Server connection is nil", nil)
 	}
-	serverConnection.receiveMutex.Lock()
-	defer serverConnection.receiveMutex.Unlock()
-	if serverConnection.netConn == nil {
+	brokerConnection.receiveMutex.Lock()
+	defer brokerConnection.receiveMutex.Unlock()
+	if brokerConnection.netConn == nil {
 		return nil, Error.New("Connection is closed", nil)
 	}
-	messageBytes, err := TCP.Receive(serverConnection.netConn, 0)
+	messageBytes, err := TCP.Receive(brokerConnection.netConn, 0)
 	if err != nil {
 		return nil, Error.New("Error receiving message", err)
 	}
 	return messageBytes, nil
 }
 
-func (serverConnection *brokerConnection) close() error {
-	if serverConnection == nil {
+func (brokerConnection *brokerConnection) close() error {
+	if brokerConnection == nil {
 		return Error.New("Server connection is nil", nil)
 	}
-	if serverConnection.netConn == nil {
+	if brokerConnection.netConn == nil {
 		return Error.New("Connection is already closed", nil)
 	}
-	serverConnection.netConn.Close()
-	serverConnection.netConn = nil
+	brokerConnection.netConn.Close()
+	brokerConnection.netConn = nil
 	return nil
 }
 
-func (serverConnection *brokerConnection) addTopic(topic string) error {
-	serverConnection.mapOperationMutex.Lock()
-	defer serverConnection.mapOperationMutex.Unlock()
-	if serverConnection.topics[topic] {
+func (brokerConnection *brokerConnection) addTopic(topic string) error {
+	brokerConnection.mapOperationMutex.Lock()
+	defer brokerConnection.mapOperationMutex.Unlock()
+	if brokerConnection.topics[topic] {
 		return Error.New("Topic already exists", nil)
 	}
-	serverConnection.topics[topic] = true
+	brokerConnection.topics[topic] = true
 	return nil
 }

@@ -128,7 +128,7 @@ func (client *Client) Start() error {
 		topics = append(topics, topic)
 	}
 	for _, topic := range topics {
-		serverConnection, err := client.getServerConnectionForTopic(topic)
+		serverConnection, err := client.getBrokerConnectionForTopic(topic)
 		if err != nil {
 			close(client.stopChannel)
 			return Error.New("Error getting server connection for topic", err)

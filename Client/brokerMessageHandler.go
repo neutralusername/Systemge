@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-func (client *Client) handleServerMessages(serverConnection *brokerConnection) {
-	for serverConnection.netConn != nil {
-		messageBytes, err := serverConnection.receive()
+func (client *Client) handleServerMessages(brokerConnection *brokerConnection) {
+	for brokerConnection.netConn != nil {
+		messageBytes, err := brokerConnection.receive()
 		if err != nil {
-			serverConnection.close()
+			brokerConnection.close()
 			if !strings.Contains(err.Error(), "use of closed network connection") { // do not attempt to reconnect if the connection was closed from the client side
-				client.attemptToReconnect(serverConnection)
+				client.attemptToReconnect(brokerConnection)
 			}
 			return
 		}
@@ -31,12 +31,12 @@ func (client *Client) handleServerMessages(serverConnection *brokerConnection) {
 				client.logger.Log(Error.New("No response channel for sync response token \""+message.GetSyncResponseToken()+"\"", nil).Error())
 			}
 		} else {
-			client.handleMessage(message, serverConnection)
+			client.handleMessage(message, brokerConnection)
 		}
 	}
 }
 
-func (client *Client) handleMessage(message *Message.Message, serverConnection *brokerConnection) {
+func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) {
 	if !client.handleServerMessagesConcurrently {
 		client.handleServerMessagesConcurrentlyMutex.Lock()
 	}
@@ -46,12 +46,12 @@ func (client *Client) handleMessage(message *Message.Message, serverConnection *
 			client.handleServerMessagesConcurrentlyMutex.Unlock()
 		}
 		if err != nil {
-			err := serverConnection.send(message.NewResponse("error", client.name, Error.New("Error handling message", err).Error()))
+			err := brokerConnection.send(message.NewResponse("error", client.name, Error.New("Error handling message", err).Error()))
 			if err != nil {
 				client.logger.Log(Error.New("Failed to send error response to message broker server", err).Error())
 			}
 		} else {
-			err := serverConnection.send(message.NewResponse(message.GetTopic(), client.name, response))
+			err := brokerConnection.send(message.NewResponse(message.GetTopic(), client.name, response))
 			if err != nil {
 				client.logger.Log(Error.New("Failed to send received response to message broker server", err).Error())
 			}

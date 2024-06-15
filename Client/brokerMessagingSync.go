@@ -11,11 +11,11 @@ func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Messa
 	if message.GetSyncRequestToken() == "" {
 		return nil, Error.New("SyncRequestToken not set", nil)
 	}
-	serverConnection, err := client.getServerConnectionForTopic(message.GetTopic())
+	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic())
 	if err != nil {
 		return nil, Error.New("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}
-	err = serverConnection.send(message)
+	err = brokerConnection.send(message)
 	if err != nil {
 		return nil, Error.New("Error sending sync request message", err)
 	}

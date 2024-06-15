@@ -4,19 +4,19 @@ import (
 	"Systemge/Error"
 )
 
-func (client *Client) addServerConnection(serverConnection *brokerConnection) error {
+func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
-	if client.activeBrokerConnections[serverConnection.resolution.Address] != nil {
+	if client.activeBrokerConnections[brokerConnection.resolution.Address] != nil {
 		return Error.New("Server connection already exists", nil)
 	}
-	client.activeBrokerConnections[serverConnection.resolution.Address] = serverConnection
-	go client.handleServerMessages(serverConnection)
-	go client.heartbeatLoop(serverConnection)
+	client.activeBrokerConnections[brokerConnection.resolution.Address] = brokerConnection
+	go client.handleServerMessages(brokerConnection)
+	go client.heartbeatLoop(brokerConnection)
 	return nil
 }
 
-func (client *Client) getServerConnection(brokerAddress string) *brokerConnection {
+func (client *Client) getBrokerConnection(brokerAddress string) *brokerConnection {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
 	return client.activeBrokerConnections[brokerAddress]
