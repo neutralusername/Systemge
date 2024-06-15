@@ -7,7 +7,11 @@ import (
 )
 
 func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution, error) {
-	response, err := client.tcpExchange(Message.NewAsync("resolve", client.name, topic), client.resolverAddress)
+	netConn, err := client.tcpDial(client.resolverAddress)
+	if err != nil {
+		return nil, Utilities.NewError("Error dialing resolver", err)
+	}
+	response, err := client.tcpExchange(netConn, Message.NewAsync("resolve", client.name, topic))
 	if err != nil {
 		return nil, Utilities.NewError("Error resolving broker", err)
 	}
