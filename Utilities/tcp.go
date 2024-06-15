@@ -24,8 +24,8 @@ func TlsDial(address string, tlsCertificate string) (net.Conn, error) {
 	})
 }
 
-func TcpExchange(netConn net.Conn, messageBytes []byte, timeoutMs int) (*Message.Message, error) {
-	err := TcpSend(netConn, messageBytes, timeoutMs)
+func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs int) (*Message.Message, error) {
+	err := TcpSend(netConn, message.Serialize(), timeoutMs)
 	if err != nil {
 		return nil, NewError("Error sending message", err)
 	}
@@ -33,14 +33,14 @@ func TcpExchange(netConn net.Conn, messageBytes []byte, timeoutMs int) (*Message
 	if err != nil {
 		return nil, NewError("Error receiving response", err)
 	}
-	message := Message.Deserialize(responseBytes)
-	if message == nil {
+	responseMessage := Message.Deserialize(responseBytes)
+	if responseMessage == nil {
 		return nil, NewError("Error deserializing response", nil)
 	}
-	return message, nil
+	return responseMessage, nil
 }
 
-func TcpSend(netConn net.Conn, msg []byte, timeoutMs int) error {
+func TcpSend(netConn net.Conn, bytes []byte, timeoutMs int) error {
 	if netConn == nil {
 		return NewError("net.Conn is nil", nil)
 	}
@@ -49,7 +49,7 @@ func TcpSend(netConn net.Conn, msg []byte, timeoutMs int) error {
 	} else {
 		netConn.SetWriteDeadline(time.Time{})
 	}
-	_, err := netConn.Write(append(msg, []byte(ENDOFMESSAGE)...))
+	_, err := netConn.Write(append(bytes, []byte(ENDOFMESSAGE)...))
 	if err != nil {
 		return err
 	}
