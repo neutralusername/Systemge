@@ -117,6 +117,8 @@ func (server *Server) Stop() error {
 	}
 	server.tlsBrokerListener.Close()
 	server.tlsBrokerListener = nil
+	server.tlsConfigListener.Close()
+	server.tlsConfigListener = nil
 	return nil
 }
 
