@@ -1,7 +1,7 @@
 package WebsocketServer
 
 import (
-	"Systemge/Utilities"
+	"Systemge/Randomizer"
 	"Systemge/WebsocketClient"
 
 	"github.com/gorilla/websocket"
@@ -10,9 +10,9 @@ import (
 func (server *Server) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient.Client {
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
-	websocketId := "#" + server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+	websocketId := "#" + server.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
 	for _, exists := server.clients[websocketId]; exists; {
-		websocketId = "#" + server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+		websocketId = "#" + server.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
 	}
 	client := WebsocketClient.New(websocketId, websocketConn, func(client *WebsocketClient.Client) {
 		server.websocketApplication.OnDisconnectHandler(client)

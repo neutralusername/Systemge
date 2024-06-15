@@ -3,6 +3,7 @@ package WebsocketServer
 import (
 	"Systemge/Application"
 	"Systemge/HTTP"
+	"Systemge/Randomizer"
 	"Systemge/Utilities"
 	"Systemge/WebsocketClient"
 	"sync"
@@ -24,7 +25,7 @@ type Server struct {
 	stateMutex     sync.Mutex
 	logger         *Utilities.Logger
 	name           string
-	randomizer     *Utilities.Randomizer
+	randomizer     *Randomizer.Randomizer
 }
 
 func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshakeHandler *HTTP.Server) *Server {
@@ -41,7 +42,7 @@ func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshak
 		operationMutex: sync.Mutex{},
 		logger:         logger,
 		name:           name,
-		randomizer:     Utilities.NewRandomizer(Utilities.GetSystemTime()),
+		randomizer:     Randomizer.New(Randomizer.GetSystemTime()),
 	}
 }
 

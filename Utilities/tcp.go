@@ -1,6 +1,7 @@
 package Utilities
 
 import (
+	"Systemge/Message"
 	"crypto/tls"
 	"crypto/x509"
 	"net"
@@ -23,7 +24,7 @@ func TlsDial(address string, tlsCertificate string) (net.Conn, error) {
 	})
 }
 
-func TcpExchange(netConn net.Conn, messageBytes []byte, timeoutMs int) ([]byte, error) {
+func TcpExchange(netConn net.Conn, messageBytes []byte, timeoutMs int) (*Message.Message, error) {
 	err := TcpSend(netConn, messageBytes, timeoutMs)
 	if err != nil {
 		return nil, NewError("Error sending message", err)
@@ -32,7 +33,11 @@ func TcpExchange(netConn net.Conn, messageBytes []byte, timeoutMs int) ([]byte, 
 	if err != nil {
 		return nil, NewError("Error receiving response", err)
 	}
-	return responseBytes, nil
+	message := Message.Deserialize(responseBytes)
+	if message == nil {
+		return nil, NewError("Error deserializing response", nil)
+	}
+	return message, nil
 }
 
 func TcpSend(netConn net.Conn, msg []byte, timeoutMs int) error {
