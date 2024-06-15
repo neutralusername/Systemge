@@ -19,7 +19,7 @@ func NewResolver(name, resolverPort, configPort, tlsCertPath, tlsKeyPath, logger
 
 func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resolver.Server {
 	if !Utilities.FileExists(sytemgeConfigPath) {
-		panic("provided file does not exist")
+		panic("provided file does not exist \"" + sytemgeConfigPath + "\"")
 	}
 	filename := Utilities.GetFileName(sytemgeConfigPath)
 	fileNameSegments := strings.Split(Utilities.GetFileName(sytemgeConfigPath), ".")
@@ -36,105 +36,46 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 	topics := map[string]*Resolver.Resolution{}  // topic -> broker
 	brokers := map[string]*Resolver.Resolution{} // broker-name -> broker
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
-	if len(lines) < 2 {
-		panic("error reading file")
+	if len(lines) < 3 {
+		panic("provided file has too few lines to be a valid config")
 	}
-	for i, line := range lines {
+	for _, line := range lines {
 		if len(line) == 0 {
 			continue
 		}
-		switch i {
-		case 0:
-			if len(line) < 2 {
-				panic("error reading file. missing config type")
+		lineSegmentss := strings.Split(line, " ")
+		lineSegments := []string{}
+		for _, segment := range lineSegmentss {
+			if len(segment) > 0 {
+				lineSegments = append(lineSegments, segment)
 			}
-			lineSegments := strings.Split(line, " ")
-			if len(lineSegments) != 2 {
-				panic("error reading file. incomplete config type")
-			}
-			if lineSegments[0] != "#" {
-				panic("error reading file. missing config type identifier (#)")
-			}
+		}
+		switch lineSegments[0] {
+		case "#":
 			if lineSegments[1] != "resolver" {
-				panic("error reading file. invalid config type (want: resolver)")
+				panic("wrong config type for resolver \"" + lineSegments[1] + "\"")
 			}
-			continue
-		case 1:
-			lineSegments := strings.Split(line, " ")
-			if len(lineSegments) != 2 {
-				panic("error reading file. incomplete port number")
-			}
-			if lineSegments[0] != "resolver" {
-				panic("error reading file. invalid port number")
-			}
-			if len(lineSegments[1]) < 2 {
-				panic("error reading file. Missing port number")
-			}
-			if lineSegments[1][0] != ':' {
-				panic("error reading file. Missing port number")
-			}
+		case "resolver":
 			resolverPort = lineSegments[1]
-		case 2:
-			lineSegments := strings.Split(line, " ")
-			if len(lineSegments) != 2 {
-				panic("error reading file. incomplete port number")
-			}
-			if lineSegments[0] != "config" {
-				panic("error reading file. invalid port number")
-			}
-			if len(lineSegments[1]) < 2 {
-				panic("error reading file. Missing port number")
-			}
-			if lineSegments[1][0] != ':' {
-				panic("error reading file. Missing port number")
+		case "config":
+			if len(lineSegments) != 4 {
+				panic("config line is invalid \"" + line + "\"")
 			}
 			configPort = lineSegments[1]
-		case 3:
-			lineSegments := strings.Split(line, " ")
-			if len(lineSegments) != 2 {
-				panic("error reading file. invalid cert or key line")
-			}
-			if lineSegments[0] == "cert" {
-				tlsCertPath = lineSegments[1]
-			} else if lineSegments[0] == "key" {
-				tlsKeyPath = lineSegments[1]
-			} else {
-				panic("error reading file. invalid cert or key type")
-			}
-		case 4:
-			lineSegments := strings.Split(line, " ")
-			if len(lineSegments) != 2 {
-				panic("error reading file. invalid cert or key line")
-			}
-			if lineSegments[0] == "cert" {
-				tlsCertPath = lineSegments[1]
-			} else if lineSegments[0] == "key" {
-				tlsKeyPath = lineSegments[1]
-			} else {
-				panic("error reading file. invalid cert or key type")
-			}
+			tlsCertPath = lineSegments[2]
+			tlsKeyPath = lineSegments[3]
 		default:
-			lineSegments := strings.Split(line, " ")
-			if len(lineSegments) == 2 {
-				if len(lineSegments[0]) < 1 || len(lineSegments[1]) < 1 {
-					panic("error reading file. Missing topic or address")
-				}
-				broker := brokers[lineSegments[1]]
-				if broker == nil {
-					panic("error reading file. Broker not found")
-				}
-				topics[lineSegments[0]] = broker
-			} else if len(lineSegments) == 3 {
-				if !Utilities.FileExists(lineSegments[2]) {
-					panic("error reading file. invalid cert path")
-				}
-				cert := Utilities.GetFileContent(lineSegments[2])
-				broker := Resolver.NewResolution(lineSegments[0], lineSegments[1], cert)
-				brokers[lineSegments[0]] = broker
-			} else {
-				panic("error reading file. invalid topic line")
+			if len(lineSegments) < 3 {
+				panic("broker line is invalid \"" + line + "\"")
 			}
-
+			if !Utilities.FileExists(lineSegments[2]) {
+				panic("certificate file does not exist \"" + lineSegments[2] + "\"")
+			}
+			resolution := Resolver.NewResolution(lineSegments[0], lineSegments[1], Utilities.GetFileContent(lineSegments[2]))
+			brokers[lineSegments[0]] = resolution
+			for _, topic := range lineSegments[3:] {
+				topics[topic] = resolution
+			}
 		}
 	}
 	return NewResolver(name, resolverPort, configPort, tlsCertPath, tlsKeyPath, errorLogPath, brokers, topics)

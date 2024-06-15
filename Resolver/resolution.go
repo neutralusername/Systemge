@@ -12,11 +12,11 @@ type Resolution struct {
 	topics      map[string]bool
 }
 
-func NewResolution(name, address, certPath string) *Resolution {
+func NewResolution(name, address, cert string) *Resolution {
 	return &Resolution{
 		Name:        name,
 		Address:     address,
-		Certificate: certPath,
+		Certificate: cert,
 		topics:      map[string]bool{},
 	}
 }

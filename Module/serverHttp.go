@@ -3,7 +3,6 @@ package Module
 import (
 	"Systemge/HTTP"
 	"Systemge/Utilities"
-	"fmt"
 	"strings"
 )
 
@@ -17,7 +16,7 @@ func NewHTTPServer(name string, port string, loggerPath string, tlsCertPath stri
 
 func NewHTTPServerFromConfig(sytemgeConfigPath string, errorLogPath string) *HTTP.Server {
 	if !Utilities.FileExists(sytemgeConfigPath) {
-		panic("provided file does not exist")
+		panic("provided file does not exist \"" + sytemgeConfigPath + "\"")
 	}
 	filename := Utilities.GetFileName(sytemgeConfigPath)
 	fileNameSegments := strings.Split(Utilities.GetFileName(sytemgeConfigPath), ".")
@@ -33,63 +32,43 @@ func NewHTTPServerFromConfig(sytemgeConfigPath string, errorLogPath string) *HTT
 	patterns := map[string]HTTP.RequestHandler{}
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 3 {
-		panic("error reading file")
+		panic("provided file has too few lines to be a valid config")
 	}
-	for i, line := range lines {
+	for _, line := range lines {
 		if len(line) == 0 {
 			continue
 		}
-		switch i {
-		case 0:
-			if len(line) < 2 {
-				panic("error reading file. missing config type")
+		lineSegmentss := strings.Split(line, " ")
+		lineSegments := []string{}
+		for _, segment := range lineSegmentss {
+			if len(segment) > 0 {
+				lineSegments = append(lineSegments, segment)
 			}
-			segments := strings.Split(line, " ")
-			if len(segments) != 2 {
-				panic("error reading file. incomplete config type")
+		}
+		switch lineSegments[0] {
+		case "#":
+			if lineSegments[1] != "http" {
+				panic("wrong config type for http \"" + lineSegments[1] + "\"")
 			}
-			if segments[0] != "#" {
-				panic("error reading file. missing config type identifier (#)")
+		case "http":
+			if len(lineSegments) != 2 {
+				panic("http line is invalid \"" + line + "\"")
 			}
-			if segments[1] != "http" {
-				panic("error reading file. invalid config type (want: http)")
-			}
-			continue
-		case 1:
-			if len(line) < 2 {
-				panic("error reading file. Missing port number")
-			}
-			if line[0] != ':' {
-				panic("error reading file. Missing port number")
-			}
-			port = line
+			port = lineSegments[1]
 		default:
-			segments := strings.Split(line, " ")
-			if len(segments) == 3 {
-				pattern := segments[0]
-				handlerType := segments[1]
-				handlerArg := segments[2]
-				switch handlerType {
-				case "serve":
-					patterns[pattern] = HTTP.SendDirectory(handlerArg)
-				case "redirect":
-					patterns[pattern] = HTTP.RedirectTo(handlerArg)
-				default:
-					panic("error reading file. incorrect handler type")
-				}
-			} else if len(segments) == 2 {
-				switch segments[0] {
-				case "key":
-					tlsKeyPath = segments[1]
-				case "cert":
-					tlsCertPath = segments[1]
-				default:
-					panic("error reading file. incorrect row or cert/key")
-				}
-			} else {
-				println(len(segments))
-				fmt.Println(segments)
-				panic("error reading file. incorrect row or cert/key")
+			if len(lineSegments) != 3 {
+				panic("handler line is invalid \"" + line + "\"")
+			}
+			if lineSegments[0][0] != '/' {
+				panic("handler pattern is invalid \"" + lineSegments[0] + "\"")
+			}
+			switch lineSegments[1] {
+			case "serve":
+				patterns[lineSegments[0]] = HTTP.SendDirectory(lineSegments[2])
+			case "redirect":
+				patterns[lineSegments[0]] = HTTP.RedirectTo(lineSegments[2])
+			default:
+				panic("handler type is invalid \"" + lineSegments[1] + "\"")
 			}
 		}
 	}
