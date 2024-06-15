@@ -21,13 +21,18 @@ type Server struct {
 
 	isStarted bool
 
-	tlsCertPath     string
-	tlsKeyPath      string
-	tlsListenerPort string
-	tlsListener     net.Listener
+	brokerTlsCertPath string
+	brokerTlsKeyPath  string
+	brokerPort        string
+	tlsBrokerListener net.Listener
+
+	configTlsCertPath string
+	configTlsKeyPath  string
+	configPort        string
+	tlsConfigListener net.Listener
 }
 
-func New(name, tlsListerPort, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
+func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath string, logger *Utilities.Logger) *Server {
 	return &Server{
 		syncTopics: map[string]bool{
 			"subscribe":   true,
@@ -41,9 +46,13 @@ func New(name, tlsListerPort, tlsCertPath, tlsKeyPath string, logger *Utilities.
 		name:   name,
 		logger: logger,
 
-		tlsCertPath:     tlsCertPath,
-		tlsKeyPath:      tlsKeyPath,
-		tlsListenerPort: tlsListerPort,
+		brokerTlsCertPath: brokerTlsCertPath,
+		brokerTlsKeyPath:  brokerTlsKeyPath,
+		brokerPort:        brokerPort,
+
+		configTlsCertPath: configTlsCertPath,
+		configTlsKeyPath:  configTlsKeyPath,
+		configPort:        configPort,
 
 		clientSubscriptions: map[string]map[string]*clientConnection{},
 	}
@@ -55,25 +64,37 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Utilities.NewError("Server already started", nil)
 	}
-	var tlsListener net.Listener
-	if server.tlsCertPath == "" || server.tlsKeyPath == "" || server.tlsListenerPort == "" {
+	if server.brokerTlsCertPath == "" || server.brokerTlsKeyPath == "" || server.brokerPort == "" {
 		return Utilities.NewError("TLS certificate path, TLS key path, and TLS listener port must be provided", nil)
 	}
-	tlsCert, err := tls.LoadX509KeyPair(server.tlsCertPath, server.tlsKeyPath)
+	brokerCert, err := tls.LoadX509KeyPair(server.brokerTlsCertPath, server.brokerTlsKeyPath)
 	if err != nil {
 		return Utilities.NewError("Failed to load TLS certificate: ", err)
 	}
-	tlsListener, err = tls.Listen("tcp", server.tlsListenerPort, &tls.Config{
+	brokerListener, err := tls.Listen("tcp", server.brokerPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{tlsCert},
+		Certificates: []tls.Certificate{brokerCert},
 	})
 	if err != nil {
 		return Utilities.NewError("Failed to start server: ", err)
 	}
+	configCert, err := tls.LoadX509KeyPair(server.configTlsCertPath, server.configTlsKeyPath)
+	if err != nil {
+		return Utilities.NewError("Failed to load TLS certificate: ", err)
+	}
+	configListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		Certificates: []tls.Certificate{configCert},
+	})
+	if err != nil {
+		return Utilities.NewError("Failed to start server: ", err)
+	}
+	server.tlsBrokerListener = brokerListener
+	server.tlsConfigListener = configListener
 	server.clientConnections = map[string]*clientConnection{}
 	server.openSyncRequests = map[string]*clientConnection{}
-	server.tlsListener = tlsListener
-	go server.handleTlsConnections()
+	go server.handleBrokerConnections()
+	go server.handleConfigConnections()
 	server.isStarted = true
 	return nil
 }
@@ -94,8 +115,8 @@ func (server *Server) Stop() error {
 			delete(server.clientConnections, clientConnection.name)
 		}
 	}
-	server.tlsListener.Close()
-	server.tlsListener = nil
+	server.tlsBrokerListener.Close()
+	server.tlsBrokerListener = nil
 	return nil
 }
 

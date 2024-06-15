@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-func (server *Server) handleTlsConnections() {
+func (server *Server) handleBrokerConnections() {
 	for server.IsStarted() {
-		netConn, err := server.tlsListener.Accept()
+		netConn, err := server.tlsBrokerListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
 				panic(err)

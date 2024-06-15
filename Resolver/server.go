@@ -73,7 +73,7 @@ func (server *Server) Start() error {
 				}
 				return
 			}
-			go server.handleResolverConnections(netConn)
+			go server.handleResolverConnection(netConn)
 		}
 	}()
 	go func() {
@@ -85,7 +85,7 @@ func (server *Server) Start() error {
 				}
 				return
 			}
-			go server.handleConfigConnections(netConn)
+			go server.handleConfigConnection(netConn)
 		}
 	}()
 	return nil

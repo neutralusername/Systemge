@@ -6,7 +6,7 @@ import (
 	"net"
 )
 
-func (server *Server) handleResolverConnections(netConn net.Conn) {
+func (server *Server) handleResolverConnection(netConn net.Conn) {
 	defer netConn.Close()
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {

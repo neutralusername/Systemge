@@ -1,11 +1,25 @@
-package Resolver
+package Broker
 
 import (
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
-	"strings"
 )
+
+func (server *Server) handleConfigConnections() {
+	for server.IsStarted() {
+		for server.IsStarted() {
+			netConn, err := server.tlsConfigListener.Accept()
+			if err != nil {
+				if server.IsStarted() {
+					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
+				}
+				return
+			}
+			go server.handleConfigConnection(netConn)
+		}
+	}
+}
 
 func (server *Server) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
@@ -20,31 +34,7 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		return
 	}
 	switch message.GetTopic() {
-	case "registerBroker":
-		resolution := UnmarshalResolution(message.GetPayload())
-		if resolution == nil {
-			err = Utilities.NewError("Failed to unmarshal resolution", nil)
-			break
-		}
-		err = server.RegisterBroker(resolution)
-	case "unregisterBroker":
-		err = server.UnregisterBroker(message.GetPayload())
-	case "registerTopics":
-		segments := strings.Split(message.GetPayload(), " ")
-		if len(segments) < 2 {
-			err = Utilities.NewError("Invalid payload", nil)
-			break
-		}
-		err = server.RegisterTopics(segments[0], segments[1:]...)
-	case "unregisterTopics":
-		segments := strings.Split(message.GetPayload(), " ")
-		if len(segments) < 1 {
-			err = Utilities.NewError("Invalid payload", nil)
-			break
-		}
-		server.UnregisterTopic(segments...)
-	default:
-		err = Utilities.NewError("Invalid config request", nil)
+
 	}
 	if err != nil {
 		server.logger.Log(Utilities.NewError("Failed to handle config request", err).Error())
@@ -55,4 +45,5 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		server.logger.Log(Utilities.NewError("Failed to send success message", err).Error())
 		return
 	}
+
 }
