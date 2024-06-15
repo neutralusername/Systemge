@@ -9,7 +9,7 @@ func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) er
 		return Utilities.NewError("Server connection already exists", nil)
 	}
 	client.activeBrokerConnections[brokerConnection.resolution.Address] = brokerConnection
-	go client.handleServerMessages(brokerConnection)
+	go client.handleBrokerMessages(brokerConnection)
 	go client.heartbeatLoop(brokerConnection)
 	return nil
 }

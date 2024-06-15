@@ -127,6 +127,7 @@ func (client *Client) Start() error {
 	for topic := range client.application.GetAsyncMessageHandlers() {
 		topics = append(topics, topic)
 	}
+	println("started client. resoling topics")
 	for _, topic := range topics {
 		serverConnection, err := client.getBrokerConnectionForTopic(topic)
 		if err != nil {

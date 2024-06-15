@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (client *Client) handleServerMessages(brokerConnection *brokerConnection) {
+func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		messageBytes, err := brokerConnection.receive()
 		if err != nil {
