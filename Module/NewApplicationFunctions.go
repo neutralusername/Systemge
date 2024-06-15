@@ -5,5 +5,5 @@ import (
 	"Systemge/Client"
 )
 
-type NewApplicationFunc func(*Client.Client, []string) Application.Application
-type NewWebsocketApplicationFunc func(*Client.Client, []string) Application.WebsocketApplication
+type NewApplicationFunc func(*Client.Client, []string) (Application.Application, error)
+type NewWebsocketApplicationFunc func(*Client.Client, []string) (Application.WebsocketApplication, error)

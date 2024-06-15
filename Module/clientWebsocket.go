@@ -13,7 +13,10 @@ func NewWebsocketClient(name string, clientPort string, loggerPath string, patte
 	websocketServer := WebsocketServer.NewWebsocketServer(name, logger, httpServer)
 	httpServer.RegisterPattern(pattern, WebsocketServer.PromoteToWebsocket(websocketServer))
 	client := Client.New(name, clientPort, logger, websocketServer)
-	websocketApplication := newWebsocketApplication(client, args)
+	websocketApplication, err := newWebsocketApplication(client, args)
+	if err != nil {
+		panic(err)
+	}
 	client.SetApplication(websocketApplication)
 	websocketServer.SetWebsocketApplication(websocketApplication)
 	return client
