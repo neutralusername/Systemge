@@ -43,9 +43,6 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 	case "removeAsyncTopic":
 		server.RemoveAsyncTopics(message.GetPayload())
 	default:
-		err = Utilities.NewError("Invalid config request", nil)
-	}
-	if err != nil {
 		server.logger.Log(Utilities.NewError("Failed to handle config request", err).Error())
 		return
 	}
