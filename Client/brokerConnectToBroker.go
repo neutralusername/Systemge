@@ -7,18 +7,19 @@ import (
 )
 
 func (client *Client) connectToBroker(resolution *Resolver.Resolution) (*brokerConnection, error) {
-	netConn, err := client.tlsDial(resolution.Address, resolution.Certificate)
+	netConn, err := Utilities.TlsDial(resolution.Address, resolution.Certificate)
 	if err != nil {
 		return nil, Utilities.NewError("Error connecting to message broker server", err)
 	}
-	response, err := client.tcpExchange(netConn, Message.NewAsync("connect", client.name, ""))
+	responseBytes, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", client.name, "").Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return nil, Utilities.NewError("Error sending connection request", err)
 	}
-	if response.GetTopic() != "connected" {
+	responseMessage := Message.Deserialize(responseBytes)
+	if responseMessage.GetTopic() != "connected" {
 		netConn.Close()
-		return nil, Utilities.NewError("Invalid response topic \""+response.GetTopic()+"\"", nil)
+		return nil, Utilities.NewError("Invalid response topic \""+responseMessage.GetTopic()+"\"", nil)
 	}
 	return newBrokerConnection(netConn, resolution, client.logger), nil
 }

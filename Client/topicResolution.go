@@ -7,16 +7,17 @@ import (
 )
 
 func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution, error) {
-	netConn, err := client.tcpDial(client.resolverAddress)
+	netConn, err := Utilities.TcpDial(client.resolverAddress)
 	if err != nil {
 		return nil, Utilities.NewError("Error dialing resolver", err)
 	}
-	response, err := client.tcpExchange(netConn, Message.NewAsync("resolve", client.name, topic))
+	responseBytes, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", client.name, topic).Serialize(), DEFAULT_TCP_TIMEOUT)
 	netConn.Close()
 	if err != nil {
 		return nil, Utilities.NewError("Error resolving broker", err)
 	}
-	resolution := Resolver.UnmarshalResolution(response.GetPayload())
+	responseMessage := Message.Deserialize(responseBytes)
+	resolution := Resolver.UnmarshalResolution(responseMessage.GetPayload())
 	if resolution == nil {
 		return nil, Utilities.NewError("Error unmarshalling broker", nil)
 	}

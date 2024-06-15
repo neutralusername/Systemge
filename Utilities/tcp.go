@@ -1,11 +1,39 @@
 package Utilities
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"net"
 	"time"
 )
 
 const ENDOFMESSAGE = "\x04"
+
+func TcpDial(address string) (net.Conn, error) {
+	return net.Dial("tcp", address)
+}
+
+func TlsDial(address string, tlsCertificate string) (net.Conn, error) {
+	rootCAs := x509.NewCertPool()
+	if !rootCAs.AppendCertsFromPEM([]byte(tlsCertificate)) {
+		return nil, NewError("Error adding certificate to root CAs", nil)
+	}
+	return tls.Dial("tcp", address, &tls.Config{
+		RootCAs: rootCAs,
+	})
+}
+
+func TcpExchange(netConn net.Conn, messageBytes []byte, timeoutMs int) ([]byte, error) {
+	err := TcpSend(netConn, messageBytes, timeoutMs)
+	if err != nil {
+		return nil, NewError("Error sending message", err)
+	}
+	responseBytes, err := TcpReceive(netConn, timeoutMs)
+	if err != nil {
+		return nil, NewError("Error receiving response", err)
+	}
+	return responseBytes, nil
+}
 
 func TcpSend(netConn net.Conn, msg []byte, timeoutMs int) error {
 	if netConn == nil {
