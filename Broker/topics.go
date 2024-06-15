@@ -1,8 +1,8 @@
 package Broker
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/Utilities"
 )
 
 func (server *Server) validateMessageTopic(message *Message.Message) error {
@@ -10,14 +10,14 @@ func (server *Server) validateMessageTopic(message *Message.Message) error {
 	defer server.mutex.Unlock()
 	if server.asyncTopics[message.GetTopic()] {
 		if message.GetSyncRequestToken() != "" {
-			return Error.New("broker does not accept sync messages for topic \""+message.GetTopic()+"\"", nil)
+			return Utilities.NewError("broker does not accept sync messages for topic \""+message.GetTopic()+"\"", nil)
 		}
 	} else if server.syncTopics[message.GetTopic()] {
 		if message.GetSyncRequestToken() == "" {
-			return Error.New("broker only accepts sync messages for topic \""+message.GetTopic()+"\"", nil)
+			return Utilities.NewError("broker only accepts sync messages for topic \""+message.GetTopic()+"\"", nil)
 		}
 	} else {
-		return Error.New("Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
+		return Utilities.NewError("Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
 	}
 	return nil
 }

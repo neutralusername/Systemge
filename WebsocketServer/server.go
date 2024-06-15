@@ -2,7 +2,6 @@ package WebsocketServer
 
 import (
 	"Systemge/Application"
-	"Systemge/Error"
 	"Systemge/HTTP"
 	"Systemge/Utilities"
 	"Systemge/WebsocketClient"
@@ -71,13 +70,13 @@ func (server *Server) Start() error {
 	server.stateMutex.Lock()
 	defer server.stateMutex.Unlock()
 	if server.websocketApplication == nil {
-		return Error.New("Websocket application not set", nil)
+		return Utilities.NewError("Websocket application not set", nil)
 	}
 	if server.websocketHTTPServer == nil {
-		return Error.New("Websocket HTTP server not set", nil)
+		return Utilities.NewError("Websocket HTTP server not set", nil)
 	}
 	if server.isStarted {
-		return Error.New("Websocket listener already started", nil)
+		return Utilities.NewError("Websocket listener already started", nil)
 	}
 	err := server.websocketHTTPServer.Start()
 	if err != nil {
@@ -107,7 +106,7 @@ func (server *Server) Stop() error {
 	server.stateMutex.Lock()
 	defer server.stateMutex.Unlock()
 	if !server.isStarted {
-		return Error.New("Websocket listener not started", nil)
+		return Utilities.NewError("Websocket listener not started", nil)
 	}
 	server.websocketHTTPServer.Stop()
 	for _, websocketClient := range server.clients {

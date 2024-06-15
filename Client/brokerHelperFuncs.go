@@ -1,27 +1,27 @@
 package Client
 
-import "Systemge/Error"
+import "Systemge/Utilities"
 
 func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
 	brokerConnection := client.getTopicResolution(topic)
 	if brokerConnection == nil {
 		broker, err := client.resolveBrokerForTopic(topic)
 		if err != nil {
-			return nil, Error.New("Error resolving broker address for topic \""+topic+"\"", err)
+			return nil, Utilities.NewError("Error resolving broker address for topic \""+topic+"\"", err)
 		}
 		brokerConnection = client.getBrokerConnection(broker.Address)
 		if brokerConnection == nil {
 			brokerConnection, err = client.connectToBroker(broker)
 			if err != nil {
-				return nil, Error.New("Error connecting to message broker server", err)
+				return nil, Utilities.NewError("Error connecting to message broker server", err)
 			}
 			err = client.addBrokerConnection(brokerConnection)
 			if err != nil {
-				return nil, Error.New("Error adding server connection", err)
+				return nil, Utilities.NewError("Error adding server connection", err)
 			}
 			err = client.addTopicResolution(topic, brokerConnection)
 			if err != nil {
-				return nil, Error.New("Error adding topic resolution", err)
+				return nil, Utilities.NewError("Error adding topic resolution", err)
 			}
 		}
 	}
@@ -46,11 +46,11 @@ func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) {
 	for _, topic := range topicsToReconnect {
 		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 		if err != nil {
-			panic(Error.New("Unable to obtain new broker for topic \""+topic+"\"", err))
+			panic(Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err))
 		}
 		err = client.subscribeTopic(newBrokerConnection, topic)
 		if err != nil {
-			panic(Error.New("Unable to subscribe to topic \""+topic+"\"", err))
+			panic(Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err))
 		}
 	}
 }

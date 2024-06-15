@@ -1,7 +1,6 @@
 package Broker
 
 import (
-	"Systemge/Error"
 	"Systemge/Utilities"
 	"crypto/tls"
 	"net"
@@ -54,22 +53,22 @@ func (server *Server) Start() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Server already started", nil)
+		return Utilities.NewError("Server already started", nil)
 	}
 	var tlsListener net.Listener
 	if server.tlsCertPath == "" || server.tlsKeyPath == "" || server.tlsListenerPort == "" {
-		return Error.New("TLS certificate path, TLS key path, and TLS listener port must be provided", nil)
+		return Utilities.NewError("TLS certificate path, TLS key path, and TLS listener port must be provided", nil)
 	}
 	tlsCert, err := tls.LoadX509KeyPair(server.tlsCertPath, server.tlsKeyPath)
 	if err != nil {
-		return Error.New("Failed to load TLS certificate: ", err)
+		return Utilities.NewError("Failed to load TLS certificate: ", err)
 	}
 	tlsListener, err = tls.Listen("tcp", server.tlsListenerPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{tlsCert},
 	})
 	if err != nil {
-		return Error.New("Failed to start server: ", err)
+		return Utilities.NewError("Failed to start server: ", err)
 	}
 	server.clientConnections = map[string]*clientConnection{}
 	server.openSyncRequests = map[string]*clientConnection{}
@@ -87,7 +86,7 @@ func (server *Server) Stop() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if !server.isStarted {
-		return Error.New("Server is not started", nil)
+		return Utilities.NewError("Server is not started", nil)
 	}
 	server.isStarted = false
 	for _, clients := range server.clientSubscriptions {

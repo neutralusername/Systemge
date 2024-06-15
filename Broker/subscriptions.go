@@ -1,21 +1,21 @@
 package Broker
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/Utilities"
 )
 
 func (server *Server) addSubscription(clientConnection *clientConnection, topic string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if !server.asyncTopics[topic] && !server.syncTopics[topic] {
-		return Error.New("Topic \""+topic+"\" does not exist on server \""+server.name+"\"", nil)
+		return Utilities.NewError("Topic \""+topic+"\" does not exist on server \""+server.name+"\"", nil)
 	}
 	if clientConnection.subscribedTopics[topic] {
-		return Error.New("Client \""+clientConnection.name+"\" is already subscribed to topic \""+topic+"\"", nil)
+		return Utilities.NewError("Client \""+clientConnection.name+"\" is already subscribed to topic \""+topic+"\"", nil)
 	}
 	if server.clientSubscriptions[topic] == nil {
-		return Error.New("Topic \""+topic+"\" does not exist", nil)
+		return Utilities.NewError("Topic \""+topic+"\" does not exist", nil)
 	}
 	server.clientSubscriptions[topic][clientConnection.name] = clientConnection
 	clientConnection.subscribedTopics[topic] = true
@@ -26,10 +26,10 @@ func (server *Server) removeSubscription(clientConnection *clientConnection, top
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.clientSubscriptions[topic] == nil {
-		return Error.New("Topic \""+topic+"\" does not exist", nil)
+		return Utilities.NewError("Topic \""+topic+"\" does not exist", nil)
 	}
 	if !clientConnection.subscribedTopics[topic] {
-		return Error.New("Client \""+clientConnection.name+"\" is not subscribed to topic \""+topic+"\"", nil)
+		return Utilities.NewError("Client \""+clientConnection.name+"\" is not subscribed to topic \""+topic+"\"", nil)
 	}
 	delete(server.clientSubscriptions[topic], clientConnection.name)
 	delete(clientConnection.subscribedTopics, topic)
@@ -52,7 +52,7 @@ func (server *Server) propagateMessage(clients []*clientConnection, message *Mes
 		if clientConnection.deliverImmediately {
 			err := clientConnection.send(message)
 			if err != nil {
-				server.logger.Log(Error.New("Failed to send message to client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Utilities.NewError("Failed to send message to client \""+clientConnection.name+"\"", err).Error())
 			}
 		} else {
 			clientConnection.queueMessage(message)

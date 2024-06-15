@@ -2,7 +2,6 @@ package Client
 
 import (
 	"Systemge/Application"
-	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
@@ -100,13 +99,13 @@ func (client *Client) Start() error {
 	client.stateMutex.Lock()
 	client.mapOperationMutex.Lock()
 	if client.application == nil {
-		return Error.New("Application not set", nil)
+		return Utilities.NewError("Application not set", nil)
 	}
 	if client.resolverAddress == "" {
-		return Error.New("Topic resolution server address not set", nil)
+		return Utilities.NewError("Topic resolution server address not set", nil)
 	}
 	if client.isStarted {
-		return Error.New("Client already connected", nil)
+		return Utilities.NewError("Client already connected", nil)
 	}
 	client.topicResolutions = make(map[string]*brokerConnection)
 	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
@@ -116,7 +115,7 @@ func (client *Client) Start() error {
 	if client.websocketServer != nil {
 		err := client.websocketServer.Start()
 		if err != nil {
-			return Error.New("Error starting websocket server", err)
+			return Utilities.NewError("Error starting websocket server", err)
 		}
 	}
 	client.stopChannel = make(chan bool)
@@ -131,12 +130,12 @@ func (client *Client) Start() error {
 		serverConnection, err := client.getBrokerConnectionForTopic(topic)
 		if err != nil {
 			close(client.stopChannel)
-			return Error.New("Error getting server connection for topic", err)
+			return Utilities.NewError("Error getting server connection for topic", err)
 		}
 		err = client.subscribeTopic(serverConnection, topic)
 		if err != nil {
 			close(client.stopChannel)
-			return Error.New("Error subscribing to topic", err)
+			return Utilities.NewError("Error subscribing to topic", err)
 		}
 	}
 	client.isStarted = true
@@ -144,7 +143,7 @@ func (client *Client) Start() error {
 	err := client.application.OnStart()
 	if err != nil {
 		client.Stop()
-		return Error.New("Error in OnStart", err)
+		return Utilities.NewError("Error in OnStart", err)
 	}
 	return nil
 }
@@ -152,16 +151,16 @@ func (client *Client) Start() error {
 func (client *Client) Stop() error {
 	client.stateMutex.Lock()
 	if !client.isStarted {
-		return Error.New("Client not connected", nil)
+		return Utilities.NewError("Client not connected", nil)
 	}
 	err := client.application.OnStop()
 	if err != nil {
-		return Error.New("Error in OnStop", err)
+		return Utilities.NewError("Error in OnStop", err)
 	}
 	if client.websocketServer != nil {
 		err := client.websocketServer.Stop()
 		if err != nil {
-			return Error.New("Error stopping websocket server", err)
+			return Utilities.NewError("Error stopping websocket server", err)
 		}
 	}
 	client.mapOperationMutex.Lock()

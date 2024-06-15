@@ -1,8 +1,8 @@
 package WebsocketServer
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/Utilities"
 	"Systemge/WebsocketClient"
 	"time"
 )
@@ -47,11 +47,11 @@ func (server *Server) handleMessage(websocketClient *WebsocketClient.Client, mes
 	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 	messageHandler := server.websocketApplication.GetWebsocketMessageHandlers()[message.GetTopic()]
 	if messageHandler == nil {
-		return Error.New("no handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", nil)
+		return Utilities.NewError("no handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", nil)
 	}
 	err := server.websocketApplication.GetWebsocketMessageHandlers()[message.GetTopic()](websocketClient, message)
 	if err != nil {
-		websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
+		websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Utilities.NewError("error in handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
 	}
 	return nil
 }

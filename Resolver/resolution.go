@@ -1,7 +1,7 @@
 package Resolver
 
 import (
-	"Systemge/Error"
+	"Systemge/Utilities"
 	"encoding/json"
 )
 
@@ -36,7 +36,7 @@ func (server *Server) RegisterBroker(broker *Resolution) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.knownBrokers[broker.Name] != nil {
-		return Error.New("Broker already registered", nil)
+		return Utilities.NewError("Broker already registered", nil)
 	}
 	server.knownBrokers[broker.Name] = broker
 	return nil
@@ -47,7 +47,7 @@ func (server *Server) UnregisterBroker(name string) error {
 	defer server.mutex.Unlock()
 	broker := server.knownBrokers[name]
 	if broker == nil {
-		return Error.New("Broker not found", nil)
+		return Utilities.NewError("Broker not found", nil)
 	}
 	delete(server.knownBrokers, name)
 	for topic := range broker.topics {

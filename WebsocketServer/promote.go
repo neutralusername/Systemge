@@ -1,7 +1,7 @@
 package WebsocketServer
 
 import (
-	"Systemge/Error"
+	"Systemge/Utilities"
 	"fmt"
 	"net/http"
 
@@ -20,12 +20,12 @@ func PromoteToWebsocket(server *Server) func(responseWriter http.ResponseWriter,
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		websocketConn, err := upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			server.logger.Log(Error.New(fmt.Sprintf("Error upgrading connection to websocket: %s", err.Error()), nil).Error())
+			server.logger.Log(Utilities.NewError(fmt.Sprintf("Error upgrading connection to websocket: %s", err.Error()), nil).Error())
 			return
 		}
 		err = server.queueNewWebsocketConn(websocketConn)
 		if err != nil {
-			server.logger.Log(Error.New("Error queuing new websocket connection", err).Error())
+			server.logger.Log(Utilities.NewError("Error queuing new websocket connection", err).Error())
 		}
 	}
 }

@@ -1,13 +1,13 @@
 package Resolver
 
-import "Systemge/Error"
+import "Systemge/Utilities"
 
 func (server *Server) RegisterTopics(brokerName string, topics ...string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	broker := server.knownBrokers[brokerName]
 	if broker == nil {
-		return Error.New("Broker not found", nil)
+		return Utilities.NewError("Broker not found", nil)
 	}
 	for _, topic := range topics {
 		server.registeredTopics[topic] = broker
@@ -21,7 +21,7 @@ func (server *Server) UnregisterTopic(topic string) error {
 	defer server.mutex.Unlock()
 	broker := server.registeredTopics[topic]
 	if broker == nil {
-		return Error.New("Topic not found", nil)
+		return Utilities.NewError("Topic not found", nil)
 	}
 	delete(server.registeredTopics, topic)
 	delete(broker.topics, topic)

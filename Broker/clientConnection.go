@@ -1,9 +1,8 @@
 package Broker
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/TCP"
+	"Systemge/Utilities"
 	"net"
 	"sync"
 	"time"
@@ -39,13 +38,13 @@ func newClientConnection(name string, netConn net.Conn) *clientConnection {
 func (clientConnection *clientConnection) send(message *Message.Message) error {
 	clientConnection.sendMutex.Lock()
 	defer clientConnection.sendMutex.Unlock()
-	return TCP.Send(clientConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	return Utilities.Send(clientConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 }
 
 func (clientConnection *clientConnection) receive() ([]byte, error) {
 	clientConnection.receiveMutex.Lock()
 	defer clientConnection.receiveMutex.Unlock()
-	messageBytes, err := TCP.Receive(clientConnection.netConn, 0)
+	messageBytes, err := Utilities.Receive(clientConnection.netConn, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +55,7 @@ func (clientConnection *clientConnection) resetWatchdog() error {
 	clientConnection.mutex.Lock()
 	defer clientConnection.mutex.Unlock()
 	if clientConnection.watchdog == nil {
-		return Error.New("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
+		return Utilities.NewError("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
 	}
 	clientConnection.watchdog.Reset((WATCHDOG_TIMEOUT))
 	return nil
@@ -66,7 +65,7 @@ func (clientConnection *clientConnection) disconnect() error {
 	clientConnection.mutex.Lock()
 	defer clientConnection.mutex.Unlock()
 	if clientConnection.watchdog == nil {
-		return Error.New("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
+		return Utilities.NewError("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
 	}
 	clientConnection.watchdog.Reset(0)
 	clientConnection.watchdog = nil
@@ -78,7 +77,7 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.clientConnections[clientConnection.name] != nil {
-		return Error.New("client with name \""+clientConnection.name+"\" already exists", nil)
+		return Utilities.NewError("client with name \""+clientConnection.name+"\" already exists", nil)
 	}
 	server.clientConnections[clientConnection.name] = clientConnection
 	clientConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
@@ -93,7 +92,7 @@ func (server *Server) removeClient(clientConnection *clientConnection) error {
 	defer server.mutex.Unlock()
 
 	if server.clientConnections[clientConnection.name] == nil {
-		return Error.New("Subscriber with name \""+clientConnection.name+"\" does not exist", nil)
+		return Utilities.NewError("Subscriber with name \""+clientConnection.name+"\" does not exist", nil)
 	}
 	clientConnection.watchdog = nil
 	clientConnection.netConn.Close()

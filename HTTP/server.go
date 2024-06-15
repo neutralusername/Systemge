@@ -1,7 +1,6 @@
 package HTTP
 
 import (
-	"Systemge/Error"
 	"Systemge/Utilities"
 	"net/http"
 	"sync"
@@ -38,7 +37,7 @@ func (server *Server) SetKey(key string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Can not set key while server is running", nil)
+		return Utilities.NewError("Can not set key while server is running", nil)
 	}
 	server.tlsKey = key
 	return nil
@@ -48,7 +47,7 @@ func (server *Server) SetCert(cert string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Can not set cert while server is running", nil)
+		return Utilities.NewError("Can not set cert while server is running", nil)
 	}
 	server.tlsCert = cert
 	return nil
@@ -64,7 +63,7 @@ func (server *Server) Start() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Server already started", nil)
+		return Utilities.NewError("Server already started", nil)
 	}
 	httpServer := &http.Server{
 		Addr:    server.address,
@@ -95,7 +94,7 @@ func (server *Server) Start() error {
 	time.Sleep(100 * time.Millisecond)
 	select {
 	case err := <-errorChannel:
-		return Error.New("Server failed to start", err)
+		return Utilities.NewError("Server failed to start", err)
 	default:
 	}
 	server.isStarted = true
@@ -107,7 +106,7 @@ func (server *Server) Stop() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if !server.isStarted {
-		return Error.New("Server not started", nil)
+		return Utilities.NewError("Server not started", nil)
 	}
 	err := server.httpServer.Close()
 	if err != nil {
@@ -123,7 +122,7 @@ func (server *Server) SetMux(mux *http.ServeMux) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Can not set mux while server is running", nil)
+		return Utilities.NewError("Can not set mux while server is running", nil)
 	}
 	server.mux = mux
 	return nil
@@ -134,7 +133,7 @@ func (server *Server) ResetMux() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Can not reset mux while server is running", nil)
+		return Utilities.NewError("Can not reset mux while server is running", nil)
 	}
 	server.mux = http.NewServeMux()
 	return nil

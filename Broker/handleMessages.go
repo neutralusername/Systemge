@@ -1,8 +1,8 @@
 package Broker
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/Utilities"
 	"strings"
 )
 
@@ -19,18 +19,18 @@ func (server *Server) handleClientMessages(clientConnection *clientConnection) {
 		}
 		message := Message.Deserialize(messageBytes)
 		if message == nil {
-			server.logger.Log(Error.New("Failed to deserialize message from client \""+clientConnection.name+"\"", nil).Error())
+			server.logger.Log(Utilities.NewError("Failed to deserialize message from client \""+clientConnection.name+"\"", nil).Error())
 			return
 		}
 		if message.GetSyncResponseToken() != "" {
 			err := server.handleSyncResponse(message)
 			if err != nil {
-				server.logger.Log(Error.New("Failed to handle sync response from client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Utilities.NewError("Failed to handle sync response from client \""+clientConnection.name+"\"", err).Error())
 			}
 		} else {
 			err = server.handleMessage(clientConnection, message)
 			if err != nil {
-				server.logger.Log(Error.New("Failed to handle message from client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Utilities.NewError("Failed to handle message from client \""+clientConnection.name+"\"", err).Error())
 			}
 		}
 	}
@@ -39,12 +39,12 @@ func (server *Server) handleClientMessages(clientConnection *clientConnection) {
 func (server *Server) handleMessage(clientConnection *clientConnection, message *Message.Message) error {
 	err := server.validateMessageTopic(message)
 	if err != nil {
-		return Error.New("Failed to validate message topic", err)
+		return Utilities.NewError("Failed to validate message topic", err)
 	}
 	if message.GetSyncRequestToken() != "" {
 		if err := server.handleSyncRequest(clientConnection, message); err != nil {
-			if err := clientConnection.send(message.NewResponse("error", server.name, Error.New("", err).Error())); err != nil {
-				return Error.New("Failed to send error response to sync request from \""+clientConnection.name+"\"", err)
+			if err := clientConnection.send(message.NewResponse("error", server.name, Utilities.NewError("", err).Error())); err != nil {
+				return Utilities.NewError("Failed to send error response to sync request from \""+clientConnection.name+"\"", err)
 			}
 		}
 	}
@@ -52,35 +52,35 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	case "heartbeat":
 		err := clientConnection.resetWatchdog()
 		if err != nil {
-			return Error.New("Failed to reset watchdog for client \""+clientConnection.name+"\"", nil)
+			return Utilities.NewError("Failed to reset watchdog for client \""+clientConnection.name+"\"", nil)
 		}
 		return nil
 	case "unsubscribe":
 		err := server.removeSubscription(clientConnection, message.GetPayload())
 		if err != nil {
-			err := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+			err := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("", err).Error()))
 			if err != nil {
-				return Error.New("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", err)
+				return Utilities.NewError("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", err)
 			}
-			return Error.New("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
+			return Utilities.NewError("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
 		}
 		err = server.handleSyncResponse(message.NewResponse("unsubscribed", server.name, ""))
 		if err != nil {
-			return Error.New("Failed to send unsubscribe response to client \""+clientConnection.name+"\"", err)
+			return Utilities.NewError("Failed to send unsubscribe response to client \""+clientConnection.name+"\"", err)
 		}
 		return nil
 	case "subscribe":
 		err := server.addSubscription(clientConnection, message.GetPayload())
 		if err != nil {
-			err := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+			err := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("", err).Error()))
 			if err != nil {
-				return Error.New("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", err)
+				return Utilities.NewError("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", err)
 			}
-			return Error.New("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
+			return Utilities.NewError("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
 		}
 		err = server.handleSyncResponse(message.NewResponse("subscribed", server.name, ""))
 		if err != nil {
-			return Error.New("Failed to send subscribe response to client \""+clientConnection.name+"\"", err)
+			return Utilities.NewError("Failed to send subscribe response to client \""+clientConnection.name+"\"", err)
 		}
 		return nil
 	case "consume":
@@ -88,13 +88,13 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 		if message == nil {
 			err := server.handleSyncResponse(message.NewResponse("error", server.name, "No message to consume"))
 			if err != nil {
-				return Error.New("Failed to send error response to client \""+clientConnection.name+"\" and no message to consume", err)
+				return Utilities.NewError("Failed to send error response to client \""+clientConnection.name+"\" and no message to consume", err)
 			}
-			return Error.New("No message to consume for client \""+clientConnection.name+"\"", nil)
+			return Utilities.NewError("No message to consume for client \""+clientConnection.name+"\"", nil)
 		}
 		err := server.handleSyncResponse(message)
 		if err != nil {
-			return Error.New("Failed to send response to client \""+clientConnection.name+"\"", err)
+			return Utilities.NewError("Failed to send response to client \""+clientConnection.name+"\"", err)
 		}
 	default:
 		server.mutex.Lock()
@@ -109,13 +109,13 @@ func (server *Server) handleSyncRequest(clientConnection *clientConnection, mess
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
-		return Error.New("token already in use", nil)
+		return Utilities.NewError("token already in use", nil)
 	}
 	if len(server.clientSubscriptions[message.GetTopic()]) == 0 && message.GetTopic() != "subscribe" && message.GetTopic() != "unsubscribe" {
-		return Error.New("no subscribers to topic \""+message.GetTopic()+"\"", nil)
+		return Utilities.NewError("no subscribers to topic \""+message.GetTopic()+"\"", nil)
 	}
 	if len(server.clientSubscriptions[message.GetTopic()]) > 1 {
-		return Error.New("multiple subscribers to topic \""+message.GetTopic()+"\"", nil)
+		return Utilities.NewError("multiple subscribers to topic \""+message.GetTopic()+"\"", nil)
 	}
 	server.openSyncRequests[message.GetSyncRequestToken()] = clientConnection
 	clientConnection.openSyncRequests[message.GetSyncRequestToken()] = message
@@ -127,14 +127,14 @@ func (server *Server) handleSyncResponse(message *Message.Message) error {
 	waitingClientConnection := server.openSyncRequests[message.GetSyncResponseToken()]
 	if waitingClientConnection == nil {
 		server.mutex.Unlock()
-		return Error.New("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)
+		return Utilities.NewError("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)
 	}
 	delete(server.openSyncRequests, message.GetSyncResponseToken())
 	delete(waitingClientConnection.openSyncRequests, message.GetSyncResponseToken())
 	server.mutex.Unlock()
 	err := waitingClientConnection.send(message)
 	if err != nil {
-		return Error.New("Failed to send response to client \""+waitingClientConnection.name+"\"", err)
+		return Utilities.NewError("Failed to send response to client \""+waitingClientConnection.name+"\"", err)
 	}
 	return nil
 }

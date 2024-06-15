@@ -1,7 +1,7 @@
 package WebsocketServer
 
 import (
-	"Systemge/Error"
+	"Systemge/Utilities"
 	"Systemge/WebsocketClient"
 )
 
@@ -10,10 +10,10 @@ func (server *Server) AddToGroup(groupId string, websocketId string) error {
 	defer server.operationMutex.Unlock()
 	client := server.clients[websocketId]
 	if client == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
+		return Utilities.NewError("WebsocketClient with id "+websocketId+" does not exist", nil)
 	}
 	if server.clientGroups[websocketId][groupId] {
-		return Error.New("WebsocketClient with id "+websocketId+" is already in group "+groupId, nil)
+		return Utilities.NewError("WebsocketClient with id "+websocketId+" is already in group "+groupId, nil)
 	}
 	if server.groups[groupId] == nil {
 		server.groups[groupId] = make(map[string]*WebsocketClient.Client)
@@ -27,16 +27,16 @@ func (server *Server) RemoveFromGroup(groupId string, websocketId string) error 
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	if server.groups[groupId] == nil {
-		return Error.New("Group with id "+groupId+" does not exist", nil)
+		return Utilities.NewError("Group with id "+groupId+" does not exist", nil)
 	}
 	if server.groups[groupId][websocketId] == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" is not in group "+groupId, nil)
+		return Utilities.NewError("WebsocketClient with id "+websocketId+" is not in group "+groupId, nil)
 	}
 	if server.clients[websocketId] == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
+		return Utilities.NewError("WebsocketClient with id "+websocketId+" does not exist", nil)
 	}
 	if server.clientGroups[websocketId] == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" is not in any groups", nil)
+		return Utilities.NewError("WebsocketClient with id "+websocketId+" is not in any groups", nil)
 	}
 	delete(server.clientGroups[websocketId], groupId)
 	delete(server.groups[groupId], websocketId)

@@ -1,10 +1,8 @@
 package Client
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Resolver"
-	"Systemge/TCP"
 	"Systemge/Utilities"
 	"net"
 	"sync"
@@ -34,42 +32,42 @@ func newBrokerConnection(netConn net.Conn, resolution *Resolver.Resolution, logg
 
 func (brokerConnection *brokerConnection) send(message *Message.Message) error {
 	if brokerConnection == nil {
-		return Error.New("Server connection is nil", nil)
+		return Utilities.NewError("Server connection is nil", nil)
 	}
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
 	if brokerConnection.netConn == nil {
-		return Error.New("Connection is closed", nil)
+		return Utilities.NewError("Connection is closed", nil)
 	}
-	err := TCP.Send(brokerConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	err := Utilities.Send(brokerConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		return Error.New("Error sending message", err)
+		return Utilities.NewError("Error sending message", err)
 	}
 	return nil
 }
 
 func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 	if brokerConnection == nil {
-		return nil, Error.New("Server connection is nil", nil)
+		return nil, Utilities.NewError("Server connection is nil", nil)
 	}
 	brokerConnection.receiveMutex.Lock()
 	defer brokerConnection.receiveMutex.Unlock()
 	if brokerConnection.netConn == nil {
-		return nil, Error.New("Connection is closed", nil)
+		return nil, Utilities.NewError("Connection is closed", nil)
 	}
-	messageBytes, err := TCP.Receive(brokerConnection.netConn, 0)
+	messageBytes, err := Utilities.Receive(brokerConnection.netConn, 0)
 	if err != nil {
-		return nil, Error.New("Error receiving message", err)
+		return nil, Utilities.NewError("Error receiving message", err)
 	}
 	return messageBytes, nil
 }
 
 func (brokerConnection *brokerConnection) close() error {
 	if brokerConnection == nil {
-		return Error.New("Server connection is nil", nil)
+		return Utilities.NewError("Server connection is nil", nil)
 	}
 	if brokerConnection.netConn == nil {
-		return Error.New("Connection is already closed", nil)
+		return Utilities.NewError("Connection is already closed", nil)
 	}
 	brokerConnection.netConn.Close()
 	brokerConnection.netConn = nil
@@ -80,7 +78,7 @@ func (brokerConnection *brokerConnection) addTopic(topic string) error {
 	brokerConnection.mapOperationMutex.Lock()
 	defer brokerConnection.mapOperationMutex.Unlock()
 	if brokerConnection.topics[topic] {
-		return Error.New("Topic already exists", nil)
+		return Utilities.NewError("Topic already exists", nil)
 	}
 	brokerConnection.topics[topic] = true
 	return nil

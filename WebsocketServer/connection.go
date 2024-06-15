@@ -1,14 +1,14 @@
 package WebsocketServer
 
 import (
-	"Systemge/Error"
+	"Systemge/Utilities"
 
 	"github.com/gorilla/websocket"
 )
 
 func (server *Server) queueNewWebsocketConn(websocketConn *websocket.Conn) error {
 	if !server.IsStarted() {
-		return Error.New("websocket listener is not started", nil)
+		return Utilities.NewError("websocket listener is not started", nil)
 	}
 	server.websocketConnChannel <- websocketConn
 	return nil

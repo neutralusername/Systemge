@@ -15,7 +15,7 @@ func (server *Server) GetCustomCommandHandlers() map[string]Application.CustomCo
 		},
 		"groups": func(args []string) error {
 			server.operationMutex.Lock()
-			for groupId, _ := range server.groups {
+			for groupId := range server.groups {
 				println(groupId)
 			}
 			server.operationMutex.Unlock()

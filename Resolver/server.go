@@ -1,7 +1,6 @@
 package Resolver
 
 import (
-	"Systemge/Error"
 	"Systemge/Utilities"
 	"net"
 	"sync"
@@ -34,12 +33,12 @@ func (server *Server) Start() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Error.New("Server already started", nil)
+		return Utilities.NewError("Server already started", nil)
 	}
 	server.isStarted = true
 	tcpListener, err := net.Listen("tcp", server.listenerPort)
 	if err != nil {
-		return Error.New("", err)
+		return Utilities.NewError("", err)
 	}
 	server.tcpListener = tcpListener
 	go func() {
@@ -47,7 +46,7 @@ func (server *Server) Start() error {
 			netConn, err := server.tcpListener.Accept()
 			if err != nil {
 				if server.IsStarted() {
-					server.logger.Log(Error.New("Failed to accept connection", err).Error())
+					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
 				}
 				return
 			}
@@ -65,7 +64,7 @@ func (server *Server) Stop() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if !server.isStarted {
-		return Error.New("Server is not started", nil)
+		return Utilities.NewError("Server is not started", nil)
 	}
 	server.isStarted = false
 	server.tcpListener.Close()

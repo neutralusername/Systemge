@@ -1,14 +1,15 @@
-package TCP
+package Utilities
 
 import (
-	"Systemge/Error"
 	"net"
 	"time"
 )
 
+const ENDOFMESSAGE = "\x04"
+
 func Send(netConn net.Conn, msg []byte, timeoutMs int) error {
 	if netConn == nil {
-		return Error.New("net.Conn is nil", nil)
+		return NewError("net.Conn is nil", nil)
 	}
 	if timeoutMs > 0 {
 		netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
@@ -24,7 +25,7 @@ func Send(netConn net.Conn, msg []byte, timeoutMs int) error {
 
 func Receive(netConn net.Conn, timeoutMs int) ([]byte, error) {
 	if netConn == nil {
-		return nil, Error.New("net.Conn is nil", nil)
+		return nil, NewError("net.Conn is nil", nil)
 	}
 	buffer := make([]byte, 1)
 	message := make([]byte, 0)

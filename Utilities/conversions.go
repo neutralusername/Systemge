@@ -190,13 +190,3 @@ func StringToHexString(str string) string {
 	}
 	return hex
 }
-
-func HexStringToString(hex string) string {
-	str := ""
-	for i := 0; i < len(hex); i += 2 {
-		char, _ := strconv.ParseInt(hex[i:i+2], 16, 0)
-		strRepr := string(char)
-		str += strRepr
-	}
-	return str
-}

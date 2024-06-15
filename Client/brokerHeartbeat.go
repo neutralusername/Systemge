@@ -1,8 +1,8 @@
 package Client
 
 import (
-	"Systemge/Error"
 	"Systemge/Message"
+	"Systemge/Utilities"
 	"time"
 )
 
@@ -10,7 +10,7 @@ func (client *Client) heartbeatLoop(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		err := brokerConnection.send(Message.NewAsync("heartbeat", client.name, ""))
 		if err != nil {
-			client.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+brokerConnection.resolution.Address+"\"", err).Error())
+			client.logger.Log(Utilities.NewError("Failed to send heartbeat to message broker server \""+brokerConnection.resolution.Address+"\"", err).Error())
 			return
 		}
 		sleepChannel := make(chan bool)

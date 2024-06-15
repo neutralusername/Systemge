@@ -1,14 +1,13 @@
-package Error
+package Utilities
 
 import (
-	"Systemge/Utilities"
 	"errors"
 	"path"
 	"runtime"
 )
 
 // description is used to provide context to the error message
-func New(description string, err error) error {
+func NewError(description string, err error) error {
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
 		panic("could not get caller information")
@@ -21,5 +20,5 @@ func New(description string, err error) error {
 		}
 		errStr += err.Error()
 	}
-	return errors.New(file + ":" + Utilities.IntToString(line) + " -> " + description + errStr)
+	return errors.New(file + ":" + IntToString(line) + " -> " + description + errStr)
 }
