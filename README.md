@@ -11,6 +11,8 @@ Library for building message based distributed systems through async and sync TC
 
 Most steps are handled by the library.  
 The goal is that developers can concentrate on writing the application without having to care much about the networking aspects.  
+  
+Access control is intended to be handled by your firewall.  
 
 For informations on how to use this library check out the samples:  
 https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife  
