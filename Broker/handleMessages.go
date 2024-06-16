@@ -58,9 +58,9 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	case "unsubscribe":
 		err := server.removeSubscription(clientConnection, message.GetPayload())
 		if err != nil {
-			err := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("", err).Error()))
-			if err != nil {
-				return Utilities.NewError("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", err)
+			errRespnse := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("", err).Error()))
+			if errRespnse != nil {
+				return Utilities.NewError("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", errRespnse)
 			}
 			return Utilities.NewError("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
 		}
@@ -72,9 +72,9 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	case "subscribe":
 		err := server.addSubscription(clientConnection, message.GetPayload())
 		if err != nil {
-			err := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("", err).Error()))
-			if err != nil {
-				return Utilities.NewError("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", err)
+			errRespnse := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("", err).Error()))
+			if errRespnse != nil {
+				return Utilities.NewError("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", errRespnse)
 			}
 			return Utilities.NewError("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
 		}
@@ -86,9 +86,9 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	case "consume":
 		message := clientConnection.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
 		if message == nil {
-			err := server.handleSyncResponse(message.NewResponse("error", server.name, "No message to consume"))
-			if err != nil {
-				return Utilities.NewError("Failed to send error response to client \""+clientConnection.name+"\" and no message to consume", err)
+			errRespnse := server.handleSyncResponse(message.NewResponse("error", server.name, "No message to consume"))
+			if errRespnse != nil {
+				return Utilities.NewError("Failed to send error response to client \""+clientConnection.name+"\" and no message to consume", errRespnse)
 			}
 			return Utilities.NewError("No message to consume for client \""+clientConnection.name+"\"", nil)
 		}
