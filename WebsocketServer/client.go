@@ -8,8 +8,8 @@ import (
 )
 
 func (server *Server) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient.Client {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	websocketId := "#" + server.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
 	for _, exists := server.clients[websocketId]; exists; {
 		websocketId = "#" + server.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
@@ -24,17 +24,21 @@ func (server *Server) addWebsocketConn(websocketConn *websocket.Conn) *Websocket
 }
 
 func (server *Server) removeClient(client *WebsocketClient.Client) {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	delete(server.clients, client.GetId())
 	for groupId := range server.clientGroups[client.GetId()] {
-		server.RemoveFromGroup(groupId, client.GetId())
+		delete(server.clientGroups[client.GetId()], groupId)
+		delete(server.groups[groupId], client.GetId())
+		if len(server.groups[groupId]) == 0 {
+			delete(server.groups, groupId)
+		}
 	}
 }
 
 func (server *Server) ClientExists(websocketId string) bool {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	_, exists := server.clients[websocketId]
 	return exists
 }

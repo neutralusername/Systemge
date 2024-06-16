@@ -19,13 +19,13 @@ type Server struct {
 	groups               map[string]map[string]*WebsocketClient.Client // groupId -> map[websocketId]websocketClient
 	clientGroups         map[string]map[string]bool                    // websocketId -> map[groupId]bool
 
-	stopChannel    chan bool
-	isStarted      bool
-	operationMutex sync.Mutex
-	stateMutex     sync.Mutex
-	logger         *Utilities.Logger
-	name           string
-	randomizer     *Randomizer.Randomizer
+	stopChannel chan bool
+	isStarted   bool
+	mutex       sync.Mutex
+	stateMutex  sync.Mutex
+	logger      *Utilities.Logger
+	name        string
+	randomizer  *Randomizer.Randomizer
 }
 
 func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshakeHandler *HTTP.Server) *Server {
@@ -37,13 +37,33 @@ func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshak
 		groups:               make(map[string]map[string]*WebsocketClient.Client),
 		clientGroups:         make(map[string]map[string]bool),
 
-		stopChannel:    nil,
-		isStarted:      false,
-		operationMutex: sync.Mutex{},
-		logger:         logger,
-		name:           name,
-		randomizer:     Randomizer.New(Randomizer.GetSystemTime()),
+		stopChannel: nil,
+		isStarted:   false,
+		mutex:       sync.Mutex{},
+		logger:      logger,
+		name:        name,
+		randomizer:  Randomizer.New(Randomizer.GetSystemTime()),
 	}
+}
+
+func (server *Server) acquireMutex() {
+	/* _, file, line, ok := runtime.Caller(1)
+	if !ok {
+		panic("could not get caller information")
+	}
+	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
+	println(file + ":" + Utilities.IntToString(line) + " trying to acquire mutex") */
+	server.mutex.Lock()
+}
+
+func (server *Server) releaseMutex() {
+	/* _, file, line, ok := runtime.Caller(1)
+	if !ok {
+		panic("could not get caller information")
+	}
+	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
+	println(file + ":" + Utilities.IntToString(line) + " trying to release mutex") */
+	server.mutex.Unlock()
 }
 
 // sets the websocketApplication that the server will use to handle messages, connects and disconnects
@@ -83,13 +103,13 @@ func (server *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	server.operationMutex.Lock()
+	server.acquireMutex()
 	server.clients = make(map[string]*WebsocketClient.Client)
 	server.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	server.stopChannel = make(chan bool)
 	server.isStarted = true
 	go server.listenForWebsocketConns()
-	server.operationMutex.Unlock()
+	server.releaseMutex()
 	return nil
 }
 func (server *Server) listenForWebsocketConns() {
@@ -113,9 +133,9 @@ func (server *Server) Stop() error {
 	for _, websocketClient := range server.clients {
 		websocketClient.Disconnect()
 	}
-	server.operationMutex.Lock()
+	server.acquireMutex()
 	server.isStarted = false
 	close(server.stopChannel)
-	server.operationMutex.Unlock()
+	server.releaseMutex()
 	return nil
 }

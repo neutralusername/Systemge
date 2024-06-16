@@ -6,8 +6,8 @@ import (
 )
 
 func (server *Server) AddToGroup(groupId string, websocketId string) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	client := server.clients[websocketId]
 	if client == nil {
 		return Utilities.NewError("WebsocketClient with id "+websocketId+" does not exist", nil)
@@ -24,8 +24,8 @@ func (server *Server) AddToGroup(groupId string, websocketId string) error {
 }
 
 func (server *Server) RemoveFromGroup(groupId string, websocketId string) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	if server.groups[groupId] == nil {
 		return Utilities.NewError("Group with id "+groupId+" does not exist", nil)
 	}
@@ -47,8 +47,8 @@ func (server *Server) RemoveFromGroup(groupId string, websocketId string) error 
 }
 
 func (server *Server) GetGroupMembers(groupId string) []string {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	if server.groups[groupId] == nil {
 		return nil
 	}
@@ -60,8 +60,8 @@ func (server *Server) GetGroupMembers(groupId string) []string {
 }
 
 func (server *Server) GetGroups(websocketId string) []string {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	if server.clients[websocketId] == nil {
 		return nil
 	}
@@ -76,8 +76,8 @@ func (server *Server) GetGroups(websocketId string) []string {
 }
 
 func (server *Server) IsInGroup(groupId string, websocketId string) bool {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.acquireMutex()
+	defer server.releaseMutex()
 	if server.groups[groupId] == nil {
 		return false
 	}
