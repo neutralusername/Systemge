@@ -31,3 +31,10 @@ func (server *Server) removeClient(client *WebsocketClient.Client) {
 		server.RemoveFromGroup(groupId, client.GetId())
 	}
 }
+
+func (server *Server) ClientExists(websocketId string) bool {
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
+	_, exists := server.clients[websocketId]
+	return exists
+}
