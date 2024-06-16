@@ -81,7 +81,6 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 	}
 	server.clientConnections[clientConnection.name] = clientConnection
 	clientConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
-		server.logger.Log("Client \"" + clientConnection.name + "\" has timed out")
 		server.removeClient(clientConnection)
 	})
 	return nil

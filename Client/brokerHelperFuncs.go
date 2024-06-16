@@ -42,17 +42,14 @@ func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) {
 	brokerConnection.topics = make(map[string]bool)
 	brokerConnection.mapOperationMutex.Unlock()
 	client.mapOperationMutex.Unlock()
-
-	for _, topic := range topicsToReconnect {
-		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
-		if err != nil {
-			if client.isStarted {
+	if client.isStarted {
+		for _, topic := range topicsToReconnect {
+			newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
+			if err != nil {
 				panic(Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err))
 			}
-		}
-		err = client.subscribeTopic(newBrokerConnection, topic)
-		if err != nil {
-			if client.isStarted {
+			err = client.subscribeTopic(newBrokerConnection, topic)
+			if err != nil {
 				panic(Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err))
 			}
 		}
