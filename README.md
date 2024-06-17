@@ -18,7 +18,8 @@ For informations on how to use this library check out the samples:
 https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife  
 https://github.com/neutralusername/Systemge-Sample-PingPong  
 https://github.com/neutralusername/Systemge-Sample-Chat  
-https://github.com/neutralusername/Systemge-Sample-PingSpawner
+https://github.com/neutralusername/Systemge-Sample-PingSpawner  
+https://github.com/neutralusername/Systemge-Sample-ChessServer  
 
   
 ![Leeres Diagramm(9)](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
