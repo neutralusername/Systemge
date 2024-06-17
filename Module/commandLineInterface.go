@@ -9,7 +9,7 @@ import (
 )
 
 // starts a command-line interface for the module
-func StartCommandLineInterface(module Module, customCommands map[string]Application.CustomCommandHandler) {
+func StartCommandLineInterface(module Module, customCommandHandlers ...map[string]Application.CustomCommandHandler) {
 	if module == nil {
 		panic("module cannot be nil")
 	}
@@ -53,18 +53,18 @@ func StartCommandLineInterface(module Module, customCommands map[string]Applicat
 		case "exit":
 			return
 		default:
-			if customCommands != nil && customCommands[inputSegments[0]] != nil {
-				if !started {
-					println("module not started")
+			for _, customCommandHandler := range customCommandHandlers {
+				if customCommandHandler != nil && customCommandHandler[inputSegments[0]] != nil {
+					if !started {
+						println("module not started")
+						continue
+					}
+					err := customCommandHandler[inputSegments[0]](inputSegments[1:])
+					if err != nil {
+						println("error executing command: " + err.Error())
+					}
 					continue
 				}
-				err := customCommands[inputSegments[0]](inputSegments[1:])
-				if err != nil {
-					println("error executing command: " + err.Error())
-				}
-				continue
-			} else {
-				println("unknown command \"" + input + "\"")
 			}
 		}
 	}
