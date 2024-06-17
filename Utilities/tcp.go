@@ -25,6 +25,19 @@ func TlsDial(address string, ServerNameIndication string, tlsCertificate string)
 	})
 }
 
+func TcpOneTimeExchange(address, nameIndication, tlsCertificate string, message *Message.Message, timeoutMs int) (*Message.Message, error) {
+	brokerNetConn, err := TlsDial(address, nameIndication, tlsCertificate)
+	if err != nil {
+		return nil, NewError("Error dialing brokerChess", err)
+	}
+	response, err := TcpExchange(brokerNetConn, message, timeoutMs)
+	if err != nil {
+		return nil, NewError("Error exchanging messages with broker", err)
+	}
+	brokerNetConn.Close()
+	return response, nil
+}
+
 func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs int) (*Message.Message, error) {
 	err := TcpSend(netConn, message.Serialize(), timeoutMs)
 	if err != nil {

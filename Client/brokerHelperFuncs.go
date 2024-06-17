@@ -1,6 +1,8 @@
 package Client
 
-import "Systemge/Utilities"
+import (
+	"Systemge/Utilities"
+)
 
 func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
 	brokerConnection := client.getTopicResolution(topic)
