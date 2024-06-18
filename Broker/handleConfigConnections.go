@@ -12,10 +12,9 @@ func (server *Server) handleConfigConnections() {
 		netConn, err := server.tlsConfigListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
-				panic(err)
-			} else {
-				continue
+				server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())
 			}
+			continue
 		}
 		go func() {
 			defer netConn.Close()

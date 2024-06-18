@@ -12,10 +12,9 @@ func (server *Server) handleBrokerConnections() {
 		netConn, err := server.tlsBrokerListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
-				panic(err)
-			} else {
-				continue
+				server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())
 			}
+			continue
 		}
 		go func() {
 			client, err := server.handleBrokerConnectionRequest(netConn)
