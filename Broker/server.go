@@ -111,9 +111,17 @@ func (server *Server) Stop() error {
 	if !server.isStarted {
 		return Utilities.NewError("Server is not started", nil)
 	}
+	clientsToDisconnect := make([]*clientConnection, 0)
+	server.operationMutex.Lock()
 	for _, clientConnection := range server.clientConnections {
-		clientConnection.disconnect()
+		clientsToDisconnect = append(clientsToDisconnect, clientConnection)
 	}
+	server.operationMutex.Unlock()
+	for _, clientConnection := range clientsToDisconnect {
+		clientConnection.disconnect()
+
+	}
+
 	server.tlsBrokerListener.Close()
 	server.tlsConfigListener.Close()
 	server.isStarted = false
