@@ -43,6 +43,10 @@ func New(name, topicResolutionServerAddress string, logger *Utilities.Logger, we
 		resolverAddress: topicResolutionServerAddress,
 		randomizer:      Randomizer.New(Randomizer.GetSystemTime()),
 
+		messagesWaitingForResponse: make(map[string]chan *Message.Message),
+		topicResolutions:           make(map[string]*brokerConnection),
+		activeBrokerConnections:    make(map[string]*brokerConnection),
+
 		websocketServer: websocketServer,
 
 		handleMessagesConcurrently: true,
@@ -97,51 +101,52 @@ func (client *Client) GetHandleMessagesConcurrently() bool {
 }
 
 func (client *Client) Start() error {
-	client.stateMutex.Lock()
-	client.mapOperationMutex.Lock()
-	if client.application == nil {
-		return Utilities.NewError("Application not set", nil)
+	err := func() error {
+		client.stateMutex.Lock()
+		defer client.stateMutex.Unlock()
+		if client.application == nil {
+			return Utilities.NewError("Application not set", nil)
+		}
+		if client.resolverAddress == "" {
+			return Utilities.NewError("Topic resolution server address not set", nil)
+		}
+		if client.isStarted {
+			return Utilities.NewError("Client already connected", nil)
+		}
+		if client.websocketServer != nil {
+			err := client.websocketServer.Start()
+			if err != nil {
+				return Utilities.NewError("Error starting websocket server", err)
+			}
+		}
+		client.stopChannel = make(chan bool)
+		topics := make([]string, 0)
+		for topic := range client.application.GetSyncMessageHandlers() {
+			topics = append(topics, topic)
+		}
+		for topic := range client.application.GetAsyncMessageHandlers() {
+			topics = append(topics, topic)
+		}
+		for _, topic := range topics {
+			serverConnection, err := client.getBrokerConnectionForTopic(topic)
+			if err != nil {
+				close(client.stopChannel)
+				return Utilities.NewError("Error getting server connection for topic", err)
+			}
+			err = client.subscribeTopic(serverConnection, topic)
+			if err != nil {
+				close(client.stopChannel)
+				return Utilities.NewError("Error subscribing to topic", err)
+			}
+		}
+		client.isStarted = true
+		return nil
+	}()
+	if err != nil {
+		return Utilities.NewError("Error starting client", err)
 	}
-	if client.resolverAddress == "" {
-		return Utilities.NewError("Topic resolution server address not set", nil)
-	}
-	if client.isStarted {
-		return Utilities.NewError("Client already connected", nil)
-	}
-	client.topicResolutions = make(map[string]*brokerConnection)
-	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
-	client.activeBrokerConnections = make(map[string]*brokerConnection)
-	client.mapOperationMutex.Unlock()
 
-	if client.websocketServer != nil {
-		err := client.websocketServer.Start()
-		if err != nil {
-			return Utilities.NewError("Error starting websocket server", err)
-		}
-	}
-	client.stopChannel = make(chan bool)
-	topics := make([]string, 0)
-	for topic := range client.application.GetSyncMessageHandlers() {
-		topics = append(topics, topic)
-	}
-	for topic := range client.application.GetAsyncMessageHandlers() {
-		topics = append(topics, topic)
-	}
-	for _, topic := range topics {
-		serverConnection, err := client.getBrokerConnectionForTopic(topic)
-		if err != nil {
-			close(client.stopChannel)
-			return Utilities.NewError("Error getting server connection for topic", err)
-		}
-		err = client.subscribeTopic(serverConnection, topic)
-		if err != nil {
-			close(client.stopChannel)
-			return Utilities.NewError("Error subscribing to topic", err)
-		}
-	}
-	client.isStarted = true
-	client.stateMutex.Unlock()
-	err := client.application.OnStart()
+	err = client.application.OnStart()
 	if err != nil {
 		client.Stop()
 		return Utilities.NewError("Error in OnStart", err)
@@ -166,13 +171,12 @@ func (client *Client) Stop() error {
 		}
 	}
 	client.mapOperationMutex.Lock()
-	for _, connection := range client.activeBrokerConnections {
-		connection.close()
+	for _, brokerConnection := range client.activeBrokerConnections {
+		brokerConnection.close()
 	}
-	close(client.stopChannel)
 	client.activeBrokerConnections = make(map[string]*brokerConnection)
 	client.topicResolutions = make(map[string]*brokerConnection)
-	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
+	close(client.stopChannel)
 	client.isStarted = false
 	client.mapOperationMutex.Unlock()
 	return nil

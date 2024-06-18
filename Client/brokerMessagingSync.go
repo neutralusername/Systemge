@@ -36,6 +36,7 @@ func (client *Client) receiveSyncResponse(message *Message.Message, responseChan
 		}
 		return response, nil
 	case <-client.stopChannel:
+		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return nil, Utilities.NewError("client stopped", nil)
 	}
 }
