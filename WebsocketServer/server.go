@@ -108,19 +108,9 @@ func (server *Server) Start() error {
 	server.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	server.stopChannel = make(chan bool)
 	server.isStarted = true
-	go server.listenForWebsocketConns()
+	go server.handleWebsocketConnections()
 	server.releaseMutex()
 	return nil
-}
-func (server *Server) listenForWebsocketConns() {
-	for server.IsStarted() {
-		select {
-		case <-server.stopChannel:
-			return
-		case websocketConn := <-server.websocketConnChannel:
-			go server.handleWebsocketConn(websocketConn)
-		}
-	}
 }
 
 func (server *Server) Stop() error {
