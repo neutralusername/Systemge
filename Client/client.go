@@ -3,7 +3,6 @@ package Client
 import (
 	"Systemge/Application"
 	"Systemge/Message"
-	"Systemge/Randomizer"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
 	"sync"
@@ -13,7 +12,6 @@ type Client struct {
 	name            string
 	logger          *Utilities.Logger
 	resolverAddress string
-	randomizer      *Randomizer.Randomizer
 
 	websocketServer *WebsocketServer.Server
 	application     Application.Application
@@ -41,7 +39,6 @@ func New(name, topicResolutionServerAddress string, logger *Utilities.Logger, we
 		name:            name,
 		logger:          logger,
 		resolverAddress: topicResolutionServerAddress,
-		randomizer:      Randomizer.New(Randomizer.GetSystemTime()),
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 		topicResolutions:           make(map[string]*brokerConnection),
