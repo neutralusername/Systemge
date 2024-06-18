@@ -11,6 +11,9 @@ func (server *Server) addSubscription(clientConnection *clientConnection, topic 
 	if !server.asyncTopics[topic] && !server.syncTopics[topic] {
 		return Utilities.NewError("Topic \""+topic+"\" does not exist on server \""+server.name+"\"", nil)
 	}
+	if server.syncTopics[topic] && len(server.clientSubscriptions[topic]) > 0 {
+		return Utilities.NewError("Sync topic \""+topic+"\" already has a subscriber", nil)
+	}
 	if clientConnection.subscribedTopics[topic] {
 		return Utilities.NewError("Client \""+clientConnection.name+"\" is already subscribed to topic \""+topic+"\"", nil)
 	}

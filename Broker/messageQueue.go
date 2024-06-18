@@ -10,15 +10,12 @@ func (clientConnection *clientConnection) queueMessage(message *Message.Message)
 }
 
 func (clientConnection *clientConnection) dequeueMessage_Timeout(timeoutMs int) *Message.Message {
-	timeoutChannel := make(chan bool)
-	go func() {
-		time.Sleep(time.Millisecond * time.Duration(timeoutMs))
-		timeoutChannel <- true
-	}()
+	timer := time.NewTimer(time.Duration(timeoutMs) * time.Millisecond)
+	defer timer.Stop() // Ensure the timer is stopped to release resources
 	select {
 	case message := <-clientConnection.messageQueue:
 		return message
-	case <-timeoutChannel:
+	case <-timer.C:
 		return nil
 	}
 }

@@ -8,16 +8,14 @@ import (
 func (server *Server) validateMessageTopic(message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if server.asyncTopics[message.GetTopic()] {
-		if message.GetSyncRequestToken() != "" {
-			return Utilities.NewError("broker does not accept sync messages for topic \""+message.GetTopic()+"\"", nil)
-		}
-	} else if server.syncTopics[message.GetTopic()] {
-		if message.GetSyncRequestToken() == "" {
-			return Utilities.NewError("broker only accepts sync messages for topic \""+message.GetTopic()+"\"", nil)
+	if message.GetSyncRequestToken() != "" {
+		if !server.syncTopics[message.GetTopic()] {
+			return Utilities.NewError("Sync Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
 		}
 	} else {
-		return Utilities.NewError("Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
+		if !server.asyncTopics[message.GetTopic()] {
+			return Utilities.NewError("Async Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
+		}
 	}
 	return nil
 }

@@ -13,7 +13,7 @@ type Server struct {
 
 	clientSubscriptions map[string]map[string]*clientConnection // topic -> [clientName-> client]
 	clientConnections   map[string]*clientConnection            // clientName -> Client
-	openSyncRequests    map[string]*clientConnection            // sync request token -> client
+	openSyncRequests    map[string]*syncRequest
 	mutex               sync.Mutex
 
 	name   string
@@ -92,7 +92,7 @@ func (server *Server) Start() error {
 	server.tlsBrokerListener = brokerListener
 	server.tlsConfigListener = configListener
 	server.clientConnections = map[string]*clientConnection{}
-	server.openSyncRequests = map[string]*clientConnection{}
+	server.openSyncRequests = map[string]*syncRequest{}
 	go server.handleBrokerConnections()
 	go server.handleConfigConnections()
 	server.isStarted = true

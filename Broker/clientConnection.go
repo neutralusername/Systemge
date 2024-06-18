@@ -15,7 +15,6 @@ type clientConnection struct {
 	watchdog     *time.Timer
 
 	subscribedTopics   map[string]bool
-	openSyncRequests   map[string]*Message.Message
 	deliverImmediately bool
 
 	mutex        sync.Mutex
@@ -29,7 +28,6 @@ func newClientConnection(name string, netConn net.Conn) *clientConnection {
 		netConn:            netConn,
 		messageQueue:       make(chan *Message.Message, CLIENT_MESSAGE_QUEUE_SIZE),
 		watchdog:           nil,
-		openSyncRequests:   map[string]*Message.Message{},
 		subscribedTopics:   map[string]bool{},
 		deliverImmediately: DELIVER_IMMEDIATELY_DEFAULT,
 	}
@@ -89,17 +87,14 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 func (server *Server) removeClient(clientConnection *clientConnection) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-
 	if server.clientConnections[clientConnection.name] == nil {
 		return Utilities.NewError("Subscriber with name \""+clientConnection.name+"\" does not exist", nil)
 	}
 	clientConnection.watchdog = nil
 	clientConnection.netConn.Close()
+	clientConnection.netConn = nil
 	for messageType := range clientConnection.subscribedTopics {
 		delete(server.clientSubscriptions[messageType], clientConnection.name)
-	}
-	for _, message := range clientConnection.openSyncRequests {
-		delete(server.openSyncRequests, message.GetSyncRequestToken())
 	}
 	delete(server.clientConnections, clientConnection.name)
 	return nil

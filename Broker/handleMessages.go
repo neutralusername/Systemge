@@ -104,37 +104,3 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	}
 	return nil
 }
-
-func (server *Server) handleSyncRequest(clientConnection *clientConnection, message *Message.Message) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
-		return Utilities.NewError("token already in use", nil)
-	}
-	if len(server.clientSubscriptions[message.GetTopic()]) == 0 && message.GetTopic() != "subscribe" && message.GetTopic() != "unsubscribe" {
-		return Utilities.NewError("no subscribers to topic \""+message.GetTopic()+"\"", nil)
-	}
-	if len(server.clientSubscriptions[message.GetTopic()]) > 1 {
-		return Utilities.NewError("multiple subscribers to topic \""+message.GetTopic()+"\"", nil)
-	}
-	server.openSyncRequests[message.GetSyncRequestToken()] = clientConnection
-	clientConnection.openSyncRequests[message.GetSyncRequestToken()] = message
-	return nil
-}
-
-func (server *Server) handleSyncResponse(message *Message.Message) error {
-	server.mutex.Lock()
-	waitingClientConnection := server.openSyncRequests[message.GetSyncResponseToken()]
-	if waitingClientConnection == nil {
-		server.mutex.Unlock()
-		return Utilities.NewError("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)
-	}
-	delete(server.openSyncRequests, message.GetSyncResponseToken())
-	delete(waitingClientConnection.openSyncRequests, message.GetSyncResponseToken())
-	server.mutex.Unlock()
-	err := waitingClientConnection.send(message)
-	if err != nil {
-		return Utilities.NewError("Failed to send response to client \""+waitingClientConnection.name+"\"", err)
-	}
-	return nil
-}
