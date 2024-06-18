@@ -81,8 +81,9 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 	}
 	server.clientConnections[clientConnection.name] = clientConnection
 	clientConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
-		clientConnection.watchdog.Stop()
+		watchdog := clientConnection.watchdog
 		clientConnection.watchdog = nil
+		watchdog.Stop()
 		clientConnection.netConn.Close()
 		err := server.removeClient(clientConnection)
 		if err != nil {

@@ -47,8 +47,9 @@ func New(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*Cli
 		handleMessagesConcurrently: DEFAULT_HANDLE_MESSAGES_CONCURRENTLY,
 	}
 	client.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
-		client.watchdog.Stop()
+		watchdog := client.watchdog
 		client.watchdog = nil
+		watchdog.Stop()
 		websocketConn.Close()
 		onDisconnectHandler(client)
 		close(client.stopChannel)
