@@ -129,9 +129,7 @@ func (server *Server) Stop() error {
 	for _, websocketClient := range clientsToDisconnect {
 		websocketClient.Disconnect()
 	}
-	server.acquireMutex()
 	server.isStarted = false
 	close(server.stopChannel)
-	server.releaseMutex()
 	return nil
 }
