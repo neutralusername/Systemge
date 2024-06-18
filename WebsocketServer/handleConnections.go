@@ -10,6 +10,9 @@ func (server *Server) handleWebsocketConnections() {
 		case <-server.stopChannel:
 			return
 		case websocketConn := <-server.websocketConnChannel:
+			if websocketConn == nil {
+				continue
+			}
 			go server.handleWebsocketConn(websocketConn)
 		}
 	}

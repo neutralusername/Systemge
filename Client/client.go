@@ -171,11 +171,13 @@ func (client *Client) Stop() error {
 		}
 	}
 	client.mapOperationMutex.Lock()
-	for _, brokerConnection := range client.activeBrokerConnections {
+	for address, brokerConnection := range client.activeBrokerConnections {
 		brokerConnection.close()
+		delete(client.activeBrokerConnections, address)
+		for topic := range brokerConnection.topics {
+			delete(client.topicResolutions, topic)
+		}
 	}
-	client.activeBrokerConnections = make(map[string]*brokerConnection)
-	client.topicResolutions = make(map[string]*brokerConnection)
 	close(client.stopChannel)
 	client.isStarted = false
 	client.mapOperationMutex.Unlock()
