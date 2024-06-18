@@ -107,9 +107,9 @@ func (server *Server) Start() error {
 	server.clients = make(map[string]*WebsocketClient.Client)
 	server.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	server.stopChannel = make(chan bool)
+	server.releaseMutex()
 	server.isStarted = true
 	go server.handleWebsocketConnections()
-	server.releaseMutex()
 	return nil
 }
 

@@ -116,6 +116,7 @@ func (client *Client) Start() error {
 				return Utilities.NewError("Error starting websocket server", err)
 			}
 		}
+
 		client.stopChannel = make(chan bool)
 		topics := make([]string, 0)
 		client.mapOperationMutex.Lock()
@@ -126,6 +127,7 @@ func (client *Client) Start() error {
 			topics = append(topics, topic)
 		}
 		client.mapOperationMutex.Unlock()
+
 		for _, topic := range topics {
 			serverConnection, err := client.getBrokerConnectionForTopic(topic)
 			if err != nil {
