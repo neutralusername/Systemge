@@ -22,9 +22,9 @@ func (server *Server) handleConfigConnections() {
 			err := server.handleConfigConnection(netConn)
 			if err != nil {
 				Utilities.TcpSend(netConn, Message.NewAsync("error", server.GetName(), Utilities.NewError("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
-				return
+			} else {
+				Utilities.TcpSend(netConn, Message.NewAsync("success", server.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
 			}
-			Utilities.TcpSend(netConn, Message.NewAsync("success", server.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
 		}()
 	}
 }
