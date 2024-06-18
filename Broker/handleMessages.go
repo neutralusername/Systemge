@@ -43,9 +43,11 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	}
 	if message.GetSyncRequestToken() != "" {
 		if err := server.handleSyncRequest(clientConnection, message); err != nil {
-			if err := clientConnection.send(message.NewResponse("error", server.name, Utilities.NewError("", err).Error())); err != nil {
-				return Utilities.NewError("Failed to send error response to sync request from \""+clientConnection.name+"\"", err)
+			errReponse := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("sync request failed", err).Error()))
+			if errReponse != nil {
+				return Utilities.NewError("Failed to handle sync request from client \""+clientConnection.name+"\" and failed to send error response", errReponse)
 			}
+			return Utilities.NewError("Failed to handle sync request from client \""+clientConnection.name+"\"", err)
 		}
 	}
 	switch message.GetTopic() {
