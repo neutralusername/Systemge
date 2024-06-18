@@ -4,7 +4,21 @@ import (
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
+	"strings"
 )
+
+func (server *Server) handleResolverConnections() {
+	for server.IsStarted() {
+		netConn, err := server.tcpListenerResolver.Accept()
+		if err != nil {
+			if !strings.Contains(err.Error(), "use of closed network connection") {
+				server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())
+			}
+			continue
+		}
+		go server.handleResolverConnection(netConn)
+	}
+}
 
 func (server *Server) handleResolverConnection(netConn net.Conn) {
 	defer netConn.Close()
