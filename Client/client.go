@@ -151,8 +151,9 @@ func (client *Client) Start() error {
 
 func (client *Client) Stop() error {
 	client.stateMutex.Lock()
+	defer client.stateMutex.Unlock()
 	if !client.isStarted {
-		return Utilities.NewError("Client not connected", nil)
+		return Utilities.NewError("Client not started", nil)
 	}
 	err := client.application.OnStop()
 	if err != nil {
@@ -174,8 +175,6 @@ func (client *Client) Stop() error {
 	client.isStarted = false
 	close(client.stopChannel)
 	client.mapOperationMutex.Unlock()
-
-	client.stateMutex.Unlock()
 	return nil
 }
 

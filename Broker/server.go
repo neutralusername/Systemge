@@ -14,7 +14,9 @@ type Server struct {
 	clientSubscriptions map[string]map[string]*clientConnection // topic -> [clientName-> client]
 	clientConnections   map[string]*clientConnection            // clientName -> Client
 	openSyncRequests    map[string]*syncRequest
-	mutex               sync.Mutex
+
+	operationMutex sync.Mutex
+	stateMutex     sync.Mutex
 
 	name   string
 	logger *Utilities.Logger
@@ -43,6 +45,10 @@ func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, conf
 			"heartbeat": true,
 		},
 
+		clientSubscriptions: map[string]map[string]*clientConnection{},
+		clientConnections:   map[string]*clientConnection{},
+		openSyncRequests:    map[string]*syncRequest{},
+
 		name:   name,
 		logger: logger,
 
@@ -53,14 +59,12 @@ func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, conf
 		configTlsCertPath: configTlsCertPath,
 		configTlsKeyPath:  configTlsKeyPath,
 		configPort:        configPort,
-
-		clientSubscriptions: map[string]map[string]*clientConnection{},
 	}
 }
 
 func (server *Server) Start() error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.stateMutex.Lock()
+	defer server.stateMutex.Unlock()
 	if server.isStarted {
 		return Utilities.NewError("Server already started", nil)
 	}
@@ -91,11 +95,9 @@ func (server *Server) Start() error {
 	}
 	server.tlsBrokerListener = brokerListener
 	server.tlsConfigListener = configListener
-	server.clientConnections = map[string]*clientConnection{}
-	server.openSyncRequests = map[string]*syncRequest{}
+	server.isStarted = true
 	go server.handleBrokerConnections()
 	go server.handleConfigConnections()
-	server.isStarted = true
 	return nil
 }
 
@@ -104,27 +106,22 @@ func (server *Server) GetName() string {
 }
 
 func (server *Server) Stop() error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.stateMutex.Lock()
+	defer server.stateMutex.Unlock()
 	if !server.isStarted {
 		return Utilities.NewError("Server is not started", nil)
 	}
-	server.isStarted = false
-	for _, clients := range server.clientSubscriptions {
-		for _, clientConnection := range clients {
-			delete(server.clientConnections, clientConnection.name)
-			delete(clients, clientConnection.name)
-		}
+	for _, clientConnection := range server.clientConnections {
+		clientConnection.disconnect()
 	}
 	server.tlsBrokerListener.Close()
-	server.tlsBrokerListener = nil
 	server.tlsConfigListener.Close()
-	server.tlsConfigListener = nil
+	server.isStarted = false
 	return nil
 }
 
 func (server *Server) IsStarted() bool {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	return server.isStarted
 }

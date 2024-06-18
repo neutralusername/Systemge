@@ -99,9 +99,9 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 			return Utilities.NewError("Failed to send response to client \""+clientConnection.name+"\"", err)
 		}
 	default:
-		server.mutex.Lock()
+		server.operationMutex.Lock()
 		clients := server.getSubscribers(message.GetTopic())
-		server.mutex.Unlock()
+		server.operationMutex.Unlock()
 		server.propagateMessage(clients, message)
 	}
 	return nil

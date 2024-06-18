@@ -17,9 +17,11 @@ type clientConnection struct {
 	subscribedTopics   map[string]bool
 	deliverImmediately bool
 
-	mutex        sync.Mutex
-	sendMutex    sync.Mutex
-	receiveMutex sync.Mutex
+	watchdogMutex sync.Mutex
+	sendMutex     sync.Mutex
+	receiveMutex  sync.Mutex
+
+	stopChannel chan bool
 }
 
 func newClientConnection(name string, netConn net.Conn) *clientConnection {
@@ -30,6 +32,7 @@ func newClientConnection(name string, netConn net.Conn) *clientConnection {
 		watchdog:           nil,
 		subscribedTopics:   map[string]bool{},
 		deliverImmediately: DELIVER_IMMEDIATELY_DEFAULT,
+		stopChannel:        make(chan bool),
 	}
 }
 
@@ -50,8 +53,8 @@ func (clientConnection *clientConnection) receive() ([]byte, error) {
 }
 
 func (clientConnection *clientConnection) resetWatchdog() error {
-	clientConnection.mutex.Lock()
-	defer clientConnection.mutex.Unlock()
+	clientConnection.watchdogMutex.Lock()
+	defer clientConnection.watchdogMutex.Unlock()
 	if clientConnection.watchdog == nil {
 		return Utilities.NewError("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
 	}
@@ -60,39 +63,43 @@ func (clientConnection *clientConnection) resetWatchdog() error {
 }
 
 func (clientConnection *clientConnection) disconnect() error {
-	clientConnection.mutex.Lock()
-	defer clientConnection.mutex.Unlock()
+	clientConnection.watchdogMutex.Lock()
 	if clientConnection.watchdog == nil {
 		return Utilities.NewError("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
 	}
 	clientConnection.watchdog.Reset(0)
 	clientConnection.watchdog = nil
-	clientConnection.netConn.Close()
+	clientConnection.watchdogMutex.Unlock()
+	<-clientConnection.stopChannel
 	return nil
 }
 
 func (server *Server) addClient(clientConnection *clientConnection) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	if server.clientConnections[clientConnection.name] != nil {
 		return Utilities.NewError("client with name \""+clientConnection.name+"\" already exists", nil)
 	}
 	server.clientConnections[clientConnection.name] = clientConnection
 	clientConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
-		server.removeClient(clientConnection)
+		clientConnection.netConn.Close()
+		clientConnection.netConn = nil
+		err := server.removeClient(clientConnection)
+		if err != nil {
+			server.logger.Log(Utilities.NewError("Error removing client \""+clientConnection.name+"\"", err).Error())
+		}
+		close(clientConnection.stopChannel)
 	})
 	return nil
 }
 
 func (server *Server) removeClient(clientConnection *clientConnection) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	if server.clientConnections[clientConnection.name] == nil {
 		return Utilities.NewError("Subscriber with name \""+clientConnection.name+"\" does not exist", nil)
 	}
 	clientConnection.watchdog = nil
-	clientConnection.netConn.Close()
-	clientConnection.netConn = nil
 	for messageType := range clientConnection.subscribedTopics {
 		delete(server.clientSubscriptions[messageType], clientConnection.name)
 	}

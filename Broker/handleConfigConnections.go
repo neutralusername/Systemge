@@ -47,9 +47,9 @@ func (server *Server) handleConfigConnection(netConn net.Conn) error {
 	case "removeAsyncTopic":
 		server.RemoveAsyncTopics(message.GetPayload())
 	case "removeClient":
-		server.mutex.Lock()
+		server.operationMutex.Lock()
 		clientConnection := server.clientConnections[message.GetPayload()]
-		server.mutex.Unlock()
+		server.operationMutex.Unlock()
 		if clientConnection == nil {
 			return Utilities.NewError("Client \""+message.GetPayload()+"\" does not exist", nil)
 		}

@@ -21,8 +21,8 @@ func newSyncRequest(clientConnection *clientConnection, message *Message.Message
 }
 
 func (server *Server) handleSyncRequest(clientConnection *clientConnection, message *Message.Message) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
 		return Utilities.NewError("token already in use", nil)
 	}
@@ -36,17 +36,17 @@ func (server *Server) handleSyncRequest(clientConnection *clientConnection, mess
 		defer timer.Stop()
 		select {
 		case response := <-syncRequest.responseChannel:
-			server.mutex.Lock()
+			server.operationMutex.Lock()
 			delete(server.openSyncRequests, message.GetSyncRequestToken())
-			server.mutex.Unlock()
+			server.operationMutex.Unlock()
 			err := clientConnection.send(response)
 			if err != nil {
 				server.logger.Log(Utilities.NewError("Failed to send response to client \""+clientConnection.name+"\"", err).Error())
 			}
 		case <-timer.C:
-			server.mutex.Lock()
+			server.operationMutex.Lock()
 			delete(server.openSyncRequests, message.GetSyncRequestToken())
-			server.mutex.Unlock()
+			server.operationMutex.Unlock()
 			err := clientConnection.send(message.NewResponse("error", server.name, "request timed out"))
 			if err != nil {
 				server.logger.Log(Utilities.NewError("Failed to send timeout response to client \""+clientConnection.name+"\"", err).Error())
@@ -57,8 +57,8 @@ func (server *Server) handleSyncRequest(clientConnection *clientConnection, mess
 }
 
 func (server *Server) handleSyncResponse(message *Message.Message) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	waitingClientConnection := server.openSyncRequests[message.GetSyncResponseToken()]
 	if waitingClientConnection == nil {
 		return Utilities.NewError("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)

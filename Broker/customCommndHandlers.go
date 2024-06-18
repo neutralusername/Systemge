@@ -6,11 +6,11 @@ import "Systemge/Application"
 func (server *Server) GetCustomCommandHandlers() map[string]Application.CustomCommandHandler {
 	return map[string]Application.CustomCommandHandler{
 		"brokerClients": func(args []string) error {
-			server.mutex.Lock()
+			server.operationMutex.Lock()
 			for _, clientConnection := range server.clientConnections {
 				println(clientConnection.name)
 			}
-			server.mutex.Unlock()
+			server.operationMutex.Unlock()
 			return nil
 		},
 	}

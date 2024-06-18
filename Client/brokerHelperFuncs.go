@@ -30,7 +30,7 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 	return brokerConnection, nil
 }
 
-func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) {
+func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
 	brokerConnection.mapOperationMutex.Lock()
 	delete(client.activeBrokerConnections, brokerConnection.resolution.Address)
@@ -44,16 +44,15 @@ func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) {
 	brokerConnection.topics = make(map[string]bool)
 	brokerConnection.mapOperationMutex.Unlock()
 	client.mapOperationMutex.Unlock()
-	if client.isStarted {
-		for _, topic := range topicsToReconnect {
-			newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
-			if err != nil {
-				panic(Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err))
-			}
-			err = client.subscribeTopic(newBrokerConnection, topic)
-			if err != nil {
-				panic(Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err))
-			}
+	for _, topic := range topicsToReconnect {
+		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
+		if err != nil {
+			return Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err)
+		}
+		err = client.subscribeTopic(newBrokerConnection, topic)
+		if err != nil {
+			return Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err)
 		}
 	}
+	return nil
 }

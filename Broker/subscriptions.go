@@ -6,8 +6,8 @@ import (
 )
 
 func (server *Server) addSubscription(clientConnection *clientConnection, topic string) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	if !server.asyncTopics[topic] && !server.syncTopics[topic] {
 		return Utilities.NewError("Topic \""+topic+"\" does not exist on server \""+server.name+"\"", nil)
 	}
@@ -26,8 +26,8 @@ func (server *Server) addSubscription(clientConnection *clientConnection, topic 
 }
 
 func (server *Server) removeSubscription(clientConnection *clientConnection, topic string) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	server.operationMutex.Lock()
+	defer server.operationMutex.Unlock()
 	if server.clientSubscriptions[topic] == nil {
 		return Utilities.NewError("Topic \""+topic+"\" does not exist", nil)
 	}
