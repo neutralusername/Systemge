@@ -32,7 +32,7 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 
 func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
-	brokerConnection.mapOperationMutex.Lock()
+	brokerConnection.mutex.Lock()
 	delete(client.activeBrokerConnections, brokerConnection.resolution.Address)
 	topicsToReconnect := make([]string, 0)
 	for topic := range brokerConnection.topics {
@@ -42,7 +42,7 @@ func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) err
 		}
 	}
 	brokerConnection.topics = make(map[string]bool)
-	brokerConnection.mapOperationMutex.Unlock()
+	brokerConnection.mutex.Unlock()
 	client.mapOperationMutex.Unlock()
 	for _, topic := range topicsToReconnect {
 		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)

@@ -13,8 +13,8 @@ type brokerConnection struct {
 	resolution *Resolver.Resolution
 	logger     *Utilities.Logger
 
-	topics            map[string]bool
-	mapOperationMutex sync.Mutex
+	topics map[string]bool
+	mutex  sync.Mutex
 
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
@@ -63,6 +63,8 @@ func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 }
 
 func (brokerConnection *brokerConnection) close() error {
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	if brokerConnection == nil {
 		return Utilities.NewError("Server connection is nil", nil)
 	}
@@ -75,8 +77,8 @@ func (brokerConnection *brokerConnection) close() error {
 }
 
 func (brokerConnection *brokerConnection) addTopic(topic string) error {
-	brokerConnection.mapOperationMutex.Lock()
-	defer brokerConnection.mapOperationMutex.Unlock()
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.topics[topic] {
 		return Utilities.NewError("Topic already exists", nil)
 	}
