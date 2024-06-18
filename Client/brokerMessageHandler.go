@@ -13,14 +13,14 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 		if err != nil {
 			brokerConnection.close()
 			if !strings.Contains(err.Error(), "use of closed network connection") { // do not attempt to reconnect if the connection was closed from the client side
-				//time.Sleep(1 * time.Second)
+				time.Sleep(1 * time.Second) // is neccessary because rarely the .receive() ends with a EOF error even though the client closed the connection first and i don't understand why.
 				for client.isStarted {
 					err := client.attemptToReconnect(brokerConnection)
 					if err == nil {
 						break
 					}
-					time.Sleep(1 * time.Second)
 					client.logger.Log(Utilities.NewError("Failed to reconnect to message broker server", err).Error())
+					time.Sleep(1 * time.Second)
 				}
 			}
 			return
