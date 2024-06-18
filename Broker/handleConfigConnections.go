@@ -17,21 +17,26 @@ func (server *Server) handleConfigConnections() {
 				continue
 			}
 		}
-		go server.handleConfigConnection(netConn)
+		go func() {
+			defer netConn.Close()
+			err := server.handleConfigConnection(netConn)
+			if err != nil {
+				Utilities.TcpSend(netConn, Message.NewAsync("error", server.GetName(), Utilities.NewError("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
+				return
+			}
+			Utilities.TcpSend(netConn, Message.NewAsync("success", server.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
+		}()
 	}
 }
 
-func (server *Server) handleConfigConnection(netConn net.Conn) {
-	defer netConn.Close()
+func (server *Server) handleConfigConnection(netConn net.Conn) error {
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		server.logger.Log(Utilities.NewError("failed to receive message", err).Error())
-		return
+		return Utilities.NewError("failed to receive message", err)
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetOrigin() == "" {
-		server.logger.Log(Utilities.NewError("Invalid connection request \""+string(messageBytes)+"\"", nil).Error())
-		return
+		return Utilities.NewError("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
 	switch message.GetTopic() {
 	case "addSyncTopic":
@@ -42,14 +47,16 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		server.AddAsyncTopics(message.GetPayload())
 	case "removeAsyncTopic":
 		server.RemoveAsyncTopics(message.GetPayload())
+	case "removeClient":
+		server.mutex.Lock()
+		clientConnection := server.clientConnections[message.GetPayload()]
+		server.mutex.Unlock()
+		if clientConnection == nil {
+			return Utilities.NewError("Client \""+message.GetPayload()+"\" does not exist", nil)
+		}
+		clientConnection.disconnect()
 	default:
-		server.logger.Log(Utilities.NewError("Failed to handle config request", err).Error())
-		return
+		return Utilities.NewError("unknown topic \""+message.GetTopic()+"\"", nil)
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("success", server.name, "").Serialize(), DEFAULT_TCP_TIMEOUT)
-	if err != nil {
-		server.logger.Log(Utilities.NewError("Failed to send success message", err).Error())
-		return
-	}
-
+	return nil
 }
