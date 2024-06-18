@@ -4,6 +4,7 @@ import (
 	"Systemge/Utilities"
 	"crypto/tls"
 	"net"
+	"strings"
 	"sync"
 )
 
@@ -68,10 +69,10 @@ func (server *Server) Start() error {
 		for server.IsStarted() {
 			netConn, err := server.tcpListenerResolver.Accept()
 			if err != nil {
-				if server.IsStarted() {
-					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
+				if !strings.Contains(err.Error(), "use of closed network connection") {
+					server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())
 				}
-				return
+				continue
 			}
 			go server.handleResolverConnection(netConn)
 		}
@@ -80,10 +81,10 @@ func (server *Server) Start() error {
 		for server.IsStarted() {
 			netConn, err := server.tlsListenerConfig.Accept()
 			if err != nil {
-				if server.IsStarted() {
-					server.logger.Log(Utilities.NewError("Failed to accept connection", err).Error())
+				if !strings.Contains(err.Error(), "use of closed network connection") {
+					server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())
 				}
-				return
+				continue
 			}
 			go server.handleConfigConnection(netConn)
 		}
