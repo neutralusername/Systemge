@@ -131,13 +131,13 @@ func (client *Client) Start() error {
 		for _, topic := range topics {
 			serverConnection, err := client.getBrokerConnectionForTopic(topic)
 			if err != nil {
-				client.removeAllClientConnections()
+				client.removeAllBrokerConnections()
 				close(client.stopChannel)
 				return Utilities.NewError("Error getting server connection for topic", err)
 			}
 			err = client.subscribeTopic(serverConnection, topic)
 			if err != nil {
-				client.removeAllClientConnections()
+				client.removeAllBrokerConnections()
 				close(client.stopChannel)
 				return Utilities.NewError("Error subscribing to topic", err)
 			}
@@ -173,7 +173,7 @@ func (client *Client) Stop() error {
 			return Utilities.NewError("Error stopping websocket server", err)
 		}
 	}
-	client.removeAllClientConnections()
+	client.removeAllBrokerConnections()
 	close(client.stopChannel)
 	client.isStarted = false
 	return nil
