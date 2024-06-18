@@ -132,14 +132,14 @@ func (client *Client) Start() error {
 		for _, topic := range topics {
 			serverConnection, err := client.getBrokerConnectionForTopic(topic)
 			if err != nil {
-				close(client.stopChannel)
 				client.removeAllClientConnections()
+				close(client.stopChannel)
 				return Utilities.NewError("Error getting server connection for topic", err)
 			}
 			err = client.subscribeTopic(serverConnection, topic)
 			if err != nil {
-				close(client.stopChannel)
 				client.removeAllClientConnections()
+				close(client.stopChannel)
 				return Utilities.NewError("Error subscribing to topic", err)
 			}
 		}
