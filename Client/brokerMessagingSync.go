@@ -9,7 +9,7 @@ import (
 func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
 	message := Message.NewSync(topic, origin, payload)
 	if !client.isStarted {
-		return nil, Utilities.NewError("Client not connected", nil)
+		return nil, Utilities.NewError("Client not started", nil)
 	}
 	if message.GetSyncRequestToken() == "" {
 		return nil, Utilities.NewError("SyncRequestToken not set", nil)

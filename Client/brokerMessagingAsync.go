@@ -9,7 +9,7 @@ import (
 func (client *Client) AsyncMessage(topic, origin, payload string) error {
 	message := Message.NewAsync(topic, origin, payload)
 	if !client.isStarted {
-		return Utilities.NewError("Client not connected", nil)
+		return Utilities.NewError("Client not started", nil)
 	}
 	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic())
 	if err != nil {
