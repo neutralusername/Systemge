@@ -113,6 +113,7 @@ func (server *Server) Stop() error {
 	for _, clients := range server.clientSubscriptions {
 		for _, clientConnection := range clients {
 			delete(server.clientConnections, clientConnection.name)
+			delete(clients, clientConnection.name)
 		}
 	}
 	server.tlsBrokerListener.Close()
