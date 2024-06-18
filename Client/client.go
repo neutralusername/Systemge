@@ -133,29 +133,13 @@ func (client *Client) Start() error {
 			serverConnection, err := client.getBrokerConnectionForTopic(topic)
 			if err != nil {
 				close(client.stopChannel)
-				client.mapOperationMutex.Lock()
-				for address, brokerConnection := range client.activeBrokerConnections {
-					brokerConnection.close()
-					delete(client.activeBrokerConnections, address)
-					for topic := range brokerConnection.topics {
-						delete(client.topicResolutions, topic)
-					}
-				}
-				client.mapOperationMutex.Unlock()
+				client.removeAllClientConnections()
 				return Utilities.NewError("Error getting server connection for topic", err)
 			}
 			err = client.subscribeTopic(serverConnection, topic)
 			if err != nil {
 				close(client.stopChannel)
-				client.mapOperationMutex.Lock()
-				for address, brokerConnection := range client.activeBrokerConnections {
-					brokerConnection.close()
-					delete(client.activeBrokerConnections, address)
-					for topic := range brokerConnection.topics {
-						delete(client.topicResolutions, topic)
-					}
-				}
-				client.mapOperationMutex.Unlock()
+				client.removeAllClientConnections()
 				return Utilities.NewError("Error subscribing to topic", err)
 			}
 		}
@@ -190,17 +174,9 @@ func (client *Client) Stop() error {
 			return Utilities.NewError("Error stopping websocket server", err)
 		}
 	}
-	client.mapOperationMutex.Lock()
-	for address, brokerConnection := range client.activeBrokerConnections {
-		brokerConnection.close()
-		delete(client.activeBrokerConnections, address)
-		for topic := range brokerConnection.topics {
-			delete(client.topicResolutions, topic)
-		}
-	}
+	client.removeAllClientConnections()
 	close(client.stopChannel)
 	client.isStarted = false
-	client.mapOperationMutex.Unlock()
 	return nil
 }
 
