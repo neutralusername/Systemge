@@ -169,11 +169,11 @@ func (client *Client) Stop() error {
 	for _, connection := range client.activeBrokerConnections {
 		connection.close()
 	}
+	close(client.stopChannel)
 	client.activeBrokerConnections = make(map[string]*brokerConnection)
 	client.topicResolutions = make(map[string]*brokerConnection)
 	client.messagesWaitingForResponse = make(map[string]chan *Message.Message)
 	client.isStarted = false
-	close(client.stopChannel)
 	client.mapOperationMutex.Unlock()
 	return nil
 }
