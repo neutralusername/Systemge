@@ -121,7 +121,7 @@ func (server *Server) Stop() error {
 }
 
 func (server *Server) IsStarted() bool {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+	server.stateMutex.Lock()
+	defer server.stateMutex.Unlock()
 	return server.isStarted
 }
