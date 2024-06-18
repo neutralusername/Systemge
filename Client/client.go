@@ -121,21 +121,41 @@ func (client *Client) Start() error {
 		}
 		client.stopChannel = make(chan bool)
 		topics := make([]string, 0)
+		client.mapOperationMutex.Lock()
 		for topic := range client.application.GetSyncMessageHandlers() {
 			topics = append(topics, topic)
 		}
 		for topic := range client.application.GetAsyncMessageHandlers() {
 			topics = append(topics, topic)
 		}
+		client.mapOperationMutex.Unlock()
 		for _, topic := range topics {
 			serverConnection, err := client.getBrokerConnectionForTopic(topic)
 			if err != nil {
 				close(client.stopChannel)
+				client.mapOperationMutex.Lock()
+				for address, brokerConnection := range client.activeBrokerConnections {
+					brokerConnection.close()
+					delete(client.activeBrokerConnections, address)
+					for topic := range brokerConnection.topics {
+						delete(client.topicResolutions, topic)
+					}
+				}
+				client.mapOperationMutex.Unlock()
 				return Utilities.NewError("Error getting server connection for topic", err)
 			}
 			err = client.subscribeTopic(serverConnection, topic)
 			if err != nil {
 				close(client.stopChannel)
+				client.mapOperationMutex.Lock()
+				for address, brokerConnection := range client.activeBrokerConnections {
+					brokerConnection.close()
+					delete(client.activeBrokerConnections, address)
+					for topic := range brokerConnection.topics {
+						delete(client.topicResolutions, topic)
+					}
+				}
+				client.mapOperationMutex.Unlock()
 				return Utilities.NewError("Error subscribing to topic", err)
 			}
 		}
