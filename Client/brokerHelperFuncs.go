@@ -56,3 +56,15 @@ func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) err
 	}
 	return nil
 }
+
+func (client *Client) removeAllClientConnections() {
+	client.mapOperationMutex.Lock()
+	for address, brokerConnection := range client.activeBrokerConnections {
+		brokerConnection.close()
+		delete(client.activeBrokerConnections, address)
+		for topic := range brokerConnection.topics {
+			delete(client.topicResolutions, topic)
+		}
+	}
+	client.mapOperationMutex.Unlock()
+}
