@@ -63,11 +63,11 @@ func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 }
 
 func (brokerConnection *brokerConnection) close() error {
-	brokerConnection.mutex.Lock()
-	defer brokerConnection.mutex.Unlock()
 	if brokerConnection == nil {
 		return Utilities.NewError("Server connection is nil", nil)
 	}
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.netConn == nil {
 		return Utilities.NewError("Connection is already closed", nil)
 	}
