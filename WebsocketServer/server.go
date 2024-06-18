@@ -120,6 +120,7 @@ func (server *Server) Stop() error {
 		return Utilities.NewError("Websocket listener not started", nil)
 	}
 	server.websocketHTTPServer.Stop()
+	close(server.websocketConnChannel)
 	clientsToDisconnect := make([]*WebsocketClient.Client, 0)
 	server.acquireMutex()
 	for _, websocketClient := range server.clients {
