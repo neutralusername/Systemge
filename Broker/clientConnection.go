@@ -68,9 +68,8 @@ func (clientConnection *clientConnection) disconnect() error {
 		return Utilities.NewError("Watchdog is not set for client \""+clientConnection.name+"\"", nil)
 	}
 	clientConnection.watchdog.Reset(0)
-	clientConnection.watchdog = nil
-	clientConnection.watchdogMutex.Unlock()
 	<-clientConnection.stopChannel
+	clientConnection.watchdogMutex.Unlock()
 	return nil
 }
 
@@ -82,8 +81,9 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 	}
 	server.clientConnections[clientConnection.name] = clientConnection
 	clientConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
+		clientConnection.watchdog.Stop()
+		clientConnection.watchdog = nil
 		clientConnection.netConn.Close()
-		clientConnection.netConn = nil
 		err := server.removeClient(clientConnection)
 		if err != nil {
 			server.logger.Log(Utilities.NewError("Error removing client \""+clientConnection.name+"\"", err).Error())
@@ -99,7 +99,6 @@ func (server *Server) removeClient(clientConnection *clientConnection) error {
 	if server.clientConnections[clientConnection.name] == nil {
 		return Utilities.NewError("Subscriber with name \""+clientConnection.name+"\" does not exist", nil)
 	}
-	clientConnection.watchdog = nil
 	for messageType := range clientConnection.subscribedTopics {
 		delete(server.clientSubscriptions[messageType], clientConnection.name)
 	}

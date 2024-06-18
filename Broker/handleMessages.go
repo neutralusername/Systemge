@@ -7,19 +7,19 @@ import (
 )
 
 func (server *Server) handleBrokerClientMessages(clientConnection *clientConnection) {
-	for server.IsStarted() {
+	for server.isStarted {
 		messageBytes, err := clientConnection.receive()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "EOF") {
-				panic(err)
-			} else {
-				clientConnection.disconnect()
-				return
+				server.logger.Log(Utilities.NewError("Failed to receive message from client \""+clientConnection.name+"\"", err).Error())
 			}
+			clientConnection.disconnect()
+			return
 		}
 		message := Message.Deserialize(messageBytes)
-		if message == nil {
-			server.logger.Log(Utilities.NewError("Failed to deserialize message from client \""+clientConnection.name+"\"", nil).Error())
+		if message == nil || message.GetOrigin() == "" {
+			server.logger.Log(Utilities.NewError("Invalid message from client \""+clientConnection.name+"\"", nil).Error())
+			clientConnection.disconnect()
 			return
 		}
 		if message.GetSyncResponseToken() != "" {

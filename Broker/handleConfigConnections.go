@@ -8,7 +8,7 @@ import (
 )
 
 func (server *Server) handleConfigConnections() {
-	for server.IsStarted() {
+	for server.isStarted {
 		netConn, err := server.tlsConfigListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {

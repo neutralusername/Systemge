@@ -47,6 +47,7 @@ func New(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*Cli
 		handleMessagesConcurrently: DEFAULT_HANDLE_MESSAGES_CONCURRENTLY,
 	}
 	client.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
+		client.watchdog.Stop()
 		client.watchdog = nil
 		websocketConn.Close()
 		onDisconnectHandler(client)
@@ -96,9 +97,8 @@ func (client *Client) Disconnect() {
 		return
 	}
 	client.watchdog.Reset(0)
-	client.watchdog = nil
-	client.watchdogMutex.Unlock()
 	<-client.stopChannel
+	client.watchdogMutex.Unlock()
 }
 
 func (client *Client) GetIp() string {
