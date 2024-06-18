@@ -24,11 +24,11 @@ type Client struct {
 	topicResolutions        map[string]*brokerConnection // topic -> serverConnection
 	mapOperationMutex       sync.Mutex
 
-	// handleServerMessagesConcurrently is a flag that determines whether the client will handle messages concurrently
+	// handleMessagesConcurrently is a flag that determines whether the client will handle messages by brokers concurrently
 	// If this is set to true, the client will handle messages concurrently, otherwise it will handle messages sequentially
 	// concurrently handling messages can be useful to improve performance but it will often require additional work for the application to be able to handle concurrency
-	handleServerMessagesConcurrently      bool
-	handleServerMessagesConcurrentlyMutex sync.Mutex
+	handleMessagesConcurrently      bool
+	handleMessagesConcurrentlyMutex sync.Mutex
 
 	stopChannel chan bool
 	isStarted   bool
@@ -45,7 +45,7 @@ func New(name, topicResolutionServerAddress string, logger *Utilities.Logger, we
 
 		websocketServer: websocketServer,
 
-		handleServerMessagesConcurrently: true,
+		handleMessagesConcurrently: true,
 	}
 }
 
@@ -85,15 +85,15 @@ func (client *Client) SetLogger(logger *Utilities.Logger) {
 }
 
 func (client *Client) SetHandleMessagesConcurrently(handleMessagesConcurrently bool) {
-	client.handleServerMessagesConcurrentlyMutex.Lock()
-	defer client.handleServerMessagesConcurrentlyMutex.Unlock()
-	client.handleServerMessagesConcurrently = handleMessagesConcurrently
+	client.handleMessagesConcurrentlyMutex.Lock()
+	defer client.handleMessagesConcurrentlyMutex.Unlock()
+	client.handleMessagesConcurrently = handleMessagesConcurrently
 }
 
 func (client *Client) GetHandleMessagesConcurrently() bool {
-	client.handleServerMessagesConcurrentlyMutex.Lock()
-	defer client.handleServerMessagesConcurrentlyMutex.Unlock()
-	return client.handleServerMessagesConcurrently
+	client.handleMessagesConcurrentlyMutex.Lock()
+	defer client.handleMessagesConcurrentlyMutex.Unlock()
+	return client.handleMessagesConcurrently
 }
 
 func (client *Client) Start() error {

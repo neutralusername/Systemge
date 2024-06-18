@@ -37,13 +37,13 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 }
 
 func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) {
-	if !client.handleServerMessagesConcurrently {
-		client.handleServerMessagesConcurrentlyMutex.Lock()
+	if !client.handleMessagesConcurrently {
+		client.handleMessagesConcurrentlyMutex.Lock()
 	}
 	if message.GetSyncRequestToken() != "" {
 		response, err := client.handleSyncMessage(message)
-		if !client.handleServerMessagesConcurrently {
-			client.handleServerMessagesConcurrentlyMutex.Unlock()
+		if !client.handleMessagesConcurrently {
+			client.handleMessagesConcurrentlyMutex.Unlock()
 		}
 		if err != nil {
 			err := brokerConnection.send(message.NewResponse("error", client.name, Utilities.NewError("Error handling message", err).Error()))
@@ -58,8 +58,8 @@ func (client *Client) handleMessage(message *Message.Message, brokerConnection *
 		}
 	} else {
 		err := client.handleAsyncMessage(message)
-		if !client.handleServerMessagesConcurrently {
-			client.handleServerMessagesConcurrentlyMutex.Unlock()
+		if !client.handleMessagesConcurrently {
+			client.handleMessagesConcurrentlyMutex.Unlock()
 		}
 		if err != nil {
 			client.logger.Log(Utilities.NewError("Error handling message", err).Error())

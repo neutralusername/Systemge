@@ -66,6 +66,7 @@ func StartCommandLineInterface(module Module, customCommandHandlers ...map[strin
 					continue
 				}
 			}
+			println("unknown command \"" + input + "\"")
 		}
 	}
 }
