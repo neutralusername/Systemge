@@ -55,7 +55,7 @@ func (server *Server) propagateMessage(clients []*clientConnection, message *Mes
 		if clientConnection.deliverImmediately {
 			err := clientConnection.send(message)
 			if err != nil {
-				server.logger.Log(Utilities.NewError("Failed to send message to client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Utilities.NewError("Failed to send message to client \""+clientConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
 			}
 		} else {
 			clientConnection.queueMessage(message)

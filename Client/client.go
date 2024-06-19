@@ -179,6 +179,12 @@ func (client *Client) Stop() error {
 	return nil
 }
 
-func (server *Client) GetName() string {
-	return server.name
+func (client *Client) GetName() string {
+	return client.name
+}
+
+func (client *Client) IsStarted() bool {
+	client.stateMutex.Lock()
+	defer client.stateMutex.Unlock()
+	return client.isStarted
 }

@@ -8,7 +8,7 @@ import (
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
 func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
 	message := Message.NewSync(topic, origin, payload)
-	if !client.isStarted {
+	if !client.IsStarted() {
 		return nil, Utilities.NewError("Client not started", nil)
 	}
 	if message.GetSyncRequestToken() == "" {
