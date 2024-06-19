@@ -7,7 +7,7 @@ import (
 )
 
 func (server *Server) handleBrokerClientMessages(clientConnection *clientConnection) {
-	for server.isStarted {
+	for server.IsStarted() {
 		messageBytes, err := clientConnection.receive()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "EOF") {

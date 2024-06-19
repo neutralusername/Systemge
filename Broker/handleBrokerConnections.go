@@ -8,7 +8,7 @@ import (
 )
 
 func (server *Server) handleBrokerConnections() {
-	for server.isStarted {
+	for server.IsStarted() {
 		netConn, err := server.tlsBrokerListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
