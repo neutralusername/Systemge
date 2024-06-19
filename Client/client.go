@@ -173,9 +173,9 @@ func (client *Client) Stop() error {
 			return Utilities.NewError("Error stopping websocket server", err)
 		}
 	}
+	client.isStarted = false
 	client.removeAllBrokerConnections()
 	close(client.stopChannel)
-	client.isStarted = false
 	return nil
 }
 
