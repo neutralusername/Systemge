@@ -116,9 +116,9 @@ func (client *Client) Start() error {
 				return Utilities.NewError("Error starting websocket server", err)
 			}
 		}
-
 		client.stopChannel = make(chan bool)
 		topics := make([]string, 0)
+
 		client.mapOperationMutex.Lock()
 		for topic := range client.application.GetSyncMessageHandlers() {
 			topics = append(topics, topic)
@@ -148,7 +148,6 @@ func (client *Client) Start() error {
 	if err != nil {
 		return Utilities.NewError("Error starting client", err)
 	}
-
 	err = client.application.OnStart()
 	if err != nil {
 		client.Stop()

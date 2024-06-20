@@ -30,49 +30,57 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			continue
 		}
 		if message.GetSyncResponseToken() != "" {
-			client.mapOperationMutex.Lock()
-			responseChannel := client.messagesWaitingForResponse[message.GetSyncResponseToken()]
-			client.mapOperationMutex.Unlock()
-			if responseChannel != nil {
-				responseChannel <- message
-			} else {
-				client.logger.Log(Utilities.NewError("No response channel for sync response token \""+message.GetSyncResponseToken()+"\"", nil).Error())
+			err := client.handleSyncResponse(message)
+			if err != nil {
+				client.logger.Log(Utilities.NewError("Failed to handle sync response", err).Error())
 			}
 		} else {
-			client.handleMessage(message, brokerConnection)
+			err := client.handleMessage(message, brokerConnection)
+			if err != nil {
+				client.logger.Log(Utilities.NewError("Failed to handle message", err).Error())
+			}
 		}
 	}
 }
 
-func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) {
+func (client *Client) handleSyncResponse(message *Message.Message) error {
+	client.mapOperationMutex.Lock()
+	responseChannel := client.messagesWaitingForResponse[message.GetSyncResponseToken()]
+	client.mapOperationMutex.Unlock()
+	if responseChannel != nil {
+		responseChannel <- message
+	} else {
+		return Utilities.NewError("No response channel for sync response token \""+message.GetSyncResponseToken()+"\"", nil)
+	}
+	return nil
+}
+
+func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) error {
 	if !client.handleMessagesConcurrently {
 		client.handleMessagesConcurrentlyMutex.Lock()
+		defer client.handleMessagesConcurrentlyMutex.Unlock()
 	}
 	if message.GetSyncRequestToken() != "" {
 		response, err := client.handleSyncMessage(message)
-		if !client.handleMessagesConcurrently {
-			client.handleMessagesConcurrentlyMutex.Unlock()
-		}
 		if err != nil {
 			err := brokerConnection.send(message.NewResponse("error", client.name, Utilities.NewError("Error handling message", err).Error()))
 			if err != nil {
-				client.logger.Log(Utilities.NewError("Failed to send error response to message broker server", err).Error())
+				return Utilities.NewError("Failed to send error response to message broker server", err)
 			}
+			return Utilities.NewError("Error handling message", err)
 		} else {
 			err := brokerConnection.send(message.NewResponse(message.GetTopic(), client.name, response))
 			if err != nil {
-				client.logger.Log(Utilities.NewError("Failed to send received response to message broker server", err).Error())
+				return Utilities.NewError("Failed to send response to message broker server", err)
 			}
 		}
 	} else {
 		err := client.handleAsyncMessage(message)
-		if !client.handleMessagesConcurrently {
-			client.handleMessagesConcurrentlyMutex.Unlock()
-		}
 		if err != nil {
-			client.logger.Log(Utilities.NewError("Error handling message", err).Error())
+			return Utilities.NewError("Error handling message", err)
 		}
 	}
+	return nil
 }
 
 func (client *Client) handleSyncMessage(message *Message.Message) (string, error) {

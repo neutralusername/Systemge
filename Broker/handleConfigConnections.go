@@ -17,8 +17,8 @@ func (server *Server) handleConfigConnections() {
 			continue
 		}
 		go func() {
-			defer netConn.Close()
 			err := server.handleConfigConnection(netConn)
+			netConn.Close()
 			if err != nil {
 				Utilities.TcpSend(netConn, Message.NewAsync("error", server.GetName(), Utilities.NewError("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
 			} else {
