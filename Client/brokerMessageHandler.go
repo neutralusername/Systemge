@@ -47,11 +47,10 @@ func (client *Client) handleSyncResponse(message *Message.Message) error {
 	client.mapOperationMutex.Lock()
 	responseChannel := client.messagesWaitingForResponse[message.GetSyncResponseToken()]
 	client.mapOperationMutex.Unlock()
-	if responseChannel != nil {
-		responseChannel <- message
-	} else {
+	if responseChannel == nil {
 		return Utilities.NewError("No response channel for sync response token \""+message.GetSyncResponseToken()+"\"", nil)
 	}
+	responseChannel <- message
 	return nil
 }
 
