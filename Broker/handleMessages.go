@@ -72,9 +72,10 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	}
 	if message.GetSyncRequestToken() != "" {
 		if err := server.handleSyncRequest(clientConnection, message); err != nil {
-			errReponse := server.handleSyncResponse(message.NewResponse("error", server.name, Utilities.NewError("sync request failed", err).Error()))
-			if errReponse != nil {
-				return Utilities.NewError("Failed to handle sync request from client \""+clientConnection.name+"\" and failed to send error response", errReponse)
+			errResponse := clientConnection.send(message.NewResponse("error", server.name, Utilities.NewError("sync request failed", err).Error()))
+			if errResponse != nil {
+				server.logger.Log(Utilities.NewError("Failed to handle sync request from client \""+clientConnection.name+"\"", err).Error())
+				return Utilities.NewError("failed to send error response", errResponse)
 			}
 			return Utilities.NewError("Failed to handle sync request from client \""+clientConnection.name+"\"", err)
 		}
