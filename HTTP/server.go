@@ -1,6 +1,7 @@
 package HTTP
 
 import (
+	"Systemge/Application"
 	"Systemge/Utilities"
 	"net/http"
 	"sync"
@@ -13,22 +14,24 @@ type Server struct {
 	tlsCertPath string
 	tlsKeyPath  string
 	name        string
-	mux         *http.ServeMux
 	logger      *Utilities.Logger
 	isStarted   bool
 	mutex       sync.Mutex
+
+	httpApplication Application.HTTPApplication
 }
 
-func New(port, name, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
+func New(port, name, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger, httpApplication Application.HTTPApplication) *Server {
 	server := &Server{
 		httpServer:  nil,
 		address:     port,
 		tlsCertPath: tlsCertPath,
 		tlsKeyPath:  tlsKeyPath,
 		name:        name,
-		mux:         http.NewServeMux(),
 		logger:      logger,
 		isStarted:   false,
+
+		httpApplication: httpApplication,
 	}
 	return server
 }
@@ -65,9 +68,16 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Utilities.NewError("Server already started", nil)
 	}
+	if server.httpApplication == nil {
+		return Utilities.NewError("REST application not set", nil)
+	}
+	mux := http.NewServeMux()
+	for pattern, handler := range server.httpApplication.GetHTTPRequestHandlers() {
+		mux.HandleFunc(pattern, handler)
+	}
 	httpServer := &http.Server{
 		Addr:    server.address,
-		Handler: server.mux,
+		Handler: mux,
 	}
 	errorChannel := make(chan error)
 	go func() {
@@ -115,33 +125,6 @@ func (server *Server) Stop() error {
 	server.httpServer = nil
 	server.isStarted = false
 	return nil
-}
-
-// sets the mux for the server. the mux manages which handler corresponds to which pattern.
-func (server *Server) SetMux(mux *http.ServeMux) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	if server.isStarted {
-		return Utilities.NewError("Can not set mux while server is running", nil)
-	}
-	server.mux = mux
-	return nil
-}
-
-// resets the mux for the server. the mux manages which handler corresponds to which pattern.
-func (server *Server) ResetMux() error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	if server.isStarted {
-		return Utilities.NewError("Can not reset mux while server is running", nil)
-	}
-	server.mux = http.NewServeMux()
-	return nil
-}
-
-// registers a handler for the given pattern
-func (server *Server) RegisterPattern(pattern string, requestHandler RequestHandler) {
-	server.mux.HandleFunc(pattern, requestHandler)
 }
 
 func (server *Server) GetAddress() string {

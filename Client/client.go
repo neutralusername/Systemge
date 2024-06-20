@@ -2,6 +2,7 @@ package Client
 
 import (
 	"Systemge/Application"
+	"Systemge/HTTP"
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
@@ -13,6 +14,7 @@ type Client struct {
 	logger          *Utilities.Logger
 	resolverAddress string
 
+	httpServer      *HTTP.Server
 	websocketServer *WebsocketServer.Server
 	application     Application.Application
 
@@ -34,7 +36,7 @@ type Client struct {
 	stateMutex sync.Mutex
 }
 
-func New(name, topicResolutionServerAddress string, logger *Utilities.Logger, websocketServer *WebsocketServer.Server) *Client {
+func New(name, topicResolutionServerAddress string, logger *Utilities.Logger) *Client {
 	return &Client{
 		name:            name,
 		logger:          logger,
@@ -44,21 +46,23 @@ func New(name, topicResolutionServerAddress string, logger *Utilities.Logger, we
 		topicResolutions:           make(map[string]*brokerConnection),
 		activeBrokerConnections:    make(map[string]*brokerConnection),
 
-		websocketServer: websocketServer,
+		httpServer:      nil,
+		websocketServer: nil,
 
 		handleMessagesConcurrently: true,
 	}
 }
 
-// sets the application that the client will use to handle messages
 func (client *Client) SetApplication(application Application.Application) {
-	client.stateMutex.Lock()
-	defer client.stateMutex.Unlock()
-	if client.isStarted {
-		client.logger.Log("Cannot set application while client is started")
-		return
-	}
 	client.application = application
+}
+
+func (client *Client) SetWebsocketServer(websocketServer *WebsocketServer.Server) {
+	client.websocketServer = websocketServer
+}
+
+func (client *Client) SetHTTPServer(httpServer *HTTP.Server) {
+	client.httpServer = httpServer
 }
 
 func (client *Client) SetTopicResolutionServerAddress(address string) {
@@ -71,6 +75,10 @@ func (client *Client) GetApplication() Application.Application {
 
 func (client *Client) GetWebsocketServer() *WebsocketServer.Server {
 	return client.websocketServer
+}
+
+func (client *Client) GetHTTPServer() *HTTP.Server {
+	return client.httpServer
 }
 
 func (client *Client) GetTopicResolutionServerAddress() string {
@@ -114,6 +122,12 @@ func (client *Client) Start() error {
 			err := client.websocketServer.Start()
 			if err != nil {
 				return Utilities.NewError("Error starting websocket server", err)
+			}
+		}
+		if client.httpServer != nil {
+			err := client.httpServer.Start()
+			if err != nil {
+				return Utilities.NewError("Error starting http server", err)
 			}
 		}
 		client.stopChannel = make(chan bool)
@@ -170,6 +184,12 @@ func (client *Client) Stop() error {
 		err := client.websocketServer.Stop()
 		if err != nil {
 			return Utilities.NewError("Error stopping websocket server", err)
+		}
+	}
+	if client.httpServer != nil {
+		err := client.httpServer.Stop()
+		if err != nil {
+			return Utilities.NewError("Error stopping http server", err)
 		}
 	}
 	client.isStarted = false

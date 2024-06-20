@@ -1,5 +1,0 @@
-# http
-:443
-cert /etc/letsencrypt/live/playnodge.com/cert.pem
-key /etc/letsencrypt/live/playnodge.com/privkey.pem
-/ serve /home/ubuntu/SystemgeNodge/frontendProd/

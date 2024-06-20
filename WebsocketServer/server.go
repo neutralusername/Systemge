@@ -28,10 +28,10 @@ type Server struct {
 	randomizer  *Randomizer.Randomizer
 }
 
-func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshakeHandler *HTTP.Server) *Server {
+func New(name string, logger *Utilities.Logger) *Server {
 	return &Server{
 		websocketApplication: nil,
-		websocketHTTPServer:  websocketHandshakeHandler,
+		websocketHTTPServer:  nil,
 		websocketConnChannel: nil,
 		clients:              nil,
 		groups:               make(map[string]map[string]*WebsocketClient.Client),
@@ -46,24 +46,14 @@ func NewWebsocketServer(name string, logger *Utilities.Logger, websocketHandshak
 	}
 }
 
-func (server *Server) acquireMutex() {
-	/* _, file, line, ok := runtime.Caller(1)
-	if !ok {
-		panic("could not get caller information")
+func (server *Server) SetHTTPServer(httpServer *HTTP.Server) {
+	server.stateMutex.Lock()
+	defer server.stateMutex.Unlock()
+	if server.isStarted {
+		server.logger.Log("Cannot set HTTP server while server is started")
+		return
 	}
-	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
-	println(file + ":" + Utilities.IntToString(line) + " trying to acquire mutex") */
-	server.mutex.Lock()
-}
-
-func (server *Server) releaseMutex() {
-	/* _, file, line, ok := runtime.Caller(1)
-	if !ok {
-		panic("could not get caller information")
-	}
-	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
-	println(file + ":" + Utilities.IntToString(line) + " trying to release mutex") */
-	server.mutex.Unlock()
+	server.websocketHTTPServer = httpServer
 }
 
 // sets the websocketApplication that the server will use to handle messages, connects and disconnects
@@ -133,4 +123,24 @@ func (server *Server) Stop() error {
 	server.isStarted = false
 	close(server.stopChannel)
 	return nil
+}
+
+func (server *Server) acquireMutex() {
+	/* _, file, line, ok := runtime.Caller(1)
+	if !ok {
+		panic("could not get caller information")
+	}
+	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
+	println(file + ":" + Utilities.IntToString(line) + " trying to acquire mutex") */
+	server.mutex.Lock()
+}
+
+func (server *Server) releaseMutex() {
+	/* _, file, line, ok := runtime.Caller(1)
+	if !ok {
+		panic("could not get caller information")
+	}
+	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
+	println(file + ":" + Utilities.IntToString(line) + " trying to release mutex") */
+	server.mutex.Unlock()
 }
