@@ -12,5 +12,7 @@ type Application interface {
 	OnStop() error
 }
 type AsyncMessageHandler func(*Message.Message) error
+
+// SyncMessageHandler is a function that takes a message and returns a response payload and an error
 type SyncMessageHandler func(*Message.Message) (string, error)
 type CustomCommandHandler func([]string) error
