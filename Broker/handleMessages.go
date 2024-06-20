@@ -47,14 +47,16 @@ func (server *Server) validateMessage(message *Message.Message) error {
 		return nil
 	}
 	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	if !server.syncTopics[message.GetTopic()] && !server.asyncTopics[message.GetTopic()] {
+	syncTopicExists := server.syncTopics[message.GetTopic()]
+	asyncTopicExists := server.asyncTopics[message.GetTopic()]
+	server.operationMutex.Unlock()
+	if !syncTopicExists && !asyncTopicExists {
 		return Utilities.NewError("Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
 	}
-	if server.syncTopics[message.GetTopic()] && message.GetSyncRequestToken() == "" {
+	if syncTopicExists && message.GetSyncRequestToken() == "" {
 		return Utilities.NewError("Topic \""+message.GetTopic()+"\" is a sync topic and message is not a sync request", nil)
 	}
-	if server.asyncTopics[message.GetTopic()] && message.GetSyncRequestToken() != "" {
+	if asyncTopicExists && message.GetSyncRequestToken() != "" {
 		return Utilities.NewError("Topic \""+message.GetTopic()+"\" is an async topic and message is a sync request", nil)
 	}
 	return nil
