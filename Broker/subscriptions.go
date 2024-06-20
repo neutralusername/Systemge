@@ -1,7 +1,6 @@
 package Broker
 
 import (
-	"Systemge/Message"
 	"Systemge/Utilities"
 )
 
@@ -48,17 +47,4 @@ func (server *Server) getSubscribers(topic string) []*clientConnection {
 		subscribers = append(subscribers, clientConnection)
 	}
 	return subscribers
-}
-
-func (server *Server) propagateMessage(clients []*clientConnection, message *Message.Message) {
-	for _, clientConnection := range clients {
-		if clientConnection.deliverImmediately {
-			err := clientConnection.send(message)
-			if err != nil {
-				server.logger.Log(Utilities.NewError("Failed to send message to client \""+clientConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
-			}
-		} else {
-			clientConnection.queueMessage(message)
-		}
-	}
 }
