@@ -24,6 +24,7 @@ func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Messa
 	}
 	err = brokerConnection.send(message)
 	if err != nil {
+		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return nil, Utilities.NewError("Error sending sync request message", err)
 	}
 	return client.receiveSyncResponse(message, responseChannel)
