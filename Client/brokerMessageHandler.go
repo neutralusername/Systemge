@@ -68,11 +68,10 @@ func (client *Client) handleMessage(message *Message.Message, brokerConnection *
 				return Utilities.NewError("Failed to send error response to message broker server", err)
 			}
 			return Utilities.NewError("Error handling message", err)
-		} else {
-			err := brokerConnection.send(message.NewResponse(message.GetTopic(), client.name, response))
-			if err != nil {
-				return Utilities.NewError("Failed to send response to message broker server", err)
-			}
+		}
+		err = brokerConnection.send(message.NewResponse(message.GetTopic(), client.name, response))
+		if err != nil {
+			return Utilities.NewError("Failed to send response to message broker server", err)
 		}
 	} else {
 		err := client.handleAsyncMessage(message)
