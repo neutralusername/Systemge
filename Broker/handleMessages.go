@@ -51,6 +51,12 @@ func (server *Server) validateMessage(message *Message.Message) error {
 	if !server.syncTopics[message.GetTopic()] && !server.asyncTopics[message.GetTopic()] {
 		return Utilities.NewError("Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
 	}
+	if server.syncTopics[message.GetTopic()] && message.GetSyncRequestToken() == "" {
+		return Utilities.NewError("Topic \""+message.GetTopic()+"\" is a sync topic and message is not a sync request", nil)
+	}
+	if server.asyncTopics[message.GetTopic()] && message.GetSyncRequestToken() != "" {
+		return Utilities.NewError("Topic \""+message.GetTopic()+"\" is an async topic and message is a sync request", nil)
+	}
 	return nil
 }
 
