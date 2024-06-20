@@ -94,12 +94,12 @@ func (client *Client) ResetWatchdog() {
 // Disconnects the client and blocks until after the onDisconnectHandler is called
 func (client *Client) Disconnect() {
 	client.watchdogMutex.Lock()
+	defer client.watchdogMutex.Unlock()
 	if client.watchdog == nil {
 		return
 	}
 	client.watchdog.Reset(0)
 	<-client.stopChannel
-	client.watchdogMutex.Unlock()
 }
 
 func (client *Client) GetIp() string {
