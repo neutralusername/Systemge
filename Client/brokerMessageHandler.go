@@ -62,9 +62,9 @@ func (client *Client) handleMessage(message *Message.Message, brokerConnection *
 	if message.GetSyncRequestToken() != "" {
 		response, err := client.handleSyncMessage(message)
 		if err != nil {
-			err := brokerConnection.send(message.NewResponse("error", client.name, Utilities.NewError("Error handling message", err).Error()))
-			if err != nil {
-				return Utilities.NewError("Failed to send error response to message broker server", err)
+			errResponse := brokerConnection.send(message.NewResponse("error", client.name, Utilities.NewError("Error handling message", err).Error()))
+			if errResponse != nil {
+				return Utilities.NewError("Failed to send error response to message broker server", errResponse)
 			}
 			return Utilities.NewError("Error handling message", err)
 		}
