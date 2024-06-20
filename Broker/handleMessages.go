@@ -66,7 +66,7 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	if message.GetSyncResponseToken() != "" {
 		err := server.handleSyncResponse(message)
 		if err != nil {
-			server.logger.Log(Utilities.NewError("Failed to handle sync response from client \""+clientConnection.name+"\"", err).Error())
+			server.logger.Log(Utilities.NewError("Failed to handle sync response from client \""+clientConnection.name+"\" with token \""+message.GetSyncResponseToken()+"\"", err).Error())
 		}
 		return nil
 	}
