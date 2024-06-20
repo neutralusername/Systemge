@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (server *Server) handleBrokerConnections() {
+func (server *Server) handleClientConnections() {
 	for server.IsStarted() {
 		netConn, err := server.tlsBrokerListener.Accept()
 		if err != nil {
@@ -17,18 +17,18 @@ func (server *Server) handleBrokerConnections() {
 			continue
 		}
 		go func() {
-			client, err := server.handleBrokerConnectionRequest(netConn)
+			client, err := server.handleClientConnectionRequest(netConn)
 			if err != nil {
 				netConn.Close()
 				server.logger.Log(Utilities.NewError("Failed to handle connection request", err).Error())
 				return
 			}
-			server.handleBrokerClientMessages(client)
+			server.handleClientConnectionMessages(client)
 		}()
 	}
 }
 
-func (server *Server) handleBrokerConnectionRequest(netConn net.Conn) (*clientConnection, error) {
+func (server *Server) handleClientConnectionRequest(netConn net.Conn) (*clientConnection, error) {
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return nil, Utilities.NewError("Failed to receive connection request", err)

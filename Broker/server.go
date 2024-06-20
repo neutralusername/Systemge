@@ -96,7 +96,7 @@ func (server *Server) Start() error {
 	server.tlsBrokerListener = brokerListener
 	server.tlsConfigListener = configListener
 	server.isStarted = true
-	go server.handleBrokerConnections()
+	go server.handleClientConnections()
 	go server.handleConfigConnections()
 	return nil
 }
