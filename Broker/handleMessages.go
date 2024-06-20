@@ -72,6 +72,7 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	}
 	if message.GetSyncRequestToken() != "" {
 		if err := server.handleSyncRequest(clientConnection, message); err != nil {
+			//not using handleSyncResponse because the request failed, which means the syncReuqest token has not been registered
 			errResponse := clientConnection.send(message.NewResponse("error", server.name, Utilities.NewError("sync request failed", err).Error()))
 			if errResponse != nil {
 				server.logger.Log(Utilities.NewError("Failed to handle sync request from client \""+clientConnection.name+"\"", err).Error())
