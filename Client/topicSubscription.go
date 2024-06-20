@@ -8,8 +8,11 @@ import (
 // subscribes to a topic from the provided server connection
 func (client *Client) subscribeTopic(brokerConnection *brokerConnection, topic string) error {
 	message := Message.NewSync("subscribe", client.name, topic)
-	responseChannel := client.addMessageWaitingForResponse(message)
-	err := brokerConnection.send(message)
+	responseChannel, err := client.addMessageWaitingForResponse(message)
+	if err != nil {
+		return Utilities.NewError("Error adding message to waiting for response map", err)
+	}
+	err = brokerConnection.send(message)
 	if err != nil {
 		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return Utilities.NewError("Failed to send message with topic \""+message.GetTopic()+"\" to message broker server", err)

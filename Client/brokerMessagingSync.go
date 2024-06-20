@@ -18,10 +18,12 @@ func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Messa
 	if err != nil {
 		return nil, Utilities.NewError("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}
-	responseChannel := client.addMessageWaitingForResponse(message)
+	responseChannel, err := client.addMessageWaitingForResponse(message)
+	if err != nil {
+		return nil, Utilities.NewError("Error adding message to waiting for response map", err)
+	}
 	err = brokerConnection.send(message)
 	if err != nil {
-		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return nil, Utilities.NewError("Error sending sync request message", err)
 	}
 	return client.receiveSyncResponse(message, responseChannel)
@@ -40,12 +42,15 @@ func (client *Client) receiveSyncResponse(message *Message.Message, responseChan
 		return nil, Utilities.NewError("client stopped", nil)
 	}
 }
-func (client *Client) addMessageWaitingForResponse(message *Message.Message) chan *Message.Message {
+func (client *Client) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
+	if client.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
+		return nil, Utilities.NewError("SyncRequestToken already exists", nil)
+	}
 	responseChannel := make(chan *Message.Message)
 	client.messagesWaitingForResponse[message.GetSyncRequestToken()] = responseChannel
-	return responseChannel
+	return responseChannel, nil
 }
 func (client *Client) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
 	client.mapOperationMutex.Lock()
