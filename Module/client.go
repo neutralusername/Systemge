@@ -41,9 +41,8 @@ func NewCompositeClientWebsocket(name string, resolverAddress string, loggerPath
 	if err != nil {
 		panic(err)
 	}
-	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath))
+	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath), application)
 	websocketServer.SetHTTPServer(HTTP.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
-	websocketServer.SetWebsocketApplication(application)
 	client.SetApplication(application)
 	client.SetWebsocketServer(websocketServer)
 	return client
@@ -55,10 +54,9 @@ func NewCompositeClientWebsocketHTTP(name string, resolverAddress string, logger
 	if err != nil {
 		panic(err)
 	}
-	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath))
+	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath), application)
 	websocketServer.SetHTTPServer(HTTP.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
 	httpServer := HTTP.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
-	websocketServer.SetWebsocketApplication(application)
 	client.SetApplication(application)
 	client.SetWebsocketServer(websocketServer)
 	client.SetHTTPServer(httpServer)

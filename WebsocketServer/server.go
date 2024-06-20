@@ -28,9 +28,9 @@ type Server struct {
 	randomizer  *Randomizer.Randomizer
 }
 
-func New(name string, logger *Utilities.Logger) *Server {
+func New(name string, logger *Utilities.Logger, websocketApplication Application.WebsocketApplication) *Server {
 	return &Server{
-		websocketApplication: nil,
+		websocketApplication: websocketApplication,
 		websocketHTTPServer:  nil,
 		websocketConnChannel: nil,
 		clients:              nil,
@@ -54,17 +54,6 @@ func (server *Server) SetHTTPServer(httpServer *HTTP.Server) {
 		return
 	}
 	server.websocketHTTPServer = httpServer
-}
-
-// sets the websocketApplication that the server will use to handle messages, connects and disconnects
-func (server *Server) SetWebsocketApplication(websocketApplication Application.WebsocketApplication) {
-	server.stateMutex.Lock()
-	defer server.stateMutex.Unlock()
-	if server.isStarted {
-		server.logger.Log("Cannot set websocket application while server is started")
-		return
-	}
-	server.websocketApplication = websocketApplication
 }
 
 func (server *Server) IsStarted() bool {
