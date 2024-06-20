@@ -113,17 +113,7 @@ func (server *Server) Stop() error {
 	}
 	server.tlsBrokerListener.Close()
 	server.tlsConfigListener.Close()
-
-	clientsToDisconnect := make([]*clientConnection, 0)
-	server.operationMutex.Lock()
-	for _, clientConnection := range server.clientConnections {
-		clientsToDisconnect = append(clientsToDisconnect, clientConnection)
-	}
-	server.operationMutex.Unlock()
-
-	for _, clientConnection := range clientsToDisconnect {
-		clientConnection.disconnect()
-	}
+	server.disconnectAllClientConnections()
 	server.isStarted = false
 	return nil
 }

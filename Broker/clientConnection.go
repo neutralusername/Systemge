@@ -73,7 +73,7 @@ func (clientConnection *clientConnection) disconnect() error {
 	return nil
 }
 
-func (server *Server) addClient(clientConnection *clientConnection) error {
+func (server *Server) addClientConnection(clientConnection *clientConnection) error {
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	if server.clientConnections[clientConnection.name] != nil {
@@ -85,7 +85,7 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 		clientConnection.watchdog = nil
 		watchdog.Stop()
 		clientConnection.netConn.Close()
-		err := server.removeClient(clientConnection)
+		err := server.removeClientConnection(clientConnection)
 		if err != nil {
 			server.logger.Log(Utilities.NewError("Error removing client \""+clientConnection.name+"\"", err).Error())
 		}
@@ -94,7 +94,7 @@ func (server *Server) addClient(clientConnection *clientConnection) error {
 	return nil
 }
 
-func (server *Server) removeClient(clientConnection *clientConnection) error {
+func (server *Server) removeClientConnection(clientConnection *clientConnection) error {
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	if server.clientConnections[clientConnection.name] == nil {
@@ -105,4 +105,16 @@ func (server *Server) removeClient(clientConnection *clientConnection) error {
 	}
 	delete(server.clientConnections, clientConnection.name)
 	return nil
+}
+
+func (server *Server) disconnectAllClientConnections() {
+	clientsToDisconnect := make([]*clientConnection, 0)
+	server.operationMutex.Lock()
+	for _, clientConnection := range server.clientConnections {
+		clientsToDisconnect = append(clientsToDisconnect, clientConnection)
+	}
+	server.operationMutex.Unlock()
+	for _, clientConnection := range clientsToDisconnect {
+		clientConnection.disconnect()
+	}
 }

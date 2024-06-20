@@ -38,7 +38,7 @@ func (server *Server) handleClientConnectionRequest(netConn net.Conn) (*clientCo
 		return nil, Utilities.NewError("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
 	clientConnection := newClientConnection(message.GetOrigin(), netConn)
-	err = server.addClient(clientConnection)
+	err = server.addClientConnection(clientConnection)
 	if err != nil {
 		return nil, err
 	}
