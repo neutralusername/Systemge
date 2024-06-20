@@ -17,10 +17,12 @@ type Application interface {
 	GetCustomCommandHandlers() map[string]CustomCommandHandler
 
 	// OnStart is called when the application is started.
+	// Network communication through the Client is possible in this function.
 	// If this function returns an error, the application will not be started.
 	OnStart() error
 
 	// OnStop is called when the application is stopped.
+	// Network communication through the Client is possible in this function.
 	// If this function returns an error, the application will not be stopped.
 	OnStop() error
 }
