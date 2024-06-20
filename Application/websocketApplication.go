@@ -6,7 +6,7 @@ import (
 )
 
 // WebsocketApplication is an interface that defines the methods that a websocket application must implement.
-// Every Client can optionally have a WebsocketApplication which will be started automatically when its Client is started.
+// Every Client must have an Application or WebsocketApplication which will be started automatically when its Client is started.
 type WebsocketApplication interface {
 	Application
 
