@@ -5,8 +5,6 @@ import (
 	"Systemge/WebsocketClient"
 )
 
-// WebsocketApplication is an interface that defines the methods that a websocket application must implement.
-// Every Client must have an Application or WebsocketApplication which will be started automatically when its Client is started.
 type WebsocketApplication interface {
 	// GetWebsocketMessageHandlers returns a map of message types and their corresponding handlers.
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler

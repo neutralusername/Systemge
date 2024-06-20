@@ -4,8 +4,6 @@ import (
 	"Systemge/Message"
 )
 
-// Application is an interface that defines the methods that an application must implement.
-// Every Client must have an Application or WebsocketApplication which will be started automatically when its Client is started.
 type Application interface {
 	// GetAsyncMessageHandlers returns a map of message types and their corresponding handlers.
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
