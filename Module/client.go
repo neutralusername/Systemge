@@ -3,7 +3,7 @@ package Module
 import (
 	"Systemge/Application"
 	"Systemge/Client"
-	"Systemge/HTTP"
+	"Systemge/HTTPServer"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
 )
@@ -29,7 +29,7 @@ func NewCompositeClientHTTP(name string, resolverAddress string, loggerPath stri
 	if err != nil {
 		panic(err)
 	}
-	httpServer := HTTP.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
+	httpServer := HTTPServer.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
 	client.SetApplication(application)
 	client.SetHTTPServer(httpServer)
 	return client
@@ -42,7 +42,7 @@ func NewCompositeClientWebsocket(name string, resolverAddress string, loggerPath
 		panic(err)
 	}
 	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath), application)
-	websocketServer.SetHTTPServer(HTTP.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
+	websocketServer.SetHTTPServer(HTTPServer.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
 	client.SetApplication(application)
 	client.SetWebsocketServer(websocketServer)
 	return client
@@ -55,8 +55,8 @@ func NewCompositeClientWebsocketHTTP(name string, resolverAddress string, logger
 		panic(err)
 	}
 	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath), application)
-	websocketServer.SetHTTPServer(HTTP.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
-	httpServer := HTTP.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
+	websocketServer.SetHTTPServer(HTTPServer.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
+	httpServer := HTTPServer.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
 	client.SetApplication(application)
 	client.SetWebsocketServer(websocketServer)
 	client.SetHTTPServer(httpServer)

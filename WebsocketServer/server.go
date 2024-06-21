@@ -2,7 +2,7 @@ package WebsocketServer
 
 import (
 	"Systemge/Application"
-	"Systemge/HTTP"
+	"Systemge/HTTPServer"
 	"Systemge/Randomizer"
 	"Systemge/Utilities"
 	"Systemge/WebsocketClient"
@@ -13,7 +13,7 @@ import (
 
 type Server struct {
 	websocketApplication Application.WebsocketApplication
-	websocketHTTPServer  *HTTP.Server
+	websocketHTTPServer  *HTTPServer.Server
 	websocketConnChannel chan *websocket.Conn
 	clients              map[string]*WebsocketClient.Client            // websocketId -> websocketClient
 	groups               map[string]map[string]*WebsocketClient.Client // groupId -> map[websocketId]websocketClient
@@ -46,7 +46,7 @@ func New(name string, logger *Utilities.Logger, websocketApplication Application
 	}
 }
 
-func (server *Server) SetHTTPServer(httpServer *HTTP.Server) {
+func (server *Server) SetHTTPServer(httpServer *HTTPServer.Server) {
 	server.stateMutex.Lock()
 	defer server.stateMutex.Unlock()
 	if server.isStarted {

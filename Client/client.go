@@ -2,7 +2,7 @@ package Client
 
 import (
 	"Systemge/Application"
-	"Systemge/HTTP"
+	"Systemge/HTTPServer"
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
@@ -14,7 +14,7 @@ type Client struct {
 	logger          *Utilities.Logger
 	resolverAddress string
 
-	httpServer      *HTTP.Server
+	httpServer      *HTTPServer.Server
 	websocketServer *WebsocketServer.Server
 	application     Application.Application
 
@@ -61,7 +61,7 @@ func (client *Client) SetWebsocketServer(websocketServer *WebsocketServer.Server
 	client.websocketServer = websocketServer
 }
 
-func (client *Client) SetHTTPServer(httpServer *HTTP.Server) {
+func (client *Client) SetHTTPServer(httpServer *HTTPServer.Server) {
 	client.httpServer = httpServer
 }
 
@@ -77,7 +77,7 @@ func (client *Client) GetWebsocketServer() *WebsocketServer.Server {
 	return client.websocketServer
 }
 
-func (client *Client) GetHTTPServer() *HTTP.Server {
+func (client *Client) GetHTTPServer() *HTTPServer.Server {
 	return client.httpServer
 }
 

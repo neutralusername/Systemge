@@ -1,4 +1,4 @@
-package HTTP
+package HTTPServer
 
 import (
 	"Systemge/Application"
