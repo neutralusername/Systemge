@@ -13,8 +13,23 @@ type NewCompositeApplicationWebsocketFunc func(*Client.Client, []string) (Applic
 type NewCompositeApplicationHTTPFunc func(*Client.Client, []string) (Application.CompositeApplicationHTTP, error)
 type NewCompositeApplicationtWebsocketHTTPFunc func(*Client.Client, []string) (Application.CompositeApplicationWebsocketHTTP, error)
 
-func NewClient(name string, resolverAddress string, loggerPath string, newApplicationFunc NewApplicationFunc, args []string) *Client.Client {
-	client := Client.New(name, resolverAddress, Utilities.NewLogger(loggerPath))
+type ClientConfig struct {
+	Name            string
+	ResolverAddress string
+	LoggerPath      string
+
+	HTTPPort string
+	HTTPCert string
+	HTTPKey  string
+
+	WebsocketPattern string
+	WebsocketPort    string
+	WebsocketCert    string
+	WebsocketKey     string
+}
+
+func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc, args []string) *Client.Client {
+	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newApplicationFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -23,40 +38,40 @@ func NewClient(name string, resolverAddress string, loggerPath string, newApplic
 	return client
 }
 
-func NewCompositeClientHTTP(name string, resolverAddress string, loggerPath string, httpPort string, httpTlsCert string, httpTlsKey string, newCompositeApplicationHTTPFunc NewCompositeApplicationHTTPFunc, args []string) *Client.Client {
-	client := Client.New(name, resolverAddress, Utilities.NewLogger(loggerPath))
+func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationHTTPFunc NewCompositeApplicationHTTPFunc, args []string) *Client.Client {
+	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationHTTPFunc(client, args)
 	if err != nil {
 		panic(err)
 	}
-	httpServer := HTTPServer.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
+	httpServer := HTTPServer.New(clientConfig.HTTPPort, clientConfig.Name+"HTTP", clientConfig.HTTPCert, clientConfig.HTTPKey, Utilities.NewLogger(clientConfig.LoggerPath), application)
 	client.SetApplication(application)
 	client.SetHTTPServer(httpServer)
 	return client
 }
 
-func NewCompositeClientWebsocket(name string, resolverAddress string, loggerPath string, websocketPattern string, websocketPort string, websocketTlsCert string, websocketTlsKey string, newCompositeApplicationWebsocketFunc NewCompositeApplicationWebsocketFunc, args []string) *Client.Client {
-	client := Client.New(name, resolverAddress, Utilities.NewLogger(loggerPath))
+func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplicationWebsocketFunc NewCompositeApplicationWebsocketFunc, args []string) *Client.Client {
+	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationWebsocketFunc(client, args)
 	if err != nil {
 		panic(err)
 	}
-	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath), application)
-	websocketServer.SetHTTPServer(HTTPServer.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
+	websocketServer := WebsocketServer.New(clientConfig.Name, Utilities.NewLogger(clientConfig.LoggerPath), application)
+	websocketServer.SetHTTPServer(HTTPServer.New(clientConfig.WebsocketPort, clientConfig.Name+"WebsocketHandshake", clientConfig.WebsocketCert, clientConfig.WebsocketKey, Utilities.NewLogger(clientConfig.LoggerPath), WebsocketServer.NewHandshakeApplication(clientConfig.WebsocketPattern, websocketServer)))
 	client.SetApplication(application)
 	client.SetWebsocketServer(websocketServer)
 	return client
 }
 
-func NewCompositeClientWebsocketHTTP(name string, resolverAddress string, loggerPath string, websocketPattern string, websocketPort string, websocketTlsCert string, websocketTlsKey string, httpPort string, httpTlsCert string, httpTlsKey string, newCompositeApplicationtWebsocketHTTPFunc NewCompositeApplicationtWebsocketHTTPFunc, args []string) *Client.Client {
-	client := Client.New(name, resolverAddress, Utilities.NewLogger(loggerPath))
+func NewCompositeClientWebsocketHTTP(clientConfig *ClientConfig, newCompositeApplicationtWebsocketHTTPFunc NewCompositeApplicationtWebsocketHTTPFunc, args []string) *Client.Client {
+	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationtWebsocketHTTPFunc(client, args)
 	if err != nil {
 		panic(err)
 	}
-	websocketServer := WebsocketServer.New(name, Utilities.NewLogger(loggerPath), application)
-	websocketServer.SetHTTPServer(HTTPServer.New(websocketPort, name+"HTTP", websocketTlsCert, websocketTlsKey, Utilities.NewLogger(loggerPath), WebsocketServer.NewHandshakeApplication(websocketPattern, websocketServer)))
-	httpServer := HTTPServer.New(httpPort, name+"HTTP", httpTlsCert, httpTlsKey, Utilities.NewLogger(loggerPath), application)
+	websocketServer := WebsocketServer.New(clientConfig.Name, Utilities.NewLogger(clientConfig.LoggerPath), application)
+	websocketServer.SetHTTPServer(HTTPServer.New(clientConfig.WebsocketPort, clientConfig.Name+"WebsocketHandshake", clientConfig.WebsocketCert, clientConfig.WebsocketKey, Utilities.NewLogger(clientConfig.LoggerPath), WebsocketServer.NewHandshakeApplication(clientConfig.WebsocketPattern, websocketServer)))
+	httpServer := HTTPServer.New(clientConfig.HTTPPort, clientConfig.Name+"HTTP", clientConfig.HTTPCert, clientConfig.HTTPKey, Utilities.NewLogger(clientConfig.LoggerPath), application)
 	client.SetApplication(application)
 	client.SetWebsocketServer(websocketServer)
 	client.SetHTTPServer(httpServer)
