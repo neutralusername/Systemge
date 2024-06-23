@@ -33,8 +33,7 @@ type ClientConfig struct {
 }
 
 func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc, args []string) *Client.Client {
-	resolverResolution := Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath))
-	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
+	client := Client.New(clientConfig.Name, Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath)), Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newApplicationFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -44,8 +43,7 @@ func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc
 }
 
 func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationHTTPFunc NewCompositeApplicationHTTPFunc, args []string) *Client.Client {
-	resolverResolution := Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath))
-	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
+	client := Client.New(clientConfig.Name, Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath)), Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationHTTPFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -57,8 +55,7 @@ func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationH
 }
 
 func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplicationWebsocketFunc NewCompositeApplicationWebsocketFunc, args []string) *Client.Client {
-	resolverResolution := Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath))
-	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
+	client := Client.New(clientConfig.Name, Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath)), Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationWebsocketFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -71,8 +68,7 @@ func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplica
 }
 
 func NewCompositeClientWebsocketHTTP(clientConfig *ClientConfig, newCompositeApplicationtWebsocketHTTPFunc NewCompositeApplicationtWebsocketHTTPFunc, args []string) *Client.Client {
-	resolverResolution := Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath))
-	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
+	client := Client.New(clientConfig.Name, Resolution.New("resolver", clientConfig.ResolverAddress, clientConfig.ResolverNameIndication, Utilities.GetFileContent(clientConfig.ResolverTLSCertPath)), Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationtWebsocketHTTPFunc(client, args)
 	if err != nil {
 		panic(err)
