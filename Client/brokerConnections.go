@@ -20,6 +20,7 @@ func (client *Client) getBrokerConnection(brokerAddress string) *brokerConnectio
 	return client.activeBrokerConnections[brokerAddress]
 }
 
+// Closes and removes a broker connection from the client
 func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()

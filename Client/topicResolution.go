@@ -43,6 +43,8 @@ func (client *Client) addTopicResolution(topic string, serverConnection *brokerC
 	return nil
 }
 
+// RemoveTopicResolution removes a topic resolution from the client
+// Subscribed topics, i.e. topics with message handlers in the application, cannot be removed
 func (client *Client) RemoveTopicResolution(topic string) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
