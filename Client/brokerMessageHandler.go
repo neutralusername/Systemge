@@ -14,7 +14,6 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			if client.IsStarted() {
 				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
 			}
-
 			client.handleBrokerDisconnect(brokerConnection)
 			return
 		}
@@ -38,9 +37,7 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 }
 
 func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection) {
-
 	removedSubscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
-
 	if len(removedSubscribedTopics) > 0 {
 		for _, topic := range removedSubscribedTopics {
 			for client.IsStarted() {
