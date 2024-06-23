@@ -39,5 +39,6 @@ func (client *Client) attemptToReconnectToSubscribedTopic(topic string) error {
 	if err != nil {
 		return Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err)
 	}
+	client.logger.Log(Utilities.NewError("Reconnected to broker \""+newBrokerConnection.resolution.GetName()+"\" for topic \""+topic+"\"", nil).Error())
 	return nil
 }

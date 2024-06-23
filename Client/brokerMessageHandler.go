@@ -35,7 +35,6 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 						client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
 						err := client.attemptToReconnectToSubscribedTopic(topic)
 						if err == nil {
-							client.logger.Log("Reconnect successful for topic \"" + topic + "\"")
 							break
 						}
 						client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
