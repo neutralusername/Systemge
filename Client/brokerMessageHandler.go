@@ -13,30 +13,32 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			brokerConnection.close()
 			if client.IsStarted() {
 				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
+			}
 
-				client.mapOperationMutex.Lock()
-				brokerConnection.mutex.Lock()
-				delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
-				subscribedTopics := make([]string, 0)
-				for topic := range brokerConnection.topics {
-					delete(client.topicResolutions, topic)
-					if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-						subscribedTopics = append(subscribedTopics, topic)
-					}
+			client.mapOperationMutex.Lock()
+			brokerConnection.mutex.Lock()
+			delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
+			subscribedTopics := make([]string, 0)
+			for topic := range brokerConnection.topics {
+				delete(client.topicResolutions, topic)
+				if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
+					subscribedTopics = append(subscribedTopics, topic)
 				}
-				brokerConnection.topics = make(map[string]bool)
-				brokerConnection.mutex.Unlock()
-				client.mapOperationMutex.Unlock()
+			}
+			brokerConnection.topics = make(map[string]bool)
+			brokerConnection.mutex.Unlock()
+			client.mapOperationMutex.Unlock()
 
-				if len(subscribedTopics) > 0 {
+			if len(subscribedTopics) > 0 {
+				for _, topic := range subscribedTopics {
 					for client.IsStarted() {
-						client.logger.Log("Attempting reconnect for message broker \"" + brokerConnection.resolution.GetName() + "\"")
-						err := client.attemptToReconnectToSubscribedTopics(subscribedTopics)
+						client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
+						err := client.attemptToReconnectToSubscribedTopic(topic)
 						if err == nil {
-							client.logger.Log("Reconnect successful for message broker \"" + brokerConnection.resolution.GetName() + "\"")
+							client.logger.Log("Reconnect successful for topic \"" + topic + "\"")
 							break
 						}
-						client.logger.Log(Utilities.NewError("Failed reconnect for message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
+						client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
 						time.Sleep(1 * time.Second)
 					}
 				}

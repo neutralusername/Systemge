@@ -35,3 +35,15 @@ func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
 	delete(client.activeBrokerConnections, brokerAddress)
 	return nil
 }
+
+func (client *Client) removeAllBrokerConnections() {
+	client.mapOperationMutex.Lock()
+	for address, brokerConnection := range client.activeBrokerConnections {
+		brokerConnection.close()
+		delete(client.activeBrokerConnections, address)
+		for topic := range brokerConnection.topics {
+			delete(client.topicResolutions, topic)
+		}
+	}
+	client.mapOperationMutex.Unlock()
+}
