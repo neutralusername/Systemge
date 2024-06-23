@@ -46,13 +46,11 @@ func New(name string, resolverResolution *Resolution.Resolution, logger *Utiliti
 		resolverResolution: resolverResolution,
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
-		topicResolutions:           make(map[string]*brokerConnection),
-		activeBrokerConnections:    make(map[string]*brokerConnection),
 
-		httpServer:      nil,
-		websocketServer: nil,
+		topicResolutions:        make(map[string]*brokerConnection),
+		activeBrokerConnections: make(map[string]*brokerConnection),
 
-		handleMessagesConcurrently: true,
+		handleMessagesConcurrently: DEFAULT_HANDLE_MESSAGES_CONCURRENTLY,
 	}
 }
 
