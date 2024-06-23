@@ -14,7 +14,7 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 					return
 				}
 				client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
-				err := client.attemptToReconnectToSubscribedTopic(topic)
+				err := client.attemptToReconnectToHandlerTopic(topic)
 				if err == nil {
 					break
 				}
@@ -42,7 +42,7 @@ func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brok
 	return subscribedTopics
 }
 
-func (client *Client) attemptToReconnectToSubscribedTopic(topic string) error {
+func (client *Client) attemptToReconnectToHandlerTopic(topic string) error {
 	newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 	if err != nil {
 		return Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err)
