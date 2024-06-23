@@ -9,7 +9,10 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 	removedSubscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
 	if len(removedSubscribedTopics) > 0 {
 		for _, topic := range removedSubscribedTopics {
-			for client.IsStarted() {
+			for {
+				if !client.IsStarted() {
+					return
+				}
 				client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
 				err := client.attemptToReconnectToSubscribedTopic(topic)
 				if err == nil {
@@ -21,6 +24,7 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 		}
 	}
 }
+
 func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
 	client.mapOperationMutex.Lock()
 	brokerConnection.mutex.Lock()
@@ -37,6 +41,7 @@ func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brok
 	client.mapOperationMutex.Unlock()
 	return subscribedTopics
 }
+
 func (client *Client) attemptToReconnectToSubscribedTopic(topic string) error {
 	newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 	if err != nil {
