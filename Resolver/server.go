@@ -8,8 +8,8 @@ import (
 )
 
 type Server struct {
-	knownBrokers     map[string]*Resolution // broker-name -> broker
-	registeredTopics map[string]*Resolution // topic -> broker
+	knownBrokers     map[string]*knownBroker // broker-name -> broker
+	registeredTopics map[string]*knownBroker // topic -> broker
 	mutex            sync.Mutex
 
 	name   string
@@ -32,8 +32,8 @@ func New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort
 	return &Server{
 		name:             name,
 		logger:           logger,
-		knownBrokers:     map[string]*Resolution{},
-		registeredTopics: map[string]*Resolution{},
+		knownBrokers:     map[string]*knownBroker{},
+		registeredTopics: map[string]*knownBroker{},
 
 		resolverPort:        resolverPort,
 		resolverTlsCertPath: resolverTlsCertPath,

@@ -4,7 +4,7 @@ import (
 	"Systemge/Application"
 	"Systemge/Client"
 	"Systemge/HTTPServer"
-	"Systemge/Resolver"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
 )
@@ -33,7 +33,7 @@ type ClientConfig struct {
 }
 
 func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc, args []string) *Client.Client {
-	resolverResolution := &Resolver.Resolution{
+	resolverResolution := &Resolution.Resolution{
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
@@ -49,7 +49,7 @@ func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc
 }
 
 func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationHTTPFunc NewCompositeApplicationHTTPFunc, args []string) *Client.Client {
-	resolverResolution := &Resolver.Resolution{
+	resolverResolution := &Resolution.Resolution{
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
@@ -67,7 +67,7 @@ func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationH
 }
 
 func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplicationWebsocketFunc NewCompositeApplicationWebsocketFunc, args []string) *Client.Client {
-	resolverResolution := &Resolver.Resolution{
+	resolverResolution := &Resolution.Resolution{
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
@@ -86,7 +86,7 @@ func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplica
 }
 
 func NewCompositeClientWebsocketHTTP(clientConfig *ClientConfig, newCompositeApplicationtWebsocketHTTPFunc NewCompositeApplicationtWebsocketHTTPFunc, args []string) *Client.Client {
-	resolverResolution := &Resolver.Resolution{
+	resolverResolution := &Resolution.Resolution{
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,

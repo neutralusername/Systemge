@@ -2,7 +2,7 @@ package Client
 
 import (
 	"Systemge/Message"
-	"Systemge/Resolver"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 	"net"
 	"sync"
@@ -10,7 +10,7 @@ import (
 
 type brokerConnection struct {
 	netConn    net.Conn
-	resolution *Resolver.Resolution
+	resolution *Resolution.Resolution
 	logger     *Utilities.Logger
 
 	topics map[string]bool
@@ -20,7 +20,7 @@ type brokerConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newBrokerConnection(netConn net.Conn, resolution *Resolver.Resolution, logger *Utilities.Logger) *brokerConnection {
+func newBrokerConnection(netConn net.Conn, resolution *Resolution.Resolution, logger *Utilities.Logger) *brokerConnection {
 	return &brokerConnection{
 		netConn:    netConn,
 		resolution: resolution,

@@ -39,7 +39,7 @@ func (server *Server) handleResolverConnection(netConn net.Conn) {
 		server.logger.Log(Utilities.NewError("Topic not found: \""+message.GetPayload()+"\" by "+message.GetOrigin(), nil).Error())
 		return
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", server.name, broker.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
+	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", server.name, broker.resolution.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		server.logger.Log(Utilities.NewError("Failed to send resolution to \""+message.GetOrigin()+"\"", err).Error())
 		return

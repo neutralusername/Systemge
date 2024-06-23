@@ -1,12 +1,13 @@
 package Module
 
 import (
+	"Systemge/Resolution"
 	"Systemge/Resolver"
 	"Systemge/Utilities"
 	"strings"
 )
 
-func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
+func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Server {
 	resolver := Resolver.New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
 	for _, broker := range brokers {
 		resolver.RegisterBroker(broker)
@@ -35,8 +36,8 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 	configPort := ""
 	configTlsCertPath := ""
 	configTlsKeyPath := ""
-	topics := map[string]*Resolver.Resolution{}  // topic -> broker
-	brokers := map[string]*Resolver.Resolution{} // broker-name -> broker
+	topics := map[string]*Resolution.Resolution{}  // topic -> broker
+	brokers := map[string]*Resolution.Resolution{} // broker-name -> broker
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 3 {
 		panic("provided file has too few lines to be a valid config")
@@ -78,7 +79,7 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 			if !Utilities.FileExists(lineSegments[3]) {
 				panic("certificate file does not exist \"" + lineSegments[2] + "\"")
 			}
-			resolution := Resolver.NewResolution(lineSegments[0], lineSegments[1], lineSegments[2], Utilities.GetFileContent(lineSegments[3]))
+			resolution := Resolution.New(lineSegments[0], lineSegments[1], lineSegments[2], Utilities.GetFileContent(lineSegments[3]))
 			brokers[lineSegments[0]] = resolution
 			for _, topic := range lineSegments[3:] {
 				topics[topic] = resolution

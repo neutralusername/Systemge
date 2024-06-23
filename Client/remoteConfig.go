@@ -2,7 +2,7 @@ package Client
 
 import (
 	"Systemge/Message"
-	"Systemge/Resolver"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 )
 
@@ -54,7 +54,7 @@ func (client *Client) UnregisterTopicRemotely(resolverAddress, nameIndication, t
 	return nil
 }
 
-func (client *Client) RegisterBrokerRemotely(resolverAddress, nameIndication, tlsCertificate string, resolution *Resolver.Resolution) error {
+func (client *Client) RegisterBrokerRemotely(resolverAddress, nameIndication, tlsCertificate string, resolution *Resolution.Resolution) error {
 	_, err := Utilities.TcpOneTimeExchange(resolverAddress, nameIndication, tlsCertificate, Message.NewAsync("registerBroker", client.GetName(), resolution.Marshal()), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Utilities.NewError("Error exchanging messages with broker", err)

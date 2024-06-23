@@ -2,6 +2,7 @@ package Resolver
 
 import (
 	"Systemge/Message"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 	"net"
 	"strings"
@@ -34,7 +35,7 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 	}
 	switch message.GetTopic() {
 	case "registerBroker":
-		resolution := UnmarshalResolution(message.GetPayload())
+		resolution := Resolution.Unmarshal(message.GetPayload())
 		if resolution == nil {
 			err = Utilities.NewError("Failed to unmarshal resolution", nil)
 			break

@@ -4,7 +4,7 @@ import (
 	"Systemge/Application"
 	"Systemge/HTTPServer"
 	"Systemge/Message"
-	"Systemge/Resolver"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
 	"sync"
@@ -14,7 +14,7 @@ type Client struct {
 	name   string
 	logger *Utilities.Logger
 
-	resolverResolution *Resolver.Resolution
+	resolverResolution *Resolution.Resolution
 
 	httpServer      *HTTPServer.Server
 	websocketServer *WebsocketServer.Server
@@ -38,7 +38,7 @@ type Client struct {
 	stateMutex sync.Mutex
 }
 
-func New(name string, resolverResolution *Resolver.Resolution, logger *Utilities.Logger) *Client {
+func New(name string, resolverResolution *Resolution.Resolution, logger *Utilities.Logger) *Client {
 	return &Client{
 		name:   name,
 		logger: logger,
@@ -68,7 +68,7 @@ func (client *Client) SetHTTPServer(httpServer *HTTPServer.Server) {
 	client.httpServer = httpServer
 }
 
-func (client *Client) SetResolverResolution(resolverResolution *Resolver.Resolution) {
+func (client *Client) SetResolverResolution(resolverResolution *Resolution.Resolution) {
 	client.resolverResolution = resolverResolution
 }
 
@@ -84,7 +84,7 @@ func (client *Client) GetHTTPServer() *HTTPServer.Server {
 	return client.httpServer
 }
 
-func (client *Client) GetResolverResolution() *Resolver.Resolution {
+func (client *Client) GetResolverResolution() *Resolution.Resolution {
 	return client.resolverResolution
 }
 

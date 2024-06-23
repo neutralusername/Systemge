@@ -2,11 +2,11 @@ package Client
 
 import (
 	"Systemge/Message"
-	"Systemge/Resolver"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 )
 
-func (client *Client) resolveBrokerForTopic(resolverResolution *Resolver.Resolution, topic string) (*Resolver.Resolution, error) {
+func (client *Client) resolveBrokerForTopic(resolverResolution *Resolution.Resolution, topic string) (*Resolution.Resolution, error) {
 	netConn, err := Utilities.TlsDial(resolverResolution.Address, resolverResolution.ServerNameIndication, resolverResolution.Certificate)
 	if err != nil {
 		return nil, Utilities.NewError("Error dialing resolver", err)
@@ -16,7 +16,7 @@ func (client *Client) resolveBrokerForTopic(resolverResolution *Resolver.Resolut
 	if err != nil {
 		return nil, Utilities.NewError("Error resolving broker", err)
 	}
-	resolution := Resolver.UnmarshalResolution(responseMessage.GetPayload())
+	resolution := Resolution.Unmarshal(responseMessage.GetPayload())
 	if resolution == nil {
 		return nil, Utilities.NewError("Error unmarshalling broker", nil)
 	}
