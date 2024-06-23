@@ -5,10 +5,10 @@ import "Systemge/Utilities"
 func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
-	if client.activeBrokerConnections[brokerConnection.resolution.Address] != nil {
+	if client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
 		return Utilities.NewError("Server connection already exists", nil)
 	}
-	client.activeBrokerConnections[brokerConnection.resolution.Address] = brokerConnection
+	client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] = brokerConnection
 	go client.handleBrokerMessages(brokerConnection)
 	go client.heartbeatLoop(brokerConnection)
 	return nil

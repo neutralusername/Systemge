@@ -13,7 +13,7 @@ func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, co
 		resolver.RegisterBroker(broker)
 	}
 	for topic, broker := range topics {
-		resolver.RegisterTopics(broker.Name, topic)
+		resolver.RegisterTopics(broker.GetName(), topic)
 	}
 	return resolver
 }

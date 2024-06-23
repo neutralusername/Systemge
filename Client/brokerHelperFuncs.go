@@ -11,7 +11,7 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 		if err != nil {
 			return nil, Utilities.NewError("Error resolving broker address for topic \""+topic+"\"", err)
 		}
-		brokerConnection = client.getBrokerConnection(resolution.Address)
+		brokerConnection = client.getBrokerConnection(resolution.GetAddress())
 		if brokerConnection == nil {
 			brokerConnection, err = client.connectToBroker(resolution)
 			if err != nil {
@@ -33,7 +33,7 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
 	brokerConnection.mutex.Lock()
-	delete(client.activeBrokerConnections, brokerConnection.resolution.Address)
+	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
 	topicsToReconnect := make([]string, 0)
 	for topic := range brokerConnection.topics {
 		delete(client.topicResolutions, topic)

@@ -20,10 +20,10 @@ func newKnownBroker(resolution *Resolution.Resolution) *knownBroker {
 func (server *Server) RegisterBroker(resolution *Resolution.Resolution) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if server.knownBrokers[resolution.Name] != nil {
+	if server.knownBrokers[resolution.GetName()] != nil {
 		return Utilities.NewError("Broker already registered", nil)
 	}
-	server.knownBrokers[resolution.Name] = newKnownBroker(resolution)
+	server.knownBrokers[resolution.GetName()] = newKnownBroker(resolution)
 	return nil
 }
 

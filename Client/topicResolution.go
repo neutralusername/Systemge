@@ -7,7 +7,7 @@ import (
 )
 
 func (client *Client) resolveBrokerForTopic(resolverResolution *Resolution.Resolution, topic string) (*Resolution.Resolution, error) {
-	netConn, err := Utilities.TlsDial(resolverResolution.Address, resolverResolution.ServerNameIndication, resolverResolution.TlsCertificate)
+	netConn, err := Utilities.TlsDial(resolverResolution.GetAddress(), resolverResolution.GetServerNameIndication(), resolverResolution.GetTlsCertificate())
 	if err != nil {
 		return nil, Utilities.NewError("Error dialing resolver", err)
 	}
