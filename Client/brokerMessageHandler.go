@@ -3,7 +3,6 @@ package Client
 import (
 	"Systemge/Message"
 	"Systemge/Utilities"
-	"time"
 )
 
 func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
@@ -34,40 +33,6 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			}
 		}
 	}
-}
-
-func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection) {
-	removedSubscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
-	if len(removedSubscribedTopics) > 0 {
-		for _, topic := range removedSubscribedTopics {
-			for client.IsStarted() {
-				client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
-				err := client.attemptToReconnectToSubscribedTopic(topic)
-				if err == nil {
-					break
-				}
-				client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
-				time.Sleep(1 * time.Second)
-			}
-		}
-	}
-}
-
-func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
-	client.mapOperationMutex.Lock()
-	brokerConnection.mutex.Lock()
-	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
-	subscribedTopics := make([]string, 0)
-	for topic := range brokerConnection.topics {
-		delete(client.topicResolutions, topic)
-		if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-			subscribedTopics = append(subscribedTopics, topic)
-		}
-	}
-	brokerConnection.topics = make(map[string]bool)
-	brokerConnection.mutex.Unlock()
-	client.mapOperationMutex.Unlock()
-	return subscribedTopics
 }
 
 func (client *Client) handleSyncResponse(message *Message.Message) error {

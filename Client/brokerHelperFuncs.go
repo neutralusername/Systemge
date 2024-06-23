@@ -29,16 +29,3 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 	}
 	return brokerConnection, nil
 }
-
-func (client *Client) attemptToReconnectToSubscribedTopic(topic string) error {
-	newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
-	if err != nil {
-		return Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err)
-	}
-	err = client.subscribeTopic(newBrokerConnection, topic)
-	if err != nil {
-		return Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err)
-	}
-	client.logger.Log(Utilities.NewError("Reconnected to broker \""+newBrokerConnection.resolution.GetName()+"\" for topic \""+topic+"\"", nil).Error())
-	return nil
-}
