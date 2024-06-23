@@ -18,26 +18,30 @@ type Server struct {
 	isStarted bool
 
 	resolverPort        string
-	tcpListenerResolver net.Listener
+	resolverTlsCertPath string
+	resolverTlsKeyPath  string
+	tlsResolverListener net.Listener
 
 	configPort        string
-	tlsCertPath       string
-	tlsKeyPath        string
-	tlsListenerConfig net.Listener
+	configTlsCertPath string
+	configTlsKeyPath  string
+	tlsConfigListener net.Listener
 }
 
-func New(name, resolverPort, configPort, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
+func New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {
 	return &Server{
 		name:             name,
 		logger:           logger,
 		knownBrokers:     map[string]*Resolution{},
 		registeredTopics: map[string]*Resolution{},
 
-		resolverPort: resolverPort,
+		resolverPort:        resolverPort,
+		resolverTlsCertPath: resolverTlsCertPath,
+		resolverTlsKeyPath:  resolverTlsKeyPath,
 
-		configPort:  configPort,
-		tlsCertPath: tlsCertPath,
-		tlsKeyPath:  tlsKeyPath,
+		configPort:        configPort,
+		configTlsCertPath: tlsCertPath,
+		configTlsKeyPath:  tlsKeyPath,
 	}
 }
 
@@ -48,22 +52,28 @@ func (server *Server) Start() error {
 		return Utilities.NewError("Server already started", nil)
 	}
 	server.isStarted = true
-	tcpListener, err := net.Listen("tcp", server.resolverPort)
-	if err != nil {
-		return Utilities.NewError("", err)
-	}
-	tlsCert, err := tls.LoadX509KeyPair(server.tlsCertPath, server.tlsKeyPath)
+	resolverTlsCert, err := tls.LoadX509KeyPair(server.resolverTlsCertPath, server.resolverTlsKeyPath)
 	if err != nil {
 		return Utilities.NewError("Failed to load TLS certificate: ", err)
 	}
-	tlsListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
-		Certificates: []tls.Certificate{tlsCert},
+	resolverListener, err := tls.Listen("tcp", server.resolverPort, &tls.Config{
+		Certificates: []tls.Certificate{resolverTlsCert},
 	})
 	if err != nil {
 		return Utilities.NewError("", err)
 	}
-	server.tcpListenerResolver = tcpListener
-	server.tlsListenerConfig = tlsListener
+	configTlsCert, err := tls.LoadX509KeyPair(server.configTlsCertPath, server.configTlsKeyPath)
+	if err != nil {
+		return Utilities.NewError("Failed to load TLS certificate: ", err)
+	}
+	configListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
+		Certificates: []tls.Certificate{configTlsCert},
+	})
+	if err != nil {
+		return Utilities.NewError("", err)
+	}
+	server.tlsResolverListener = resolverListener
+	server.tlsConfigListener = configListener
 	go server.handleResolverConnections()
 	go server.handleConfigConnections()
 	return nil
@@ -80,10 +90,10 @@ func (server *Server) Stop() error {
 		return Utilities.NewError("Server is not started", nil)
 	}
 	server.isStarted = false
-	server.tcpListenerResolver.Close()
-	server.tcpListenerResolver = nil
-	server.tlsListenerConfig.Close()
-	server.tlsListenerConfig = nil
+	server.tlsResolverListener.Close()
+	server.tlsResolverListener = nil
+	server.tlsConfigListener.Close()
+	server.tlsConfigListener = nil
 	return nil
 }
 

@@ -4,15 +4,17 @@ import (
 	"Systemge/Application"
 	"Systemge/HTTPServer"
 	"Systemge/Message"
+	"Systemge/Resolver"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
 	"sync"
 )
 
 type Client struct {
-	name            string
-	logger          *Utilities.Logger
-	resolverAddress string
+	name   string
+	logger *Utilities.Logger
+
+	resolverResolution *Resolver.Resolution
 
 	httpServer      *HTTPServer.Server
 	websocketServer *WebsocketServer.Server
@@ -36,11 +38,12 @@ type Client struct {
 	stateMutex sync.Mutex
 }
 
-func New(name, topicResolutionServerAddress string, logger *Utilities.Logger) *Client {
+func New(name string, resolverResolution *Resolver.Resolution, logger *Utilities.Logger) *Client {
 	return &Client{
-		name:            name,
-		logger:          logger,
-		resolverAddress: topicResolutionServerAddress,
+		name:   name,
+		logger: logger,
+
+		resolverResolution: resolverResolution,
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 		topicResolutions:           make(map[string]*brokerConnection),
@@ -65,8 +68,8 @@ func (client *Client) SetHTTPServer(httpServer *HTTPServer.Server) {
 	client.httpServer = httpServer
 }
 
-func (client *Client) SetTopicResolutionServerAddress(address string) {
-	client.resolverAddress = address
+func (client *Client) SetResolverResolution(resolverResolution *Resolver.Resolution) {
+	client.resolverResolution = resolverResolution
 }
 
 func (client *Client) GetApplication() Application.Application {
@@ -81,8 +84,8 @@ func (client *Client) GetHTTPServer() *HTTPServer.Server {
 	return client.httpServer
 }
 
-func (client *Client) GetTopicResolutionServerAddress() string {
-	return client.resolverAddress
+func (client *Client) GetResolverResolution() *Resolver.Resolution {
+	return client.resolverResolution
 }
 
 func (client *Client) GetLogger() *Utilities.Logger {
@@ -112,8 +115,8 @@ func (client *Client) Start() error {
 		if client.application == nil {
 			return Utilities.NewError("Application not set", nil)
 		}
-		if client.resolverAddress == "" {
-			return Utilities.NewError("Topic resolution server address not set", nil)
+		if client.resolverResolution == nil {
+			return Utilities.NewError("Resolver resolution not set", nil)
 		}
 		if client.isStarted {
 			return Utilities.NewError("Client already connected", nil)

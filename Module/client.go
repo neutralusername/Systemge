@@ -4,6 +4,7 @@ import (
 	"Systemge/Application"
 	"Systemge/Client"
 	"Systemge/HTTPServer"
+	"Systemge/Resolver"
 	"Systemge/Utilities"
 	"Systemge/WebsocketServer"
 )
@@ -14,9 +15,12 @@ type NewCompositeApplicationHTTPFunc func(*Client.Client, []string) (Application
 type NewCompositeApplicationtWebsocketHTTPFunc func(*Client.Client, []string) (Application.CompositeApplicationWebsocketHTTP, error)
 
 type ClientConfig struct {
-	Name            string
-	ResolverAddress string
-	LoggerPath      string
+	Name       string
+	LoggerPath string
+
+	ResolverAddress        string
+	ResolverNameIndication string
+	ResolverTLSCertPath    string
 
 	HTTPPort string
 	HTTPCert string
@@ -29,7 +33,13 @@ type ClientConfig struct {
 }
 
 func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc, args []string) *Client.Client {
-	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
+	resolverResolution := &Resolver.Resolution{
+		Name:                 "resolver",
+		Address:              clientConfig.ResolverAddress,
+		ServerNameIndication: clientConfig.ResolverNameIndication,
+		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+	}
+	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newApplicationFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -39,7 +49,13 @@ func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc
 }
 
 func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationHTTPFunc NewCompositeApplicationHTTPFunc, args []string) *Client.Client {
-	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
+	resolverResolution := &Resolver.Resolution{
+		Name:                 "resolver",
+		Address:              clientConfig.ResolverAddress,
+		ServerNameIndication: clientConfig.ResolverNameIndication,
+		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+	}
+	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationHTTPFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -51,7 +67,13 @@ func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationH
 }
 
 func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplicationWebsocketFunc NewCompositeApplicationWebsocketFunc, args []string) *Client.Client {
-	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
+	resolverResolution := &Resolver.Resolution{
+		Name:                 "resolver",
+		Address:              clientConfig.ResolverAddress,
+		ServerNameIndication: clientConfig.ResolverNameIndication,
+		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+	}
+	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationWebsocketFunc(client, args)
 	if err != nil {
 		panic(err)
@@ -64,7 +86,13 @@ func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplica
 }
 
 func NewCompositeClientWebsocketHTTP(clientConfig *ClientConfig, newCompositeApplicationtWebsocketHTTPFunc NewCompositeApplicationtWebsocketHTTPFunc, args []string) *Client.Client {
-	client := Client.New(clientConfig.Name, clientConfig.ResolverAddress, Utilities.NewLogger(clientConfig.LoggerPath))
+	resolverResolution := &Resolver.Resolution{
+		Name:                 "resolver",
+		Address:              clientConfig.ResolverAddress,
+		ServerNameIndication: clientConfig.ResolverNameIndication,
+		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+	}
+	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationtWebsocketHTTPFunc(client, args)
 	if err != nil {
 		panic(err)

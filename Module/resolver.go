@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-func NewResolver(name, resolverPort, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
-	resolver := Resolver.New(name, resolverPort, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
+func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolver.Resolution, topics map[string]*Resolver.Resolution) *Resolver.Server {
+	resolver := Resolver.New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
 	for _, broker := range brokers {
 		resolver.RegisterBroker(broker)
 	}
@@ -30,9 +30,11 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 		name = fileNameSegments[0]
 	}
 	resolverPort := ""
+	resolverTlsCertPath := ""
+	resolverTlsKeyPath := ""
 	configPort := ""
-	tlsCertPath := ""
-	tlsKeyPath := ""
+	configTlsCertPath := ""
+	configTlsKeyPath := ""
 	topics := map[string]*Resolver.Resolution{}  // topic -> broker
 	brokers := map[string]*Resolver.Resolution{} // broker-name -> broker
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
@@ -56,14 +58,19 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 				panic("wrong config type for resolver \"" + lineSegments[1] + "\"")
 			}
 		case "resolver":
+			if len(lineSegments) != 4 {
+				panic("resolver line is invalid \"" + line + "\"")
+			}
 			resolverPort = lineSegments[1]
+			resolverTlsCertPath = lineSegments[2]
+			resolverTlsKeyPath = lineSegments[3]
 		case "config":
 			if len(lineSegments) != 4 {
 				panic("config line is invalid \"" + line + "\"")
 			}
 			configPort = lineSegments[1]
-			tlsCertPath = lineSegments[2]
-			tlsKeyPath = lineSegments[3]
+			configTlsCertPath = lineSegments[2]
+			configTlsKeyPath = lineSegments[3]
 		default:
 			if len(lineSegments) < 4 {
 				panic("broker line is invalid \"" + line + "\"")
@@ -78,5 +85,5 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 			}
 		}
 	}
-	return NewResolver(name, resolverPort, configPort, tlsCertPath, tlsKeyPath, errorLogPath, brokers, topics)
+	return NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, errorLogPath, brokers, topics)
 }

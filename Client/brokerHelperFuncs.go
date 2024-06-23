@@ -7,13 +7,13 @@ import (
 func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
 	brokerConnection := client.getTopicResolution(topic)
 	if brokerConnection == nil {
-		broker, err := client.resolveBrokerForTopic(topic)
+		resolution, err := client.resolveBrokerForTopic(client.resolverResolution, topic)
 		if err != nil {
 			return nil, Utilities.NewError("Error resolving broker address for topic \""+topic+"\"", err)
 		}
-		brokerConnection = client.getBrokerConnection(broker.Address)
+		brokerConnection = client.getBrokerConnection(resolution.Address)
 		if brokerConnection == nil {
-			brokerConnection, err = client.connectToBroker(broker)
+			brokerConnection, err = client.connectToBroker(resolution)
 			if err != nil {
 				return nil, Utilities.NewError("Error connecting to message broker server", err)
 			}

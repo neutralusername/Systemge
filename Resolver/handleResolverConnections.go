@@ -9,7 +9,7 @@ import (
 
 func (server *Server) handleResolverConnections() {
 	for server.IsStarted() {
-		netConn, err := server.tcpListenerResolver.Accept()
+		netConn, err := server.tlsResolverListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
 				server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())

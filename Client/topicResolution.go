@@ -6,8 +6,8 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) resolveBrokerForTopic(topic string) (*Resolver.Resolution, error) {
-	netConn, err := Utilities.TcpDial(client.resolverAddress)
+func (client *Client) resolveBrokerForTopic(resolverResolution *Resolver.Resolution, topic string) (*Resolver.Resolution, error) {
+	netConn, err := Utilities.TlsDial(resolverResolution.Address, resolverResolution.ServerNameIndication, resolverResolution.Certificate)
 	if err != nil {
 		return nil, Utilities.NewError("Error dialing resolver", err)
 	}
