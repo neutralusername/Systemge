@@ -15,8 +15,9 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
 				for client.IsStarted() {
 					client.logger.Log("Attempting reconnect for message broker \"" + brokerConnection.resolution.GetName() + "\"")
-					err := client.attemptToReconnect(brokerConnection)
+					err := client.attemptToReconnectToSubscribedTopics(brokerConnection)
 					if err == nil {
+						client.logger.Log("Reconnect successful for message broker \"" + brokerConnection.resolution.GetName() + "\"")
 						break
 					}
 					client.logger.Log(Utilities.NewError("Failed reconnect for message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())

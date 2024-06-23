@@ -30,7 +30,7 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 	return brokerConnection, nil
 }
 
-func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) error {
+func (client *Client) attemptToReconnectToSubscribedTopics(brokerConnection *brokerConnection) error {
 	client.mapOperationMutex.Lock()
 	brokerConnection.mutex.Lock()
 	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
