@@ -50,6 +50,9 @@ func (client *Client) RemoveTopicResolution(topic string) error {
 	if serverConnection == nil {
 		return Utilities.NewError("Topic resolution does not exist", nil)
 	}
+	if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
+		return Utilities.NewError("Cannot remove topics you are subscribed to", nil)
+	}
 	err := serverConnection.removeTopic(topic)
 	if err != nil {
 		return Utilities.NewError("Error removing topic from server connection", err)
