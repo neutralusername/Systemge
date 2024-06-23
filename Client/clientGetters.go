@@ -33,7 +33,5 @@ func (client *Client) GetLogger() *Utilities.Logger {
 }
 
 func (client *Client) GetHandleMessagesConcurrently() bool {
-	client.handleMessagesConcurrentlyMutex.Lock()
-	defer client.handleMessagesConcurrentlyMutex.Unlock()
 	return client.handleMessagesConcurrently
 }
