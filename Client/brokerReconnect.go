@@ -7,20 +7,18 @@ import (
 
 func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection) {
 	removedSubscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
-	if len(removedSubscribedTopics) > 0 {
-		for _, topic := range removedSubscribedTopics {
-			for {
-				if !client.IsStarted() {
-					return
-				}
-				client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
-				err := client.attemptToResubscribeToHandlerTopic(topic)
-				if err == nil {
-					break
-				}
-				client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
-				time.Sleep(1 * time.Second)
+	for _, topic := range removedSubscribedTopics {
+		for {
+			if !client.IsStarted() {
+				return
 			}
+			client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
+			err := client.attemptToResubscribeToHandlerTopic(topic)
+			if err == nil {
+				break
+			}
+			client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
+			time.Sleep(1 * time.Second)
 		}
 	}
 }
