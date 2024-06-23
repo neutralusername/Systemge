@@ -42,3 +42,18 @@ func (client *Client) addTopicResolution(topic string, serverConnection *brokerC
 	client.topicResolutions[topic] = serverConnection
 	return nil
 }
+
+func (client *Client) RemoveTopicResolution(topic string) error {
+	client.mapOperationMutex.Lock()
+	defer client.mapOperationMutex.Unlock()
+	serverConnection := client.topicResolutions[topic]
+	if serverConnection == nil {
+		return Utilities.NewError("Topic resolution does not exist", nil)
+	}
+	err := serverConnection.removeTopic(topic)
+	if err != nil {
+		return Utilities.NewError("Error removing topic from server connection", err)
+	}
+	delete(client.topicResolutions, topic)
+	return nil
+}

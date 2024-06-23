@@ -53,20 +53,18 @@ func StartCommandLineInterface(module Module, customCommandHandlers ...map[strin
 		case "exit":
 			return
 		default:
+			if !started {
+				println("module not started")
+				continue
+			}
 			for _, customCommandHandler := range customCommandHandlers {
 				if customCommandHandler != nil && customCommandHandler[inputSegments[0]] != nil {
-					if !started {
-						println("module not started")
-						continue
-					}
 					err := customCommandHandler[inputSegments[0]](inputSegments[1:])
 					if err != nil {
 						println("error executing command: " + err.Error())
 					}
-					continue
 				}
 			}
-			println("unknown command \"" + input + "\"")
 		}
 	}
 }

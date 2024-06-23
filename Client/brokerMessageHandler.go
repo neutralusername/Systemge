@@ -12,13 +12,14 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 		if err != nil {
 			brokerConnection.close()
 			if client.IsStarted() {
-				client.logger.Log(Utilities.NewError("Failed to receive message from message broker server", err).Error())
+				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
 				for client.IsStarted() {
+					client.logger.Log("Attempting reconnect for message broker \"" + brokerConnection.resolution.GetName() + "\"")
 					err := client.attemptToReconnect(brokerConnection)
 					if err == nil {
 						break
 					}
-					client.logger.Log(Utilities.NewError("Failed to reconnect to message broker server", err).Error())
+					client.logger.Log(Utilities.NewError("Failed reconnect for message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
 					time.Sleep(1 * time.Second)
 				}
 			}

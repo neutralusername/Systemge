@@ -19,3 +19,18 @@ func (client *Client) getBrokerConnection(brokerAddress string) *brokerConnectio
 	defer client.mapOperationMutex.Unlock()
 	return client.activeBrokerConnections[brokerAddress]
 }
+
+func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
+	client.mapOperationMutex.Lock()
+	defer client.mapOperationMutex.Unlock()
+	brokerConnection := client.activeBrokerConnections[brokerAddress]
+	if brokerConnection == nil {
+		return Utilities.NewError("Server connection does not exist", nil)
+	}
+	err := brokerConnection.close()
+	if err != nil {
+		return Utilities.NewError("Error closing server connection", err)
+	}
+	delete(client.activeBrokerConnections, brokerAddress)
+	return nil
+}

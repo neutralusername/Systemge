@@ -46,14 +46,6 @@ func (server *Server) handleConfigConnection(netConn net.Conn) error {
 		server.AddAsyncTopics(message.GetPayload())
 	case "removeAsyncTopic":
 		server.RemoveAsyncTopics(message.GetPayload())
-	case "removeClient":
-		server.operationMutex.Lock()
-		clientConnection := server.clientConnections[message.GetPayload()]
-		server.operationMutex.Unlock()
-		if clientConnection == nil {
-			return Utilities.NewError("Client \""+message.GetPayload()+"\" does not exist", nil)
-		}
-		clientConnection.disconnect()
 	default:
 		return Utilities.NewError("unknown topic \""+message.GetTopic()+"\"", nil)
 	}
