@@ -13,15 +13,32 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			brokerConnection.close()
 			if client.IsStarted() {
 				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
-				for client.IsStarted() {
-					client.logger.Log("Attempting reconnect for message broker \"" + brokerConnection.resolution.GetName() + "\"")
-					err := client.attemptToReconnectToSubscribedTopics(brokerConnection)
-					if err == nil {
-						client.logger.Log("Reconnect successful for message broker \"" + brokerConnection.resolution.GetName() + "\"")
-						break
+
+				client.mapOperationMutex.Lock()
+				brokerConnection.mutex.Lock()
+				delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
+				subscribedTopics := make([]string, 0)
+				for topic := range brokerConnection.topics {
+					delete(client.topicResolutions, topic)
+					if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
+						subscribedTopics = append(subscribedTopics, topic)
 					}
-					client.logger.Log(Utilities.NewError("Failed reconnect for message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
-					time.Sleep(1 * time.Second)
+				}
+				brokerConnection.topics = make(map[string]bool)
+				brokerConnection.mutex.Unlock()
+				client.mapOperationMutex.Unlock()
+
+				if len(subscribedTopics) > 0 {
+					for client.IsStarted() {
+						client.logger.Log("Attempting reconnect for message broker \"" + brokerConnection.resolution.GetName() + "\"")
+						err := client.attemptToReconnectToSubscribedTopics(subscribedTopics)
+						if err == nil {
+							client.logger.Log("Reconnect successful for message broker \"" + brokerConnection.resolution.GetName() + "\"")
+							break
+						}
+						client.logger.Log(Utilities.NewError("Failed reconnect for message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
+						time.Sleep(1 * time.Second)
+					}
 				}
 			}
 			return

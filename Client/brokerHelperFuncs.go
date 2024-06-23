@@ -30,20 +30,7 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 	return brokerConnection, nil
 }
 
-func (client *Client) attemptToReconnectToSubscribedTopics(brokerConnection *brokerConnection) error {
-	client.mapOperationMutex.Lock()
-	brokerConnection.mutex.Lock()
-	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
-	subscribedTopics := make([]string, 0)
-	for topic := range brokerConnection.topics {
-		delete(client.topicResolutions, topic)
-		if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-			subscribedTopics = append(subscribedTopics, topic)
-		}
-	}
-	brokerConnection.topics = make(map[string]bool)
-	brokerConnection.mutex.Unlock()
-	client.mapOperationMutex.Unlock()
+func (client *Client) attemptToReconnectToSubscribedTopics(subscribedTopics []string) error {
 	for _, topic := range subscribedTopics {
 		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 		if err != nil {
