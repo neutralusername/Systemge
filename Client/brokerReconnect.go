@@ -14,7 +14,7 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 					return
 				}
 				client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
-				err := client.attemptToReconnectToHandlerTopic(topic)
+				err := client.attemptToResubscribeToHandlerTopic(topic)
 				if err == nil {
 					break
 				}
@@ -29,20 +29,20 @@ func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brok
 	client.mapOperationMutex.Lock()
 	brokerConnection.mutex.Lock()
 	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
-	subscribedTopics := make([]string, 0)
+	removedSubscribedTopics := make([]string, 0)
 	for topic := range brokerConnection.topics {
 		delete(client.topicResolutions, topic)
 		if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-			subscribedTopics = append(subscribedTopics, topic)
+			removedSubscribedTopics = append(removedSubscribedTopics, topic)
 		}
 	}
 	brokerConnection.topics = make(map[string]bool)
 	brokerConnection.mutex.Unlock()
 	client.mapOperationMutex.Unlock()
-	return subscribedTopics
+	return removedSubscribedTopics
 }
 
-func (client *Client) attemptToReconnectToHandlerTopic(topic string) error {
+func (client *Client) attemptToResubscribeToHandlerTopic(topic string) error {
 	newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 	if err != nil {
 		return Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err)
