@@ -6,7 +6,7 @@ type Resolution struct {
 	Name                 string `json:"name"`
 	Address              string `json:"port"`
 	ServerNameIndication string `json:"serverNameIndication"`
-	Certificate          string `json:"certificate"`
+	TlsCertificate       string `json:"tlsCertificate"`
 }
 
 func New(name, address, serverNameIndication, cert string) *Resolution {
@@ -14,7 +14,7 @@ func New(name, address, serverNameIndication, cert string) *Resolution {
 		Name:                 name,
 		Address:              address,
 		ServerNameIndication: serverNameIndication,
-		Certificate:          cert,
+		TlsCertificate:       cert,
 	}
 }
 

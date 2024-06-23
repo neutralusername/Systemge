@@ -7,7 +7,7 @@ import (
 )
 
 func (client *Client) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
-	netConn, err := Utilities.TlsDial(resolution.Address, resolution.ServerNameIndication, resolution.Certificate)
+	netConn, err := Utilities.TlsDial(resolution.Address, resolution.ServerNameIndication, resolution.TlsCertificate)
 	if err != nil {
 		return nil, Utilities.NewError("Error connecting to message broker server", err)
 	}

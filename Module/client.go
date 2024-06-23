@@ -37,7 +37,7 @@ func NewClient(clientConfig *ClientConfig, newApplicationFunc NewApplicationFunc
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
-		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+		TlsCertificate:       Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
 	}
 	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newApplicationFunc(client, args)
@@ -53,7 +53,7 @@ func NewCompositeClientHTTP(clientConfig *ClientConfig, newCompositeApplicationH
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
-		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+		TlsCertificate:       Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
 	}
 	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationHTTPFunc(client, args)
@@ -71,7 +71,7 @@ func NewCompositeClientWebsocket(clientConfig *ClientConfig, newCompositeApplica
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
-		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+		TlsCertificate:       Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
 	}
 	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationWebsocketFunc(client, args)
@@ -90,7 +90,7 @@ func NewCompositeClientWebsocketHTTP(clientConfig *ClientConfig, newCompositeApp
 		Name:                 "resolver",
 		Address:              clientConfig.ResolverAddress,
 		ServerNameIndication: clientConfig.ResolverNameIndication,
-		Certificate:          Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
+		TlsCertificate:       Utilities.GetFileContent(clientConfig.ResolverTLSCertPath),
 	}
 	client := Client.New(clientConfig.Name, resolverResolution, Utilities.NewLogger(clientConfig.LoggerPath))
 	application, err := newCompositeApplicationtWebsocketHTTPFunc(client, args)
