@@ -15,21 +15,7 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
 			}
 
-			subscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
-
-			if len(subscribedTopics) > 0 {
-				for _, topic := range subscribedTopics {
-					for client.IsStarted() {
-						client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
-						err := client.attemptToReconnectToSubscribedTopic(topic)
-						if err == nil {
-							break
-						}
-						client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
-						time.Sleep(1 * time.Second)
-					}
-				}
-			}
+			client.handleBrokerDisconnect(brokerConnection)
 			return
 		}
 		message := Message.Deserialize(messageBytes)
@@ -46,6 +32,25 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			err := client.handleMessage(message, brokerConnection)
 			if err != nil {
 				client.logger.Log(Utilities.NewError("Failed to handle message", err).Error())
+			}
+		}
+	}
+}
+
+func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection) {
+
+	removedSubscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
+
+	if len(removedSubscribedTopics) > 0 {
+		for _, topic := range removedSubscribedTopics {
+			for client.IsStarted() {
+				client.logger.Log("Attempting reconnect for topic \"" + topic + "\"")
+				err := client.attemptToReconnectToSubscribedTopic(topic)
+				if err == nil {
+					break
+				}
+				client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}
