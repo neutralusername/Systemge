@@ -15,19 +15,7 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 				client.logger.Log(Utilities.NewError("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
 			}
 
-			client.mapOperationMutex.Lock()
-			brokerConnection.mutex.Lock()
-			delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
-			subscribedTopics := make([]string, 0)
-			for topic := range brokerConnection.topics {
-				delete(client.topicResolutions, topic)
-				if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-					subscribedTopics = append(subscribedTopics, topic)
-				}
-			}
-			brokerConnection.topics = make(map[string]bool)
-			brokerConnection.mutex.Unlock()
-			client.mapOperationMutex.Unlock()
+			subscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
 
 			if len(subscribedTopics) > 0 {
 				for _, topic := range subscribedTopics {
@@ -61,6 +49,23 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 			}
 		}
 	}
+}
+
+func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
+	client.mapOperationMutex.Lock()
+	brokerConnection.mutex.Lock()
+	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
+	subscribedTopics := make([]string, 0)
+	for topic := range brokerConnection.topics {
+		delete(client.topicResolutions, topic)
+		if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
+			subscribedTopics = append(subscribedTopics, topic)
+		}
+	}
+	brokerConnection.topics = make(map[string]bool)
+	brokerConnection.mutex.Unlock()
+	client.mapOperationMutex.Unlock()
+	return subscribedTopics
 }
 
 func (client *Client) handleSyncResponse(message *Message.Message) error {
