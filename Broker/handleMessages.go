@@ -19,7 +19,7 @@ func (server *Server) handleClientConnectionMessages(clientConnection *clientCon
 		message := Message.Deserialize(messageBytes)
 		err = server.validateMessage(message)
 		if err != nil {
-			server.logger.Log(Utilities.NewError("Invalid message from client \""+clientConnection.name+"\"", nil).Error())
+			server.logger.Log(Utilities.NewError("Invalid message from client \""+clientConnection.name+"\"", err).Error())
 			clientConnection.disconnect()
 			return
 		}
