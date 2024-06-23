@@ -40,23 +40,23 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 			err = Utilities.NewError("Failed to unmarshal resolution", nil)
 			break
 		}
-		err = server.RegisterBroker(resolution)
+		err = server.AddKnownBroker(resolution)
 	case "unregisterBroker":
-		err = server.UnregisterBroker(message.GetPayload())
+		err = server.RemoveKnownBroker(message.GetPayload())
 	case "registerTopics":
 		segments := strings.Split(message.GetPayload(), " ")
 		if len(segments) < 2 {
 			err = Utilities.NewError("Invalid payload", nil)
 			break
 		}
-		err = server.RegisterTopics(segments[0], segments[1:]...)
+		err = server.AddBrokerTopics(segments[0], segments[1:]...)
 	case "unregisterTopics":
 		segments := strings.Split(message.GetPayload(), " ")
 		if len(segments) < 1 {
 			err = Utilities.NewError("Invalid payload", nil)
 			break
 		}
-		server.UnregisterTopic(segments...)
+		server.RemoveBrokerTopics(segments...)
 	default:
 		err = Utilities.NewError("Invalid config request", nil)
 	}

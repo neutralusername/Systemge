@@ -10,10 +10,10 @@ import (
 func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Server {
 	resolver := Resolver.New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
 	for _, broker := range brokers {
-		resolver.RegisterBroker(broker)
+		resolver.AddKnownBroker(broker)
 	}
 	for topic, broker := range topics {
-		resolver.RegisterTopics(broker.GetName(), topic)
+		resolver.AddBrokerTopics(broker.GetName(), topic)
 	}
 	return resolver
 }

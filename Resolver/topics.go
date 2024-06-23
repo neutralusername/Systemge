@@ -2,7 +2,7 @@ package Resolver
 
 import "Systemge/Utilities"
 
-func (server *Server) RegisterTopics(brokerName string, topics ...string) error {
+func (server *Server) AddBrokerTopics(brokerName string, topics ...string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	broker := server.knownBrokers[brokerName]
@@ -16,7 +16,7 @@ func (server *Server) RegisterTopics(brokerName string, topics ...string) error 
 	return nil
 }
 
-func (server *Server) UnregisterTopic(topics ...string) {
+func (server *Server) RemoveBrokerTopics(topics ...string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {

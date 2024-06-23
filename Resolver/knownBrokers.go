@@ -17,7 +17,7 @@ func newKnownBroker(resolution *Resolution.Resolution) *knownBroker {
 	}
 }
 
-func (server *Server) RegisterBroker(resolution *Resolution.Resolution) error {
+func (server *Server) AddKnownBroker(resolution *Resolution.Resolution) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.knownBrokers[resolution.GetName()] != nil {
@@ -27,7 +27,7 @@ func (server *Server) RegisterBroker(resolution *Resolution.Resolution) error {
 	return nil
 }
 
-func (server *Server) UnregisterBroker(name string) error {
+func (server *Server) RemoveKnownBroker(name string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	knownBroker := server.knownBrokers[name]
