@@ -4,7 +4,7 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
+func (client *Client) getBrokerConnectionForTopic(topic string, addTopicResolution bool) (*brokerConnection, error) {
 	brokerConnection := client.getTopicResolution(topic)
 	if brokerConnection == nil {
 		resolution, err := client.resolveBrokerForTopic(client.resolverResolution, topic)
@@ -21,6 +21,8 @@ func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnecti
 			if err != nil {
 				return nil, Utilities.NewError("Error adding server connection", err)
 			}
+		}
+		if addTopicResolution {
 			err = client.addTopicResolution(topic, brokerConnection)
 			if err != nil {
 				return nil, Utilities.NewError("Error adding topic resolution", err)
@@ -45,7 +47,7 @@ func (client *Client) attemptToReconnect(brokerConnection *brokerConnection) err
 	brokerConnection.mutex.Unlock()
 	client.mapOperationMutex.Unlock()
 	for _, topic := range topicsToReconnect {
-		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
+		newBrokerConnection, err := client.getBrokerConnectionForTopic(topic, false)
 		if err != nil {
 			return Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err)
 		}

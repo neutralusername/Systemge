@@ -14,7 +14,7 @@ func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Messa
 	if message.GetSyncRequestToken() == "" {
 		return nil, Utilities.NewError("SyncRequestToken not set", nil)
 	}
-	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic())
+	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic(), true)
 	if err != nil {
 		return nil, Utilities.NewError("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}

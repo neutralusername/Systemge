@@ -92,7 +92,7 @@ func (client *Client) Start() error {
 		client.mapOperationMutex.Unlock()
 
 		for _, topic := range topics {
-			serverConnection, err := client.getBrokerConnectionForTopic(topic)
+			serverConnection, err := client.getBrokerConnectionForTopic(topic, false)
 			if err != nil {
 				client.removeAllBrokerConnections()
 				close(client.stopChannel)

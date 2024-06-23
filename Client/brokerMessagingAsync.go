@@ -11,7 +11,7 @@ func (client *Client) AsyncMessage(topic, origin, payload string) error {
 	if !client.isStarted {
 		return Utilities.NewError("Client not started", nil)
 	}
-	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic())
+	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic(), true)
 	if err != nil {
 		return Utilities.NewError("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}
