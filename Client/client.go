@@ -54,71 +54,6 @@ func New(name string, resolverResolution *Resolution.Resolution, logger *Utiliti
 	}
 }
 
-func (client *Client) SetApplication(application Application.Application) {
-	client.stateMutex.Lock()
-	defer client.stateMutex.Unlock()
-	if client.isStarted {
-		return
-	}
-	client.application = application
-}
-
-func (client *Client) SetWebsocketServer(websocketServer *WebsocketServer.Server) {
-	client.stateMutex.Lock()
-	defer client.stateMutex.Unlock()
-	if client.isStarted {
-		client.websocketServer = websocketServer
-	}
-}
-
-func (client *Client) SetHTTPServer(httpServer *HTTPServer.Server) {
-	client.stateMutex.Lock()
-	defer client.stateMutex.Unlock()
-	if client.isStarted {
-		client.httpServer = httpServer
-	}
-}
-
-func (client *Client) SetResolverResolution(resolverResolution *Resolution.Resolution) {
-	client.resolverResolution = resolverResolution
-}
-
-func (client *Client) GetApplication() Application.Application {
-	return client.application
-}
-
-func (client *Client) GetWebsocketServer() *WebsocketServer.Server {
-	return client.websocketServer
-}
-
-func (client *Client) GetHTTPServer() *HTTPServer.Server {
-	return client.httpServer
-}
-
-func (client *Client) GetResolverResolution() *Resolution.Resolution {
-	return client.resolverResolution
-}
-
-func (client *Client) GetLogger() *Utilities.Logger {
-	return client.logger
-}
-
-func (client *Client) SetLogger(logger *Utilities.Logger) {
-	client.logger = logger
-}
-
-func (client *Client) SetHandleMessagesConcurrently(handleMessagesConcurrently bool) {
-	client.handleMessagesConcurrentlyMutex.Lock()
-	defer client.handleMessagesConcurrentlyMutex.Unlock()
-	client.handleMessagesConcurrently = handleMessagesConcurrently
-}
-
-func (client *Client) GetHandleMessagesConcurrently() bool {
-	client.handleMessagesConcurrentlyMutex.Lock()
-	defer client.handleMessagesConcurrentlyMutex.Unlock()
-	return client.handleMessagesConcurrently
-}
-
 func (client *Client) Start() error {
 	err := func() error {
 		client.stateMutex.Lock()
@@ -210,10 +145,6 @@ func (client *Client) Stop() error {
 	client.removeAllBrokerConnections()
 	close(client.stopChannel)
 	return nil
-}
-
-func (client *Client) GetName() string {
-	return client.name
 }
 
 func (client *Client) IsStarted() bool {
