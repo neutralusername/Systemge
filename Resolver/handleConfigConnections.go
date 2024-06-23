@@ -34,23 +34,23 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		return
 	}
 	switch message.GetTopic() {
-	case "registerBroker":
+	case "addKnownBroker":
 		resolution := Resolution.Unmarshal(message.GetPayload())
 		if resolution == nil {
 			err = Utilities.NewError("Failed to unmarshal resolution", nil)
 			break
 		}
 		err = server.AddKnownBroker(resolution)
-	case "unregisterBroker":
+	case "removeKnownBroker":
 		err = server.RemoveKnownBroker(message.GetPayload())
-	case "registerTopics":
+	case "addTopics":
 		segments := strings.Split(message.GetPayload(), " ")
 		if len(segments) < 2 {
 			err = Utilities.NewError("Invalid payload", nil)
 			break
 		}
 		err = server.AddBrokerTopics(segments[0], segments[1:]...)
-	case "unregisterTopics":
+	case "removeTopics":
 		segments := strings.Split(message.GetPayload(), " ")
 		if len(segments) < 1 {
 			err = Utilities.NewError("Invalid payload", nil)
@@ -61,7 +61,7 @@ func (server *Server) handleConfigConnection(netConn net.Conn) {
 		err = Utilities.NewError("Invalid config request", nil)
 	}
 	if err != nil {
-		server.logger.Log(Utilities.NewError("Failed to handle config request", err).Error())
+		server.logger.Log(Utilities.NewError("Failed to handle config request \""+message.GetTopic()+"\"", err).Error())
 		return
 	}
 	err = Utilities.TcpSend(netConn, Message.NewAsync("success", server.name, "").Serialize(), DEFAULT_TCP_TIMEOUT)

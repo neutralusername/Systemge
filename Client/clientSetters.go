@@ -11,16 +11,15 @@ import (
 func (client *Client) SetApplication(application Application.Application) {
 	client.stateMutex.Lock()
 	defer client.stateMutex.Unlock()
-	if client.isStarted {
-		return
+	if !client.isStarted {
+		client.application = application
 	}
-	client.application = application
 }
 
 func (client *Client) SetWebsocketServer(websocketServer *WebsocketServer.Server) {
 	client.stateMutex.Lock()
 	defer client.stateMutex.Unlock()
-	if client.isStarted {
+	if !client.isStarted {
 		client.websocketServer = websocketServer
 	}
 }
@@ -28,7 +27,7 @@ func (client *Client) SetWebsocketServer(websocketServer *WebsocketServer.Server
 func (client *Client) SetHTTPServer(httpServer *HTTPServer.Server) {
 	client.stateMutex.Lock()
 	defer client.stateMutex.Unlock()
-	if client.isStarted {
+	if !client.isStarted {
 		client.httpServer = httpServer
 	}
 }
