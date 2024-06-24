@@ -24,18 +24,18 @@ type Client struct {
 
 	activeBrokerConnections map[string]*brokerConnection // brokerAddress -> serverConnection
 	topicResolutions        map[string]*brokerConnection // topic -> serverConnection
-	mapOperationMutex       sync.Mutex
 
 	// handleMessagesConcurrently is a flag that determines whether the client will handle messages by brokers concurrently
 	// If this is set to true, the client will handle messages concurrently, otherwise it will handle messages sequentially
 	// concurrently handling messages can be useful to improve performance but it will often require additional work for the application to be able to handle concurrency
-	handleMessagesConcurrently      bool
-	handleMessagesConcurrentlyMutex sync.Mutex
+	handleMessagesConcurrently bool
 
 	stopChannel chan bool
 	isStarted   bool
 
-	stateMutex sync.Mutex
+	mapOperationMutex               sync.Mutex
+	stateMutex                      sync.Mutex
+	handleMessagesConcurrentlyMutex sync.Mutex
 }
 
 func New(name string, resolverResolution *Resolution.Resolution, logger *Utilities.Logger) *Client {

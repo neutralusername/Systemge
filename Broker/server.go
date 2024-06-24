@@ -8,20 +8,15 @@ import (
 )
 
 type Server struct {
+	name   string
+	logger *Utilities.Logger
+
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
 	clientSubscriptions map[string]map[string]*clientConnection // topic -> [clientName-> client]
 	clientConnections   map[string]*clientConnection            // clientName -> Client
 	openSyncRequests    map[string]*syncRequest
-
-	operationMutex sync.Mutex
-	stateMutex     sync.Mutex
-
-	name   string
-	logger *Utilities.Logger
-
-	isStarted bool
 
 	brokerTlsCertPath string
 	brokerTlsKeyPath  string
@@ -32,10 +27,18 @@ type Server struct {
 	configTlsKeyPath  string
 	configPort        string
 	tlsConfigListener net.Listener
+
+	isStarted bool
+
+	operationMutex sync.Mutex
+	stateMutex     sync.Mutex
 }
 
 func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath string, logger *Utilities.Logger) *Server {
 	return &Server{
+		name:   name,
+		logger: logger,
+
 		syncTopics: map[string]bool{
 			"subscribe":   true,
 			"unsubscribe": true,
@@ -48,9 +51,6 @@ func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, conf
 		clientSubscriptions: map[string]map[string]*clientConnection{},
 		clientConnections:   map[string]*clientConnection{},
 		openSyncRequests:    map[string]*syncRequest{},
-
-		name:   name,
-		logger: logger,
 
 		brokerTlsCertPath: brokerTlsCertPath,
 		brokerTlsKeyPath:  brokerTlsKeyPath,

@@ -12,8 +12,13 @@ import (
 )
 
 type Server struct {
+	name       string
+	logger     *Utilities.Logger
+	randomizer *Randomizer.Randomizer
+
 	websocketApplication Application.WebsocketApplication
 	websocketHTTPServer  *HTTPServer.Server
+
 	websocketConnChannel chan *websocket.Conn
 	clients              map[string]*WebsocketClient.Client            // websocketId -> websocketClient
 	groups               map[string]map[string]*WebsocketClient.Client // groupId -> map[websocketId]websocketClient
@@ -21,28 +26,23 @@ type Server struct {
 
 	stopChannel chan bool
 	isStarted   bool
-	mutex       sync.Mutex
-	stateMutex  sync.Mutex
-	logger      *Utilities.Logger
-	name        string
-	randomizer  *Randomizer.Randomizer
+
+	mutex      sync.Mutex
+	stateMutex sync.Mutex
 }
 
 func New(name string, logger *Utilities.Logger, websocketApplication Application.WebsocketApplication) *Server {
 	return &Server{
-		websocketApplication: websocketApplication,
-		websocketHTTPServer:  nil,
-		websocketConnChannel: nil,
-		clients:              nil,
-		groups:               make(map[string]map[string]*WebsocketClient.Client),
-		clientGroups:         make(map[string]map[string]bool),
+		logger:     logger,
+		name:       name,
+		randomizer: Randomizer.New(Randomizer.GetSystemTime()),
 
-		stopChannel: nil,
-		isStarted:   false,
-		mutex:       sync.Mutex{},
-		logger:      logger,
-		name:        name,
-		randomizer:  Randomizer.New(Randomizer.GetSystemTime()),
+		websocketApplication: websocketApplication,
+
+		groups:       make(map[string]map[string]*WebsocketClient.Client),
+		clientGroups: make(map[string]map[string]bool),
+
+		mutex: sync.Mutex{},
 	}
 }
 
@@ -101,11 +101,13 @@ func (server *Server) Stop() error {
 	server.websocketHTTPServer.Stop()
 	close(server.websocketConnChannel)
 	clientsToDisconnect := make([]*WebsocketClient.Client, 0)
+
 	server.acquireMutex()
 	for _, websocketClient := range server.clients {
 		clientsToDisconnect = append(clientsToDisconnect, websocketClient)
 	}
 	server.releaseMutex()
+
 	for _, websocketClient := range clientsToDisconnect {
 		websocketClient.Disconnect()
 	}

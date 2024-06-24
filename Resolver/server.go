@@ -8,14 +8,11 @@ import (
 )
 
 type Server struct {
-	knownBrokers     map[string]*knownBroker // broker-name -> broker
-	registeredTopics map[string]*knownBroker // topic -> broker
-	mutex            sync.Mutex
-
 	name   string
 	logger *Utilities.Logger
 
-	isStarted bool
+	knownBrokers     map[string]*knownBroker // broker-name -> broker
+	registeredTopics map[string]*knownBroker // topic -> broker
 
 	resolverPort        string
 	resolverTlsCertPath string
@@ -26,6 +23,9 @@ type Server struct {
 	configTlsCertPath string
 	configTlsKeyPath  string
 	tlsConfigListener net.Listener
+
+	isStarted bool
+	mutex     sync.Mutex
 }
 
 func New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger) *Server {

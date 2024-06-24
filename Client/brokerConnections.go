@@ -38,6 +38,7 @@ func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
 
 func (client *Client) removeAllBrokerConnections() {
 	client.mapOperationMutex.Lock()
+	defer client.mapOperationMutex.Unlock()
 	for address, brokerConnection := range client.activeBrokerConnections {
 		brokerConnection.close()
 		delete(client.activeBrokerConnections, address)
@@ -45,5 +46,4 @@ func (client *Client) removeAllBrokerConnections() {
 			delete(client.topicResolutions, topic)
 		}
 	}
-	client.mapOperationMutex.Unlock()
 }

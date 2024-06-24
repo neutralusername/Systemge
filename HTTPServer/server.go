@@ -9,29 +9,33 @@ import (
 )
 
 type Server struct {
-	httpServer  *http.Server
-	address     string
-	tlsCertPath string
-	tlsKeyPath  string
-	name        string
-	logger      *Utilities.Logger
-	isStarted   bool
-	mutex       sync.Mutex
+	name   string
+	logger *Utilities.Logger
 
 	httpApplication Application.HTTPApplication
+
+	httpServer  *http.Server
+	port        string
+	tlsCertPath string
+	tlsKeyPath  string
+
+	isStarted bool
+	mutex     sync.Mutex
 }
 
 func New(port, name, tlsCertPath, tlsKeyPath string, logger *Utilities.Logger, httpApplication Application.HTTPApplication) *Server {
 	server := &Server{
-		httpServer:  nil,
-		address:     port,
-		tlsCertPath: tlsCertPath,
-		tlsKeyPath:  tlsKeyPath,
-		name:        name,
-		logger:      logger,
-		isStarted:   false,
+		name:   name,
+		logger: logger,
 
 		httpApplication: httpApplication,
+
+		httpServer:  nil,
+		port:        port,
+		tlsCertPath: tlsCertPath,
+		tlsKeyPath:  tlsKeyPath,
+
+		isStarted: false,
 	}
 	return server
 }
@@ -76,7 +80,7 @@ func (server *Server) Start() error {
 		mux.HandleFunc(pattern, handler)
 	}
 	httpServer := &http.Server{
-		Addr:    server.address,
+		Addr:    server.port,
 		Handler: mux,
 	}
 	errorChannel := make(chan error)
@@ -128,7 +132,7 @@ func (server *Server) Stop() error {
 }
 
 func (server *Server) GetAddress() string {
-	return server.address
+	return server.port
 }
 
 func (server *Server) GetName() string {
