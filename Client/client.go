@@ -58,14 +58,14 @@ func (client *Client) Start() error {
 	err := func() error {
 		client.stateMutex.Lock()
 		defer client.stateMutex.Unlock()
+		if client.isStarted {
+			return Utilities.NewError("Client already connected", nil)
+		}
 		if client.application == nil {
 			return Utilities.NewError("Application not set", nil)
 		}
 		if client.resolverResolution == nil {
 			return Utilities.NewError("Resolver resolution not set", nil)
-		}
-		if client.isStarted {
-			return Utilities.NewError("Client already connected", nil)
 		}
 		if client.websocketServer != nil {
 			err := client.websocketServer.Start()

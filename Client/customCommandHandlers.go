@@ -8,14 +8,14 @@ import (
 // returns a map of custom command handlers for the command-line interface
 func (client *Client) GetCustomCommandHandlers() map[string]Application.CustomCommandHandler {
 	return map[string]Application.CustomCommandHandler{
-		"brokers":          client.handleMessageBrokerCommand,
+		"brokers":          client.handleBrokersCommand,
 		"removeBroker":     client.handleRemoveBrokerCommand,
-		"resolutions":      client.handleTopicResolutionsCommand,
+		"resolutions":      client.handleResolutionsCommand,
 		"removeResolution": client.handleRemoveTopicCommand,
 	}
 }
 
-func (client *Client) handleMessageBrokerCommand(args []string) error {
+func (client *Client) handleBrokersCommand(args []string) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
 	for _, brokerConnection := range client.activeBrokerConnections {
@@ -36,7 +36,7 @@ func (client *Client) handleRemoveBrokerCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleTopicResolutionsCommand(args []string) error {
+func (client *Client) handleResolutionsCommand(args []string) error {
 	client.mapOperationMutex.Lock()
 	defer client.mapOperationMutex.Unlock()
 	for topic, brokerConnection := range client.topicResolutions {
