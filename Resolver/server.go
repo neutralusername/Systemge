@@ -59,7 +59,7 @@ func (server *Server) Start() error {
 		Certificates: []tls.Certificate{resolverTlsCert},
 	})
 	if err != nil {
-		return Utilities.NewError("", err)
+		return Utilities.NewError("Failed to listen on port: ", err)
 	}
 	configTlsCert, err := tls.LoadX509KeyPair(server.configTlsCertPath, server.configTlsKeyPath)
 	if err != nil {
@@ -69,7 +69,7 @@ func (server *Server) Start() error {
 		Certificates: []tls.Certificate{configTlsCert},
 	})
 	if err != nil {
-		return Utilities.NewError("", err)
+		return Utilities.NewError("Failed to listen on port: ", err)
 	}
 	server.tlsResolverListener = resolverListener
 	server.tlsConfigListener = configListener
