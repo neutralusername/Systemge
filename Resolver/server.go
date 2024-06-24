@@ -51,7 +51,6 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Utilities.NewError("Server already started", nil)
 	}
-	server.isStarted = true
 	resolverTlsCert, err := tls.LoadX509KeyPair(server.resolverTlsCertPath, server.resolverTlsKeyPath)
 	if err != nil {
 		return Utilities.NewError("Failed to load TLS certificate: ", err)
@@ -74,6 +73,7 @@ func (server *Server) Start() error {
 	}
 	server.tlsResolverListener = resolverListener
 	server.tlsConfigListener = configListener
+	server.isStarted = true
 	go server.handleResolverConnections()
 	go server.handleConfigConnections()
 	return nil
