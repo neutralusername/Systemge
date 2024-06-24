@@ -14,6 +14,9 @@ type NewCompositeApplicationWebsocketFunc func(*Client.Client, []string) (Applic
 type NewCompositeApplicationHTTPFunc func(*Client.Client, []string) (Application.CompositeApplicationHTTP, error)
 type NewCompositeApplicationtWebsocketHTTPFunc func(*Client.Client, []string) (Application.CompositeApplicationWebsocketHTTP, error)
 
+// ClientConfig is a struct that holds the configuration for a client.
+// HTTPCert, HTTPKey, WebsocketCert, and WebsocketKey are paths to the certificate and key files which can be left empty if the server does not use TLS.
+// WebsocketPattern is the pattern that the websocket server will listen to for websocket connections.
 type ClientConfig struct {
 	Name       string
 	LoggerPath string
