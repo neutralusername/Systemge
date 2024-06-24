@@ -68,9 +68,6 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Utilities.NewError("Server already started", nil)
 	}
-	if server.brokerTlsCertPath == "" || server.brokerTlsKeyPath == "" || server.brokerPort == "" {
-		return Utilities.NewError("TLS certificate path, TLS key path, and TLS listener port must be provided", nil)
-	}
 	brokerCert, err := tls.LoadX509KeyPair(server.brokerTlsCertPath, server.brokerTlsKeyPath)
 	if err != nil {
 		return Utilities.NewError("Failed to load TLS certificate: ", err)
