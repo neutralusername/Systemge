@@ -44,8 +44,8 @@ func (client *Client) receiveSyncResponse(message *Message.Message, responseChan
 	}
 }
 func (client *Client) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	if client.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
 		return nil, Utilities.NewError("SyncRequestToken already exists", nil)
 	}
@@ -54,8 +54,8 @@ func (client *Client) addMessageWaitingForResponse(message *Message.Message) (ch
 	return responseChannel, nil
 }
 func (client *Client) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	close(responseChannel)
 	delete(client.messagesWaitingForResponse, syncRequestToken)
 }

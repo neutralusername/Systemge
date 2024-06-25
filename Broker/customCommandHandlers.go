@@ -1,10 +1,8 @@
 package Broker
 
-import "Systemge/Application"
-
 // returns a map of custom command handlers for the command-line interface
-func (server *Server) GetCustomCommandHandlers() map[string]Application.CustomCommandHandler {
-	return map[string]Application.CustomCommandHandler{
+func (server *Server) GetCustomCommandHandlers() map[string]func([]string) error {
+	return map[string]func([]string) error{
 		"brokerClients": func(args []string) error {
 			server.operationMutex.Lock()
 			for _, clientConnection := range server.clientConnections {

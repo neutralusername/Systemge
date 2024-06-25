@@ -6,12 +6,12 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) resolveBrokerForTopic(resolverResolution *Resolution.Resolution, topic string) (*Resolution.Resolution, error) {
-	netConn, err := Utilities.TlsDial(resolverResolution.GetAddress(), resolverResolution.GetServerNameIndication(), resolverResolution.GetTlsCertificate())
+func (client *Client) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
+	netConn, err := Utilities.TlsDial(client.config.ResolverAddress, client.config.ResolverNameIndication, client.config.ResolverTLSCert)
 	if err != nil {
 		return nil, Utilities.NewError("Error dialing resolver", err)
 	}
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", client.name, topic), DEFAULT_TCP_TIMEOUT)
+	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", client.config.Name, topic), DEFAULT_TCP_TIMEOUT)
 	netConn.Close()
 	if err != nil {
 		return nil, Utilities.NewError("Error resolving broker", err)
@@ -24,14 +24,14 @@ func (client *Client) resolveBrokerForTopic(resolverResolution *Resolution.Resol
 }
 
 func (client *Client) getTopicResolution(topic string) *brokerConnection {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	return client.topicResolutions[topic]
 }
 
 func (client *Client) addTopicResolution(topic string, serverConnection *brokerConnection) error {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	if client.topicResolutions[topic] != nil {
 		return Utilities.NewError("Topic resolution already exists", nil)
 	}
@@ -46,8 +46,8 @@ func (client *Client) addTopicResolution(topic string, serverConnection *brokerC
 // RemoveTopicResolution removes a topic resolution from the client
 // Subscribed topics, i.e. topics with message handlers in the application, cannot be removed
 func (client *Client) RemoveTopicResolution(topic string) error {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	serverConnection := client.topicResolutions[topic]
 	if serverConnection == nil {
 		return Utilities.NewError("Topic resolution does not exist", nil)

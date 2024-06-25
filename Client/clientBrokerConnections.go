@@ -3,8 +3,8 @@ package Client
 import "Systemge/Utilities"
 
 func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) error {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	if client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
 		return Utilities.NewError("Server connection already exists", nil)
 	}
@@ -15,15 +15,15 @@ func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) er
 }
 
 func (client *Client) getBrokerConnection(brokerAddress string) *brokerConnection {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	return client.activeBrokerConnections[brokerAddress]
 }
 
 // Closes and removes a broker connection from the client
 func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	brokerConnection := client.activeBrokerConnections[brokerAddress]
 	if brokerConnection == nil {
 		return Utilities.NewError("Server connection does not exist", nil)
@@ -37,8 +37,8 @@ func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
 }
 
 func (client *Client) removeAllBrokerConnections() {
-	client.mapOperationMutex.Lock()
-	defer client.mapOperationMutex.Unlock()
+	client.clientMutex.Lock()
+	defer client.clientMutex.Unlock()
 	for address, brokerConnection := range client.activeBrokerConnections {
 		brokerConnection.close()
 		delete(client.activeBrokerConnections, address)

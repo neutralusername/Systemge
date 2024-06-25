@@ -36,9 +36,9 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 }
 
 func (client *Client) handleSyncResponse(message *Message.Message) error {
-	client.mapOperationMutex.Lock()
+	client.clientMutex.Lock()
 	responseChannel := client.messagesWaitingForResponse[message.GetSyncResponseToken()]
-	client.mapOperationMutex.Unlock()
+	client.clientMutex.Unlock()
 	if responseChannel == nil {
 		return Utilities.NewError("No response channel for sync response token \""+message.GetSyncResponseToken()+"\"", nil)
 	}
@@ -47,20 +47,20 @@ func (client *Client) handleSyncResponse(message *Message.Message) error {
 }
 
 func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) error {
-	if !client.handleMessagesConcurrently {
+	if !client.config.HandleMessagesConcurrently {
 		client.handleMessagesConcurrentlyMutex.Lock()
 		defer client.handleMessagesConcurrentlyMutex.Unlock()
 	}
 	if message.GetSyncRequestToken() != "" {
 		response, err := client.handleSyncMessage(message)
 		if err != nil {
-			errResponse := brokerConnection.send(message.NewResponse("error", client.name, Utilities.NewError("Error handling message", err).Error()))
+			errResponse := brokerConnection.send(message.NewResponse("error", client.config.Name, Utilities.NewError("Error handling message", err).Error()))
 			if errResponse != nil {
 				return Utilities.NewError("Failed to send error response to message broker server", errResponse)
 			}
 			return Utilities.NewError("Error handling message", err)
 		}
-		err = brokerConnection.send(message.NewResponse(message.GetTopic(), client.name, response))
+		err = brokerConnection.send(message.NewResponse(message.GetTopic(), client.config.Name, response))
 		if err != nil {
 			return Utilities.NewError("Failed to send response to message broker server", err)
 		}
@@ -74,28 +74,23 @@ func (client *Client) handleMessage(message *Message.Message, brokerConnection *
 }
 
 func (client *Client) handleSyncMessage(message *Message.Message) (string, error) {
-	client.mapOperationMutex.Lock()
-	messageHandler := client.application.GetSyncMessageHandlers()[message.GetTopic()]
-	client.mapOperationMutex.Unlock()
-	if messageHandler == nil {
-		return "", Utilities.NewError("No message handler for topic \""+message.GetTopic()+"\" on \""+client.name+"\"", nil)
+	syncHandler := client.application.GetSyncMessageHandlers()[message.GetTopic()]
+	if syncHandler == nil {
+		return "", Utilities.NewError("No handler for topic \""+message.GetTopic()+"\"", nil)
 	}
-	response, err := messageHandler(message)
+	response, err := syncHandler(client, message)
 	if err != nil {
 		return "", Utilities.NewError("Error handling message", err)
-	} else {
-		return response, nil
 	}
+	return response, nil
 }
 
 func (client *Client) handleAsyncMessage(message *Message.Message) error {
-	client.mapOperationMutex.Lock()
-	messageHandler := client.application.GetAsyncMessageHandlers()[message.GetTopic()]
-	client.mapOperationMutex.Unlock()
-	if messageHandler == nil {
-		return Utilities.NewError("No message handler for topic \""+message.GetTopic()+"\" on \""+client.name+"\"", nil)
+	asyncHandler := client.application.GetAsyncMessageHandlers()[message.GetTopic()]
+	if asyncHandler == nil {
+		return Utilities.NewError("No handler for topic \""+message.GetTopic()+"\"", nil)
 	}
-	err := messageHandler(message)
+	err := asyncHandler(client, message)
 	if err != nil {
 		return Utilities.NewError("Error handling message", err)
 	}

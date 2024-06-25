@@ -1,56 +1,89 @@
 package Client
 
 import (
-	"Systemge/Application"
-	"Systemge/HTTPServer"
 	"Systemge/Message"
-	"Systemge/Resolution"
+	"Systemge/Randomizer"
 	"Systemge/Utilities"
-	"Systemge/WebsocketServer"
+	"Systemge/WebsocketClient"
+	"net/http"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
+type Config struct {
+	Name       string
+	LoggerPath string
+
+	HandleMessagesConcurrently bool
+
+	ResolverAddress        string
+	ResolverNameIndication string
+	ResolverTLSCert        string
+
+	HTTPPort     string
+	HTTPCertPath string
+	HTTPKeyPath  string
+
+	WebsocketPattern  string
+	WebsocketPort     string
+	WebsocketCertPath string
+	WebsocketKeyPath  string
+}
+
 type Client struct {
-	name   string
-	logger *Utilities.Logger
+	config *Config
 
-	resolverResolution *Resolution.Resolution
-
-	httpServer      *HTTPServer.Server
-	websocketServer *WebsocketServer.Server
-	application     Application.Application
-
-	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-
-	activeBrokerConnections map[string]*brokerConnection // brokerAddress -> serverConnection
-	topicResolutions        map[string]*brokerConnection // topic -> serverConnection
-
-	// handleMessagesConcurrently is a flag that determines whether the client will handle messages by brokers concurrently
-	// If this is set to true, the client will handle messages concurrently, otherwise it will handle messages sequentially
-	// concurrently handling messages can be useful to improve performance but it will often require additional work for the application to be able to handle concurrency
-	handleMessagesConcurrently bool
+	logger     *Utilities.Logger
+	randomizer *Randomizer.Randomizer
 
 	stopChannel chan bool
 	isStarted   bool
 
-	mapOperationMutex               sync.Mutex
-	stateMutex                      sync.Mutex
 	handleMessagesConcurrentlyMutex sync.Mutex
+	websocketMutex                  sync.Mutex
+	httpMutex                       sync.Mutex
+	clientMutex                     sync.Mutex
+	stateMutex                      sync.Mutex
+
+	application Application
+	//client
+	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
+	activeBrokerConnections    map[string]*brokerConnection     // brokerAddress -> serverConnection
+	topicResolutions           map[string]*brokerConnection     // topic -> serverConnection
+
+	websocketApplication WebsocketApplication
+	//websocket
+	websocketHandshakeHTTPServer *http.Server
+	websocketConnChannel         chan *websocket.Conn
+	websocketClients             map[string]*WebsocketClient.Client            // websocketId -> websocketClient
+	groups                       map[string]map[string]*WebsocketClient.Client // groupId -> map[websocketId]websocketClient
+	websocketClientGroups        map[string]map[string]bool                    // websocketId -> map[groupId]bool
+
+	httpApplication HTTPApplication
+	//http
+	httpServer *http.Server
 }
 
-func New(name string, resolverResolution *Resolution.Resolution, logger *Utilities.Logger) *Client {
+func New(clientConfig *Config, application Application, httpApplication HTTPApplication, websocketApplication WebsocketApplication) *Client {
 	return &Client{
-		name:   name,
-		logger: logger,
+		config: clientConfig,
 
-		resolverResolution: resolverResolution,
+		logger:     Utilities.NewLogger(clientConfig.LoggerPath),
+		randomizer: Randomizer.New(Randomizer.GetSystemTime()),
+
+		application:          application,
+		httpApplication:      httpApplication,
+		websocketApplication: websocketApplication,
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 
 		topicResolutions:        make(map[string]*brokerConnection),
 		activeBrokerConnections: make(map[string]*brokerConnection),
 
-		handleMessagesConcurrently: DEFAULT_HANDLE_MESSAGES_CONCURRENTLY,
+		groups:                make(map[string]map[string]*WebsocketClient.Client),
+		websocketClients:      make(map[string]*WebsocketClient.Client),
+		websocketClientGroups: make(map[string]map[string]bool),
 	}
 }
 
@@ -64,34 +97,27 @@ func (client *Client) Start() error {
 		if client.application == nil {
 			return Utilities.NewError("Application not set", nil)
 		}
-		if client.resolverResolution == nil {
-			return Utilities.NewError("Resolver resolution not set", nil)
-		}
-		if client.websocketServer != nil {
-			err := client.websocketServer.Start()
+		if client.websocketApplication != nil {
+			err := client.StartWebsocketServer()
 			if err != nil {
 				return Utilities.NewError("Error starting websocket server", err)
 			}
 		}
-		if client.httpServer != nil {
-			err := client.httpServer.Start()
+		if client.httpApplication != nil {
+			err := client.StartApplicationHTTPServer()
 			if err != nil {
 				return Utilities.NewError("Error starting http server", err)
 			}
 		}
 		client.stopChannel = make(chan bool)
-		topics := make([]string, 0)
-
-		client.mapOperationMutex.Lock()
-		for topic := range client.application.GetSyncMessageHandlers() {
-			topics = append(topics, topic)
-		}
+		topicsToSubscribeTo := []string{}
 		for topic := range client.application.GetAsyncMessageHandlers() {
-			topics = append(topics, topic)
+			topicsToSubscribeTo = append(topicsToSubscribeTo, topic)
 		}
-		client.mapOperationMutex.Unlock()
-
-		for _, topic := range topics {
+		for topic := range client.application.GetSyncMessageHandlers() {
+			topicsToSubscribeTo = append(topicsToSubscribeTo, topic)
+		}
+		for _, topic := range topicsToSubscribeTo {
 			serverConnection, err := client.getBrokerConnectionForTopic(topic)
 			if err != nil {
 				client.removeAllBrokerConnections()
@@ -111,7 +137,7 @@ func (client *Client) Start() error {
 	if err != nil {
 		return Utilities.NewError("Error starting client", err)
 	}
-	err = client.application.OnStart()
+	err = client.application.OnStart(client)
 	if err != nil {
 		client.Stop()
 		return Utilities.NewError("Error in OnStart", err)
@@ -125,18 +151,18 @@ func (client *Client) Stop() error {
 	if !client.isStarted {
 		return Utilities.NewError("Client not started", nil)
 	}
-	err := client.application.OnStop()
+	err := client.application.OnStop(client)
 	if err != nil {
 		return Utilities.NewError("Error in OnStop", err)
 	}
-	if client.websocketServer != nil {
-		err := client.websocketServer.Stop()
+	if client.websocketApplication != nil {
+		err := client.StopWebsocketServer()
 		if err != nil {
 			return Utilities.NewError("Error stopping websocket server", err)
 		}
 	}
-	if client.httpServer != nil {
-		err := client.httpServer.Stop()
+	if client.httpApplication != nil {
+		err := client.StopApplicationHTTPServer()
 		if err != nil {
 			return Utilities.NewError("Error stopping http server", err)
 		}

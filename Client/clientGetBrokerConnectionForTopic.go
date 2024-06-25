@@ -7,7 +7,7 @@ import (
 func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
 	brokerConnection := client.getTopicResolution(topic)
 	if brokerConnection == nil {
-		resolution, err := client.resolveBrokerForTopic(client.resolverResolution, topic)
+		resolution, err := client.resolveBrokerForTopic(topic)
 		if err != nil {
 			return nil, Utilities.NewError("Error resolving broker address for topic \""+topic+"\"", err)
 		}

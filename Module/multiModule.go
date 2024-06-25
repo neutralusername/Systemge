@@ -36,3 +36,14 @@ func (mm *MultiModule) Stop() error {
 	}
 	return nil
 }
+
+func (mm *MultiModule) GetCustomCommandHandlers() map[string]func([]string) error {
+	handlers := make(map[string]func([]string) error)
+	for _, module := range mm.Modules {
+		moduleHandlers := module.GetCustomCommandHandlers()
+		for command, handler := range moduleHandlers {
+			handlers[command] = handler
+		}
+	}
+	return handlers
+}

@@ -11,7 +11,7 @@ func (client *Client) connectToBroker(resolution *Resolution.Resolution) (*broke
 	if err != nil {
 		return nil, Utilities.NewError("Error connecting to message broker server", err)
 	}
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", client.name, ""), DEFAULT_TCP_TIMEOUT)
+	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", client.config.Name, ""), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return nil, Utilities.NewError("Error sending connection request", err)

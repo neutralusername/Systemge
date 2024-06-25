@@ -1,7 +1,6 @@
 package Module
 
 import (
-	"Systemge/Application"
 	"bufio"
 	"os"
 	"runtime"
@@ -9,7 +8,7 @@ import (
 )
 
 // starts a command-line interface for the module
-func StartCommandLineInterface(module Module, customCommandHandlers ...map[string]Application.CustomCommandHandler) {
+func StartCommandLineInterface(module Module) {
 	if module == nil {
 		panic("module cannot be nil")
 	}
@@ -57,13 +56,15 @@ func StartCommandLineInterface(module Module, customCommandHandlers ...map[strin
 				println("module not started")
 				continue
 			}
-			for _, customCommandHandler := range customCommandHandlers {
-				if customCommandHandler != nil && customCommandHandler[inputSegments[0]] != nil {
-					err := customCommandHandler[inputSegments[0]](inputSegments[1:])
-					if err != nil {
-						println("error executing command: " + err.Error())
-					}
+			customCommandHandlers := module.GetCustomCommandHandlers()
+			handler := customCommandHandlers[inputSegments[0]]
+			if handler != nil {
+				err := handler(inputSegments[1:])
+				if err != nil {
+					println(err.Error())
 				}
+			} else {
+				println("command not found")
 			}
 		}
 	}

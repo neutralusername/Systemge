@@ -24,7 +24,7 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 }
 
 func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
-	client.mapOperationMutex.Lock()
+	client.clientMutex.Lock()
 	brokerConnection.mutex.Lock()
 	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
 	removedSubscribedTopics := make([]string, 0)
@@ -36,7 +36,7 @@ func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brok
 	}
 	brokerConnection.topics = make(map[string]bool)
 	brokerConnection.mutex.Unlock()
-	client.mapOperationMutex.Unlock()
+	client.clientMutex.Unlock()
 	return removedSubscribedTopics
 }
 
