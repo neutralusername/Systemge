@@ -1,13 +1,14 @@
-package Utilities
+package Error
 
 import (
 	"errors"
 	"path"
 	"runtime"
+	"strconv"
 )
 
 // description is used to provide context to the error message
-func NewError(description string, err error) error {
+func New(description string, err error) error {
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
 		panic("could not get caller information")
@@ -20,5 +21,6 @@ func NewError(description string, err error) error {
 		}
 		errStr += err.Error()
 	}
-	return errors.New(file + ":" + IntToString(line) + " -> " + description + errStr)
+	lineStr := strconv.Itoa(line)
+	return errors.New(file + ":" + lineStr + " -> " + description + errStr)
 }

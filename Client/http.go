@@ -1,7 +1,7 @@
 package Client
 
 import (
-	"Systemge/Utilities"
+	"Systemge/Error"
 	"net/http"
 	"time"
 )
@@ -42,7 +42,7 @@ func startHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) er
 	time.Sleep(100 * time.Millisecond)
 	select {
 	case err := <-errorChannel:
-		return Utilities.NewError("http server failed to start", err)
+		return Error.New("http server failed to start", err)
 	default:
 	}
 	return nil
@@ -51,7 +51,7 @@ func startHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) er
 func stopHTTPServer(httpServer *http.Server) error {
 	err := httpServer.Close()
 	if err != nil {
-		return Utilities.NewError("Error stopping http server", err)
+		return Error.New("Error stopping http server", err)
 	}
 	return nil
 }

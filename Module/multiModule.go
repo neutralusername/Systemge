@@ -1,8 +1,6 @@
 package Module
 
-import (
-	"Systemge/Utilities"
-)
+import "Systemge/Error"
 
 type MultiModule struct {
 	Modules []Module
@@ -21,7 +19,7 @@ func (mm *MultiModule) Start() error {
 	for _, module := range mm.Modules {
 		err := module.Start()
 		if err != nil {
-			return Utilities.NewError("Error starting multi module", err)
+			return Error.New("Error starting multi module", err)
 		}
 	}
 	return nil
@@ -31,7 +29,7 @@ func (mm *MultiModule) Stop() error {
 	for _, module := range mm.Modules {
 		err := module.Stop()
 		if err != nil {
-			return Utilities.NewError("Error stopping multi module", err)
+			return Error.New("Error stopping multi module", err)
 		}
 	}
 	return nil

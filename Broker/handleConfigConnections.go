@@ -1,6 +1,7 @@
 package Broker
 
 import (
+	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
@@ -12,7 +13,7 @@ func (server *Server) handleConfigConnections() {
 		netConn, err := server.tlsConfigListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
-				server.logger.Log(Utilities.NewError("Failed to accept connection request", err).Error())
+				server.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue
 		}
@@ -20,7 +21,7 @@ func (server *Server) handleConfigConnections() {
 			defer netConn.Close()
 			err := server.handleConfigConnection(netConn)
 			if err != nil {
-				Utilities.TcpSend(netConn, Message.NewAsync("error", server.GetName(), Utilities.NewError("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
+				Utilities.TcpSend(netConn, Message.NewAsync("error", server.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
 			} else {
 				Utilities.TcpSend(netConn, Message.NewAsync("success", server.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
 			}
@@ -31,11 +32,11 @@ func (server *Server) handleConfigConnections() {
 func (server *Server) handleConfigConnection(netConn net.Conn) error {
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		return Utilities.NewError("failed to receive message", err)
+		return Error.New("failed to receive message", err)
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetOrigin() == "" {
-		return Utilities.NewError("Invalid connection request \""+string(messageBytes)+"\"", nil)
+		return Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
 	switch message.GetTopic() {
 	case "addSyncTopic":
@@ -47,7 +48,7 @@ func (server *Server) handleConfigConnection(netConn net.Conn) error {
 	case "removeAsyncTopic":
 		server.RemoveAsyncTopics(message.GetPayload())
 	default:
-		return Utilities.NewError("unknown topic \""+message.GetTopic()+"\"", nil)
+		return Error.New("unknown topic \""+message.GetTopic()+"\"", nil)
 	}
 	return nil
 }

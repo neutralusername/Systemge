@@ -1,6 +1,7 @@
 package Broker
 
 import (
+	"Systemge/Error"
 	"Systemge/Utilities"
 	"crypto/tls"
 	"net"
@@ -66,29 +67,29 @@ func (server *Server) Start() error {
 	server.stateMutex.Lock()
 	defer server.stateMutex.Unlock()
 	if server.isStarted {
-		return Utilities.NewError("Server already started", nil)
+		return Error.New("Server already started", nil)
 	}
 	brokerCert, err := tls.LoadX509KeyPair(server.brokerTlsCertPath, server.brokerTlsKeyPath)
 	if err != nil {
-		return Utilities.NewError("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to load TLS certificate: ", err)
 	}
 	brokerListener, err := tls.Listen("tcp", server.brokerPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{brokerCert},
 	})
 	if err != nil {
-		return Utilities.NewError("Failed to start server: ", err)
+		return Error.New("Failed to start server: ", err)
 	}
 	configCert, err := tls.LoadX509KeyPair(server.configTlsCertPath, server.configTlsKeyPath)
 	if err != nil {
-		return Utilities.NewError("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to load TLS certificate: ", err)
 	}
 	configListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{configCert},
 	})
 	if err != nil {
-		return Utilities.NewError("Failed to start server: ", err)
+		return Error.New("Failed to start server: ", err)
 	}
 	server.tlsBrokerListener = brokerListener
 	server.tlsConfigListener = configListener
@@ -106,7 +107,7 @@ func (server *Server) Stop() error {
 	server.stateMutex.Lock()
 	defer server.stateMutex.Unlock()
 	if !server.isStarted {
-		return Utilities.NewError("Server is not started", nil)
+		return Error.New("Server is not started", nil)
 	}
 	server.tlsBrokerListener.Close()
 	server.tlsConfigListener.Close()

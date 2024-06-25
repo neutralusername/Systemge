@@ -1,7 +1,7 @@
 package Client
 
 import (
-	"Systemge/Utilities"
+	"Systemge/Error"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 			if err == nil {
 				break
 			}
-			client.logger.Log(Utilities.NewError("Failed reconnect for topic \""+topic+"\"", err).Error())
+			client.logger.Log(Error.New("Failed reconnect for topic \""+topic+"\"", err).Error())
 			time.Sleep(1 * time.Second)
 		}
 	}
@@ -43,12 +43,12 @@ func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brok
 func (client *Client) attemptToResubscribeToHandlerTopic(topic string) error {
 	newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 	if err != nil {
-		return Utilities.NewError("Unable to obtain new broker for topic \""+topic+"\"", err)
+		return Error.New("Unable to obtain new broker for topic \""+topic+"\"", err)
 	}
 	err = client.subscribeTopic(newBrokerConnection, topic)
 	if err != nil {
-		return Utilities.NewError("Unable to subscribe to topic \""+topic+"\"", err)
+		return Error.New("Unable to subscribe to topic \""+topic+"\"", err)
 	}
-	client.logger.Log(Utilities.NewError("Reconnected to broker \""+newBrokerConnection.resolution.GetName()+"\" for topic \""+topic+"\"", nil).Error())
+	client.logger.Log(Error.New("Reconnected to broker \""+newBrokerConnection.resolution.GetName()+"\" for topic \""+topic+"\"", nil).Error())
 	return nil
 }

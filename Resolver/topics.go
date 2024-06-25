@@ -1,13 +1,13 @@
 package Resolver
 
-import "Systemge/Utilities"
+import "Systemge/Error"
 
 func (server *Server) AddBrokerTopics(brokerName string, topics ...string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	broker := server.knownBrokers[brokerName]
 	if broker == nil {
-		return Utilities.NewError("Broker not found", nil)
+		return Error.New("Broker not found", nil)
 	}
 	for _, topic := range topics {
 		server.registeredTopics[topic] = broker

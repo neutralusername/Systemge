@@ -1,8 +1,6 @@
 package Client
 
-import (
-	"Systemge/Utilities"
-)
+import "Systemge/Error"
 
 // returns a map of custom command handlers for the command-line interface
 func (client *Client) GetCustomCommandHandlers() map[string]func([]string) error {
@@ -37,12 +35,12 @@ func (client *Client) handleBrokersCommand(args []string) error {
 
 func (client *Client) handleRemoveBrokerCommand(args []string) error {
 	if len(args) != 1 {
-		return Utilities.NewError("Invalid number of arguments", nil)
+		return Error.New("Invalid number of arguments", nil)
 	}
 	brokerAddress := args[0]
 	err := client.RemoveBrokerConnection(brokerAddress)
 	if err != nil {
-		return Utilities.NewError("Error removing broker connection", err)
+		return Error.New("Error removing broker connection", err)
 	}
 	return nil
 }
@@ -58,12 +56,12 @@ func (client *Client) handleResolutionsCommand(args []string) error {
 
 func (client *Client) handleRemoveTopicCommand(args []string) error {
 	if len(args) != 1 {
-		return Utilities.NewError("Invalid number of arguments", nil)
+		return Error.New("Invalid number of arguments", nil)
 	}
 	topic := args[0]
 	err := client.RemoveTopicResolution(topic)
 	if err != nil {
-		return Utilities.NewError("Error removing topic resolution", err)
+		return Error.New("Error removing topic resolution", err)
 	}
 	return nil
 }

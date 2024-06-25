@@ -1,6 +1,7 @@
 package Resolver
 
 import (
+	"Systemge/Error"
 	"Systemge/Utilities"
 	"crypto/tls"
 	"net"
@@ -49,27 +50,27 @@ func (server *Server) Start() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.isStarted {
-		return Utilities.NewError("Server already started", nil)
+		return Error.New("Server already started", nil)
 	}
 	resolverTlsCert, err := tls.LoadX509KeyPair(server.resolverTlsCertPath, server.resolverTlsKeyPath)
 	if err != nil {
-		return Utilities.NewError("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to load TLS certificate: ", err)
 	}
 	resolverListener, err := tls.Listen("tcp", server.resolverPort, &tls.Config{
 		Certificates: []tls.Certificate{resolverTlsCert},
 	})
 	if err != nil {
-		return Utilities.NewError("Failed to listen on port: ", err)
+		return Error.New("Failed to listen on port: ", err)
 	}
 	configTlsCert, err := tls.LoadX509KeyPair(server.configTlsCertPath, server.configTlsKeyPath)
 	if err != nil {
-		return Utilities.NewError("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to load TLS certificate: ", err)
 	}
 	configListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
 		Certificates: []tls.Certificate{configTlsCert},
 	})
 	if err != nil {
-		return Utilities.NewError("Failed to listen on port: ", err)
+		return Error.New("Failed to listen on port: ", err)
 	}
 	server.tlsResolverListener = resolverListener
 	server.tlsConfigListener = configListener
@@ -87,7 +88,7 @@ func (server *Server) Stop() error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if !server.isStarted {
-		return Utilities.NewError("Server is not started", nil)
+		return Error.New("Server is not started", nil)
 	}
 	server.isStarted = false
 	server.tlsResolverListener.Close()

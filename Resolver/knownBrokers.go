@@ -1,8 +1,8 @@
 package Resolver
 
 import (
+	"Systemge/Error"
 	"Systemge/Resolution"
-	"Systemge/Utilities"
 )
 
 type knownBroker struct {
@@ -21,7 +21,7 @@ func (server *Server) AddKnownBroker(resolution *Resolution.Resolution) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.knownBrokers[resolution.GetName()] != nil {
-		return Utilities.NewError("Broker already registered", nil)
+		return Error.New("Broker already registered", nil)
 	}
 	server.knownBrokers[resolution.GetName()] = newKnownBroker(resolution)
 	return nil
@@ -32,7 +32,7 @@ func (server *Server) RemoveKnownBroker(name string) error {
 	defer server.mutex.Unlock()
 	knownBroker := server.knownBrokers[name]
 	if knownBroker == nil {
-		return Utilities.NewError("Broker not found", nil)
+		return Error.New("Broker not found", nil)
 	}
 	delete(server.knownBrokers, name)
 	for topic := range knownBroker.topics {

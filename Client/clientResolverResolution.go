@@ -1,6 +1,7 @@
 package Client
 
 import (
+	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Resolution"
 	"Systemge/Utilities"
@@ -9,16 +10,16 @@ import (
 func (client *Client) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
 	netConn, err := Utilities.TlsDial(client.config.ResolverAddress, client.config.ResolverNameIndication, client.config.ResolverTLSCert)
 	if err != nil {
-		return nil, Utilities.NewError("Error dialing resolver", err)
+		return nil, Error.New("Error dialing resolver", err)
 	}
 	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", client.config.Name, topic), DEFAULT_TCP_TIMEOUT)
 	netConn.Close()
 	if err != nil {
-		return nil, Utilities.NewError("Error resolving broker", err)
+		return nil, Error.New("Error resolving broker", err)
 	}
 	resolution := Resolution.Unmarshal(responseMessage.GetPayload())
 	if resolution == nil {
-		return nil, Utilities.NewError("Error unmarshalling broker", nil)
+		return nil, Error.New("Error unmarshalling broker", nil)
 	}
 	return resolution, nil
 }
@@ -33,11 +34,11 @@ func (client *Client) addTopicResolution(topic string, serverConnection *brokerC
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	if client.topicResolutions[topic] != nil {
-		return Utilities.NewError("Topic resolution already exists", nil)
+		return Error.New("Topic resolution already exists", nil)
 	}
 	err := serverConnection.addTopic(topic)
 	if err != nil {
-		return Utilities.NewError("Error adding topic to server connection", err)
+		return Error.New("Error adding topic to server connection", err)
 	}
 	client.topicResolutions[topic] = serverConnection
 	return nil
@@ -50,14 +51,14 @@ func (client *Client) RemoveTopicResolution(topic string) error {
 	defer client.clientMutex.Unlock()
 	serverConnection := client.topicResolutions[topic]
 	if serverConnection == nil {
-		return Utilities.NewError("Topic resolution does not exist", nil)
+		return Error.New("Topic resolution does not exist", nil)
 	}
 	if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
-		return Utilities.NewError("Cannot remove topics you are subscribed to", nil)
+		return Error.New("Cannot remove topics you are subscribed to", nil)
 	}
 	err := serverConnection.removeTopic(topic)
 	if err != nil {
-		return Utilities.NewError("Error removing topic from server connection", err)
+		return Error.New("Error removing topic from server connection", err)
 	}
 	delete(client.topicResolutions, topic)
 	return nil

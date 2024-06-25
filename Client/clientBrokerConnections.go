@@ -1,12 +1,12 @@
 package Client
 
-import "Systemge/Utilities"
+import "Systemge/Error"
 
 func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	if client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
-		return Utilities.NewError("Server connection already exists", nil)
+		return Error.New("Server connection already exists", nil)
 	}
 	client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] = brokerConnection
 	go client.handleBrokerMessages(brokerConnection)
@@ -26,11 +26,11 @@ func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
 	defer client.clientMutex.Unlock()
 	brokerConnection := client.activeBrokerConnections[brokerAddress]
 	if brokerConnection == nil {
-		return Utilities.NewError("Server connection does not exist", nil)
+		return Error.New("Server connection does not exist", nil)
 	}
 	err := brokerConnection.close()
 	if err != nil {
-		return Utilities.NewError("Error closing server connection", err)
+		return Error.New("Error closing server connection", err)
 	}
 	delete(client.activeBrokerConnections, brokerAddress)
 	return nil

@@ -1,8 +1,8 @@
 package Client
 
 import (
+	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
 	"time"
 )
 
@@ -46,17 +46,17 @@ func (client *Client) handleWebsocketMessage(websocketClient *WebsocketClient, m
 	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 	handler := client.websocketApplication.GetWebsocketMessageHandlers()[message.GetTopic()]
 	if handler == nil {
-		err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Utilities.NewError("no handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
+		err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("no handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {
-			return Utilities.NewError("failed to send error message", err)
+			return Error.New("failed to send error message", err)
 		}
 		return nil
 	}
 	err := handler(client, websocketClient, message)
 	if err != nil {
-		err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Utilities.NewError("error in handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
+		err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
 		if err != nil {
-			return Utilities.NewError("failed to send error message", err)
+			return Error.New("failed to send error message", err)
 		}
 	}
 	return nil

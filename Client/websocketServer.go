@@ -1,7 +1,7 @@
 package Client
 
 import (
-	"Systemge/Utilities"
+	"Systemge/Error"
 
 	"github.com/gorilla/websocket"
 )
@@ -9,7 +9,7 @@ import (
 func (client *Client) startWebsocketServer() error {
 	err := client.startWebsocketHandshakeHTTPServer()
 	if err != nil {
-		return Utilities.NewError("Error starting websocket handshake handler", err)
+		return Error.New("Error starting websocket handshake handler", err)
 	}
 	client.websocketClients = make(map[string]*WebsocketClient)
 	client.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
@@ -20,7 +20,7 @@ func (client *Client) startWebsocketServer() error {
 func (client *Client) stopWebsocketServer() error {
 	err := client.stopWebsocketHandshakeHTTPServer()
 	if err != nil {
-		return Utilities.NewError("Error stopping websocket handshake handler", err)
+		return Error.New("Error stopping websocket handshake handler", err)
 	}
 	close(client.websocketConnChannel)
 
@@ -44,7 +44,7 @@ func (client *Client) startWebsocketHandshakeHTTPServer() error {
 	httpServer := createHTTPServer(client.config.WebsocketPort, handlers)
 	err := startHTTPServer(httpServer, client.config.WebsocketCertPath, client.config.WebsocketKeyPath)
 	if err != nil {
-		return Utilities.NewError("Error starting websocket handshake handler", err)
+		return Error.New("Error starting websocket handshake handler", err)
 	}
 	client.websocketHandshakeHTTPServer = httpServer
 	return nil
@@ -53,7 +53,7 @@ func (client *Client) startWebsocketHandshakeHTTPServer() error {
 func (client *Client) stopWebsocketHandshakeHTTPServer() error {
 	err := stopHTTPServer(client.websocketHandshakeHTTPServer)
 	if err != nil {
-		return Utilities.NewError("Error stopping websocket handshake handler", err)
+		return Error.New("Error stopping websocket handshake handler", err)
 	}
 	client.websocketHandshakeHTTPServer = nil
 	return nil

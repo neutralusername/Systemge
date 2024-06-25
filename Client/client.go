@@ -1,6 +1,7 @@
 package Client
 
 import (
+	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net/http"
@@ -90,21 +91,21 @@ func (client *Client) Start() error {
 		client.stateMutex.Lock()
 		defer client.stateMutex.Unlock()
 		if client.isStarted {
-			return Utilities.NewError("Client already connected", nil)
+			return Error.New("Client already connected", nil)
 		}
 		if client.application == nil {
-			return Utilities.NewError("Application not set", nil)
+			return Error.New("Application not set", nil)
 		}
 		if client.websocketApplication != nil {
 			err := client.startWebsocketServer()
 			if err != nil {
-				return Utilities.NewError("Error starting websocket server", err)
+				return Error.New("Error starting websocket server", err)
 			}
 		}
 		if client.httpApplication != nil {
 			err := client.startApplicationHTTPServer()
 			if err != nil {
-				return Utilities.NewError("Error starting http server", err)
+				return Error.New("Error starting http server", err)
 			}
 		}
 		client.stopChannel = make(chan bool)
@@ -120,25 +121,25 @@ func (client *Client) Start() error {
 			if err != nil {
 				client.removeAllBrokerConnections()
 				close(client.stopChannel)
-				return Utilities.NewError("Error getting server connection for topic", err)
+				return Error.New("Error getting server connection for topic", err)
 			}
 			err = client.subscribeTopic(serverConnection, topic)
 			if err != nil {
 				client.removeAllBrokerConnections()
 				close(client.stopChannel)
-				return Utilities.NewError("Error subscribing to topic", err)
+				return Error.New("Error subscribing to topic", err)
 			}
 		}
 		client.isStarted = true
 		return nil
 	}()
 	if err != nil {
-		return Utilities.NewError("Error starting client", err)
+		return Error.New("Error starting client", err)
 	}
 	err = client.application.OnStart(client)
 	if err != nil {
 		client.Stop()
-		return Utilities.NewError("Error in OnStart", err)
+		return Error.New("Error in OnStart", err)
 	}
 	return nil
 }
@@ -147,22 +148,22 @@ func (client *Client) Stop() error {
 	client.stateMutex.Lock()
 	defer client.stateMutex.Unlock()
 	if !client.isStarted {
-		return Utilities.NewError("Client not started", nil)
+		return Error.New("Client not started", nil)
 	}
 	err := client.application.OnStop(client)
 	if err != nil {
-		return Utilities.NewError("Error in OnStop", err)
+		return Error.New("Error in OnStop", err)
 	}
 	if client.websocketApplication != nil {
 		err := client.stopWebsocketServer()
 		if err != nil {
-			return Utilities.NewError("Error stopping websocket server", err)
+			return Error.New("Error stopping websocket server", err)
 		}
 	}
 	if client.httpApplication != nil {
 		err := client.stopApplicationHTTPServer()
 		if err != nil {
-			return Utilities.NewError("Error stopping http server", err)
+			return Error.New("Error stopping http server", err)
 		}
 	}
 	client.isStarted = false

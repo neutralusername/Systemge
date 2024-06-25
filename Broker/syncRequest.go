@@ -1,8 +1,8 @@
 package Broker
 
 import (
+	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
 	"time"
 )
 
@@ -24,10 +24,10 @@ func (server *Server) handleSyncRequest(clientConnection *clientConnection, mess
 	server.operationMutex.Lock()
 	defer server.operationMutex.Unlock()
 	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
-		return Utilities.NewError("token already in use", nil)
+		return Error.New("token already in use", nil)
 	}
 	if len(server.clientSubscriptions[message.GetTopic()]) == 0 && message.GetTopic() != "subscribe" && message.GetTopic() != "unsubscribe" {
-		return Utilities.NewError("no subscribers to topic \""+message.GetTopic()+"\"", nil)
+		return Error.New("no subscribers to topic \""+message.GetTopic()+"\"", nil)
 	}
 	syncRequest := newSyncRequest(clientConnection, message)
 	server.openSyncRequests[message.GetSyncRequestToken()] = syncRequest
@@ -41,7 +41,7 @@ func (server *Server) handleSyncRequest(clientConnection *clientConnection, mess
 			server.operationMutex.Unlock()
 			err := clientConnection.send(response)
 			if err != nil {
-				server.logger.Log(Utilities.NewError("Failed to send response to client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Error.New("Failed to send response to client \""+clientConnection.name+"\"", err).Error())
 			}
 		case <-timer.C:
 			server.operationMutex.Lock()
@@ -49,7 +49,7 @@ func (server *Server) handleSyncRequest(clientConnection *clientConnection, mess
 			server.operationMutex.Unlock()
 			err := clientConnection.send(message.NewResponse("error", server.name, "request timed out"))
 			if err != nil {
-				server.logger.Log(Utilities.NewError("Failed to send timeout response to client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Error.New("Failed to send timeout response to client \""+clientConnection.name+"\"", err).Error())
 			}
 		}
 	}()
@@ -61,7 +61,7 @@ func (server *Server) handleSyncResponse(message *Message.Message) error {
 	defer server.operationMutex.Unlock()
 	waitingClientConnection := server.openSyncRequests[message.GetSyncResponseToken()]
 	if waitingClientConnection == nil {
-		return Utilities.NewError("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)
+		return Error.New("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)
 	}
 	waitingClientConnection.responseChannel <- message
 	return nil

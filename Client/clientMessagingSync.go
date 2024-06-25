@@ -1,6 +1,7 @@
 package Client
 
 import (
+	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
 )
@@ -9,23 +10,23 @@ import (
 func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
 	message := Message.NewSync(topic, origin, payload, client.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	if !client.isStarted {
-		return nil, Utilities.NewError("Client not started", nil)
+		return nil, Error.New("Client not started", nil)
 	}
 	if message.GetSyncRequestToken() == "" {
-		return nil, Utilities.NewError("SyncRequestToken not set", nil)
+		return nil, Error.New("SyncRequestToken not set", nil)
 	}
 	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic())
 	if err != nil {
-		return nil, Utilities.NewError("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
+		return nil, Error.New("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}
 	responseChannel, err := client.addMessageWaitingForResponse(message)
 	if err != nil {
-		return nil, Utilities.NewError("Error adding message to waiting for response map", err)
+		return nil, Error.New("Error adding message to waiting for response map", err)
 	}
 	err = brokerConnection.send(message)
 	if err != nil {
 		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
-		return nil, Utilities.NewError("Error sending sync request message", err)
+		return nil, Error.New("Error sending sync request message", err)
 	}
 	return client.receiveSyncResponse(message, responseChannel)
 }
@@ -35,19 +36,19 @@ func (client *Client) receiveSyncResponse(message *Message.Message, responseChan
 	case response := <-responseChannel:
 		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		if response.GetTopic() == "error" {
-			return nil, Utilities.NewError(response.GetPayload(), nil)
+			return nil, Error.New(response.GetPayload(), nil)
 		}
 		return response, nil
 	case <-client.stopChannel:
 		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
-		return nil, Utilities.NewError("client stopped", nil)
+		return nil, Error.New("client stopped", nil)
 	}
 }
 func (client *Client) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	if client.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
-		return nil, Utilities.NewError("SyncRequestToken already exists", nil)
+		return nil, Error.New("SyncRequestToken already exists", nil)
 	}
 	responseChannel := make(chan *Message.Message)
 	client.messagesWaitingForResponse[message.GetSyncRequestToken()] = responseChannel
