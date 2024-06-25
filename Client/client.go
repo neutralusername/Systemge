@@ -2,7 +2,6 @@ package Client
 
 import (
 	"Systemge/Message"
-	"Systemge/Randomizer"
 	"Systemge/Utilities"
 	"net/http"
 	"sync"
@@ -34,7 +33,7 @@ type Client struct {
 	config *Config
 
 	logger     *Utilities.Logger
-	randomizer *Randomizer.Randomizer
+	randomizer *Utilities.Randomizer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -69,7 +68,7 @@ func New(clientConfig *Config, application Application, httpApplication HTTPAppl
 		config: clientConfig,
 
 		logger:     Utilities.NewLogger(clientConfig.LoggerPath),
-		randomizer: Randomizer.New(Randomizer.GetSystemTime()),
+		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
 		application:          application,
 		httpApplication:      httpApplication,

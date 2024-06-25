@@ -1,7 +1,7 @@
 package Client
 
 import (
-	"Systemge/Randomizer"
+	"Systemge/Utilities"
 	"sync"
 	"time"
 
@@ -127,9 +127,9 @@ func (client *WebsocketClient) Receive() ([]byte, error) {
 func (client *Client) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
-	websocketId := "#" + client.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
+	websocketId := "#" + client.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	for _, exists := client.websocketClients[websocketId]; exists; {
-		websocketId = "#" + client.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
+		websocketId = "#" + client.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	}
 	websocketClient := newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
 		client.websocketApplication.OnDisconnectHandler(client, websocketClient)

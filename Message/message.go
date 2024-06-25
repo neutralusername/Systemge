@@ -1,7 +1,6 @@
 package Message
 
 import (
-	"Systemge/Randomizer"
 	"encoding/json"
 )
 
@@ -50,12 +49,11 @@ func NewAsync(topic, origin, payload string) *Message {
 	}
 }
 
-func NewSync(topic, origin, payload string) *Message {
-	randomizer := Randomizer.New(Randomizer.GetSystemTime())
+func NewSync(topic, origin, payload, syncKey string) *Message {
 	return &Message{
 		topic:            topic,
 		origin:           origin,
-		syncRequestToken: randomizer.GenerateRandomString(10, Randomizer.ALPHA_NUMERIC),
+		syncRequestToken: syncKey,
 		payload:          payload,
 	}
 }

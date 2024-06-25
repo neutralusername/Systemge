@@ -1,4 +1,4 @@
-package Randomizer
+package Utilities
 
 import (
 	"math/rand"
@@ -17,7 +17,7 @@ const ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234
 const ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const NUMERIC = "0123456789"
 
-func New(seed int64) *Randomizer {
+func NewRandomizer(seed int64) *Randomizer {
 	return &Randomizer{
 		source: rand.NewSource(seed),
 		seed:   seed,

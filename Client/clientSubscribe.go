@@ -7,7 +7,7 @@ import (
 
 // subscribes to a topic from the provided server connection
 func (client *Client) subscribeTopic(brokerConnection *brokerConnection, topic string) error {
-	message := Message.NewSync("subscribe", client.config.Name, topic)
+	message := Message.NewSync("subscribe", client.config.Name, topic, client.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	responseChannel, err := client.addMessageWaitingForResponse(message)
 	if err != nil {
 		return Utilities.NewError("Error adding message to waiting for response map", err)
