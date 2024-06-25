@@ -2,7 +2,6 @@ package Client
 
 import (
 	"Systemge/Utilities"
-	"Systemge/WebsocketClient"
 )
 
 func (client *Client) AddToGroup(groupId string, websocketId string) error {
@@ -16,7 +15,7 @@ func (client *Client) AddToGroup(groupId string, websocketId string) error {
 		return Utilities.NewError("WebsocketClient with id "+websocketId+" is already in group "+groupId, nil)
 	}
 	if client.groups[groupId] == nil {
-		client.groups[groupId] = make(map[string]*WebsocketClient.Client)
+		client.groups[groupId] = make(map[string]*WebsocketClient)
 	}
 	client.groups[groupId][websocketId] = client.websocketClients[websocketId]
 	client.websocketClientGroups[websocketId][groupId] = true

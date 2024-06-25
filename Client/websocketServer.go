@@ -2,7 +2,6 @@ package Client
 
 import (
 	"Systemge/Utilities"
-	"Systemge/WebsocketClient"
 
 	"github.com/gorilla/websocket"
 )
@@ -12,7 +11,7 @@ func (client *Client) StartWebsocketServer() error {
 	if err != nil {
 		return Utilities.NewError("Error starting websocket handshake handler", err)
 	}
-	client.websocketClients = make(map[string]*WebsocketClient.Client)
+	client.websocketClients = make(map[string]*WebsocketClient)
 	client.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	go client.handleWebsocketConnections()
 	return nil
@@ -26,7 +25,7 @@ func (client *Client) StopWebsocketServer() error {
 	close(client.websocketConnChannel)
 
 	client.websocketMutex.Lock()
-	clientsToDisconnect := make([]*WebsocketClient.Client, 0)
+	clientsToDisconnect := make([]*WebsocketClient, 0)
 	for _, websocketClient := range client.websocketClients {
 		clientsToDisconnect = append(clientsToDisconnect, websocketClient)
 	}

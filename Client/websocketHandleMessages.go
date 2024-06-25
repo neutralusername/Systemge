@@ -3,11 +3,10 @@ package Client
 import (
 	"Systemge/Message"
 	"Systemge/Utilities"
-	"Systemge/WebsocketClient"
 	"time"
 )
 
-func (client *Client) handleMessages(websocketClient *WebsocketClient.Client) {
+func (client *Client) handleMessages(websocketClient *WebsocketClient) {
 	defer websocketClient.Disconnect()
 	for client.IsStarted() {
 		messageBytes, err := websocketClient.Receive()
@@ -43,7 +42,7 @@ func (client *Client) handleMessages(websocketClient *WebsocketClient.Client) {
 	}
 }
 
-func (client *Client) handleWebsocketMessage(websocketClient *WebsocketClient.Client, message *Message.Message) error {
+func (client *Client) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
 	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 	handler := client.websocketApplication.GetWebsocketMessageHandlers()[message.GetTopic()]
 	if handler == nil {

@@ -2,7 +2,6 @@ package Client
 
 import (
 	"Systemge/Message"
-	"Systemge/WebsocketClient"
 	"net/http"
 )
 
@@ -24,10 +23,10 @@ type HTTPRequestHandler func(w http.ResponseWriter, r *http.Request)
 
 type WebsocketApplication interface {
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
-	OnConnectHandler(*Client, *WebsocketClient.Client)
-	OnDisconnectHandler(*Client, *WebsocketClient.Client)
+	OnConnectHandler(*Client, *WebsocketClient)
+	OnDisconnectHandler(*Client, *WebsocketClient)
 }
-type WebsocketMessageHandler func(*Client, *WebsocketClient.Client, *Message.Message) error
+type WebsocketMessageHandler func(*Client, *WebsocketClient, *Message.Message) error
 
 type CompositeApplicationWebsocket interface {
 	Application
