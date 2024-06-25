@@ -21,3 +21,15 @@ func (client *Client) GetWebsocketApplication() WebsocketApplication {
 func (client *Client) GetLogger() *Utilities.Logger {
 	return client.logger
 }
+
+func (client *Client) GetResolverAddress() string {
+	return client.config.ResolverAddress
+}
+
+func (client *Client) GetResolverNameIndication() string {
+	return client.config.ResolverNameIndication
+}
+
+func (client *Client) GetResolverTLSCert() string {
+	return client.config.ResolverTLSCert
+}
