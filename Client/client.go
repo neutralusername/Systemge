@@ -11,23 +11,23 @@ import (
 )
 
 type Config struct {
-	Name       string
-	LoggerPath string
+	Name       string // *required*
+	LoggerPath string // *required*
 
-	HandleMessagesConcurrently bool
+	ResolverAddress        string // *required*
+	ResolverNameIndication string // *required*
+	ResolverTLSCert        string // *required*
 
-	ResolverAddress        string
-	ResolverNameIndication string
-	ResolverTLSCert        string
+	HandleMessagesConcurrently bool // default: false
 
-	HTTPPort     string
-	HTTPCertPath string
-	HTTPKeyPath  string
+	HTTPPort     string // *optional*
+	HTTPCertPath string // *optional*
+	HTTPKeyPath  string // *optional*
 
-	WebsocketPattern  string
-	WebsocketPort     string
-	WebsocketCertPath string
-	WebsocketKeyPath  string
+	WebsocketPattern  string // *optional*
+	WebsocketPort     string // *optional*
+	WebsocketCertPath string // *optional*
+	WebsocketKeyPath  string // *optional*
 }
 
 type Client struct {
