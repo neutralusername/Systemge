@@ -21,6 +21,5 @@ func New(description string, err error) error {
 		}
 		errStr += err.Error()
 	}
-	lineStr := strconv.Itoa(line)
-	return errors.New(file + ":" + lineStr + " -> " + description + errStr)
+	return errors.New(file + ":" + strconv.Itoa(line) + " -> " + description + errStr)
 }
