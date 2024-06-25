@@ -16,7 +16,7 @@ type Server struct {
 
 	clientSubscriptions map[string]map[string]*clientConnection // topic -> [clientName-> client]
 	clientConnections   map[string]*clientConnection            // clientName -> Client
-	openSyncRequests    map[string]*syncRequest
+	openSyncRequests    map[string]*syncRequest                 // syncKey -> request
 
 	brokerTlsCertPath string
 	brokerTlsKeyPath  string

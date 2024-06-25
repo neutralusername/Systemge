@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func CreateHTTPServer(port, tlsCertPath, tlsKeyPath string, handlers map[string]HTTPRequestHandler) *http.Server {
+func createHTTPServer(port, tlsCertPath, tlsKeyPath string, handlers map[string]HTTPRequestHandler) *http.Server {
 	mux := http.NewServeMux()
 	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, handler)
@@ -18,7 +18,7 @@ func CreateHTTPServer(port, tlsCertPath, tlsKeyPath string, handlers map[string]
 	return httpServer
 }
 
-func StartHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
+func startHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
 	errorChannel := make(chan error)
 	go func() {
 		if tlsCertPath != "" && tlsKeyPath != "" {
@@ -48,7 +48,7 @@ func StartHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) er
 	return nil
 }
 
-func StopHTTPServer(httpServer *http.Server) error {
+func stopHTTPServer(httpServer *http.Server) error {
 	err := httpServer.Close()
 	if err != nil {
 		return Utilities.NewError("Error stopping http server", err)

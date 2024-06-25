@@ -97,13 +97,13 @@ func (client *Client) Start() error {
 			return Utilities.NewError("Application not set", nil)
 		}
 		if client.websocketApplication != nil {
-			err := client.StartWebsocketServer()
+			err := client.startWebsocketServer()
 			if err != nil {
 				return Utilities.NewError("Error starting websocket server", err)
 			}
 		}
 		if client.httpApplication != nil {
-			err := client.StartApplicationHTTPServer()
+			err := client.startApplicationHTTPServer()
 			if err != nil {
 				return Utilities.NewError("Error starting http server", err)
 			}
@@ -155,13 +155,13 @@ func (client *Client) Stop() error {
 		return Utilities.NewError("Error in OnStop", err)
 	}
 	if client.websocketApplication != nil {
-		err := client.StopWebsocketServer()
+		err := client.stopWebsocketServer()
 		if err != nil {
 			return Utilities.NewError("Error stopping websocket server", err)
 		}
 	}
 	if client.httpApplication != nil {
-		err := client.StopApplicationHTTPServer()
+		err := client.stopApplicationHTTPServer()
 		if err != nil {
 			return Utilities.NewError("Error stopping http server", err)
 		}

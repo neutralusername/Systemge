@@ -37,7 +37,7 @@ type WebsocketClient struct {
 	handleMessagesConcurrently bool
 }
 
-func NewWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*WebsocketClient)) *WebsocketClient {
+func newWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*WebsocketClient)) *WebsocketClient {
 	client := &WebsocketClient{
 		id:            id,
 		websocketConn: websocketConn,
@@ -131,7 +131,7 @@ func (client *Client) addWebsocketConn(websocketConn *websocket.Conn) *Websocket
 	for _, exists := client.websocketClients[websocketId]; exists; {
 		websocketId = "#" + client.randomizer.GenerateRandomString(16, Randomizer.ALPHA_NUMERIC)
 	}
-	websocketClient := NewWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
+	websocketClient := newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
 		client.websocketApplication.OnDisconnectHandler(client, websocketClient)
 		client.removeWebsocketClient(websocketClient)
 	})

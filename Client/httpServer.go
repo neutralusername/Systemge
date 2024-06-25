@@ -4,11 +4,11 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) StartApplicationHTTPServer() error {
+func (client *Client) startApplicationHTTPServer() error {
 	client.httpMutex.Lock()
 	defer client.httpMutex.Unlock()
-	httpServer := CreateHTTPServer(client.config.HTTPPort, client.config.HTTPCertPath, client.config.HTTPKeyPath, client.httpApplication.GetHTTPRequestHandlers())
-	err := StartHTTPServer(httpServer, client.config.HTTPCertPath, client.config.HTTPKeyPath)
+	httpServer := createHTTPServer(client.config.HTTPPort, client.config.HTTPCertPath, client.config.HTTPKeyPath, client.httpApplication.GetHTTPRequestHandlers())
+	err := startHTTPServer(httpServer, client.config.HTTPCertPath, client.config.HTTPKeyPath)
 	if err != nil {
 		return Utilities.NewError("Error starting http server", err)
 	}
@@ -16,10 +16,10 @@ func (client *Client) StartApplicationHTTPServer() error {
 	return nil
 }
 
-func (client *Client) StopApplicationHTTPServer() error {
+func (client *Client) stopApplicationHTTPServer() error {
 	client.httpMutex.Lock()
 	defer client.httpMutex.Unlock()
-	err := StopHTTPServer(client.httpServer)
+	err := stopHTTPServer(client.httpServer)
 	if err != nil {
 		return Utilities.NewError("Error stopping http server", err)
 	}

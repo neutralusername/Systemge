@@ -9,7 +9,7 @@ import (
 )
 
 // Promotes a http-websocket-handshake request to a websocket connection and queues it for handling on the websocket server
-func (client *Client) PromoteToWebsocket() func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (client *Client) promoteToWebsocket() func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,

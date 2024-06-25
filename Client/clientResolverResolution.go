@@ -23,7 +23,7 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolution.Resolutio
 	return resolution, nil
 }
 
-func (client *Client) getTopicResolution(topic string) *brokerConnection {
+func (client *Client) GetTopicResolution(topic string) *brokerConnection {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	return client.topicResolutions[topic]

@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Client) StartWebsocketServer() error {
-	err := client.StartWebsocketHandshakeHTTPServer()
+func (client *Client) startWebsocketServer() error {
+	err := client.startWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Utilities.NewError("Error starting websocket handshake handler", err)
 	}
@@ -17,8 +17,8 @@ func (client *Client) StartWebsocketServer() error {
 	return nil
 }
 
-func (client *Client) StopWebsocketServer() error {
-	err := client.StopWebsocketHandshakeHTTPServer()
+func (client *Client) stopWebsocketServer() error {
+	err := client.stopWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Utilities.NewError("Error stopping websocket handshake handler", err)
 	}
@@ -37,12 +37,12 @@ func (client *Client) StopWebsocketServer() error {
 	return nil
 }
 
-func (client *Client) StartWebsocketHandshakeHTTPServer() error {
+func (client *Client) startWebsocketHandshakeHTTPServer() error {
 	handlers := map[string]HTTPRequestHandler{
-		client.config.WebsocketPattern: client.PromoteToWebsocket(),
+		client.config.WebsocketPattern: client.promoteToWebsocket(),
 	}
-	httpServer := CreateHTTPServer(client.config.WebsocketPort, client.config.WebsocketCertPath, client.config.WebsocketKeyPath, handlers)
-	err := StartHTTPServer(httpServer, client.config.WebsocketCertPath, client.config.WebsocketKeyPath)
+	httpServer := createHTTPServer(client.config.WebsocketPort, client.config.WebsocketCertPath, client.config.WebsocketKeyPath, handlers)
+	err := startHTTPServer(httpServer, client.config.WebsocketCertPath, client.config.WebsocketKeyPath)
 	if err != nil {
 		return Utilities.NewError("Error starting websocket handshake handler", err)
 	}
@@ -50,8 +50,8 @@ func (client *Client) StartWebsocketHandshakeHTTPServer() error {
 	return nil
 }
 
-func (client *Client) StopWebsocketHandshakeHTTPServer() error {
-	err := StopHTTPServer(client.websocketHandshakeHTTPServer)
+func (client *Client) stopWebsocketHandshakeHTTPServer() error {
+	err := stopHTTPServer(client.websocketHandshakeHTTPServer)
 	if err != nil {
 		return Utilities.NewError("Error stopping websocket handshake handler", err)
 	}
