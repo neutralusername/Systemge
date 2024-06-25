@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func createHTTPServer(port, tlsCertPath, tlsKeyPath string, handlers map[string]HTTPRequestHandler) *http.Server {
+func createHTTPServer(port string, handlers map[string]HTTPRequestHandler) *http.Server {
 	mux := http.NewServeMux()
 	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, handler)

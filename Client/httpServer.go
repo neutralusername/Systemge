@@ -7,7 +7,7 @@ import (
 func (client *Client) startApplicationHTTPServer() error {
 	client.httpMutex.Lock()
 	defer client.httpMutex.Unlock()
-	httpServer := createHTTPServer(client.config.HTTPPort, client.config.HTTPCertPath, client.config.HTTPKeyPath, client.httpApplication.GetHTTPRequestHandlers())
+	httpServer := createHTTPServer(client.config.HTTPPort, client.httpApplication.GetHTTPRequestHandlers())
 	err := startHTTPServer(httpServer, client.config.HTTPCertPath, client.config.HTTPKeyPath)
 	if err != nil {
 		return Utilities.NewError("Error starting http server", err)

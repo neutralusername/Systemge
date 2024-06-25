@@ -41,7 +41,7 @@ func (client *Client) startWebsocketHandshakeHTTPServer() error {
 	handlers := map[string]HTTPRequestHandler{
 		client.config.WebsocketPattern: client.promoteToWebsocket(),
 	}
-	httpServer := createHTTPServer(client.config.WebsocketPort, client.config.WebsocketCertPath, client.config.WebsocketKeyPath, handlers)
+	httpServer := createHTTPServer(client.config.WebsocketPort, handlers)
 	err := startHTTPServer(httpServer, client.config.WebsocketCertPath, client.config.WebsocketKeyPath)
 	if err != nil {
 		return Utilities.NewError("Error starting websocket handshake handler", err)
