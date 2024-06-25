@@ -4,7 +4,10 @@ import (
 	"Systemge/Message"
 )
 
-func (client *Client) Broadcast(message *Message.Message) {
+func (client *Client) WebsocketBroadcast(message *Message.Message) {
+	if client.websocketApplication == nil {
+		return
+	}
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
@@ -13,7 +16,10 @@ func (client *Client) Broadcast(message *Message.Message) {
 	}
 }
 
-func (client *Client) Unicast(id string, message *Message.Message) {
+func (client *Client) WebsocketUnicast(id string, message *Message.Message) {
+	if client.websocketApplication == nil {
+		return
+	}
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
@@ -22,7 +28,10 @@ func (client *Client) Unicast(id string, message *Message.Message) {
 	}
 }
 
-func (client *Client) Multicast(ids []string, message *Message.Message) {
+func (client *Client) WebsocketMulticast(ids []string, message *Message.Message) {
+	if client.websocketApplication == nil {
+		return
+	}
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
@@ -33,7 +42,10 @@ func (client *Client) Multicast(ids []string, message *Message.Message) {
 	}
 }
 
-func (client *Client) Groupcast(groupId string, message *Message.Message) {
+func (client *Client) WebsocketGroupcast(groupId string, message *Message.Message) {
+	if client.websocketApplication == nil {
+		return
+	}
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
