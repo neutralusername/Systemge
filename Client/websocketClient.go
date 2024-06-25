@@ -146,9 +146,9 @@ func (client *Client) removeWebsocketClient(websocketClient *WebsocketClient) {
 	delete(client.websocketClients, websocketClient.GetId())
 	for groupId := range client.websocketClientGroups[websocketClient.GetId()] {
 		delete(client.websocketClientGroups[websocketClient.GetId()], groupId)
-		delete(client.groups[groupId], websocketClient.GetId())
-		if len(client.groups[groupId]) == 0 {
-			delete(client.groups, groupId)
+		delete(client.WebsocketGroups[groupId], websocketClient.GetId())
+		if len(client.WebsocketGroups[groupId]) == 0 {
+			delete(client.WebsocketGroups, groupId)
 		}
 	}
 }

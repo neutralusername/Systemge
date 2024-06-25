@@ -56,7 +56,7 @@ type Client struct {
 	websocketHandshakeHTTPServer *http.Server
 	websocketConnChannel         chan *websocket.Conn
 	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
-	groups                       map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	WebsocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
 
 	httpApplication HTTPApplication
@@ -80,7 +80,7 @@ func New(clientConfig *Config, application Application, httpApplication HTTPAppl
 		topicResolutions:        make(map[string]*brokerConnection),
 		activeBrokerConnections: make(map[string]*brokerConnection),
 
-		groups:                make(map[string]map[string]*WebsocketClient),
+		WebsocketGroups:       make(map[string]map[string]*WebsocketClient),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
 	}

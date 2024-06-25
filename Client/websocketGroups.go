@@ -4,7 +4,7 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) AddToGroup(groupId string, websocketId string) error {
+func (client *Client) AddToWebsocketGroup(groupId string, websocketId string) error {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	websocketClient := client.websocketClients[websocketId]
@@ -14,21 +14,21 @@ func (client *Client) AddToGroup(groupId string, websocketId string) error {
 	if client.websocketClientGroups[websocketId][groupId] {
 		return Utilities.NewError("WebsocketClient with id "+websocketId+" is already in group "+groupId, nil)
 	}
-	if client.groups[groupId] == nil {
-		client.groups[groupId] = make(map[string]*WebsocketClient)
+	if client.WebsocketGroups[groupId] == nil {
+		client.WebsocketGroups[groupId] = make(map[string]*WebsocketClient)
 	}
-	client.groups[groupId][websocketId] = client.websocketClients[websocketId]
+	client.WebsocketGroups[groupId][websocketId] = client.websocketClients[websocketId]
 	client.websocketClientGroups[websocketId][groupId] = true
 	return nil
 }
 
-func (client *Client) RemoveFromGroup(groupId string, websocketId string) error {
+func (client *Client) RemoveFromWebsocketGroup(groupId string, websocketId string) error {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
-	if client.groups[groupId] == nil {
+	if client.WebsocketGroups[groupId] == nil {
 		return Utilities.NewError("Group with id "+groupId+" does not exist", nil)
 	}
-	if client.groups[groupId][websocketId] == nil {
+	if client.WebsocketGroups[groupId][websocketId] == nil {
 		return Utilities.NewError("WebsocketClient with id "+websocketId+" is not in group "+groupId, nil)
 	}
 	if client.websocketClients[websocketId] == nil {
@@ -38,27 +38,27 @@ func (client *Client) RemoveFromGroup(groupId string, websocketId string) error 
 		return Utilities.NewError("WebsocketClient with id "+websocketId+" is not in any groups", nil)
 	}
 	delete(client.websocketClientGroups[websocketId], groupId)
-	delete(client.groups[groupId], websocketId)
-	if len(client.groups[groupId]) == 0 {
-		delete(client.groups, groupId)
+	delete(client.WebsocketGroups[groupId], websocketId)
+	if len(client.WebsocketGroups[groupId]) == 0 {
+		delete(client.WebsocketGroups, groupId)
 	}
 	return nil
 }
 
-func (client *Client) GetGroupMembers(groupId string) []string {
+func (client *Client) GetWebsocketGroupClients(groupId string) []string {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
-	if client.groups[groupId] == nil {
+	if client.WebsocketGroups[groupId] == nil {
 		return nil
 	}
 	groupMembers := make([]string, 0)
-	for websocketId := range client.groups[groupId] {
+	for websocketId := range client.WebsocketGroups[groupId] {
 		groupMembers = append(groupMembers, websocketId)
 	}
 	return groupMembers
 }
 
-func (client *Client) GetGroups(websocketId string) []string {
+func (client *Client) GetWebsocketGroups(websocketId string) []string {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	if client.websocketClients[websocketId] == nil {
@@ -74,13 +74,13 @@ func (client *Client) GetGroups(websocketId string) []string {
 	return groups
 }
 
-func (client *Client) IsInGroup(groupId string, websocketId string) bool {
+func (client *Client) IsInWebsocketGroup(groupId string, websocketId string) bool {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
-	if client.groups[groupId] == nil {
+	if client.WebsocketGroups[groupId] == nil {
 		return false
 	}
-	if client.groups[groupId][websocketId] == nil {
+	if client.WebsocketGroups[groupId][websocketId] == nil {
 		return false
 	}
 	return true

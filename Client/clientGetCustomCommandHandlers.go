@@ -7,13 +7,13 @@ import (
 // returns a map of custom command handlers for the command-line interface
 func (client *Client) GetCustomCommandHandlers() map[string]func([]string) error {
 	handlers := map[string]func([]string) error{
-		"brokers":          client.handleBrokersCommand,
-		"removeBroker":     client.handleRemoveBrokerCommand,
-		"resolutions":      client.handleResolutionsCommand,
-		"removeResolution": client.handleRemoveTopicCommand,
-		"websocketClients": client.handleWebsocketClientsCommand,
-		"groups":           client.handleGroupsCommand,
-		"groupClients":     client.handleGroupClientsCommand,
+		"brokers":               client.handleBrokersCommand,
+		"removeBroker":          client.handleRemoveBrokerCommand,
+		"resolutions":           client.handleResolutionsCommand,
+		"removeResolution":      client.handleRemoveTopicCommand,
+		"websocketClients":      client.handleWebsocketClientsCommand,
+		"websocketGroups":       client.handleWebsocketGroupsCommand,
+		"WebsocketGroupClients": client.handleWebsocketGroupClientsCommand,
 	}
 	if client.application != nil {
 		customHandlers := client.application.GetCustomCommandHandlers()
@@ -77,22 +77,22 @@ func (client *Client) handleWebsocketClientsCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleGroupsCommand(args []string) error {
+func (client *Client) handleWebsocketGroupsCommand(args []string) error {
 	client.websocketMutex.Lock()
-	for groupId := range client.groups {
+	for groupId := range client.WebsocketGroups {
 		println(groupId)
 	}
 	client.websocketMutex.Unlock()
 	return nil
 }
 
-func (client *Client) handleGroupClientsCommand(args []string) error {
+func (client *Client) handleWebsocketGroupClientsCommand(args []string) error {
 	if len(args) < 1 {
 		println("Usage: groupClients <groupId>")
 	}
 	groupId := args[0]
 	client.websocketMutex.Lock()
-	group, ok := client.groups[groupId]
+	group, ok := client.WebsocketGroups[groupId]
 	client.websocketMutex.Unlock()
 	if !ok {
 		println("Group not found")

@@ -37,10 +37,10 @@ func (client *Client) WebsocketGroupcast(groupId string, message *Message.Messag
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
-	if client.groups[groupId] == nil {
+	if client.WebsocketGroups[groupId] == nil {
 		return
 	}
-	for _, websocketClient := range client.groups[groupId] {
+	for _, websocketClient := range client.WebsocketGroups[groupId] {
 		go websocketClient.Send(messageBytes)
 	}
 }
