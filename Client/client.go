@@ -18,7 +18,7 @@ type Config struct {
 	ResolverNameIndication string // *required*
 	ResolverTLSCert        string // *required*
 
-	HandleMessagesConcurrently bool // default: false
+	HandleMessagesSequentially bool // default: false
 
 	HTTPPort     string // *optional*
 	HTTPCertPath string // *optional*
