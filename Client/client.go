@@ -39,7 +39,7 @@ type Client struct {
 	stopChannel chan bool
 	isStarted   bool
 
-	handleMessagesConcurrentlyMutex sync.Mutex
+	handleMessagesSequentiallyMutex sync.Mutex
 	websocketMutex                  sync.Mutex
 	httpMutex                       sync.Mutex
 	clientMutex                     sync.Mutex

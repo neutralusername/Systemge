@@ -48,8 +48,8 @@ func (client *Client) handleSyncResponse(message *Message.Message) error {
 
 func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) error {
 	if client.config.HandleMessagesSequentially {
-		client.handleMessagesConcurrentlyMutex.Lock()
-		defer client.handleMessagesConcurrentlyMutex.Unlock()
+		client.handleMessagesSequentiallyMutex.Lock()
+		defer client.handleMessagesSequentiallyMutex.Unlock()
 	}
 	if message.GetSyncRequestToken() != "" {
 		response, err := client.handleSyncMessage(message)
