@@ -56,7 +56,6 @@ func ReplaceLine(fileContent string, lineIndex int, newLine string) string {
 }
 
 func CreateDirectory(path string) {
-	println(path)
 	err := os.MkdirAll(path, 0777)
 	if err != nil {
 		panic(fmt.Sprintf("error creating directory : %s", err))
