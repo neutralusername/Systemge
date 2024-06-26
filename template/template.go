@@ -46,10 +46,9 @@ func GenerateAppFile(path, name string, http, websocket bool) {
 }
 
 func GenerateApplicationTemplate(path, name string) {
-	replacedPackage := Utilities.ReplaceLine(asyncMessageHandlersGo, 0, "package "+name)
-	Utilities.OpenFileTruncate(path + name + "/asyncMessageHandlers.go").WriteString(replacedPackage)
-	Utilities.OpenFileTruncate(path + name + "/syncMessageHandlers.go").WriteString(replacedPackage)
-	Utilities.OpenFileTruncate(path + name + "/customCommandHandlers.go").WriteString(replacedPackage)
+	Utilities.OpenFileTruncate(path + name + "/asyncMessageHandlers.go").WriteString(Utilities.ReplaceLine(asyncMessageHandlersGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/syncMessageHandlers.go").WriteString(Utilities.ReplaceLine(syncMessageHandlersGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/customCommandHandlers.go").WriteString(Utilities.ReplaceLine(customCommandHandlersGo, 0, "package "+name))
 }
 
 func GenerateHTTPApplicationTemplate(path, name string) {
