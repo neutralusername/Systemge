@@ -1,11 +1,11 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
 	"time"
 )
 
-func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection) {
+func (client *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
 	removedSubscribedTopics := client.cleanUpDisconnectedBrokerConnection(brokerConnection)
 	for _, topic := range removedSubscribedTopics {
 		for {
@@ -23,7 +23,7 @@ func (client *Client) handleBrokerDisconnect(brokerConnection *brokerConnection)
 	}
 }
 
-func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
+func (client *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
 	client.clientMutex.Lock()
 	brokerConnection.mutex.Lock()
 	delete(client.activeBrokerConnections, brokerConnection.resolution.GetAddress())
@@ -40,7 +40,7 @@ func (client *Client) cleanUpDisconnectedBrokerConnection(brokerConnection *brok
 	return removedSubscribedTopics
 }
 
-func (client *Client) attemptToResubscribeToHandlerTopic(topic string) error {
+func (client *Node) attemptToResubscribeToHandlerTopic(topic string) error {
 	newBrokerConnection, err := client.getBrokerConnectionForTopic(topic)
 	if err != nil {
 		return Error.New("Unable to obtain new broker for topic \""+topic+"\"", err)

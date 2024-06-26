@@ -1,8 +1,8 @@
-package Client
+package Node
 
 import "Systemge/Error"
 
-func (client *Client) AddToWebsocketGroup(groupId string, websocketId string) error {
+func (client *Node) AddToWebsocketGroup(groupId string, websocketId string) error {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	websocketClient := client.websocketClients[websocketId]
@@ -20,7 +20,7 @@ func (client *Client) AddToWebsocketGroup(groupId string, websocketId string) er
 	return nil
 }
 
-func (client *Client) RemoveFromWebsocketGroup(groupId string, websocketId string) error {
+func (client *Node) RemoveFromWebsocketGroup(groupId string, websocketId string) error {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	if client.WebsocketGroups[groupId] == nil {
@@ -43,7 +43,7 @@ func (client *Client) RemoveFromWebsocketGroup(groupId string, websocketId strin
 	return nil
 }
 
-func (client *Client) GetWebsocketGroupClients(groupId string) []string {
+func (client *Node) GetWebsocketGroupClients(groupId string) []string {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	if client.WebsocketGroups[groupId] == nil {
@@ -56,7 +56,7 @@ func (client *Client) GetWebsocketGroupClients(groupId string) []string {
 	return groupMembers
 }
 
-func (client *Client) GetWebsocketGroups(websocketId string) []string {
+func (client *Node) GetWebsocketGroups(websocketId string) []string {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	if client.websocketClients[websocketId] == nil {
@@ -72,7 +72,7 @@ func (client *Client) GetWebsocketGroups(websocketId string) []string {
 	return groups
 }
 
-func (client *Client) IsInWebsocketGroup(groupId string, websocketId string) bool {
+func (client *Node) IsInWebsocketGroup(groupId string, websocketId string) bool {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	if client.WebsocketGroups[groupId] == nil {

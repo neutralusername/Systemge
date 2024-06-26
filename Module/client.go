@@ -1,10 +1,8 @@
 package Module
 
-import (
-	"Systemge/Client"
-)
+import "Systemge/Node"
 
 // equivalent to Client.New
-func NewClient(config *Client.Config, application Client.Application, httpApplication Client.HTTPComponent, websocketApplication Client.WebsocketComponent) *Client.Client {
-	return Client.New(config, application, httpApplication, websocketApplication)
+func NewClient(config *Node.Config, application Node.Application, httpApplication Node.HTTPComponent, websocketApplication Node.WebsocketComponent) *Node.Node {
+	return Node.New(config, application, httpApplication, websocketApplication)
 }

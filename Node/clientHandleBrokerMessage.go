@@ -1,11 +1,11 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
 	"Systemge/Message"
 )
 
-func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
+func (client *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		messageBytes, err := brokerConnection.receive()
 		if err != nil {
@@ -35,7 +35,7 @@ func (client *Client) handleBrokerMessages(brokerConnection *brokerConnection) {
 	}
 }
 
-func (client *Client) handleSyncResponse(message *Message.Message) error {
+func (client *Node) handleSyncResponse(message *Message.Message) error {
 	client.clientMutex.Lock()
 	responseChannel := client.messagesWaitingForResponse[message.GetSyncResponseToken()]
 	client.clientMutex.Unlock()
@@ -46,7 +46,7 @@ func (client *Client) handleSyncResponse(message *Message.Message) error {
 	return nil
 }
 
-func (client *Client) handleMessage(message *Message.Message, brokerConnection *brokerConnection) error {
+func (client *Node) handleMessage(message *Message.Message, brokerConnection *brokerConnection) error {
 	if client.config.HandleMessagesSequentially {
 		client.handleMessagesSequentiallyMutex.Lock()
 		defer client.handleMessagesSequentiallyMutex.Unlock()
@@ -73,7 +73,7 @@ func (client *Client) handleMessage(message *Message.Message, brokerConnection *
 	return nil
 }
 
-func (client *Client) handleSyncMessage(message *Message.Message) (string, error) {
+func (client *Node) handleSyncMessage(message *Message.Message) (string, error) {
 	syncHandler := client.application.GetSyncMessageHandlers()[message.GetTopic()]
 	if syncHandler == nil {
 		return "", Error.New("No handler for topic \""+message.GetTopic()+"\"", nil)
@@ -85,7 +85,7 @@ func (client *Client) handleSyncMessage(message *Message.Message) (string, error
 	return response, nil
 }
 
-func (client *Client) handleAsyncMessage(message *Message.Message) error {
+func (client *Node) handleAsyncMessage(message *Message.Message) error {
 	asyncHandler := client.application.GetAsyncMessageHandlers()[message.GetTopic()]
 	if asyncHandler == nil {
 		return Error.New("No handler for topic \""+message.GetTopic()+"\"", nil)

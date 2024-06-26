@@ -34,13 +34,13 @@ func GenerateAppFile(path, name string, http, websocket bool) {
 	replacedPackage := Utilities.ReplaceLine(appGo, 0, "package "+name)
 	replacedApplicationInterface := ""
 	if http && websocket {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Client.WebsocketHTTPApplication {")
+		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.WebsocketHTTPApplication {")
 	} else if http {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Client.HTTPApplication {")
+		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.HTTPApplication {")
 	} else if websocket {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Client.WebsocketApplication {")
+		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.WebsocketApplication {")
 	} else {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Client.Application {")
+		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.Application {")
 	}
 	Utilities.OpenFileTruncate(path + name + "/app.go").WriteString(replacedApplicationInterface)
 }
@@ -61,21 +61,21 @@ func GenerateWebsocketApplicationTemplate(path, name string) {
 
 const appGo = `package main
 
-import "Systemge/Client"
+import "Systemge/Node"
 
 type App struct {
 }
 
-func New() Client.Application {
+func New() Node.Application {
 	app := &App{}
 	return app
 }
 
-func (app *App) OnStart(client *Client.Client) error {
+func (app *App) OnStart(client *Node.Node) error {
 	return nil
 }
 
-func (app *App) OnStop(client *Client.Client) error {
+func (app *App) OnStop(client *Node.Node) error {
 	return nil
 }
 `
@@ -83,13 +83,13 @@ func (app *App) OnStop(client *Client.Client) error {
 const asyncMessageHandlersGo = `package main
 
 import (
-	"Systemge/Client"
+	"Systemge/Node"
 	"Systemge/Message"
 )
 
-func (app *App) GetAsyncMessageHandlers() map[string]Client.AsyncMessageHandler {
-	return map[string]Client.AsyncMessageHandler{
-		"asyncTopic": func(client *Client.Client, message *Message.Message) error {
+func (app *App) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHandler {
+	return map[string]Node.AsyncMessageHandler{
+		"asyncTopic": func(client *Node.Node, message *Message.Message) error {
 			return nil
 		},
 	}
@@ -99,13 +99,13 @@ func (app *App) GetAsyncMessageHandlers() map[string]Client.AsyncMessageHandler 
 const syncMessageHandlersGo = `package main
 
 import (
-	"Systemge/Client"
+	"Systemge/Node"
 	"Systemge/Message"
 )
 
-func (app *App) GetSyncMessageHandlers() map[string]Client.SyncMessageHandler {
-	return map[string]Client.SyncMessageHandler{
-		"syncTopic": func(client *Client.Client, message *Message.Message) (string, error) {
+func (app *App) GetSyncMessageHandlers() map[string]Node.SyncMessageHandler {
+	return map[string]Node.SyncMessageHandler{
+		"syncTopic": func(client *Node.Node, message *Message.Message) (string, error) {
 			return "", nil
 		},
 	}
@@ -114,11 +114,11 @@ func (app *App) GetSyncMessageHandlers() map[string]Client.SyncMessageHandler {
 
 const customCommandHandlersGo = `package main
 
-import "Systemge/Client"
+import "Systemge/Node"
 
-func (app *App) GetCustomCommandHandlers() map[string]Client.CustomCommandHandler {
-	return map[string]Client.CustomCommandHandler{
-		"command": func(client *Client.Client, args []string) error {
+func (app *App) GetCustomCommandHandlers() map[string]Node.CustomCommandHandler {
+	return map[string]Node.CustomCommandHandler{
+		"command": func(client *Node.Node, args []string) error {
 			return nil
 		},
 	}
@@ -127,11 +127,11 @@ func (app *App) GetCustomCommandHandlers() map[string]Client.CustomCommandHandle
 
 const httpGo = `package main
 
-import "Systemge/Client"
+import "Systemge/Node"
 
-func (app *App) GetHTTPRequestHandlers() map[string]Client.HTTPRequestHandler {
-	return map[string]Client.HTTPRequestHandler{
-		"/": Client.SendHTTPResponseCodeAndBody(200, "Hello, World!"),
+func (app *App) GetHTTPRequestHandlers() map[string]Node.HTTPRequestHandler {
+	return map[string]Node.HTTPRequestHandler{
+		"/": Node.SendHTTPResponseCodeAndBody(200, "Hello, World!"),
 	}
 }
 `
@@ -139,23 +139,23 @@ func (app *App) GetHTTPRequestHandlers() map[string]Client.HTTPRequestHandler {
 const websocketGo = `package main
 
 import (
-	"Systemge/Client"
+	"Systemge/Node"
 	"Systemge/Message"
 )
 
-func (app *App) GetWebsocketMessageHandlers() map[string]Client.WebsocketMessageHandler {
-	return map[string]Client.WebsocketMessageHandler{
-		"websocketTopic": func(client *Client.Client, websocketClient *Client.WebsocketClient, message *Message.Message) error {
+func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
+	return map[string]Node.WebsocketMessageHandler{
+		"websocketTopic": func(client *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
 			return nil
 		},
 	}
 }
 
-func (app *App) OnConnectHandler(client *Client.Client, websocketClient *Client.WebsocketClient) {
+func (app *App) OnConnectHandler(client *Node.Node, websocketClient *Node.WebsocketClient) {
 	println("websocket client connected")
 }
 
-func (app *App) OnDisconnectHandler(client *Client.Client, websocketClient *Client.WebsocketClient) {
+func (app *App) OnDisconnectHandler(client *Node.Node, websocketClient *Node.WebsocketClient) {
 	println("websocket client disconnected")
 }
 `

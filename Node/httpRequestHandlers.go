@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"net/http"

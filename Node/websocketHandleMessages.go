@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (client *Client) handleMessages(websocketClient *WebsocketClient) {
+func (client *Node) handleMessages(websocketClient *WebsocketClient) {
 	defer websocketClient.Disconnect()
 	for client.IsStarted() {
 		messageBytes, err := websocketClient.Receive()
@@ -42,7 +42,7 @@ func (client *Client) handleMessages(websocketClient *WebsocketClient) {
 	}
 }
 
-func (client *Client) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
+func (client *Node) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
 	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 	handler := client.websocketApplication.GetWebsocketMessageHandlers()[message.GetTopic()]
 	if handler == nil {

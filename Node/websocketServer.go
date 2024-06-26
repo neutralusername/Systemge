@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Client) startWebsocketServer() error {
+func (client *Node) startWebsocketServer() error {
 	err := client.startWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Error.New("Error starting websocket handshake handler", err)
@@ -17,7 +17,7 @@ func (client *Client) startWebsocketServer() error {
 	return nil
 }
 
-func (client *Client) stopWebsocketServer() error {
+func (client *Node) stopWebsocketServer() error {
 	err := client.stopWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Error.New("Error stopping websocket handshake handler", err)
@@ -37,7 +37,7 @@ func (client *Client) stopWebsocketServer() error {
 	return nil
 }
 
-func (client *Client) startWebsocketHandshakeHTTPServer() error {
+func (client *Node) startWebsocketHandshakeHTTPServer() error {
 	handlers := map[string]HTTPRequestHandler{
 		client.config.WebsocketPattern: client.promoteToWebsocket(),
 	}
@@ -50,7 +50,7 @@ func (client *Client) startWebsocketHandshakeHTTPServer() error {
 	return nil
 }
 
-func (client *Client) stopWebsocketHandshakeHTTPServer() error {
+func (client *Node) stopWebsocketHandshakeHTTPServer() error {
 	err := stopHTTPServer(client.websocketHandshakeHTTPServer)
 	if err != nil {
 		return Error.New("Error stopping websocket handshake handler", err)

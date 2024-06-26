@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -7,7 +7,7 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
+func (client *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
 	netConn, err := Utilities.TlsDial(resolution.GetAddress(), resolution.GetServerNameIndication(), resolution.GetTlsCertificate())
 	if err != nil {
 		return nil, Error.New("Error connecting to message broker server", err)

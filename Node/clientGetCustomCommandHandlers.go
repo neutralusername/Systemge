@@ -1,9 +1,9 @@
-package Client
+package Node
 
 import "Systemge/Error"
 
 // returns a map of custom command handlers for the command-line interface
-func (client *Client) GetCustomCommandHandlers() map[string]func([]string) error {
+func (client *Node) GetCustomCommandHandlers() map[string]func([]string) error {
 	handlers := map[string]func([]string) error{
 		"brokers":               client.handleBrokersCommand,
 		"removeBroker":          client.handleRemoveBrokerCommand,
@@ -24,7 +24,7 @@ func (client *Client) GetCustomCommandHandlers() map[string]func([]string) error
 	return handlers
 }
 
-func (client *Client) handleBrokersCommand(args []string) error {
+func (client *Node) handleBrokersCommand(args []string) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	for _, brokerConnection := range client.activeBrokerConnections {
@@ -33,7 +33,7 @@ func (client *Client) handleBrokersCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleRemoveBrokerCommand(args []string) error {
+func (client *Node) handleRemoveBrokerCommand(args []string) error {
 	if len(args) != 1 {
 		return Error.New("Invalid number of arguments", nil)
 	}
@@ -45,7 +45,7 @@ func (client *Client) handleRemoveBrokerCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleResolutionsCommand(args []string) error {
+func (client *Node) handleResolutionsCommand(args []string) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	for topic, brokerConnection := range client.topicResolutions {
@@ -54,7 +54,7 @@ func (client *Client) handleResolutionsCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleRemoveTopicCommand(args []string) error {
+func (client *Node) handleRemoveTopicCommand(args []string) error {
 	if len(args) != 1 {
 		return Error.New("Invalid number of arguments", nil)
 	}
@@ -66,7 +66,7 @@ func (client *Client) handleRemoveTopicCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleWebsocketClientsCommand(args []string) error {
+func (client *Node) handleWebsocketClientsCommand(args []string) error {
 	client.websocketMutex.Lock()
 	for _, client := range client.websocketClients {
 		println(client.GetId())
@@ -75,7 +75,7 @@ func (client *Client) handleWebsocketClientsCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleWebsocketGroupsCommand(args []string) error {
+func (client *Node) handleWebsocketGroupsCommand(args []string) error {
 	client.websocketMutex.Lock()
 	for groupId := range client.WebsocketGroups {
 		println(groupId)
@@ -84,7 +84,7 @@ func (client *Client) handleWebsocketGroupsCommand(args []string) error {
 	return nil
 }
 
-func (client *Client) handleWebsocketGroupClientsCommand(args []string) error {
+func (client *Node) handleWebsocketGroupClientsCommand(args []string) error {
 	if len(args) < 1 {
 		println("Usage: groupClients <groupId>")
 	}

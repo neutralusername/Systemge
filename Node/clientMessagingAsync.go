@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -6,7 +6,7 @@ import (
 )
 
 // resolves the broker address for the provided topic and sends the async message to the broker responsible for the topic.
-func (client *Client) AsyncMessage(topic, origin, payload string) error {
+func (client *Node) AsyncMessage(topic, origin, payload string) error {
 	message := Message.NewAsync(topic, origin, payload)
 	if !client.isStarted {
 		return Error.New("Client not started", nil)

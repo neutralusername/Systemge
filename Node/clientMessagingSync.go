@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -7,7 +7,7 @@ import (
 )
 
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
-func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
+func (client *Node) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
 	message := Message.NewSync(topic, origin, payload, client.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	if !client.isStarted {
 		return nil, Error.New("Client not started", nil)
@@ -31,7 +31,7 @@ func (client *Client) SyncMessage(topic, origin, payload string) (*Message.Messa
 	return client.receiveSyncResponse(message, responseChannel)
 }
 
-func (client *Client) receiveSyncResponse(message *Message.Message, responseChannel chan *Message.Message) (*Message.Message, error) {
+func (client *Node) receiveSyncResponse(message *Message.Message, responseChannel chan *Message.Message) (*Message.Message, error) {
 	select {
 	case response := <-responseChannel:
 		client.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
@@ -44,7 +44,7 @@ func (client *Client) receiveSyncResponse(message *Message.Message, responseChan
 		return nil, Error.New("client stopped", nil)
 	}
 }
-func (client *Client) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
+func (client *Node) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	if client.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
@@ -54,7 +54,7 @@ func (client *Client) addMessageWaitingForResponse(message *Message.Message) (ch
 	client.messagesWaitingForResponse[message.GetSyncRequestToken()] = responseChannel
 	return responseChannel, nil
 }
-func (client *Client) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
+func (client *Node) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	close(responseChannel)

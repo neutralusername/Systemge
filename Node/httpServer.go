@@ -1,8 +1,8 @@
-package Client
+package Node
 
 import "Systemge/Error"
 
-func (client *Client) startApplicationHTTPServer() error {
+func (client *Node) startApplicationHTTPServer() error {
 	client.httpMutex.Lock()
 	defer client.httpMutex.Unlock()
 	httpServer := createHTTPServer(client.config.HTTPPort, client.httpApplication.GetHTTPRequestHandlers())
@@ -14,7 +14,7 @@ func (client *Client) startApplicationHTTPServer() error {
 	return nil
 }
 
-func (client *Client) stopApplicationHTTPServer() error {
+func (client *Node) stopApplicationHTTPServer() error {
 	client.httpMutex.Lock()
 	defer client.httpMutex.Unlock()
 	err := stopHTTPServer(client.httpServer)

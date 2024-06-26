@@ -1,10 +1,10 @@
-package Client
+package Node
 
 import (
 	"Systemge/Message"
 )
 
-func (client *Client) WebsocketBroadcast(message *Message.Message) {
+func (client *Node) WebsocketBroadcast(message *Message.Message) {
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
@@ -13,7 +13,7 @@ func (client *Client) WebsocketBroadcast(message *Message.Message) {
 	}
 }
 
-func (client *Client) WebsocketUnicast(id string, message *Message.Message) {
+func (client *Node) WebsocketUnicast(id string, message *Message.Message) {
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
@@ -22,7 +22,7 @@ func (client *Client) WebsocketUnicast(id string, message *Message.Message) {
 	}
 }
 
-func (client *Client) WebsocketMulticast(ids []string, message *Message.Message) {
+func (client *Node) WebsocketMulticast(ids []string, message *Message.Message) {
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
@@ -33,7 +33,7 @@ func (client *Client) WebsocketMulticast(ids []string, message *Message.Message)
 	}
 }
 
-func (client *Client) WebsocketGroupcast(groupId string, message *Message.Message) {
+func (client *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
 	messageBytes := message.Serialize()
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()

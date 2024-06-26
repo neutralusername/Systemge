@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -30,7 +30,7 @@ type Config struct {
 	WebsocketKeyPath  string // *optional*
 }
 
-type Client struct {
+type Node struct {
 	config *Config
 
 	logger     *Utilities.Logger
@@ -64,8 +64,8 @@ type Client struct {
 	httpServer *http.Server
 }
 
-func New(clientConfig *Config, application Application, httpApplication HTTPComponent, websocketApplication WebsocketComponent) *Client {
-	return &Client{
+func New(clientConfig *Config, application Application, httpApplication HTTPComponent, websocketApplication WebsocketComponent) *Node {
+	return &Node{
 		config: clientConfig,
 
 		logger:     Utilities.NewLogger(clientConfig.LoggerPath),
@@ -86,7 +86,7 @@ func New(clientConfig *Config, application Application, httpApplication HTTPComp
 	}
 }
 
-func (client *Client) Start() error {
+func (client *Node) Start() error {
 	err := func() error {
 		client.stateMutex.Lock()
 		defer client.stateMutex.Unlock()
@@ -144,7 +144,7 @@ func (client *Client) Start() error {
 	return nil
 }
 
-func (client *Client) Stop() error {
+func (client *Node) Stop() error {
 	client.stateMutex.Lock()
 	defer client.stateMutex.Unlock()
 	if !client.isStarted {
@@ -172,7 +172,7 @@ func (client *Client) Stop() error {
 	return nil
 }
 
-func (client *Client) IsStarted() bool {
+func (client *Node) IsStarted() bool {
 	client.stateMutex.Lock()
 	defer client.stateMutex.Unlock()
 	return client.isStarted

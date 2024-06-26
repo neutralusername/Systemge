@@ -1,8 +1,8 @@
-package Client
+package Node
 
 import "Systemge/Error"
 
-func (client *Client) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
+func (client *Node) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
 	brokerConnection := client.GetTopicResolution(topic)
 	if brokerConnection == nil {
 		resolution, err := client.resolveBrokerForTopic(topic)

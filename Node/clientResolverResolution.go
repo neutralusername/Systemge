@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -7,7 +7,7 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Client) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
+func (client *Node) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
 	netConn, err := Utilities.TlsDial(client.config.ResolverAddress, client.config.ResolverNameIndication, client.config.ResolverTLSCert)
 	if err != nil {
 		return nil, Error.New("Error dialing resolver", err)
@@ -24,13 +24,13 @@ func (client *Client) resolveBrokerForTopic(topic string) (*Resolution.Resolutio
 	return resolution, nil
 }
 
-func (client *Client) GetTopicResolution(topic string) *brokerConnection {
+func (client *Node) GetTopicResolution(topic string) *brokerConnection {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	return client.topicResolutions[topic]
 }
 
-func (client *Client) addTopicResolution(topic string, serverConnection *brokerConnection) error {
+func (client *Node) addTopicResolution(topic string, serverConnection *brokerConnection) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	if client.topicResolutions[topic] != nil {
@@ -46,7 +46,7 @@ func (client *Client) addTopicResolution(topic string, serverConnection *brokerC
 
 // RemoveTopicResolution removes a topic resolution from the client
 // Subscribed topics, i.e. topics with message handlers in the application, cannot be removed
-func (client *Client) RemoveTopicResolution(topic string) error {
+func (client *Node) RemoveTopicResolution(topic string) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	serverConnection := client.topicResolutions[topic]

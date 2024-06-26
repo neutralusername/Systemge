@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Client) queueNewWebsocketConn(websocketConn *websocket.Conn) error {
+func (client *Node) queueNewWebsocketConn(websocketConn *websocket.Conn) error {
 	if !client.IsStarted() {
 		return Error.New("websocket listener is not started", nil)
 	}

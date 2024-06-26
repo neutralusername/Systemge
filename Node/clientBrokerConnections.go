@@ -1,8 +1,8 @@
-package Client
+package Node
 
 import "Systemge/Error"
 
-func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) error {
+func (client *Node) addBrokerConnection(brokerConnection *brokerConnection) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	if client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
@@ -14,14 +14,14 @@ func (client *Client) addBrokerConnection(brokerConnection *brokerConnection) er
 	return nil
 }
 
-func (client *Client) getBrokerConnection(brokerAddress string) *brokerConnection {
+func (client *Node) getBrokerConnection(brokerAddress string) *brokerConnection {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	return client.activeBrokerConnections[brokerAddress]
 }
 
 // Closes and removes a broker connection from the client
-func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
+func (client *Node) RemoveBrokerConnection(brokerAddress string) error {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	brokerConnection := client.activeBrokerConnections[brokerAddress]
@@ -36,7 +36,7 @@ func (client *Client) RemoveBrokerConnection(brokerAddress string) error {
 	return nil
 }
 
-func (client *Client) removeAllBrokerConnections() {
+func (client *Node) removeAllBrokerConnections() {
 	client.clientMutex.Lock()
 	defer client.clientMutex.Unlock()
 	for address, brokerConnection := range client.activeBrokerConnections {

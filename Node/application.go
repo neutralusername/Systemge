@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Message"
@@ -9,12 +9,12 @@ type Application interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
 	GetCustomCommandHandlers() map[string]CustomCommandHandler
-	OnStart(*Client) error
-	OnStop(*Client) error
+	OnStart(*Node) error
+	OnStop(*Node) error
 }
-type AsyncMessageHandler func(*Client, *Message.Message) error
-type SyncMessageHandler func(*Client, *Message.Message) (string, error)
-type CustomCommandHandler func(*Client, []string) error
+type AsyncMessageHandler func(*Node, *Message.Message) error
+type SyncMessageHandler func(*Node, *Message.Message) (string, error)
+type CustomCommandHandler func(*Node, []string) error
 
 type HTTPComponent interface {
 	GetHTTPRequestHandlers() map[string]HTTPRequestHandler
@@ -23,10 +23,10 @@ type HTTPRequestHandler func(w http.ResponseWriter, r *http.Request)
 
 type WebsocketComponent interface {
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
-	OnConnectHandler(*Client, *WebsocketClient)
-	OnDisconnectHandler(*Client, *WebsocketClient)
+	OnConnectHandler(*Node, *WebsocketClient)
+	OnDisconnectHandler(*Node, *WebsocketClient)
 }
-type WebsocketMessageHandler func(*Client, *WebsocketClient, *Message.Message) error
+type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error
 
 type WebsocketApplication interface {
 	Application

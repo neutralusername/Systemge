@@ -1,10 +1,10 @@
-package Client
+package Node
 
 import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Client) handleWebsocketConnections() {
+func (client *Node) handleWebsocketConnections() {
 	for client.IsStarted() {
 		select {
 		case <-client.stopChannel:
@@ -18,7 +18,7 @@ func (client *Client) handleWebsocketConnections() {
 	}
 }
 
-func (client *Client) handleWebsocketConn(websocketConn *websocket.Conn) {
+func (client *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
 	websocketClient := client.addWebsocketConn(websocketConn)
 	client.websocketApplication.OnConnectHandler(client, websocketClient)
 	client.handleMessages(websocketClient)

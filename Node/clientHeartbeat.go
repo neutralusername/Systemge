@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Error"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (client *Client) heartbeatLoop(brokerConnection *brokerConnection) {
+func (client *Node) heartbeatLoop(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		err := brokerConnection.send(Message.NewAsync("heartbeat", client.config.Name, ""))
 		if err != nil {

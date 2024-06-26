@@ -1,4 +1,4 @@
-package Client
+package Node
 
 import (
 	"Systemge/Utilities"
@@ -124,7 +124,7 @@ func (client *WebsocketClient) Receive() ([]byte, error) {
 	return messageBytes, err
 }
 
-func (client *Client) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
+func (client *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	websocketId := "#" + client.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
@@ -140,7 +140,7 @@ func (client *Client) addWebsocketConn(websocketConn *websocket.Conn) *Websocket
 	return websocketClient
 }
 
-func (client *Client) removeWebsocketClient(websocketClient *WebsocketClient) {
+func (client *Node) removeWebsocketClient(websocketClient *WebsocketClient) {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	delete(client.websocketClients, websocketClient.GetId())
@@ -153,7 +153,7 @@ func (client *Client) removeWebsocketClient(websocketClient *WebsocketClient) {
 	}
 }
 
-func (client *Client) ClientExists(websocketId string) bool {
+func (client *Node) ClientExists(websocketId string) bool {
 	client.websocketMutex.Lock()
 	defer client.websocketMutex.Unlock()
 	_, exists := client.websocketClients[websocketId]
