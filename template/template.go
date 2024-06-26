@@ -12,8 +12,6 @@ func main() {
 	websocket := flag.Bool("websocket", false, "generate websocket files")
 	flag.Parse()
 
-	println(*http, *websocket)
-
 	Utilities.CreateDirectory(*path + *name + "/")
 
 	GenerateAppFile(*path, *name, *http, *websocket)
