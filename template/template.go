@@ -71,11 +71,11 @@ func New() Node.Application {
 	return app
 }
 
-func (app *App) OnStart(client *Node.Node) error {
+func (app *App) OnStart(node *Node.Node) error {
 	return nil
 }
 
-func (app *App) OnStop(client *Node.Node) error {
+func (app *App) OnStop(node *Node.Node) error {
 	return nil
 }
 `
@@ -89,7 +89,7 @@ import (
 
 func (app *App) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHandler {
 	return map[string]Node.AsyncMessageHandler{
-		"asyncTopic": func(client *Node.Node, message *Message.Message) error {
+		"asyncTopic": func(node *Node.Node, message *Message.Message) error {
 			return nil
 		},
 	}
@@ -105,7 +105,7 @@ import (
 
 func (app *App) GetSyncMessageHandlers() map[string]Node.SyncMessageHandler {
 	return map[string]Node.SyncMessageHandler{
-		"syncTopic": func(client *Node.Node, message *Message.Message) (string, error) {
+		"syncTopic": func(node *Node.Node, message *Message.Message) (string, error) {
 			return "", nil
 		},
 	}
@@ -118,7 +118,7 @@ import "Systemge/Node"
 
 func (app *App) GetCustomCommandHandlers() map[string]Node.CustomCommandHandler {
 	return map[string]Node.CustomCommandHandler{
-		"command": func(client *Node.Node, args []string) error {
+		"command": func(node *Node.Node, args []string) error {
 			return nil
 		},
 	}
@@ -145,17 +145,17 @@ import (
 
 func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
 	return map[string]Node.WebsocketMessageHandler{
-		"websocketTopic": func(client *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
+		"websocketTopic": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
 			return nil
 		},
 	}
 }
 
-func (app *App) OnConnectHandler(client *Node.Node, websocketClient *Node.WebsocketClient) {
+func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
 	println("websocket client connected")
 }
 
-func (app *App) OnDisconnectHandler(client *Node.Node, websocketClient *Node.WebsocketClient) {
+func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
 	println("websocket client disconnected")
 }
 `
