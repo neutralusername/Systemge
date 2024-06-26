@@ -2,7 +2,7 @@ package Node
 
 import "Systemge/Error"
 
-func (node *Node) startApplicationHTTPServer() error {
+func (node *Node) startHTTPComponent() error {
 	node.httpMutex.Lock()
 	defer node.httpMutex.Unlock()
 	httpServer := createHTTPServer(node.config.HTTPPort, node.httpComponent.GetHTTPRequestHandlers())
@@ -14,7 +14,7 @@ func (node *Node) startApplicationHTTPServer() error {
 	return nil
 }
 
-func (node *Node) stopApplicationHTTPServer() error {
+func (node *Node) stopHTTPComponent() error {
 	node.httpMutex.Lock()
 	defer node.httpMutex.Unlock()
 	err := stopHTTPServer(node.httpServer)

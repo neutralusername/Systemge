@@ -64,7 +64,7 @@ type Node struct {
 	httpServer *http.Server
 }
 
-func New(config *Config, application Application, httpApplication HTTPComponent, websocketApplication WebsocketComponent) *Node {
+func New(config *Config, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
 	return &Node{
 		config: config,
 
@@ -72,8 +72,8 @@ func New(config *Config, application Application, httpApplication HTTPComponent,
 		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
 		application:        application,
-		httpComponent:      httpApplication,
-		websocketComponent: websocketApplication,
+		httpComponent:      httpComponent,
+		websocketComponent: websocketComponent,
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 
@@ -97,13 +97,13 @@ func (node *Node) Start() error {
 			return Error.New("Application not set", nil)
 		}
 		if node.websocketComponent != nil {
-			err := node.startWebsocketServer()
+			err := node.startWebsocketComponent()
 			if err != nil {
 				return Error.New("Error starting websocket server", err)
 			}
 		}
 		if node.httpComponent != nil {
-			err := node.startApplicationHTTPServer()
+			err := node.startHTTPComponent()
 			if err != nil {
 				return Error.New("Error starting http server", err)
 			}
@@ -155,13 +155,13 @@ func (node *Node) Stop() error {
 		return Error.New("Error in OnStop", err)
 	}
 	if node.websocketComponent != nil {
-		err := node.stopWebsocketServer()
+		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("Error stopping websocket server", err)
 		}
 	}
 	if node.httpComponent != nil {
-		err := node.stopApplicationHTTPServer()
+		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("Error stopping http server", err)
 		}

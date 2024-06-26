@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (node *Node) startWebsocketServer() error {
+func (node *Node) startWebsocketComponent() error {
 	err := node.startWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Error.New("Error starting websocket handshake handler", err)
@@ -17,7 +17,7 @@ func (node *Node) startWebsocketServer() error {
 	return nil
 }
 
-func (node *Node) stopWebsocketServer() error {
+func (node *Node) stopWebsocketComponent() error {
 	err := node.stopWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Error.New("Error stopping websocket handshake handler", err)

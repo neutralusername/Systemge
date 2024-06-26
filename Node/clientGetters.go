@@ -10,11 +10,11 @@ func (node *Node) GetApplication() Application {
 	return node.application
 }
 
-func (node *Node) GetHTTPApplication() HTTPComponent {
+func (node *Node) GetHTTPComponent() HTTPComponent {
 	return node.httpComponent
 }
 
-func (node *Node) GetWebsocketApplication() WebsocketComponent {
+func (node *Node) GetWebsocketComponent() WebsocketComponent {
 	return node.websocketComponent
 }
 
