@@ -10,11 +10,11 @@ func (client *Client) GetApplication() Application {
 	return client.application
 }
 
-func (client *Client) GetHTTPApplication() HTTPApplication {
+func (client *Client) GetHTTPApplication() HTTPComponent {
 	return client.httpApplication
 }
 
-func (client *Client) GetWebsocketApplication() WebsocketApplication {
+func (client *Client) GetWebsocketApplication() WebsocketComponent {
 	return client.websocketApplication
 }
 

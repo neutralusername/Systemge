@@ -38,6 +38,10 @@ func GetFileContent(filePath string) string {
 	return string(data)
 }
 
+func GetFileName(filePath string) string {
+	return filePath[strings.LastIndex(filePath, "/")+1:]
+}
+
 func SplitLines(content string) []string {
 	if strings.Contains(content, "\r\n") {
 		return strings.Split(content, "\r\n")
@@ -45,6 +49,16 @@ func SplitLines(content string) []string {
 	return strings.Split(content, "\n")
 }
 
-func GetFileName(filePath string) string {
-	return filePath[strings.LastIndex(filePath, "/")+1:]
+func ReplaceLine(fileContent string, lineIndex int, newLine string) string {
+	lines := SplitLines(fileContent)
+	lines[lineIndex] = newLine
+	return strings.Join(lines, "\n")
+}
+
+func CreateDirectory(path string) {
+	println(path)
+	err := os.MkdirAll(path, 0777)
+	if err != nil {
+		panic(fmt.Sprintf("error creating directory : %s", err))
+	}
 }

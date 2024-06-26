@@ -51,7 +51,7 @@ type Client struct {
 	activeBrokerConnections    map[string]*brokerConnection     // brokerAddress -> serverConnection
 	topicResolutions           map[string]*brokerConnection     // topic -> serverConnection
 
-	websocketApplication WebsocketApplication
+	websocketApplication WebsocketComponent
 	//websocket
 	websocketHandshakeHTTPServer *http.Server
 	websocketConnChannel         chan *websocket.Conn
@@ -59,12 +59,12 @@ type Client struct {
 	WebsocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
 
-	httpApplication HTTPApplication
+	httpApplication HTTPComponent
 	//http
 	httpServer *http.Server
 }
 
-func New(clientConfig *Config, application Application, httpApplication HTTPApplication, websocketApplication WebsocketApplication) *Client {
+func New(clientConfig *Config, application Application, httpApplication HTTPComponent, websocketApplication WebsocketComponent) *Client {
 	return &Client{
 		config: clientConfig,
 

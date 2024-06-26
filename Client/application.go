@@ -16,30 +16,30 @@ type AsyncMessageHandler func(*Client, *Message.Message) error
 type SyncMessageHandler func(*Client, *Message.Message) (string, error)
 type CustomCommandHandler func(*Client, []string) error
 
-type HTTPApplication interface {
+type HTTPComponent interface {
 	GetHTTPRequestHandlers() map[string]HTTPRequestHandler
 }
 type HTTPRequestHandler func(w http.ResponseWriter, r *http.Request)
 
-type WebsocketApplication interface {
+type WebsocketComponent interface {
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
 	OnConnectHandler(*Client, *WebsocketClient)
 	OnDisconnectHandler(*Client, *WebsocketClient)
 }
 type WebsocketMessageHandler func(*Client, *WebsocketClient, *Message.Message) error
 
-type CompositeApplicationWebsocket interface {
+type WebsocketApplication interface {
 	Application
-	WebsocketApplication
+	WebsocketComponent
 }
 
-type CompositeApplicationHTTP interface {
+type HTTPApplication interface {
 	Application
-	HTTPApplication
+	HTTPComponent
 }
 
-type CompositeApplicationWebsocketHTTP interface {
+type WebsocketHTTPApplication interface {
 	Application
-	WebsocketApplication
-	HTTPApplication
+	WebsocketComponent
+	HTTPComponent
 }
