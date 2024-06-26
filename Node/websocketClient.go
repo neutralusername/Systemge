@@ -18,15 +18,15 @@ type WebsocketClient struct {
 	stopChannel   chan bool
 
 	// the watchdog timer is reset every time a message is received.
-	// if the timer expires, the client is disconnected.
-	// if the timer is nil, the client is already disconnected.
+	// if the timer expires, the websocketClient is disconnected.
+	// if the timer is nil, the websocketClient is already disconnected.
 	watchdog *time.Timer
 
-	// the minimum time which must pass between two messages from the client.
+	// the minimum time which must pass between two messages from the websocketClient.
 	// otherwise the message is ignored.
 	messageCooldown time.Duration
 
-	// the timestamp of the previous message from the client.
+	// the timestamp of the previous message from the websocketClient.
 	// used to enforce messageCooldown.
 	// updated automatically after every message to the current time.
 	// can be set manually to a time in the future to block messages until that time.
@@ -38,7 +38,7 @@ type WebsocketClient struct {
 }
 
 func newWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*WebsocketClient)) *WebsocketClient {
-	client := &WebsocketClient{
+	websocketClient := &WebsocketClient{
 		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
@@ -47,115 +47,115 @@ func newWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHa
 		lastMessageTimestamp:       time.Now(),
 		handleMessagesConcurrently: DEFAULT_HANDLE_MESSAGES_CONCURRENTLY,
 	}
-	client.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
-		watchdog := client.watchdog
-		client.watchdog = nil
+	websocketClient.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
+		watchdog := websocketClient.watchdog
+		websocketClient.watchdog = nil
 		watchdog.Stop()
 		websocketConn.Close()
-		onDisconnectHandler(client)
-		close(client.stopChannel)
+		onDisconnectHandler(websocketClient)
+		close(websocketClient.stopChannel)
 	})
-	return client
-}
-
-func (client *WebsocketClient) GetLastMessageTimestamp() time.Time {
-	return client.lastMessageTimestamp
-}
-
-func (client *WebsocketClient) SetLastMessageTimestamp(lastMessageTimestamp time.Time) {
-	client.lastMessageTimestamp = lastMessageTimestamp
-}
-
-func (client *WebsocketClient) SetHandleMessagesConcurrently(handleMessagesConcurrently bool) {
-	client.handleMessagesConcurrently = handleMessagesConcurrently
-}
-
-func (client *WebsocketClient) GetHandleMessagesConcurrently() bool {
-	return client.handleMessagesConcurrently
-}
-
-func (client *WebsocketClient) SetMessageCooldown(messageCooldown time.Duration) {
-	client.messageCooldown = messageCooldown
-}
-
-func (client *WebsocketClient) GetMessageCooldown() time.Duration {
-	return client.messageCooldown
-}
-
-// Resets the watchdog timer to its initial value
-func (client *WebsocketClient) ResetWatchdog() {
-	client.watchdogMutex.Lock()
-	defer client.watchdogMutex.Unlock()
-	if client.watchdog == nil {
-		return
-	}
-	client.watchdog.Reset(WATCHDOG_TIMEOUT)
-}
-
-// Disconnects the client and blocks until after the onDisconnectHandler is called
-func (client *WebsocketClient) Disconnect() {
-	client.watchdogMutex.Lock()
-	defer client.watchdogMutex.Unlock()
-	if client.watchdog == nil {
-		return
-	}
-	client.watchdog.Reset(0)
-	<-client.stopChannel
-}
-
-func (client *WebsocketClient) GetIp() string {
-	return client.websocketConn.RemoteAddr().String()
-}
-
-func (client *WebsocketClient) GetId() string {
-	return client.id
-}
-
-func (client *WebsocketClient) Send(messageBytes []byte) error {
-	client.sendMutex.Lock()
-	defer client.sendMutex.Unlock()
-	return client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
-}
-
-func (client *WebsocketClient) Receive() ([]byte, error) {
-	client.receiveMutex.Lock()
-	defer client.receiveMutex.Unlock()
-	_, messageBytes, err := client.websocketConn.ReadMessage()
-	return messageBytes, err
-}
-
-func (client *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	websocketId := "#" + client.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
-	for _, exists := client.websocketClients[websocketId]; exists; {
-		websocketId = "#" + client.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
-	}
-	websocketClient := newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
-		client.websocketApplication.OnDisconnectHandler(client, websocketClient)
-		client.removeWebsocketClient(websocketClient)
-	})
-	client.websocketClients[websocketId] = websocketClient
-	client.websocketClientGroups[websocketId] = make(map[string]bool)
 	return websocketClient
 }
 
-func (client *Node) removeWebsocketClient(websocketClient *WebsocketClient) {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	delete(client.websocketClients, websocketClient.GetId())
-	for groupId := range client.websocketClientGroups[websocketClient.GetId()] {
-		delete(client.websocketClientGroups[websocketClient.GetId()], groupId)
-		delete(client.WebsocketGroups[groupId], websocketClient.GetId())
-		if len(client.WebsocketGroups[groupId]) == 0 {
-			delete(client.WebsocketGroups, groupId)
+func (websocketClient *WebsocketClient) GetLastMessageTimestamp() time.Time {
+	return websocketClient.lastMessageTimestamp
+}
+
+func (websocketClient *WebsocketClient) SetLastMessageTimestamp(lastMessageTimestamp time.Time) {
+	websocketClient.lastMessageTimestamp = lastMessageTimestamp
+}
+
+func (websocketClient *WebsocketClient) SetHandleMessagesConcurrently(handleMessagesConcurrently bool) {
+	websocketClient.handleMessagesConcurrently = handleMessagesConcurrently
+}
+
+func (websocketClient *WebsocketClient) GetHandleMessagesConcurrently() bool {
+	return websocketClient.handleMessagesConcurrently
+}
+
+func (websocketClient *WebsocketClient) SetMessageCooldown(messageCooldown time.Duration) {
+	websocketClient.messageCooldown = messageCooldown
+}
+
+func (websocketClient *WebsocketClient) GetMessageCooldown() time.Duration {
+	return websocketClient.messageCooldown
+}
+
+// Resets the watchdog timer to its initial value
+func (websocketClient *WebsocketClient) ResetWatchdog() {
+	websocketClient.watchdogMutex.Lock()
+	defer websocketClient.watchdogMutex.Unlock()
+	if websocketClient.watchdog == nil {
+		return
+	}
+	websocketClient.watchdog.Reset(WATCHDOG_TIMEOUT)
+}
+
+// Disconnects the websocketClient and blocks until after the onDisconnectHandler is called
+func (websocketClient *WebsocketClient) Disconnect() {
+	websocketClient.watchdogMutex.Lock()
+	defer websocketClient.watchdogMutex.Unlock()
+	if websocketClient.watchdog == nil {
+		return
+	}
+	websocketClient.watchdog.Reset(0)
+	<-websocketClient.stopChannel
+}
+
+func (websocketClient *WebsocketClient) GetIp() string {
+	return websocketClient.websocketConn.RemoteAddr().String()
+}
+
+func (websocketClient *WebsocketClient) GetId() string {
+	return websocketClient.id
+}
+
+func (websocketClient *WebsocketClient) Send(messageBytes []byte) error {
+	websocketClient.sendMutex.Lock()
+	defer websocketClient.sendMutex.Unlock()
+	return websocketClient.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
+}
+
+func (websocketClient *WebsocketClient) Receive() ([]byte, error) {
+	websocketClient.receiveMutex.Lock()
+	defer websocketClient.receiveMutex.Unlock()
+	_, messageBytes, err := websocketClient.websocketConn.ReadMessage()
+	return messageBytes, err
+}
+
+func (node *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	websocketId := "#" + node.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+	for _, exists := node.websocketClients[websocketId]; exists; {
+		websocketId = "#" + node.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+	}
+	websocketClient := newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
+		node.websocketComponent.OnDisconnectHandler(node, websocketClient)
+		node.removeWebsocketClient(websocketClient)
+	})
+	node.websocketClients[websocketId] = websocketClient
+	node.websocketClientGroups[websocketId] = make(map[string]bool)
+	return websocketClient
+}
+
+func (node *Node) removeWebsocketClient(websocketClient *WebsocketClient) {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	delete(node.websocketClients, websocketClient.GetId())
+	for groupId := range node.websocketClientGroups[websocketClient.GetId()] {
+		delete(node.websocketClientGroups[websocketClient.GetId()], groupId)
+		delete(node.WebsocketGroups[groupId], websocketClient.GetId())
+		if len(node.WebsocketGroups[groupId]) == 0 {
+			delete(node.WebsocketGroups, groupId)
 		}
 	}
 }
 
-func (client *Node) ClientExists(websocketId string) bool {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	_, exists := client.websocketClients[websocketId]
+func (node *Node) WebsocketClientExists(websocketId string) bool {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	_, exists := node.websocketClients[websocketId]
 	return exists
 }

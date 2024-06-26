@@ -7,12 +7,12 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Node) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
-	netConn, err := Utilities.TlsDial(client.config.ResolverAddress, client.config.ResolverNameIndication, client.config.ResolverTLSCert)
+func (node *Node) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
+	netConn, err := Utilities.TlsDial(node.config.ResolverAddress, node.config.ResolverNameIndication, node.config.ResolverTLSCert)
 	if err != nil {
 		return nil, Error.New("Error dialing resolver", err)
 	}
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", client.config.Name, topic), DEFAULT_TCP_TIMEOUT)
+	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.config.Name, topic), DEFAULT_TCP_TIMEOUT)
 	netConn.Close()
 	if err != nil {
 		return nil, Error.New("Error resolving broker", err)
@@ -24,42 +24,42 @@ func (client *Node) resolveBrokerForTopic(topic string) (*Resolution.Resolution,
 	return resolution, nil
 }
 
-func (client *Node) GetTopicResolution(topic string) *brokerConnection {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	return client.topicResolutions[topic]
+func (node *Node) GetTopicResolution(topic string) *brokerConnection {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	return node.topicResolutions[topic]
 }
 
-func (client *Node) addTopicResolution(topic string, serverConnection *brokerConnection) error {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	if client.topicResolutions[topic] != nil {
+func (node *Node) addTopicResolution(topic string, serverConnection *brokerConnection) error {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	if node.topicResolutions[topic] != nil {
 		return Error.New("Topic resolution already exists", nil)
 	}
 	err := serverConnection.addTopic(topic)
 	if err != nil {
 		return Error.New("Error adding topic to server connection", err)
 	}
-	client.topicResolutions[topic] = serverConnection
+	node.topicResolutions[topic] = serverConnection
 	return nil
 }
 
-// RemoveTopicResolution removes a topic resolution from the client
+// RemoveTopicResolution removes a topic resolution from the node
 // Subscribed topics, i.e. topics with message handlers in the application, cannot be removed
-func (client *Node) RemoveTopicResolution(topic string) error {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	serverConnection := client.topicResolutions[topic]
+func (node *Node) RemoveTopicResolution(topic string) error {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	serverConnection := node.topicResolutions[topic]
 	if serverConnection == nil {
 		return Error.New("Topic resolution does not exist", nil)
 	}
-	if client.application.GetAsyncMessageHandlers()[topic] != nil || client.application.GetSyncMessageHandlers()[topic] != nil {
+	if node.application.GetAsyncMessageHandlers()[topic] != nil || node.application.GetSyncMessageHandlers()[topic] != nil {
 		return Error.New("Cannot remove topics you are subscribed to", nil)
 	}
 	err := serverConnection.removeTopic(topic)
 	if err != nil {
 		return Error.New("Error removing topic from server connection", err)
 	}
-	delete(client.topicResolutions, topic)
+	delete(node.topicResolutions, topic)
 	return nil
 }

@@ -7,12 +7,12 @@ import (
 	"Systemge/Utilities"
 )
 
-func (client *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
+func (node *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
 	netConn, err := Utilities.TlsDial(resolution.GetAddress(), resolution.GetServerNameIndication(), resolution.GetTlsCertificate())
 	if err != nil {
 		return nil, Error.New("Error connecting to message broker server", err)
 	}
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", client.config.Name, ""), DEFAULT_TCP_TIMEOUT)
+	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", node.config.Name, ""), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Error sending connection request", err)
@@ -21,5 +21,5 @@ func (client *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerC
 		netConn.Close()
 		return nil, Error.New("Invalid response topic \""+responseMessage.GetTopic()+"\"", nil)
 	}
-	return newBrokerConnection(netConn, resolution, client.logger), nil
+	return newBrokerConnection(netConn, resolution, node.logger), nil
 }

@@ -4,43 +4,43 @@ import (
 	"Systemge/Message"
 )
 
-func (client *Node) WebsocketBroadcast(message *Message.Message) {
+func (node *Node) WebsocketBroadcast(message *Message.Message) {
 	messageBytes := message.Serialize()
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	for _, websocketClient := range client.websocketClients {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	for _, websocketClient := range node.websocketClients {
 		go websocketClient.Send(messageBytes)
 	}
 }
 
-func (client *Node) WebsocketUnicast(id string, message *Message.Message) {
+func (node *Node) WebsocketUnicast(id string, message *Message.Message) {
 	messageBytes := message.Serialize()
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	if websocketClient, exists := client.websocketClients[id]; exists {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	if websocketClient, exists := node.websocketClients[id]; exists {
 		go websocketClient.Send(messageBytes)
 	}
 }
 
-func (client *Node) WebsocketMulticast(ids []string, message *Message.Message) {
+func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) {
 	messageBytes := message.Serialize()
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
 	for _, id := range ids {
-		if websocketClient, exists := client.websocketClients[id]; exists {
+		if websocketClient, exists := node.websocketClients[id]; exists {
 			go websocketClient.Send(messageBytes)
 		}
 	}
 }
 
-func (client *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
+func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
 	messageBytes := message.Serialize()
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	if client.WebsocketGroups[groupId] == nil {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	if node.WebsocketGroups[groupId] == nil {
 		return
 	}
-	for _, websocketClient := range client.WebsocketGroups[groupId] {
+	for _, websocketClient := range node.WebsocketGroups[groupId] {
 		go websocketClient.Send(messageBytes)
 	}
 }

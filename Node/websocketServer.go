@@ -6,55 +6,55 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Node) startWebsocketServer() error {
-	err := client.startWebsocketHandshakeHTTPServer()
+func (node *Node) startWebsocketServer() error {
+	err := node.startWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Error.New("Error starting websocket handshake handler", err)
 	}
-	client.websocketClients = make(map[string]*WebsocketClient)
-	client.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
-	go client.handleWebsocketConnections()
+	node.websocketClients = make(map[string]*WebsocketClient)
+	node.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
+	go node.handleWebsocketConnections()
 	return nil
 }
 
-func (client *Node) stopWebsocketServer() error {
-	err := client.stopWebsocketHandshakeHTTPServer()
+func (node *Node) stopWebsocketServer() error {
+	err := node.stopWebsocketHandshakeHTTPServer()
 	if err != nil {
 		return Error.New("Error stopping websocket handshake handler", err)
 	}
-	close(client.websocketConnChannel)
+	close(node.websocketConnChannel)
 
-	client.websocketMutex.Lock()
-	clientsToDisconnect := make([]*WebsocketClient, 0)
-	for _, websocketClient := range client.websocketClients {
-		clientsToDisconnect = append(clientsToDisconnect, websocketClient)
+	node.websocketMutex.Lock()
+	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
+	for _, websocketClient := range node.websocketClients {
+		websocketClientsToDisconnect = append(websocketClientsToDisconnect, websocketClient)
 	}
-	client.websocketMutex.Unlock()
+	node.websocketMutex.Unlock()
 
-	for _, websocketClient := range clientsToDisconnect {
+	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()
 	}
 	return nil
 }
 
-func (client *Node) startWebsocketHandshakeHTTPServer() error {
+func (node *Node) startWebsocketHandshakeHTTPServer() error {
 	handlers := map[string]HTTPRequestHandler{
-		client.config.WebsocketPattern: client.promoteToWebsocket(),
+		node.config.WebsocketPattern: node.promoteToWebsocket(),
 	}
-	httpServer := createHTTPServer(client.config.WebsocketPort, handlers)
-	err := startHTTPServer(httpServer, client.config.WebsocketCertPath, client.config.WebsocketKeyPath)
+	httpServer := createHTTPServer(node.config.WebsocketPort, handlers)
+	err := startHTTPServer(httpServer, node.config.WebsocketCertPath, node.config.WebsocketKeyPath)
 	if err != nil {
 		return Error.New("Error starting websocket handshake handler", err)
 	}
-	client.websocketHandshakeHTTPServer = httpServer
+	node.websocketHandshakeHTTPServer = httpServer
 	return nil
 }
 
-func (client *Node) stopWebsocketHandshakeHTTPServer() error {
-	err := stopHTTPServer(client.websocketHandshakeHTTPServer)
+func (node *Node) stopWebsocketHandshakeHTTPServer() error {
+	err := stopHTTPServer(node.websocketHandshakeHTTPServer)
 	if err != nil {
 		return Error.New("Error stopping websocket handshake handler", err)
 	}
-	client.websocketHandshakeHTTPServer = nil
+	node.websocketHandshakeHTTPServer = nil
 	return nil
 }

@@ -2,83 +2,83 @@ package Node
 
 import "Systemge/Error"
 
-func (client *Node) AddToWebsocketGroup(groupId string, websocketId string) error {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	websocketClient := client.websocketClients[websocketId]
+func (node *Node) AddToWebsocketGroup(groupId string, websocketId string) error {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	websocketClient := node.websocketClients[websocketId]
 	if websocketClient == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
 	}
-	if client.websocketClientGroups[websocketId][groupId] {
+	if node.websocketClientGroups[websocketId][groupId] {
 		return Error.New("WebsocketClient with id "+websocketId+" is already in group "+groupId, nil)
 	}
-	if client.WebsocketGroups[groupId] == nil {
-		client.WebsocketGroups[groupId] = make(map[string]*WebsocketClient)
+	if node.WebsocketGroups[groupId] == nil {
+		node.WebsocketGroups[groupId] = make(map[string]*WebsocketClient)
 	}
-	client.WebsocketGroups[groupId][websocketId] = client.websocketClients[websocketId]
-	client.websocketClientGroups[websocketId][groupId] = true
+	node.WebsocketGroups[groupId][websocketId] = node.websocketClients[websocketId]
+	node.websocketClientGroups[websocketId][groupId] = true
 	return nil
 }
 
-func (client *Node) RemoveFromWebsocketGroup(groupId string, websocketId string) error {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	if client.WebsocketGroups[groupId] == nil {
+func (node *Node) RemoveFromWebsocketGroup(groupId string, websocketId string) error {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	if node.WebsocketGroups[groupId] == nil {
 		return Error.New("Group with id "+groupId+" does not exist", nil)
 	}
-	if client.WebsocketGroups[groupId][websocketId] == nil {
+	if node.WebsocketGroups[groupId][websocketId] == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" is not in group "+groupId, nil)
 	}
-	if client.websocketClients[websocketId] == nil {
+	if node.websocketClients[websocketId] == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
 	}
-	if client.websocketClientGroups[websocketId] == nil {
+	if node.websocketClientGroups[websocketId] == nil {
 		return Error.New("WebsocketClient with id "+websocketId+" is not in any groups", nil)
 	}
-	delete(client.websocketClientGroups[websocketId], groupId)
-	delete(client.WebsocketGroups[groupId], websocketId)
-	if len(client.WebsocketGroups[groupId]) == 0 {
-		delete(client.WebsocketGroups, groupId)
+	delete(node.websocketClientGroups[websocketId], groupId)
+	delete(node.WebsocketGroups[groupId], websocketId)
+	if len(node.WebsocketGroups[groupId]) == 0 {
+		delete(node.WebsocketGroups, groupId)
 	}
 	return nil
 }
 
-func (client *Node) GetWebsocketGroupClients(groupId string) []string {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	if client.WebsocketGroups[groupId] == nil {
+func (node *Node) GetWebsocketGroupClients(groupId string) []string {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	if node.WebsocketGroups[groupId] == nil {
 		return nil
 	}
 	groupMembers := make([]string, 0)
-	for websocketId := range client.WebsocketGroups[groupId] {
+	for websocketId := range node.WebsocketGroups[groupId] {
 		groupMembers = append(groupMembers, websocketId)
 	}
 	return groupMembers
 }
 
-func (client *Node) GetWebsocketGroups(websocketId string) []string {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	if client.websocketClients[websocketId] == nil {
+func (node *Node) GetWebsocketGroups(websocketId string) []string {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	if node.websocketClients[websocketId] == nil {
 		return nil
 	}
-	if client.websocketClientGroups[websocketId] == nil {
+	if node.websocketClientGroups[websocketId] == nil {
 		return nil
 	}
 	groups := make([]string, 0)
-	for groupId := range client.websocketClientGroups[websocketId] {
+	for groupId := range node.websocketClientGroups[websocketId] {
 		groups = append(groups, groupId)
 	}
 	return groups
 }
 
-func (client *Node) IsInWebsocketGroup(groupId string, websocketId string) bool {
-	client.websocketMutex.Lock()
-	defer client.websocketMutex.Unlock()
-	if client.WebsocketGroups[groupId] == nil {
+func (node *Node) IsInWebsocketGroup(groupId string, websocketId string) bool {
+	node.websocketMutex.Lock()
+	defer node.websocketMutex.Unlock()
+	if node.WebsocketGroups[groupId] == nil {
 		return false
 	}
-	if client.WebsocketGroups[groupId][websocketId] == nil {
+	if node.WebsocketGroups[groupId][websocketId] == nil {
 		return false
 	}
 	return true

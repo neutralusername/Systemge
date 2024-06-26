@@ -2,34 +2,34 @@ package Node
 
 import "Systemge/Utilities"
 
-func (client *Node) GetName() string {
-	return client.config.Name
+func (node *Node) GetName() string {
+	return node.config.Name
 }
 
-func (client *Node) GetApplication() Application {
-	return client.application
+func (node *Node) GetApplication() Application {
+	return node.application
 }
 
-func (client *Node) GetHTTPApplication() HTTPComponent {
-	return client.httpApplication
+func (node *Node) GetHTTPApplication() HTTPComponent {
+	return node.httpComponent
 }
 
-func (client *Node) GetWebsocketApplication() WebsocketComponent {
-	return client.websocketApplication
+func (node *Node) GetWebsocketApplication() WebsocketComponent {
+	return node.websocketComponent
 }
 
-func (client *Node) GetLogger() *Utilities.Logger {
-	return client.logger
+func (node *Node) GetLogger() *Utilities.Logger {
+	return node.logger
 }
 
-func (client *Node) GetResolverAddress() string {
-	return client.config.ResolverAddress
+func (node *Node) GetResolverAddress() string {
+	return node.config.ResolverAddress
 }
 
-func (client *Node) GetResolverNameIndication() string {
-	return client.config.ResolverNameIndication
+func (node *Node) GetResolverNameIndication() string {
+	return node.config.ResolverNameIndication
 }
 
-func (client *Node) GetResolverTLSCert() string {
-	return client.config.ResolverTLSCert
+func (node *Node) GetResolverTLSCert() string {
+	return node.config.ResolverTLSCert
 }

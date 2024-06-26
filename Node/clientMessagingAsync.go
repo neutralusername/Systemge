@@ -6,12 +6,12 @@ import (
 )
 
 // resolves the broker address for the provided topic and sends the async message to the broker responsible for the topic.
-func (client *Node) AsyncMessage(topic, origin, payload string) error {
+func (node *Node) AsyncMessage(topic, origin, payload string) error {
 	message := Message.NewAsync(topic, origin, payload)
-	if !client.isStarted {
-		return Error.New("Client not started", nil)
+	if !node.isStarted {
+		return Error.New("Node not started", nil)
 	}
-	brokerConnection, err := client.getBrokerConnectionForTopic(message.GetTopic())
+	brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic())
 	if err != nil {
 		return Error.New("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}

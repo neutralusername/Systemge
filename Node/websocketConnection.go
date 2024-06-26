@@ -6,10 +6,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Node) queueNewWebsocketConn(websocketConn *websocket.Conn) error {
-	if !client.IsStarted() {
+func (node *Node) queueNewWebsocketConn(websocketConn *websocket.Conn) error {
+	if !node.IsStarted() {
 		return Error.New("websocket listener is not started", nil)
 	}
-	client.websocketConnChannel <- websocketConn
+	node.websocketConnChannel <- websocketConn
 	return nil
 }

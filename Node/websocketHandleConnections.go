@@ -4,22 +4,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *Node) handleWebsocketConnections() {
-	for client.IsStarted() {
+func (node *Node) handleWebsocketConnections() {
+	for node.IsStarted() {
 		select {
-		case <-client.stopChannel:
+		case <-node.stopChannel:
 			return
-		case websocketConn := <-client.websocketConnChannel:
+		case websocketConn := <-node.websocketConnChannel:
 			if websocketConn == nil {
 				continue
 			}
-			go client.handleWebsocketConn(websocketConn)
+			go node.handleWebsocketConn(websocketConn)
 		}
 	}
 }
 
-func (client *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
-	websocketClient := client.addWebsocketConn(websocketConn)
-	client.websocketApplication.OnConnectHandler(client, websocketClient)
-	client.handleMessages(websocketClient)
+func (node *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
+	websocketClient := node.addWebsocketConn(websocketConn)
+	node.websocketComponent.OnConnectHandler(node, websocketClient)
+	node.handleMessages(websocketClient)
 }

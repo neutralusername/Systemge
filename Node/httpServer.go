@@ -2,25 +2,25 @@ package Node
 
 import "Systemge/Error"
 
-func (client *Node) startApplicationHTTPServer() error {
-	client.httpMutex.Lock()
-	defer client.httpMutex.Unlock()
-	httpServer := createHTTPServer(client.config.HTTPPort, client.httpApplication.GetHTTPRequestHandlers())
-	err := startHTTPServer(httpServer, client.config.HTTPCertPath, client.config.HTTPKeyPath)
+func (node *Node) startApplicationHTTPServer() error {
+	node.httpMutex.Lock()
+	defer node.httpMutex.Unlock()
+	httpServer := createHTTPServer(node.config.HTTPPort, node.httpComponent.GetHTTPRequestHandlers())
+	err := startHTTPServer(httpServer, node.config.HTTPCertPath, node.config.HTTPKeyPath)
 	if err != nil {
 		return Error.New("Error starting http server", err)
 	}
-	client.httpServer = httpServer
+	node.httpServer = httpServer
 	return nil
 }
 
-func (client *Node) stopApplicationHTTPServer() error {
-	client.httpMutex.Lock()
-	defer client.httpMutex.Unlock()
-	err := stopHTTPServer(client.httpServer)
+func (node *Node) stopApplicationHTTPServer() error {
+	node.httpMutex.Lock()
+	defer node.httpMutex.Unlock()
+	err := stopHTTPServer(node.httpServer)
 	if err != nil {
 		return Error.New("Error stopping http server", err)
 	}
-	client.httpServer = nil
+	node.httpServer = nil
 	return nil
 }

@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-func (client *Node) heartbeatLoop(brokerConnection *brokerConnection) {
+func (node *Node) heartbeatLoop(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
-		err := brokerConnection.send(Message.NewAsync("heartbeat", client.config.Name, ""))
+		err := brokerConnection.send(Message.NewAsync("heartbeat", node.config.Name, ""))
 		if err != nil {
-			client.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+brokerConnection.resolution.GetAddress()+"\"", err).Error())
+			node.logger.Log(Error.New("Failed to send heartbeat to message broker server \""+brokerConnection.resolution.GetAddress()+"\"", err).Error())
 			return
 		}
 		sleepChannel := make(chan bool)
@@ -19,7 +19,7 @@ func (client *Node) heartbeatLoop(brokerConnection *brokerConnection) {
 			sleepChannel <- true
 		}()
 		select {
-		case <-client.stopChannel:
+		case <-node.stopChannel:
 			return
 		case <-sleepChannel:
 			continue

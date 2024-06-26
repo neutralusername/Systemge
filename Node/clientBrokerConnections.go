@@ -2,29 +2,29 @@ package Node
 
 import "Systemge/Error"
 
-func (client *Node) addBrokerConnection(brokerConnection *brokerConnection) error {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	if client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
+func (node *Node) addBrokerConnection(brokerConnection *brokerConnection) error {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	if node.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
 		return Error.New("Server connection already exists", nil)
 	}
-	client.activeBrokerConnections[brokerConnection.resolution.GetAddress()] = brokerConnection
-	go client.handleBrokerMessages(brokerConnection)
-	go client.heartbeatLoop(brokerConnection)
+	node.activeBrokerConnections[brokerConnection.resolution.GetAddress()] = brokerConnection
+	go node.handleBrokerMessages(brokerConnection)
+	go node.heartbeatLoop(brokerConnection)
 	return nil
 }
 
-func (client *Node) getBrokerConnection(brokerAddress string) *brokerConnection {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	return client.activeBrokerConnections[brokerAddress]
+func (node *Node) getBrokerConnection(brokerAddress string) *brokerConnection {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	return node.activeBrokerConnections[brokerAddress]
 }
 
-// Closes and removes a broker connection from the client
-func (client *Node) RemoveBrokerConnection(brokerAddress string) error {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	brokerConnection := client.activeBrokerConnections[brokerAddress]
+// Closes and removes a broker connection from the node
+func (node *Node) RemoveBrokerConnection(brokerAddress string) error {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	brokerConnection := node.activeBrokerConnections[brokerAddress]
 	if brokerConnection == nil {
 		return Error.New("Server connection does not exist", nil)
 	}
@@ -32,18 +32,18 @@ func (client *Node) RemoveBrokerConnection(brokerAddress string) error {
 	if err != nil {
 		return Error.New("Error closing server connection", err)
 	}
-	delete(client.activeBrokerConnections, brokerAddress)
+	delete(node.activeBrokerConnections, brokerAddress)
 	return nil
 }
 
-func (client *Node) removeAllBrokerConnections() {
-	client.clientMutex.Lock()
-	defer client.clientMutex.Unlock()
-	for address, brokerConnection := range client.activeBrokerConnections {
+func (node *Node) removeAllBrokerConnections() {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	for address, brokerConnection := range node.activeBrokerConnections {
 		brokerConnection.close()
-		delete(client.activeBrokerConnections, address)
+		delete(node.activeBrokerConnections, address)
 		for topic := range brokerConnection.topics {
-			delete(client.topicResolutions, topic)
+			delete(node.topicResolutions, topic)
 		}
 	}
 }
