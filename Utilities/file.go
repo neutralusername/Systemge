@@ -6,8 +6,16 @@ import (
 	"strings"
 )
 
-func OpenFile(filePath string) *os.File {
+func OpenFileAppend(filePath string) *os.File {
 	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(fmt.Sprintf("error opening file : %s", err))
+	}
+	return file
+}
+
+func OpenFileTruncate(filePath string) *os.File {
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		panic(fmt.Sprintf("error opening file : %s", err))
 	}

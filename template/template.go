@@ -42,22 +42,22 @@ func GenerateAppFile(path, name string, http, websocket bool) {
 	} else {
 		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Client.Application {")
 	}
-	Utilities.OpenFile(path + name + "/app.go").WriteString(replacedApplicationInterface)
+	Utilities.OpenFileTruncate(path + name + "/app.go").WriteString(replacedApplicationInterface)
 
 }
 
 func GenerateApplicationTemplate(path, name string) {
-	Utilities.OpenFile(path + name + "/asyncMessageHandlers.go").WriteString(Utilities.ReplaceLine(asyncMessageHandlersGo, 0, "package "+name))
-	Utilities.OpenFile(path + name + "/syncMessageHandlers.go").WriteString(Utilities.ReplaceLine(syncMessageHandlersGo, 0, "package "+name))
-	Utilities.OpenFile(path + name + "/customCommandHandlers.go").WriteString(Utilities.ReplaceLine(customCommandHandlersGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/asyncMessageHandlers.go").WriteString(Utilities.ReplaceLine(asyncMessageHandlersGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/syncMessageHandlers.go").WriteString(Utilities.ReplaceLine(syncMessageHandlersGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/customCommandHandlers.go").WriteString(Utilities.ReplaceLine(customCommandHandlersGo, 0, "package "+name))
 }
 
 func GenerateHTTPApplicationTemplate(path, name string) {
-	Utilities.OpenFile(path + name + "/http.go").WriteString(Utilities.ReplaceLine(httpGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/http.go").WriteString(Utilities.ReplaceLine(httpGo, 0, "package "+name))
 }
 
 func GenerateWebsocketApplicationTemplate(path, name string) {
-	Utilities.OpenFile(path + name + "/websocket.go").WriteString(Utilities.ReplaceLine(websocketGo, 0, "package "+name))
+	Utilities.OpenFileTruncate(path + name + "/websocket.go").WriteString(Utilities.ReplaceLine(websocketGo, 0, "package "+name))
 }
 
 const appGo = `package main

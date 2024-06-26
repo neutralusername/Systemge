@@ -14,7 +14,7 @@ func (logger *Logger) Log(str string) {
 }
 
 func NewLogger(logFilePath string) *Logger {
-	file := OpenFile(logFilePath)
+	file := OpenFileAppend(logFilePath)
 	var logger *log.Logger = log.New(file, "", log.LstdFlags)
 	return &Logger{logger}
 }
