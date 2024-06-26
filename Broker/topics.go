@@ -6,7 +6,7 @@ func (server *Server) AddAsyncTopics(topics ...string) {
 	defer server.operationMutex.Unlock()
 	for _, topic := range topics {
 		server.asyncTopics[topic] = true
-		server.clientSubscriptions[topic] = map[string]*clientConnection{}
+		server.nodeSubscriptions[topic] = map[string]*nodeConnection{}
 	}
 }
 
@@ -16,7 +16,7 @@ func (server *Server) AddSyncTopics(topics ...string) {
 	defer server.operationMutex.Unlock()
 	for _, topic := range topics {
 		server.syncTopics[topic] = true
-		server.clientSubscriptions[topic] = map[string]*clientConnection{}
+		server.nodeSubscriptions[topic] = map[string]*nodeConnection{}
 	}
 }
 
@@ -26,11 +26,11 @@ func (server *Server) RemoveAsyncTopics(topics ...string) {
 	defer server.operationMutex.Unlock()
 	for _, topic := range topics {
 		delete(server.asyncTopics, topic)
-		for _, client := range server.clientSubscriptions[topic] {
-			delete(client.subscribedTopics, topic)
-			delete(server.clientSubscriptions[topic], client.name)
+		for _, nodeConnection := range server.nodeSubscriptions[topic] {
+			delete(nodeConnection.subscribedTopics, topic)
+			delete(server.nodeSubscriptions[topic], nodeConnection.name)
 		}
-		delete(server.clientSubscriptions, topic)
+		delete(server.nodeSubscriptions, topic)
 	}
 }
 
@@ -40,10 +40,10 @@ func (server *Server) RemoveSyncTopics(topics ...string) {
 	defer server.operationMutex.Unlock()
 	for _, topic := range topics {
 		delete(server.syncTopics, topic)
-		for _, client := range server.clientSubscriptions[topic] {
-			delete(client.subscribedTopics, topic)
-			delete(server.clientSubscriptions[topic], client.name)
+		for _, nodeConnection := range server.nodeSubscriptions[topic] {
+			delete(nodeConnection.subscribedTopics, topic)
+			delete(server.nodeSubscriptions[topic], nodeConnection.name)
 		}
-		delete(server.clientSubscriptions, topic)
+		delete(server.nodeSubscriptions, topic)
 	}
 }

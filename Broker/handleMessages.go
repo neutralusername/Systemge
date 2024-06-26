@@ -6,26 +6,26 @@ import (
 	"strings"
 )
 
-func (server *Server) handleClientConnectionMessages(clientConnection *clientConnection) {
+func (server *Server) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
 	for server.IsStarted() {
-		messageBytes, err := clientConnection.receive()
+		messageBytes, err := nodeConnection.receive()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "EOF") {
-				server.logger.Log(Error.New("Failed to receive message from client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\"", err).Error())
 			}
-			clientConnection.disconnect()
+			nodeConnection.disconnect()
 			return
 		}
 		message := Message.Deserialize(messageBytes)
 		err = server.validateMessage(message)
 		if err != nil {
-			server.logger.Log(Error.New("Invalid message from client \""+clientConnection.name+"\"", err).Error())
-			clientConnection.disconnect()
+			server.logger.Log(Error.New("Invalid message from node \""+nodeConnection.name+"\"", err).Error())
+			nodeConnection.disconnect()
 			return
 		}
-		err = server.handleMessage(clientConnection, message)
+		err = server.handleMessage(nodeConnection, message)
 		if err != nil {
-			server.logger.Log(Error.New("Failed to handle message from client \""+clientConnection.name+"\"", err).Error())
+			server.logger.Log(Error.New("Failed to handle message from node \""+nodeConnection.name+"\"", err).Error())
 		}
 	}
 }
@@ -62,46 +62,46 @@ func (server *Server) validateMessage(message *Message.Message) error {
 	return nil
 }
 
-func (server *Server) handleMessage(clientConnection *clientConnection, message *Message.Message) error {
+func (server *Server) handleMessage(nodeConnection *nodeConnection, message *Message.Message) error {
 	if message.GetSyncResponseToken() != "" {
 		err := server.handleSyncResponse(message)
 		if err != nil {
-			server.logger.Log(Error.New("Failed to handle sync response from client \""+clientConnection.name+"\" with token \""+message.GetSyncResponseToken()+"\"", err).Error())
+			server.logger.Log(Error.New("Failed to handle sync response from node \""+nodeConnection.name+"\" with token \""+message.GetSyncResponseToken()+"\"", err).Error())
 		}
 		return nil
 	}
 	if message.GetSyncRequestToken() != "" {
-		if err := server.handleSyncRequest(clientConnection, message); err != nil {
+		if err := server.handleSyncRequest(nodeConnection, message); err != nil {
 			//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
-			errResponse := clientConnection.send(message.NewResponse("error", server.name, Error.New("sync request failed", err).Error()))
+			errResponse := nodeConnection.send(message.NewResponse("error", server.name, Error.New("sync request failed", err).Error()))
 			if errResponse != nil {
-				server.logger.Log(Error.New("Failed to handle sync request from client \""+clientConnection.name+"\"", err).Error())
+				server.logger.Log(Error.New("Failed to handle sync request from node \""+nodeConnection.name+"\"", err).Error())
 				return Error.New("failed to send error response", errResponse)
 			}
-			return Error.New("Failed to handle sync request from client \""+clientConnection.name+"\"", err)
+			return Error.New("Failed to handle sync request from node \""+nodeConnection.name+"\"", err)
 		}
 	}
 	switch message.GetTopic() {
 	case "heartbeat":
-		err := clientConnection.resetWatchdog()
+		err := nodeConnection.resetWatchdog()
 		if err != nil {
-			return Error.New("Failed to reset watchdog for client \""+clientConnection.name+"\"", nil)
+			return Error.New("Failed to reset watchdog for node \""+nodeConnection.name+"\"", nil)
 		}
 		return nil
 	case "unsubscribe":
-		err := server.handleUnsubscribe(clientConnection, message)
+		err := server.handleUnsubscribe(nodeConnection, message)
 		if err != nil {
-			return Error.New("Failed to handle unsubscribe message from client \""+clientConnection.name+"\"", err)
+			return Error.New("Failed to handle unsubscribe message from node \""+nodeConnection.name+"\"", err)
 		}
 	case "subscribe":
-		err := server.handleSubscribe(clientConnection, message)
+		err := server.handleSubscribe(nodeConnection, message)
 		if err != nil {
-			return Error.New("Failed to handle subscribe message from client \""+clientConnection.name+"\"", err)
+			return Error.New("Failed to handle subscribe message from node \""+nodeConnection.name+"\"", err)
 		}
 	case "consume":
-		err := server.handleConsume(clientConnection)
+		err := server.handleConsume(nodeConnection)
 		if err != nil {
-			return Error.New("Failed to handle consume message from client \""+clientConnection.name+"\"", err)
+			return Error.New("Failed to handle consume message from node \""+nodeConnection.name+"\"", err)
 		}
 	default:
 		server.propagateMessage(message)
@@ -109,66 +109,66 @@ func (server *Server) handleMessage(clientConnection *clientConnection, message 
 	return nil
 }
 
-func (server *Server) handleConsume(clientConnection *clientConnection) error {
-	message := clientConnection.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
+func (server *Server) handleConsume(nodeConnection *nodeConnection) error {
+	message := nodeConnection.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
 	if message == nil {
 		errResponse := server.handleSyncResponse(message.NewResponse("error", server.name, "No message to consume"))
 		if errResponse != nil {
-			return Error.New("Failed to send error response to client \""+clientConnection.name+"\" and no message to consume", errResponse)
+			return Error.New("Failed to send error response to node \""+nodeConnection.name+"\" and no message to consume", errResponse)
 		}
-		return Error.New("No message to consume for client \""+clientConnection.name+"\"", nil)
+		return Error.New("No message to consume for node \""+nodeConnection.name+"\"", nil)
 	}
 	err := server.handleSyncResponse(message)
 	if err != nil {
-		return Error.New("Failed to send response to client \""+clientConnection.name+"\"", err)
+		return Error.New("Failed to send response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
 
-func (server *Server) handleSubscribe(clientConnection *clientConnection, message *Message.Message) error {
-	err := server.addSubscription(clientConnection, message.GetPayload())
+func (server *Server) handleSubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
+	err := server.addSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
 		errResponse := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
 		if errResponse != nil {
-			return Error.New("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
+			return Error.New("Failed to subscribe node \""+nodeConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
 		}
-		return Error.New("Failed to subscribe client \""+clientConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
+		return Error.New("Failed to subscribe node \""+nodeConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
 	}
 	err = server.handleSyncResponse(message.NewResponse("subscribed", server.name, ""))
 	if err != nil {
-		return Error.New("Failed to send subscribe response to client \""+clientConnection.name+"\"", err)
+		return Error.New("Failed to send subscribe response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
 
-func (server *Server) handleUnsubscribe(clientConnection *clientConnection, message *Message.Message) error {
-	err := server.removeSubscription(clientConnection, message.GetPayload())
+func (server *Server) handleUnsubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
+	err := server.removeSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
 		errResponse := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
 		if errResponse != nil {
-			return Error.New("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
+			return Error.New("Failed to unsubscribe node \""+nodeConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
 		}
-		return Error.New("Failed to unsubscribe client \""+clientConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
+		return Error.New("Failed to unsubscribe node \""+nodeConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
 	}
 	err = server.handleSyncResponse(message.NewResponse("unsubscribed", server.name, ""))
 	if err != nil {
-		return Error.New("Failed to send unsubscribe response to client \""+clientConnection.name+"\"", err)
+		return Error.New("Failed to send unsubscribe response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
 
 func (server *Server) propagateMessage(message *Message.Message) {
 	server.operationMutex.Lock()
-	clients := server.getSubscribers(message.GetTopic())
+	nodes := server.getSubscribedNodes(message.GetTopic())
 	server.operationMutex.Unlock()
-	for _, clientConnection := range clients {
-		if clientConnection.deliverImmediately {
-			err := clientConnection.send(message)
+	for _, nodeConnection := range nodes {
+		if nodeConnection.deliverImmediately {
+			err := nodeConnection.send(message)
 			if err != nil {
-				server.logger.Log(Error.New("Failed to send message to client \""+clientConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
+				server.logger.Log(Error.New("Failed to send message to node \""+nodeConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
 			}
 		} else {
-			clientConnection.queueMessage(message)
+			nodeConnection.queueMessage(message)
 		}
 	}
 }

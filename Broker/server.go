@@ -15,9 +15,9 @@ type Server struct {
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
-	clientSubscriptions map[string]map[string]*clientConnection // topic -> [clientName-> client]
-	clientConnections   map[string]*clientConnection            // clientName -> Client
-	openSyncRequests    map[string]*syncRequest                 // syncKey -> request
+	nodeSubscriptions map[string]map[string]*nodeConnection // topic -> [nodeName-> nodeConnection]
+	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection
+	openSyncRequests  map[string]*syncRequest               // syncKey -> request
 
 	brokerTlsCertPath string
 	brokerTlsKeyPath  string
@@ -49,9 +49,9 @@ func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, conf
 			"heartbeat": true,
 		},
 
-		clientSubscriptions: map[string]map[string]*clientConnection{},
-		clientConnections:   map[string]*clientConnection{},
-		openSyncRequests:    map[string]*syncRequest{},
+		nodeSubscriptions: map[string]map[string]*nodeConnection{},
+		nodeConnections:   map[string]*nodeConnection{},
+		openSyncRequests:  map[string]*syncRequest{},
 
 		brokerTlsCertPath: brokerTlsCertPath,
 		brokerTlsKeyPath:  brokerTlsKeyPath,
@@ -94,7 +94,7 @@ func (server *Server) Start() error {
 	server.tlsBrokerListener = brokerListener
 	server.tlsConfigListener = configListener
 	server.isStarted = true
-	go server.handleClientConnections()
+	go server.handleNodeConnections()
 	go server.handleConfigConnections()
 	return nil
 }
@@ -111,7 +111,7 @@ func (server *Server) Stop() error {
 	}
 	server.tlsBrokerListener.Close()
 	server.tlsConfigListener.Close()
-	server.disconnectAllClientConnections()
+	server.disconnectAllNodeConnections()
 	server.isStarted = false
 	return nil
 }
