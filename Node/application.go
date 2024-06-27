@@ -12,20 +12,6 @@ type ApplicationConfig struct {
 
 	HandleMessagesSequentially bool // default: false
 }
-
-type WebsocketComponentConfig struct {
-	Pattern     string // *required*
-	Port        string // *required*
-	TlsCertPath string // *optional*
-	TlsKeyPath  string // *optional*
-}
-
-type HTTPComponentConfig struct {
-	Port        string // *required*
-	TlsCertPath string // *optional*
-	TlsKeyPath  string // *optional*
-}
-
 type Application interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
@@ -38,12 +24,23 @@ type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)
 type CustomCommandHandler func(*Node, []string) error
 
+type HTTPComponentConfig struct {
+	Port        string // *required*
+	TlsCertPath string // *optional*
+	TlsKeyPath  string // *optional*
+}
 type HTTPComponent interface {
 	GetHTTPRequestHandlers() map[string]HTTPRequestHandler
 	GetHTTPComponentConfig() HTTPComponentConfig
 }
 type HTTPRequestHandler func(w http.ResponseWriter, r *http.Request)
 
+type WebsocketComponentConfig struct {
+	Pattern     string // *required*
+	Port        string // *required*
+	TlsCertPath string // *optional*
+	TlsKeyPath  string // *optional*
+}
 type WebsocketComponent interface {
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
 	OnConnectHandler(*Node, *WebsocketClient)
@@ -56,12 +53,10 @@ type WebsocketApplication interface {
 	Application
 	WebsocketComponent
 }
-
 type HTTPApplication interface {
 	Application
 	HTTPComponent
 }
-
 type WebsocketHTTPApplication interface {
 	Application
 	WebsocketComponent
