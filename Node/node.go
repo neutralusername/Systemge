@@ -10,28 +10,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Config struct {
+type NodeConfig struct {
 	Name       string // *required*
 	LoggerPath string // *required*
-
-	ResolverAddress        string // *required*
-	ResolverNameIndication string // *required*
-	ResolverTLSCert        string // *required*
-
-	HandleMessagesSequentially bool // default: false
-
-	HTTPPort     string // *optional*
-	HTTPCertPath string // *optional*
-	HTTPKeyPath  string // *optional*
-
-	WebsocketPattern  string // *optional*
-	WebsocketPort     string // *optional*
-	WebsocketCertPath string // *optional*
-	WebsocketKeyPath  string // *optional*
 }
 
 type Node struct {
-	config *Config
+	config *NodeConfig
 
 	logger     *Utilities.Logger
 	randomizer *Utilities.Randomizer
@@ -64,7 +49,7 @@ type Node struct {
 	httpServer *http.Server
 }
 
-func New(config *Config, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
+func New(config *NodeConfig, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
 	return &Node{
 		config: config,
 

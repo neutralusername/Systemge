@@ -23,13 +23,13 @@ func (node *Node) GetLogger() *Utilities.Logger {
 }
 
 func (node *Node) GetResolverAddress() string {
-	return node.config.ResolverAddress
+	return node.application.GetApplicationConfig().ResolverAddress
 }
 
 func (node *Node) GetResolverNameIndication() string {
-	return node.config.ResolverNameIndication
+	return node.application.GetApplicationConfig().ResolverNameIndication
 }
 
 func (node *Node) GetResolverTLSCert() string {
-	return node.config.ResolverTLSCert
+	return node.application.GetApplicationConfig().ResolverTLSCert
 }

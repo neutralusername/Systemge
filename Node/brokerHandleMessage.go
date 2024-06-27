@@ -47,7 +47,7 @@ func (node *Node) handleSyncResponse(message *Message.Message) error {
 }
 
 func (node *Node) handleMessage(message *Message.Message, brokerConnection *brokerConnection) error {
-	if node.config.HandleMessagesSequentially {
+	if node.application.GetApplicationConfig().HandleMessagesSequentially {
 		node.handleMessagesSequentiallyMutex.Lock()
 		defer node.handleMessagesSequentiallyMutex.Unlock()
 	}

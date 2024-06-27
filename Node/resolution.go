@@ -8,7 +8,7 @@ import (
 )
 
 func (node *Node) resolveBrokerForTopic(topic string) (*Resolution.Resolution, error) {
-	netConn, err := Utilities.TlsDial(node.config.ResolverAddress, node.config.ResolverNameIndication, node.config.ResolverTLSCert)
+	netConn, err := Utilities.TlsDial(node.application.GetApplicationConfig().ResolverAddress, node.application.GetApplicationConfig().ResolverNameIndication, node.application.GetApplicationConfig().ResolverTLSCert)
 	if err != nil {
 		return nil, Error.New("Error dialing resolver", err)
 	}

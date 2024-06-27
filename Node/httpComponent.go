@@ -5,8 +5,8 @@ import "Systemge/Error"
 func (node *Node) startHTTPComponent() error {
 	node.httpMutex.Lock()
 	defer node.httpMutex.Unlock()
-	httpServer := createHTTPServer(node.config.HTTPPort, node.httpComponent.GetHTTPRequestHandlers())
-	err := startHTTPServer(httpServer, node.config.HTTPCertPath, node.config.HTTPKeyPath)
+	httpServer := createHTTPServer(node.httpComponent.GetHTTPComponentConfig().Port, node.httpComponent.GetHTTPRequestHandlers())
+	err := startHTTPServer(httpServer, node.httpComponent.GetHTTPComponentConfig().TlsCertPath, node.httpComponent.GetHTTPComponentConfig().TlsKeyPath)
 	if err != nil {
 		return Error.New("Error starting http server", err)
 	}
