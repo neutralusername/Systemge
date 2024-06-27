@@ -74,47 +74,47 @@ func (nodeConnection *nodeConnection) disconnect() error {
 	return nil
 }
 
-func (server *Server) addNodeConnection(nodeConnection *nodeConnection) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	if server.nodeConnections[nodeConnection.name] != nil {
+func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
+	if broker.nodeConnections[nodeConnection.name] != nil {
 		return Error.New("node with name \""+nodeConnection.name+"\" already exists", nil)
 	}
-	server.nodeConnections[nodeConnection.name] = nodeConnection
+	broker.nodeConnections[nodeConnection.name] = nodeConnection
 	nodeConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
 		watchdog := nodeConnection.watchdog
 		nodeConnection.watchdog = nil
 		watchdog.Stop()
 		nodeConnection.netConn.Close()
-		err := server.removeNodeConnection(nodeConnection)
+		err := broker.removeNodeConnection(nodeConnection)
 		if err != nil {
-			server.logger.Log(Error.New("Error removing node \""+nodeConnection.name+"\"", err).Error())
+			broker.logger.Log(Error.New("Error removing node \""+nodeConnection.name+"\"", err).Error())
 		}
 		close(nodeConnection.stopChannel)
 	})
 	return nil
 }
 
-func (server *Server) removeNodeConnection(nodeConnection *nodeConnection) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	if server.nodeConnections[nodeConnection.name] == nil {
+func (broker *Broker) removeNodeConnection(nodeConnection *nodeConnection) error {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
+	if broker.nodeConnections[nodeConnection.name] == nil {
 		return Error.New("Subscriber with name \""+nodeConnection.name+"\" does not exist", nil)
 	}
 	for messageType := range nodeConnection.subscribedTopics {
-		delete(server.nodeSubscriptions[messageType], nodeConnection.name)
+		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)
 	}
-	delete(server.nodeConnections, nodeConnection.name)
+	delete(broker.nodeConnections, nodeConnection.name)
 	return nil
 }
 
-func (server *Server) disconnectAllNodeConnections() {
+func (broker *Broker) disconnectAllNodeConnections() {
 	NodesToDisconnect := make([]*nodeConnection, 0)
-	server.operationMutex.Lock()
-	for _, nodeConnection := range server.nodeConnections {
+	broker.operationMutex.Lock()
+	for _, nodeConnection := range broker.nodeConnections {
 		NodesToDisconnect = append(NodesToDisconnect, nodeConnection)
 	}
-	server.operationMutex.Unlock()
+	broker.operationMutex.Unlock()
 	for _, nodeConnection := range NodesToDisconnect {
 		nodeConnection.disconnect()
 	}

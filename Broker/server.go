@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type Server struct {
+type Broker struct {
 	name   string
 	logger *Utilities.Logger
 
@@ -35,8 +35,8 @@ type Server struct {
 	stateMutex     sync.Mutex
 }
 
-func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath string, logger *Utilities.Logger) *Server {
-	return &Server{
+func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath string, logger *Utilities.Logger) *Broker {
+	return &Broker{
 		name:   name,
 		logger: logger,
 
@@ -63,61 +63,61 @@ func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, conf
 	}
 }
 
-func (server *Server) Start() error {
-	server.stateMutex.Lock()
-	defer server.stateMutex.Unlock()
-	if server.isStarted {
-		return Error.New("Server already started", nil)
+func (broker *Broker) Start() error {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	if broker.isStarted {
+		return Error.New("broker already started", nil)
 	}
-	brokerCert, err := tls.LoadX509KeyPair(server.brokerTlsCertPath, server.brokerTlsKeyPath)
+	brokerCert, err := tls.LoadX509KeyPair(broker.brokerTlsCertPath, broker.brokerTlsKeyPath)
 	if err != nil {
-		return Error.New("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to load TLS certificate", err)
 	}
-	brokerListener, err := tls.Listen("tcp", server.brokerPort, &tls.Config{
+	brokerListener, err := tls.Listen("tcp", broker.brokerPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{brokerCert},
 	})
 	if err != nil {
-		return Error.New("Failed to start server: ", err)
+		return Error.New("Failed to start broker listener", err)
 	}
-	configCert, err := tls.LoadX509KeyPair(server.configTlsCertPath, server.configTlsKeyPath)
+	configCert, err := tls.LoadX509KeyPair(broker.configTlsCertPath, broker.configTlsKeyPath)
 	if err != nil {
-		return Error.New("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to load TLS certificate", err)
 	}
-	configListener, err := tls.Listen("tcp", server.configPort, &tls.Config{
+	configListener, err := tls.Listen("tcp", broker.configPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{configCert},
 	})
 	if err != nil {
-		return Error.New("Failed to start server: ", err)
+		return Error.New("Failed to start config listener", err)
 	}
-	server.tlsBrokerListener = brokerListener
-	server.tlsConfigListener = configListener
-	server.isStarted = true
-	go server.handleNodeConnections()
-	go server.handleConfigConnections()
+	broker.tlsBrokerListener = brokerListener
+	broker.tlsConfigListener = configListener
+	broker.isStarted = true
+	go broker.handleNodeConnections()
+	go broker.handleConfigConnections()
 	return nil
 }
 
-func (server *Server) GetName() string {
-	return server.name
+func (broker *Broker) GetName() string {
+	return broker.name
 }
 
-func (server *Server) Stop() error {
-	server.stateMutex.Lock()
-	defer server.stateMutex.Unlock()
-	if !server.isStarted {
-		return Error.New("Server is not started", nil)
+func (broker *Broker) Stop() error {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	if !broker.isStarted {
+		return Error.New("broker is not started", nil)
 	}
-	server.tlsBrokerListener.Close()
-	server.tlsConfigListener.Close()
-	server.disconnectAllNodeConnections()
-	server.isStarted = false
+	broker.tlsBrokerListener.Close()
+	broker.tlsConfigListener.Close()
+	broker.disconnectAllNodeConnections()
+	broker.isStarted = false
 	return nil
 }
 
-func (server *Server) IsStarted() bool {
-	server.stateMutex.Lock()
-	defer server.stateMutex.Unlock()
-	return server.isStarted
+func (broker *Broker) IsStarted() bool {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	return broker.isStarted
 }

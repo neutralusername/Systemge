@@ -8,28 +8,28 @@ import (
 	"strings"
 )
 
-func (server *Server) handleConfigConnections() {
-	for server.IsStarted() {
-		netConn, err := server.tlsConfigListener.Accept()
+func (broker *Broker) handleConfigConnections() {
+	for broker.IsStarted() {
+		netConn, err := broker.tlsConfigListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
-				server.logger.Log(Error.New("Failed to accept connection request", err).Error())
+				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue
 		}
 		go func() {
 			defer netConn.Close()
-			err := server.handleConfigConnection(netConn)
+			err := broker.handleConfigConnection(netConn)
 			if err != nil {
-				Utilities.TcpSend(netConn, Message.NewAsync("error", server.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
+				Utilities.TcpSend(netConn, Message.NewAsync("error", broker.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
 			} else {
-				Utilities.TcpSend(netConn, Message.NewAsync("success", server.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
+				Utilities.TcpSend(netConn, Message.NewAsync("success", broker.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
 			}
 		}()
 	}
 }
 
-func (server *Server) handleConfigConnection(netConn net.Conn) error {
+func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("failed to receive message", err)
@@ -40,13 +40,13 @@ func (server *Server) handleConfigConnection(netConn net.Conn) error {
 	}
 	switch message.GetTopic() {
 	case "addSyncTopic":
-		server.AddSyncTopics(message.GetPayload())
+		broker.AddSyncTopics(message.GetPayload())
 	case "removeSyncTopic":
-		server.RemoveSyncTopics(message.GetPayload())
+		broker.RemoveSyncTopics(message.GetPayload())
 	case "addAsyncTopic":
-		server.AddAsyncTopics(message.GetPayload())
+		broker.AddAsyncTopics(message.GetPayload())
 	case "removeAsyncTopic":
-		server.RemoveAsyncTopics(message.GetPayload())
+		broker.RemoveAsyncTopics(message.GetPayload())
 	default:
 		return Error.New("unknown topic \""+message.GetTopic()+"\"", nil)
 	}

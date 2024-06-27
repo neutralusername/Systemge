@@ -2,46 +2,46 @@ package Broker
 
 import "Systemge/Error"
 
-func (server *Server) addSubscription(nodeConnection *nodeConnection, topic string) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	if !server.asyncTopics[topic] && !server.syncTopics[topic] {
-		return Error.New("Topic \""+topic+"\" does not exist on server \""+server.name+"\"", nil)
+func (broker *Broker) addSubscription(nodeConnection *nodeConnection, topic string) error {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
+	if !broker.asyncTopics[topic] && !broker.syncTopics[topic] {
+		return Error.New("Topic \""+topic+"\" does not exist on broker \""+broker.name+"\"", nil)
 	}
-	if server.syncTopics[topic] && len(server.nodeSubscriptions[topic]) > 0 {
+	if broker.syncTopics[topic] && len(broker.nodeSubscriptions[topic]) > 0 {
 		return Error.New("Sync topic \""+topic+"\" already has a subscriber", nil)
 	}
 	if nodeConnection.subscribedTopics[topic] {
 		return Error.New("node \""+nodeConnection.name+"\" is already subscribed to topic \""+topic+"\"", nil)
 	}
-	if server.nodeSubscriptions[topic] == nil {
+	if broker.nodeSubscriptions[topic] == nil {
 		return Error.New("Topic \""+topic+"\" does not exist", nil)
 	}
-	server.nodeSubscriptions[topic][nodeConnection.name] = nodeConnection
+	broker.nodeSubscriptions[topic][nodeConnection.name] = nodeConnection
 	nodeConnection.subscribedTopics[topic] = true
 	return nil
 }
 
-func (server *Server) removeSubscription(nodeConnection *nodeConnection, topic string) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	if server.nodeSubscriptions[topic] == nil {
+func (broker *Broker) removeSubscription(nodeConnection *nodeConnection, topic string) error {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
+	if broker.nodeSubscriptions[topic] == nil {
 		return Error.New("Topic \""+topic+"\" does not exist", nil)
 	}
 	if !nodeConnection.subscribedTopics[topic] {
 		return Error.New("node \""+nodeConnection.name+"\" is not subscribed to topic \""+topic+"\"", nil)
 	}
-	delete(server.nodeSubscriptions[topic], nodeConnection.name)
+	delete(broker.nodeSubscriptions[topic], nodeConnection.name)
 	delete(nodeConnection.subscribedTopics, topic)
-	if len(server.nodeSubscriptions[topic]) == 0 {
-		delete(server.nodeSubscriptions, topic)
+	if len(broker.nodeSubscriptions[topic]) == 0 {
+		delete(broker.nodeSubscriptions, topic)
 	}
 	return nil
 }
 
-func (server *Server) getSubscribedNodes(topic string) []*nodeConnection {
+func (broker *Broker) getSubscribedNodes(topic string) []*nodeConnection {
 	subscribers := []*nodeConnection{}
-	for _, nodeConnection := range server.nodeSubscriptions[topic] {
+	for _, nodeConnection := range broker.nodeSubscriptions[topic] {
 		subscribers = append(subscribers, nodeConnection)
 	}
 	return subscribers

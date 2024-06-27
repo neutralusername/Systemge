@@ -1,14 +1,14 @@
 package Broker
 
 // returns a map of custom command handlers for the command-line interface
-func (server *Server) GetCustomCommandHandlers() map[string]func([]string) error {
+func (broker *Broker) GetCustomCommandHandlers() map[string]func([]string) error {
 	return map[string]func([]string) error{
 		"brokerNodes": func(args []string) error {
-			server.operationMutex.Lock()
-			for _, nodeConnection := range server.nodeConnections {
+			broker.operationMutex.Lock()
+			for _, nodeConnection := range broker.nodeConnections {
 				println(nodeConnection.name)
 			}
-			server.operationMutex.Unlock()
+			broker.operationMutex.Unlock()
 			return nil
 		},
 	}

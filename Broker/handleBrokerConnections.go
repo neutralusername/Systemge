@@ -8,28 +8,28 @@ import (
 	"strings"
 )
 
-func (server *Server) handleNodeConnections() {
-	for server.IsStarted() {
-		netConn, err := server.tlsBrokerListener.Accept()
+func (broker *Broker) handleNodeConnections() {
+	for broker.IsStarted() {
+		netConn, err := broker.tlsBrokerListener.Accept()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") {
-				server.logger.Log(Error.New("Failed to accept connection request", err).Error())
+				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue
 		}
 		go func() {
-			node, err := server.handleNodeConnectionRequest(netConn)
+			node, err := broker.handleNodeConnectionRequest(netConn)
 			if err != nil {
 				netConn.Close()
-				server.logger.Log(Error.New("Failed to handle connection request", err).Error())
+				broker.logger.Log(Error.New("Failed to handle connection request", err).Error())
 				return
 			}
-			server.handleNodeConnectionMessages(node)
+			broker.handleNodeConnectionMessages(node)
 		}()
 	}
 }
 
-func (server *Server) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
+func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
@@ -39,11 +39,11 @@ func (server *Server) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 		return nil, Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
 	nodeConnection := newNodeConnection(message.GetOrigin(), netConn)
-	err = server.addNodeConnection(nodeConnection)
+	err = broker.addNodeConnection(nodeConnection)
 	if err != nil {
 		return nil, err
 	}
-	err = nodeConnection.send(Message.NewAsync("connected", server.name, ""))
+	err = nodeConnection.send(Message.NewAsync("connected", broker.name, ""))
 	if err != nil {
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)
 	}

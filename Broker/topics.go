@@ -1,49 +1,49 @@
 package Broker
 
-// adds topics the server will accept async messages and subscriptions for
-func (server *Server) AddAsyncTopics(topics ...string) {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+// adds topics the broker will accept async messages and subscriptions for
+func (broker *Broker) AddAsyncTopics(topics ...string) {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
-		server.asyncTopics[topic] = true
-		server.nodeSubscriptions[topic] = map[string]*nodeConnection{}
+		broker.asyncTopics[topic] = true
+		broker.nodeSubscriptions[topic] = map[string]*nodeConnection{}
 	}
 }
 
-// adds topics the server will accept sync messages and subscriptions for
-func (server *Server) AddSyncTopics(topics ...string) {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+// adds topics the broker will accept sync messages and subscriptions for
+func (broker *Broker) AddSyncTopics(topics ...string) {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
-		server.syncTopics[topic] = true
-		server.nodeSubscriptions[topic] = map[string]*nodeConnection{}
+		broker.syncTopics[topic] = true
+		broker.nodeSubscriptions[topic] = map[string]*nodeConnection{}
 	}
 }
 
-// removes topics the server will accept async messages and subscriptions for
-func (server *Server) RemoveAsyncTopics(topics ...string) {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+// removes topics the broker will accept async messages and subscriptions for
+func (broker *Broker) RemoveAsyncTopics(topics ...string) {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
-		delete(server.asyncTopics, topic)
-		for _, nodeConnection := range server.nodeSubscriptions[topic] {
+		delete(broker.asyncTopics, topic)
+		for _, nodeConnection := range broker.nodeSubscriptions[topic] {
 			delete(nodeConnection.subscribedTopics, topic)
-			delete(server.nodeSubscriptions[topic], nodeConnection.name)
+			delete(broker.nodeSubscriptions[topic], nodeConnection.name)
 		}
-		delete(server.nodeSubscriptions, topic)
+		delete(broker.nodeSubscriptions, topic)
 	}
 }
 
-// removes topics the server will accept sync messages and subscriptions for
-func (server *Server) RemoveSyncTopics(topics ...string) {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
+// removes topics the broker will accept sync messages and subscriptions for
+func (broker *Broker) RemoveSyncTopics(topics ...string) {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
-		delete(server.syncTopics, topic)
-		for _, nodeConnection := range server.nodeSubscriptions[topic] {
+		delete(broker.syncTopics, topic)
+		for _, nodeConnection := range broker.nodeSubscriptions[topic] {
 			delete(nodeConnection.subscribedTopics, topic)
-			delete(server.nodeSubscriptions[topic], nodeConnection.name)
+			delete(broker.nodeSubscriptions[topic], nodeConnection.name)
 		}
-		delete(server.nodeSubscriptions, topic)
+		delete(broker.nodeSubscriptions, topic)
 	}
 }

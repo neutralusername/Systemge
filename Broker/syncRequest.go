@@ -20,46 +20,46 @@ func newSyncRequest(nodeConnection *nodeConnection, message *Message.Message) *s
 	}
 }
 
-func (server *Server) handleSyncRequest(nodeConnection *nodeConnection, message *Message.Message) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	if openSyncRequest := server.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
+func (broker *Broker) handleSyncRequest(nodeConnection *nodeConnection, message *Message.Message) error {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
+	if openSyncRequest := broker.openSyncRequests[message.GetSyncRequestToken()]; openSyncRequest != nil {
 		return Error.New("token already in use", nil)
 	}
-	if len(server.nodeSubscriptions[message.GetTopic()]) == 0 && message.GetTopic() != "subscribe" && message.GetTopic() != "unsubscribe" {
+	if len(broker.nodeSubscriptions[message.GetTopic()]) == 0 && message.GetTopic() != "subscribe" && message.GetTopic() != "unsubscribe" {
 		return Error.New("no subscribers to topic \""+message.GetTopic()+"\"", nil)
 	}
 	syncRequest := newSyncRequest(nodeConnection, message)
-	server.openSyncRequests[message.GetSyncRequestToken()] = syncRequest
+	broker.openSyncRequests[message.GetSyncRequestToken()] = syncRequest
 	go func() {
 		timer := time.NewTimer(time.Duration(DEFAULT_SYNC_REQUEST_TIMEOUT) * time.Millisecond)
 		defer timer.Stop()
 		select {
 		case response := <-syncRequest.responseChannel:
-			server.operationMutex.Lock()
-			delete(server.openSyncRequests, message.GetSyncRequestToken())
-			server.operationMutex.Unlock()
+			broker.operationMutex.Lock()
+			delete(broker.openSyncRequests, message.GetSyncRequestToken())
+			broker.operationMutex.Unlock()
 			err := nodeConnection.send(response)
 			if err != nil {
-				server.logger.Log(Error.New("Failed to send response to node \""+nodeConnection.name+"\"", err).Error())
+				broker.logger.Log(Error.New("Failed to send response to node \""+nodeConnection.name+"\"", err).Error())
 			}
 		case <-timer.C:
-			server.operationMutex.Lock()
-			delete(server.openSyncRequests, message.GetSyncRequestToken())
-			server.operationMutex.Unlock()
-			err := nodeConnection.send(message.NewResponse("error", server.name, "request timed out"))
+			broker.operationMutex.Lock()
+			delete(broker.openSyncRequests, message.GetSyncRequestToken())
+			broker.operationMutex.Unlock()
+			err := nodeConnection.send(message.NewResponse("error", broker.name, "request timed out"))
 			if err != nil {
-				server.logger.Log(Error.New("Failed to send timeout response to node \""+nodeConnection.name+"\"", err).Error())
+				broker.logger.Log(Error.New("Failed to send timeout response to node \""+nodeConnection.name+"\"", err).Error())
 			}
 		}
 	}()
 	return nil
 }
 
-func (server *Server) handleSyncResponse(message *Message.Message) error {
-	server.operationMutex.Lock()
-	defer server.operationMutex.Unlock()
-	waitingNodeConnection := server.openSyncRequests[message.GetSyncResponseToken()]
+func (broker *Broker) handleSyncResponse(message *Message.Message) error {
+	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
+	waitingNodeConnection := broker.openSyncRequests[message.GetSyncResponseToken()]
 	if waitingNodeConnection == nil {
 		return Error.New("response to unknown sync request \""+message.GetSyncResponseToken()+"\"", nil)
 	}

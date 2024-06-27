@@ -6,31 +6,31 @@ import (
 	"strings"
 )
 
-func (server *Server) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
-	for server.IsStarted() {
+func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
+	for broker.IsStarted() {
 		messageBytes, err := nodeConnection.receive()
 		if err != nil {
 			if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "EOF") {
-				server.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\"", err).Error())
+				broker.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\"", err).Error())
 			}
 			nodeConnection.disconnect()
 			return
 		}
 		message := Message.Deserialize(messageBytes)
-		err = server.validateMessage(message)
+		err = broker.validateMessage(message)
 		if err != nil {
-			server.logger.Log(Error.New("Invalid message from node \""+nodeConnection.name+"\"", err).Error())
+			broker.logger.Log(Error.New("Invalid message from node \""+nodeConnection.name+"\"", err).Error())
 			nodeConnection.disconnect()
 			return
 		}
-		err = server.handleMessage(nodeConnection, message)
+		err = broker.handleMessage(nodeConnection, message)
 		if err != nil {
-			server.logger.Log(Error.New("Failed to handle message from node \""+nodeConnection.name+"\"", err).Error())
+			broker.logger.Log(Error.New("Failed to handle message from node \""+nodeConnection.name+"\"", err).Error())
 		}
 	}
 }
 
-func (server *Server) validateMessage(message *Message.Message) error {
+func (broker *Broker) validateMessage(message *Message.Message) error {
 	if message == nil {
 		return Error.New("Message is nil", nil)
 	}
@@ -46,12 +46,12 @@ func (server *Server) validateMessage(message *Message.Message) error {
 	if message.GetSyncResponseToken() != "" {
 		return nil
 	}
-	server.operationMutex.Lock()
-	syncTopicExists := server.syncTopics[message.GetTopic()]
-	asyncTopicExists := server.asyncTopics[message.GetTopic()]
-	server.operationMutex.Unlock()
+	broker.operationMutex.Lock()
+	syncTopicExists := broker.syncTopics[message.GetTopic()]
+	asyncTopicExists := broker.asyncTopics[message.GetTopic()]
+	broker.operationMutex.Unlock()
 	if !syncTopicExists && !asyncTopicExists {
-		return Error.New("Topic \""+message.GetTopic()+"\" does not exist on server \""+server.name+"\"", nil)
+		return Error.New("Topic \""+message.GetTopic()+"\" does not exist on broker \""+broker.name+"\"", nil)
 	}
 	if syncTopicExists && message.GetSyncRequestToken() == "" {
 		return Error.New("Topic \""+message.GetTopic()+"\" is a sync topic and message is not a sync request", nil)
@@ -62,20 +62,20 @@ func (server *Server) validateMessage(message *Message.Message) error {
 	return nil
 }
 
-func (server *Server) handleMessage(nodeConnection *nodeConnection, message *Message.Message) error {
+func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Message.Message) error {
 	if message.GetSyncResponseToken() != "" {
-		err := server.handleSyncResponse(message)
+		err := broker.handleSyncResponse(message)
 		if err != nil {
-			server.logger.Log(Error.New("Failed to handle sync response from node \""+nodeConnection.name+"\" with token \""+message.GetSyncResponseToken()+"\"", err).Error())
+			broker.logger.Log(Error.New("Failed to handle sync response from node \""+nodeConnection.name+"\" with token \""+message.GetSyncResponseToken()+"\"", err).Error())
 		}
 		return nil
 	}
 	if message.GetSyncRequestToken() != "" {
-		if err := server.handleSyncRequest(nodeConnection, message); err != nil {
+		if err := broker.handleSyncRequest(nodeConnection, message); err != nil {
 			//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
-			errResponse := nodeConnection.send(message.NewResponse("error", server.name, Error.New("sync request failed", err).Error()))
+			errResponse := nodeConnection.send(message.NewResponse("error", broker.name, Error.New("sync request failed", err).Error()))
 			if errResponse != nil {
-				server.logger.Log(Error.New("Failed to handle sync request from node \""+nodeConnection.name+"\"", err).Error())
+				broker.logger.Log(Error.New("Failed to handle sync request from node \""+nodeConnection.name+"\"", err).Error())
 				return Error.New("failed to send error response", errResponse)
 			}
 			return Error.New("Failed to handle sync request from node \""+nodeConnection.name+"\"", err)
@@ -89,83 +89,83 @@ func (server *Server) handleMessage(nodeConnection *nodeConnection, message *Mes
 		}
 		return nil
 	case "unsubscribe":
-		err := server.handleUnsubscribe(nodeConnection, message)
+		err := broker.handleUnsubscribe(nodeConnection, message)
 		if err != nil {
 			return Error.New("Failed to handle unsubscribe message from node \""+nodeConnection.name+"\"", err)
 		}
 	case "subscribe":
-		err := server.handleSubscribe(nodeConnection, message)
+		err := broker.handleSubscribe(nodeConnection, message)
 		if err != nil {
 			return Error.New("Failed to handle subscribe message from node \""+nodeConnection.name+"\"", err)
 		}
 	case "consume":
-		err := server.handleConsume(nodeConnection)
+		err := broker.handleConsume(nodeConnection)
 		if err != nil {
 			return Error.New("Failed to handle consume message from node \""+nodeConnection.name+"\"", err)
 		}
 	default:
-		server.propagateMessage(message)
+		broker.propagateMessage(message)
 	}
 	return nil
 }
 
-func (server *Server) handleConsume(nodeConnection *nodeConnection) error {
+func (broker *Broker) handleConsume(nodeConnection *nodeConnection) error {
 	message := nodeConnection.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
 	if message == nil {
-		errResponse := server.handleSyncResponse(message.NewResponse("error", server.name, "No message to consume"))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.name, "No message to consume"))
 		if errResponse != nil {
 			return Error.New("Failed to send error response to node \""+nodeConnection.name+"\" and no message to consume", errResponse)
 		}
 		return Error.New("No message to consume for node \""+nodeConnection.name+"\"", nil)
 	}
-	err := server.handleSyncResponse(message)
+	err := broker.handleSyncResponse(message)
 	if err != nil {
 		return Error.New("Failed to send response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
 
-func (server *Server) handleSubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
-	err := server.addSubscription(nodeConnection, message.GetPayload())
+func (broker *Broker) handleSubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
+	err := broker.addSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
-		errResponse := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.name, Error.New("", err).Error()))
 		if errResponse != nil {
 			return Error.New("Failed to subscribe node \""+nodeConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
 		}
 		return Error.New("Failed to subscribe node \""+nodeConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
 	}
-	err = server.handleSyncResponse(message.NewResponse("subscribed", server.name, ""))
+	err = broker.handleSyncResponse(message.NewResponse("subscribed", broker.name, ""))
 	if err != nil {
 		return Error.New("Failed to send subscribe response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
 
-func (server *Server) handleUnsubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
-	err := server.removeSubscription(nodeConnection, message.GetPayload())
+func (broker *Broker) handleUnsubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
+	err := broker.removeSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
-		errResponse := server.handleSyncResponse(message.NewResponse("error", server.name, Error.New("", err).Error()))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.name, Error.New("", err).Error()))
 		if errResponse != nil {
 			return Error.New("Failed to unsubscribe node \""+nodeConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
 		}
 		return Error.New("Failed to unsubscribe node \""+nodeConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
 	}
-	err = server.handleSyncResponse(message.NewResponse("unsubscribed", server.name, ""))
+	err = broker.handleSyncResponse(message.NewResponse("unsubscribed", broker.name, ""))
 	if err != nil {
 		return Error.New("Failed to send unsubscribe response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
 
-func (server *Server) propagateMessage(message *Message.Message) {
-	server.operationMutex.Lock()
-	nodes := server.getSubscribedNodes(message.GetTopic())
-	server.operationMutex.Unlock()
+func (broker *Broker) propagateMessage(message *Message.Message) {
+	broker.operationMutex.Lock()
+	nodes := broker.getSubscribedNodes(message.GetTopic())
+	broker.operationMutex.Unlock()
 	for _, nodeConnection := range nodes {
 		if nodeConnection.deliverImmediately {
 			err := nodeConnection.send(message)
 			if err != nil {
-				server.logger.Log(Error.New("Failed to send message to node \""+nodeConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
+				broker.logger.Log(Error.New("Failed to send message to node \""+nodeConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
 			}
 		} else {
 			nodeConnection.queueMessage(message)
