@@ -78,6 +78,15 @@ func (app *App) OnStart(node *Node.Node) error {
 func (app *App) OnStop(node *Node.Node) error {
 	return nil
 }
+
+func (app *App) GetApplicationConfig() Node.ApplicationConfig {
+	return Node.ApplicationConfig{
+		ResolverAddress:            resolverAddress,
+		ResolverNameIndication:     resolverNameIndication,
+		ResolverTLSCert:            resolverCertificate,
+		HandleMessagesSequentially: false,
+	}
+}
 `
 
 const asyncMessageHandlersGo = `package main
@@ -134,6 +143,14 @@ func (app *App) GetHTTPRequestHandlers() map[string]Node.HTTPRequestHandler {
 		"/": Node.SendHTTPResponseCodeAndBody(200, "Hello, World!"),
 	}
 }
+
+func (app *AppWebsocketHTTP) GetHTTPComponentConfig() Node.HTTPComponentConfig {
+	return Node.HTTPComponentConfig{
+		Port:        ":8080",
+		TlsCertPath: "",
+		TlsKeyPath:  "",
+	}
+}
 `
 
 const websocketGo = `package main
@@ -157,5 +174,14 @@ func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.Websocke
 
 func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
 	println("websocket client disconnected")
+}
+
+func (app *AppWebsocketHTTP) GetWebsocketComponentConfig() Node.WebsocketComponentConfig {
+	return Node.WebsocketComponentConfig{
+		Pattern:     "/ws",
+		Port:        ":8443",
+		TlsCertPath: "",
+		TlsKeyPath:  "",
+	}
 }
 `
