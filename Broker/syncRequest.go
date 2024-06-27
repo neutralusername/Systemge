@@ -47,7 +47,7 @@ func (broker *Broker) handleSyncRequest(nodeConnection *nodeConnection, message 
 			broker.operationMutex.Lock()
 			delete(broker.openSyncRequests, message.GetSyncRequestToken())
 			broker.operationMutex.Unlock()
-			err := nodeConnection.send(message.NewResponse("error", broker.name, "request timed out"))
+			err := nodeConnection.send(message.NewResponse("error", broker.GetName(), "request timed out"))
 			if err != nil {
 				broker.logger.Log(Error.New("Failed to send timeout response to node \""+nodeConnection.name+"\"", err).Error())
 			}

@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-func NewBroker(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, asyncTopics []string, syncTopics []string) *Broker.Broker {
-	broker := Broker.New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
+func NewBroker(brokerConfig *Broker.BrokerConfig, asyncTopics []string, syncTopics []string) *Broker.Broker {
+	broker := Broker.New(brokerConfig)
 	for _, topic := range asyncTopics {
 		broker.AddAsyncTopics(topic)
 	}
@@ -85,5 +85,15 @@ func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.
 			}
 		}
 	}
-	return NewBroker(name, brokerPort, brokerCertPath, brokerKeyPath, configPort, configCertPath, configKeyPath, errorLogPath, asyncTopics, syncTopics)
+	brokerConfig := &Broker.BrokerConfig{
+		Name:              name,
+		LoggerPath:        errorLogPath,
+		BrokerPort:        brokerPort,
+		BrokerTlsCertPath: brokerCertPath,
+		BrokerTlsKeyPath:  brokerKeyPath,
+		ConfigPort:        configPort,
+		ConfigTlsCertPath: configCertPath,
+		ConfigTlsKeyPath:  configKeyPath,
+	}
+	return NewBroker(brokerConfig, asyncTopics, syncTopics)
 }

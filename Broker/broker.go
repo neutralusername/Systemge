@@ -8,9 +8,22 @@ import (
 	"sync"
 )
 
+type BrokerConfig struct {
+	Name       string
+	LoggerPath string
+
+	BrokerPort        string
+	BrokerTlsCertPath string
+	BrokerTlsKeyPath  string
+
+	ConfigPort        string
+	ConfigTlsCertPath string
+	ConfigTlsKeyPath  string
+}
+
 type Broker struct {
-	name   string
-	logger *Utilities.Logger
+	logger       *Utilities.Logger
+	brokerConfig *BrokerConfig
 
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
@@ -19,14 +32,7 @@ type Broker struct {
 	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection
 	openSyncRequests  map[string]*syncRequest               // syncKey -> request
 
-	brokerTlsCertPath string
-	brokerTlsKeyPath  string
-	brokerPort        string
 	tlsBrokerListener net.Listener
-
-	configTlsCertPath string
-	configTlsKeyPath  string
-	configPort        string
 	tlsConfigListener net.Listener
 
 	isStarted bool
@@ -35,10 +41,10 @@ type Broker struct {
 	stateMutex     sync.Mutex
 }
 
-func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath string, logger *Utilities.Logger) *Broker {
+func New(brokerConfig *BrokerConfig) *Broker {
 	return &Broker{
-		name:   name,
-		logger: logger,
+		logger:       Utilities.NewLogger(brokerConfig.LoggerPath),
+		brokerConfig: brokerConfig,
 
 		syncTopics: map[string]bool{
 			"subscribe":   true,
@@ -52,14 +58,6 @@ func New(name, brokerPort, brokerTlsCertPath, brokerTlsKeyPath, configPort, conf
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},
 		openSyncRequests:  map[string]*syncRequest{},
-
-		brokerTlsCertPath: brokerTlsCertPath,
-		brokerTlsKeyPath:  brokerTlsKeyPath,
-		brokerPort:        brokerPort,
-
-		configTlsCertPath: configTlsCertPath,
-		configTlsKeyPath:  configTlsKeyPath,
-		configPort:        configPort,
 	}
 }
 
@@ -69,22 +67,22 @@ func (broker *Broker) Start() error {
 	if broker.isStarted {
 		return Error.New("broker already started", nil)
 	}
-	brokerCert, err := tls.LoadX509KeyPair(broker.brokerTlsCertPath, broker.brokerTlsKeyPath)
+	brokerCert, err := tls.LoadX509KeyPair(broker.brokerConfig.BrokerTlsCertPath, broker.brokerConfig.BrokerTlsKeyPath)
 	if err != nil {
 		return Error.New("Failed to load TLS certificate", err)
 	}
-	brokerListener, err := tls.Listen("tcp", broker.brokerPort, &tls.Config{
+	brokerListener, err := tls.Listen("tcp", broker.brokerConfig.BrokerPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{brokerCert},
 	})
 	if err != nil {
 		return Error.New("Failed to start broker listener", err)
 	}
-	configCert, err := tls.LoadX509KeyPair(broker.configTlsCertPath, broker.configTlsKeyPath)
+	configCert, err := tls.LoadX509KeyPair(broker.brokerConfig.ConfigTlsCertPath, broker.brokerConfig.ConfigTlsKeyPath)
 	if err != nil {
 		return Error.New("Failed to load TLS certificate", err)
 	}
-	configListener, err := tls.Listen("tcp", broker.configPort, &tls.Config{
+	configListener, err := tls.Listen("tcp", broker.brokerConfig.ConfigPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{configCert},
 	})
@@ -100,7 +98,7 @@ func (broker *Broker) Start() error {
 }
 
 func (broker *Broker) GetName() string {
-	return broker.name
+	return broker.brokerConfig.Name
 }
 
 func (broker *Broker) Stop() error {

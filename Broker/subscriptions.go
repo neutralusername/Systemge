@@ -6,7 +6,7 @@ func (broker *Broker) addSubscription(nodeConnection *nodeConnection, topic stri
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	if !broker.asyncTopics[topic] && !broker.syncTopics[topic] {
-		return Error.New("Topic \""+topic+"\" does not exist on broker \""+broker.name+"\"", nil)
+		return Error.New("Topic \""+topic+"\" does not exist on broker \""+broker.GetName()+"\"", nil)
 	}
 	if broker.syncTopics[topic] && len(broker.nodeSubscriptions[topic]) > 0 {
 		return Error.New("Sync topic \""+topic+"\" already has a subscriber", nil)

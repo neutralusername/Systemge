@@ -51,7 +51,7 @@ func (broker *Broker) validateMessage(message *Message.Message) error {
 	asyncTopicExists := broker.asyncTopics[message.GetTopic()]
 	broker.operationMutex.Unlock()
 	if !syncTopicExists && !asyncTopicExists {
-		return Error.New("Topic \""+message.GetTopic()+"\" does not exist on broker \""+broker.name+"\"", nil)
+		return Error.New("Topic \""+message.GetTopic()+"\" does not exist on broker \""+broker.GetName()+"\"", nil)
 	}
 	if syncTopicExists && message.GetSyncRequestToken() == "" {
 		return Error.New("Topic \""+message.GetTopic()+"\" is a sync topic and message is not a sync request", nil)
@@ -73,7 +73,7 @@ func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Mes
 	if message.GetSyncRequestToken() != "" {
 		if err := broker.handleSyncRequest(nodeConnection, message); err != nil {
 			//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
-			errResponse := nodeConnection.send(message.NewResponse("error", broker.name, Error.New("sync request failed", err).Error()))
+			errResponse := nodeConnection.send(message.NewResponse("error", broker.GetName(), Error.New("sync request failed", err).Error()))
 			if errResponse != nil {
 				broker.logger.Log(Error.New("Failed to handle sync request from node \""+nodeConnection.name+"\"", err).Error())
 				return Error.New("failed to send error response", errResponse)
@@ -112,7 +112,7 @@ func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Mes
 func (broker *Broker) handleConsume(nodeConnection *nodeConnection) error {
 	message := nodeConnection.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
 	if message == nil {
-		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.name, "No message to consume"))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.GetName(), "No message to consume"))
 		if errResponse != nil {
 			return Error.New("Failed to send error response to node \""+nodeConnection.name+"\" and no message to consume", errResponse)
 		}
@@ -128,13 +128,13 @@ func (broker *Broker) handleConsume(nodeConnection *nodeConnection) error {
 func (broker *Broker) handleSubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
 	err := broker.addSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
-		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.name, Error.New("", err).Error()))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.GetName(), Error.New("", err).Error()))
 		if errResponse != nil {
 			return Error.New("Failed to subscribe node \""+nodeConnection.name+"\" to topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
 		}
 		return Error.New("Failed to subscribe node \""+nodeConnection.name+"\" to topic \""+message.GetPayload()+"\"", err)
 	}
-	err = broker.handleSyncResponse(message.NewResponse("subscribed", broker.name, ""))
+	err = broker.handleSyncResponse(message.NewResponse("subscribed", broker.GetName(), ""))
 	if err != nil {
 		return Error.New("Failed to send subscribe response to node \""+nodeConnection.name+"\"", err)
 	}
@@ -144,13 +144,13 @@ func (broker *Broker) handleSubscribe(nodeConnection *nodeConnection, message *M
 func (broker *Broker) handleUnsubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
 	err := broker.removeSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
-		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.name, Error.New("", err).Error()))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.GetName(), Error.New("", err).Error()))
 		if errResponse != nil {
 			return Error.New("Failed to unsubscribe node \""+nodeConnection.name+"\" from topic \""+message.GetPayload()+"\" and failed to send error response", errResponse)
 		}
 		return Error.New("Failed to unsubscribe node \""+nodeConnection.name+"\" from topic \""+message.GetPayload()+"\"", err)
 	}
-	err = broker.handleSyncResponse(message.NewResponse("unsubscribed", broker.name, ""))
+	err = broker.handleSyncResponse(message.NewResponse("unsubscribed", broker.GetName(), ""))
 	if err != nil {
 		return Error.New("Failed to send unsubscribe response to node \""+nodeConnection.name+"\"", err)
 	}
