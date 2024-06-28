@@ -38,3 +38,16 @@ type HTTP struct {
 	TlsCertPath string // *optional*
 	TlsKeyPath  string // *optional*
 }
+
+type Resolver struct {
+	Name       string
+	LoggerPath string
+
+	ResolverPort        string
+	ResolverTlsCertPath string
+	ResolverTlsKeyPath  string
+
+	ConfigPort        string
+	ConfigTlsCertPath string
+	ConfigTlsKeyPath  string
+}

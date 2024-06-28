@@ -1,8 +1,15 @@
 package Module
 
-/*
-func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Server {
-	resolver := Resolver.New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
+import (
+	"Systemge/Config"
+	"Systemge/Resolution"
+	"Systemge/Resolver"
+	"Systemge/Utilities"
+	"strings"
+)
+
+func NewResolver(config *Config.Resolver, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Resolver {
+	resolver := Resolver.New(config)
 	for _, broker := range brokers {
 		resolver.AddKnownBroker(broker)
 	}
@@ -12,7 +19,7 @@ func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, co
 	return resolver
 }
 
-func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resolver.Server {
+func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resolver.Resolver {
 	if !Utilities.FileExists(sytemgeConfigPath) {
 		panic("provided file does not exist \"" + sytemgeConfigPath + "\"")
 	}
@@ -80,6 +87,15 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 			}
 		}
 	}
-	return NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, errorLogPath, brokers, topics)
+	resolverConfig := &Config.Resolver{
+		Name:                name,
+		LoggerPath:          errorLogPath,
+		ResolverPort:        resolverPort,
+		ResolverTlsCertPath: resolverTlsCertPath,
+		ResolverTlsKeyPath:  resolverTlsKeyPath,
+		ConfigPort:          configPort,
+		ConfigTlsCertPath:   configTlsCertPath,
+		ConfigTlsKeyPath:    configTlsKeyPath,
+	}
+	return NewResolver(resolverConfig, brokers, topics)
 }
-*/
