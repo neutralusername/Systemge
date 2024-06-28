@@ -17,6 +17,10 @@ type Node struct {
 	logger     *Utilities.Logger
 	randomizer *Utilities.Randomizer
 
+	application        Application
+	httpComponent      HTTPComponent
+	websocketComponent WebsocketComponent
+
 	stopChannel chan bool
 	isStarted   bool
 
@@ -26,13 +30,11 @@ type Node struct {
 	mutex                           sync.Mutex
 	stateMutex                      sync.Mutex
 
-	application Application
 	//basic
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 	activeBrokerConnections    map[string]*brokerConnection     // brokerAddress -> serverConnection
 	topicResolutions           map[string]*brokerConnection     // topic -> serverConnection
 
-	websocketComponent WebsocketComponent
 	//websocket
 	websocketHandshakeHTTPServer *http.Server
 	websocketConnChannel         chan *websocket.Conn
@@ -40,7 +42,6 @@ type Node struct {
 	WebsocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
 
-	httpComponent HTTPComponent
 	//http
 	httpServer *http.Server
 }

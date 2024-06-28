@@ -32,17 +32,7 @@ func main() {
 
 func GenerateAppFile(path, name string, http, websocket bool) {
 	replacedPackage := Utilities.ReplaceLine(appGo, 0, "package "+name)
-	replacedApplicationInterface := ""
-	if http && websocket {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.WebsocketHTTPApplication {")
-	} else if http {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.HTTPApplication {")
-	} else if websocket {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.WebsocketApplication {")
-	} else {
-		replacedApplicationInterface = Utilities.ReplaceLine(replacedPackage, 7, "func New() Node.Application {")
-	}
-	Utilities.OpenFileTruncate(path + name + "/app.go").WriteString(replacedApplicationInterface)
+	Utilities.OpenFileTruncate(path + name + "/app.go").WriteString(replacedPackage)
 }
 
 func GenerateApplicationTemplate(path, name string) {
@@ -61,12 +51,15 @@ func GenerateWebsocketApplicationTemplate(path, name string) {
 
 const appGo = `package main
 
-import "Systemge/Node"
+import (
+	"Systemge/Node"
+	"Systemge/Config"
+)
 
 type App struct {
 }
 
-func New() Node.Application {
+func New() *App {
 	app := &App{}
 	return app
 }
@@ -79,8 +72,8 @@ func (app *App) OnStop(node *Node.Node) error {
 	return nil
 }
 
-func (app *App) GetApplicationConfig() Node.ApplicationConfig {
-	return Node.ApplicationConfig{
+func (app *App) GetApplicationConfig() Config.Application {
+	return Config.Application {
 		ResolverAddress:            resolverAddress,
 		ResolverNameIndication:     resolverNameIndication,
 		ResolverTLSCert:            resolverCertificate,
@@ -144,8 +137,8 @@ func (app *App) GetHTTPRequestHandlers() map[string]Node.HTTPRequestHandler {
 	}
 }
 
-func (app *AppWebsocketHTTP) GetHTTPComponentConfig() Node.HTTPComponentConfig {
-	return Node.HTTPComponentConfig{
+func (app *AppWebsocketHTTP) GetHTTPComponentConfig() Config.HTTP {
+	return Config.HTTP{
 		Port:        ":8080",
 		TlsCertPath: "",
 		TlsKeyPath:  "",
@@ -176,8 +169,8 @@ func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.Webso
 	println("websocket client disconnected")
 }
 
-func (app *AppWebsocketHTTP) GetWebsocketComponentConfig() Node.WebsocketComponentConfig {
-	return Node.WebsocketComponentConfig{
+func (app *AppWebsocketHTTP) GetWebsocketComponentConfig() Config.Websocket {
+	return Config.Websocket{
 		Pattern:     "/ws",
 		Port:        ":8443",
 		TlsCertPath: "",
