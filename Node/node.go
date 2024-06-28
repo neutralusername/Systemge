@@ -45,16 +45,16 @@ type Node struct {
 	httpServer *http.Server
 }
 
-func New(config Config.Node, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
-	return &Node{
+func New(config Config.Node, application Application) *Node {
+	node := &Node{
 		config: config,
 
 		logger:     Utilities.NewLogger(config.LoggerPath),
 		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
-		application:        application,
-		httpComponent:      httpComponent,
-		websocketComponent: websocketComponent,
+		application:        nil,
+		httpComponent:      nil,
+		websocketComponent: nil,
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 
@@ -65,6 +65,16 @@ func New(config Config.Node, application Application, httpComponent HTTPComponen
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
 	}
+	if v, ok := application.(Application); ok {
+		node.application = v
+	}
+	if v, ok := application.(HTTPComponent); ok {
+		node.httpComponent = v
+	}
+	if v, ok := application.(WebsocketComponent); ok {
+		node.websocketComponent = v
+	}
+	return node
 }
 
 func (node *Node) Start() error {
@@ -115,7 +125,7 @@ func (node *Node) Start() error {
 		return nil
 	}()
 	if err != nil {
-		return Error.New("Error starting node", err)
+		return Error.New("Error starting node \""+node.GetName()+"\"", err)
 	}
 	err = node.application.OnStart(node)
 	if err != nil {
