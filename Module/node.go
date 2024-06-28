@@ -1,8 +1,11 @@
 package Module
 
-import "Systemge/Node"
+import (
+	"Systemge/Config"
+	"Systemge/Node"
+)
 
 // equivalent to Node.New
-func NewNode(config *Node.NodeConfig, application Node.Application, httpComponent Node.HTTPComponent, websocketComponent Node.WebsocketComponent) *Node.Node {
+func NewNode(config *Config.Node, application Node.Application, httpComponent Node.HTTPComponent, websocketComponent Node.WebsocketComponent) *Node.Node {
 	return Node.New(config, application, httpComponent, websocketComponent)
 }

@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
@@ -10,13 +11,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type NodeConfig struct {
-	Name       string // *required*
-	LoggerPath string // *required*
-}
-
 type Node struct {
-	config *NodeConfig
+	config *Config.Node
 
 	logger     *Utilities.Logger
 	randomizer *Utilities.Randomizer
@@ -49,7 +45,7 @@ type Node struct {
 	httpServer *http.Server
 }
 
-func New(config *NodeConfig, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
+func New(config *Config.Node, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
 	return &Node{
 		config: config,
 

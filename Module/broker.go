@@ -2,11 +2,12 @@ package Module
 
 import (
 	"Systemge/Broker"
+	"Systemge/Config"
 	"Systemge/Utilities"
 	"strings"
 )
 
-func NewBroker(brokerConfig *Broker.BrokerConfig, asyncTopics []string, syncTopics []string) *Broker.Broker {
+func NewBroker(brokerConfig *Config.Broker, asyncTopics []string, syncTopics []string) *Broker.Broker {
 	broker := Broker.New(brokerConfig)
 	for _, topic := range asyncTopics {
 		broker.AddAsyncTopics(topic)
@@ -85,7 +86,7 @@ func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.
 			}
 		}
 	}
-	brokerConfig := &Broker.BrokerConfig{
+	brokerConfig := &Config.Broker{
 		Name:              name,
 		LoggerPath:        errorLogPath,
 		BrokerPort:        brokerPort,

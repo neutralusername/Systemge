@@ -1,6 +1,7 @@
 package Broker
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Utilities"
 	"crypto/tls"
@@ -8,22 +9,9 @@ import (
 	"sync"
 )
 
-type BrokerConfig struct {
-	Name       string
-	LoggerPath string
-
-	BrokerPort        string
-	BrokerTlsCertPath string
-	BrokerTlsKeyPath  string
-
-	ConfigPort        string
-	ConfigTlsCertPath string
-	ConfigTlsKeyPath  string
-}
-
 type Broker struct {
 	logger       *Utilities.Logger
-	brokerConfig *BrokerConfig
+	brokerConfig *Config.Broker
 
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
@@ -41,7 +29,7 @@ type Broker struct {
 	stateMutex     sync.Mutex
 }
 
-func New(brokerConfig *BrokerConfig) *Broker {
+func New(brokerConfig *Config.Broker) *Broker {
 	return &Broker{
 		logger:       Utilities.NewLogger(brokerConfig.LoggerPath),
 		brokerConfig: brokerConfig,
