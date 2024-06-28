@@ -10,7 +10,7 @@ import (
 )
 
 type Resolver struct {
-	config *Config.Resolver
+	config Config.Resolver
 	logger *Utilities.Logger
 
 	knownBrokers     map[string]*knownBroker // broker-name -> broker
@@ -23,7 +23,7 @@ type Resolver struct {
 	mutex     sync.Mutex
 }
 
-func New(config *Config.Resolver) *Resolver {
+func New(config Config.Resolver) *Resolver {
 	return &Resolver{
 		config:           config,
 		logger:           Utilities.NewLogger(config.LoggerPath),

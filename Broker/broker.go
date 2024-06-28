@@ -11,7 +11,7 @@ import (
 
 type Broker struct {
 	logger       *Utilities.Logger
-	brokerConfig *Config.Broker
+	brokerConfig Config.Broker
 
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
@@ -29,7 +29,7 @@ type Broker struct {
 	stateMutex     sync.Mutex
 }
 
-func New(brokerConfig *Config.Broker) *Broker {
+func New(brokerConfig Config.Broker) *Broker {
 	return &Broker{
 		logger:       Utilities.NewLogger(brokerConfig.LoggerPath),
 		brokerConfig: brokerConfig,

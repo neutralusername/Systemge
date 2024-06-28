@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func NewResolver(config *Config.Resolver, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Resolver {
+func NewResolver(config Config.Resolver, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Resolver {
 	resolver := Resolver.New(config)
 	for _, broker := range brokers {
 		resolver.AddKnownBroker(broker)
@@ -87,7 +87,7 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 			}
 		}
 	}
-	resolverConfig := &Config.Resolver{
+	return NewResolver(Config.Resolver{
 		Name:                name,
 		LoggerPath:          errorLogPath,
 		ResolverPort:        resolverPort,
@@ -96,6 +96,5 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 		ConfigPort:          configPort,
 		ConfigTlsCertPath:   configTlsCertPath,
 		ConfigTlsKeyPath:    configTlsKeyPath,
-	}
-	return NewResolver(resolverConfig, brokers, topics)
+	}, brokers, topics)
 }
