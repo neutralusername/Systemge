@@ -17,26 +17,26 @@ func newKnownBroker(resolution *Resolution.Resolution) *knownBroker {
 	}
 }
 
-func (server *Server) AddKnownBroker(resolution *Resolution.Resolution) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	if server.knownBrokers[resolution.GetName()] != nil {
+func (resolver *Resolver) AddKnownBroker(resolution *Resolution.Resolution) error {
+	resolver.mutex.Lock()
+	defer resolver.mutex.Unlock()
+	if resolver.knownBrokers[resolution.GetName()] != nil {
 		return Error.New("Broker already registered", nil)
 	}
-	server.knownBrokers[resolution.GetName()] = newKnownBroker(resolution)
+	resolver.knownBrokers[resolution.GetName()] = newKnownBroker(resolution)
 	return nil
 }
 
-func (server *Server) RemoveKnownBroker(name string) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	knownBroker := server.knownBrokers[name]
+func (resolver *Resolver) RemoveKnownBroker(name string) error {
+	resolver.mutex.Lock()
+	defer resolver.mutex.Unlock()
+	knownBroker := resolver.knownBrokers[name]
 	if knownBroker == nil {
 		return Error.New("Broker not found", nil)
 	}
-	delete(server.knownBrokers, name)
+	delete(resolver.knownBrokers, name)
 	for topic := range knownBroker.topics {
-		delete(server.registeredTopics, topic)
+		delete(resolver.registeredTopics, topic)
 	}
 	knownBroker.topics = map[string]bool{}
 	return nil

@@ -1,12 +1,6 @@
 package Module
 
-import (
-	"Systemge/Resolution"
-	"Systemge/Resolver"
-	"Systemge/Utilities"
-	"strings"
-)
-
+/*
 func NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, loggerPath string, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Server {
 	resolver := Resolver.New(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, Utilities.NewLogger(loggerPath))
 	for _, broker := range brokers {
@@ -88,3 +82,4 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 	}
 	return NewResolver(name, resolverPort, resolverTlsCertPath, resolverTlsKeyPath, configPort, configTlsCertPath, configTlsKeyPath, errorLogPath, brokers, topics)
 }
+*/
