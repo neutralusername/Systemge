@@ -52,6 +52,8 @@ func New(config Config.Node, application Application) *Node {
 		logger:     Utilities.NewLogger(config.LoggerPath),
 		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
+		application: application,
+
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 
 		topicResolutions:        make(map[string]*brokerConnection),
