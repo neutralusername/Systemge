@@ -10,7 +10,9 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 	return map[string]Node.SyncMessageHandler{
 		"endNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
+			spawner.mutex.Lock()
 			err := spawner.EndNode(node, id)
+			spawner.mutex.Unlock()
 			if err != nil {
 				return "", Error.New("Error ending node "+id, err)
 			}
@@ -18,7 +20,9 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 		},
 		"startNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
+			spawner.mutex.Lock()
 			err := spawner.StartNode(node, id)
+			spawner.mutex.Unlock()
 			if err != nil {
 				return "", Error.New("Error starting node "+id, err)
 			}

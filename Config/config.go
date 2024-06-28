@@ -2,22 +2,6 @@ package Config
 
 import "Systemge/Resolution"
 
-type Broker struct {
-	Name       string // *required*
-	LoggerPath string // *required*
-
-	BrokerPort        string // *required*
-	BrokerTlsCertPath string // *required*
-	BrokerTlsKeyPath  string // *required*
-
-	ConfigPort        string // *required*
-	ConfigTlsCertPath string // *required*
-	ConfigTlsKeyPath  string // *required*
-
-	SyncTopics  []string
-	AsyncTopics []string
-}
-
 type Node struct {
 	Name       string // *required*
 	LoggerPath string // *required*
@@ -39,6 +23,22 @@ type HTTP struct {
 	Port        string // *required*
 	TlsCertPath string // *optional*
 	TlsKeyPath  string // *optional*
+}
+
+type Broker struct {
+	Name       string // *required*
+	LoggerPath string // *required*
+
+	BrokerPort        string // *required*
+	BrokerTlsCertPath string // *required*
+	BrokerTlsKeyPath  string // *required*
+
+	ConfigPort        string // *required*
+	ConfigTlsCertPath string // *required*
+	ConfigTlsKeyPath  string // *required*
+
+	SyncTopics  []string
+	AsyncTopics []string
 }
 
 type Resolver struct {

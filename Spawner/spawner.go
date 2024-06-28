@@ -2,6 +2,7 @@ package Spawner
 
 import (
 	"Systemge/Config"
+	"Systemge/Error"
 	"Systemge/Node"
 	"sync"
 )
@@ -29,6 +30,14 @@ func (spawner *Spawner) OnStart(node *Node.Node) error {
 }
 
 func (spawner *Spawner) OnStop(node *Node.Node) error {
+	spawner.mutex.Lock()
+	defer spawner.mutex.Unlock()
+	for id := range spawner.spawnedNodes {
+		err := spawner.EndNode(node, id)
+		if err != nil {
+			node.GetLogger().Log(Error.New("Error stopping node "+id, err).Error())
+		}
+	}
 	return nil
 }
 

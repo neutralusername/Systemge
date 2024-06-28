@@ -10,7 +10,9 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 	return map[string]Node.AsyncMessageHandler{
 		"endNodeAsync": func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
+			spawner.mutex.Lock()
 			err := spawner.EndNode(node, id)
+			spawner.mutex.Unlock()
 			if err != nil {
 				return Error.New("Error ending node "+id, err)
 			}
@@ -18,7 +20,9 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 		},
 		"startNodeAsync": func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
+			spawner.mutex.Lock()
 			err := spawner.StartNode(node, id)
+			spawner.mutex.Unlock()
 			if err != nil {
 				return Error.New("Error starting node "+id, err)
 			}
