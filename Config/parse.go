@@ -162,7 +162,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 			}
 			resolution := Resolution.New(lineSegments[0], lineSegments[1], lineSegments[2], Utilities.GetFileContent(lineSegments[3]))
 			for _, topic := range lineSegments[3:] {
-				topics[topic] = *resolution
+				topics[topic] = resolution
 			}
 		}
 	}

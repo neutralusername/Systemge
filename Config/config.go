@@ -24,10 +24,7 @@ type Node struct {
 }
 
 type Application struct {
-	ResolverAddress        string // *required*
-	ResolverNameIndication string // *required*
-	ResolverTLSCert        string // *required*
-
+	ResolverResolution         Resolution.Resolution
 	HandleMessagesSequentially bool // default: false
 }
 
@@ -57,4 +54,14 @@ type Resolver struct {
 	ConfigTlsKeyPath  string
 
 	TopicResolutions map[string]Resolution.Resolution
+}
+
+type Spawner struct {
+	IsSpawnedNodeTopicSync bool // default: false
+
+	SpawnedNodeLoggerPath string // *required*
+
+	ResolverConfigResolution     Resolution.Resolution // *required*
+	BrokerConfigResolution       Resolution.Resolution // *required*
+	BrokerSubscriptionResolution Resolution.Resolution // *required*
 }

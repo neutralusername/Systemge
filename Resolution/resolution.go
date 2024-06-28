@@ -16,8 +16,8 @@ type resolutionData struct {
 	TlsCertificate       string `json:"tlsCertificate"`
 }
 
-func New(name, address, serverNameIndication, cert string) *Resolution {
-	return &Resolution{
+func New(name, address, serverNameIndication, cert string) Resolution {
+	return Resolution{
 		name:                 name,
 		address:              address,
 		serverNameIndication: serverNameIndication,
@@ -25,23 +25,23 @@ func New(name, address, serverNameIndication, cert string) *Resolution {
 	}
 }
 
-func (broker *Resolution) GetName() string {
+func (broker Resolution) GetName() string {
 	return broker.name
 }
 
-func (broker *Resolution) GetAddress() string {
+func (broker Resolution) GetAddress() string {
 	return broker.address
 }
 
-func (broker *Resolution) GetServerNameIndication() string {
+func (broker Resolution) GetServerNameIndication() string {
 	return broker.serverNameIndication
 }
 
-func (broker *Resolution) GetTlsCertificate() string {
+func (broker Resolution) GetTlsCertificate() string {
 	return broker.tlsCertificate
 }
 
-func (broker *Resolution) Marshal() string {
+func (broker Resolution) Marshal() string {
 	json, _ := json.Marshal(resolutionData{
 		Name:                 broker.name,
 		Address:              broker.address,
@@ -54,5 +54,6 @@ func (broker *Resolution) Marshal() string {
 func Unmarshal(data string) *Resolution {
 	var resolutionData resolutionData
 	json.Unmarshal([]byte(data), &resolutionData)
-	return New(resolutionData.Name, resolutionData.Address, resolutionData.ServerNameIndication, resolutionData.TlsCertificate)
+	resolution := New(resolutionData.Name, resolutionData.Address, resolutionData.ServerNameIndication, resolutionData.TlsCertificate)
+	return &resolution
 }
