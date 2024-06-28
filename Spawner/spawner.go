@@ -7,6 +7,7 @@ import (
 	"sync"
 )
 
+// implements Node.Application
 type Spawner struct {
 	appConfig          Config.Application
 	spawnerConfig      Config.Spawner
