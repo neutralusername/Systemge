@@ -35,29 +35,20 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 		return
 	}
 	switch message.GetTopic() {
-	case "addKnownBroker":
-		resolution := Resolution.Unmarshal(message.GetPayload())
-		if resolution == nil {
-			err = Error.New("Failed to unmarshal resolution", nil)
-			break
-		}
-		err = resolver.AddKnownBroker(resolution)
-	case "removeKnownBroker":
-		err = resolver.RemoveKnownBroker(message.GetPayload())
-	case "addTopics":
+	case "addTopic":
 		segments := strings.Split(message.GetPayload(), " ")
-		if len(segments) < 2 {
+		if len(segments) != 2 {
 			err = Error.New("Invalid payload", nil)
 			break
 		}
-		err = resolver.AddBrokerTopics(segments[0], segments[1:]...)
-	case "removeTopics":
+		err = resolver.AddTopic(*Resolution.Unmarshal(segments[0]), segments[1])
+	case "removeTopic":
 		segments := strings.Split(message.GetPayload(), " ")
-		if len(segments) < 1 {
+		if len(segments) != 1 {
 			err = Error.New("Invalid payload", nil)
 			break
 		}
-		resolver.RemoveBrokerTopics(segments...)
+		resolver.RemoveTopic(segments[0])
 	default:
 		err = Error.New("Invalid config request", nil)
 	}

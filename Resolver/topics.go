@@ -1,30 +1,18 @@
 package Resolver
 
-import "Systemge/Error"
+import (
+	"Systemge/Resolution"
+)
 
-func (resolver *Resolver) AddBrokerTopics(brokerName string, topics ...string) error {
+func (resolver *Resolver) AddTopic(resolution Resolution.Resolution, topic string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	broker := resolver.knownBrokers[brokerName]
-	if broker == nil {
-		return Error.New("Broker not found", nil)
-	}
-	for _, topic := range topics {
-		resolver.registeredTopics[topic] = broker
-		broker.topics[topic] = true
-	}
+	resolver.registeredTopics[topic] = resolution
 	return nil
 }
 
-func (resolver *Resolver) RemoveBrokerTopics(topics ...string) {
+func (resolver *Resolver) RemoveTopic(topic string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	for _, topic := range topics {
-		broker := resolver.registeredTopics[topic]
-		if broker == nil {
-			continue
-		}
-		delete(resolver.registeredTopics, topic)
-		delete(broker.topics, topic)
-	}
+	delete(resolver.registeredTopics, topic)
 }

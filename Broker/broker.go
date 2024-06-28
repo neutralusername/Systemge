@@ -29,24 +29,33 @@ type Broker struct {
 	stateMutex     sync.Mutex
 }
 
-func New(brokerConfig Config.Broker) *Broker {
-	return &Broker{
-		logger:       Utilities.NewLogger(brokerConfig.LoggerPath),
-		brokerConfig: brokerConfig,
+func New(config Config.Broker) *Broker {
+	asyncTopics := map[string]bool{
+		"heartbeat": true,
+	}
+	syncTopics := map[string]bool{
+		"subscribe":   true,
+		"unsubscribe": true,
+		"consume":     true,
+	}
+	broker := &Broker{
+		logger:       Utilities.NewLogger(config.LoggerPath),
+		brokerConfig: config,
 
-		syncTopics: map[string]bool{
-			"subscribe":   true,
-			"unsubscribe": true,
-			"consume":     true,
-		},
-		asyncTopics: map[string]bool{
-			"heartbeat": true,
-		},
+		syncTopics:  syncTopics,
+		asyncTopics: asyncTopics,
 
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},
 		openSyncRequests:  map[string]*syncRequest{},
 	}
+	for _, topic := range config.AsyncTopics {
+		broker.AddAsyncTopics(topic)
+	}
+	for _, topic := range config.SyncTopics {
+		broker.AddSyncTopics(topic)
+	}
+	return broker
 }
 
 func (broker *Broker) Start() error {

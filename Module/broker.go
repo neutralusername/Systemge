@@ -1,24 +1,12 @@
 package Module
 
 import (
-	"Systemge/Broker"
 	"Systemge/Config"
 	"Systemge/Utilities"
 	"strings"
 )
 
-func NewBroker(brokerConfig Config.Broker, asyncTopics []string, syncTopics []string) *Broker.Broker {
-	broker := Broker.New(brokerConfig)
-	for _, topic := range asyncTopics {
-		broker.AddAsyncTopics(topic)
-	}
-	for _, topic := range syncTopics {
-		broker.AddSyncTopics(topic)
-	}
-	return broker
-}
-
-func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.Broker {
+func ParseBrokerConfigFromFile(sytemgeConfigPath string) Config.Broker {
 	if !Utilities.FileExists(sytemgeConfigPath) {
 		panic("provided file does not exist \"" + sytemgeConfigPath + "\"")
 	}
@@ -36,6 +24,7 @@ func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.
 	configPort := ""
 	configCertPath := ""
 	configKeyPath := ""
+	errorLogPath := ""
 	asyncTopics := []string{}
 	syncTopics := []string{}
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
@@ -58,14 +47,19 @@ func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.
 			if lineSegments[1] != "broker" {
 				panic("wrong config type for broker \"" + lineSegments[1] + "\"")
 			}
-		case "broker":
+		case "_logs":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			errorLogPath = lineSegments[1]
+		case "_broker":
 			if len(lineSegments) != 4 {
 				panic("broker line is invalid \"" + line + "\"")
 			}
 			brokerPort = lineSegments[1]
 			brokerCertPath = lineSegments[2]
 			brokerKeyPath = lineSegments[3]
-		case "config":
+		case "_config":
 			if len(lineSegments) != 4 {
 				panic("config line is invalid \"" + line + "\"")
 			}
@@ -86,7 +80,7 @@ func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.
 			}
 		}
 	}
-	return NewBroker(Config.Broker{
+	return Config.Broker{
 		Name:              name,
 		LoggerPath:        errorLogPath,
 		BrokerPort:        brokerPort,
@@ -95,5 +89,7 @@ func NewBrokerFromConfig(sytemgeConfigPath string, errorLogPath string) *Broker.
 		ConfigPort:        configPort,
 		ConfigTlsCertPath: configCertPath,
 		ConfigTlsKeyPath:  configKeyPath,
-	}, asyncTopics, syncTopics)
+		SyncTopics:        syncTopics,
+		AsyncTopics:       asyncTopics,
+	}
 }

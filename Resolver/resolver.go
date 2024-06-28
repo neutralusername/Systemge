@@ -3,6 +3,7 @@ package Resolver
 import (
 	"Systemge/Config"
 	"Systemge/Error"
+	"Systemge/Resolution"
 	"Systemge/Utilities"
 	"crypto/tls"
 	"net"
@@ -13,8 +14,7 @@ type Resolver struct {
 	config Config.Resolver
 	logger *Utilities.Logger
 
-	knownBrokers     map[string]*knownBroker // broker-name -> broker
-	registeredTopics map[string]*knownBroker // topic -> broker
+	registeredTopics map[string]Resolution.Resolution // topic -> broker
 
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener
@@ -24,12 +24,16 @@ type Resolver struct {
 }
 
 func New(config Config.Resolver) *Resolver {
-	return &Resolver{
+	topicResolutions := map[string]Resolution.Resolution{}
+	resolver := &Resolver{
 		config:           config,
 		logger:           Utilities.NewLogger(config.LoggerPath),
-		knownBrokers:     map[string]*knownBroker{},
-		registeredTopics: map[string]*knownBroker{},
+		registeredTopics: topicResolutions,
 	}
+	for topic, resolution := range config.TopicResolutions {
+		resolver.AddTopic(resolution, topic)
+	}
+	return resolver
 }
 
 func (resolver *Resolver) Start() error {

@@ -34,13 +34,13 @@ func (resolver *Resolver) handleResolverConnection(netConn net.Conn) {
 		return
 	}
 	resolver.mutex.Lock()
-	broker, ok := resolver.registeredTopics[message.GetPayload()]
+	resolution, ok := resolver.registeredTopics[message.GetPayload()]
 	resolver.mutex.Unlock()
 	if !ok {
 		resolver.logger.Log(Error.New("Topic not found: \""+message.GetPayload()+"\" by "+message.GetOrigin(), nil).Error())
 		return
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", resolver.GetName(), broker.resolution.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
+	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", resolver.GetName(), resolution.Marshal()).Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		resolver.logger.Log(Error.New("Failed to send resolution to \""+message.GetOrigin()+"\"", err).Error())
 		return

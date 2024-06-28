@@ -3,23 +3,11 @@ package Module
 import (
 	"Systemge/Config"
 	"Systemge/Resolution"
-	"Systemge/Resolver"
 	"Systemge/Utilities"
 	"strings"
 )
 
-func NewResolver(config Config.Resolver, brokers map[string]*Resolution.Resolution, topics map[string]*Resolution.Resolution) *Resolver.Resolver {
-	resolver := Resolver.New(config)
-	for _, broker := range brokers {
-		resolver.AddKnownBroker(broker)
-	}
-	for topic, broker := range topics {
-		resolver.AddBrokerTopics(broker.GetName(), topic)
-	}
-	return resolver
-}
-
-func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resolver.Resolver {
+func ParseResolverConfigFromFile(sytemgeConfigPath string) Config.Resolver {
 	if !Utilities.FileExists(sytemgeConfigPath) {
 		panic("provided file does not exist \"" + sytemgeConfigPath + "\"")
 	}
@@ -37,8 +25,8 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 	configPort := ""
 	configTlsCertPath := ""
 	configTlsKeyPath := ""
-	topics := map[string]*Resolution.Resolution{}  // topic -> broker
-	brokers := map[string]*Resolution.Resolution{} // broker-name -> broker
+	errorLogPath := ""
+	topics := map[string]Resolution.Resolution{} // topic -> broker
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 3 {
 		panic("provided file has too few lines to be a valid config")
@@ -59,14 +47,19 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 			if lineSegments[1] != "resolver" {
 				panic("wrong config type for resolver \"" + lineSegments[1] + "\"")
 			}
-		case "resolver":
+		case "_logs":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			errorLogPath = lineSegments[1]
+		case "_resolver":
 			if len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
 			}
 			resolverPort = lineSegments[1]
 			resolverTlsCertPath = lineSegments[2]
 			resolverTlsKeyPath = lineSegments[3]
-		case "config":
+		case "_config":
 			if len(lineSegments) != 4 {
 				panic("config line is invalid \"" + line + "\"")
 			}
@@ -81,13 +74,12 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 				panic("certificate file does not exist \"" + lineSegments[2] + "\"")
 			}
 			resolution := Resolution.New(lineSegments[0], lineSegments[1], lineSegments[2], Utilities.GetFileContent(lineSegments[3]))
-			brokers[lineSegments[0]] = resolution
 			for _, topic := range lineSegments[3:] {
-				topics[topic] = resolution
+				topics[topic] = *resolution
 			}
 		}
 	}
-	return NewResolver(Config.Resolver{
+	return Config.Resolver{
 		Name:                name,
 		LoggerPath:          errorLogPath,
 		ResolverPort:        resolverPort,
@@ -96,5 +88,6 @@ func NewResolverFromConfig(sytemgeConfigPath string, errorLogPath string) *Resol
 		ConfigPort:          configPort,
 		ConfigTlsCertPath:   configTlsCertPath,
 		ConfigTlsKeyPath:    configTlsKeyPath,
-	}, brokers, topics)
+		TopicResolutions:    topics,
+	}
 }
