@@ -65,14 +65,14 @@ func New(config Config.Node, application Application) *Node {
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
 	}
-	if v, ok := application.(Application); ok {
-		node.application = v
+	if application, ok := application.(Application); ok {
+		node.application = application
 	}
-	if v, ok := application.(HTTPComponent); ok {
-		node.httpComponent = v
+	if httpComponent, ok := application.(HTTPComponent); ok {
+		node.httpComponent = httpComponent
 	}
-	if v, ok := application.(WebsocketComponent); ok {
-		node.websocketComponent = v
+	if websocketComponent, ok := application.(WebsocketComponent); ok {
+		node.websocketComponent = websocketComponent
 	}
 	return node
 }
