@@ -2,95 +2,39 @@ package Spawner
 
 import (
 	"Systemge/Config"
-	"Systemge/Error"
 	"Systemge/Node"
+	"sync"
 )
 
-func (spawner *Spawner) EndNode(node *Node.Node, id string) error {
-	spawner.mutex.Lock()
-	defer spawner.mutex.Unlock()
-	spawnedNode := spawner.spawnedNodes[id]
-	if spawnedNode == nil {
-		return Error.New("Node "+id+" does not exist", nil)
+type Spawner struct {
+	appConfig          Config.Application
+	spawnerConfig      Config.Spawner
+	spawnedNodes       map[string]*Node.Node
+	newApplicationFunc func(string) Node.Application
+	mutex              sync.Mutex
+}
+
+func New(appConfig Config.Application, spawnerConfig Config.Spawner, newApplicationFunc func(string) Node.Application) *Spawner {
+	spawner := &Spawner{
+		appConfig:          appConfig,
+		spawnerConfig:      spawnerConfig,
+		spawnedNodes:       make(map[string]*Node.Node),
+		newApplicationFunc: newApplicationFunc,
 	}
-	err := spawnedNode.Stop()
-	if err != nil {
-		return Error.New("Error stopping node "+id, err)
-	}
-	delete(spawner.spawnedNodes, id)
-	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
-		err = node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-		if err != nil {
-			node.GetLogger().Log(Error.New("Error removing sync topic \""+id+"\"", err).Error())
-		}
-	} else {
-		err = node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-		if err != nil {
-			node.GetLogger().Log(Error.New("Error removing async topic \""+id+"\"", err).Error())
-		}
-	}
-	err = node.RemoveResolverTopicRemotely(spawner.spawnerConfig.ResolverConfigResolution.GetAddress(), spawner.spawnerConfig.ResolverConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.ResolverConfigResolution.GetTlsCertificate(), id)
-	if err != nil {
-		node.GetLogger().Log(Error.New("Error unregistering topic \""+id+"\"", err).Error())
-	}
+	return spawner
+}
+
+func (spawner *Spawner) OnStart(node *Node.Node) error {
 	return nil
 }
 
-func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
-	spawner.mutex.Lock()
-	defer spawner.mutex.Unlock()
-	if _, ok := spawner.spawnedNodes[id]; ok {
-		return Error.New("Node "+id+" already exists", nil)
-	}
-	newNode := Node.New(Config.Node{
-		Name:       id,
-		LoggerPath: spawner.spawnerConfig.SpawnedNodeLoggerPath,
-	}, spawner.newApplicationFunc(id))
-	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
-		err := node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-		if err != nil {
-			return Error.New("Error adding sync topic \""+id+"\"", err)
-		}
-	} else {
-		err := node.AddAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-		if err != nil {
-			return Error.New("Error adding async topic \""+id+"\"", err)
-		}
-	}
-	err := node.AddResolverTopicRemotely(spawner.spawnerConfig.ResolverConfigResolution.GetAddress(), spawner.spawnerConfig.ResolverConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.ResolverConfigResolution.GetTlsCertificate(), spawner.spawnerConfig.BrokerSubscriptionResolution, id)
-	if err != nil {
-		if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
-			removeErr := node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-			if removeErr != nil {
-				node.GetLogger().Log(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
-			}
-		} else {
-			removeErr := node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-			if removeErr != nil {
-				node.GetLogger().Log(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
-			}
-		}
-		return Error.New("Error registering topic", err)
-	}
-	err = newNode.Start()
-	if err != nil {
-		if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
-			removeErr := node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-			if removeErr != nil {
-				node.GetLogger().Log(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
-			}
-		} else {
-			removeErr := node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
-			if removeErr != nil {
-				node.GetLogger().Log(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
-			}
-		}
-		removeErr := node.RemoveResolverTopicRemotely(spawner.spawnerConfig.ResolverConfigResolution.GetAddress(), spawner.spawnerConfig.ResolverConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.ResolverConfigResolution.GetTlsCertificate(), id)
-		if removeErr != nil {
-			node.GetLogger().Log(Error.New("Error unregistering topic \""+id+"\"", removeErr).Error())
-		}
-		return Error.New("Error starting node", err)
-	}
-	spawner.spawnedNodes[id] = newNode
+func (spawner *Spawner) OnStop(node *Node.Node) error {
 	return nil
+}
+
+func (spawner *Spawner) GetApplicationConfig() Config.Application {
+	return Config.Application{
+		ResolverResolution:         spawner.appConfig.ResolverResolution,
+		HandleMessagesSequentially: false,
+	}
 }
