@@ -31,17 +31,3 @@ type WebsocketComponent interface {
 	GetWebsocketComponentConfig() Config.Websocket
 }
 type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error
-
-type WebsocketApplication interface {
-	Application
-	WebsocketComponent
-}
-type HTTPApplication interface {
-	Application
-	HTTPComponent
-}
-type WebsocketHTTPApplication interface {
-	Application
-	WebsocketComponent
-	HTTPComponent
-}
