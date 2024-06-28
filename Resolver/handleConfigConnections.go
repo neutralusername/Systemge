@@ -36,14 +36,14 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 	}
 	switch message.GetTopic() {
 	case "addTopic":
-		segments := strings.Split(message.GetPayload(), " ")
+		segments := strings.Split(message.GetPayload(), "|")
 		if len(segments) != 2 {
-			err = Error.New("Invalid payload", nil)
+			err = Error.New("Invalid payload \""+message.GetPayload()+"\"", nil)
 			break
 		}
 		err = resolver.AddTopic(*Resolution.Unmarshal(segments[0]), segments[1])
 	case "removeTopic":
-		segments := strings.Split(message.GetPayload(), " ")
+		segments := strings.Split(message.GetPayload(), "|")
 		if len(segments) != 1 {
 			err = Error.New("Invalid payload", nil)
 			break
