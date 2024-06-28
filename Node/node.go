@@ -12,7 +12,7 @@ import (
 )
 
 type Node struct {
-	config *Config.Node
+	config Config.Node
 
 	logger     *Utilities.Logger
 	randomizer *Utilities.Randomizer
@@ -45,7 +45,7 @@ type Node struct {
 	httpServer *http.Server
 }
 
-func New(config *Config.Node, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
+func New(config Config.Node, application Application, httpComponent HTTPComponent, websocketComponent WebsocketComponent) *Node {
 	return &Node{
 		config: config,
 
