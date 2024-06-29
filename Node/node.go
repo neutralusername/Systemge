@@ -32,8 +32,8 @@ type Node struct {
 
 	//basic
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-	activeBrokerConnections    map[string]*brokerConnection     // brokerAddress -> serverConnection
-	topicResolutions           map[string]*brokerConnection     // topic -> serverConnection
+	activeBrokerConnections    map[string]*brokerConnection     // brokerAddress -> brokerConnection
+	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
 	websocketHandshakeHTTPServer *http.Server
@@ -104,13 +104,13 @@ func (node *Node) Start() error {
 			topicsToSubscribeTo = append(topicsToSubscribeTo, topic)
 		}
 		for _, topic := range topicsToSubscribeTo {
-			serverConnection, err := node.getBrokerConnectionForTopic(topic)
+			brokerConnection, err := node.getBrokerConnectionForTopic(topic)
 			if err != nil {
 				node.removeAllBrokerConnections()
 				close(node.stopChannel)
-				return Error.New("Error getting server connection for topic", err)
+				return Error.New("Error getting broker connection for topic", err)
 			}
-			err = node.subscribeTopic(serverConnection, topic)
+			err = node.subscribeTopic(brokerConnection, topic)
 			if err != nil {
 				node.removeAllBrokerConnections()
 				close(node.stopChannel)

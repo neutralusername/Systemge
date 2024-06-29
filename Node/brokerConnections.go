@@ -6,7 +6,7 @@ func (node *Node) addBrokerConnection(brokerConnection *brokerConnection) error 
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
 	if node.activeBrokerConnections[brokerConnection.resolution.GetAddress()] != nil {
-		return Error.New("Server connection already exists", nil)
+		return Error.New("broker connection already exists", nil)
 	}
 	node.activeBrokerConnections[brokerConnection.resolution.GetAddress()] = brokerConnection
 	go node.handleBrokerMessages(brokerConnection)
@@ -26,11 +26,11 @@ func (node *Node) RemoveBrokerConnection(brokerAddress string) error {
 	defer node.mutex.Unlock()
 	brokerConnection := node.activeBrokerConnections[brokerAddress]
 	if brokerConnection == nil {
-		return Error.New("Server connection does not exist", nil)
+		return Error.New("broker connection does not exist", nil)
 	}
 	err := brokerConnection.close()
 	if err != nil {
-		return Error.New("Error closing server connection", err)
+		return Error.New("Error closing broker connection", err)
 	}
 	delete(node.activeBrokerConnections, brokerAddress)
 	return nil

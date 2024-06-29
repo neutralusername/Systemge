@@ -56,13 +56,13 @@ func (node *Node) handleMessage(message *Message.Message, brokerConnection *brok
 		if err != nil {
 			errResponse := brokerConnection.send(message.NewResponse("error", node.config.Name, Error.New("Error handling message", err).Error()))
 			if errResponse != nil {
-				return Error.New("Failed to send error response to message broker server", errResponse)
+				return Error.New("Failed to send error response to broker", errResponse)
 			}
 			return Error.New("Error handling message", err)
 		}
 		err = brokerConnection.send(message.NewResponse(message.GetTopic(), node.config.Name, response))
 		if err != nil {
-			return Error.New("Failed to send response to message broker server", err)
+			return Error.New("Failed to send response to broker", err)
 		}
 	} else {
 		err := node.handleAsyncMessage(message)

@@ -33,7 +33,7 @@ func newBrokerConnection(netConn net.Conn, resolution *Resolution.Resolution, lo
 
 func (brokerConnection *brokerConnection) send(message *Message.Message) error {
 	if brokerConnection == nil {
-		return Error.New("Server connection is nil", nil)
+		return Error.New("broker connection is nil", nil)
 	}
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
@@ -49,7 +49,7 @@ func (brokerConnection *brokerConnection) send(message *Message.Message) error {
 
 func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 	if brokerConnection == nil {
-		return nil, Error.New("Server connection is nil", nil)
+		return nil, Error.New("broker connection is nil", nil)
 	}
 	brokerConnection.receiveMutex.Lock()
 	defer brokerConnection.receiveMutex.Unlock()
@@ -65,7 +65,7 @@ func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 
 func (brokerConnection *brokerConnection) close() error {
 	if brokerConnection == nil {
-		return Error.New("Server connection is nil", nil)
+		return Error.New("broker connection is nil", nil)
 	}
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()

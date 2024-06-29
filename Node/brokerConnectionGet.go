@@ -13,11 +13,11 @@ func (node *Node) getBrokerConnectionForTopic(topic string) (*brokerConnection, 
 		if brokerConnection == nil {
 			brokerConnection, err = node.connectToBroker(resolution)
 			if err != nil {
-				return nil, Error.New("Error connecting to message broker server", err)
+				return nil, Error.New("Error connecting to broker", err)
 			}
 			err = node.addBrokerConnection(brokerConnection)
 			if err != nil {
-				return nil, Error.New("Error adding server connection", err)
+				return nil, Error.New("Error adding broker connection", err)
 			}
 		}
 		err = node.addTopicResolution(topic, brokerConnection)

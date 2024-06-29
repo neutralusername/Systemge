@@ -10,7 +10,7 @@ import (
 func (node *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
 	netConn, err := Utilities.TlsDial(resolution.GetAddress(), resolution.GetServerNameIndication(), resolution.GetTlsCertificate())
 	if err != nil {
-		return nil, Error.New("Error connecting to message broker server", err)
+		return nil, Error.New("Error connecting to broker", err)
 	}
 	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", node.config.Name, ""), DEFAULT_TCP_TIMEOUT)
 	if err != nil {

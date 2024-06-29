@@ -6,7 +6,7 @@ import (
 	"Systemge/Utilities"
 )
 
-// subscribes to a topic from the provided server connection
+// subscribes to a topic from the provided broker connection
 func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic string) error {
 	message := Message.NewSync("subscribe", node.config.Name, topic, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	responseChannel, err := node.addMessageWaitingForResponse(message)
@@ -16,7 +16,7 @@ func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic strin
 	err = brokerConnection.send(message)
 	if err != nil {
 		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
-		return Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to message broker server", err)
+		return Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to broker", err)
 	}
 	response, err := node.receiveSyncResponse(message, responseChannel)
 	if err != nil {
