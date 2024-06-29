@@ -10,8 +10,8 @@ import (
 )
 
 type Broker struct {
-	logger       *Utilities.Logger
-	brokerConfig Config.Broker
+	logger *Utilities.Logger
+	config Config.Broker
 
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
@@ -39,8 +39,8 @@ func New(config Config.Broker) *Broker {
 		"consume":     true,
 	}
 	broker := &Broker{
-		logger:       Utilities.NewLogger(config.LoggerPath),
-		brokerConfig: config,
+		logger: Utilities.NewLogger(config.LoggerPath),
+		config: config,
 
 		syncTopics:  syncTopics,
 		asyncTopics: asyncTopics,
@@ -64,22 +64,22 @@ func (broker *Broker) Start() error {
 	if broker.isStarted {
 		return Error.New("broker already started", nil)
 	}
-	brokerCert, err := tls.LoadX509KeyPair(broker.brokerConfig.BrokerTlsCertPath, broker.brokerConfig.BrokerTlsKeyPath)
+	brokerCert, err := tls.LoadX509KeyPair(broker.config.BrokerTlsCertPath, broker.config.BrokerTlsKeyPath)
 	if err != nil {
 		return Error.New("Failed to load TLS certificate", err)
 	}
-	brokerListener, err := tls.Listen("tcp", broker.brokerConfig.BrokerPort, &tls.Config{
+	brokerListener, err := tls.Listen("tcp", broker.config.BrokerPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{brokerCert},
 	})
 	if err != nil {
 		return Error.New("Failed to start broker listener", err)
 	}
-	configCert, err := tls.LoadX509KeyPair(broker.brokerConfig.ConfigTlsCertPath, broker.brokerConfig.ConfigTlsKeyPath)
+	configCert, err := tls.LoadX509KeyPair(broker.config.ConfigTlsCertPath, broker.config.ConfigTlsKeyPath)
 	if err != nil {
 		return Error.New("Failed to load TLS certificate", err)
 	}
-	configListener, err := tls.Listen("tcp", broker.brokerConfig.ConfigPort, &tls.Config{
+	configListener, err := tls.Listen("tcp", broker.config.ConfigPort, &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{configCert},
 	})
@@ -95,7 +95,7 @@ func (broker *Broker) Start() error {
 }
 
 func (broker *Broker) GetName() string {
-	return broker.brokerConfig.Name
+	return broker.config.Name
 }
 
 func (broker *Broker) Stop() error {
