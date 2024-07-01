@@ -31,3 +31,18 @@ type WebsocketComponent interface {
 	GetWebsocketComponentConfig() Config.Websocket
 }
 type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error
+
+func ImplementsApplication(obj interface{}) bool {
+	_, ok := obj.(Application)
+	return ok
+}
+
+func ImplementsHTTPComponent(obj interface{}) bool {
+	_, ok := obj.(HTTPComponent)
+	return ok
+}
+
+func ImplementsWebsocketComponent(obj interface{}) bool {
+	_, ok := obj.(WebsocketComponent)
+	return ok
+}
