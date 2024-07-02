@@ -42,16 +42,16 @@ type Broker struct {
 }
 
 type Resolver struct {
-	Name       string
-	LoggerPath string
+	Name       string // *required*
+	LoggerPath string // *required*
 
-	ResolverPort        string
-	ResolverTlsCertPath string
-	ResolverTlsKeyPath  string
+	ResolverPort        string // *required*
+	ResolverTlsCertPath string // *required*
+	ResolverTlsKeyPath  string // *required*
 
-	ConfigPort        string
-	ConfigTlsCertPath string
-	ConfigTlsKeyPath  string
+	ConfigPort        string // *required*
+	ConfigTlsCertPath string // *required*
+	ConfigTlsKeyPath  string // *required*
 
 	TopicResolutions map[string]Resolution.Resolution
 }

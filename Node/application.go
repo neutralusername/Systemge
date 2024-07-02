@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime error if passed to a node
 type Application interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
@@ -18,12 +19,14 @@ type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)
 type CustomCommandHandler func(*Node, []string) error
 
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime error if passed to a node
 type HTTPComponent interface {
 	GetHTTPRequestHandlers() map[string]HTTPRequestHandler
 	GetHTTPComponentConfig() Config.HTTP
 }
 type HTTPRequestHandler func(w http.ResponseWriter, r *http.Request)
 
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime error if passed to a node
 type WebsocketComponent interface {
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
 	OnConnectHandler(*Node, *WebsocketClient)
