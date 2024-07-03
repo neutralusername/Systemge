@@ -23,7 +23,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		if time.Since(websocketClient.GetLastMessageTimestamp()) <= websocketClient.GetMessageCooldown() {
-			err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("rate limited", nil).Error()).Serialize())
+			err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				node.logger.Log(err.Error())
 			}
@@ -50,7 +50,7 @@ func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, messa
 	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 	handler := node.websocketComponent.GetWebsocketMessageHandlers()[message.GetTopic()]
 	if handler == nil {
-		err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
+		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {
 			return Error.New("failed to send error message", err)
 		}
@@ -58,7 +58,7 @@ func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, messa
 	}
 	err := handler(node, websocketClient, message)
 	if err != nil {
-		err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
+		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
 		if err != nil {
 			return Error.New("failed to send error message", err)
 		}
