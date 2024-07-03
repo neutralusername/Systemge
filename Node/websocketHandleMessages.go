@@ -23,6 +23,10 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		if time.Since(websocketClient.GetLastMessageTimestamp()) <= websocketClient.GetMessageCooldown() {
+			err := websocketClient.Send(Message.NewAsync("error", websocketClient.GetId(), Error.New("rate limited", nil).Error()).Serialize())
+			if err != nil {
+				node.logger.Log(err.Error())
+			}
 			continue
 		}
 		websocketClient.SetLastMessageTimestamp(time.Now())
