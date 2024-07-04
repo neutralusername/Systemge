@@ -5,14 +5,14 @@ import (
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
-	"strings"
 )
 
 func (broker *Broker) handleNodeConnections() {
 	for broker.IsStarted() {
 		netConn, err := broker.tlsBrokerListener.Accept()
 		if err != nil {
-			if !strings.Contains(err.Error(), "use of closed network connection") {
+			broker.tlsBrokerListener.Close()
+			if broker.IsStarted() {
 				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue

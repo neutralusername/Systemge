@@ -5,14 +5,14 @@ import (
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
-	"strings"
 )
 
 func (broker *Broker) handleConfigConnections() {
 	for broker.IsStarted() {
 		netConn, err := broker.tlsConfigListener.Accept()
 		if err != nil {
-			if !strings.Contains(err.Error(), "use of closed network connection") {
+			broker.tlsConfigListener.Close()
+			if broker.IsStarted() {
 				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue

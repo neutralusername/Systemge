@@ -30,20 +30,18 @@ type Broker struct {
 }
 
 func New(config Config.Broker) *Broker {
-	asyncTopics := map[string]bool{
-		"heartbeat": true,
-	}
-	syncTopics := map[string]bool{
-		"subscribe":   true,
-		"unsubscribe": true,
-		"consume":     true,
-	}
 	broker := &Broker{
 		logger: Utilities.NewLogger(config.LoggerPath),
 		config: config,
 
-		syncTopics:  syncTopics,
-		asyncTopics: asyncTopics,
+		syncTopics: map[string]bool{
+			"subscribe":   true,
+			"unsubscribe": true,
+			"consume":     true,
+		},
+		asyncTopics: map[string]bool{
+			"heartbeat": true,
+		},
 
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},

@@ -13,7 +13,8 @@ func (resolver *Resolver) handleConfigConnections() {
 	for resolver.IsStarted() {
 		netConn, err := resolver.tlsConfigListener.Accept()
 		if err != nil {
-			if !strings.Contains(err.Error(), "use of closed network connection") {
+			resolver.tlsConfigListener.Close()
+			if resolver.IsStarted() {
 				resolver.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue
