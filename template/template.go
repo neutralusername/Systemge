@@ -129,7 +129,10 @@ func (app *App) GetCustomCommandHandlers() map[string]Node.CustomCommandHandler 
 
 const httpGo = `package main
 
-import "Systemge/Node"
+import (
+	"Systemge/Config"
+	"Systemge/Node"
+)
 
 func (app *App) GetHTTPRequestHandlers() map[string]Node.HTTPRequestHandler {
 	return map[string]Node.HTTPRequestHandler{
@@ -137,7 +140,7 @@ func (app *App) GetHTTPRequestHandlers() map[string]Node.HTTPRequestHandler {
 	}
 }
 
-func (app *AppWebsocketHTTP) GetHTTPComponentConfig() Config.HTTP {
+func (app *App) GetHTTPComponentConfig() Config.HTTP {
 	return Config.HTTP{
 		Port:        ":8080",
 		TlsCertPath: "",
@@ -151,6 +154,7 @@ const websocketGo = `package main
 import (
 	"Systemge/Node"
 	"Systemge/Message"
+	"Systemge/Config"
 )
 
 func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
@@ -169,7 +173,7 @@ func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.Webso
 	println("websocket client disconnected")
 }
 
-func (app *AppWebsocketHTTP) GetWebsocketComponentConfig() Config.Websocket {
+func (app *App) GetWebsocketComponentConfig() Config.Websocket {
 	return Config.Websocket{
 		Pattern:     "/ws",
 		Port:        ":8443",
