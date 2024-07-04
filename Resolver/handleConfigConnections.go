@@ -17,7 +17,7 @@ func (resolver *Resolver) handleConfigConnections() {
 			if resolver.IsStarted() {
 				resolver.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
-			continue
+			return
 		}
 		go resolver.handleConfigConnection(netConn)
 	}

@@ -15,7 +15,7 @@ func (broker *Broker) handleNodeConnections() {
 			if broker.IsStarted() {
 				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
-			continue
+			return
 		}
 		go func() {
 			node, err := broker.handleNodeConnectionRequest(netConn)

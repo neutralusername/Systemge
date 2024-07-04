@@ -15,7 +15,7 @@ func (broker *Broker) handleConfigConnections() {
 			if broker.IsStarted() {
 				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
-			continue
+			return
 		}
 		go func() {
 			defer netConn.Close()
