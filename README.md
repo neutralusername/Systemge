@@ -9,7 +9,7 @@ Systemge is a Library/Framework for building distributed systems in which "Nodes
 - The "Resolver" replies with the "Brokers" address as well as its TLS certificate.  
 - "Nodes" can connect to "Brokers" to publish messages and subscribe to a subset of "Topics".
 - Should connection issues arise the "Node" will attempt to resolve this "Topic" again and reconnect.
-- If a "Broker" receives a Message it will distribute this message to every subscriber of its "Topic".
+- If a "Broker" receives a message it will distribute this message to every subscriber of its "Topic".
 
 Most steps are handled by the library.  
 The goal is that developers can concentrate on writing the application without having to care much about the networking aspects.  
