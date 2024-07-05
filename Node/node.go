@@ -30,9 +30,8 @@ type Node struct {
 	mutex                           sync.Mutex
 	stateMutex                      sync.Mutex
 
-	//basic
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-	activeBrokerConnections    map[string]*brokerConnection     // brokerAddress -> brokerConnection
+	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
 	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
@@ -57,8 +56,8 @@ func New(config Config.Node, application Application) *Node {
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 
-		topicResolutions:        make(map[string]*brokerConnection),
-		activeBrokerConnections: make(map[string]*brokerConnection),
+		topicResolutions:  make(map[string]*brokerConnection),
+		brokerConnections: make(map[string]*brokerConnection),
 
 		WebsocketGroups:       make(map[string]map[string]*WebsocketClient),
 		websocketClients:      make(map[string]*WebsocketClient),

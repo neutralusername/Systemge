@@ -26,7 +26,7 @@ func (node *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
 func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
 	node.mutex.Lock()
 	brokerConnection.mutex.Lock()
-	delete(node.activeBrokerConnections, brokerConnection.resolution.GetAddress())
+	delete(node.brokerConnections, brokerConnection.resolution.GetAddress())
 	removedSubscribedTopics := make([]string, 0)
 	for topic := range brokerConnection.topics {
 		delete(node.topicResolutions, topic)

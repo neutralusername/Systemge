@@ -27,7 +27,7 @@ func (node *Node) GetCustomCommandHandlers() map[string]func([]string) error {
 func (node *Node) handleBrokersCommand(args []string) error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
-	for _, brokerConnection := range node.activeBrokerConnections {
+	for _, brokerConnection := range node.brokerConnections {
 		println(brokerConnection.resolution.GetName() + " : " + brokerConnection.resolution.GetAddress())
 	}
 	return nil
