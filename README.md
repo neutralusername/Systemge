@@ -2,14 +2,14 @@ Systemge is a Library/Framework for building distributed systems in which "Nodes
   
 - Each "Node" must have an "Application" that provides both synchronous and asynchronous message handlers for a set of "Topics".
 - Each "Node" can optionally implement a "HTTP-Component" or "Websocket-Component" to facilitate communication with external systems, enabling real-time data exchange and integration with web services and applications.
-- Nodes exchange messages with each other through "Brokers".
+- "Nodes" exchange messages with each other through "Brokers".
 - Each message posesses a "Topic".
 - Each "Broker" is responsible for a set of "Topics".  
-- If a "Node" wants to publish a message it will consult its "Resolver" to determine which Broker is responsible for its "Topic".  
+- If a "Node" wants to publish a message it will consult its "Resolver" to determine which "Broker" is responsible for its "Topic".  
 - The "Resolver" replies with the "Brokers" address as well as its TLS certificate.  
 - "Nodes" can connect to "Brokers" to publish messages and subscribe to a subset of "Topics".
 - Should connection issues arise the "Node" will attempt to resolve this "Topic" again and reconnect.
-- If a "Broker" receives a Message it will distribute this message to every subscriber of its "Topic".
+- If a "Broker" receives a message it will distribute this message to every subscriber of its "Topic".
 
 Most steps are handled by the library.  
 The goal is that developers can concentrate on writing the application without having to care much about the networking aspects.  
