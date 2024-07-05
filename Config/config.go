@@ -61,6 +61,7 @@ type Spawner struct {
 
 	SpawnedNodeLoggerPath string // *required*
 
+	ResolverResolution           Resolution.Resolution // *required*
 	ResolverConfigResolution     Resolution.Resolution // *required*
 	BrokerConfigResolution       Resolution.Resolution // *required*
 	BrokerSubscriptionResolution Resolution.Resolution // *required*

@@ -39,8 +39,9 @@ func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
 		return Error.New("Node "+id+" already exists", nil)
 	}
 	newNode := Node.New(Config.Node{
-		Name:       id,
-		LoggerPath: spawner.spawnerConfig.SpawnedNodeLoggerPath,
+		Name:               id,
+		LoggerPath:         spawner.spawnerConfig.SpawnedNodeLoggerPath,
+		ResolverResolution: spawner.spawnerConfig.ResolverResolution,
 	}, spawner.newApplicationFunc(id))
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		err := node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigResolution.GetAddress(), spawner.spawnerConfig.BrokerConfigResolution.GetServerNameIndication(), spawner.spawnerConfig.BrokerConfigResolution.GetTlsCertificate(), id)
