@@ -1,12 +1,12 @@
 Library for building message based distributed systems through async and sync TCP/TLS communication as well as featuring HTTP server and WebSocket server implementations for serving frontends, WebSocket clients or creating a REST-API.  
   
-- Each "Client" must have an "Application" that offers Sync as well as Async Message Handlers for a set of Topics.  
-- Clients communicate with each other through "Brokers".  
+- Each "Node" must have an "Application" that offers Sync as well as Async Message Handlers for a set of Topics.  
+- Nodes communicate with each other through "Brokers".  
 - Each Broker is responsible for a set of Topics.  
-- If a Client wants to publish a message it will ask the "Resolver" which Broker is responsible for this Topic.  
+- If a Node wants to publish a message it will ask the "Resolver" which Broker is responsible for this Topic.  
 - The Resolver replies with the Brokers address as well as its TLS certificate.  
-- Clients can connect to Brokers to publish messages and subscribe to a subset of Topics.
-- Should connection issues arise the Client will try to resolve this Topic again.  
+- Nodes can connect to Brokers to publish messages and subscribe to a subset of Topics.
+- Should connection issues arise the Node will try to resolve this Topic again.  
 - If a Broker receives a Message it will distribute this message to every subscriber of its Topic.
 
 Most steps are handled by the library.  
