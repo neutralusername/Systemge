@@ -3,12 +3,12 @@ package Config
 import "Systemge/Resolution"
 
 type Node struct {
-	Name       string // *required*
-	LoggerPath string // *required*
+	Name               string // *required*
+	LoggerPath         string // *required*
+	ResolverResolution Resolution.Resolution
 }
 
 type Application struct {
-	ResolverResolution         Resolution.Resolution
 	HandleMessagesSequentially bool // default: false
 }
 

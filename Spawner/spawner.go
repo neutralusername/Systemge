@@ -44,7 +44,6 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 
 func (spawner *Spawner) GetApplicationConfig() Config.Application {
 	return Config.Application{
-		ResolverResolution:         spawner.appConfig.ResolverResolution,
 		HandleMessagesSequentially: false,
 	}
 }
