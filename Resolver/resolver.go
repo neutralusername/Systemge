@@ -13,7 +13,7 @@ type Resolver struct {
 	config Config.Resolver
 	logger *Utilities.Logger
 
-	registeredTopics map[string]TcpEndpoint.TcpEndpoint // topic -> resolution
+	registeredTopics map[string]TcpEndpoint.TcpEndpoint // topic -> tcpEndpoint
 
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener

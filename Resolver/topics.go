@@ -4,10 +4,10 @@ import (
 	"Systemge/TcpEndpoint"
 )
 
-func (resolver *Resolver) AddTopic(resolution TcpEndpoint.TcpEndpoint, topic string) error {
+func (resolver *Resolver) AddTopic(tcpEndpoint TcpEndpoint.TcpEndpoint, topic string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	resolver.registeredTopics[topic] = resolution
+	resolver.registeredTopics[topic] = tcpEndpoint
 	return nil
 }
 
