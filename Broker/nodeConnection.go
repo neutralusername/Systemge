@@ -86,6 +86,7 @@ func (broker *Broker) resetWatchdog(nodeConnection *nodeConnection) error {
 func (nodeConnection *nodeConnection) disconnect() error {
 	nodeConnection.watchdogMutex.Lock()
 	if nodeConnection.watchdog == nil {
+		nodeConnection.watchdogMutex.Unlock()
 		return Error.New("Watchdog is not set for node \""+nodeConnection.name+"\"", nil)
 	}
 	nodeConnection.watchdog.Reset(0)

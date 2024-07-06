@@ -37,14 +37,21 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn, o
 
 		lastMessageTimestamp: time.Now(),
 	}
+
+	websocketClient.watchdogMutex.Lock()
 	websocketClient.watchdog = time.AfterFunc(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
-		watchdog := websocketClient.watchdog
+		websocketClient.watchdogMutex.Lock()
+		defer websocketClient.watchdogMutex.Unlock()
+		if websocketClient.watchdog == nil {
+			return
+		}
+		websocketClient.watchdog.Stop()
 		websocketClient.watchdog = nil
-		watchdog.Stop()
 		websocketConn.Close()
 		onDisconnectHandler(websocketClient)
 		close(websocketClient.stopChannel)
 	})
+	websocketClient.watchdogMutex.Unlock()
 	return websocketClient
 }
 
@@ -69,11 +76,12 @@ func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
 // Disconnects the websocketClient and blocks until after the onDisconnectHandler is called
 func (websocketClient *WebsocketClient) Disconnect() {
 	websocketClient.watchdogMutex.Lock()
-	defer websocketClient.watchdogMutex.Unlock()
 	if websocketClient.watchdog == nil {
+		websocketClient.watchdogMutex.Unlock()
 		return
 	}
 	websocketClient.watchdog.Reset(0)
+	websocketClient.watchdogMutex.Unlock()
 	<-websocketClient.stopChannel
 }
 
