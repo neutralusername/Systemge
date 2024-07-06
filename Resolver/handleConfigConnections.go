@@ -36,20 +36,31 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 		return
 	}
 	switch message.GetTopic() {
-	case "addTopic":
+	case "addTopics":
 		segments := strings.Split(message.GetPayload(), "|")
-		if len(segments) != 2 {
+		if len(segments) < 2 {
 			err = Error.New("Invalid payload \""+message.GetPayload()+"\"", nil)
 			break
 		}
-		err = resolver.AddTopic(*TcpEndpoint.Unmarshal(segments[0]), segments[1])
-	case "removeTopic":
+		brokerEndpoint := TcpEndpoint.Unmarshal(segments[0])
+		for _, topic := range segments[1:] {
+			err = resolver.AddTopic(*brokerEndpoint, topic)
+			if err != nil {
+				resolver.logger.Log(Error.New("Failed to add topic \""+topic+"\"", err).Error())
+			}
+		}
+	case "removeTopics":
 		segments := strings.Split(message.GetPayload(), "|")
-		if len(segments) != 1 {
+		if len(segments) < 1 {
 			err = Error.New("Invalid payload", nil)
 			break
 		}
-		resolver.RemoveTopic(segments[0])
+		for _, topic := range segments {
+			err = resolver.RemoveTopic(topic)
+			if err != nil {
+				resolver.logger.Log(Error.New("Failed to remove topic \""+topic+"\"", err).Error())
+			}
+		}
 	default:
 		err = Error.New("Invalid config request", nil)
 	}

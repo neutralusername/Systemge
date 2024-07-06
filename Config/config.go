@@ -53,9 +53,7 @@ type Resolver struct {
 	Name       string // *required*
 	LoggerPath string // *required*
 
-	Server   TcpServer.TcpServer     // *required*
-	Endpoint TcpEndpoint.TcpEndpoint // *required*
-
+	Server       TcpServer.TcpServer // *required*
 	ConfigServer TcpServer.TcpServer // *required*
 }
 

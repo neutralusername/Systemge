@@ -5,6 +5,7 @@ import (
 	"Systemge/Message"
 	"Systemge/Utilities"
 	"net"
+	"strings"
 )
 
 func (broker *Broker) handleConfigConnections() {
@@ -38,19 +39,23 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	if message == nil || message.GetOrigin() == "" {
 		return Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
+	topics := strings.Split(message.GetPayload(), "|")
+	if len(topics) == 0 {
+		return Error.New("no topics provided", nil)
+	}
 	switch message.GetTopic() {
-	case "addSyncTopic":
-		broker.addSyncTopics(message.GetPayload())
-		broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
-	case "removeSyncTopic":
-		broker.removeSyncTopics(message.GetPayload())
-		broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
-	case "addAsyncTopic":
-		broker.addAsyncTopics(message.GetPayload())
-		broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
-	case "removeAsyncTopic":
-		broker.removeAsyncTopics(message.GetPayload())
-		broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
+	case "addSyncTopics":
+		broker.addSyncTopics(topics...)
+		broker.addResolverTopicsRemotely(topics...)
+	case "removeSyncTopics":
+		broker.removeSyncTopics(topics...)
+		broker.removeResolverTopicsRemotely(topics...)
+	case "addAsyncTopics":
+		broker.addAsyncTopics(topics...)
+		broker.addResolverTopicsRemotely(topics...)
+	case "removeAsyncTopics":
+		broker.removeAsyncTopics(topics...)
+		broker.removeResolverTopicsRemotely(topics...)
 	default:
 		return Error.New("unknown topic \""+message.GetTopic()+"\"", nil)
 	}

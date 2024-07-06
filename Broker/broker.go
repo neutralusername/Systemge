@@ -33,14 +33,8 @@ func New(config Config.Broker) *Broker {
 		logger: Utilities.NewLogger(config.LoggerPath),
 		config: config,
 
-		syncTopics: map[string]bool{
-			"subscribe":   true,
-			"unsubscribe": true,
-			"consume":     true,
-		},
-		asyncTopics: map[string]bool{
-			"heartbeat": true,
-		},
+		syncTopics:  map[string]bool{},
+		asyncTopics: map[string]bool{},
 
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},
@@ -74,18 +68,27 @@ func (broker *Broker) Start() error {
 	broker.isStarted = true
 	go broker.handleNodeConnections()
 	go broker.handleConfigConnections()
+
+	syncTopics := []string{}
 	for syncTopic := range broker.syncTopics {
-		err := broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, syncTopic)
-		if err != nil {
-			broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
-		}
+		syncTopics = append(syncTopics, syncTopic)
 	}
+	asyncTopics := []string{}
 	for asyncTopic := range broker.asyncTopics {
-		err := broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, asyncTopic)
-		if err != nil {
-			broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
-		}
+		asyncTopics = append(asyncTopics, asyncTopic)
 	}
+
+	err = broker.addResolverTopicsRemotely(syncTopics...)
+	if err != nil {
+		broker.logger.Log(Error.New("Failed to add resolver topics remotely", err).Error())
+	}
+	err = broker.addResolverTopicsRemotely(asyncTopics...)
+	if err != nil {
+		broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
+	}
+
+	broker.addAsyncTopics("heartbeat")
+	broker.addSyncTopics("subscribe", "unsubscribe", "consume")
 	return nil
 }
 
@@ -104,13 +107,13 @@ func (broker *Broker) Stop() error {
 	broker.disconnectAllNodeConnections()
 	broker.isStarted = false
 	for syncTopic := range broker.syncTopics {
-		err := broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, syncTopic)
+		err := broker.removeResolverTopicsRemotely(syncTopic)
 		if err != nil {
 			broker.logger.Log(Error.New("Failed to remove resolver topic remotely", err).Error())
 		}
 	}
 	for asyncTopic := range broker.asyncTopics {
-		err := broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, asyncTopic)
+		err := broker.removeResolverTopicsRemotely(asyncTopic)
 		if err != nil {
 			broker.logger.Log(Error.New("Failed to remove resolver topic remotely", err).Error())
 		}
