@@ -21,6 +21,9 @@ func (node *Node) heartbeatLoop(brokerConnection *brokerConnection) {
 		}
 		sleepTimeout := time.NewTimer(time.Duration(node.config.BrokerHeartbeatIntervalMs) * time.Millisecond)
 		select {
+		case <-brokerConnection.closeChannel:
+			sleepTimeout.Stop()
+			return
 		case <-node.stopChannel:
 			sleepTimeout.Stop()
 			return
