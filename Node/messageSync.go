@@ -33,7 +33,7 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 }
 
 func (node *Node) receiveSyncResponse(message *Message.Message, responseChannel chan *Message.Message) (*Message.Message, error) {
-	timeout := time.NewTimer(time.Duration(node.config.SyncMessageTimeoutMs) * time.Millisecond)
+	timeout := time.NewTimer(time.Duration(node.config.SyncResponseTimeoutMs) * time.Millisecond)
 	defer func() {
 		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		timeout.Stop()
