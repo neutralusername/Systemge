@@ -39,7 +39,7 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn, o
 	}
 
 	websocketClient.watchdogMutex.Lock()
-	//there is a rare racecondition in which the anonymous function is called before the watchdog is assigned its value.
+	//there is a rare racecondition in which the anonymous function is called before websocketClient.watchdog is assigned its value which results in a panic
 	websocketClient.watchdog = time.AfterFunc(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
