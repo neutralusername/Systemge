@@ -14,7 +14,10 @@ type brokerConnection struct {
 	endpoint *TcpEndpoint.TcpEndpoint
 	logger   *Utilities.Logger
 
-	topics map[string]bool
+	topicResolutions map[string]bool
+	subscribedTopics map[string]bool
+
+	closeChannel chan bool
 
 	mutex        sync.Mutex
 	sendMutex    sync.Mutex
@@ -27,7 +30,10 @@ func newBrokerConnection(netConn net.Conn, tcpEndpoint *TcpEndpoint.TcpEndpoint,
 		endpoint: tcpEndpoint,
 		logger:   logger,
 
-		topics: make(map[string]bool),
+		closeChannel: make(chan bool),
+
+		topicResolutions: make(map[string]bool),
+		subscribedTopics: make(map[string]bool),
 	}
 }
 
@@ -65,25 +71,36 @@ func (brokerConnection *brokerConnection) close() error {
 	}
 	brokerConnection.netConn.Close()
 	brokerConnection.netConn = nil
+	close(brokerConnection.closeChannel)
 	return nil
 }
 
-func (brokerConnection *brokerConnection) addTopic(topic string) error {
+func (brokerConnection *brokerConnection) addTopicResolution(topic string) error {
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
-	if brokerConnection.topics[topic] {
+	if brokerConnection.topicResolutions[topic] {
 		return Error.New("Topic already exists", nil)
 	}
-	brokerConnection.topics[topic] = true
+	brokerConnection.topicResolutions[topic] = true
 	return nil
 }
 
-func (brokerConnection *brokerConnection) removeTopic(topic string) error {
+func (brokerConnection *brokerConnection) removeTopicResolution(topic string) error {
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
-	if !brokerConnection.topics[topic] {
+	if !brokerConnection.topicResolutions[topic] {
 		return Error.New("Topic does not exist", nil)
 	}
-	delete(brokerConnection.topics, topic)
+	delete(brokerConnection.topicResolutions, topic)
+	return nil
+}
+
+func (brokerConnection *brokerConnection) addSubscribedTopic(topic string) error {
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
+	if brokerConnection.subscribedTopics[topic] {
+		return Error.New("Topic already exists", nil)
+	}
+	brokerConnection.subscribedTopics[topic] = true
 	return nil
 }

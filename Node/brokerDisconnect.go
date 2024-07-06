@@ -12,13 +12,14 @@ func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerCo
 	brokerConnection.mutex.Lock()
 	delete(node.brokerConnections, brokerConnection.endpoint.GetAddress())
 	removedSubscribedTopics := make([]string, 0)
-	for topic := range brokerConnection.topics {
+	for topic := range brokerConnection.topicResolutions {
 		delete(node.topicResolutions, topic)
-		if node.application.GetAsyncMessageHandlers()[topic] != nil || node.application.GetSyncMessageHandlers()[topic] != nil {
-			removedSubscribedTopics = append(removedSubscribedTopics, topic)
-		}
 	}
-	brokerConnection.topics = make(map[string]bool)
+	for topic := range brokerConnection.subscribedTopics {
+		removedSubscribedTopics = append(removedSubscribedTopics, topic)
+		delete(brokerConnection.subscribedTopics, topic)
+	}
+	brokerConnection.topicResolutions = make(map[string]bool)
 	brokerConnection.mutex.Unlock()
 	node.mutex.Unlock()
 	return removedSubscribedTopics

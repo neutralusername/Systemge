@@ -34,7 +34,11 @@ func (node *Node) subscribeLoop(topic string) {
 			node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\"", err).Error())
 			continue
 		}
-		brokerConnection.addTopic(topic)
+		err = brokerConnection.addSubscribedTopic(topic)
+		if err != nil {
+			node.logger.Log(Error.New("Unable to add topic to broker connection", err).Error())
+			continue
+		}
 		break
 	}
 	node.logger.Log("connection for topic \"" + topic + "\" successful")

@@ -31,42 +31,44 @@ func (node *Node) getTopicBrokerConnection(topic string) *brokerConnection {
 	return node.topicResolutions[topic]
 }
 
-func (node *Node) addTopicBrokerConnection(topic string, brokerConnection *brokerConnection) error {
+func (node *Node) addTopicResolution(topic string, brokerConnection *brokerConnection) error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
 	if node.topicResolutions[topic] != nil {
 		return Error.New("Topic endpoint already exists", nil)
 	}
-	err := brokerConnection.addTopic(topic)
+	err := brokerConnection.addTopicResolution(topic)
 	if err != nil {
 		return Error.New("Error adding topic to server connection", err)
 	}
 	node.topicResolutions[topic] = brokerConnection
-	go node.removeTopicBrokerConnectionTimeout(topic)
+	go node.removeTopicResolutionTimeout(topic, brokerConnection)
 	return nil
 }
 
-func (node *Node) removeTopicBrokerConnectionTimeout(topic string) {
+func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *brokerConnection) {
 	timer := time.NewTimer(time.Duration(node.config.TopicResolutionLifetimeMs) * time.Millisecond)
 	select {
 	case <-timer.C:
-		err := node.removeTopicBrokerConnection(topic)
+		err := node.removeTopicResolution(topic)
 		if err != nil {
 			node.logger.Log(Error.New("Error removing topic broker connection", err).Error())
 		}
 	case <-node.stopChannel:
 		timer.Stop()
+	case <-brokerConnection.closeChannel:
+		timer.Stop()
 	}
 }
 
-func (node *Node) removeTopicBrokerConnection(topic string) error {
+func (node *Node) removeTopicResolution(topic string) error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
 	brokerConnection := node.topicResolutions[topic]
 	if brokerConnection == nil {
 		return Error.New("Topic endpoint does not exist", nil)
 	}
-	err := brokerConnection.removeTopic(topic)
+	err := brokerConnection.removeTopicResolution(topic)
 	if err != nil {
 		return Error.New("Error removing topic from server connection", err)
 	}

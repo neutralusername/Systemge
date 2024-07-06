@@ -20,7 +20,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string) (*brokerConnection, 
 				return nil, Error.New("Error adding broker connection", err)
 			}
 		}
-		err = node.addTopicBrokerConnection(topic, brokerConnection)
+		err = node.addTopicResolution(topic, brokerConnection)
 		if err != nil {
 			return nil, Error.New("Error adding topic endpoint", err)
 		}

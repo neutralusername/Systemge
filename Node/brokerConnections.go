@@ -28,8 +28,11 @@ func (node *Node) removeAllBrokerConnections() {
 	for address, brokerConnection := range node.brokerConnections {
 		brokerConnection.close()
 		delete(node.brokerConnections, address)
-		for topic := range brokerConnection.topics {
+		for topic := range brokerConnection.topicResolutions {
 			delete(node.topicResolutions, topic)
+		}
+		for topic := range brokerConnection.subscribedTopics {
+			delete(brokerConnection.subscribedTopics, topic)
 		}
 	}
 }
