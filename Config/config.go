@@ -10,8 +10,8 @@ type Node struct {
 	LoggerPath       string // *required*
 	ResolverEndpoint TcpEndpoint.TcpEndpoint
 
-	HeartbeatIntervalMs   int // default: 0
-	SyncResponseTimeoutMs int // default: 0
+	BrokerHeartbeatIntervalMs int // default: 0
+	SyncResponseTimeoutMs     int // default: 0
 }
 
 type Application struct {
@@ -37,7 +37,7 @@ type Broker struct {
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
 	DeliverImmediately   bool // default: false
-	ConnectionTimeoutMs  int  // default: 0
+	NodeTimeoutMs        int  // default: 0
 	SyncRequestTimeoutMs int  // default: 0
 
 	Server   TcpServer.TcpServer     // *required*

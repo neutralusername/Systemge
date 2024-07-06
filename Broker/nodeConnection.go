@@ -56,7 +56,7 @@ func (nodeConnection *nodeConnection) receive() ([]byte, error) {
 func (broker *Broker) startWatchdog(nodeConnection *nodeConnection) {
 	nodeConnection.watchdogMutex.Lock()
 	defer nodeConnection.watchdogMutex.Unlock()
-	nodeConnection.watchdog = time.AfterFunc(time.Duration(broker.config.ConnectionTimeoutMs)*time.Millisecond, func() {
+	nodeConnection.watchdog = time.AfterFunc(time.Duration(broker.config.NodeTimeoutMs)*time.Millisecond, func() {
 		nodeConnection.watchdogMutex.Lock()
 		defer nodeConnection.watchdogMutex.Unlock()
 		if nodeConnection.watchdog == nil {
@@ -79,7 +79,7 @@ func (broker *Broker) resetWatchdog(nodeConnection *nodeConnection) error {
 	if nodeConnection.watchdog == nil {
 		return Error.New("Watchdog is not set for node \""+nodeConnection.name+"\"", nil)
 	}
-	nodeConnection.watchdog.Reset((time.Duration(broker.config.ConnectionTimeoutMs) * time.Millisecond))
+	nodeConnection.watchdog.Reset((time.Duration(broker.config.NodeTimeoutMs) * time.Millisecond))
 	return nil
 }
 

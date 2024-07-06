@@ -13,7 +13,7 @@ func (node *Node) heartbeatLoop(brokerConnection *brokerConnection) {
 			node.logger.Log(Error.New("Failed to send heartbeat to broker \""+brokerConnection.endpoint.GetAddress()+"\"", err).Error())
 			return
 		}
-		sleepTimeout := time.NewTimer(time.Duration(node.config.HeartbeatIntervalMs) * time.Millisecond)
+		sleepTimeout := time.NewTimer(time.Duration(node.config.BrokerHeartbeatIntervalMs) * time.Millisecond)
 		select {
 		case <-node.stopChannel:
 			sleepTimeout.Stop()
