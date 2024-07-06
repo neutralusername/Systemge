@@ -10,6 +10,7 @@ type Node struct {
 	LoggerPath       string // *required*
 	ResolverEndpoint TcpEndpoint.TcpEndpoint
 
+	TopicResolutionLifetimeMs int // default: 0
 	BrokerHeartbeatIntervalMs int // default: 0
 	SyncResponseTimeoutMs     int // default: 0
 }

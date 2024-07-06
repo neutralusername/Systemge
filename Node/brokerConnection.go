@@ -77,3 +77,13 @@ func (brokerConnection *brokerConnection) addTopic(topic string) error {
 	brokerConnection.topics[topic] = true
 	return nil
 }
+
+func (brokerConnection *brokerConnection) removeTopic(topic string) error {
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
+	if !brokerConnection.topics[topic] {
+		return Error.New("Topic does not exist", nil)
+	}
+	delete(brokerConnection.topics, topic)
+	return nil
+}

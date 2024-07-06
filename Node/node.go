@@ -141,8 +141,8 @@ func (node *Node) Stop() error {
 		}
 	}
 	node.isStarted = false
-	node.removeAllBrokerConnections()
 	close(node.stopChannel)
+	node.removeAllBrokerConnections()
 	return nil
 }
 

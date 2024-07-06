@@ -5,6 +5,7 @@ import (
 	"Systemge/Message"
 	"Systemge/TcpEndpoint"
 	"Systemge/Utilities"
+	"time"
 )
 
 func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint, error) {
@@ -41,5 +42,34 @@ func (node *Node) addTopicBrokerConnection(topic string, brokerConnection *broke
 		return Error.New("Error adding topic to server connection", err)
 	}
 	node.topicBrokerConnections[topic] = brokerConnection
+	go node.removeTopicBrokerConnectionTimeout(topic)
+	return nil
+}
+
+func (node *Node) removeTopicBrokerConnectionTimeout(topic string) {
+	timer := time.NewTimer(time.Duration(node.config.TopicResolutionLifetimeMs) * time.Millisecond)
+	select {
+	case <-timer.C:
+		err := node.removeTopicBrokerConnection(topic)
+		if err != nil {
+			node.logger.Log(Error.New("Error removing topic broker connection", err).Error())
+		}
+	case <-node.stopChannel:
+		timer.Stop()
+	}
+}
+
+func (node *Node) removeTopicBrokerConnection(topic string) error {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+	brokerConnection := node.topicBrokerConnections[topic]
+	if brokerConnection == nil {
+		return Error.New("Topic endpoint does not exist", nil)
+	}
+	err := brokerConnection.removeTopic(topic)
+	if err != nil {
+		return Error.New("Error removing topic from server connection", err)
+	}
+	delete(node.topicBrokerConnections, topic)
 	return nil
 }
