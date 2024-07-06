@@ -32,7 +32,7 @@ type Node struct {
 
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
-	topicBrokerConnections     map[string]*brokerConnection     // topic -> brokerConnection
+	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
 	websocketHandshakeHTTPServer *http.Server
@@ -56,7 +56,7 @@ func New(config Config.Node, application Application) *Node {
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 		brokerConnections:          make(map[string]*brokerConnection),
-		topicBrokerConnections:     make(map[string]*brokerConnection),
+		topicResolutions:           make(map[string]*brokerConnection),
 
 		WebsocketGroups:       make(map[string]map[string]*WebsocketClient),
 		websocketClients:      make(map[string]*WebsocketClient),

@@ -13,7 +13,7 @@ func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerCo
 	delete(node.brokerConnections, brokerConnection.endpoint.GetAddress())
 	removedSubscribedTopics := make([]string, 0)
 	for topic := range brokerConnection.topics {
-		delete(node.topicBrokerConnections, topic)
+		delete(node.topicResolutions, topic)
 		if node.application.GetAsyncMessageHandlers()[topic] != nil || node.application.GetSyncMessageHandlers()[topic] != nil {
 			removedSubscribedTopics = append(removedSubscribedTopics, topic)
 		}

@@ -28,20 +28,20 @@ func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint,
 func (node *Node) getTopicBrokerConnection(topic string) *brokerConnection {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
-	return node.topicBrokerConnections[topic]
+	return node.topicResolutions[topic]
 }
 
 func (node *Node) addTopicBrokerConnection(topic string, brokerConnection *brokerConnection) error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
-	if node.topicBrokerConnections[topic] != nil {
+	if node.topicResolutions[topic] != nil {
 		return Error.New("Topic endpoint already exists", nil)
 	}
 	err := brokerConnection.addTopic(topic)
 	if err != nil {
 		return Error.New("Error adding topic to server connection", err)
 	}
-	node.topicBrokerConnections[topic] = brokerConnection
+	node.topicResolutions[topic] = brokerConnection
 	go node.removeTopicBrokerConnectionTimeout(topic)
 	return nil
 }
@@ -62,7 +62,7 @@ func (node *Node) removeTopicBrokerConnectionTimeout(topic string) {
 func (node *Node) removeTopicBrokerConnection(topic string) error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
-	brokerConnection := node.topicBrokerConnections[topic]
+	brokerConnection := node.topicResolutions[topic]
 	if brokerConnection == nil {
 		return Error.New("Topic endpoint does not exist", nil)
 	}
@@ -70,6 +70,6 @@ func (node *Node) removeTopicBrokerConnection(topic string) error {
 	if err != nil {
 		return Error.New("Error removing topic from server connection", err)
 	}
-	delete(node.topicBrokerConnections, topic)
+	delete(node.topicResolutions, topic)
 	return nil
 }
