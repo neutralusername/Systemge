@@ -9,6 +9,7 @@ func (node *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
 
 func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
 	node.mutex.Lock()
+	defer node.mutex.Unlock()
 	brokerConnection.mutex.Lock()
 	delete(node.brokerConnections, brokerConnection.endpoint.GetAddress())
 	removedSubscribedTopics := make([]string, 0)
@@ -21,6 +22,5 @@ func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerCo
 	}
 	brokerConnection.topicResolutions = make(map[string]bool)
 	brokerConnection.mutex.Unlock()
-	node.mutex.Unlock()
 	return removedSubscribedTopics
 }
