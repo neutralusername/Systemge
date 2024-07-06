@@ -41,12 +41,16 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	switch message.GetTopic() {
 	case "addSyncTopic":
 		broker.AddSyncTopics(message.GetPayload())
+		broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
 	case "removeSyncTopic":
 		broker.RemoveSyncTopics(message.GetPayload())
+		broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
 	case "addAsyncTopic":
 		broker.AddAsyncTopics(message.GetPayload())
+		broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
 	case "removeAsyncTopic":
 		broker.RemoveAsyncTopics(message.GetPayload())
+		broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, message.GetPayload())
 	default:
 		return Error.New("unknown topic \""+message.GetTopic()+"\"", nil)
 	}

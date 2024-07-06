@@ -3,38 +3,35 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Resolution"
+	"Systemge/TcpEndpoint"
 	"Systemge/Utilities"
 	"net"
 	"sync"
 )
 
 type brokerConnection struct {
-	netConn    net.Conn
-	resolution *Resolution.Resolution
-	logger     *Utilities.Logger
+	netConn  net.Conn
+	endpoint *TcpEndpoint.TcpEndpoint
+	logger   *Utilities.Logger
 
 	topics map[string]bool
-	mutex  sync.Mutex
 
+	mutex        sync.Mutex
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
 }
 
-func newBrokerConnection(netConn net.Conn, resolution *Resolution.Resolution, logger *Utilities.Logger) *brokerConnection {
+func newBrokerConnection(netConn net.Conn, tcpEndpoint *TcpEndpoint.TcpEndpoint, logger *Utilities.Logger) *brokerConnection {
 	return &brokerConnection{
-		netConn:    netConn,
-		resolution: resolution,
-		logger:     logger,
+		netConn:  netConn,
+		endpoint: tcpEndpoint,
+		logger:   logger,
 
 		topics: make(map[string]bool),
 	}
 }
 
 func (brokerConnection *brokerConnection) send(message *Message.Message) error {
-	if brokerConnection == nil {
-		return Error.New("broker connection is nil", nil)
-	}
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
 	if brokerConnection.netConn == nil {
@@ -48,9 +45,6 @@ func (brokerConnection *brokerConnection) send(message *Message.Message) error {
 }
 
 func (brokerConnection *brokerConnection) receive() ([]byte, error) {
-	if brokerConnection == nil {
-		return nil, Error.New("broker connection is nil", nil)
-	}
 	brokerConnection.receiveMutex.Lock()
 	defer brokerConnection.receiveMutex.Unlock()
 	if brokerConnection.netConn == nil {
@@ -64,9 +58,6 @@ func (brokerConnection *brokerConnection) receive() ([]byte, error) {
 }
 
 func (brokerConnection *brokerConnection) close() error {
-	if brokerConnection == nil {
-		return Error.New("broker connection is nil", nil)
-	}
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.netConn == nil {
@@ -84,15 +75,5 @@ func (brokerConnection *brokerConnection) addTopic(topic string) error {
 		return Error.New("Topic already exists", nil)
 	}
 	brokerConnection.topics[topic] = true
-	return nil
-}
-
-func (brokerConnection *brokerConnection) removeTopic(topic string) error {
-	brokerConnection.mutex.Lock()
-	defer brokerConnection.mutex.Unlock()
-	if !brokerConnection.topics[topic] {
-		return Error.New("Topic does not exist", nil)
-	}
-	delete(brokerConnection.topics, topic)
 	return nil
 }

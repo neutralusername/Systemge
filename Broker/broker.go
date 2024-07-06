@@ -4,7 +4,6 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Utilities"
-	"crypto/tls"
 	"net"
 	"sync"
 )
@@ -18,7 +17,7 @@ type Broker struct {
 
 	nodeSubscriptions map[string]map[string]*nodeConnection // topic -> [nodeName-> nodeConnection]
 	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection
-	openSyncRequests  map[string]*syncRequest               // syncKey -> request
+	openSyncRequests  map[string]*syncRequest               // syncKey -> syncRequest
 
 	tlsBrokerListener net.Listener
 	tlsConfigListener net.Listener
@@ -62,33 +61,31 @@ func (broker *Broker) Start() error {
 	if broker.isStarted {
 		return Error.New("broker already started", nil)
 	}
-	brokerCert, err := tls.LoadX509KeyPair(broker.config.BrokerTlsCertPath, broker.config.BrokerTlsKeyPath)
+	listener, err := broker.config.Server.GetTlsListener()
 	if err != nil {
-		return Error.New("Failed to load TLS certificate", err)
+		return Error.New("Failed to get listener", err)
 	}
-	brokerListener, err := tls.Listen("tcp", broker.config.BrokerPort, &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{brokerCert},
-	})
+	configListener, err := broker.config.ConfigServer.GetTlsListener()
 	if err != nil {
-		return Error.New("Failed to start broker listener", err)
+		return Error.New("Failed to get listener", err)
 	}
-	configCert, err := tls.LoadX509KeyPair(broker.config.ConfigTlsCertPath, broker.config.ConfigTlsKeyPath)
-	if err != nil {
-		return Error.New("Failed to load TLS certificate", err)
-	}
-	configListener, err := tls.Listen("tcp", broker.config.ConfigPort, &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{configCert},
-	})
-	if err != nil {
-		return Error.New("Failed to start config listener", err)
-	}
-	broker.tlsBrokerListener = brokerListener
+	broker.tlsBrokerListener = listener
 	broker.tlsConfigListener = configListener
 	broker.isStarted = true
 	go broker.handleNodeConnections()
 	go broker.handleConfigConnections()
+	for syncTopic := range broker.syncTopics {
+		err := broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, syncTopic)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
+		}
+	}
+	for asyncTopic := range broker.asyncTopics {
+		err := broker.addResolverTopicRemotely(broker.config.ResolverConfigEndpoint, asyncTopic)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
+		}
+	}
 	return nil
 }
 
@@ -106,6 +103,18 @@ func (broker *Broker) Stop() error {
 	broker.tlsConfigListener.Close()
 	broker.disconnectAllNodeConnections()
 	broker.isStarted = false
+	for syncTopic := range broker.syncTopics {
+		err := broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, syncTopic)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to remove resolver topic remotely", err).Error())
+		}
+	}
+	for asyncTopic := range broker.asyncTopics {
+		err := broker.removeResolverTopicRemotely(broker.config.ResolverConfigEndpoint, asyncTopic)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to remove resolver topic remotely", err).Error())
+		}
+	}
 	return nil
 }
 

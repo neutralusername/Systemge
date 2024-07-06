@@ -6,7 +6,40 @@ import (
 	"Systemge/Utilities"
 )
 
-// subscribes to a topic from the provided broker connection
+func (node *Node) subscribeLoop(topic string) {
+	for node.IsStarted() {
+		node.logger.Log("Attempting connection for topic \"" + topic + "\"")
+
+		endpoint, err := node.resolveBrokerForTopic(topic)
+		if err != nil {
+			node.logger.Log(Error.New("Unable to resolve broker for topic \""+topic+"\"", err).Error())
+			continue
+		}
+		brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
+		if brokerConnection == nil {
+			brokerConnection, err = node.connectToBroker(endpoint)
+			if err != nil {
+				node.logger.Log(Error.New("Unable to connect to broker for topic \""+topic+"\"", err).Error())
+				continue
+			}
+			err = node.addBrokerConnection(brokerConnection)
+			if err != nil {
+				brokerConnection.close()
+				node.logger.Log(Error.New("Unable to add broker connection for topic \""+topic+"\"", err).Error())
+				continue
+			}
+		}
+		err = node.subscribeTopic(brokerConnection, topic)
+		if err != nil {
+			node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\"", err).Error())
+			continue
+		}
+		brokerConnection.addTopic(topic)
+		break
+	}
+	node.logger.Log("connection for topic \"" + topic + "\" successful")
+}
+
 func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic string) error {
 	message := Message.NewSync("subscribe", node.config.Name, topic, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	responseChannel, err := node.addMessageWaitingForResponse(message)

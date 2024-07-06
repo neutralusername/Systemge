@@ -22,32 +22,22 @@ type WebsocketClient struct {
 	// if the timer is nil, the websocketClient is already disconnected.
 	watchdog *time.Timer
 
-	// the minimum time which must pass between two messages from the websocketClient.
-	// otherwise the message is ignored.
-	messageCooldown time.Duration
-
 	// the timestamp of the previous message from the websocketClient.
 	// used to enforce messageCooldown.
 	// updated automatically after every message to the current time.
 	// can be set manually to a time in the future to block messages until that time.
 	lastMessageTimestamp time.Time
-
-	// if true, messages are handled as soon as they are received.
-	// if false, messages are handled in the order they are received, one after the other.
-	handleMessagesConcurrently bool
 }
 
-func newWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*WebsocketClient)) *WebsocketClient {
+func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*WebsocketClient)) *WebsocketClient {
 	websocketClient := &WebsocketClient{
 		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
 
-		messageCooldown:            DEFAULT_MESSAGE_COOLDOWN,
-		lastMessageTimestamp:       time.Now(),
-		handleMessagesConcurrently: DEFAULT_HANDLE_MESSAGES_CONCURRENTLY,
+		lastMessageTimestamp: time.Now(),
 	}
-	websocketClient.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
+	websocketClient.watchdog = time.AfterFunc(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
 		watchdog := websocketClient.watchdog
 		websocketClient.watchdog = nil
 		watchdog.Stop()
@@ -66,30 +56,14 @@ func (websocketClient *WebsocketClient) SetLastMessageTimestamp(lastMessageTimes
 	websocketClient.lastMessageTimestamp = lastMessageTimestamp
 }
 
-func (websocketClient *WebsocketClient) SetHandleMessagesConcurrently(handleMessagesConcurrently bool) {
-	websocketClient.handleMessagesConcurrently = handleMessagesConcurrently
-}
-
-func (websocketClient *WebsocketClient) GetHandleMessagesConcurrently() bool {
-	return websocketClient.handleMessagesConcurrently
-}
-
-func (websocketClient *WebsocketClient) SetMessageCooldown(messageCooldown time.Duration) {
-	websocketClient.messageCooldown = messageCooldown
-}
-
-func (websocketClient *WebsocketClient) GetMessageCooldown() time.Duration {
-	return websocketClient.messageCooldown
-}
-
 // Resets the watchdog timer to its initial value
-func (websocketClient *WebsocketClient) ResetWatchdog() {
+func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
 	if websocketClient.watchdog == nil {
 		return
 	}
-	websocketClient.watchdog.Reset(WATCHDOG_TIMEOUT)
+	websocketClient.watchdog.Reset(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
 }
 
 // Disconnects the websocketClient and blocks until after the onDisconnectHandler is called
@@ -131,7 +105,7 @@ func (node *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClie
 	for _, exists := node.websocketClients[websocketId]; exists; {
 		websocketId = "#" + node.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	}
-	websocketClient := newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
+	websocketClient := node.newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
 		node.websocketComponent.OnDisconnectHandler(node, websocketClient)
 		node.removeWebsocketClient(websocketClient)
 	})

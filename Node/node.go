@@ -32,7 +32,7 @@ type Node struct {
 
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
-	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
+	topicBrokerConnections     map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
 	websocketHandshakeHTTPServer *http.Server
@@ -55,9 +55,8 @@ func New(config Config.Node, application Application) *Node {
 		application: application,
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
-
-		topicResolutions:  make(map[string]*brokerConnection),
-		brokerConnections: make(map[string]*brokerConnection),
+		brokerConnections:          make(map[string]*brokerConnection),
+		topicBrokerConnections:     make(map[string]*brokerConnection),
 
 		WebsocketGroups:       make(map[string]map[string]*WebsocketClient),
 		websocketClients:      make(map[string]*WebsocketClient),
@@ -103,18 +102,7 @@ func (node *Node) Start() error {
 			topicsToSubscribeTo = append(topicsToSubscribeTo, topic)
 		}
 		for _, topic := range topicsToSubscribeTo {
-			brokerConnection, err := node.getBrokerConnectionForTopic(topic)
-			if err != nil {
-				node.removeAllBrokerConnections()
-				close(node.stopChannel)
-				return Error.New("Error getting broker connection for topic", err)
-			}
-			err = node.subscribeTopic(brokerConnection, topic)
-			if err != nil {
-				node.removeAllBrokerConnections()
-				close(node.stopChannel)
-				return Error.New("Error subscribing to topic", err)
-			}
+			go node.subscribeLoop(topic)
 		}
 		node.isStarted = true
 		return nil

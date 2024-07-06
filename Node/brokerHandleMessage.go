@@ -11,7 +11,7 @@ func (node *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
 		if err != nil {
 			brokerConnection.close()
 			if node.IsStarted() {
-				node.logger.Log(Error.New("Failed to receive message from message broker \""+brokerConnection.resolution.GetName()+"\"", err).Error())
+				node.logger.Log(Error.New("Failed to receive message from message broker \""+brokerConnection.endpoint.GetAddress()+"\"", err).Error())
 			}
 			node.handleBrokerDisconnect(brokerConnection)
 			return

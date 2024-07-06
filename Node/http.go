@@ -2,17 +2,18 @@ package Node
 
 import (
 	"Systemge/Error"
+	"Systemge/Utilities"
 	"net/http"
 	"time"
 )
 
-func createHTTPServer(port string, handlers map[string]HTTPRequestHandler) *http.Server {
+func createHTTPServer(port int, handlers map[string]HTTPRequestHandler) *http.Server {
 	mux := http.NewServeMux()
 	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, handler)
 	}
 	httpServer := &http.Server{
-		Addr:    port,
+		Addr:    ":" + Utilities.IntToString(port),
 		Handler: mux,
 	}
 	return httpServer

@@ -3,7 +3,7 @@ package Resolver
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Resolution"
+	"Systemge/TcpEndpoint"
 	"Systemge/Utilities"
 	"net"
 	"strings"
@@ -42,7 +42,7 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 			err = Error.New("Invalid payload \""+message.GetPayload()+"\"", nil)
 			break
 		}
-		err = resolver.AddTopic(*Resolution.Unmarshal(segments[0]), segments[1])
+		err = resolver.AddTopic(*TcpEndpoint.Unmarshal(segments[0]), segments[1])
 	case "removeTopic":
 		segments := strings.Split(message.GetPayload(), "|")
 		if len(segments) != 1 {

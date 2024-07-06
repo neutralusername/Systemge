@@ -41,8 +41,8 @@ func (node *Node) startWebsocketHandshakeHTTPServer() error {
 	handlers := map[string]HTTPRequestHandler{
 		node.websocketComponent.GetWebsocketComponentConfig().Pattern: node.promoteToWebsocket(),
 	}
-	httpServer := createHTTPServer(node.websocketComponent.GetWebsocketComponentConfig().Port, handlers)
-	err := startHTTPServer(httpServer, node.websocketComponent.GetWebsocketComponentConfig().TlsCertPath, node.websocketComponent.GetWebsocketComponentConfig().TlsKeyPath)
+	httpServer := createHTTPServer(node.websocketComponent.GetWebsocketComponentConfig().Server.GetPort(), handlers)
+	err := startHTTPServer(httpServer, node.websocketComponent.GetWebsocketComponentConfig().Server.GetTlsCertPath(), node.websocketComponent.GetWebsocketComponentConfig().Server.GetTlsKeyPath())
 	if err != nil {
 		return Error.New("Error starting websocket handshake handler", err)
 	}

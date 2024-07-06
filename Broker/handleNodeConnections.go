@@ -38,11 +38,12 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if message == nil || message.GetTopic() != "connect" || message.GetOrigin() == "" {
 		return nil, Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
-	nodeConnection := newNodeConnection(message.GetOrigin(), netConn)
+	nodeConnection := broker.newNodeConnection(message.GetOrigin(), netConn)
 	err = broker.addNodeConnection(nodeConnection)
 	if err != nil {
-		return nil, err
+		return nil, Error.New("Failed to add node connection", err)
 	}
+	broker.startWatchdog(nodeConnection)
 	err = nodeConnection.send(Message.NewAsync("connected", broker.GetName(), ""))
 	if err != nil {
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)

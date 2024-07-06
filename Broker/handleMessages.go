@@ -3,14 +3,13 @@ package Broker
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"strings"
 )
 
 func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
 	for broker.IsStarted() {
 		messageBytes, err := nodeConnection.receive()
 		if err != nil {
-			if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "EOF") {
+			if broker.IsStarted() {
 				broker.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\"", err).Error())
 			}
 			nodeConnection.disconnect()
@@ -83,7 +82,7 @@ func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Mes
 	}
 	switch message.GetTopic() {
 	case "heartbeat":
-		err := nodeConnection.resetWatchdog()
+		err := broker.resetWatchdog(nodeConnection)
 		if err != nil {
 			return Error.New("Failed to reset watchdog for node \""+nodeConnection.name+"\"", nil)
 		}

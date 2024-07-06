@@ -4,6 +4,7 @@ import (
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
+	"time"
 )
 
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
@@ -32,16 +33,21 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 }
 
 func (node *Node) receiveSyncResponse(message *Message.Message, responseChannel chan *Message.Message) (*Message.Message, error) {
+	timeout := time.NewTimer(time.Duration(node.config.SyncMessageTimeoutMs) * time.Millisecond)
+	defer func() {
+		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
+		timeout.Stop()
+	}()
 	select {
 	case response := <-responseChannel:
-		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		if response.GetTopic() == "error" {
 			return nil, Error.New(response.GetPayload(), nil)
 		}
 		return response, nil
 	case <-node.stopChannel:
-		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return nil, Error.New("Node stopped", nil)
+	case <-timeout.C:
+		return nil, Error.New("Timeout waiting for response", nil)
 	}
 }
 func (node *Node) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {

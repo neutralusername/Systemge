@@ -3,9 +3,8 @@ package Resolver
 import (
 	"Systemge/Config"
 	"Systemge/Error"
-	"Systemge/Resolution"
+	"Systemge/TcpEndpoint"
 	"Systemge/Utilities"
-	"crypto/tls"
 	"net"
 	"sync"
 )
@@ -14,7 +13,7 @@ type Resolver struct {
 	config Config.Resolver
 	logger *Utilities.Logger
 
-	registeredTopics map[string]Resolution.Resolution // topic -> broker
+	registeredTopics map[string]TcpEndpoint.TcpEndpoint // topic -> resolution
 
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener
@@ -24,14 +23,10 @@ type Resolver struct {
 }
 
 func New(config Config.Resolver) *Resolver {
-	topicResolutions := map[string]Resolution.Resolution{}
 	resolver := &Resolver{
 		config:           config,
 		logger:           Utilities.NewLogger(config.LoggerPath),
-		registeredTopics: topicResolutions,
-	}
-	for topic, resolution := range config.TopicResolutions {
-		resolver.AddTopic(resolution, topic)
+		registeredTopics: map[string]TcpEndpoint.TcpEndpoint{},
 	}
 	return resolver
 }
@@ -42,27 +37,15 @@ func (resolver *Resolver) Start() error {
 	if resolver.isStarted {
 		return Error.New("resolver already started", nil)
 	}
-	resolverTlsCert, err := tls.LoadX509KeyPair(resolver.config.ResolverTlsCertPath, resolver.config.ResolverTlsKeyPath)
+	listener, err := resolver.config.Server.GetTlsListener()
 	if err != nil {
-		return Error.New("Failed to load TLS certificate: ", err)
+		return Error.New("Failed to get listener: ", err)
 	}
-	resolverListener, err := tls.Listen("tcp", resolver.config.ResolverPort, &tls.Config{
-		Certificates: []tls.Certificate{resolverTlsCert},
-	})
+	configListener, err := resolver.config.ConfigServer.GetTlsListener()
 	if err != nil {
-		return Error.New("Failed to listen on port: ", err)
+		return Error.New("Failed to get listener: ", err)
 	}
-	configTlsCert, err := tls.LoadX509KeyPair(resolver.config.ConfigTlsCertPath, resolver.config.ConfigTlsKeyPath)
-	if err != nil {
-		return Error.New("Failed to load TLS certificate: ", err)
-	}
-	configListener, err := tls.Listen("tcp", resolver.config.ConfigPort, &tls.Config{
-		Certificates: []tls.Certificate{configTlsCert},
-	})
-	if err != nil {
-		return Error.New("Failed to listen on port: ", err)
-	}
-	resolver.tlsResolverListener = resolverListener
+	resolver.tlsResolverListener = listener
 	resolver.tlsConfigListener = configListener
 	resolver.isStarted = true
 	go resolver.handleResolverConnections()

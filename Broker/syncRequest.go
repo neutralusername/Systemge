@@ -32,7 +32,7 @@ func (broker *Broker) handleSyncRequest(nodeConnection *nodeConnection, message 
 	syncRequest := newSyncRequest(nodeConnection, message)
 	broker.openSyncRequests[message.GetSyncRequestToken()] = syncRequest
 	go func() {
-		timer := time.NewTimer(time.Duration(DEFAULT_SYNC_REQUEST_TIMEOUT) * time.Millisecond)
+		timer := time.NewTimer(time.Duration(broker.config.SyncRequestTimeoutMs) * time.Millisecond)
 		defer timer.Stop()
 		select {
 		case response := <-syncRequest.responseChannel:

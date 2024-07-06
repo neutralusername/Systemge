@@ -3,12 +3,12 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Resolution"
+	"Systemge/TcpEndpoint"
 	"Systemge/Utilities"
 )
 
-func (node *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerConnection, error) {
-	netConn, err := Utilities.TlsDial(resolution.GetAddress(), resolution.GetServerNameIndication(), resolution.GetTlsCertificate())
+func (node *Node) connectToBroker(tcpEndpoint *TcpEndpoint.TcpEndpoint) (*brokerConnection, error) {
+	netConn, err := tcpEndpoint.TlsDial()
 	if err != nil {
 		return nil, Error.New("Error connecting to broker", err)
 	}
@@ -21,5 +21,5 @@ func (node *Node) connectToBroker(resolution *Resolution.Resolution) (*brokerCon
 		netConn.Close()
 		return nil, Error.New("Invalid response topic \""+responseMessage.GetTopic()+"\"", nil)
 	}
-	return newBrokerConnection(netConn, resolution, node.logger), nil
+	return newBrokerConnection(netConn, tcpEndpoint, node.logger), nil
 }

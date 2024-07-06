@@ -1,10 +1,10 @@
 package Resolver
 
 import (
-	"Systemge/Resolution"
+	"Systemge/TcpEndpoint"
 )
 
-func (resolver *Resolver) AddTopic(resolution Resolution.Resolution, topic string) error {
+func (resolver *Resolver) AddTopic(resolution TcpEndpoint.TcpEndpoint, topic string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	resolver.registeredTopics[topic] = resolution

@@ -25,14 +25,14 @@ type nodeConnection struct {
 	stopChannel chan bool
 }
 
-func newNodeConnection(name string, netConn net.Conn) *nodeConnection {
+func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConnection {
 	return &nodeConnection{
 		name:               name,
 		netConn:            netConn,
 		messageQueue:       make(chan *Message.Message, NODE_MESSAGE_QUEUE_SIZE),
 		watchdog:           nil,
 		subscribedTopics:   map[string]bool{},
-		deliverImmediately: DELIVER_IMMEDIATELY_DEFAULT,
+		deliverImmediately: broker.config.DeliverImmediately,
 		stopChannel:        make(chan bool),
 	}
 }
@@ -53,13 +53,33 @@ func (nodeConnection *nodeConnection) receive() ([]byte, error) {
 	return messageBytes, nil
 }
 
-func (nodeConnection *nodeConnection) resetWatchdog() error {
+func (broker *Broker) startWatchdog(nodeConnection *nodeConnection) {
+	nodeConnection.watchdogMutex.Lock()
+	defer nodeConnection.watchdogMutex.Unlock()
+	nodeConnection.watchdog = time.AfterFunc(time.Duration(broker.config.ConnectionTimeoutMs)*time.Millisecond, func() {
+		nodeConnection.watchdogMutex.Lock()
+		defer nodeConnection.watchdogMutex.Unlock()
+		if nodeConnection.watchdog == nil {
+			return
+		}
+		nodeConnection.watchdog.Stop()
+		nodeConnection.watchdog = nil
+		nodeConnection.netConn.Close()
+		err := broker.removeNodeConnection(nodeConnection)
+		if err != nil {
+			broker.logger.Log(Error.New("Error removing node \""+nodeConnection.name+"\"", err).Error())
+		}
+		close(nodeConnection.stopChannel)
+	})
+}
+
+func (broker *Broker) resetWatchdog(nodeConnection *nodeConnection) error {
 	nodeConnection.watchdogMutex.Lock()
 	defer nodeConnection.watchdogMutex.Unlock()
 	if nodeConnection.watchdog == nil {
 		return Error.New("Watchdog is not set for node \""+nodeConnection.name+"\"", nil)
 	}
-	nodeConnection.watchdog.Reset((WATCHDOG_TIMEOUT))
+	nodeConnection.watchdog.Reset((time.Duration(broker.config.ConnectionTimeoutMs) * time.Millisecond))
 	return nil
 }
 
@@ -69,8 +89,8 @@ func (nodeConnection *nodeConnection) disconnect() error {
 		return Error.New("Watchdog is not set for node \""+nodeConnection.name+"\"", nil)
 	}
 	nodeConnection.watchdog.Reset(0)
-	<-nodeConnection.stopChannel
 	nodeConnection.watchdogMutex.Unlock()
+	<-nodeConnection.stopChannel
 	return nil
 }
 
@@ -81,17 +101,6 @@ func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
 		return Error.New("node with name \""+nodeConnection.name+"\" already exists", nil)
 	}
 	broker.nodeConnections[nodeConnection.name] = nodeConnection
-	nodeConnection.watchdog = time.AfterFunc(WATCHDOG_TIMEOUT, func() {
-		watchdog := nodeConnection.watchdog
-		nodeConnection.watchdog = nil
-		watchdog.Stop()
-		nodeConnection.netConn.Close()
-		err := broker.removeNodeConnection(nodeConnection)
-		if err != nil {
-			broker.logger.Log(Error.New("Error removing node \""+nodeConnection.name+"\"", err).Error())
-		}
-		close(nodeConnection.stopChannel)
-	})
 	return nil
 }
 

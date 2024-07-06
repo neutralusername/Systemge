@@ -1,14 +1,8 @@
 package Node
 
-import "Systemge/Error"
-
 // returns a map of custom command handlers for the command-line interface
 func (node *Node) GetCustomCommandHandlers() map[string]func([]string) error {
 	handlers := map[string]func([]string) error{
-		"brokers":               node.handleBrokersCommand,
-		"removeBroker":          node.handleRemoveBrokerCommand,
-		"resolutions":           node.handleResolutionsCommand,
-		"removeResolution":      node.handleRemoveTopicCommand,
 		"websocketClients":      node.handleWebsocketClientsCommand,
 		"websocketGroups":       node.handleWebsocketGroupsCommand,
 		"WebsocketGroupClients": node.handleWebsocketGroupClientsCommand,
@@ -22,48 +16,6 @@ func (node *Node) GetCustomCommandHandlers() map[string]func([]string) error {
 		}
 	}
 	return handlers
-}
-
-func (node *Node) handleBrokersCommand(args []string) error {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
-	for _, brokerConnection := range node.brokerConnections {
-		println(brokerConnection.resolution.GetName() + " : " + brokerConnection.resolution.GetAddress())
-	}
-	return nil
-}
-
-func (node *Node) handleRemoveBrokerCommand(args []string) error {
-	if len(args) != 1 {
-		return Error.New("Invalid number of arguments", nil)
-	}
-	brokerAddress := args[0]
-	err := node.RemoveBrokerConnection(brokerAddress)
-	if err != nil {
-		return Error.New("Error removing broker connection", err)
-	}
-	return nil
-}
-
-func (node *Node) handleResolutionsCommand(args []string) error {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
-	for topic, brokerConnection := range node.topicResolutions {
-		println(topic + " : " + brokerConnection.resolution.GetName() + " : " + brokerConnection.resolution.GetAddress())
-	}
-	return nil
-}
-
-func (node *Node) handleRemoveTopicCommand(args []string) error {
-	if len(args) != 1 {
-		return Error.New("Invalid number of arguments", nil)
-	}
-	topic := args[0]
-	err := node.RemoveTopicResolution(topic)
-	if err != nil {
-		return Error.New("Error removing topic resolution", err)
-	}
-	return nil
 }
 
 func (node *Node) handleWebsocketClientsCommand(args []string) error {

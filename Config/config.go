@@ -1,11 +1,17 @@
 package Config
 
-import "Systemge/Resolution"
+import (
+	"Systemge/TcpEndpoint"
+	"Systemge/TcpServer"
+)
 
 type Node struct {
-	Name               string // *required*
-	LoggerPath         string // *required*
-	ResolverResolution Resolution.Resolution
+	Name             string // *required*
+	LoggerPath       string // *required*
+	ResolverEndpoint TcpEndpoint.TcpEndpoint
+
+	HeartbeatIntervalMs  int // default: 0
+	SyncMessageTimeoutMs int // default: 0
 }
 
 type Application struct {
@@ -13,29 +19,31 @@ type Application struct {
 }
 
 type Websocket struct {
-	Pattern     string // *required*
-	Port        string // *required*
-	TlsCertPath string // *optional*
-	TlsKeyPath  string // *optional*
+	Pattern                          string              // *required*
+	Server                           TcpServer.TcpServer // *required*
+	HandleClientMessagesSequentially bool                // default: false
+
+	ClientMessageCooldownMs int // default: 0
+	ClientWatchdogTimeoutMs int // default: 0
 }
 
 type HTTP struct {
-	Port        string // *required*
-	TlsCertPath string // *optional*
-	TlsKeyPath  string // *optional*
+	Server TcpServer.TcpServer // *required*
 }
 
 type Broker struct {
-	Name       string // *required*
-	LoggerPath string // *required*
+	Name                   string                  // *required*
+	LoggerPath             string                  // *required*
+	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
-	BrokerPort        string // *required*
-	BrokerTlsCertPath string // *required*
-	BrokerTlsKeyPath  string // *required*
+	DeliverImmediately   bool // default: false
+	ConnectionTimeoutMs  int  // default: 0
+	SyncRequestTimeoutMs int  // default: 0
 
-	ConfigPort        string // *required*
-	ConfigTlsCertPath string // *required*
-	ConfigTlsKeyPath  string // *required*
+	Server   TcpServer.TcpServer     // *required*
+	Endpoint TcpEndpoint.TcpEndpoint // *required*
+
+	ConfigServer TcpServer.TcpServer // *required*
 
 	SyncTopics  []string
 	AsyncTopics []string
@@ -45,24 +53,16 @@ type Resolver struct {
 	Name       string // *required*
 	LoggerPath string // *required*
 
-	ResolverPort        string // *required*
-	ResolverTlsCertPath string // *required*
-	ResolverTlsKeyPath  string // *required*
+	Server   TcpServer.TcpServer     // *required*
+	Endpoint TcpEndpoint.TcpEndpoint // *required*
 
-	ConfigPort        string // *required*
-	ConfigTlsCertPath string // *required*
-	ConfigTlsKeyPath  string // *required*
-
-	TopicResolutions map[string]Resolution.Resolution
+	ConfigServer TcpServer.TcpServer // *required*
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync bool // default: false
+	IsSpawnedNodeTopicSync bool   // default: false
+	SpawnedNodeLoggerPath  string // *required*
 
-	SpawnedNodeLoggerPath string // *required*
-
-	ResolverResolution           Resolution.Resolution // *required*
-	ResolverConfigResolution     Resolution.Resolution // *required*
-	BrokerConfigResolution       Resolution.Resolution // *required*
-	BrokerSubscriptionResolution Resolution.Resolution // *required*
+	ResolverEndpoint     TcpEndpoint.TcpEndpoint // *required*
+	BrokerConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 }

@@ -19,10 +19,10 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			return
 		}
 		if message.GetTopic() == "heartbeat" {
-			websocketClient.ResetWatchdog()
+			node.ResetWatchdog(websocketClient)
 			continue
 		}
-		if time.Since(websocketClient.GetLastMessageTimestamp()) <= websocketClient.GetMessageCooldown() {
+		if time.Since(websocketClient.GetLastMessageTimestamp()) <= time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
 			err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				node.logger.Log(err.Error())
@@ -30,18 +30,18 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		websocketClient.SetLastMessageTimestamp(time.Now())
-		if websocketClient.GetHandleMessagesConcurrently() {
+		if node.websocketComponent.GetWebsocketComponentConfig().HandleClientMessagesSequentially {
+			err := node.handleWebsocketMessage(websocketClient, message)
+			if err != nil {
+				node.logger.Log(err.Error())
+			}
+		} else {
 			go func() {
 				err := node.handleWebsocketMessage(websocketClient, message)
 				if err != nil {
 					node.logger.Log(err.Error())
 				}
 			}()
-		} else {
-			err := node.handleWebsocketMessage(websocketClient, message)
-			if err != nil {
-				node.logger.Log(err.Error())
-			}
 		}
 	}
 }

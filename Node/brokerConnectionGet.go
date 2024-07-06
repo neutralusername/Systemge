@@ -3,15 +3,15 @@ package Node
 import "Systemge/Error"
 
 func (node *Node) getBrokerConnectionForTopic(topic string) (*brokerConnection, error) {
-	brokerConnection := node.GetTopicResolution(topic)
+	brokerConnection := node.getTopicBrokerConnection(topic)
 	if brokerConnection == nil {
-		resolution, err := node.resolveBrokerForTopic(topic)
+		endpoint, err := node.resolveBrokerForTopic(topic)
 		if err != nil {
 			return nil, Error.New("Error resolving broker address for topic \""+topic+"\"", err)
 		}
-		brokerConnection = node.getBrokerConnection(resolution.GetAddress())
+		brokerConnection = node.getBrokerConnection(endpoint.GetAddress())
 		if brokerConnection == nil {
-			brokerConnection, err = node.connectToBroker(resolution)
+			brokerConnection, err = node.connectToBroker(endpoint)
 			if err != nil {
 				return nil, Error.New("Error connecting to broker", err)
 			}
@@ -20,9 +20,9 @@ func (node *Node) getBrokerConnectionForTopic(topic string) (*brokerConnection, 
 				return nil, Error.New("Error adding broker connection", err)
 			}
 		}
-		err = node.addTopicResolution(topic, brokerConnection)
+		err = node.addTopicBrokerConnection(topic, brokerConnection)
 		if err != nil {
-			return nil, Error.New("Error adding topic resolution", err)
+			return nil, Error.New("Error adding topic endpoint", err)
 		}
 	}
 	return brokerConnection, nil
