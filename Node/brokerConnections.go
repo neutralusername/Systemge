@@ -26,8 +26,8 @@ func (node *Node) removeAllBrokerConnections() {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
 	for address, brokerConnection := range node.brokerConnections {
-		brokerConnection.mutex.Lock()
 		brokerConnection.close()
+		brokerConnection.mutex.Lock()
 		delete(node.brokerConnections, address)
 		for topic := range brokerConnection.topicResolutions {
 			delete(node.topicResolutions, topic)
