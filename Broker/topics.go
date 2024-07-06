@@ -1,7 +1,6 @@
 package Broker
 
-// adds topics the broker will accept async messages and subscriptions for
-func (broker *Broker) AddAsyncTopics(topics ...string) {
+func (broker *Broker) addAsyncTopics(topics ...string) {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
@@ -10,8 +9,7 @@ func (broker *Broker) AddAsyncTopics(topics ...string) {
 	}
 }
 
-// adds topics the broker will accept sync messages and subscriptions for
-func (broker *Broker) AddSyncTopics(topics ...string) {
+func (broker *Broker) addSyncTopics(topics ...string) {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
@@ -20,8 +18,7 @@ func (broker *Broker) AddSyncTopics(topics ...string) {
 	}
 }
 
-// removes topics the broker will accept async messages and subscriptions for
-func (broker *Broker) RemoveAsyncTopics(topics ...string) {
+func (broker *Broker) removeAsyncTopics(topics ...string) {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {
@@ -34,8 +31,7 @@ func (broker *Broker) RemoveAsyncTopics(topics ...string) {
 	}
 }
 
-// removes topics the broker will accept sync messages and subscriptions for
-func (broker *Broker) RemoveSyncTopics(topics ...string) {
+func (broker *Broker) removeSyncTopics(topics ...string) {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	for _, topic := range topics {

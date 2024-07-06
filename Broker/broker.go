@@ -47,10 +47,10 @@ func New(config Config.Broker) *Broker {
 		openSyncRequests:  map[string]*syncRequest{},
 	}
 	for _, topic := range config.AsyncTopics {
-		broker.AddAsyncTopics(topic)
+		broker.addAsyncTopics(topic)
 	}
 	for _, topic := range config.SyncTopics {
-		broker.AddSyncTopics(topic)
+		broker.addSyncTopics(topic)
 	}
 	return broker
 }
