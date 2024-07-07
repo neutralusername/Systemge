@@ -43,7 +43,6 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if err != nil {
 		return nil, Error.New("Failed to add node connection", err)
 	}
-	broker.startWatchdog(nodeConnection)
 	err = nodeConnection.send(Message.NewAsync("connected", broker.GetName(), ""))
 	if err != nil {
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)

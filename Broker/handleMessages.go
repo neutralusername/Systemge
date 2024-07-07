@@ -12,14 +12,14 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 			if broker.IsStarted() {
 				broker.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\"", err).Error())
 			}
-			nodeConnection.disconnect()
+			broker.disconnect(nodeConnection)
 			return
 		}
 		message := Message.Deserialize(messageBytes)
 		err = broker.validateMessage(message)
 		if err != nil {
 			broker.logger.Log(Error.New("Invalid message from node \""+nodeConnection.name+"\"", err).Error())
-			nodeConnection.disconnect()
+			broker.disconnect(nodeConnection)
 			return
 		}
 		err = broker.handleMessage(nodeConnection, message)
@@ -81,12 +81,6 @@ func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Mes
 		}
 	}
 	switch message.GetTopic() {
-	case "heartbeat":
-		err := broker.resetWatchdog(nodeConnection)
-		if err != nil {
-			return Error.New("Failed to reset watchdog for node \""+nodeConnection.name+"\"", nil)
-		}
-		return nil
 	case "unsubscribe":
 		err := broker.handleUnsubscribe(nodeConnection, message)
 		if err != nil {
@@ -165,6 +159,7 @@ func (broker *Broker) propagateMessage(message *Message.Message) {
 			err := nodeConnection.send(message)
 			if err != nil {
 				broker.logger.Log(Error.New("Failed to send message to node \""+nodeConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
+				broker.disconnect(nodeConnection)
 			}
 		} else {
 			nodeConnection.queueMessage(message)

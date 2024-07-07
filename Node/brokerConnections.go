@@ -12,7 +12,6 @@ func (node *Node) addBrokerConnection(brokerConnection *brokerConnection) error 
 	}
 	node.brokerConnections[brokerConnection.endpoint.GetAddress()] = brokerConnection
 	go node.handleBrokerMessages(brokerConnection)
-	go node.heartbeatLoop(brokerConnection)
 	return nil
 }
 

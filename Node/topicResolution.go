@@ -73,5 +73,11 @@ func (node *Node) removeTopicResolution(topic string) error {
 		return Error.New("Error removing topic from server connection", err)
 	}
 	delete(node.topicResolutions, topic)
+	if len(brokerConnection.topicResolutions) == 0 && len(brokerConnection.subscribedTopics) == 0 {
+		err = brokerConnection.close()
+		if err != nil {
+			return Error.New("Error closing broker connection", err)
+		}
+	}
 	return nil
 }

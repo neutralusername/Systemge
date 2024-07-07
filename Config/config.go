@@ -11,7 +11,6 @@ type Node struct {
 	ResolverEndpoint TcpEndpoint.TcpEndpoint
 
 	TopicResolutionLifetimeMs int // default: 0
-	BrokerHeartbeatIntervalMs int // default: 0
 	SyncResponseTimeoutMs     int // default: 0
 }
 
@@ -38,7 +37,6 @@ type Broker struct {
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
 	DeliverImmediately   bool // default: false
-	NodeTimeoutMs        int  // default: 0
 	SyncRequestTimeoutMs int  // default: 0
 
 	Server   TcpServer.TcpServer     // *required*

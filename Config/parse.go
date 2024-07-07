@@ -22,7 +22,6 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 
 	loggerPath := ""
 	deliverImmediately := true
-	nodeTimeoutMs := 10000
 	syncRequestTimeoutMs := 10000
 	publicIp := ""
 	serverNameIndication := ""
@@ -95,11 +94,6 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 				panic("deliverImmediately line is invalid \"" + line + "\"")
 			}
 			deliverImmediately = lineSegments[1] == "true"
-		case "_nodeTimeoutMs":
-			if len(lineSegments) != 2 {
-				panic("nodeTimeoutMs line is invalid \"" + line + "\"")
-			}
-			nodeTimeoutMs = Utilities.StringToInt(lineSegments[1])
 		case "_syncRequestTimeoutMs":
 			if len(lineSegments) != 2 {
 				panic("syncRequestTimeoutMs line is invalid \"" + line + "\"")
@@ -139,7 +133,6 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		LoggerPath:             loggerPath,
 		ResolverConfigEndpoint: resolverConfigEndpoint,
 		DeliverImmediately:     deliverImmediately,
-		NodeTimeoutMs:          nodeTimeoutMs,
 		SyncRequestTimeoutMs:   syncRequestTimeoutMs,
 		Server:                 brokerServer,
 		Endpoint:               brokerEndpoint,
