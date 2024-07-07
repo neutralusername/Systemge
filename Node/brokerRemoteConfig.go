@@ -20,7 +20,7 @@ func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpo
 	if len(payload) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addSyncTopic", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
+	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addSyncTopics", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("Error exchanging messages with broker", err)
 	}
@@ -40,7 +40,7 @@ func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEn
 	if len(payload) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeSyncTopic", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
+	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeSyncTopics", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("Error exchanging messages with broker", err)
 	}
@@ -60,7 +60,7 @@ func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndp
 	if len(payload) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addAsyncTopic", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
+	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addAsyncTopics", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("Error exchanging messages with broker", err)
 	}
@@ -80,7 +80,7 @@ func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpE
 	if len(payload) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeAsyncTopic", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
+	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeAsyncTopics", node.GetName(), payload), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
 		return Error.New("Error exchanging messages with broker", err)
 	}
