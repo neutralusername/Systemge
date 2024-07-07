@@ -1,20 +1,58 @@
 package Utilities
 
-import "log"
+import (
+	"log"
+	"sync"
+)
 
 type Logger struct {
-	logger *log.Logger
+	logger   *log.Logger
+	logQueue chan string
+	ifClosed bool
+	close    chan bool
+	mutex    sync.Mutex
 }
 
 func (logger *Logger) Log(str string) {
-	if logger == nil {
-		panic("Logger is nil")
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
+	if logger.ifClosed {
+		return
 	}
-	logger.logger.Println(str)
+	logger.logQueue <- str
 }
 
 func NewLogger(logFilePath string) *Logger {
 	file := OpenFileAppend(logFilePath)
 	var logger *log.Logger = log.New(file, "", log.LstdFlags)
-	return &Logger{logger}
+	loggerStruct := &Logger{
+		logger:   logger,
+		logQueue: make(chan string, 1000),
+		ifClosed: false,
+		close:    make(chan bool),
+	}
+	go loggerStruct.logRoutine()
+	return loggerStruct
+}
+
+func (logger *Logger) logRoutine() {
+	for {
+		select {
+		case str := <-logger.logQueue:
+			logger.logger.Println(str)
+		case <-logger.close:
+			return
+		}
+	}
+}
+
+func (logger *Logger) Close() {
+	logger.mutex.Lock()
+	defer logger.mutex.Unlock()
+	if logger.ifClosed {
+		return
+	}
+	logger.ifClosed = true
+	close(logger.close)
+	close(logger.logQueue)
 }
