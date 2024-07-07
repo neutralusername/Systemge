@@ -4,43 +4,55 @@ import (
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Utilities"
+	"time"
 )
 
 func (node *Node) subscribeLoop(topic string) {
 	for node.IsStarted() {
-		node.logger.Log("Attempting connection for topic \"" + topic + "\"")
-
-		endpoint, err := node.resolveBrokerForTopic(topic)
-		if err != nil {
-			node.logger.Log(Error.New("Unable to resolve broker for topic \""+topic+"\"", err).Error())
-			continue
-		}
-		brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
-		if brokerConnection == nil {
-			brokerConnection, err = node.connectToBroker(endpoint)
+		success := func() bool {
+			node.logger.Log("Attempting connection for topic \"" + topic + "\"")
+			endpoint, err := node.resolveBrokerForTopic(topic)
 			if err != nil {
-				node.logger.Log(Error.New("Unable to connect to broker for topic \""+topic+"\"", err).Error())
-				continue
+				node.logger.Log(Error.New("Unable to resolve broker for topic \""+topic+"\"", err).Error())
+				return false
 			}
-			err = node.addBrokerConnection(brokerConnection)
+			brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
+			if brokerConnection == nil {
+				brokerConnection, err = node.connectToBroker(endpoint)
+				if err != nil {
+					node.logger.Log(Error.New("Unable to connect to broker for topic \""+topic+"\"", err).Error())
+					return false
+				}
+				err = node.addBrokerConnection(brokerConnection)
+				if err != nil {
+					brokerConnection.close()
+					node.logger.Log(Error.New("Unable to add broker connection for topic \""+topic+"\"", err).Error())
+					return false
+				}
+			}
+			err = node.subscribeTopic(brokerConnection, topic)
 			if err != nil {
-				brokerConnection.close()
-				node.logger.Log(Error.New("Unable to add broker connection for topic \""+topic+"\"", err).Error())
-				continue
+				node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\"", err).Error())
+				return false
 			}
+			err = brokerConnection.addSubscribedTopic(topic)
+			if err != nil {
+				brokerConnection.mutex.Lock()
+				subscribedTopicsCount := len(brokerConnection.subscribedTopics)
+				brokerConnection.mutex.Unlock()
+				if subscribedTopicsCount == 0 {
+					node.handleBrokerDisconnect(brokerConnection)
+				}
+				node.logger.Log(Error.New("Unable to add topic to broker connection", err).Error())
+				return false
+			}
+			node.logger.Log("connection for topic \"" + topic + "\" successful")
+			return true
+		}()
+		if success {
+			break
 		}
-		err = node.subscribeTopic(brokerConnection, topic)
-		if err != nil {
-			node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\"", err).Error())
-			continue
-		}
-		err = brokerConnection.addSubscribedTopic(topic)
-		if err != nil {
-			node.logger.Log(Error.New("Unable to add topic to broker connection", err).Error())
-			continue
-		}
-		node.logger.Log("connection for topic \"" + topic + "\" successful")
-		break
+		time.Sleep(time.Duration(node.config.BrokerReconnectDelayMs) * time.Millisecond)
 	}
 }
 

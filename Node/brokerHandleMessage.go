@@ -9,7 +9,6 @@ func (node *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		messageBytes, err := brokerConnection.receive()
 		if err != nil {
-			brokerConnection.close()
 			if node.IsStarted() {
 				node.logger.Log(Error.New("Failed to receive message from message broker \""+brokerConnection.endpoint.GetAddress()+"\"", err).Error())
 			}

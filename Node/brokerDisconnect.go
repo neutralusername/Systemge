@@ -1,6 +1,7 @@
 package Node
 
 func (node *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
+	brokerConnection.close()
 	removedSubscribedTopics := node.cleanUpDisconnectedBrokerConnection(brokerConnection)
 	for _, topic := range removedSubscribedTopics {
 		go node.subscribeLoop(topic)
