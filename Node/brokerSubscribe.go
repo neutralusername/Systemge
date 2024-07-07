@@ -52,7 +52,7 @@ func (node *Node) subscribeLoop(topic string) {
 		if success {
 			break
 		}
-		time.Sleep(time.Duration(node.config.BrokerReconnectDelayMs) * time.Millisecond)
+		time.Sleep(time.Duration(node.config.BrokerSubscribeDelayMs) * time.Millisecond)
 	}
 }
 
