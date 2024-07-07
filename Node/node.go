@@ -94,22 +94,19 @@ func (node *Node) Start() error {
 			}
 		}
 		node.stopChannel = make(chan bool)
-		topicsToSubscribeTo := []string{}
-		for topic := range node.application.GetAsyncMessageHandlers() {
-			topicsToSubscribeTo = append(topicsToSubscribeTo, topic)
-		}
-		for topic := range node.application.GetSyncMessageHandlers() {
-			topicsToSubscribeTo = append(topicsToSubscribeTo, topic)
-		}
-		for _, topic := range topicsToSubscribeTo {
-			go node.subscribeLoop(topic)
-		}
 		node.isStarted = true
 		return nil
 	}()
 	if err != nil {
 		return Error.New("Error starting node \""+node.GetName()+"\"", err)
 	}
+	for topic := range node.application.GetAsyncMessageHandlers() {
+		node.subscribeLoop(topic)
+	}
+	for topic := range node.application.GetSyncMessageHandlers() {
+		node.subscribeLoop(topic)
+	}
+
 	err = node.application.OnStart(node)
 	if err != nil {
 		node.Stop()

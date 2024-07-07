@@ -78,15 +78,18 @@ func (broker *Broker) Start() error {
 		asyncTopics = append(asyncTopics, asyncTopic)
 	}
 
-	err = broker.addResolverTopicsRemotely(syncTopics...)
-	if err != nil {
-		broker.logger.Log(Error.New("Failed to add resolver topics remotely", err).Error())
+	if len(syncTopics) > 0 {
+		err = broker.addResolverTopicsRemotely(syncTopics...)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to add resolver topics remotely", err).Error())
+		}
 	}
-	err = broker.addResolverTopicsRemotely(asyncTopics...)
-	if err != nil {
-		broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
+	if len(asyncTopics) > 0 {
+		err = broker.addResolverTopicsRemotely(asyncTopics...)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to add resolver topic remotely", err).Error())
+		}
 	}
-
 	broker.addAsyncTopics("heartbeat")
 	broker.addSyncTopics("subscribe", "unsubscribe", "consume")
 	return nil

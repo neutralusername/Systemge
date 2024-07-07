@@ -10,29 +10,29 @@ import (
 func (node *Node) subscribeLoop(topic string) {
 	for node.IsStarted() {
 		success := func() bool {
-			node.logger.Log("Attempting connection for topic \"" + topic + "\"")
+			node.logger.Log("Attempting connection for topic \"" + topic + "\" on node \"" + node.GetName() + "\"")
 			endpoint, err := node.resolveBrokerForTopic(topic)
 			if err != nil {
-				node.logger.Log(Error.New("Unable to resolve broker for topic \""+topic+"\"", err).Error())
+				node.logger.Log(Error.New("Unable to resolve broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
 			brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
 			if brokerConnection == nil {
 				brokerConnection, err = node.connectToBroker(endpoint)
 				if err != nil {
-					node.logger.Log(Error.New("Unable to connect to broker for topic \""+topic+"\"", err).Error())
+					node.logger.Log(Error.New("Unable to connect to broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 					return false
 				}
 				err = node.addBrokerConnection(brokerConnection)
 				if err != nil {
 					brokerConnection.close()
-					node.logger.Log(Error.New("Unable to add broker connection for topic \""+topic+"\"", err).Error())
+					node.logger.Log(Error.New("Unable to add broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 					return false
 				}
 			}
 			err = node.subscribeTopic(brokerConnection, topic)
 			if err != nil {
-				node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\"", err).Error())
+				node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\" on broker \""+endpoint.GetAddress()+"\" for node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
 			err = brokerConnection.addSubscribedTopic(topic)
@@ -43,10 +43,10 @@ func (node *Node) subscribeLoop(topic string) {
 				if subscribedTopicsCount == 0 {
 					node.handleBrokerDisconnect(brokerConnection)
 				}
-				node.logger.Log(Error.New("Unable to add topic to broker connection", err).Error())
+				node.logger.Log(Error.New("Unable to add topic \""+topic+"\" to subscribed topics for broker \""+endpoint.GetAddress()+"\" on node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
-			node.logger.Log("connection for topic \"" + topic + "\" successful")
+			node.logger.Log("connection for topic \"" + topic + "\" successful on node \"" + node.GetName() + "\" with broker \"" + endpoint.GetAddress() + "\"")
 			return true
 		}()
 		if success {
