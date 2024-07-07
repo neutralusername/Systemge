@@ -51,12 +51,13 @@ func (nodeConnection *nodeConnection) receive() ([]byte, error) {
 
 func (broker *Broker) disconnect(nodeConnection *nodeConnection) {
 	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
 	if nodeConnection.netConn == nil {
+		broker.operationMutex.Unlock()
 		return
 	}
 	nodeConnection.netConn.Close()
 	nodeConnection.netConn = nil
+	broker.operationMutex.Unlock()
 	err := broker.removeNodeConnection(nodeConnection)
 	if err != nil {
 		broker.logger.Log(Error.New("Error removing node \""+nodeConnection.name+"\"", err).Error())
