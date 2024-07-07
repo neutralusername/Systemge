@@ -8,7 +8,7 @@ import (
 type Logger struct {
 	logger   *log.Logger
 	logQueue chan string
-	ifClosed bool
+	isClosed bool
 	close    chan bool
 	mutex    sync.Mutex
 }
@@ -16,7 +16,7 @@ type Logger struct {
 func (logger *Logger) Log(str string) {
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
-	if logger.ifClosed {
+	if logger.isClosed {
 		return
 	}
 	logger.logQueue <- str
@@ -28,7 +28,7 @@ func NewLogger(logFilePath string) *Logger {
 	loggerStruct := &Logger{
 		logger:   logger,
 		logQueue: make(chan string, 1000),
-		ifClosed: false,
+		isClosed: false,
 		close:    make(chan bool),
 	}
 	go loggerStruct.logRoutine()
@@ -49,10 +49,10 @@ func (logger *Logger) logRoutine() {
 func (logger *Logger) Close() {
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
-	if logger.ifClosed {
+	if logger.isClosed {
 		return
 	}
-	logger.ifClosed = true
+	logger.isClosed = true
 	close(logger.close)
 	close(logger.logQueue)
 }
