@@ -7,10 +7,10 @@ func (node *Node) AddToWebsocketGroup(groupId string, websocketId string) error 
 	defer node.websocketMutex.Unlock()
 	websocketClient := node.websocketClients[websocketId]
 	if websocketClient == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
+		return Error.New("websocketClient with id "+websocketId+" does not exist", nil)
 	}
 	if node.websocketClientGroups[websocketId][groupId] {
-		return Error.New("WebsocketClient with id "+websocketId+" is already in group "+groupId, nil)
+		return Error.New("websocketClient with id "+websocketId+" is already in group "+groupId, nil)
 	}
 	if node.WebsocketGroups[groupId] == nil {
 		node.WebsocketGroups[groupId] = make(map[string]*WebsocketClient)
@@ -24,16 +24,16 @@ func (node *Node) RemoveFromWebsocketGroup(groupId string, websocketId string) e
 	node.websocketMutex.Lock()
 	defer node.websocketMutex.Unlock()
 	if node.WebsocketGroups[groupId] == nil {
-		return Error.New("Group with id "+groupId+" does not exist", nil)
+		return Error.New("group with id "+groupId+" does not exist", nil)
 	}
 	if node.WebsocketGroups[groupId][websocketId] == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" is not in group "+groupId, nil)
+		return Error.New("websocketClient with id "+websocketId+" is not in group "+groupId, nil)
 	}
 	if node.websocketClients[websocketId] == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" does not exist", nil)
+		return Error.New("websocketClient with id "+websocketId+" does not exist", nil)
 	}
 	if node.websocketClientGroups[websocketId] == nil {
-		return Error.New("WebsocketClient with id "+websocketId+" is not in any groups", nil)
+		return Error.New("websocketClient with id "+websocketId+" is not in any groups", nil)
 	}
 	delete(node.websocketClientGroups[websocketId], groupId)
 	delete(node.WebsocketGroups[groupId], websocketId)

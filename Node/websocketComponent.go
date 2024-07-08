@@ -9,7 +9,7 @@ import (
 func (node *Node) startWebsocketComponent() error {
 	err := node.startWebsocketHandshakeHTTPServer()
 	if err != nil {
-		return Error.New("Error starting websocket handshake handler", err)
+		return Error.New("failed starting websocket handshake handler", err)
 	}
 	node.websocketClients = make(map[string]*WebsocketClient)
 	node.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
@@ -21,7 +21,7 @@ func (node *Node) startWebsocketComponent() error {
 func (node *Node) stopWebsocketComponent() error {
 	err := node.stopWebsocketHandshakeHTTPServer()
 	if err != nil {
-		return Error.New("Error stopping websocket handshake handler", err)
+		return Error.New("failed stopping websocket handshake handler", err)
 	}
 	close(node.websocketConnChannel)
 
@@ -46,7 +46,7 @@ func (node *Node) startWebsocketHandshakeHTTPServer() error {
 	httpServer := createHTTPServer(node.websocketComponent.GetWebsocketComponentConfig().Server.GetPort(), handlers)
 	err := startHTTPServer(httpServer, node.websocketComponent.GetWebsocketComponentConfig().Server.GetTlsCertPath(), node.websocketComponent.GetWebsocketComponentConfig().Server.GetTlsKeyPath())
 	if err != nil {
-		return Error.New("Error starting websocket handshake handler", err)
+		return Error.New("failed starting websocket handshake handler", err)
 	}
 	node.websocketHandshakeHTTPServer = httpServer
 	return nil
@@ -55,7 +55,7 @@ func (node *Node) startWebsocketHandshakeHTTPServer() error {
 func (node *Node) stopWebsocketHandshakeHTTPServer() error {
 	err := stopHTTPServer(node.websocketHandshakeHTTPServer)
 	if err != nil {
-		return Error.New("Error stopping websocket handshake handler", err)
+		return Error.New("failed stopping websocket handshake handler", err)
 	}
 	node.websocketHandshakeHTTPServer = nil
 	return nil
