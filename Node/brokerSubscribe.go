@@ -10,7 +10,7 @@ import (
 func (node *Node) subscribeLoop(topic string) {
 	for node.IsStarted() {
 		success := func() bool {
-			node.logger.Log("Attempting connection for topic \"" + topic + "\" on node \"" + node.GetName() + "\"")
+			node.logger.Log("attempting connection for topic \"" + topic + "\" on node \"" + node.GetName() + "\"")
 			endpoint, err := node.resolveBrokerForTopic(topic)
 			if err != nil {
 				node.logger.Log(Error.New("failed to resolve broker for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
