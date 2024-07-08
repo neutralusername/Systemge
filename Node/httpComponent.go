@@ -8,7 +8,7 @@ func (node *Node) startHTTPComponent() error {
 	httpServer := createHTTPServer(node.httpComponent.GetHTTPComponentConfig().Server.GetPort(), node.httpComponent.GetHTTPRequestHandlers())
 	err := startHTTPServer(httpServer, node.httpComponent.GetHTTPComponentConfig().Server.GetTlsCertPath(), node.httpComponent.GetHTTPComponentConfig().Server.GetTlsKeyPath())
 	if err != nil {
-		return Error.New("Error starting http server", err)
+		return Error.New("failed starting http server", err)
 	}
 	node.httpServer = httpServer
 	node.httpStarted = true
@@ -20,7 +20,7 @@ func (node *Node) stopHTTPComponent() error {
 	defer node.httpMutex.Unlock()
 	err := stopHTTPServer(node.httpServer)
 	if err != nil {
-		return Error.New("Error stopping http server", err)
+		return Error.New("failed stopping http server", err)
 	}
 	node.httpServer = nil
 	node.httpStarted = false
