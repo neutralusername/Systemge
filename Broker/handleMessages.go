@@ -91,29 +91,8 @@ func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Mes
 		if err != nil {
 			return Error.New("Failed to handle subscribe message from node \""+nodeConnection.name+"\"", err)
 		}
-	case "consume":
-		err := broker.handleConsume(nodeConnection)
-		if err != nil {
-			return Error.New("Failed to handle consume message from node \""+nodeConnection.name+"\"", err)
-		}
 	default:
 		broker.propagateMessage(message)
-	}
-	return nil
-}
-
-func (broker *Broker) handleConsume(nodeConnection *nodeConnection) error {
-	message := nodeConnection.dequeueMessage_Timeout(DEFAULT_TCP_TIMEOUT)
-	if message == nil {
-		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.GetName(), "No message to consume"))
-		if errResponse != nil {
-			return Error.New("Failed to send error response to node \""+nodeConnection.name+"\" and no message to consume", errResponse)
-		}
-		return Error.New("No message to consume for node \""+nodeConnection.name+"\"", nil)
-	}
-	err := broker.handleSyncResponse(message)
-	if err != nil {
-		return Error.New("Failed to send response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nil
 }
@@ -155,14 +134,10 @@ func (broker *Broker) propagateMessage(message *Message.Message) {
 	nodes := broker.getSubscribedNodes(message.GetTopic())
 	broker.operationMutex.Unlock()
 	for _, nodeConnection := range nodes {
-		if nodeConnection.deliverImmediately {
-			err := nodeConnection.send(message)
-			if err != nil {
-				broker.logger.Log(Error.New("Failed to send message to node \""+nodeConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
-				broker.disconnect(nodeConnection)
-			}
-		} else {
-			nodeConnection.queueMessage(message)
+		err := nodeConnection.send(message)
+		if err != nil {
+			broker.logger.Log(Error.New("Failed to send message to node \""+nodeConnection.name+"\" with topic \""+message.GetTopic()+"\"", err).Error())
+			broker.disconnect(nodeConnection)
 		}
 	}
 }

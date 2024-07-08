@@ -13,8 +13,7 @@ type nodeConnection struct {
 	netConn      net.Conn
 	messageQueue chan *Message.Message
 
-	subscribedTopics   map[string]bool
-	deliverImmediately bool
+	subscribedTopics map[string]bool
 
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
@@ -24,12 +23,11 @@ type nodeConnection struct {
 
 func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConnection {
 	return &nodeConnection{
-		name:               name,
-		netConn:            netConn,
-		messageQueue:       make(chan *Message.Message, NODE_MESSAGE_QUEUE_SIZE),
-		subscribedTopics:   map[string]bool{},
-		deliverImmediately: broker.config.DeliverImmediately,
-		stopChannel:        make(chan bool),
+		name:             name,
+		netConn:          netConn,
+		messageQueue:     make(chan *Message.Message, NODE_MESSAGE_QUEUE_SIZE),
+		subscribedTopics: map[string]bool{},
+		stopChannel:      make(chan bool),
 	}
 }
 

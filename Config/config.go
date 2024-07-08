@@ -37,8 +37,7 @@ type Broker struct {
 	LoggerPath             string                  // *required*
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
-	DeliverImmediately   bool // default: false
-	SyncRequestTimeoutMs int  // default: 0
+	SyncRequestTimeoutMs int // default: 0
 
 	Server   TcpServer.TcpServer     // *required*
 	Endpoint TcpEndpoint.TcpEndpoint // *required*

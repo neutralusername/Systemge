@@ -91,7 +91,7 @@ func (broker *Broker) Start() error {
 		}
 	}
 	broker.addAsyncTopics("heartbeat")
-	broker.addSyncTopics("subscribe", "unsubscribe", "consume")
+	broker.addSyncTopics("subscribe", "unsubscribe")
 	return nil
 }
 
