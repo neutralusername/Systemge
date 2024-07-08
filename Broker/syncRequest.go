@@ -45,7 +45,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := syncRequest.nodeConnection.send(response)
 		if err != nil {
-			broker.logger.Log(Error.New("Failed to send sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+response.GetSyncResponseToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.logger.Log(Error.New("failed to send sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+response.GetSyncResponseToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		}
 	case <-broker.stopChannel:
 		broker.operationMutex.Lock()
@@ -53,7 +53,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := syncRequest.nodeConnection.send(syncRequest.message.NewResponse("error", broker.GetName(), "broker stopped"))
 		if err != nil {
-			broker.logger.Log(Error.New("Failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.logger.Log(Error.New("failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		}
 	case <-timer.C:
 		broker.operationMutex.Lock()
@@ -61,7 +61,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := syncRequest.nodeConnection.send(syncRequest.message.NewResponse("error", broker.GetName(), "request timed out"))
 		if err != nil {
-			broker.logger.Log(Error.New("Failed to send timeout sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.logger.Log(Error.New("failed to send timeout sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		}
 	}
 }

@@ -36,7 +36,7 @@ func (nodeConnection *nodeConnection) send(message *Message.Message) error {
 	defer nodeConnection.sendMutex.Unlock()
 	err := Utilities.TcpSend(nodeConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		return Error.New("Failed to send message", err)
+		return Error.New("failed to send message", err)
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func (nodeConnection *nodeConnection) receive() (*Message.Message, error) {
 	defer nodeConnection.receiveMutex.Unlock()
 	messageBytes, err := Utilities.TcpReceive(nodeConnection.netConn, 0)
 	if err != nil {
-		return nil, Error.New("Failed to receive message", err)
+		return nil, Error.New("failed to receive message", err)
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil {
@@ -66,7 +66,7 @@ func (broker *Broker) disconnect(nodeConnection *nodeConnection) {
 	broker.operationMutex.Unlock()
 	err := broker.removeNodeConnection(nodeConnection)
 	if err != nil {
-		broker.logger.Log(Error.New("Error removing node \""+nodeConnection.name+"\"", err).Error())
+		broker.logger.Log(Error.New("failed removing node \""+nodeConnection.name+"\"", err).Error())
 	}
 	close(nodeConnection.stopChannel)
 }

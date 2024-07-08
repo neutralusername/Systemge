@@ -41,33 +41,37 @@ func (brokerConnection *brokerConnection) send(message *Message.Message) error {
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
 	if brokerConnection.netConn == nil {
-		return Error.New("Connection is closed", nil)
+		return Error.New("connection is closed", nil)
 	}
 	err := Utilities.TcpSend(brokerConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		return Error.New("Error sending message", err)
+		return Error.New("failed sending message", err)
 	}
 	return nil
 }
 
-func (brokerConnection *brokerConnection) receive() ([]byte, error) {
+func (brokerConnection *brokerConnection) receive() (*Message.Message, error) {
 	brokerConnection.receiveMutex.Lock()
 	defer brokerConnection.receiveMutex.Unlock()
 	if brokerConnection.netConn == nil {
-		return nil, Error.New("Connection is closed", nil)
+		return nil, Error.New("connection is closed", nil)
 	}
 	messageBytes, err := Utilities.TcpReceive(brokerConnection.netConn, 0)
 	if err != nil {
-		return nil, Error.New("Error receiving message", err)
+		return nil, Error.New("failed receiving message", err)
 	}
-	return messageBytes, nil
+	message := Message.Deserialize(messageBytes)
+	if message == nil {
+		return nil, Error.New("failed to deserialize message \""+string(messageBytes)+"\"", nil)
+	}
+	return message, nil
 }
 
 func (brokerConnection *brokerConnection) close() error {
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.netConn == nil {
-		return Error.New("Connection is already closed", nil)
+		return Error.New("connection is already closed", nil)
 	}
 	brokerConnection.netConn.Close()
 	brokerConnection.netConn = nil
@@ -79,7 +83,7 @@ func (brokerConnection *brokerConnection) addTopicResolution(topic string) error
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.topicResolutions[topic] {
-		return Error.New("Topic already exists", nil)
+		return Error.New("topic already exists", nil)
 	}
 	brokerConnection.topicResolutions[topic] = true
 	return nil
@@ -89,7 +93,7 @@ func (brokerConnection *brokerConnection) removeTopicResolution(topic string) er
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
 	if !brokerConnection.topicResolutions[topic] {
-		return Error.New("Topic does not exist", nil)
+		return Error.New("topic does not exist", nil)
 	}
 	delete(brokerConnection.topicResolutions, topic)
 	return nil
@@ -99,7 +103,7 @@ func (brokerConnection *brokerConnection) addSubscribedTopic(topic string) error
 	brokerConnection.mutex.Lock()
 	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.subscribedTopics[topic] {
-		return Error.New("Topic already exists", nil)
+		return Error.New("topic already exists", nil)
 	}
 	brokerConnection.subscribedTopics[topic] = true
 	return nil

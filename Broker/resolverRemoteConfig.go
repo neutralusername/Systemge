@@ -12,7 +12,7 @@ func (broker *Broker) addResolverTopicsRemotely(topics ...string) error {
 	}
 	netConn, err := broker.config.ResolverConfigEndpoint.TlsDial()
 	if err != nil {
-		return Error.New("Error dialing broker", err)
+		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
 	payload := broker.config.Endpoint.Marshal()
@@ -21,7 +21,7 @@ func (broker *Broker) addResolverTopicsRemotely(topics ...string) error {
 	}
 	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addTopics", broker.GetName(), payload), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		return Error.New("Error exchanging messages with resolver", err)
+		return Error.New("failed exchanging messages with resolver", err)
 	}
 	return nil
 }
@@ -32,7 +32,7 @@ func (broker *Broker) removeResolverTopicsRemotely(topics ...string) error {
 	}
 	netConn, err := broker.config.ResolverConfigEndpoint.TlsDial()
 	if err != nil {
-		return Error.New("Error dialing broker", err)
+		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
 	payload := ""
@@ -42,7 +42,7 @@ func (broker *Broker) removeResolverTopicsRemotely(topics ...string) error {
 	payload = payload[:len(payload)-1]
 	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeTopics", broker.GetName(), payload), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		return Error.New("Error exchanging messages with resolver", err)
+		return Error.New("failed exchanging messages with resolver", err)
 	}
 	return nil
 }

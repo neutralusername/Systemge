@@ -9,11 +9,11 @@ import (
 func (node *Node) AsyncMessage(topic, origin, payload string) error {
 	message := Message.NewAsync(topic, origin, payload)
 	if !node.IsStarted() {
-		return Error.New("Node not started", nil)
+		return Error.New("node not started", nil)
 	}
 	brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic())
 	if err != nil {
-		return Error.New("Error resolving broker address for topic \""+message.GetTopic()+"\"", err)
+		return Error.New("failed resolving broker address for topic \""+message.GetTopic()+"\"", err)
 	}
 	return brokerConnection.send(message)
 }

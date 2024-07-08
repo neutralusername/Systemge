@@ -13,37 +13,38 @@ func (node *Node) subscribeLoop(topic string) {
 			node.logger.Log("Attempting connection for topic \"" + topic + "\" on node \"" + node.GetName() + "\"")
 			endpoint, err := node.resolveBrokerForTopic(topic)
 			if err != nil {
-				node.logger.Log(Error.New("Unable to resolve broker for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+				node.logger.Log(Error.New("failed to resolve broker for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
 			brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
 			if brokerConnection == nil {
 				brokerConnection, err = node.connectToBroker(endpoint)
 				if err != nil {
-					node.logger.Log(Error.New("Unable to connect to broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+					node.logger.Log(Error.New("failed to connect to broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 					return false
 				}
 				err = node.addBrokerConnection(brokerConnection)
 				if err != nil {
 					brokerConnection.close()
-					node.logger.Log(Error.New("Unable to add broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+					node.logger.Log(Error.New("failed to add broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 					return false
 				}
 			}
 			err = node.subscribeTopic(brokerConnection, topic)
 			if err != nil {
-				node.logger.Log(Error.New("Unable to subscribe to topic \""+topic+"\" on broker \""+endpoint.GetAddress()+"\" for node \""+node.GetName()+"\"", err).Error())
+				node.logger.Log(Error.New("failed to subscribe to topic \""+topic+"\" on broker \""+endpoint.GetAddress()+"\" for node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
 			err = brokerConnection.addSubscribedTopic(topic)
 			if err != nil {
 				brokerConnection.mutex.Lock()
 				subscribedTopicsCount := len(brokerConnection.subscribedTopics)
+				topicResolutionsCount := len(brokerConnection.topicResolutions)
 				brokerConnection.mutex.Unlock()
-				if subscribedTopicsCount == 0 {
+				if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
 					node.handleBrokerDisconnect(brokerConnection)
 				}
-				node.logger.Log(Error.New("Unable to add topic \""+topic+"\" to subscribed topics for broker \""+endpoint.GetAddress()+"\" on node \""+node.GetName()+"\"", err).Error())
+				node.logger.Log(Error.New("failed to add topic \""+topic+"\" to subscribed topics for broker \""+endpoint.GetAddress()+"\" on node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
 			node.logger.Log("connection for topic \"" + topic + "\" successful on node \"" + node.GetName() + "\" with broker \"" + endpoint.GetAddress() + "\"")
@@ -60,7 +61,7 @@ func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic strin
 	message := Message.NewSync("subscribe", node.config.Name, topic, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	responseChannel, err := node.addMessageWaitingForResponse(message)
 	if err != nil {
-		return Error.New("Error adding message to waiting for response map", err)
+		return Error.New("failed to add message waiting for response", err)
 	}
 	err = brokerConnection.send(message)
 	if err != nil {

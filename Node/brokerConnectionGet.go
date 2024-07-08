@@ -7,22 +7,30 @@ func (node *Node) getBrokerConnectionForTopic(topic string) (*brokerConnection, 
 	if brokerConnection == nil {
 		endpoint, err := node.resolveBrokerForTopic(topic)
 		if err != nil {
-			return nil, Error.New("Error resolving broker address for topic \""+topic+"\"", err)
+			return nil, Error.New("failed resolving broker address for topic \""+topic+"\"", err)
 		}
 		brokerConnection = node.getBrokerConnection(endpoint.GetAddress())
 		if brokerConnection == nil {
 			brokerConnection, err = node.connectToBroker(endpoint)
 			if err != nil {
-				return nil, Error.New("Error connecting to broker", err)
+				return nil, Error.New("failed connecting to broker \""+endpoint.GetAddress()+"\"", err)
 			}
 			err = node.addBrokerConnection(brokerConnection)
 			if err != nil {
-				return nil, Error.New("Error adding broker connection", err)
+				brokerConnection.close()
+				return nil, Error.New("failed adding broker connection \""+endpoint.GetAddress()+"\"", err)
 			}
 		}
 		err = node.addTopicResolution(topic, brokerConnection)
 		if err != nil {
-			return nil, Error.New("Error adding topic endpoint", err)
+			brokerConnection.mutex.Lock()
+			subscribedTopicsCount := len(brokerConnection.subscribedTopics)
+			topicResolutionsCount := len(brokerConnection.topicResolutions)
+			brokerConnection.mutex.Unlock()
+			if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
+				node.handleBrokerDisconnect(brokerConnection)
+			}
+			return nil, Error.New("failed adding topic resolution for topic \""+topic+"\" to broker connection \""+brokerConnection.endpoint.GetAddress()+"\"", err)
 		}
 	}
 	return brokerConnection, nil
