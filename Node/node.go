@@ -95,28 +95,34 @@ func (node *Node) Start() error {
 	if node.websocketComponent != nil {
 		err := node.startWebsocketComponent()
 		if err != nil {
-			go node.Stop()
+			node.stop(false)
 			return Error.New("failed starting websocket server", err)
 		}
 	}
 	if node.httpComponent != nil {
 		err := node.startHTTPComponent()
 		if err != nil {
-			go node.Stop()
+			node.stop(false)
 			return Error.New("failed starting http server", err)
 		}
 	}
 	err := node.application.OnStart(node)
 	if err != nil {
-		node.Stop()
+		node.stop(false)
 		return Error.New("failed in OnStart", err)
 	}
 	return nil
 }
 
 func (node *Node) Stop() error {
-	node.stateChangeMutex.Lock()
-	defer node.stateChangeMutex.Unlock()
+	return node.stop(true)
+}
+
+func (node *Node) stop(lock bool) error {
+	if lock {
+		node.stateChangeMutex.Lock()
+		defer node.stateChangeMutex.Unlock()
+	}
 	if !node.isStarted {
 		return Error.New("node not started", nil)
 	}
