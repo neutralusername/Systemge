@@ -95,14 +95,14 @@ func (node *Node) Start() error {
 	if node.websocketComponent != nil {
 		err := node.startWebsocketComponent()
 		if err != nil {
-			node.Stop()
+			go node.Stop()
 			return Error.New("failed starting websocket server", err)
 		}
 	}
 	if node.httpComponent != nil {
 		err := node.startHTTPComponent()
 		if err != nil {
-			node.Stop()
+			go node.Stop()
 			return Error.New("failed starting http server", err)
 		}
 	}

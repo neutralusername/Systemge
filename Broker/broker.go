@@ -54,46 +54,39 @@ func (broker *Broker) Start() error {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
 	if broker.isStarted {
-		return Error.New("failed to start broker \""+broker.GetName()+"\". Broker is already started", nil)
+		return Error.New("broker \""+broker.GetName()+"\" is already started", nil)
 	}
 	listener, err := broker.config.Server.GetTlsListener()
 	if err != nil {
-		return Error.New("failed to start broker \""+broker.GetName()+"\". Failed to get listener", err)
+		return Error.New("failed to get listener for broker \""+broker.GetName()+"\"", err)
 	}
 	configListener, err := broker.config.ConfigServer.GetTlsListener()
 	if err != nil {
-		return Error.New("failed to start broker \""+broker.GetName()+"\". Failed to get config listener", err)
+		return Error.New("failed to get config listener for broker \""+broker.GetName()+"\"", err)
 	}
 	broker.tlsBrokerListener = listener
 	broker.tlsConfigListener = configListener
 	broker.isStarted = true
 	broker.stopChannel = make(chan bool)
-	go broker.handleNodeConnections()
-	go broker.handleConfigConnections()
 
-	syncTopics := []string{}
+	topics := []string{}
 	for syncTopic := range broker.syncTopics {
-		syncTopics = append(syncTopics, syncTopic)
+		topics = append(topics, syncTopic)
 	}
-	asyncTopics := []string{}
 	for asyncTopic := range broker.asyncTopics {
-		asyncTopics = append(asyncTopics, asyncTopic)
+		topics = append(topics, asyncTopic)
 	}
-
-	if len(syncTopics) > 0 {
-		err = broker.addResolverTopicsRemotely(syncTopics...)
+	if len(topics) > 0 {
+		err = broker.addResolverTopicsRemotely(topics...)
 		if err != nil {
-			broker.logger.Log(Error.New("failed to add resolver topics remotely on broker \""+broker.GetName()+"\"", err).Error())
-		}
-	}
-	if len(asyncTopics) > 0 {
-		err = broker.addResolverTopicsRemotely(asyncTopics...)
-		if err != nil {
-			broker.logger.Log(Error.New("failed to add resolver topic remotely on broker \""+broker.GetName()+"\"", err).Error())
+			go broker.Stop()
+			return Error.New("failed to start broker \""+broker.GetName()+"\". Failed to add resolver topics remotely", err)
 		}
 	}
 	broker.addAsyncTopics("heartbeat")
 	broker.addSyncTopics("subscribe", "unsubscribe")
+	go broker.handleNodeConnections()
+	go broker.handleConfigConnections()
 	return nil
 }
 
