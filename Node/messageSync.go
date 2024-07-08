@@ -10,7 +10,7 @@ import (
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
 func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
 	message := Message.NewSync(topic, origin, payload, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
-	if !node.isStarted {
+	if !node.IsStarted() {
 		return nil, Error.New("Node not started", nil)
 	}
 	if message.GetSyncRequestToken() == "" {

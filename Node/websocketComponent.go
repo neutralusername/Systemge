@@ -14,6 +14,7 @@ func (node *Node) startWebsocketComponent() error {
 	node.websocketClients = make(map[string]*WebsocketClient)
 	node.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	go node.handleWebsocketConnections()
+	node.websocketStarted = true
 	return nil
 }
 
@@ -34,6 +35,7 @@ func (node *Node) stopWebsocketComponent() error {
 	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()
 	}
+	node.websocketStarted = false
 	return nil
 }
 

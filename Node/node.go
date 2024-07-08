@@ -21,14 +21,16 @@ type Node struct {
 	httpComponent      HTTPComponent
 	websocketComponent WebsocketComponent
 
-	stopChannel chan bool
-	isStarted   bool
+	stopChannel      chan bool
+	isStarted        bool
+	websocketStarted bool
+	httpStarted      bool
 
 	handleMessagesSequentiallyMutex sync.Mutex
 	websocketMutex                  sync.Mutex
 	httpMutex                       sync.Mutex
 	mutex                           sync.Mutex
-	stateMutex                      sync.Mutex
+	stateChangeMutex                sync.Mutex
 
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
@@ -72,42 +74,39 @@ func New(config Config.Node, application Application) *Node {
 }
 
 func (node *Node) Start() error {
-	err := func() error {
-		node.stateMutex.Lock()
-		defer node.stateMutex.Unlock()
-		if node.isStarted {
-			return Error.New("Node already started", nil)
-		}
-		if node.application == nil {
-			return Error.New("Application not set", nil)
-		}
-		if node.websocketComponent != nil {
-			err := node.startWebsocketComponent()
-			if err != nil {
-				return Error.New("Error starting websocket server", err)
-			}
-		}
-		if node.httpComponent != nil {
-			err := node.startHTTPComponent()
-			if err != nil {
-				return Error.New("Error starting http server", err)
-			}
-		}
-		node.stopChannel = make(chan bool)
-		node.isStarted = true
-		return nil
-	}()
-	if err != nil {
-		return Error.New("Error starting node \""+node.GetName()+"\"", err)
+	node.stateChangeMutex.Lock()
+	defer node.stateChangeMutex.Unlock()
+	if node.isStarted {
+		return Error.New("Node already started", nil)
 	}
+	if node.application == nil {
+		return Error.New("Application not set", nil)
+	}
+
+	node.stopChannel = make(chan bool)
+	node.isStarted = true
+
 	for topic := range node.application.GetAsyncMessageHandlers() {
 		node.subscribeLoop(topic)
 	}
 	for topic := range node.application.GetSyncMessageHandlers() {
 		node.subscribeLoop(topic)
 	}
-
-	err = node.application.OnStart(node)
+	if node.websocketComponent != nil {
+		err := node.startWebsocketComponent()
+		if err != nil {
+			node.Stop()
+			return Error.New("Error starting websocket server", err)
+		}
+	}
+	if node.httpComponent != nil {
+		err := node.startHTTPComponent()
+		if err != nil {
+			node.Stop()
+			return Error.New("Error starting http server", err)
+		}
+	}
+	err := node.application.OnStart(node)
 	if err != nil {
 		node.Stop()
 		return Error.New("Error in OnStart", err)
@@ -116,25 +115,25 @@ func (node *Node) Start() error {
 }
 
 func (node *Node) Stop() error {
-	node.stateMutex.Lock()
-	defer node.stateMutex.Unlock()
+	node.stateChangeMutex.Lock()
+	defer node.stateChangeMutex.Unlock()
 	if !node.isStarted {
 		return Error.New("Node not started", nil)
 	}
 	err := node.application.OnStop(node)
 	if err != nil {
-		return Error.New("Error in OnStop", err)
+		return Error.New("failed to stop node. Error in OnStop", err)
 	}
-	if node.websocketComponent != nil {
+	if node.websocketStarted {
 		err := node.stopWebsocketComponent()
 		if err != nil {
-			return Error.New("Error stopping websocket server", err)
+			return Error.New("failed to stop node. Error stopping websocket server", err)
 		}
 	}
-	if node.httpComponent != nil {
+	if node.httpStarted {
 		err := node.stopHTTPComponent()
 		if err != nil {
-			return Error.New("Error stopping http server", err)
+			return Error.New("failed to stop node. Error stopping http server", err)
 		}
 	}
 	node.isStarted = false
@@ -144,7 +143,5 @@ func (node *Node) Stop() error {
 }
 
 func (node *Node) IsStarted() bool {
-	node.stateMutex.Lock()
-	defer node.stateMutex.Unlock()
 	return node.isStarted
 }

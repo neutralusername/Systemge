@@ -11,6 +11,7 @@ func (node *Node) startHTTPComponent() error {
 		return Error.New("Error starting http server", err)
 	}
 	node.httpServer = httpServer
+	node.httpStarted = true
 	return nil
 }
 
@@ -22,5 +23,6 @@ func (node *Node) stopHTTPComponent() error {
 		return Error.New("Error stopping http server", err)
 	}
 	node.httpServer = nil
+	node.httpStarted = false
 	return nil
 }

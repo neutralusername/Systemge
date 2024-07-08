@@ -13,7 +13,7 @@ func (node *Node) subscribeLoop(topic string) {
 			node.logger.Log("Attempting connection for topic \"" + topic + "\" on node \"" + node.GetName() + "\"")
 			endpoint, err := node.resolveBrokerForTopic(topic)
 			if err != nil {
-				node.logger.Log(Error.New("Unable to resolve broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+				node.logger.Log(Error.New("Unable to resolve broker for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 				return false
 			}
 			brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
