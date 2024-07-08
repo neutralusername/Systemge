@@ -34,17 +34,25 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 func (nodeConnection *nodeConnection) send(message *Message.Message) error {
 	nodeConnection.sendMutex.Lock()
 	defer nodeConnection.sendMutex.Unlock()
-	return Utilities.TcpSend(nodeConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	err := Utilities.TcpSend(nodeConnection.netConn, message.Serialize(), DEFAULT_TCP_TIMEOUT)
+	if err != nil {
+		return Error.New("Failed to send message", err)
+	}
+	return nil
 }
 
-func (nodeConnection *nodeConnection) receive() ([]byte, error) {
+func (nodeConnection *nodeConnection) receive() (*Message.Message, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
 	messageBytes, err := Utilities.TcpReceive(nodeConnection.netConn, 0)
 	if err != nil {
-		return nil, err
+		return nil, Error.New("Failed to receive message", err)
 	}
-	return messageBytes, nil
+	message := Message.Deserialize(messageBytes)
+	if message == nil {
+		return nil, Error.New("failed to deserialize message \""+string(messageBytes)+"\"", nil)
+	}
+	return message, nil
 }
 
 func (broker *Broker) disconnect(nodeConnection *nodeConnection) {
@@ -67,7 +75,7 @@ func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	if broker.nodeConnections[nodeConnection.name] != nil {
-		return Error.New("node with name \""+nodeConnection.name+"\" already exists", nil)
+		return Error.New("node name already in use", nil)
 	}
 	broker.nodeConnections[nodeConnection.name] = nodeConnection
 	return nil
@@ -77,7 +85,7 @@ func (broker *Broker) removeNodeConnection(nodeConnection *nodeConnection) error
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	if broker.nodeConnections[nodeConnection.name] == nil {
-		return Error.New("Subscriber with name \""+nodeConnection.name+"\" does not exist", nil)
+		return Error.New("node not found", nil)
 	}
 	for messageType := range nodeConnection.subscribedTopics {
 		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)

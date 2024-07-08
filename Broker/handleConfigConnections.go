@@ -12,19 +12,26 @@ func (broker *Broker) handleConfigConnections() {
 	for broker.IsStarted() {
 		netConn, err := broker.tlsConfigListener.Accept()
 		if err != nil {
-			broker.tlsConfigListener.Close()
 			if broker.IsStarted() {
-				broker.logger.Log(Error.New("Failed to accept connection request", err).Error())
+				broker.logger.Log(Error.New("failed to accept connection request on broker \""+broker.GetName()+"\"", err).Error())
 			}
-			return
+			continue
 		}
 		go func() {
 			defer netConn.Close()
 			err := broker.handleConfigConnection(netConn)
 			if err != nil {
-				Utilities.TcpSend(netConn, Message.NewAsync("error", broker.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
+				errSend := Utilities.TcpSend(netConn, Message.NewAsync("error", broker.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
+				if errSend != nil {
+					broker.logger.Log(Error.New("failed to send error response to config connection on broker \""+broker.GetName()+"\"", errSend).Error())
+				}
+				broker.logger.Log(Error.New("failed to handle config request on broker \""+broker.GetName()+"\"", err).Error())
 			} else {
-				Utilities.TcpSend(netConn, Message.NewAsync("success", broker.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
+				errSend := Utilities.TcpSend(netConn, Message.NewAsync("success", broker.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
+				if errSend != nil {
+					broker.logger.Log(Error.New("failed to send success response to config connection on broker \""+broker.GetName()+"\"", errSend).Error())
+				}
+				broker.logger.Log(Error.New("successfully handled config request on broker \""+broker.GetName()+"\"", nil).Error())
 			}
 		}()
 	}
@@ -37,7 +44,7 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetOrigin() == "" {
-		return Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
+		return Error.New("invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
 	topics := strings.Split(message.GetPayload(), "|")
 	if len(topics) == 0 {
@@ -46,16 +53,28 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	switch message.GetTopic() {
 	case "addSyncTopics":
 		broker.addSyncTopics(topics...)
-		broker.addResolverTopicsRemotely(topics...)
+		err := broker.addResolverTopicsRemotely(topics...)
+		if err != nil {
+			return Error.New("failed to add topics remotely", err)
+		}
 	case "removeSyncTopics":
 		broker.removeSyncTopics(topics...)
-		broker.removeResolverTopicsRemotely(topics...)
+		err := broker.removeResolverTopicsRemotely(topics...)
+		if err != nil {
+			return Error.New("failed to remove topics remotely", err)
+		}
 	case "addAsyncTopics":
 		broker.addAsyncTopics(topics...)
-		broker.addResolverTopicsRemotely(topics...)
+		err := broker.addResolverTopicsRemotely(topics...)
+		if err != nil {
+			return Error.New("failed to add topics remotely", err)
+		}
 	case "removeAsyncTopics":
 		broker.removeAsyncTopics(topics...)
-		broker.removeResolverTopicsRemotely(topics...)
+		err := broker.removeResolverTopicsRemotely(topics...)
+		if err != nil {
+			return Error.New("failed to remove topics remotely", err)
+		}
 	default:
 		return Error.New("unknown topic \""+message.GetTopic()+"\"", nil)
 	}
