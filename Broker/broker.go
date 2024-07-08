@@ -79,7 +79,7 @@ func (broker *Broker) Start() error {
 	if len(topics) > 0 {
 		err = broker.addResolverTopicsRemotely(topics...)
 		if err != nil {
-			go broker.Stop()
+			broker.stop(false)
 			return Error.New("failed to start broker \""+broker.GetName()+"\". Failed to add resolver topics remotely", err)
 		}
 	}
@@ -95,8 +95,14 @@ func (broker *Broker) GetName() string {
 }
 
 func (broker *Broker) Stop() error {
-	broker.stateMutex.Lock()
-	defer broker.stateMutex.Unlock()
+	return broker.stop(true)
+}
+
+func (broker *Broker) stop(lock bool) error {
+	if lock {
+		broker.stateMutex.Lock()
+		defer broker.stateMutex.Unlock()
+	}
 	if !broker.isStarted {
 		return Error.New("failed to stop broker \""+broker.GetName()+"\". Broker is not started", nil)
 	}
