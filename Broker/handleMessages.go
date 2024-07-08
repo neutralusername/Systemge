@@ -10,7 +10,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 		messageBytes, err := nodeConnection.receive()
 		if err != nil {
 			if broker.IsStarted() {
-				broker.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\"", err).Error())
+				broker.logger.Log(Error.New("Failed to receive message from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 			}
 			broker.disconnect(nodeConnection)
 			return
@@ -18,13 +18,13 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 		message := Message.Deserialize(messageBytes)
 		err = broker.validateMessage(message)
 		if err != nil {
-			broker.logger.Log(Error.New("Invalid message from node \""+nodeConnection.name+"\"", err).Error())
+			broker.logger.Log(Error.New("Invalid message from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 			broker.disconnect(nodeConnection)
 			return
 		}
 		err = broker.handleMessage(nodeConnection, message)
 		if err != nil {
-			broker.logger.Log(Error.New("Failed to handle message from node \""+nodeConnection.name+"\"", err).Error())
+			broker.logger.Log(Error.New("Failed to handle message from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		}
 	}
 }
