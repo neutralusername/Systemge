@@ -22,9 +22,9 @@ type LogString struct {
 }
 
 const (
-	LEVEL_INFO    = 0
-	LEVEL_WARNING = 1
-	LEVEL_ERROR   = 2
+	LEVEL_INFO    = 0 // general info about the system state. usually successful operations
+	LEVEL_WARNING = 1 // failed operations that do not affect the system's health and will auto-recover
+	LEVEL_ERROR   = 2 // failed operations which should not fail under normal circumstances
 	LEVEL_DEBUG   = 3
 )
 
