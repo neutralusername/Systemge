@@ -9,16 +9,14 @@ import (
 
 // implements Node.Application
 type Spawner struct {
-	appConfig          Config.Application
 	spawnerConfig      Config.Spawner
 	spawnedNodes       map[string]*Node.Node
 	newApplicationFunc func(string) Node.Application
 	mutex              sync.Mutex
 }
 
-func New(appConfig Config.Application, spawnerConfig Config.Spawner, newApplicationFunc func(string) Node.Application) *Spawner {
+func New(spawnerConfig Config.Spawner, newApplicationFunc func(string) Node.Application) *Spawner {
 	spawner := &Spawner{
-		appConfig:          appConfig,
 		spawnerConfig:      spawnerConfig,
 		spawnedNodes:       make(map[string]*Node.Node),
 		newApplicationFunc: newApplicationFunc,
