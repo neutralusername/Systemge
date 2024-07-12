@@ -60,22 +60,18 @@ func (broker *Broker) Start() error {
 	broker.isStarted = true
 	broker.stopChannel = make(chan bool)
 
+	topicsToAddToResolver := []string{}
 	for _, topic := range broker.config.AsyncTopics {
 		broker.addAsyncTopics(topic)
+		topicsToAddToResolver = append(topicsToAddToResolver, topic)
 	}
 	for _, topic := range broker.config.SyncTopics {
 		broker.addSyncTopics(topic)
+		topicsToAddToResolver = append(topicsToAddToResolver, topic)
 	}
 
-	topics := []string{}
-	for syncTopic := range broker.syncTopics {
-		topics = append(topics, syncTopic)
-	}
-	for asyncTopic := range broker.asyncTopics {
-		topics = append(topics, asyncTopic)
-	}
-	if len(topics) > 0 {
-		err = broker.addResolverTopicsRemotely(topics...)
+	if len(topicsToAddToResolver) > 0 {
+		err = broker.addResolverTopicsRemotely(topicsToAddToResolver...)
 		if err != nil {
 			broker.stop(false)
 			return Error.New("Failed to add resolver topics remotely on broker \""+broker.GetName()+"\"", err)
