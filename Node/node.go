@@ -109,7 +109,7 @@ func (node *Node) Start() error {
 		node.stop(false)
 		return Error.New("failed in OnStart", err)
 	}
-	node.config.Logger.Info("Started node \"" + node.config.Name + "\"")
+	node.config.Logger.Info(Error.New("Started node \""+node.config.Name+"\"", nil).Error())
 	return nil
 }
 
@@ -144,7 +144,7 @@ func (node *Node) stop(lock bool) error {
 	node.isStarted = false
 	close(node.stopChannel)
 	node.removeAllBrokerConnections()
-	node.config.Logger.Info("Stopped node \"" + node.config.Name + "\"")
+	node.config.Logger.Info(Error.New("Stopped node \""+node.config.Name+"\"", nil).Error())
 	return nil
 }
 

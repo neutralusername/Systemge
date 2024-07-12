@@ -50,7 +50,7 @@ func (resolver *Resolver) Start() error {
 	resolver.isStarted = true
 	go resolver.handleResolverConnections()
 	go resolver.handleConfigConnections()
-	resolver.config.Logger.Info("Started resolver \"" + resolver.config.Name + "\"")
+	resolver.config.Logger.Info(Error.New("Started resolver \""+resolver.config.Name+"\"", nil).Error())
 	return nil
 }
 
@@ -69,7 +69,7 @@ func (resolver *Resolver) Stop() error {
 	resolver.tlsResolverListener = nil
 	resolver.tlsConfigListener.Close()
 	resolver.tlsConfigListener = nil
-	resolver.config.Logger.Info("Stopped resolver \"" + resolver.config.Name + "\"")
+	resolver.config.Logger.Info(Error.New("Stopped resolver \""+resolver.config.Name+"\"", nil).Error())
 	return nil
 }
 

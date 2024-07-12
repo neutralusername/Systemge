@@ -84,7 +84,7 @@ func (broker *Broker) Start() error {
 	broker.addSyncTopics("subscribe", "unsubscribe")
 	go broker.handleNodeConnections()
 	go broker.handleConfigConnections()
-	broker.config.Logger.Info("Started broker \"" + broker.GetName() + "\"")
+	broker.config.Logger.Info(Error.New("Started broker \""+broker.GetName()+"\"", nil).Error())
 	return nil
 }
 
@@ -132,7 +132,7 @@ func (broker *Broker) stop(lock bool) error {
 			broker.config.Logger.Info("Removed resolver topics remotely on broker \"" + broker.GetName() + "\"")
 		}
 	}
-	broker.config.Logger.Info("Stopped broker \"" + broker.GetName() + "\"")
+	broker.config.Logger.Info(Error.New("Stopped broker \""+broker.GetName()+"\"", nil).Error())
 	return nil
 }
 

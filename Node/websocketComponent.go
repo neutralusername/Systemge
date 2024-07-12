@@ -15,7 +15,7 @@ func (node *Node) startWebsocketComponent() error {
 	node.websocketConnChannel = make(chan *websocket.Conn, WEBSOCKETCONNCHANNEL_BUFFERSIZE)
 	go node.handleWebsocketConnections()
 	node.websocketStarted = true
-	node.config.Logger.Info("Started websocket component on node \"" + node.GetName() + "\"")
+	node.config.Logger.Info(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
 	return nil
 }
 
@@ -37,7 +37,7 @@ func (node *Node) stopWebsocketComponent() error {
 		websocketClient.Disconnect()
 	}
 	node.websocketStarted = false
-	node.config.Logger.Info("Stopped websocket component on node \"" + node.GetName() + "\"")
+	node.config.Logger.Info(Error.New("Stopped websocket component on node \""+node.GetName()+"\"", nil).Error())
 	return nil
 }
 
