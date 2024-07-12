@@ -3,6 +3,7 @@ package Broker
 import (
 	"Systemge/Config"
 	"Systemge/Error"
+	"Systemge/Utilities"
 	"net"
 	"sync"
 )
@@ -87,6 +88,10 @@ func (broker *Broker) Start() error {
 
 func (broker *Broker) GetName() string {
 	return broker.config.Name
+}
+
+func (broker *Broker) GetLogger() *Utilities.Logger {
+	return broker.config.Logger
 }
 
 func (broker *Broker) Stop() error {

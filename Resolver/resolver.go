@@ -58,6 +58,10 @@ func (resolver *Resolver) GetName() string {
 	return resolver.config.Name
 }
 
+func (resolver *Resolver) GetLogger() *Utilities.Logger {
+	return resolver.logger
+}
+
 func (resolver *Resolver) Stop() error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()

@@ -29,6 +29,10 @@ const (
 )
 
 func (logger *Logger) Info(str string) {
+	if logger == nil {
+		println("logger is nil")
+		return
+	}
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
 	if logger.isClosed {
@@ -38,6 +42,10 @@ func (logger *Logger) Info(str string) {
 }
 
 func (logger *Logger) Warning(str string) {
+	if logger == nil {
+		println("logger is nil")
+		return
+	}
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
 	if logger.isClosed {
@@ -47,6 +55,10 @@ func (logger *Logger) Warning(str string) {
 }
 
 func (logger *Logger) Error(str string) {
+	if logger == nil {
+		println("logger is nil")
+		return
+	}
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
 	if logger.isClosed {
@@ -56,6 +68,10 @@ func (logger *Logger) Error(str string) {
 }
 
 func (logger *Logger) Debug(str string) {
+	if logger == nil {
+		println("logger is nil")
+		return
+	}
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
 	if logger.isClosed {
@@ -127,6 +143,10 @@ func (logger *Logger) logRoutine() {
 }
 
 func (logger *Logger) Close() {
+	if logger == nil {
+		println("logger is nil")
+		return
+	}
 	logger.mutex.Lock()
 	defer logger.mutex.Unlock()
 	if logger.isClosed {

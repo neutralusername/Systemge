@@ -1,6 +1,9 @@
 package Module
 
-import "Systemge/Error"
+import (
+	"Systemge/Error"
+	"Systemge/Utilities"
+)
 
 type MultiModule struct {
 	Modules []Module
@@ -15,11 +18,16 @@ func NewMultiModule(modules ...Module) Module {
 	}
 }
 
+func (mm *MultiModule) GetLogger() *Utilities.Logger {
+	return nil
+}
+
 func (mm *MultiModule) GetName() string {
 	return "MultiModule"
 }
 
 func (mm *MultiModule) Start() error {
+	mm.GetLogger().Info("test")
 	for _, module := range mm.Modules {
 		err := module.Start()
 		if err != nil {
