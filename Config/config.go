@@ -39,8 +39,8 @@ type Broker struct {
 	Logger                 *Utilities.Logger       // *required*
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
-	SyncRequestTimeoutMs int // default: 0
-	TcpTimeoutMs         int // default: 0 = block forever
+	SyncResponseTimeoutMs int // default: 0
+	TcpTimeoutMs          int // default: 0 = block forever
 
 	Server   TcpServer.TcpServer     // *required*
 	Endpoint TcpEndpoint.TcpEndpoint // *required*

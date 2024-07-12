@@ -25,7 +25,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	warningPath := ""
 	errorPath := ""
 	debugPath := ""
-	syncRequestTimeoutMs := 10000
+	syncResponseTimeoutMs := 10000
 	publicIp := ""
 	serverNameIndication := ""
 	brokerPort := ""
@@ -112,11 +112,11 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			resolverAddress = lineSegments[1]
 			resolverServerNameIndication = lineSegments[2]
 			resolverCertPath = lineSegments[3]
-		case "_syncRequestTimeoutMs":
+		case "_syncResponseTimeoutMs":
 			if len(lineSegments) != 2 {
 				panic("syncRequestTimeoutMs line is invalid \"" + line + "\"")
 			}
-			syncRequestTimeoutMs = Utilities.StringToInt(lineSegments[1])
+			syncResponseTimeoutMs = Utilities.StringToInt(lineSegments[1])
 		default:
 			if len(lineSegments) != 2 {
 				panic("invalid topic line \"" + line + "\"")
@@ -150,7 +150,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		Name:                   name,
 		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
-		SyncRequestTimeoutMs:   syncRequestTimeoutMs,
+		SyncResponseTimeoutMs:  syncResponseTimeoutMs,
 		TcpTimeoutMs:           tcpTimeoutMs,
 		Server:                 brokerServer,
 		Endpoint:               brokerEndpoint,
