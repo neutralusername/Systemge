@@ -12,7 +12,6 @@ func (node *Node) startHTTPComponent() error {
 	}
 	node.httpServer = httpServer
 	node.httpStarted = true
-	node.config.Logger.Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
 	return nil
 }
 
@@ -25,6 +24,5 @@ func (node *Node) stopHTTPComponent() error {
 	}
 	node.httpServer = nil
 	node.httpStarted = false
-	node.config.Logger.Info(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
 	return nil
 }

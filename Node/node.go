@@ -95,6 +95,8 @@ func (node *Node) Start() error {
 		if err != nil {
 			node.stop(false)
 			return Error.New("failed starting websocket server", err)
+		} else {
+			node.config.Logger.Info(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
 	if node.httpComponent != nil {
@@ -102,6 +104,8 @@ func (node *Node) Start() error {
 		if err != nil {
 			node.stop(false)
 			return Error.New("failed starting http server", err)
+		} else {
+			node.config.Logger.Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
 	err := node.application.OnStart(node)
@@ -133,12 +137,16 @@ func (node *Node) stop(lock bool) error {
 		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping websocket server", err)
+		} else {
+			node.config.Logger.Info(Error.New("Stopped websocket component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
 	if node.httpStarted {
 		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping http server", err)
+		} else {
+			node.config.Logger.Info(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
 	node.isStarted = false
