@@ -2,7 +2,6 @@ package Utilities
 
 import (
 	"log"
-	"sync"
 )
 
 type Logger struct {
@@ -11,9 +10,7 @@ type Logger struct {
 	warn     *log.Logger
 	debug    *log.Logger
 	logQueue chan LogString
-	isClosed bool
 	close    chan bool
-	mutex    sync.Mutex
 }
 
 type LogString struct {
@@ -32,21 +29,11 @@ func (logger *Logger) Info(str string) {
 	if logger == nil {
 		return
 	}
-	logger.mutex.Lock()
-	defer logger.mutex.Unlock()
-	if logger.isClosed {
-		return
-	}
 	logger.logQueue <- LogString{Level: LEVEL_INFO, Msg: str}
 }
 
 func (logger *Logger) Warning(str string) {
 	if logger == nil {
-		return
-	}
-	logger.mutex.Lock()
-	defer logger.mutex.Unlock()
-	if logger.isClosed {
 		return
 	}
 	logger.logQueue <- LogString{Level: LEVEL_WARNING, Msg: str}
@@ -56,21 +43,11 @@ func (logger *Logger) Error(str string) {
 	if logger == nil {
 		return
 	}
-	logger.mutex.Lock()
-	defer logger.mutex.Unlock()
-	if logger.isClosed {
-		return
-	}
 	logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: str}
 }
 
 func (logger *Logger) Debug(str string) {
 	if logger == nil {
-		return
-	}
-	logger.mutex.Lock()
-	defer logger.mutex.Unlock()
-	if logger.isClosed {
 		return
 	}
 	logger.logQueue <- LogString{Level: LEVEL_DEBUG, Msg: str}
@@ -104,7 +81,6 @@ func NewLogger(infoPath string, warningPath string, errorPath string, debugPath 
 		debug:    debugLogger,
 		logQueue: make(chan LogString, 1000),
 		close:    make(chan bool),
-		isClosed: false,
 	}
 	go loggerStruct.logRoutine()
 	return loggerStruct
@@ -142,12 +118,6 @@ func (logger *Logger) Close() {
 	if logger == nil {
 		return
 	}
-	logger.mutex.Lock()
-	defer logger.mutex.Unlock()
-	if logger.isClosed {
-		return
-	}
-	logger.isClosed = true
 	close(logger.close)
 	close(logger.logQueue)
 }
