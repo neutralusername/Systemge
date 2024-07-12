@@ -11,7 +11,7 @@ type Node struct {
 	Logger           *Utilities.Logger // *required*
 	ResolverEndpoint TcpEndpoint.TcpEndpoint
 
-	BrokerSubscribeDelayMs    int // default: 0
+	BrokerSubscribeDelayMs    int // default: 0 (delay after failed broker subscription attempt)
 	TopicResolutionLifetimeMs int // default: 0
 	SyncResponseTimeoutMs     int // default: 0
 	TcpTimeoutMs              int // default: 0 = block forever
