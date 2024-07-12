@@ -105,7 +105,7 @@ func (broker *Broker) stop(lock bool) error {
 		return Error.New("Broker \""+broker.GetName()+"\" is already stopped", nil)
 	}
 	broker.tlsBrokerListener.Close()
-	broker.tlsConfigListener = nil
+	broker.tlsBrokerListener = nil
 	broker.tlsConfigListener.Close()
 	broker.tlsConfigListener = nil
 	broker.disconnectAllNodeConnections()
