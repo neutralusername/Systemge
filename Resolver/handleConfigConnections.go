@@ -25,7 +25,7 @@ func (resolver *Resolver) handleConfigConnections() {
 
 func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
+	messageBytes, err := Utilities.TcpReceive(netConn, resolver.config.TcpTimeoutMs)
 	if err != nil {
 		resolver.logger.Info(Error.New("failed to receive message", err).Error())
 		return
@@ -68,7 +68,7 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 		resolver.logger.Info(Error.New("Failed to handle config request \""+message.GetTopic()+"\"", err).Error())
 		return
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("success", resolver.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
+	err = Utilities.TcpSend(netConn, Message.NewAsync("success", resolver.GetName(), "").Serialize(), resolver.config.TcpTimeoutMs)
 	if err != nil {
 		resolver.logger.Info(Error.New("Failed to send success message", err).Error())
 		return

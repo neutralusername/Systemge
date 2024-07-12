@@ -43,7 +43,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Lock()
 		delete(broker.openSyncRequests, syncRequest.message.GetSyncRequestToken())
 		broker.operationMutex.Unlock()
-		err := syncRequest.nodeConnection.send(response)
+		err := broker.send(syncRequest.nodeConnection, response)
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		} else {
@@ -54,7 +54,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Lock()
 		delete(broker.openSyncRequests, syncRequest.message.GetSyncRequestToken())
 		broker.operationMutex.Unlock()
-		err := syncRequest.nodeConnection.send(syncRequest.message.NewResponse("error", broker.GetName(), "broker stopped"))
+		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.GetName(), "broker stopped"))
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		} else {
@@ -64,7 +64,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Lock()
 		delete(broker.openSyncRequests, syncRequest.message.GetSyncRequestToken())
 		broker.operationMutex.Unlock()
-		err := syncRequest.nodeConnection.send(syncRequest.message.NewResponse("error", broker.GetName(), "request timed out"))
+		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.GetName(), "request timed out"))
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		} else {

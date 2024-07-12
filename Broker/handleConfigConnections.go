@@ -23,7 +23,7 @@ func (broker *Broker) handleConfigConnections() {
 
 func (broker *Broker) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
+	messageBytes, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
 	if err != nil {
 		broker.config.Logger.Warning(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		return
@@ -36,13 +36,13 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) {
 	err = broker.handleConfigRequest(message)
 	if err != nil {
 		broker.config.Logger.Warning(Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", broker.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), DEFAULT_TCP_TIMEOUT)
+		err := Utilities.TcpSend(netConn, Message.NewAsync("error", broker.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), broker.config.TcpTimeoutMs)
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		}
 	} else {
 		broker.config.Logger.Info(Error.New("Successfully handled config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("success", broker.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
+		err := Utilities.TcpSend(netConn, Message.NewAsync("success", broker.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		}

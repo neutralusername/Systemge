@@ -15,5 +15,5 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 	if brokerConnection == nil {
 		return Error.New("failed resolving broker address for topic \""+message.GetTopic()+"\"", nil)
 	}
-	return brokerConnection.send(message)
+	return node.send(brokerConnection, message)
 }

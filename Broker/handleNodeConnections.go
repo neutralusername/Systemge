@@ -33,7 +33,7 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
-	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
+	messageBytes, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
 	}
@@ -46,7 +46,7 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if err != nil {
 		return nil, Error.New("Failed to add node \""+nodeConnection.name+"\"", err)
 	}
-	err = nodeConnection.send(Message.NewAsync("connected", broker.GetName(), ""))
+	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.GetName(), ""))
 	if err != nil {
 		errRemove := broker.removeNodeConnection(nodeConnection)
 		if errRemove != nil { // This should never happen

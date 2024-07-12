@@ -75,7 +75,7 @@ func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic strin
 	if err != nil {
 		return Error.New("failed to add message waiting for response", err)
 	}
-	err = brokerConnection.send(message)
+	err = node.send(brokerConnection, message)
 	if err != nil {
 		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to broker", err)

@@ -28,13 +28,13 @@ func (node *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
 			response, err := node.handleSyncMessage(message)
 			if err != nil {
 				node.config.Logger.Warning(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", err).Error())
-				err := brokerConnection.send(message.NewResponse("error", node.config.Name, Error.New("failed handling message", err).Error()))
+				err := node.send(brokerConnection, message.NewResponse("error", node.config.Name, Error.New("failed handling message", err).Error()))
 				if err != nil {
 					node.config.Logger.Warning(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", err).Error())
 				}
 			} else {
 				node.config.Logger.Info(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", nil).Error())
-				err = brokerConnection.send(message.NewResponse(message.GetTopic(), node.config.Name, response))
+				err = node.send(brokerConnection, message.NewResponse(message.GetTopic(), node.config.Name, response))
 				if err != nil {
 					node.config.Logger.Warning(Error.New("Failed to send response for sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", err).Error())
 				}

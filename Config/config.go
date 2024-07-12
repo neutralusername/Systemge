@@ -14,6 +14,7 @@ type Node struct {
 	BrokerSubscribeDelayMs    int // default: 0
 	TopicResolutionLifetimeMs int // default: 0
 	SyncResponseTimeoutMs     int // default: 0
+	TcpTimeoutMs              int // default: 0 = block forever
 }
 
 type Application struct {
@@ -39,6 +40,7 @@ type Broker struct {
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
 	SyncRequestTimeoutMs int // default: 0
+	TcpTimeoutMs         int // default: 0 = block forever
 
 	Server   TcpServer.TcpServer     // *required*
 	Endpoint TcpEndpoint.TcpEndpoint // *required*
@@ -52,6 +54,8 @@ type Broker struct {
 type Resolver struct {
 	Name   string // *required*
 	Logger *Utilities.Logger
+
+	TcpTimeoutMs int // default: 0 = block forever
 
 	Server       TcpServer.TcpServer // *required*
 	ConfigServer TcpServer.TcpServer // *required*

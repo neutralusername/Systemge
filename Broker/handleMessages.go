@@ -33,7 +33,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 			if err := broker.addSyncRequest(nodeConnection, message); err != nil {
 				broker.config.Logger.Warning(Error.New("Failed to add sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 				//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
-				err := nodeConnection.send(message.NewResponse("error", broker.GetName(), Error.New("sync request failed", err).Error()))
+				err := broker.send(nodeConnection, message.NewResponse("error", broker.GetName(), Error.New("sync request failed", err).Error()))
 				if err != nil {
 					broker.config.Logger.Warning(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 				}
@@ -106,7 +106,7 @@ func (broker *Broker) propagateMessage(message *Message.Message) {
 	nodes := broker.getSubscribedNodes(message.GetTopic())
 	broker.operationMutex.Unlock()
 	for _, nodeConnection := range nodes {
-		err := nodeConnection.send(message)
+		err := broker.send(nodeConnection, message)
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 			broker.disconnect(nodeConnection)

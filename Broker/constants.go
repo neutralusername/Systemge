@@ -1,4 +1,3 @@
 package Broker
 
 const NODE_MESSAGE_QUEUE_SIZE = 100
-const DEFAULT_TCP_TIMEOUT = 5000

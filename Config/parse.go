@@ -20,6 +20,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		name = fileNameSegments[0]
 	}
 
+	tcpTimeoutMs := 0
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
@@ -59,6 +60,11 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			if lineSegments[1] != "broker" {
 				panic("wrong config type for broker \"" + lineSegments[1] + "\"")
 			}
+		case "_tcpTimeoutMs":
+			if len(lineSegments) != 2 {
+				panic("tcpTimeoutMs line is invalid \"" + line + "\"")
+			}
+			tcpTimeoutMs = Utilities.StringToInt(lineSegments[1])
 		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
@@ -145,6 +151,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
 		SyncRequestTimeoutMs:   syncRequestTimeoutMs,
+		TcpTimeoutMs:           tcpTimeoutMs,
 		Server:                 brokerServer,
 		Endpoint:               brokerEndpoint,
 		ConfigServer:           configServer,
@@ -166,6 +173,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		name = fileNameSegments[0]
 	}
 
+	tcpTimeoutMs := 0
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
@@ -196,6 +204,11 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 			if lineSegments[1] != "resolver" {
 				panic("wrong config type for resolver \"" + lineSegments[1] + "\"")
 			}
+		case "_tcpTimeoutMs":
+			if len(lineSegments) != 2 {
+				panic("tcpTimeoutMs line is invalid \"" + line + "\"")
+			}
+			tcpTimeoutMs = Utilities.StringToInt(lineSegments[1])
 		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
@@ -250,5 +263,6 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		Server:       resolverServer,
 		ConfigServer: configServer,
+		TcpTimeoutMs: tcpTimeoutMs,
 	}
 }

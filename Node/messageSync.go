@@ -24,7 +24,7 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 	if err != nil {
 		return nil, Error.New("failed to add message waiting for response", err)
 	}
-	err = brokerConnection.send(message)
+	err = node.send(brokerConnection, message)
 	if err != nil {
 		node.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return nil, Error.New("failed sending sync request message", err)
