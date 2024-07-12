@@ -36,7 +36,7 @@ func (broker *Broker) addSyncRequest(nodeConnection *nodeConnection, message *Me
 }
 
 func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
-	timer := time.NewTimer(time.Duration(broker.config.SyncRequestTimeoutMs) * time.Millisecond)
+	timer := time.NewTimer(time.Duration(broker.config.SyncResponseTimeoutMs) * time.Millisecond)
 	defer timer.Stop()
 	select {
 	case response := <-syncRequest.responseChannel:
