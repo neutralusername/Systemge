@@ -11,10 +11,10 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 	for node.IsStarted() {
 		message, err := websocketClient.Receive()
 		if err != nil {
-			node.config.Logger.Warning("failed to receive message from websocketClient \"" + websocketClient.GetId() + "\"" + " with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+			node.config.Logger.Warning(Error.New("failed to receive message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", err).Error())
 			return
 		} else {
-			node.config.Logger.Info("received message with topic \"" + message.GetTopic() + "\" from websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+			node.config.Logger.Info(Error.New("received message with topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", nil).Error())
 		}
 		if message.GetTopic() == "heartbeat" {
 			node.ResetWatchdog(websocketClient)
