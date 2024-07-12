@@ -38,12 +38,6 @@ func New(config Config.Broker) *Broker {
 		nodeConnections:   map[string]*nodeConnection{},
 		openSyncRequests:  map[string]*syncRequest{},
 	}
-	for _, topic := range config.AsyncTopics {
-		broker.addAsyncTopics(topic)
-	}
-	for _, topic := range config.SyncTopics {
-		broker.addSyncTopics(topic)
-	}
 	return broker
 }
 
@@ -65,6 +59,13 @@ func (broker *Broker) Start() error {
 	broker.tlsConfigListener = configListener
 	broker.isStarted = true
 	broker.stopChannel = make(chan bool)
+
+	for _, topic := range broker.config.AsyncTopics {
+		broker.addAsyncTopics(topic)
+	}
+	for _, topic := range broker.config.SyncTopics {
+		broker.addSyncTopics(topic)
+	}
 
 	topics := []string{}
 	for syncTopic := range broker.syncTopics {

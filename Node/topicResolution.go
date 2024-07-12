@@ -13,10 +13,13 @@ func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint,
 	if err != nil {
 		return nil, Error.New("failed dialing resolver", err)
 	}
+	defer netConn.Close()
 	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.config.Name, topic), DEFAULT_TCP_TIMEOUT)
-	netConn.Close()
 	if err != nil {
-		return nil, Error.New("failed resolving broker", err)
+		return nil, Error.New("failed to recieve response from resolver", err)
+	}
+	if responseMessage.GetTopic() != "resolution" {
+		return nil, Error.New("received error response from resolver \""+responseMessage.GetPayload()+"\"", nil)
 	}
 	endpoint := TcpEndpoint.Unmarshal(responseMessage.GetPayload())
 	if endpoint == nil {
