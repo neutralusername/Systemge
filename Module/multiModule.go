@@ -27,7 +27,6 @@ func (mm *MultiModule) GetName() string {
 }
 
 func (mm *MultiModule) Start() error {
-	mm.GetLogger().Info("test")
 	for _, module := range mm.Modules {
 		err := module.Start()
 		if err != nil {
