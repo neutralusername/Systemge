@@ -20,12 +20,14 @@ func (node *Node) promoteToWebsocket() func(responseWriter http.ResponseWriter, 
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		websocketConn, err := upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			node.logger.Log(Error.New(fmt.Sprintf("failed upgrading connection to websocket: %s", err.Error()), nil).Error())
+			node.config.Logger.Info(Error.New(fmt.Sprintf("failed upgrading connection to websocket: %s", err.Error()), nil).Error())
 			return
 		}
 		err = node.queueNewWebsocketConn(websocketConn)
 		if err != nil {
-			node.logger.Log(Error.New("failed queuing new websocket connection", err).Error())
+			node.config.Logger.Info(Error.New("failed queuing new websocket connection", err).Error())
+		} else {
+			node.config.Logger.Info("queued new websocket connection \"" + websocketConn.RemoteAddr().String() + "\" on node \"" + node.GetName() + "\"")
 		}
 	}
 }

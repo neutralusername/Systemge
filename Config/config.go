@@ -3,11 +3,12 @@ package Config
 import (
 	"Systemge/TcpEndpoint"
 	"Systemge/TcpServer"
+	"Systemge/Utilities"
 )
 
 type Node struct {
-	Name             string // *required*
-	LoggerPath       string // *required*
+	Name             string            // *required*
+	Logger           *Utilities.Logger // *required*
 	ResolverEndpoint TcpEndpoint.TcpEndpoint
 
 	BrokerSubscribeDelayMs    int // default: 0
@@ -34,7 +35,7 @@ type HTTP struct {
 
 type Broker struct {
 	Name                   string                  // *required*
-	LoggerPath             string                  // *required*
+	Logger                 *Utilities.Logger       // *required*
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
 	SyncRequestTimeoutMs int // default: 0
@@ -49,16 +50,16 @@ type Broker struct {
 }
 
 type Resolver struct {
-	Name       string // *required*
-	LoggerPath string // *required*
+	Name   string // *required*
+	Logger *Utilities.Logger
 
 	Server       TcpServer.TcpServer // *required*
 	ConfigServer TcpServer.TcpServer // *required*
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync bool   // default: false
-	SpawnedNodeLoggerPath  string // *required*
+	IsSpawnedNodeTopicSync bool              // default: false
+	SpawnedNodeLogger      *Utilities.Logger // *required*
 
 	ResolverEndpoint     TcpEndpoint.TcpEndpoint // *required*
 	BrokerConfigEndpoint TcpEndpoint.TcpEndpoint // *required*

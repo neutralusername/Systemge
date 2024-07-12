@@ -25,7 +25,7 @@ type Resolver struct {
 func New(config Config.Resolver) *Resolver {
 	resolver := &Resolver{
 		config:           config,
-		logger:           Utilities.NewLogger(config.LoggerPath),
+		logger:           config.Logger,
 		registeredTopics: map[string]TcpEndpoint.TcpEndpoint{},
 	}
 	return resolver
@@ -50,6 +50,7 @@ func (resolver *Resolver) Start() error {
 	resolver.isStarted = true
 	go resolver.handleResolverConnections()
 	go resolver.handleConfigConnections()
+	resolver.config.Logger.Info("Started resolver \"" + resolver.config.Name + "\"")
 	return nil
 }
 
@@ -68,6 +69,7 @@ func (resolver *Resolver) Stop() error {
 	resolver.tlsResolverListener = nil
 	resolver.tlsConfigListener.Close()
 	resolver.tlsConfigListener = nil
+	resolver.config.Logger.Info("Stopped resolver \"" + resolver.config.Name + "\"")
 	return nil
 }
 

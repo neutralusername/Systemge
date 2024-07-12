@@ -15,7 +15,7 @@ func (resolver *Resolver) handleConfigConnections() {
 		if err != nil {
 			resolver.tlsConfigListener.Close()
 			if resolver.IsStarted() {
-				resolver.logger.Log(Error.New("Failed to accept connection request", err).Error())
+				resolver.logger.Info(Error.New("Failed to accept connection request", err).Error())
 			}
 			return
 		}
@@ -27,12 +27,12 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
 	messageBytes, err := Utilities.TcpReceive(netConn, DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		resolver.logger.Log(Error.New("failed to receive message", err).Error())
+		resolver.logger.Info(Error.New("failed to receive message", err).Error())
 		return
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetOrigin() == "" {
-		resolver.logger.Log(Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil).Error())
+		resolver.logger.Info(Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil).Error())
 		return
 	}
 	switch message.GetTopic() {
@@ -46,7 +46,7 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 		for _, topic := range segments[1:] {
 			err = resolver.AddTopic(*brokerEndpoint, topic)
 			if err != nil {
-				resolver.logger.Log(Error.New("Failed to add topic \""+topic+"\"", err).Error())
+				resolver.logger.Info(Error.New("Failed to add topic \""+topic+"\"", err).Error())
 			}
 		}
 	case "removeTopics":
@@ -58,19 +58,19 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 		for _, topic := range segments {
 			err = resolver.RemoveTopic(topic)
 			if err != nil {
-				resolver.logger.Log(Error.New("Failed to remove topic \""+topic+"\"", err).Error())
+				resolver.logger.Info(Error.New("Failed to remove topic \""+topic+"\"", err).Error())
 			}
 		}
 	default:
 		err = Error.New("Invalid config request", nil)
 	}
 	if err != nil {
-		resolver.logger.Log(Error.New("Failed to handle config request \""+message.GetTopic()+"\"", err).Error())
+		resolver.logger.Info(Error.New("Failed to handle config request \""+message.GetTopic()+"\"", err).Error())
 		return
 	}
 	err = Utilities.TcpSend(netConn, Message.NewAsync("success", resolver.GetName(), "").Serialize(), DEFAULT_TCP_TIMEOUT)
 	if err != nil {
-		resolver.logger.Log(Error.New("Failed to send success message", err).Error())
+		resolver.logger.Info(Error.New("Failed to send success message", err).Error())
 		return
 	}
 }

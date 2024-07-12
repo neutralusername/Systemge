@@ -25,7 +25,7 @@ func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint,
 	return endpoint, nil
 }
 
-func (node *Node) getTopicBrokerConnection(topic string) *brokerConnection {
+func (node *Node) getTopicResolution(topic string) *brokerConnection {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
 	return node.topicResolutions[topic]
@@ -52,7 +52,9 @@ func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *b
 	case <-timer.C:
 		err := node.removeTopicResolution(topic)
 		if err != nil {
-			node.logger.Log(Error.New("failed removing topic resolution", err).Error())
+			node.config.Logger.Warning(Error.New("Failed removing topic resolution", err).Error())
+		} else {
+			node.config.Logger.Info(Error.New("Removed topic resolution for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
 		}
 	case <-node.stopChannel:
 		timer.Stop()

@@ -9,52 +9,64 @@ import (
 
 func (node *Node) subscribeLoop(topic string) {
 	for node.IsStarted() {
-		success := func() bool {
-			node.logger.Log("attempting connection for topic \"" + topic + "\" on node \"" + node.GetName() + "\"")
-			endpoint, err := node.resolveBrokerForTopic(topic)
-			if err != nil {
-				node.logger.Log(Error.New("failed to resolve broker for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
-				return false
-			}
-			brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
-			if brokerConnection == nil {
-				brokerConnection, err = node.connectToBroker(endpoint)
-				if err != nil {
-					node.logger.Log(Error.New("failed to connect to broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
-					return false
-				}
-				err = node.addBrokerConnection(brokerConnection)
-				if err != nil {
-					brokerConnection.close()
-					node.logger.Log(Error.New("failed to add broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
-					return false
-				}
-			}
-			err = node.subscribeTopic(brokerConnection, topic)
-			if err != nil {
-				node.logger.Log(Error.New("failed to subscribe to topic \""+topic+"\" on broker \""+endpoint.GetAddress()+"\" for node \""+node.GetName()+"\"", err).Error())
-				return false
-			}
-			err = brokerConnection.addSubscribedTopic(topic)
-			if err != nil {
-				brokerConnection.mutex.Lock()
-				subscribedTopicsCount := len(brokerConnection.subscribedTopics)
-				topicResolutionsCount := len(brokerConnection.topicResolutions)
-				brokerConnection.mutex.Unlock()
-				if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
-					node.handleBrokerDisconnect(brokerConnection)
-				}
-				node.logger.Log(Error.New("failed to add topic \""+topic+"\" to subscribed topics for broker \""+endpoint.GetAddress()+"\" on node \""+node.GetName()+"\"", err).Error())
-				return false
-			}
-			node.logger.Log("connection for topic \"" + topic + "\" successful on node \"" + node.GetName() + "\" with broker \"" + endpoint.GetAddress() + "\"")
-			return true
-		}()
-		if success {
+		node.config.Logger.Info(Error.New("Attempting subscription to topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+		if node.subscribeAttempt(topic) {
 			break
 		}
 		time.Sleep(time.Duration(node.config.BrokerSubscribeDelayMs) * time.Millisecond)
 	}
+}
+
+func (node *Node) subscribeAttempt(topic string) bool {
+	endpoint, err := node.resolveBrokerForTopic(topic)
+	if err != nil {
+		node.config.Logger.Warning(Error.New("Failed to resolve broker for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+		return false
+	} else {
+		node.config.Logger.Info(Error.New("Resolved broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+	}
+	brokerConnection := node.getBrokerConnection(endpoint.GetAddress())
+	if brokerConnection == nil {
+		brokerConnection, err = node.connectToBroker(endpoint)
+		if err != nil {
+			node.config.Logger.Warning(Error.New("Failed to connect to broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+			return false
+		} else {
+			node.config.Logger.Info(Error.New("Connected to broker \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+		}
+		err = node.addBrokerConnection(brokerConnection)
+		if err != nil {
+			brokerConnection.close()
+			node.config.Logger.Warning(Error.New("Failed to add broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
+			return false
+		} else {
+			node.config.Logger.Info(Error.New("Added broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+		}
+	} else {
+		node.config.Logger.Info(Error.New("Found existing broker connection \""+endpoint.GetAddress()+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+	}
+	err = node.subscribeTopic(brokerConnection, topic)
+	if err != nil {
+		node.config.Logger.Warning(Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+endpoint.GetAddress()+"\" for node \""+node.GetName()+"\"", err).Error())
+		return false
+	} else {
+		node.config.Logger.Info(Error.New("Subscribed to topic \""+topic+"\" on broker \""+endpoint.GetAddress()+"\" for node \""+node.GetName()+"\"", nil).Error())
+	}
+	err = brokerConnection.addSubscribedTopic(topic)
+	if err != nil {
+		brokerConnection.mutex.Lock()
+		subscribedTopicsCount := len(brokerConnection.subscribedTopics)
+		topicResolutionsCount := len(brokerConnection.topicResolutions)
+		brokerConnection.mutex.Unlock()
+		if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
+			node.handleBrokerDisconnect(brokerConnection)
+		}
+		node.config.Logger.Warning(Error.New("Failed to add topic \""+topic+"\" to subscribed topics for broker \""+endpoint.GetAddress()+"\" on node \""+node.GetName()+"\"", err).Error())
+		return false
+	} else {
+		node.config.Logger.Info(Error.New("Added topic \""+topic+"\" to subscribed topics for broker \""+endpoint.GetAddress()+"\" on node \""+node.GetName()+"\"", nil).Error())
+	}
+	return true
 }
 
 func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic string) error {

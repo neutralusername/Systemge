@@ -1,6 +1,8 @@
 package Node
 
 import (
+	"Systemge/Error"
+	"Systemge/Message"
 	"Systemge/Utilities"
 	"sync"
 	"time"
@@ -100,11 +102,19 @@ func (websocketClient *WebsocketClient) Send(messageBytes []byte) error {
 	return websocketClient.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
-func (websocketClient *WebsocketClient) Receive() ([]byte, error) {
+func (websocketClient *WebsocketClient) Receive() (*Message.Message, error) {
 	websocketClient.receiveMutex.Lock()
 	defer websocketClient.receiveMutex.Unlock()
 	_, messageBytes, err := websocketClient.websocketConn.ReadMessage()
-	return messageBytes, err
+	if err != nil {
+		return nil, Error.New("failed to receive message", err)
+	}
+	message := Message.Deserialize(messageBytes)
+	if message == nil {
+		return nil, Error.New("failed to deserialize message \""+string(messageBytes)+"\"", nil)
+	}
+	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
+	return message, err
 }
 
 func (node *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {

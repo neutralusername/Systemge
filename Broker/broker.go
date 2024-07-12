@@ -3,13 +3,11 @@ package Broker
 import (
 	"Systemge/Config"
 	"Systemge/Error"
-	"Systemge/Utilities"
 	"net"
 	"sync"
 )
 
 type Broker struct {
-	logger *Utilities.Logger
 	config Config.Broker
 
 	syncTopics  map[string]bool
@@ -31,7 +29,6 @@ type Broker struct {
 
 func New(config Config.Broker) *Broker {
 	broker := &Broker{
-		logger: Utilities.NewLogger(config.LoggerPath),
 		config: config,
 
 		syncTopics:  map[string]bool{},
@@ -54,15 +51,15 @@ func (broker *Broker) Start() error {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
 	if broker.isStarted {
-		return Error.New("broker \""+broker.GetName()+"\" is already started", nil)
+		return Error.New("Broker \""+broker.GetName()+"\" is already started", nil)
 	}
 	listener, err := broker.config.Server.GetTlsListener()
 	if err != nil {
-		return Error.New("failed to get listener for broker \""+broker.GetName()+"\"", err)
+		return Error.New("Failed to get listener for broker \""+broker.GetName()+"\"", err)
 	}
 	configListener, err := broker.config.ConfigServer.GetTlsListener()
 	if err != nil {
-		return Error.New("failed to get config listener for broker \""+broker.GetName()+"\"", err)
+		return Error.New("Failed to get config listener for broker \""+broker.GetName()+"\"", err)
 	}
 	broker.tlsBrokerListener = listener
 	broker.tlsConfigListener = configListener
@@ -80,13 +77,14 @@ func (broker *Broker) Start() error {
 		err = broker.addResolverTopicsRemotely(topics...)
 		if err != nil {
 			broker.stop(false)
-			return Error.New("failed to start broker \""+broker.GetName()+"\". Failed to add resolver topics remotely", err)
+			return Error.New("Failed to add resolver topics remotely on broker \""+broker.GetName()+"\"", err)
 		}
 	}
 	broker.addAsyncTopics("heartbeat")
 	broker.addSyncTopics("subscribe", "unsubscribe")
 	go broker.handleNodeConnections()
 	go broker.handleConfigConnections()
+	broker.config.Logger.Info("Started broker \"" + broker.GetName() + "\"")
 	return nil
 }
 
@@ -104,10 +102,12 @@ func (broker *Broker) stop(lock bool) error {
 		defer broker.stateMutex.Unlock()
 	}
 	if !broker.isStarted {
-		return Error.New("failed to stop broker \""+broker.GetName()+"\". Broker is not started", nil)
+		return Error.New("Broker \""+broker.GetName()+"\" is already stopped", nil)
 	}
 	broker.tlsBrokerListener.Close()
+	broker.tlsConfigListener = nil
 	broker.tlsConfigListener.Close()
+	broker.tlsConfigListener = nil
 	broker.disconnectAllNodeConnections()
 	broker.isStarted = false
 	close(broker.stopChannel)
@@ -127,9 +127,12 @@ func (broker *Broker) stop(lock bool) error {
 	if len(topics) > 0 {
 		err := broker.removeResolverTopicsRemotely(topics...)
 		if err != nil {
-			broker.logger.Log(Error.New("failed to remove resolver topics remotely on broker \""+broker.GetName()+"\"", err).Error())
+			broker.config.Logger.Error(Error.New("Failed to remove resolver topics remotely on broker \""+broker.GetName()+"\"", err).Error())
+		} else {
+			broker.config.Logger.Info("Removed resolver topics remotely on broker \"" + broker.GetName() + "\"")
 		}
 	}
+	broker.config.Logger.Info("Stopped broker \"" + broker.GetName() + "\"")
 	return nil
 }
 

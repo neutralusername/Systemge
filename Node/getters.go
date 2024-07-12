@@ -9,5 +9,5 @@ func (node *Node) GetName() string {
 }
 
 func (node *Node) GetLogger() *Utilities.Logger {
-	return node.logger
+	return node.config.Logger
 }

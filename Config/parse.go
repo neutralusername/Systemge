@@ -20,7 +20,10 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		name = fileNameSegments[0]
 	}
 
-	loggerPath := ""
+	infoPath := ""
+	warningPath := ""
+	errorPath := ""
+	debugPath := ""
 	syncRequestTimeoutMs := 10000
 	publicIp := ""
 	serverNameIndication := ""
@@ -56,11 +59,26 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			if lineSegments[1] != "broker" {
 				panic("wrong config type for broker \"" + lineSegments[1] + "\"")
 			}
-		case "_logs":
+		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
 			}
-			loggerPath = lineSegments[1]
+			infoPath = lineSegments[1]
+		case "_warning":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			warningPath = lineSegments[1]
+		case "_error":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			errorPath = lineSegments[1]
+		case "_debug":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			debugPath = lineSegments[1]
 		case "_broker":
 			if len(lineSegments) != 4 {
 				panic("broker line is invalid \"" + line + "\"")
@@ -107,7 +125,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			}
 		}
 	}
-	if loggerPath == "" || brokerPort == "" || brokerCertPath == "" || brokerKeyPath == "" || configPort == "" || configCertPath == "" || configKeyPath == "" {
+	if brokerPort == "" || brokerCertPath == "" || brokerKeyPath == "" || configPort == "" || configCertPath == "" || configKeyPath == "" {
 		panic("missing required fields in config")
 	}
 	port := Utilities.StringToInt(brokerPort)
@@ -124,7 +142,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	resolverConfigEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
 	return Broker{
 		Name:                   name,
-		LoggerPath:             loggerPath,
+		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
 		SyncRequestTimeoutMs:   syncRequestTimeoutMs,
 		Server:                 brokerServer,
@@ -148,7 +166,10 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		name = fileNameSegments[0]
 	}
 
-	loggerPath := ""
+	infoPath := ""
+	warningPath := ""
+	errorPath := ""
+	debugPath := ""
 	resolverPort := ""
 	resolverTlsCertPath := ""
 	resolverTlsKeyPath := ""
@@ -175,11 +196,26 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 			if lineSegments[1] != "resolver" {
 				panic("wrong config type for resolver \"" + lineSegments[1] + "\"")
 			}
-		case "_logs":
+		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
 			}
-			loggerPath = lineSegments[1]
+			infoPath = lineSegments[1]
+		case "_warning":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			warningPath = lineSegments[1]
+		case "_error":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			errorPath = lineSegments[1]
+		case "_debug":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			debugPath = lineSegments[1]
 		case "_resolver":
 			if len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
@@ -196,7 +232,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 			configTlsKeyPath = lineSegments[3]
 		}
 	}
-	if loggerPath == "" || resolverPort == "" || resolverTlsCertPath == "" || resolverTlsKeyPath == "" || configPort == "" || configTlsCertPath == "" || configTlsKeyPath == "" {
+	if resolverPort == "" || resolverTlsCertPath == "" || resolverTlsKeyPath == "" || configPort == "" || configTlsCertPath == "" || configTlsKeyPath == "" {
 		panic("missing required fields in config")
 	}
 	port := Utilities.StringToInt(resolverPort)
@@ -211,7 +247,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	configServer := TcpServer.New(port, configTlsCertPath, configTlsKeyPath)
 	return Resolver{
 		Name:         name,
-		LoggerPath:   loggerPath,
+		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		Server:       resolverServer,
 		ConfigServer: configServer,
 	}
