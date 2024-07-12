@@ -27,7 +27,7 @@ func (node *Node) promoteToWebsocket() func(responseWriter http.ResponseWriter, 
 		if err != nil {
 			node.config.Logger.Info(Error.New("failed queuing new websocket connection", err).Error())
 		} else {
-			node.config.Logger.Info("queued new websocket connection \"" + websocketConn.RemoteAddr().String() + "\" on node \"" + node.GetName() + "\"")
+			node.config.Logger.Info(Error.New("queued new websocket connection \""+websocketConn.RemoteAddr().String()+"\" on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
 }
