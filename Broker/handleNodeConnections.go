@@ -16,18 +16,20 @@ func (broker *Broker) handleNodeConnections() {
 		} else {
 			broker.config.Logger.Info(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", nil).Error())
 		}
-		go func() {
-			node, err := broker.handleNodeConnectionRequest(netConn)
-			if err != nil {
-				netConn.Close()
-				broker.config.Logger.Warning(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
-				return
-			} else {
-				broker.config.Logger.Info(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+node.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
-			}
-			broker.handleNodeConnectionMessages(node)
-		}()
+		go broker.handleNodeConnection(netConn)
 	}
+}
+
+func (broker *Broker) handleNodeConnection(netConn net.Conn) {
+	node, err := broker.handleNodeConnectionRequest(netConn)
+	if err != nil {
+		netConn.Close()
+		broker.config.Logger.Warning(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+		return
+	} else {
+		broker.config.Logger.Info(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+node.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+	}
+	broker.handleNodeConnectionMessages(node)
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
