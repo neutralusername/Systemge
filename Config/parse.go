@@ -34,9 +34,9 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	configPort := ""
 	configCertPath := ""
 	configKeyPath := ""
-	resolverAddress := ""
-	resolverServerNameIndication := ""
-	resolverCertPath := ""
+	resolverConfigAddress := ""
+	resolverConfigServerNameIndication := ""
+	resolverConfigCertPath := ""
 
 	syncTopics := []string{}
 	asyncTopics := []string{}
@@ -105,13 +105,13 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			}
 			publicIp = lineSegments[1]
 			serverNameIndication = lineSegments[2]
-		case "_resolver":
+		case "_resolverConfig":
 			if len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
 			}
-			resolverAddress = lineSegments[1]
-			resolverServerNameIndication = lineSegments[2]
-			resolverCertPath = lineSegments[3]
+			resolverConfigAddress = lineSegments[1]
+			resolverConfigServerNameIndication = lineSegments[2]
+			resolverConfigCertPath = lineSegments[3]
 		case "_syncResponseTimeoutMs":
 			if len(lineSegments) != 2 {
 				panic("syncRequestTimeoutMs line is invalid \"" + line + "\"")
@@ -145,7 +145,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	}
 	configServer := TcpServer.New(port, configCertPath, configKeyPath)
 	brokerEndpoint := TcpEndpoint.New(publicIp+":"+brokerPort, serverNameIndication, Utilities.GetFileContent(brokerCertPath))
-	resolverConfigEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
+	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
 	return Broker{
 		Name:                   name,
 		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
