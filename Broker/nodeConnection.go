@@ -9,9 +9,8 @@ import (
 )
 
 type nodeConnection struct {
-	name         string
-	netConn      net.Conn
-	messageQueue chan *Message.Message
+	name    string
+	netConn net.Conn
 
 	subscribedTopics map[string]bool
 
@@ -25,7 +24,6 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 	return &nodeConnection{
 		name:             name,
 		netConn:          netConn,
-		messageQueue:     make(chan *Message.Message, NODE_MESSAGE_QUEUE_SIZE),
 		subscribedTopics: map[string]bool{},
 		stopChannel:      make(chan bool),
 	}
