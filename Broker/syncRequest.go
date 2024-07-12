@@ -45,7 +45,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := syncRequest.nodeConnection.send(response)
 		if err != nil {
-			broker.config.Logger.Error(Error.New("failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.config.Logger.Warning(Error.New("failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		} else {
 			broker.config.Logger.Info(Error.New("sent sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
 
@@ -56,7 +56,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := syncRequest.nodeConnection.send(syncRequest.message.NewResponse("error", broker.GetName(), "broker stopped"))
 		if err != nil {
-			broker.config.Logger.Error(Error.New("failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.config.Logger.Warning(Error.New("failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		} else {
 			broker.config.Logger.Info(Error.New("sent broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", nil).Error())
 		}
@@ -66,7 +66,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := syncRequest.nodeConnection.send(syncRequest.message.NewResponse("error", broker.GetName(), "request timed out"))
 		if err != nil {
-			broker.config.Logger.Error(Error.New("failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.config.Logger.Warning(Error.New("failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		} else {
 			broker.config.Logger.Info(Error.New("sent timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
 		}

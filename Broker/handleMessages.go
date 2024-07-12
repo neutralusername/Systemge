@@ -35,7 +35,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 				//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
 				err := nodeConnection.send(message.NewResponse("error", broker.GetName(), Error.New("sync request failed", err).Error()))
 				if err != nil {
-					broker.config.Logger.Error(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+					broker.config.Logger.Warning(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 				}
 				continue
 			} else {
