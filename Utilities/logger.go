@@ -25,7 +25,7 @@ const (
 	LEVEL_INFO    = 0 // general info about the system state. usually successful operations
 	LEVEL_WARNING = 1 // failed operations that do not affect the system's health and will auto-recover
 	LEVEL_ERROR   = 2 // failed operations which should not fail under normal circumstances
-	LEVEL_DEBUG   = 3
+	LEVEL_DEBUG   = 3 // debug information
 )
 
 func (logger *Logger) Info(str string) {

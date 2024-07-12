@@ -15,6 +15,10 @@ func NewMultiModule(modules ...Module) Module {
 	}
 }
 
+func (mm *MultiModule) GetName() string {
+	return "MultiModule"
+}
+
 func (mm *MultiModule) Start() error {
 	for _, module := range mm.Modules {
 		err := module.Start()
