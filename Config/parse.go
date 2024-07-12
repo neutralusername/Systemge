@@ -20,7 +20,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		name = fileNameSegments[0]
 	}
 
-	tcpTimeoutMs := 0
+	tcpTimeoutMs := 5000
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
@@ -173,7 +173,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		name = fileNameSegments[0]
 	}
 
-	tcpTimeoutMs := 0
+	tcpTimeoutMs := 5000
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
