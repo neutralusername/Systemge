@@ -19,12 +19,12 @@ func (spawner *Spawner) EndNode(node *Node.Node, id string) error {
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		err = node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if err != nil {
-			node.GetLogger().Info(Error.New("Error removing sync topic \""+id+"\"", err).Error())
+			node.GetLogger().Error(Error.New("Error removing sync topic \""+id+"\"", err).Error())
 		}
 	} else {
 		err = node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if err != nil {
-			node.GetLogger().Info(Error.New("Error removing async topic \""+id+"\"", err).Error())
+			node.GetLogger().Error(Error.New("Error removing async topic \""+id+"\"", err).Error())
 		}
 	}
 	return nil
@@ -58,12 +58,12 @@ func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
 		if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 			removeErr := node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 			if removeErr != nil {
-				node.GetLogger().Info(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
+				node.GetLogger().Error(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
 			}
 		} else {
 			removeErr := node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 			if removeErr != nil {
-				node.GetLogger().Info(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
+				node.GetLogger().Error(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
 			}
 		}
 		return Error.New("Error starting node", err)
