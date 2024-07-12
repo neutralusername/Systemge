@@ -39,13 +39,12 @@ type Broker struct {
 	Logger                 *Utilities.Logger       // *required*
 	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
+	Server       TcpServer.TcpServer     // *required*
+	Endpoint     TcpEndpoint.TcpEndpoint // *required*
+	ConfigServer TcpServer.TcpServer     // *required*
+
 	SyncResponseTimeoutMs int // default: 0
 	TcpTimeoutMs          int // default: 0 = block forever
-
-	Server   TcpServer.TcpServer     // *required*
-	Endpoint TcpEndpoint.TcpEndpoint // *required*
-
-	ConfigServer TcpServer.TcpServer // *required*
 
 	SyncTopics  []string
 	AsyncTopics []string
@@ -55,10 +54,10 @@ type Resolver struct {
 	Name   string // *required*
 	Logger *Utilities.Logger
 
-	TcpTimeoutMs int // default: 0 = block forever
-
 	Server       TcpServer.TcpServer // *required*
 	ConfigServer TcpServer.TcpServer // *required*
+
+	TcpTimeoutMs int // default: 0 = block forever
 }
 
 type Spawner struct {

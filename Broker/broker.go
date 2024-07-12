@@ -128,7 +128,7 @@ func (broker *Broker) stop(lock bool) error {
 	}
 	if len(topics) > 0 {
 		err := broker.removeResolverTopicsRemotely(topics...)
-		if err != nil {
+		if err != nil { // This should never happen
 			broker.config.Logger.Error(Error.New("Failed to remove resolver topics remotely on broker \""+broker.GetName()+"\"", err).Error())
 		} else {
 			broker.config.Logger.Info("Removed resolver topics remotely on broker \"" + broker.GetName() + "\"")

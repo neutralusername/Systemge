@@ -266,3 +266,112 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		TcpTimeoutMs: tcpTimeoutMs,
 	}
 }
+
+func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
+	if !Utilities.FileExists(sytemgeConfigPath) {
+		panic("provided file does not exist \"" + sytemgeConfigPath + "\"")
+	}
+	filename := Utilities.GetFileName(sytemgeConfigPath)
+	fileNameSegments := strings.Split(Utilities.GetFileName(sytemgeConfigPath), ".")
+	name := ""
+	if len(fileNameSegments) != 2 {
+		name = filename
+	} else {
+		name = fileNameSegments[0]
+	}
+
+	tcpTimeoutMs := 5000
+	brokerSubscribeDelayMs := 1000
+	SyncResponseTimeoutMs := 10000
+	TopicResolutionLifetimeMs := 10000
+	infoPath := ""
+	warningPath := ""
+	errorPath := ""
+	debugPath := ""
+	resolverAddress := ""
+	resolverServerNameIndication := ""
+	resolverCertPath := ""
+
+	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
+	if len(lines) < 2 {
+		panic("provided file has too few lines to be a valid config")
+	}
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+		lineSegmentss := strings.Split(line, " ")
+		lineSegments := []string{}
+		for _, segment := range lineSegmentss {
+			if len(segment) > 0 {
+				lineSegments = append(lineSegments, segment)
+			}
+		}
+		switch lineSegments[0] {
+		case "#":
+			if lineSegments[1] != "node" {
+				panic("wrong config type for node \"" + lineSegments[1] + "\"")
+			}
+		case "_tcpTimeoutMs":
+			if len(lineSegments) != 2 {
+				panic("tcpTimeoutMs line is invalid \"" + line + "\"")
+			}
+			tcpTimeoutMs = Utilities.StringToInt(lineSegments[1])
+		case "_info":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			infoPath = lineSegments[1]
+		case "_warning":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			warningPath = lineSegments[1]
+		case "_error":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			errorPath = lineSegments[1]
+		case "_debug":
+			if len(lineSegments) != 2 {
+				panic("logs line is invalid \"" + line + "\"")
+			}
+			debugPath = lineSegments[1]
+		case "_resolver":
+			if len(lineSegments) != 4 {
+				panic("resolver line is invalid \"" + line + "\"")
+			}
+			resolverAddress = lineSegments[1]
+			resolverServerNameIndication = lineSegments[2]
+			resolverCertPath = lineSegments[3]
+		case "_brokerSubscribeDelayMs":
+			if len(lineSegments) != 2 {
+				panic("brokerSubscribeDelayMs line is invalid \"" + line + "\"")
+			}
+			brokerSubscribeDelayMs = Utilities.StringToInt(lineSegments[1])
+		case "_syncResponseTimeoutMs":
+			if len(lineSegments) != 2 {
+				panic("syncResponseTimeoutMs line is invalid \"" + line + "\"")
+			}
+			SyncResponseTimeoutMs = Utilities.StringToInt(lineSegments[1])
+		case "_topicResolutionLifetimeMs":
+			if len(lineSegments) != 2 {
+				panic("topicResolutionLifetimeMs line is invalid \"" + line + "\"")
+			}
+			TopicResolutionLifetimeMs = Utilities.StringToInt(lineSegments[1])
+		}
+	}
+	if resolverAddress == "" || resolverCertPath == "" {
+		panic("missing required fields in config")
+	}
+	resolverEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
+	return Node{
+		Name:                      name,
+		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
+		ResolverEndpoint:          resolverEndpoint,
+		TcpTimeoutMs:              tcpTimeoutMs,
+		BrokerSubscribeDelayMs:    brokerSubscribeDelayMs,
+		SyncResponseTimeoutMs:     SyncResponseTimeoutMs,
+		TopicResolutionLifetimeMs: TopicResolutionLifetimeMs,
+	}
+}
