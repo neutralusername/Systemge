@@ -27,7 +27,14 @@ var discordOAuth2Config = &oauth2.Config{
 }
 
 func main() {
-	oauth2Server := Oauth2.NewServer(8081, "/auth", "/callback", discordOAuth2Config, logger, tokenHandler)
+	oauth2Server := (&Oauth2.ServerConfig{
+		Port:                  8081,
+		AuthPath:              "/auth",
+		AuthCallbackPath:      "/callback",
+		OAuth2Config:          discordOAuth2Config,
+		Logger:                logger,
+		SessionRequestHandler: tokenHandler,
+	}).New()
 
 	httpServer := Http.New(8080, map[string]Http.RequestHandler{
 		"/": func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
