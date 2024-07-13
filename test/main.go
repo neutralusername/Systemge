@@ -18,7 +18,7 @@ var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
 var discordOAuth2Config = &oauth2.Config{
 	ClientID:     "1261641608886222908",
 	ClientSecret: "xD",
-	RedirectURL:  "http://localhost:8080/callback",
+	RedirectURL:  "http://localhost:8081/callback",
 	Scopes:       []string{"identify"},
 	Endpoint: oauth2.Endpoint{
 		AuthURL:  "https://discord.com/api/oauth2/authorize",
@@ -38,7 +38,7 @@ func main() {
 	time.Sleep(1000 * time.Second)
 }
 
-func tokenHandler(token *oauth2.Token) {
+func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) {
 	client := discordOAuth2Config.Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
