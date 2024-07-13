@@ -37,8 +37,8 @@ func main() {
 	time.Sleep(1000 * time.Second)
 }
 
-func tokenHandler(oauth2Server *Oauth2.Server, oauth2SessionRequest *Http.Oauth2SessionRequest) {
-	client := discordOAuth2Config.Client(context.Background(), oauth2SessionRequest.Token)
+func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) string {
+	client := discordOAuth2Config.Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
 		log.Fatalf("Failed getting user: %v\n", err)
@@ -48,10 +48,8 @@ func tokenHandler(oauth2Server *Oauth2.Server, oauth2SessionRequest *Http.Oauth2
 	var user map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		println(err.Error())
-		return
+		return ""
 	}
-
-	oauth2SessionRequest.SessionIdChannel <- "test123"
-
 	fmt.Printf("User Info: %+v\n", user)
+	return "test123"
 }

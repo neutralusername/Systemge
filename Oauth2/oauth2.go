@@ -16,7 +16,7 @@ type Server struct {
 	logger                *Utilities.Logger
 	sessionRequestChannel chan *Http.Oauth2SessionRequest
 	randomizer            *Utilities.Randomizer
-	sessionRequestHandler func(*Server, *Http.Oauth2SessionRequest)
+	sessionRequestHandler func(*Server, *oauth2.Token) string
 }
 
 type Identity struct {
@@ -24,13 +24,13 @@ type Identity struct {
 	RefreshToken string
 }
 
-func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, tokenHandler func(*Server, *Http.Oauth2SessionRequest)) *Server {
+func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) string) *Server {
 	server := &Server{
 		sessions:              make(map[string]*Identity),
 		logger:                logger,
 		sessionRequestChannel: make(chan *Http.Oauth2SessionRequest),
 		oauth2Config:          oAuthConfig,
-		sessionRequestHandler: tokenHandler,
+		sessionRequestHandler: sessionRequestHandler,
 		randomizer:            Utilities.NewRandomizer(Utilities.GetSystemTime()),
 	}
 	server.oauth2State = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
@@ -44,7 +44,8 @@ func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.
 func (server *Server) Start() {
 	go func() {
 		sessionRequest := <-server.sessionRequestChannel
-		server.sessionRequestHandler(server, sessionRequest)
+		sessionId := server.sessionRequestHandler(server, sessionRequest.Token)
+		sessionRequest.SessionIdChannel <- sessionId
 	}()
 	Http.Start(server.httpServer, "", "")
 }
