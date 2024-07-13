@@ -11,8 +11,8 @@ import (
 )
 
 type oauth2SessionRequest struct {
-	Token            *oauth2.Token
-	SessionIdChannel chan<- string
+	token            *oauth2.Token
+	sessionIdChannel chan<- string
 }
 
 func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *oauth2SessionRequest, successRedirectURL, failureRedirectURL string) Http.RequestHandler {
@@ -32,8 +32,8 @@ func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Uti
 		}
 		sessionIdChannel := make(chan string)
 		Oauth2TokenRequest := &oauth2SessionRequest{
-			Token:            token,
-			SessionIdChannel: sessionIdChannel,
+			token:            token,
+			sessionIdChannel: sessionIdChannel,
 		}
 		oauth2TokenChannel <- Oauth2TokenRequest
 		sessionId := <-sessionIdChannel

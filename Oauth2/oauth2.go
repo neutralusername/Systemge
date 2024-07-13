@@ -29,11 +29,11 @@ func (server *Server) GetOauth2Config() *oauth2.Config {
 
 func handleSessionRequests(server *Server) {
 	sessionRequest := <-server.sessionRequestChannel
-	keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.Token)
+	keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.token)
 	if err != nil {
-		sessionRequest.SessionIdChannel <- ""
+		sessionRequest.sessionIdChannel <- ""
 		server.config.Logger.Warning(Error.New("failed handling session request", err).Error())
 		return
 	}
-	sessionRequest.SessionIdChannel <- server.addSession(newSession(keyValuePairs))
+	sessionRequest.sessionIdChannel <- server.addSession(newSession(keyValuePairs))
 }
