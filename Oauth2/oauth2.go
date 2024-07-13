@@ -1,37 +1,40 @@
 package Oauth2
 
 import (
+	"Systemge/Error"
 	"Systemge/Http"
 	"Systemge/Utilities"
 	"net/http"
+	"sync"
 
 	"golang.org/x/oauth2"
 )
 
 type Server struct {
 	httpServer            *http.Server
-	sessions              map[string]*Identity
 	oauth2Config          *oauth2.Config
 	oauth2State           string
 	logger                *Utilities.Logger
 	sessionRequestChannel chan *Http.Oauth2SessionRequest
 	randomizer            *Utilities.Randomizer
-	sessionRequestHandler func(*Server, *oauth2.Token) string
+	tokenHandler          func(*Server, *oauth2.Token) error
+
+	sessions map[string]*Identity
+	mutex    sync.Mutex
 }
 
 type Identity struct {
-	AccessToken  string
-	RefreshToken string
 }
 
-func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) string) *Server {
+func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) error) *Server {
 	server := &Server{
-		sessions:              make(map[string]*Identity),
 		logger:                logger,
 		sessionRequestChannel: make(chan *Http.Oauth2SessionRequest),
 		oauth2Config:          oAuthConfig,
-		sessionRequestHandler: sessionRequestHandler,
+		tokenHandler:          sessionRequestHandler,
 		randomizer:            Utilities.NewRandomizer(Utilities.GetSystemTime()),
+
+		sessions: make(map[string]*Identity),
 	}
 	server.oauth2State = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(port, map[string]Http.RequestHandler{
@@ -42,10 +45,29 @@ func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.
 }
 
 func (server *Server) Start() {
-	go func() {
+	go handleSessionRequests(server)
+	Http.Start(server.httpServer, "", "")
+}
+
+func handleSessionRequests(server *Server) {
+	func() {
 		sessionRequest := <-server.sessionRequestChannel
-		sessionId := server.sessionRequestHandler(server, sessionRequest.Token)
+		err := server.tokenHandler(server, sessionRequest.Token)
+		if err != nil {
+			sessionRequest.SessionIdChannel <- ""
+			server.logger.Warning(Error.New("failed handling session request", err).Error())
+			return
+		}
+		sessionId := ""
+		server.mutex.Lock()
+		for {
+			sessionId = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+			if _, ok := server.sessions[sessionId]; !ok {
+				server.sessions[sessionId] = &Identity{}
+				break
+			}
+		}
+		server.mutex.Unlock()
 		sessionRequest.SessionIdChannel <- sessionId
 	}()
-	Http.Start(server.httpServer, "", "")
 }

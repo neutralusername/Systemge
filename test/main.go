@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Systemge/Error"
 	"Systemge/Http"
 	"Systemge/Oauth2"
 	"Systemge/Utilities"
@@ -37,7 +38,7 @@ func main() {
 	time.Sleep(1000 * time.Second)
 }
 
-func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) string {
+func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) error {
 	client := discordOAuth2Config.Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
@@ -48,8 +49,8 @@ func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) string {
 	var user map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		println(err.Error())
-		return ""
+		return Error.New("failed decoding user", err)
 	}
 	fmt.Printf("User Info: %+v\n", user)
-	return "test123"
+	return nil
 }
