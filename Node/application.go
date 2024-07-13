@@ -2,8 +2,8 @@ package Node
 
 import (
 	"Systemge/Config"
+	"Systemge/Http"
 	"Systemge/Message"
-	"net/http"
 )
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
@@ -21,10 +21,9 @@ type CustomCommandHandler func(*Node, []string) error
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type HTTPComponent interface {
-	GetHTTPRequestHandlers() map[string]HTTPRequestHandler
+	GetHTTPRequestHandlers() map[string]Http.RequestHandler
 	GetHTTPComponentConfig() Config.HTTP
 }
-type HTTPRequestHandler func(w http.ResponseWriter, r *http.Request)
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type WebsocketComponent interface {

@@ -1,4 +1,4 @@
-package Node
+package Http
 
 import (
 	"Systemge/Error"
@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-func createHTTPServer(port int, handlers map[string]HTTPRequestHandler) *http.Server {
+type RequestHandler func(w http.ResponseWriter, r *http.Request)
+
+func New(port int, handlers map[string]RequestHandler) *http.Server {
 	mux := http.NewServeMux()
 	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, handler)
@@ -19,7 +21,7 @@ func createHTTPServer(port int, handlers map[string]HTTPRequestHandler) *http.Se
 	return httpServer
 }
 
-func startHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
+func Start(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
 	errorChannel := make(chan error)
 	go func() {
 		if tlsCertPath != "" && tlsKeyPath != "" {
@@ -49,7 +51,7 @@ func startHTTPServer(httpServer *http.Server, tlsCertPath, tlsKeyPath string) er
 	return nil
 }
 
-func stopHTTPServer(httpServer *http.Server) error {
+func Stop(httpServer *http.Server) error {
 	err := httpServer.Close()
 	if err != nil {
 		return Error.New("failed stopping http server", err)

@@ -59,6 +59,7 @@ func New(config Config.Node, application Application) *Node {
 		topicResolutions:           make(map[string]*brokerConnection),
 
 		WebsocketGroups:       make(map[string]map[string]*WebsocketClient),
+		websocketConnChannel:  make(chan *websocket.Conn),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
 	}
