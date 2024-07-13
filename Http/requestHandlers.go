@@ -29,20 +29,23 @@ func DiscordAuth(discordOAuth2Config *oauth2.Config, oauth2State string) Request
 	}
 }
 
-func DiscordAuthCallback(discordOAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan *oauth2.Token) RequestHandler {
+func DiscordAuthCallback(discordOAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan *oauth2.Token, successRedirectURL, failureRedirectURL string) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
 			logger.Warning(Error.New("oauth2 state mismatch", nil).Error())
+			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
 			return
 		}
 		code := httpRequest.FormValue("code")
 		token, err := discordOAuth2Config.Exchange(httpRequest.Context(), code)
 		if err != nil {
 			logger.Warning(Error.New(fmt.Sprintf("failed exchanging code for token: %s", err.Error()), nil).Error())
+			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
 			return
 		}
 		oauth2TokenChannel <- token
+		http.Redirect(responseWriter, httpRequest, successRedirectURL, http.StatusMovedPermanently)
 	}
 }
 

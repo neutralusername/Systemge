@@ -35,12 +35,13 @@ func main() {
 
 	tokenChannel := make(chan *oauth2.Token)
 
-	http.HandleFunc("/", Http.DiscordAuth(discordOAuth2Config, oauth2State))
-	http.HandleFunc("/callback", Http.DiscordAuthCallback(discordOAuth2Config, oauth2State, logger, tokenChannel))
+	http.HandleFunc("/auth", Http.DiscordAuth(discordOAuth2Config, oauth2State))
+	http.HandleFunc("/callback", Http.DiscordAuthCallback(discordOAuth2Config, oauth2State, logger, tokenChannel, "/", "/error"))
+	http.HandleFunc("/", Http.SendHTTPResponseCodeAndBody(http.StatusOK, "Hello, World!"))
+	http.HandleFunc("/error", Http.SendHTTPResponseCodeAndBody(http.StatusInternalServerError, "An error occurred!"))
 
 	go func() {
 		token := <-tokenChannel
-		println("t")
 		handleToken(token)
 	}()
 
