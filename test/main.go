@@ -13,12 +13,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
-
 func main() {
+	randomizer := Utilities.NewRandomizer(Utilities.GetSystemTime())
 	oauth2Server := (&Oauth2.Config{
-		Randomizer:        Utilities.NewRandomizer(Utilities.GetSystemTime()),
-		Oauth2State:       "oauth2state", // should be random string
+		Randomizer:        randomizer,
+		Oauth2State:       randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC),
 		SessionLifetimeMs: 5000,
 		Port:              8081,
 		AuthPath:          "/auth",
@@ -33,7 +32,7 @@ func main() {
 				TokenURL: "https://discord.com/api/oauth2/token",
 			},
 		},
-		Logger:       logger,
+		Logger:       Utilities.NewLogger("test.log", "test.log", "test.log", "test.log"),
 		TokenHandler: tokenHandler,
 	}).New()
 	oauth2Server.Start()
