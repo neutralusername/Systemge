@@ -33,11 +33,3 @@ func (server *Server) removeSession(sessionId string) {
 	defer server.mutex.Unlock()
 	delete(server.sessions, sessionId)
 }
-
-func (server *Server) Refresh(session *Session) {
-	session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
-}
-
-func (server *Server) Expire(session *Session) {
-	session.watchdog.Reset(0)
-}
