@@ -27,10 +27,9 @@ var discordOAuth2Config = &oauth2.Config{
 }
 
 func main() {
-	httpServer := Http.
-		New(8080, map[string]Http.RequestHandler{
-			"/": Http.SendHTTPResponseCodeAndBody(200, "Hello World"),
-		})
+	httpServer := Http.New(8080, map[string]Http.RequestHandler{
+		"/": Http.SendHTTPResponseCodeAndBody(200, "Hello World"),
+	})
 	Http.Start(httpServer, "", "")
 
 	oauth2Server := Oauth2.NewServer(8081, "/auth", "/callback", discordOAuth2Config, logger, tokenHandler)
@@ -38,8 +37,8 @@ func main() {
 	time.Sleep(1000 * time.Second)
 }
 
-func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) {
-	client := discordOAuth2Config.Client(context.Background(), token)
+func tokenHandler(oauth2Server *Oauth2.Server, oauth2SessionRequest *Http.Oauth2SessionRequest) {
+	client := discordOAuth2Config.Client(context.Background(), oauth2SessionRequest.Token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
 		log.Fatalf("Failed getting user: %v\n", err)
@@ -51,6 +50,8 @@ func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) {
 		println(err.Error())
 		return
 	}
+
+	oauth2SessionRequest.SessionIdChannel <- "test123"
 
 	fmt.Printf("User Info: %+v\n", user)
 }

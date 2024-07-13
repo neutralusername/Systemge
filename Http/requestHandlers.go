@@ -29,7 +29,12 @@ func Oauth2(oAuth2Config *oauth2.Config, oauth2State string) RequestHandler {
 	}
 }
 
-func Oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan *oauth2.Token, successRedirectURL, failureRedirectURL string) RequestHandler {
+type Oauth2SessionRequest struct {
+	Token            *oauth2.Token
+	SessionIdChannel chan string
+}
+
+func Oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *Oauth2SessionRequest, successRedirectURL, failureRedirectURL string) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
@@ -44,8 +49,17 @@ func Oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Uti
 			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
 			return
 		}
-		oauth2TokenChannel <- token
-		http.Redirect(responseWriter, httpRequest, successRedirectURL, http.StatusMovedPermanently)
+		Oauth2TokenRequest := &Oauth2SessionRequest{
+			Token:            token,
+			SessionIdChannel: make(chan string),
+		}
+		oauth2TokenChannel <- Oauth2TokenRequest
+		sessionId := <-Oauth2TokenRequest.SessionIdChannel
+		if sessionId == "" {
+			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
+			return
+		}
+		http.Redirect(responseWriter, httpRequest, successRedirectURL+"?sessionId="+sessionId, http.StatusMovedPermanently)
 	}
 }
 
