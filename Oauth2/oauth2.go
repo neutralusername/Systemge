@@ -14,8 +14,6 @@ import (
 type Server struct {
 	httpServer            *http.Server
 	sessionRequestChannel chan *Oauth2SessionRequest
-	randomizer            *Utilities.Randomizer
-	oauth2State           string
 	config                *Config
 
 	sessions map[string]*Session
@@ -46,7 +44,7 @@ func (server *Server) addSession(session *Session) string {
 	sessionId := ""
 	server.mutex.Lock()
 	for {
-		sessionId = server.randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
+		sessionId = server.config.Randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
 			server.sessions[sessionId] = session
 			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, func() {

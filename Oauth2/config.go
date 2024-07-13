@@ -15,20 +15,21 @@ type Config struct {
 	Logger            *Utilities.Logger
 	TokenHandler      func(*Server, *oauth2.Token) (map[string]interface{}, error)
 	SessionLifetimeMs int
+	Randomizer        *Utilities.Randomizer
+	Oauth2State       string
 }
 
 func (config *Config) New() *Server {
 	server := &Server{
 		sessionRequestChannel: make(chan *Oauth2SessionRequest),
 		config:                config,
-		randomizer:            Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
 		sessions: make(map[string]*Session),
 	}
-	server.oauth2State = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+	server.config.Oauth2State = server.config.Randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(config.Port, map[string]Http.RequestHandler{
-		config.AuthPath:         oauth2Auth(server.config.OAuth2Config, server.oauth2State),
-		config.AuthCallbackPath: oauth2Callback(server.config.OAuth2Config, server.oauth2State, server.config.Logger, server.sessionRequestChannel, "http://127.0.0.1:8080/", "http://google.at"),
+		config.AuthPath:         oauth2Auth(server.config.OAuth2Config, server.config.Oauth2State),
+		config.AuthCallbackPath: oauth2Callback(server.config.OAuth2Config, server.config.Oauth2State, server.config.Logger, server.sessionRequestChannel, "http://127.0.0.1:8080/", "http://google.at"),
 	})
 	return server
 }

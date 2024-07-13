@@ -17,6 +17,8 @@ var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
 
 func main() {
 	oauth2Server := (&Oauth2.Config{
+		Randomizer:        Utilities.NewRandomizer(Utilities.GetSystemTime()),
+		Oauth2State:       "oauth2state", // should be random string
 		SessionLifetimeMs: 5000,
 		Port:              8081,
 		AuthPath:          "/auth",
