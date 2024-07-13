@@ -36,17 +36,19 @@ func handleSessionRequests(server *Server) {
 		server.logger.Warning(Error.New("failed handling session request", err).Error())
 		return
 	}
+	sessionRequest.SessionIdChannel <- server.NewSession(NewSession(keyValuePairs))
+}
+
+func (server *Server) NewSession(session *Session) string {
 	sessionId := ""
 	server.mutex.Lock()
 	for {
 		sessionId = server.randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
-			server.sessions[sessionId] = &Session{
-				keyValuePairs: keyValuePairs,
-			}
+			server.sessions[sessionId] = session
 			break
 		}
 	}
 	server.mutex.Unlock()
-	sessionRequest.SessionIdChannel <- sessionId
+	return sessionId
 }
