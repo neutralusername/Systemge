@@ -7,8 +7,6 @@ import (
 	"Systemge/Utilities"
 	"context"
 	"encoding/json"
-	"fmt"
-	"log"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -38,19 +36,17 @@ func main() {
 	time.Sleep(1000 * time.Second)
 }
 
-func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) error {
+func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) (map[string]interface{}, error) {
 	client := discordOAuth2Config.Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
-		log.Fatalf("Failed getting user: %v\n", err)
+		return nil, Error.New("failed getting user", err)
 	}
 	defer resp.Body.Close()
 
 	var user map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		println(err.Error())
-		return Error.New("failed decoding user", err)
+		return nil, Error.New("failed decoding user", err)
 	}
-	fmt.Printf("User Info: %+v\n", user)
-	return nil
+	return user, nil
 }

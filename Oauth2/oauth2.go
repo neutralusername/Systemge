@@ -17,16 +17,17 @@ type Server struct {
 	logger                *Utilities.Logger
 	sessionRequestChannel chan *Http.Oauth2SessionRequest
 	randomizer            *Utilities.Randomizer
-	tokenHandler          func(*Server, *oauth2.Token) error
+	tokenHandler          func(*Server, *oauth2.Token) (map[string]interface{}, error)
 
 	sessions map[string]*Identity
 	mutex    sync.Mutex
 }
 
 type Identity struct {
+	keyValuePairs map[string]interface{}
 }
 
-func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) error) *Server {
+func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) (map[string]interface{}, error)) *Server {
 	server := &Server{
 		logger:                logger,
 		sessionRequestChannel: make(chan *Http.Oauth2SessionRequest),
@@ -52,7 +53,7 @@ func (server *Server) Start() {
 func handleSessionRequests(server *Server) {
 	func() {
 		sessionRequest := <-server.sessionRequestChannel
-		err := server.tokenHandler(server, sessionRequest.Token)
+		keyValuePairs, err := server.tokenHandler(server, sessionRequest.Token)
 		if err != nil {
 			sessionRequest.SessionIdChannel <- ""
 			server.logger.Warning(Error.New("failed handling session request", err).Error())
@@ -63,7 +64,9 @@ func handleSessionRequests(server *Server) {
 		for {
 			sessionId = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 			if _, ok := server.sessions[sessionId]; !ok {
-				server.sessions[sessionId] = &Identity{}
+				server.sessions[sessionId] = &Identity{
+					keyValuePairs: keyValuePairs,
+				}
 				break
 			}
 		}
