@@ -11,7 +11,7 @@ import (
 
 type Server struct {
 	httpServer            *http.Server
-	sessionRequestChannel chan *Oauth2SessionRequest
+	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config
 
 	sessions map[string]*Session

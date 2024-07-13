@@ -21,7 +21,7 @@ type Config struct {
 
 func (config *Config) New() *Server {
 	server := &Server{
-		sessionRequestChannel: make(chan *Oauth2SessionRequest),
+		sessionRequestChannel: make(chan *oauth2SessionRequest),
 		config:                config,
 
 		sessions: make(map[string]*Session),

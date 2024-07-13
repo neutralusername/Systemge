@@ -10,12 +10,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Oauth2SessionRequest struct {
+type oauth2SessionRequest struct {
 	Token            *oauth2.Token
 	SessionIdChannel chan<- string
 }
 
-func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *Oauth2SessionRequest, successRedirectURL, failureRedirectURL string) Http.RequestHandler {
+func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *oauth2SessionRequest, successRedirectURL, failureRedirectURL string) Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
@@ -31,7 +31,7 @@ func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Uti
 			return
 		}
 		sessionIdChannel := make(chan string)
-		Oauth2TokenRequest := &Oauth2SessionRequest{
+		Oauth2TokenRequest := &oauth2SessionRequest{
 			Token:            token,
 			SessionIdChannel: sessionIdChannel,
 		}
