@@ -23,22 +23,16 @@ var (
 			TokenURL: "https://discord.com/api/oauth2/token",
 		},
 	}
-	oauth2State = "randomState" // Generate a random state for each session in production
+	oauth2State = "randomState"
 )
 
 var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
 
 func main() {
-	// Print the client ID and secret to verify they are being loaded correctly
-	fmt.Printf("Client ID: %s\n", discordOAuth2Config.ClientID)
-	fmt.Printf("Client Secret: %s\n", discordOAuth2Config.ClientSecret)
-
 	tokenChannel := make(chan *oauth2.Token)
-
 	http.HandleFunc("/auth", Http.DiscordAuth(discordOAuth2Config, oauth2State))
-	http.HandleFunc("/callback", Http.DiscordAuthCallback(discordOAuth2Config, oauth2State, logger, tokenChannel, "/", "/error"))
+	http.HandleFunc("/callback", Http.DiscordAuthCallback(discordOAuth2Config, oauth2State, logger, tokenChannel, "/", "http://google.at"))
 	http.HandleFunc("/", Http.SendHTTPResponseCodeAndBody(http.StatusOK, "Hello, World!"))
-	http.HandleFunc("/error", Http.SendHTTPResponseCodeAndBody(http.StatusInternalServerError, "An error occurred!"))
 
 	go func() {
 		token := <-tokenChannel
