@@ -2,6 +2,7 @@ package main
 
 import (
 	"Systemge/Http"
+	"Systemge/Utilities"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 var (
 	discordOAuth2Config = &oauth2.Config{
 		ClientID:     "1261641608886222908",
-		ClientSecret: "oAihi_Ezi3n-6CpUwE4OSohVxXeQ3vQK",
+		ClientSecret: "xD",
 		RedirectURL:  "http://localhost:8080/callback",
 		Scopes:       []string{"identify"},
 		Endpoint: oauth2.Endpoint{
@@ -25,13 +26,23 @@ var (
 	oauth2State = "randomState" // Generate a random state for each session in production
 )
 
+var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
+
 func main() {
 	// Print the client ID and secret to verify they are being loaded correctly
 	fmt.Printf("Client ID: %s\n", discordOAuth2Config.ClientID)
 	fmt.Printf("Client Secret: %s\n", discordOAuth2Config.ClientSecret)
 
+	tokenChannel := make(chan *oauth2.Token)
+
 	http.HandleFunc("/", Http.DiscordAuth(discordOAuth2Config, oauth2State))
-	http.HandleFunc("/callback", handleCallback)
+	http.HandleFunc("/callback", Http.DiscordAuthCallback(discordOAuth2Config, oauth2State, logger, tokenChannel))
+
+	go func() {
+		token := <-tokenChannel
+		println("t")
+		handleToken(token)
+	}()
 
 	log.Println("Server starting on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -39,42 +50,19 @@ func main() {
 	}
 }
 
-func handleCallback(w http.ResponseWriter, r *http.Request) {
-	log.Println("HandleCallback: Received request")
-	state := r.URL.Query().Get("state")
-	if state != oauth2State {
-		http.Error(w, "invalid oauth state", http.StatusUnauthorized)
-		return
-	}
-
-	code := r.URL.Query().Get("code")
-	token, err := discordOAuth2Config.Exchange(context.Background(), code)
-	if err != nil {
-		log.Printf("discordOAuth2Config.Exchange() failed with '%s'\n", err)
-		http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
-		return
-	}
-
+func handleToken(token *oauth2.Token) {
 	client := discordOAuth2Config.Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
-		log.Printf("client.Get() failed with '%s'\n", err)
-		http.Error(w, "Failed to get user info", http.StatusInternalServerError)
-		return
+		log.Fatalf("Failed getting user: %v\n", err)
 	}
 	defer resp.Body.Close()
 
 	var user map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		log.Printf("json.Decode() failed with '%s'\n", err)
-		http.Error(w, "Failed to decode user info", http.StatusInternalServerError)
+		println(err.Error())
 		return
 	}
 
-	// Use user info (e.g., user["id"], user["username"]) to identify the client
 	fmt.Printf("User Info: %+v\n", user)
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
 }

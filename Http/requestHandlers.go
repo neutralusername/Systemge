@@ -29,6 +29,23 @@ func DiscordAuth(discordOAuth2Config *oauth2.Config, oauth2State string) Request
 	}
 }
 
+func DiscordAuthCallback(discordOAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan *oauth2.Token) RequestHandler {
+	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+		state := httpRequest.FormValue("state")
+		if state != oauth2State {
+			logger.Warning(Error.New("oauth2 state mismatch", nil).Error())
+			return
+		}
+		code := httpRequest.FormValue("code")
+		token, err := discordOAuth2Config.Exchange(httpRequest.Context(), code)
+		if err != nil {
+			logger.Warning(Error.New(fmt.Sprintf("failed exchanging code for token: %s", err.Error()), nil).Error())
+			return
+		}
+		oauth2TokenChannel <- token
+	}
+}
+
 func WebsocketUpgrade(upgrader websocket.Upgrader, logger *Utilities.Logger, acceptConnection *bool, websocketConnChannel chan *websocket.Conn) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if !*acceptConnection {
