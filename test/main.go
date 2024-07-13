@@ -59,9 +59,9 @@ func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) (map[string]
 	}
 	defer resp.Body.Close()
 
-	var user map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+	var discordAuthData map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&discordAuthData); err != nil {
 		return nil, Error.New("failed decoding user", err)
 	}
-	return user, nil
+	return discordAuthData, nil
 }

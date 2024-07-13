@@ -23,21 +23,6 @@ type Server struct {
 	mutex    sync.Mutex
 }
 
-type Session struct {
-	keyValuePairs map[string]interface{}
-}
-
-func (session *Session) Get(key string) (interface{}, bool) {
-	value, ok := session.keyValuePairs[key]
-	return value, ok
-}
-
-func (server *Server) GetSession(sessionId string) *Session {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	return server.sessions[sessionId]
-}
-
 func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) (map[string]interface{}, error)) *Server {
 	server := &Server{
 		logger:                logger,
@@ -61,27 +46,31 @@ func (server *Server) Start() {
 	Http.Start(server.httpServer, "", "")
 }
 
+func (server *Server) GetSession(sessionId string) *Session {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	return server.sessions[sessionId]
+}
+
 func handleSessionRequests(server *Server) {
-	func() {
-		sessionRequest := <-server.sessionRequestChannel
-		keyValuePairs, err := server.tokenHandler(server, sessionRequest.Token)
-		if err != nil {
-			sessionRequest.SessionIdChannel <- ""
-			server.logger.Warning(Error.New("failed handling session request", err).Error())
-			return
-		}
-		sessionId := ""
-		server.mutex.Lock()
-		for {
-			sessionId = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
-			if _, ok := server.sessions[sessionId]; !ok {
-				server.sessions[sessionId] = &Session{
-					keyValuePairs: keyValuePairs,
-				}
-				break
+	sessionRequest := <-server.sessionRequestChannel
+	keyValuePairs, err := server.tokenHandler(server, sessionRequest.Token)
+	if err != nil {
+		sessionRequest.SessionIdChannel <- ""
+		server.logger.Warning(Error.New("failed handling session request", err).Error())
+		return
+	}
+	sessionId := ""
+	server.mutex.Lock()
+	for {
+		sessionId = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+		if _, ok := server.sessions[sessionId]; !ok {
+			server.sessions[sessionId] = &Session{
+				keyValuePairs: keyValuePairs,
 			}
+			break
 		}
-		server.mutex.Unlock()
-		sessionRequest.SessionIdChannel <- sessionId
-	}()
+	}
+	server.mutex.Unlock()
+	sessionRequest.SessionIdChannel <- sessionId
 }
