@@ -4,7 +4,7 @@ type Session struct {
 	keyValuePairs map[string]interface{}
 }
 
-func NewSession(keyValuePairs map[string]interface{}) *Session {
+func newSession(keyValuePairs map[string]interface{}) *Session {
 	return &Session{keyValuePairs: keyValuePairs}
 }
 

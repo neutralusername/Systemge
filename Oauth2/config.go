@@ -28,8 +28,8 @@ func (oauth2ServerConfig *ServerConfig) New() *Server {
 	}
 	server.oauth2State = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(oauth2ServerConfig.Port, map[string]Http.RequestHandler{
-		oauth2ServerConfig.AuthPath:         Oauth2(server.oauth2Config, server.oauth2State),
-		oauth2ServerConfig.AuthCallbackPath: Oauth2Callback(server.oauth2Config, server.oauth2State, server.logger, server.sessionRequestChannel, "http://127.0.0.1:8080/", "http://google.at"),
+		oauth2ServerConfig.AuthPath:         oauth2Auth(server.oauth2Config, server.oauth2State),
+		oauth2ServerConfig.AuthCallbackPath: oauth2Callback(server.oauth2Config, server.oauth2State, server.logger, server.sessionRequestChannel, "http://127.0.0.1:8080/", "http://google.at"),
 	})
 	return server
 }

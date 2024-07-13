@@ -36,10 +36,10 @@ func handleSessionRequests(server *Server) {
 		server.logger.Warning(Error.New("failed handling session request", err).Error())
 		return
 	}
-	sessionRequest.SessionIdChannel <- server.NewSession(NewSession(keyValuePairs))
+	sessionRequest.SessionIdChannel <- server.newSession(newSession(keyValuePairs))
 }
 
-func (server *Server) NewSession(session *Session) string {
+func (server *Server) newSession(session *Session) string {
 	sessionId := ""
 	server.mutex.Lock()
 	for {

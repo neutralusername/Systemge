@@ -15,7 +15,7 @@ type Oauth2SessionRequest struct {
 	SessionIdChannel chan string
 }
 
-func Oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *Oauth2SessionRequest, successRedirectURL, failureRedirectURL string) Http.RequestHandler {
+func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *Oauth2SessionRequest, successRedirectURL, failureRedirectURL string) Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
@@ -44,7 +44,7 @@ func Oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Uti
 	}
 }
 
-func Oauth2(oAuth2Config *oauth2.Config, oauth2State string) Http.RequestHandler {
+func oauth2Auth(oAuth2Config *oauth2.Config, oauth2State string) Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		url := oAuth2Config.AuthCodeURL(oauth2State)
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
