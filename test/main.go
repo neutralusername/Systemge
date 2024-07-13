@@ -15,26 +15,25 @@ import (
 
 var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
 
-var discordOAuth2Config = &oauth2.Config{
-	ClientID:     "1261641608886222908",
-	ClientSecret: "xD",
-	RedirectURL:  "http://localhost:8081/callback",
-	Scopes:       []string{"identify"},
-	Endpoint: oauth2.Endpoint{
-		AuthURL:  "https://discord.com/api/oauth2/authorize",
-		TokenURL: "https://discord.com/api/oauth2/token",
-	},
-}
-
 func main() {
 	oauth2Server := (&Oauth2.ServerConfig{
-		Port:                  8081,
-		AuthPath:              "/auth",
-		AuthCallbackPath:      "/callback",
-		OAuth2Config:          discordOAuth2Config,
+		Port:             8081,
+		AuthPath:         "/auth",
+		AuthCallbackPath: "/callback",
+		OAuth2Config: &oauth2.Config{
+			ClientID:     "1261641608886222908",
+			ClientSecret: "xD",
+			RedirectURL:  "http://localhost:8081/callback",
+			Scopes:       []string{"identify"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://discord.com/api/oauth2/authorize",
+				TokenURL: "https://discord.com/api/oauth2/token",
+			},
+		},
 		Logger:                logger,
 		SessionRequestHandler: tokenHandler,
 	}).New()
+	oauth2Server.Start()
 
 	httpServer := Http.New(8080, map[string]Http.RequestHandler{
 		"/": func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
@@ -54,12 +53,11 @@ func main() {
 	})
 	Http.Start(httpServer, "", "")
 
-	oauth2Server.Start()
 	time.Sleep(1000 * time.Second)
 }
 
 func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) (map[string]interface{}, error) {
-	client := discordOAuth2Config.Client(context.Background(), token)
+	client := oauth2Server.GetOauth2Config().Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
 		return nil, Error.New("failed getting user", err)

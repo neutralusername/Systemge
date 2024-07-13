@@ -28,6 +28,10 @@ func (server *Server) Start() {
 	Http.Start(server.httpServer, "", "")
 }
 
+func (server *Server) GetOauth2Config() *oauth2.Config {
+	return server.oauth2Config
+}
+
 func handleSessionRequests(server *Server) {
 	sessionRequest := <-server.sessionRequestChannel
 	keyValuePairs, err := server.tokenHandler(server, sessionRequest.Token)
