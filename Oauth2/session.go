@@ -1,7 +1,10 @@
 package Oauth2
 
+import "time"
+
 type Session struct {
 	keyValuePairs map[string]interface{}
+	watchdog      *time.Timer
 }
 
 func newSession(keyValuePairs map[string]interface{}) *Session {

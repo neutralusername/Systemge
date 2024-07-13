@@ -7,29 +7,28 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type ServerConfig struct {
-	Port                  int
-	AuthPath              string
-	AuthCallbackPath      string
-	OAuth2Config          *oauth2.Config
-	Logger                *Utilities.Logger
-	SessionRequestHandler func(*Server, *oauth2.Token) (map[string]interface{}, error)
+type Config struct {
+	Port              int
+	AuthPath          string
+	AuthCallbackPath  string
+	OAuth2Config      *oauth2.Config
+	Logger            *Utilities.Logger
+	TokenHandler      func(*Server, *oauth2.Token) (map[string]interface{}, error)
+	SessionLifetimeMs int
 }
 
-func (oauth2ServerConfig *ServerConfig) New() *Server {
+func (config *Config) New() *Server {
 	server := &Server{
-		logger:                oauth2ServerConfig.Logger,
 		sessionRequestChannel: make(chan *Oauth2SessionRequest),
-		oauth2Config:          oauth2ServerConfig.OAuth2Config,
-		tokenHandler:          oauth2ServerConfig.SessionRequestHandler,
+		config:                config,
 		randomizer:            Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
 		sessions: make(map[string]*Session),
 	}
 	server.oauth2State = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
-	server.httpServer = Http.New(oauth2ServerConfig.Port, map[string]Http.RequestHandler{
-		oauth2ServerConfig.AuthPath:         oauth2Auth(server.oauth2Config, server.oauth2State),
-		oauth2ServerConfig.AuthCallbackPath: oauth2Callback(server.oauth2Config, server.oauth2State, server.logger, server.sessionRequestChannel, "http://127.0.0.1:8080/", "http://google.at"),
+	server.httpServer = Http.New(config.Port, map[string]Http.RequestHandler{
+		config.AuthPath:         oauth2Auth(server.config.OAuth2Config, server.oauth2State),
+		config.AuthCallbackPath: oauth2Callback(server.config.OAuth2Config, server.oauth2State, server.config.Logger, server.sessionRequestChannel, "http://127.0.0.1:8080/", "http://google.at"),
 	})
 	return server
 }

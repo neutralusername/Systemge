@@ -16,10 +16,11 @@ import (
 var logger = Utilities.NewLogger("test.log", "test.log", "test.log", "test.log")
 
 func main() {
-	oauth2Server := (&Oauth2.ServerConfig{
-		Port:             8081,
-		AuthPath:         "/auth",
-		AuthCallbackPath: "/callback",
+	oauth2Server := (&Oauth2.Config{
+		SessionLifetimeMs: 5000,
+		Port:              8081,
+		AuthPath:          "/auth",
+		AuthCallbackPath:  "/callback",
 		OAuth2Config: &oauth2.Config{
 			ClientID:     "1261641608886222908",
 			ClientSecret: "xD",
@@ -30,8 +31,8 @@ func main() {
 				TokenURL: "https://discord.com/api/oauth2/token",
 			},
 		},
-		Logger:                logger,
-		SessionRequestHandler: tokenHandler,
+		Logger:       logger,
+		TokenHandler: tokenHandler,
 	}).New()
 	oauth2Server.Start()
 

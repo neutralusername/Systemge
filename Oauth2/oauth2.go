@@ -6,18 +6,17 @@ import (
 	"Systemge/Utilities"
 	"net/http"
 	"sync"
+	"time"
 
 	"golang.org/x/oauth2"
 )
 
 type Server struct {
 	httpServer            *http.Server
-	oauth2Config          *oauth2.Config
-	oauth2State           string
-	logger                *Utilities.Logger
 	sessionRequestChannel chan *Oauth2SessionRequest
 	randomizer            *Utilities.Randomizer
-	tokenHandler          func(*Server, *oauth2.Token) (map[string]interface{}, error)
+	oauth2State           string
+	config                *Config
 
 	sessions map[string]*Session
 	mutex    sync.Mutex
@@ -29,27 +28,32 @@ func (server *Server) Start() {
 }
 
 func (server *Server) GetOauth2Config() *oauth2.Config {
-	return server.oauth2Config
+	return server.config.OAuth2Config
 }
 
 func handleSessionRequests(server *Server) {
 	sessionRequest := <-server.sessionRequestChannel
-	keyValuePairs, err := server.tokenHandler(server, sessionRequest.Token)
+	keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.Token)
 	if err != nil {
 		sessionRequest.SessionIdChannel <- ""
-		server.logger.Warning(Error.New("failed handling session request", err).Error())
+		server.config.Logger.Warning(Error.New("failed handling session request", err).Error())
 		return
 	}
-	sessionRequest.SessionIdChannel <- server.newSession(newSession(keyValuePairs))
+	sessionRequest.SessionIdChannel <- server.addSession(newSession(keyValuePairs))
 }
 
-func (server *Server) newSession(session *Session) string {
+func (server *Server) addSession(session *Session) string {
 	sessionId := ""
 	server.mutex.Lock()
 	for {
 		sessionId = server.randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
 			server.sessions[sessionId] = session
+			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, func() {
+				server.mutex.Lock()
+				delete(server.sessions, sessionId)
+				server.mutex.Unlock()
+			})
 			break
 		}
 	}
