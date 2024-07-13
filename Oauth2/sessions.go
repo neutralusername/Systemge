@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-func (server *Server) GetSession(sessionId string) *Session {
+func (server *Server) GetSession(sessionId string) *session {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	return server.sessions[sessionId]
 }
 
-func (server *Server) addSession(session *Session) string {
+func (server *Server) addSession(session *session) string {
 	sessionId := ""
 	server.mutex.Lock()
 	for {

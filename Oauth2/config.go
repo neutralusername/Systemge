@@ -24,7 +24,7 @@ func (config *Config) New() *Server {
 		sessionRequestChannel: make(chan *oauth2SessionRequest),
 		config:                config,
 
-		sessions: make(map[string]*Session),
+		sessions: make(map[string]*session),
 	}
 	server.config.Oauth2State = server.config.Randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(config.Port, map[string]Http.RequestHandler{

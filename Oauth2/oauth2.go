@@ -14,7 +14,7 @@ type Server struct {
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config
 
-	sessions map[string]*Session
+	sessions map[string]*session
 	mutex    sync.Mutex
 }
 
