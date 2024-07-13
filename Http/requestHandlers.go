@@ -22,14 +22,14 @@ func RedirectTo(toURL string) RequestHandler {
 	}
 }
 
-func DiscordAuth(discordOAuth2Config *oauth2.Config, oauth2State string) RequestHandler {
+func Oauth2(oAuth2Config *oauth2.Config, oauth2State string) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		url := discordOAuth2Config.AuthCodeURL(oauth2State)
+		url := oAuth2Config.AuthCodeURL(oauth2State)
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
 	}
 }
 
-func DiscordAuthCallback(discordOAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan *oauth2.Token, successRedirectURL, failureRedirectURL string) RequestHandler {
+func Oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan *oauth2.Token, successRedirectURL, failureRedirectURL string) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
@@ -38,7 +38,7 @@ func DiscordAuthCallback(discordOAuth2Config *oauth2.Config, oauth2State string,
 			return
 		}
 		code := httpRequest.FormValue("code")
-		token, err := discordOAuth2Config.Exchange(httpRequest.Context(), code)
+		token, err := oAuth2Config.Exchange(httpRequest.Context(), code)
 		if err != nil {
 			logger.Warning(Error.New(fmt.Sprintf("failed exchanging code for token: %s", err.Error()), nil).Error())
 			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
