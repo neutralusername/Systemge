@@ -7,6 +7,7 @@ import (
 	"Systemge/Utilities"
 	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -26,12 +27,26 @@ var discordOAuth2Config = &oauth2.Config{
 }
 
 func main() {
+	oauth2Server := Oauth2.NewServer(8081, "/auth", "/callback", discordOAuth2Config, logger, tokenHandler)
+
 	httpServer := Http.New(8080, map[string]Http.RequestHandler{
-		"/": Http.SendHTTPResponseCodeAndBody(200, "Hello World"),
+		"/": func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+			sessionId := httpRequest.URL.Query().Get("sessionId")
+			session := oauth2Server.GetSession(sessionId)
+			if session == nil {
+				responseWriter.Write([]byte("invalid session"))
+				return
+			}
+			username, ok := session.Get("username")
+			if !ok {
+				responseWriter.Write([]byte("invalid session"))
+				return
+			}
+			responseWriter.Write([]byte("Hello " + username.(string)))
+		},
 	})
 	Http.Start(httpServer, "", "")
 
-	oauth2Server := Oauth2.NewServer(8081, "/auth", "/callback", discordOAuth2Config, logger, tokenHandler)
 	oauth2Server.Start()
 	time.Sleep(1000 * time.Second)
 }

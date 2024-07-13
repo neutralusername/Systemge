@@ -19,12 +19,23 @@ type Server struct {
 	randomizer            *Utilities.Randomizer
 	tokenHandler          func(*Server, *oauth2.Token) (map[string]interface{}, error)
 
-	sessions map[string]*Identity
+	sessions map[string]*Session
 	mutex    sync.Mutex
 }
 
-type Identity struct {
+type Session struct {
 	keyValuePairs map[string]interface{}
+}
+
+func (session *Session) Get(key string) (interface{}, bool) {
+	value, ok := session.keyValuePairs[key]
+	return value, ok
+}
+
+func (server *Server) GetSession(sessionId string) *Session {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	return server.sessions[sessionId]
 }
 
 func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.Config, logger *Utilities.Logger, sessionRequestHandler func(*Server, *oauth2.Token) (map[string]interface{}, error)) *Server {
@@ -35,7 +46,7 @@ func NewServer(port int, authPath, authCallbackPath string, oAuthConfig *oauth2.
 		tokenHandler:          sessionRequestHandler,
 		randomizer:            Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
-		sessions: make(map[string]*Identity),
+		sessions: make(map[string]*Session),
 	}
 	server.oauth2State = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(port, map[string]Http.RequestHandler{
@@ -64,7 +75,7 @@ func handleSessionRequests(server *Server) {
 		for {
 			sessionId = server.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 			if _, ok := server.sessions[sessionId]; !ok {
-				server.sessions[sessionId] = &Identity{
+				server.sessions[sessionId] = &Session{
 					keyValuePairs: keyValuePairs,
 				}
 				break
