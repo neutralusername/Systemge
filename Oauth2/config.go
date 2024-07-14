@@ -39,6 +39,8 @@ func (config Config) NewServer() (*Server, error) {
 
 		sessions:   make(map[string]*session),
 		identities: make(map[string]*session),
+
+		stopChannel: make(chan string),
 	}
 	server.config.Oauth2State = server.config.Randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(config.Port, map[string]Http.RequestHandler{
