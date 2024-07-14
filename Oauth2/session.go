@@ -1,14 +1,12 @@
 package Oauth2
 
 import (
-	"sync"
 	"time"
 )
 
 type session struct {
 	keyValuePairs map[string]interface{}
 	watchdog      *time.Timer
-	mutex         sync.Mutex
 }
 
 func (session *session) Expired() bool {
@@ -25,8 +23,8 @@ func (session *session) Get(key string) (interface{}, bool) {
 }
 
 func (server *Server) Refresh(session *session) {
-	session.mutex.Lock()
-	defer session.mutex.Unlock()
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	if session.Expired() {
 		return
 	}
@@ -34,8 +32,8 @@ func (server *Server) Refresh(session *session) {
 }
 
 func (server *Server) Expire(session *session) {
-	session.mutex.Lock()
-	defer session.mutex.Unlock()
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	if session.Expired() {
 		return
 	}
@@ -43,8 +41,8 @@ func (server *Server) Expire(session *session) {
 }
 
 func (server *Server) stop(session *session) {
-	session.mutex.Lock()
-	defer session.mutex.Unlock()
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	if session.Expired() {
 		return
 	}

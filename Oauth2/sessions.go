@@ -19,13 +19,14 @@ func (server *Server) addSession(session *session) string {
 		if _, ok := server.sessions[sessionId]; !ok {
 			server.sessions[sessionId] = session
 			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, func() {
-				session.mutex.Lock()
-				defer session.mutex.Unlock()
+				server.mutex.Lock()
+				defer server.mutex.Unlock()
 				if session.Expired() {
 					return
 				}
 				session.watchdog = nil
-				server.removeSession(sessionId)
+				delete(server.sessions, sessionId)
+				server.config.Logger.Info("removed session \"" + sessionId + "\"")
 			})
 			break
 		}
@@ -33,11 +34,4 @@ func (server *Server) addSession(session *session) string {
 	server.config.Logger.Info("created session \"" + sessionId + "\"")
 	server.mutex.Unlock()
 	return sessionId
-}
-
-func (server *Server) removeSession(sessionId string) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	delete(server.sessions, sessionId)
-	server.config.Logger.Info("removed session \"" + sessionId + "\"")
 }
