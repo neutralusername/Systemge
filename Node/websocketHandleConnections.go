@@ -12,7 +12,6 @@ func (node *Node) handleWebsocketConnections() {
 		case <-node.stopChannel:
 			return
 		case websocketConn := <-node.websocketConnChannel:
-			println("test")
 			if websocketConn == nil {
 				continue
 			}
