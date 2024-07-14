@@ -16,8 +16,6 @@ type nodeConnection struct {
 
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
-
-	stopChannel chan bool
 }
 
 func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConnection {
@@ -25,7 +23,6 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 		name:             name,
 		netConn:          netConn,
 		subscribedTopics: map[string]bool{},
-		stopChannel:      make(chan bool),
 	}
 }
 
@@ -68,7 +65,6 @@ func (broker *Broker) disconnect(nodeConnection *nodeConnection) {
 	} else {
 		broker.config.Logger.Info(Error.New("Disconnected node \""+nodeConnection.name+"\" on broker \""+broker.config.Name+"\"", nil).Error())
 	}
-	close(nodeConnection.stopChannel)
 }
 
 func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
