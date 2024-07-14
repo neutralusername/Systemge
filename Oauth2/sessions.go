@@ -1,6 +1,7 @@
 package Oauth2
 
 import (
+	"Systemge/Error"
 	"Systemge/Utilities"
 	"time"
 )
@@ -27,11 +28,11 @@ func (server *Server) addSession(session *session) string {
 				}
 				session.watchdog = nil
 				delete(server.sessions, sessionId)
-				server.config.Logger.Info("removed session \"" + sessionId + "\"")
+				server.config.Logger.Info(Error.New("removed session \""+sessionId+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 			})
 			break
 		}
 	}
-	server.config.Logger.Info("created session \"" + sessionId + "\"")
+	server.config.Logger.Info(Error.New("added session \""+sessionId+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return sessionId
 }

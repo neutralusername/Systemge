@@ -30,7 +30,7 @@ func (server *Server) Start() error {
 	go handleSessionRequests(server)
 	Http.Start(server.httpServer, "", "")
 	server.isStarted = true
-	server.config.Logger.Info("started oauth2 server \"" + server.config.Name + "\"")
+	server.config.Logger.Info(Error.New("started oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (server *Server) Stop() error {
 		session.watchdog = nil
 		delete(server.sessions, sessionId)
 	}
-	server.config.Logger.Info("stopped oauth2 server \"" + server.config.Name + "\"")
+	server.config.Logger.Info(Error.New("stopped oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return nil
 }
 
@@ -60,10 +60,10 @@ func handleSessionRequests(server *Server) {
 	for {
 		select {
 		case sessionRequest := <-server.sessionRequestChannel:
-			server.config.Logger.Info("handling session request \"" + sessionRequest.token.AccessToken + "\"")
+			server.config.Logger.Info(Error.New("handling session request with access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 			handleSessionRequest(server, sessionRequest)
 		case <-server.stopChannel:
-			server.config.Logger.Info("stopped handling session requests")
+			server.config.Logger.Info(Error.New("stopped handling session requests on oauth2 server \""+server.config.Name+"\"", nil).Error())
 			return
 		}
 	}
@@ -73,7 +73,7 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 	keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.token)
 	if err != nil {
 		sessionRequest.sessionIdChannel <- ""
-		server.config.Logger.Warning(Error.New("failed handling session request", err).Error())
+		server.config.Logger.Warning(Error.New("failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", err).Error())
 		return
 	}
 	sessionRequest.sessionIdChannel <- server.addSession(newSession(keyValuePairs))
