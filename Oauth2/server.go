@@ -44,7 +44,7 @@ func (server *Server) Stop() error {
 	server.httpServer.Close()
 	server.isStarted = false
 	close(server.stopChannel)
-	server.removeSessions()
+	server.removeAllSessions()
 	server.config.Logger.Info(Error.New("stopped oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return nil
 }
@@ -78,5 +78,5 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 		server.config.Logger.Warning(Error.New("no session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 		return
 	}
-	sessionRequest.sessionChannel <- server.sessionIdentityFunc(identity, keyValuePairs)
+	sessionRequest.sessionChannel <- server.getSessionForIdentity(identity, keyValuePairs)
 }

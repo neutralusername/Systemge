@@ -13,7 +13,7 @@ func (server *Server) GetSession(sessionId string) *session {
 }
 
 // todo: find a proper name for this function
-func (server *Server) sessionIdentityFunc(identity string, keyValuePairs map[string]interface{}) *session {
+func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[string]interface{}) *session {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	session := server.identities[identity]
@@ -35,14 +35,14 @@ func (server *Server) createSession(identity string, keyValuePairs map[string]in
 			session = newSession(sessionId, identity, keyValuePairs)
 			server.sessions[sessionId] = session
 			server.identities[identity] = session
-			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, server.removeSession(session))
+			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, server.getRemoveSessionFunc(session))
 			break
 		}
 	}
 	return
 }
 
-func (server *Server) removeSession(session *session) func() {
+func (server *Server) getRemoveSessionFunc(session *session) func() {
 	return func() {
 		session.expired = true
 		server.mutex.Lock()
@@ -60,7 +60,7 @@ func (server *Server) removeSession(session *session) func() {
 	}
 }
 
-func (server *Server) removeSessions() {
+func (server *Server) removeAllSessions() {
 	for _, session := range server.sessions {
 		session.watchdog.Stop()
 		session.watchdog = nil
