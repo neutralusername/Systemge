@@ -14,6 +14,7 @@ func (server *Server) GetSession(sessionId string) *session {
 func (server *Server) addSession(session *session) string {
 	sessionId := ""
 	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	for {
 		sessionId = server.config.Randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
@@ -32,6 +33,5 @@ func (server *Server) addSession(session *session) string {
 		}
 	}
 	server.config.Logger.Info("created session \"" + sessionId + "\"")
-	server.mutex.Unlock()
 	return sessionId
 }
