@@ -24,7 +24,7 @@ func main() {
 		AuthPath:                "/auth",
 		AuthCallbackPath:        "/callback",
 		SucessCallbackRedirect:  "http://localhost:8080",
-		FailureCallbackRedirect: "http://google.com",
+		FailureCallbackRedirect: "http://chatgpt.com",
 		OAuth2Config: &oauth2.Config{
 			ClientID:     "1261641608886222908",
 			ClientSecret: "xD",
