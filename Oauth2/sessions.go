@@ -17,7 +17,7 @@ func (server *Server) addSession(identity string, keyValuePairs map[string]inter
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.identities[identity] != nil {
-		return nil, Error.New("identity \""+identity+"\" already has a session on oauth2 server \""+server.config.Name+"\"", nil)
+		return server.identities[identity], nil
 	}
 	for {
 		sessionId = server.config.Randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
