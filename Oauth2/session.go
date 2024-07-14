@@ -9,9 +9,10 @@ type session struct {
 	watchdog      *time.Timer
 	identity      string
 	sessionId     string
+	expired       bool
 }
 
-func (session *session) Expired() bool {
+func (session *session) Removed() bool {
 	return session.watchdog == nil
 }
 
@@ -31,16 +32,17 @@ func (session *session) Get(key string) (interface{}, bool) {
 func (server *Server) Refresh(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if session.Expired() {
+	if session.Removed() {
 		return
 	}
 	session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
+	session.expired = false
 }
 
 func (server *Server) Expire(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if session.Expired() {
+	if session.Removed() {
 		return
 	}
 	session.watchdog.Reset(0)
@@ -49,7 +51,7 @@ func (server *Server) Expire(session *session) {
 func (server *Server) stop(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if session.Expired() {
+	if session.Removed() {
 		return
 	}
 	session.watchdog.Stop()

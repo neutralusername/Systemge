@@ -28,9 +28,13 @@ func (server *Server) addSession(identity string, keyValuePairs map[string]inter
 			server.sessions[sessionId] = session
 			server.identities[identity] = session
 			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, func() {
+				session.expired = true
 				server.mutex.Lock()
 				defer server.mutex.Unlock()
-				if session.Expired() {
+				if !session.expired {
+					return
+				}
+				if session.Removed() {
 					return
 				}
 				session.watchdog = nil
