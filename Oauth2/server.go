@@ -5,6 +5,7 @@ import (
 	"Systemge/Http"
 	"net/http"
 	"sync"
+	"time"
 
 	"golang.org/x/oauth2"
 )
@@ -83,11 +84,16 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 		server.config.Logger.Warning(Error.New("no session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 		return
 	}
-	session, err := server.addSession(identity, keyValuePairs)
-	if err != nil {
-		sessionRequest.sessionIdChannel <- ""
-		server.config.Logger.Warning(Error.New("failed adding session for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", err).Error())
-		return
+	server.mutex.Lock()
+	session := server.identities[identity]
+	if session == nil {
+		session = server.createSession(identity, keyValuePairs)
+		server.config.Logger.Info(Error.New("added session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+	} else {
+		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
+		session.expired = false
+		server.config.Logger.Info(Error.New("refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 	}
+	server.mutex.Unlock()
 	sessionRequest.sessionIdChannel <- session.sessionId
 }
