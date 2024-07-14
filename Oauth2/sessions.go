@@ -24,6 +24,7 @@ func (server *Server) addSession(session *session) string {
 			break
 		}
 	}
+	server.config.Logger.Info("created session \"" + sessionId + "\"")
 	server.mutex.Unlock()
 	return sessionId
 }
@@ -32,4 +33,5 @@ func (server *Server) removeSession(sessionId string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	delete(server.sessions, sessionId)
+	server.config.Logger.Info("removed session \"" + sessionId + "\"")
 }

@@ -16,6 +16,7 @@ import (
 func main() {
 	randomizer := Utilities.NewRandomizer(Utilities.GetSystemTime())
 	oauth2Server, err := (Oauth2.Config{
+		Name:                    "discordAuth",
 		Randomizer:              randomizer,
 		Oauth2State:             randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC),
 		SessionLifetimeMs:       5000,
