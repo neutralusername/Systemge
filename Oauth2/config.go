@@ -1,6 +1,7 @@
 package Oauth2
 
 import (
+	"Systemge/Error"
 	"Systemge/Http"
 	"Systemge/Utilities"
 
@@ -21,13 +22,21 @@ type Config struct {
 	Oauth2State             string
 }
 
-func (config *Config) New() *Server {
+func (config Config) New() (*Server, error) {
 	if config.Randomizer == nil {
 		config.Randomizer = Utilities.NewRandomizer(Utilities.GetSystemTime())
 	}
+	if config.TokenHandler == nil {
+		config.TokenHandler = func(server *Server, token *oauth2.Token) (map[string]interface{}, error) {
+			return map[string]interface{}{}, nil
+		}
+	}
+	if config.OAuth2Config == nil {
+		return nil, Error.New("OAuth2Config is required", nil)
+	}
 	server := &Server{
 		sessionRequestChannel: make(chan *oauth2SessionRequest),
-		config:                config,
+		config:                &config,
 
 		sessions: make(map[string]*session),
 	}
@@ -36,5 +45,5 @@ func (config *Config) New() *Server {
 		config.AuthPath:         server.oauth2Auth(),
 		config.AuthCallbackPath: server.oauth2Callback(),
 	})
-	return server
+	return server, nil
 }

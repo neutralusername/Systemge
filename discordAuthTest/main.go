@@ -15,7 +15,7 @@ import (
 
 func main() {
 	randomizer := Utilities.NewRandomizer(Utilities.GetSystemTime())
-	oauth2Server := (&Oauth2.Config{
+	oauth2Server, err := (Oauth2.Config{
 		Randomizer:              randomizer,
 		Oauth2State:             randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC),
 		SessionLifetimeMs:       5000,
@@ -37,6 +37,9 @@ func main() {
 		Logger:       Utilities.NewLogger("test.log", "test.log", "test.log", "test.log"),
 		TokenHandler: tokenHandler,
 	}).New()
+	if err != nil {
+		panic(err)
+	}
 	oauth2Server.Start()
 
 	httpServer := Http.New(8080, map[string]Http.RequestHandler{
