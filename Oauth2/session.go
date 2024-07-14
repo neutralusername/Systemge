@@ -12,10 +12,6 @@ type session struct {
 	expired       bool
 }
 
-func (session *session) Removed() bool {
-	return session.watchdog == nil
-}
-
 func newSession(sessionId, identity string, keyValuePairs map[string]interface{}) *session {
 	return &session{
 		keyValuePairs: keyValuePairs,
@@ -32,7 +28,7 @@ func (session *session) Get(key string) (interface{}, bool) {
 func (server *Server) Expire(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	if session.Removed() {
+	if session.watchdog == nil {
 		return
 	}
 	session.watchdog.Reset(0)

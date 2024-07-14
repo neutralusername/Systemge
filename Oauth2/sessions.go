@@ -35,7 +35,7 @@ func (server *Server) addSession(identity string, keyValuePairs map[string]inter
 				if !session.expired {
 					return
 				}
-				if session.Removed() {
+				if session.watchdog == nil {
 					return
 				}
 				session.watchdog = nil
