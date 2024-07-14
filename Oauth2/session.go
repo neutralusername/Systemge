@@ -1,6 +1,8 @@
 package Oauth2
 
-import "time"
+import (
+	"time"
+)
 
 type session struct {
 	keyValuePairs map[string]interface{}
@@ -17,13 +19,22 @@ func (session *session) Get(key string) (interface{}, bool) {
 }
 
 func (server *Server) Refresh(session *session) {
+	if session.watchdog == nil {
+		return
+	}
 	session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
 }
 
 func (server *Server) Expire(session *session) {
+	if session.watchdog == nil {
+		return
+	}
 	session.watchdog.Reset(0)
 }
 
 func (server *Server) stop(session *session) {
+	if session.watchdog == nil {
+		return
+	}
 	session.watchdog.Stop()
 }
