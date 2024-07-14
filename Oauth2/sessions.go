@@ -43,3 +43,12 @@ func (server *Server) removeSession(session *session) func() {
 		server.config.Logger.Info(Error.New("removed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 	}
 }
+
+func (server *Server) removeSessions() {
+	for _, session := range server.sessions {
+		session.watchdog.Stop()
+		session.watchdog = nil
+		delete(server.sessions, session.sessionId)
+		delete(server.identities, session.identity)
+	}
+}
