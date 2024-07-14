@@ -37,7 +37,7 @@ func main() {
 		},
 		Logger:       Utilities.NewLogger("test.log", "test.log", "test.log", "test.log"),
 		TokenHandler: tokenHandler,
-	}).New()
+	}).NewServer()
 	if err != nil {
 		panic(err)
 	}

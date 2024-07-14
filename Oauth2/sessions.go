@@ -12,7 +12,6 @@ func (server *Server) GetSession(sessionId string) *session {
 	return server.sessions[sessionId]
 }
 
-// todo: find a proper name for this function
 func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[string]interface{}) *session {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
