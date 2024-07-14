@@ -134,16 +134,16 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	if brokerPort == "" || brokerCertPath == "" || brokerKeyPath == "" || configPort == "" || configCertPath == "" || configKeyPath == "" {
 		panic("missing required fields in config")
 	}
-	port := Utilities.StringToInt(brokerPort)
+	port := Utilities.StringToUint16(brokerPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + brokerPort + "\"")
 	}
-	brokerServer := TcpServer.New(uint16(port), brokerCertPath, brokerKeyPath)
-	port = Utilities.StringToInt(configPort)
+	brokerServer := TcpServer.New(port, brokerCertPath, brokerKeyPath)
+	port = Utilities.StringToUint16(configPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + configPort + "\"")
 	}
-	configServer := TcpServer.New(uint16(port), configCertPath, configKeyPath)
+	configServer := TcpServer.New(port, configCertPath, configKeyPath)
 	brokerEndpoint := TcpEndpoint.New(publicIp+":"+brokerPort, serverNameIndication, Utilities.GetFileContent(brokerCertPath))
 	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
 	return Broker{
@@ -248,16 +248,16 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	if resolverPort == "" || resolverTlsCertPath == "" || resolverTlsKeyPath == "" || configPort == "" || configTlsCertPath == "" || configTlsKeyPath == "" {
 		panic("missing required fields in config")
 	}
-	port := Utilities.StringToInt(resolverPort)
+	port := Utilities.StringToUint16(resolverPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + resolverPort + "\"")
 	}
-	resolverServer := TcpServer.New(uint16(port), resolverTlsCertPath, resolverTlsKeyPath)
-	port = Utilities.StringToInt(configPort)
+	resolverServer := TcpServer.New(port, resolverTlsCertPath, resolverTlsKeyPath)
+	port = Utilities.StringToUint16(configPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + configPort + "\"")
 	}
-	configServer := TcpServer.New(uint16(port), configTlsCertPath, configTlsKeyPath)
+	configServer := TcpServer.New(port, configTlsCertPath, configTlsKeyPath)
 	return Resolver{
 		Name:         name,
 		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
