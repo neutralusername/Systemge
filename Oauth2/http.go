@@ -10,7 +10,7 @@ import (
 
 type oauth2SessionRequest struct {
 	token            *oauth2.Token
-	sessionIdChannel chan<- string
+	sessionIdChannel chan<- *session
 }
 
 func (server *Server) oauth2Callback() Http.RequestHandler {
@@ -29,20 +29,20 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
-		sessionIdChannel := make(chan string)
+		sessionChannel := make(chan *session)
 		Oauth2TokenRequest := &oauth2SessionRequest{
 			token:            token,
-			sessionIdChannel: sessionIdChannel,
+			sessionIdChannel: sessionChannel,
 		}
 		server.sessionRequestChannel <- Oauth2TokenRequest
-		sessionId := <-sessionIdChannel
-		if sessionId == "" {
+		session := <-sessionChannel
+		if session == nil {
 			server.config.Logger.Warning(Error.New("failed creating session for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
-		server.config.Logger.Info(Error.New("oauth2 callback success for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" with sessionId \""+sessionId+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
-		http.Redirect(responseWriter, httpRequest, server.config.SucessCallbackRedirect+"?sessionId="+sessionId, http.StatusMovedPermanently)
+		server.config.Logger.Info(Error.New("oauth2 callback success for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" with sessionId \""+session.sessionId+"\" and identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+		http.Redirect(responseWriter, httpRequest, server.config.SucessCallbackRedirect+"?sessionId="+session.sessionId, http.StatusMovedPermanently)
 	}
 }
 

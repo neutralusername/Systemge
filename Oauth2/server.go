@@ -75,12 +75,12 @@ func handleSessionRequests(server *Server) {
 func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) {
 	identity, keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.token)
 	if err != nil {
-		sessionRequest.sessionIdChannel <- ""
+		sessionRequest.sessionIdChannel <- nil
 		server.config.Logger.Warning(Error.New("failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", err).Error())
 		return
 	}
 	if identity == "" {
-		sessionRequest.sessionIdChannel <- ""
+		sessionRequest.sessionIdChannel <- nil
 		server.config.Logger.Warning(Error.New("no session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 		return
 	}
@@ -95,5 +95,5 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 		server.config.Logger.Info(Error.New("refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 	}
 	server.mutex.Unlock()
-	sessionRequest.sessionIdChannel <- session.sessionId
+	sessionRequest.sessionIdChannel <- session
 }
