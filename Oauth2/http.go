@@ -9,8 +9,8 @@ import (
 )
 
 type oauth2SessionRequest struct {
-	token            *oauth2.Token
-	sessionIdChannel chan<- *session
+	token          *oauth2.Token
+	sessionChannel chan<- *session
 }
 
 func (server *Server) oauth2Callback() Http.RequestHandler {
@@ -30,11 +30,11 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 			return
 		}
 		sessionChannel := make(chan *session)
-		Oauth2TokenRequest := &oauth2SessionRequest{
-			token:            token,
-			sessionIdChannel: sessionChannel,
+		Oauth2SessionRequest := &oauth2SessionRequest{
+			token:          token,
+			sessionChannel: sessionChannel,
 		}
-		server.sessionRequestChannel <- Oauth2TokenRequest
+		server.sessionRequestChannel <- Oauth2SessionRequest
 		session := <-sessionChannel
 		if session == nil {
 			server.config.Logger.Warning(Error.New("failed creating session for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
