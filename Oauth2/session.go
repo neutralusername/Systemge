@@ -9,6 +9,10 @@ type session struct {
 	watchdog      *time.Timer
 }
 
+func (session *session) Expired() bool {
+	return session.watchdog == nil
+}
+
 func newSession(keyValuePairs map[string]interface{}) *session {
 	return &session{keyValuePairs: keyValuePairs}
 }
@@ -19,21 +23,21 @@ func (session *session) Get(key string) (interface{}, bool) {
 }
 
 func (server *Server) Refresh(session *session) {
-	if session.watchdog == nil {
+	if session.Expired() {
 		return
 	}
 	session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
 }
 
 func (server *Server) Expire(session *session) {
-	if session.watchdog == nil {
+	if session.Expired() {
 		return
 	}
 	session.watchdog.Reset(0)
 }
 
 func (server *Server) stop(session *session) {
-	if session.watchdog == nil {
+	if session.Expired() {
 		return
 	}
 	session.watchdog.Stop()

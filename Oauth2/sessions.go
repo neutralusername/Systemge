@@ -19,7 +19,7 @@ func (server *Server) addSession(session *session) string {
 		if _, ok := server.sessions[sessionId]; !ok {
 			server.sessions[sessionId] = session
 			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, func() {
-				if session.watchdog == nil {
+				if session.Expired() {
 					return
 				}
 				session.watchdog = nil
