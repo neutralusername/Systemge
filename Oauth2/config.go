@@ -22,6 +22,9 @@ type Config struct {
 }
 
 func (config *Config) New() *Server {
+	if config.Randomizer == nil {
+		config.Randomizer = Utilities.NewRandomizer(Utilities.GetSystemTime())
+	}
 	server := &Server{
 		sessionRequestChannel: make(chan *oauth2SessionRequest),
 		config:                config,
