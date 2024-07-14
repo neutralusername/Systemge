@@ -45,7 +45,7 @@ func (server *Server) Stop() error {
 	server.isStarted = false
 	close(server.stopChannel)
 	for _, session := range server.sessions {
-		server.stop(session)
+		session.watchdog.Stop()
 		session.watchdog = nil
 		delete(server.sessions, session.sessionId)
 		delete(server.identities, session.identity)

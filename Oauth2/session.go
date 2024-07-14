@@ -37,12 +37,3 @@ func (server *Server) Expire(session *session) {
 	}
 	session.watchdog.Reset(0)
 }
-
-func (server *Server) stop(session *session) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	if session.Removed() {
-		return
-	}
-	session.watchdog.Stop()
-}
