@@ -9,7 +9,7 @@ import (
 
 const ENDOFMESSAGE = "\x04"
 
-func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs int) (*Message.Message, error) {
+func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs uint64) (*Message.Message, error) {
 	err := TcpSend(netConn, message.Serialize(), timeoutMs)
 	if err != nil {
 		return nil, Error.New("Error sending message", err)
@@ -25,7 +25,7 @@ func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs int) (*Me
 	return responseMessage, nil
 }
 
-func TcpSend(netConn net.Conn, bytes []byte, timeoutMs int) error {
+func TcpSend(netConn net.Conn, bytes []byte, timeoutMs uint64) error {
 	if netConn == nil {
 		return Error.New("net.Conn is nil", nil)
 	}
@@ -41,7 +41,7 @@ func TcpSend(netConn net.Conn, bytes []byte, timeoutMs int) error {
 	return nil
 }
 
-func TcpReceive(netConn net.Conn, timeoutMs int) ([]byte, error) {
+func TcpReceive(netConn net.Conn, timeoutMs uint64) ([]byte, error) {
 	if netConn == nil {
 		return nil, Error.New("net.Conn is nil", nil)
 	}

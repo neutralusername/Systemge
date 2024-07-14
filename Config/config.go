@@ -11,10 +11,10 @@ type Node struct {
 	Logger           *Utilities.Logger // *required*
 	ResolverEndpoint TcpEndpoint.TcpEndpoint
 
-	BrokerSubscribeDelayMs    int // default: 0 (delay after failed broker subscription attempt)
-	TopicResolutionLifetimeMs int // default: 0
-	SyncResponseTimeoutMs     int // default: 0
-	TcpTimeoutMs              int // default: 0 = block forever
+	BrokerSubscribeDelayMs    uint64 // default: 0 (delay after failed broker subscription attempt)
+	TopicResolutionLifetimeMs uint64 // default: 0
+	SyncResponseTimeoutMs     uint64 // default: 0
+	TcpTimeoutMs              uint64 // default: 0 = block forever
 }
 
 type Application struct {
@@ -26,8 +26,8 @@ type Websocket struct {
 	Server                           TcpServer.TcpServer // *required*
 	HandleClientMessagesSequentially bool                // default: false
 
-	ClientMessageCooldownMs int // default: 0
-	ClientWatchdogTimeoutMs int // default: 0
+	ClientMessageCooldownMs uint64 // default: 0
+	ClientWatchdogTimeoutMs uint64 // default: 0
 }
 
 type HTTP struct {
@@ -43,8 +43,8 @@ type Broker struct {
 	Endpoint     TcpEndpoint.TcpEndpoint // *required*
 	ConfigServer TcpServer.TcpServer     // *required*
 
-	SyncResponseTimeoutMs int // default: 0
-	TcpTimeoutMs          int // default: 0 = block forever
+	SyncResponseTimeoutMs uint64 // default: 0
+	TcpTimeoutMs          uint64 // default: 0 = block forever
 
 	SyncTopics  []string
 	AsyncTopics []string
@@ -57,7 +57,7 @@ type Resolver struct {
 	Server       TcpServer.TcpServer // *required*
 	ConfigServer TcpServer.TcpServer // *required*
 
-	TcpTimeoutMs int // default: 0 = block forever
+	TcpTimeoutMs uint64 // default: 0 = block forever
 }
 
 type Spawner struct {

@@ -150,8 +150,8 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		Name:                   name,
 		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
-		SyncResponseTimeoutMs:  syncResponseTimeoutMs,
-		TcpTimeoutMs:           tcpTimeoutMs,
+		SyncResponseTimeoutMs:  uint64(syncResponseTimeoutMs),
+		TcpTimeoutMs:           uint64(tcpTimeoutMs),
 		Server:                 brokerServer,
 		Endpoint:               brokerEndpoint,
 		ConfigServer:           configServer,
@@ -263,7 +263,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		Server:       resolverServer,
 		ConfigServer: configServer,
-		TcpTimeoutMs: tcpTimeoutMs,
+		TcpTimeoutMs: uint64(tcpTimeoutMs),
 	}
 }
 
@@ -369,9 +369,9 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 		Name:                      name,
 		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverEndpoint:          resolverEndpoint,
-		TcpTimeoutMs:              tcpTimeoutMs,
-		BrokerSubscribeDelayMs:    brokerSubscribeDelayMs,
-		SyncResponseTimeoutMs:     SyncResponseTimeoutMs,
-		TopicResolutionLifetimeMs: TopicResolutionLifetimeMs,
+		TcpTimeoutMs:              uint64(tcpTimeoutMs),
+		BrokerSubscribeDelayMs:    uint64(brokerSubscribeDelayMs),
+		SyncResponseTimeoutMs:     uint64(SyncResponseTimeoutMs),
+		TopicResolutionLifetimeMs: uint64(TopicResolutionLifetimeMs),
 	}
 }
