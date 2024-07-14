@@ -3,6 +3,7 @@ package Oauth2
 import (
 	"Systemge/Error"
 	"Systemge/Http"
+	"Systemge/Utilities"
 	"net/http"
 	"sync"
 
@@ -47,6 +48,14 @@ func (server *Server) Stop() error {
 	server.removeAllSessions()
 	server.config.Logger.Info(Error.New("stopped oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return nil
+}
+
+func (server *Server) GetName() string {
+	return server.config.Name
+}
+
+func (server *Server) GetLogger() *Utilities.Logger {
+	return server.config.Logger
 }
 
 func (server *Server) GetOauth2Config() *oauth2.Config {

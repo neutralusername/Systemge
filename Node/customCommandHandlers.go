@@ -1,8 +1,10 @@
 package Node
 
+import "Systemge/Module"
+
 // returns a map of custom command handlers for the command-line interface
-func (node *Node) GetCustomCommandHandlers() map[string]func([]string) error {
-	handlers := map[string]func([]string) error{
+func (node *Node) GetCustomCommandHandlers() map[string]Module.CustomCommandHandler {
+	handlers := map[string]Module.CustomCommandHandler{
 		"websocketClients":      node.handleWebsocketClientsCommand,
 		"websocketGroups":       node.handleWebsocketGroupsCommand,
 		"WebsocketGroupClients": node.handleWebsocketGroupClientsCommand,
