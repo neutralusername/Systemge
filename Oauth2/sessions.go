@@ -12,6 +12,22 @@ func (server *Server) GetSession(sessionId string) *session {
 	return server.sessions[sessionId]
 }
 
+// todo: find a proper name for this function
+func (server *Server) sessionIdentityFunc(identity string, keyValuePairs map[string]interface{}) *session {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	session := server.identities[identity]
+	if session == nil {
+		session = server.createSession(identity, keyValuePairs)
+		server.config.Logger.Info(Error.New("added session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+	} else {
+		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
+		session.expired = false
+		server.config.Logger.Info(Error.New("refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+	}
+	return session
+}
+
 func (server *Server) createSession(identity string, keyValuePairs map[string]interface{}) (session *session) {
 	for {
 		sessionId := server.config.Randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
