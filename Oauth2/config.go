@@ -23,7 +23,7 @@ type Config struct {
 	Oauth2State             string
 }
 
-func (config Config) New() (*Server, error) {
+func (config Config) NewServer() (*Server, error) {
 	if config.Randomizer == nil {
 		config.Randomizer = Utilities.NewRandomizer(Utilities.GetSystemTime())
 	}
