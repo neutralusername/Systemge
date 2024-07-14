@@ -7,14 +7,20 @@ import (
 type session struct {
 	keyValuePairs map[string]interface{}
 	watchdog      *time.Timer
+	identity      string
+	sessionId     string
 }
 
 func (session *session) Expired() bool {
 	return session.watchdog == nil
 }
 
-func newSession(keyValuePairs map[string]interface{}) *session {
-	return &session{keyValuePairs: keyValuePairs}
+func newSession(sessionId, identity string, keyValuePairs map[string]interface{}) *session {
+	return &session{
+		keyValuePairs: keyValuePairs,
+		identity:      identity,
+		sessionId:     sessionId,
+	}
 }
 
 func (session *session) Get(key string) (interface{}, bool) {

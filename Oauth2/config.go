@@ -17,7 +17,7 @@ type Config struct {
 	SucessCallbackRedirect  string
 	FailureCallbackRedirect string
 	Logger                  *Utilities.Logger
-	TokenHandler            func(*Server, *oauth2.Token) (map[string]interface{}, error)
+	TokenHandler            func(*Server, *oauth2.Token) (string, map[string]interface{}, error)
 	SessionLifetimeMs       uint64
 	Randomizer              *Utilities.Randomizer
 	Oauth2State             string
@@ -28,9 +28,7 @@ func (config Config) New() (*Server, error) {
 		config.Randomizer = Utilities.NewRandomizer(Utilities.GetSystemTime())
 	}
 	if config.TokenHandler == nil {
-		config.TokenHandler = func(server *Server, token *oauth2.Token) (map[string]interface{}, error) {
-			return map[string]interface{}{}, nil
-		}
+		return nil, Error.New("TokenHandler is required", nil)
 	}
 	if config.OAuth2Config == nil {
 		return nil, Error.New("OAuth2Config is required", nil)
@@ -39,7 +37,8 @@ func (config Config) New() (*Server, error) {
 		sessionRequestChannel: make(chan *oauth2SessionRequest),
 		config:                &config,
 
-		sessions: make(map[string]*session),
+		sessions:   make(map[string]*session),
+		identities: make(map[string]*session),
 	}
 	server.config.Oauth2State = server.config.Randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	server.httpServer = Http.New(config.Port, map[string]Http.RequestHandler{

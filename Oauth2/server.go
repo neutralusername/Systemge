@@ -14,8 +14,9 @@ type Server struct {
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config
 
-	sessions map[string]*session
-	mutex    sync.Mutex
+	sessions   map[string]*session
+	identities map[string]*session
+	mutex      sync.Mutex
 
 	stopChannel chan string
 	isStarted   bool
@@ -43,10 +44,11 @@ func (server *Server) Stop() error {
 	server.httpServer.Close()
 	server.isStarted = false
 	close(server.stopChannel)
-	for sessionId, session := range server.sessions {
+	for _, session := range server.sessions {
 		server.stop(session)
 		session.watchdog = nil
-		delete(server.sessions, sessionId)
+		delete(server.sessions, session.sessionId)
+		delete(server.identities, session.identity)
 	}
 	server.config.Logger.Info(Error.New("stopped oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return nil
@@ -70,11 +72,22 @@ func handleSessionRequests(server *Server) {
 }
 
 func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) {
-	keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.token)
+	identity, keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.token)
 	if err != nil {
 		sessionRequest.sessionIdChannel <- ""
 		server.config.Logger.Warning(Error.New("failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", err).Error())
 		return
 	}
-	sessionRequest.sessionIdChannel <- server.addSession(newSession(keyValuePairs))
+	if identity == "" {
+		sessionRequest.sessionIdChannel <- ""
+		server.config.Logger.Warning(Error.New("no session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+		return
+	}
+	session, err := server.addSession(identity, keyValuePairs)
+	if err != nil {
+		sessionRequest.sessionIdChannel <- ""
+		server.config.Logger.Warning(Error.New("failed adding session for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", err).Error())
+		return
+	}
+	sessionRequest.sessionIdChannel <- session.sessionId
 }

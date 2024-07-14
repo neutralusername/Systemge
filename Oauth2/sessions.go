@@ -12,14 +12,19 @@ func (server *Server) GetSession(sessionId string) *session {
 	return server.sessions[sessionId]
 }
 
-func (server *Server) addSession(session *session) string {
+func (server *Server) addSession(identity string, keyValuePairs map[string]interface{}) (session *session, err error) {
 	sessionId := ""
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	if server.identities[identity] != nil {
+		return nil, Error.New("identity \""+identity+"\" already has a session on oauth2 server \""+server.config.Name+"\"", nil)
+	}
 	for {
 		sessionId = server.config.Randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
+			session = newSession(sessionId, identity, keyValuePairs)
 			server.sessions[sessionId] = session
+			server.identities[identity] = session
 			session.watchdog = time.AfterFunc(time.Duration(server.config.SessionLifetimeMs)*time.Millisecond, func() {
 				server.mutex.Lock()
 				defer server.mutex.Unlock()
@@ -34,5 +39,5 @@ func (server *Server) addSession(session *session) string {
 		}
 	}
 	server.config.Logger.Info(Error.New("added session \""+sessionId+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
-	return sessionId
+	return session, err
 }
