@@ -20,12 +20,12 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		name = fileNameSegments[0]
 	}
 
-	tcpTimeoutMs := 5000
+	var tcpTimeoutMs uint64 = 5000
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
 	debugPath := ""
-	syncResponseTimeoutMs := 10000
+	var syncResponseTimeoutMs uint64 = 10000
 	publicIp := ""
 	serverNameIndication := ""
 	brokerPort := ""
@@ -64,7 +64,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			if len(lineSegments) != 2 {
 				panic("tcpTimeoutMs line is invalid \"" + line + "\"")
 			}
-			tcpTimeoutMs = Utilities.StringToInt(lineSegments[1])
+			tcpTimeoutMs = Utilities.StringToUint64(lineSegments[1])
 		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
@@ -116,7 +116,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			if len(lineSegments) != 2 {
 				panic("syncRequestTimeoutMs line is invalid \"" + line + "\"")
 			}
-			syncResponseTimeoutMs = Utilities.StringToInt(lineSegments[1])
+			syncResponseTimeoutMs = Utilities.StringToUint64(lineSegments[1])
 		default:
 			if len(lineSegments) != 2 {
 				panic("invalid topic line \"" + line + "\"")
@@ -150,8 +150,8 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		Name:                   name,
 		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
-		SyncResponseTimeoutMs:  uint64(syncResponseTimeoutMs),
-		TcpTimeoutMs:           uint64(tcpTimeoutMs),
+		SyncResponseTimeoutMs:  syncResponseTimeoutMs,
+		TcpTimeoutMs:           tcpTimeoutMs,
 		Server:                 brokerServer,
 		Endpoint:               brokerEndpoint,
 		ConfigServer:           configServer,
@@ -173,7 +173,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		name = fileNameSegments[0]
 	}
 
-	tcpTimeoutMs := 5000
+	var tcpTimeoutMs uint64 = 5000
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
@@ -208,7 +208,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 			if len(lineSegments) != 2 {
 				panic("tcpTimeoutMs line is invalid \"" + line + "\"")
 			}
-			tcpTimeoutMs = Utilities.StringToInt(lineSegments[1])
+			tcpTimeoutMs = Utilities.StringToUint64(lineSegments[1])
 		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
@@ -263,7 +263,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		Server:       resolverServer,
 		ConfigServer: configServer,
-		TcpTimeoutMs: uint64(tcpTimeoutMs),
+		TcpTimeoutMs: tcpTimeoutMs,
 	}
 }
 
@@ -280,10 +280,10 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 		name = fileNameSegments[0]
 	}
 
-	tcpTimeoutMs := 5000
-	brokerSubscribeDelayMs := 1000
-	SyncResponseTimeoutMs := 10000
-	TopicResolutionLifetimeMs := 10000
+	var tcpTimeoutMs uint64 = 5000
+	var brokerSubscribeDelayMs uint64 = 1000
+	var SyncResponseTimeoutMs uint64 = 10000
+	var TopicResolutionLifetimeMs uint64 = 10000
 	infoPath := ""
 	warningPath := ""
 	errorPath := ""
@@ -316,7 +316,7 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 			if len(lineSegments) != 2 {
 				panic("tcpTimeoutMs line is invalid \"" + line + "\"")
 			}
-			tcpTimeoutMs = Utilities.StringToInt(lineSegments[1])
+			tcpTimeoutMs = Utilities.StringToUint64(lineSegments[1])
 		case "_info":
 			if len(lineSegments) != 2 {
 				panic("logs line is invalid \"" + line + "\"")
@@ -348,17 +348,17 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 			if len(lineSegments) != 2 {
 				panic("brokerSubscribeDelayMs line is invalid \"" + line + "\"")
 			}
-			brokerSubscribeDelayMs = Utilities.StringToInt(lineSegments[1])
+			brokerSubscribeDelayMs = Utilities.StringToUint64(lineSegments[1])
 		case "_syncResponseTimeoutMs":
 			if len(lineSegments) != 2 {
 				panic("syncResponseTimeoutMs line is invalid \"" + line + "\"")
 			}
-			SyncResponseTimeoutMs = Utilities.StringToInt(lineSegments[1])
+			SyncResponseTimeoutMs = Utilities.StringToUint64(lineSegments[1])
 		case "_topicResolutionLifetimeMs":
 			if len(lineSegments) != 2 {
 				panic("topicResolutionLifetimeMs line is invalid \"" + line + "\"")
 			}
-			TopicResolutionLifetimeMs = Utilities.StringToInt(lineSegments[1])
+			TopicResolutionLifetimeMs = Utilities.StringToUint64(lineSegments[1])
 		}
 	}
 	if resolverAddress == "" || resolverCertPath == "" {
@@ -369,9 +369,9 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 		Name:                      name,
 		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
 		ResolverEndpoint:          resolverEndpoint,
-		TcpTimeoutMs:              uint64(tcpTimeoutMs),
-		BrokerSubscribeDelayMs:    uint64(brokerSubscribeDelayMs),
-		SyncResponseTimeoutMs:     uint64(SyncResponseTimeoutMs),
-		TopicResolutionLifetimeMs: uint64(TopicResolutionLifetimeMs),
+		TcpTimeoutMs:              tcpTimeoutMs,
+		BrokerSubscribeDelayMs:    brokerSubscribeDelayMs,
+		SyncResponseTimeoutMs:     SyncResponseTimeoutMs,
+		TopicResolutionLifetimeMs: TopicResolutionLifetimeMs,
 	}
 }
