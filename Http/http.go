@@ -9,13 +9,13 @@ import (
 
 type RequestHandler func(w http.ResponseWriter, r *http.Request)
 
-func New(port int, handlers map[string]RequestHandler) *http.Server {
+func New(port uint16, handlers map[string]RequestHandler) *http.Server {
 	mux := http.NewServeMux()
 	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, handler)
 	}
 	httpServer := &http.Server{
-		Addr:    ":" + Utilities.IntToString(port),
+		Addr:    ":" + Utilities.IntToString(int(port)),
 		Handler: mux,
 	}
 	return httpServer

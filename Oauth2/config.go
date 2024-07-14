@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	Name                    string
-	Port                    int
+	Port                    uint16
 	AuthPath                string
 	AuthCallbackPath        string
 	OAuth2Config            *oauth2.Config
@@ -18,7 +18,7 @@ type Config struct {
 	FailureCallbackRedirect string
 	Logger                  *Utilities.Logger
 	TokenHandler            func(*Server, *oauth2.Token) (map[string]interface{}, error)
-	SessionLifetimeMs       int
+	SessionLifetimeMs       uint64
 	Randomizer              *Utilities.Randomizer
 	Oauth2State             string
 }

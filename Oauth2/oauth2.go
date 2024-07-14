@@ -59,8 +59,10 @@ func handleSessionRequests(server *Server) {
 	for {
 		select {
 		case sessionRequest := <-server.sessionRequestChannel:
+			server.config.Logger.Info("handling session request \"" + sessionRequest.token.AccessToken + "\"")
 			handleSessionRequest(server, sessionRequest)
 		case <-server.stopChannel:
+			server.config.Logger.Info("stopped handling session requests")
 			return
 		}
 	}

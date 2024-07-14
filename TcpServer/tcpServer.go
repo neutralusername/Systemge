@@ -8,12 +8,12 @@ import (
 )
 
 type TcpServer struct {
-	port        int
+	port        uint16
 	tlsCertPath string
 	tlsKeyPath  string
 }
 
-func New(port int, tlsCertPath, tlsKeyPath string) TcpServer {
+func New(port uint16, tlsCertPath, tlsKeyPath string) TcpServer {
 	return TcpServer{
 		port:        port,
 		tlsCertPath: tlsCertPath,
@@ -21,7 +21,7 @@ func New(port int, tlsCertPath, tlsKeyPath string) TcpServer {
 	}
 }
 
-func (tlsEndpoint TcpServer) GetPort() int {
+func (tlsEndpoint TcpServer) GetPort() uint16 {
 	return tlsEndpoint.port
 }
 
@@ -41,7 +41,7 @@ func (tlsEndpoint TcpServer) GetTlsListener() (net.Listener, error) {
 	config := &tls.Config{
 		Certificates: []tls.Certificate{cert},
 	}
-	listener, err := tls.Listen("tcp", ":"+Utilities.IntToString(tlsEndpoint.port), config)
+	listener, err := tls.Listen("tcp", ":"+Utilities.IntToString(int(tlsEndpoint.port)), config)
 	if err != nil {
 		return nil, Error.New("Failed to listen on port: ", err)
 	}
@@ -49,7 +49,7 @@ func (tlsEndpoint TcpServer) GetTlsListener() (net.Listener, error) {
 }
 
 func (tlsEndpoint TcpServer) GetTcpListener() (net.Listener, error) {
-	listener, err := net.Listen("tcp", ":"+Utilities.IntToString(tlsEndpoint.port))
+	listener, err := net.Listen("tcp", ":"+Utilities.IntToString(int(tlsEndpoint.port)))
 	if err != nil {
 		return nil, Error.New("Failed to listen on port: ", err)
 	}

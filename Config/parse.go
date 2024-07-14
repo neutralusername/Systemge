@@ -138,12 +138,12 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + brokerPort + "\"")
 	}
-	brokerServer := TcpServer.New(port, brokerCertPath, brokerKeyPath)
+	brokerServer := TcpServer.New(uint16(port), brokerCertPath, brokerKeyPath)
 	port = Utilities.StringToInt(configPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + configPort + "\"")
 	}
-	configServer := TcpServer.New(port, configCertPath, configKeyPath)
+	configServer := TcpServer.New(uint16(port), configCertPath, configKeyPath)
 	brokerEndpoint := TcpEndpoint.New(publicIp+":"+brokerPort, serverNameIndication, Utilities.GetFileContent(brokerCertPath))
 	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
 	return Broker{
@@ -252,12 +252,12 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + resolverPort + "\"")
 	}
-	resolverServer := TcpServer.New(port, resolverTlsCertPath, resolverTlsKeyPath)
+	resolverServer := TcpServer.New(uint16(port), resolverTlsCertPath, resolverTlsKeyPath)
 	port = Utilities.StringToInt(configPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + configPort + "\"")
 	}
-	configServer := TcpServer.New(port, configTlsCertPath, configTlsKeyPath)
+	configServer := TcpServer.New(uint16(port), configTlsCertPath, configTlsKeyPath)
 	return Resolver{
 		Name:         name,
 		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
