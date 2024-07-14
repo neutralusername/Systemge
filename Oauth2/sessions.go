@@ -33,6 +33,7 @@ func (server *Server) addSession(identity string, keyValuePairs map[string]inter
 				}
 				session.watchdog = nil
 				delete(server.sessions, sessionId)
+				delete(server.identities, identity)
 				server.config.Logger.Info(Error.New("removed session \""+sessionId+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 			})
 			break

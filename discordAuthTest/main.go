@@ -19,7 +19,7 @@ func main() {
 		Name:                    "discordAuth",
 		Randomizer:              randomizer,
 		Oauth2State:             randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC),
-		SessionLifetimeMs:       5000,
+		SessionLifetimeMs:       15000,
 		Port:                    8081,
 		AuthPath:                "/auth",
 		AuthCallbackPath:        "/callback",
@@ -64,17 +64,20 @@ func main() {
 	time.Sleep(1000 * time.Second)
 }
 
-func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) (map[string]interface{}, error) {
+func tokenHandler(oauth2Server *Oauth2.Server, token *oauth2.Token) (string, map[string]interface{}, error) {
 	client := oauth2Server.GetOauth2Config().Client(context.Background(), token)
 	resp, err := client.Get("https://discord.com/api/users/@me")
 	if err != nil {
-		return nil, Error.New("failed getting user", err)
+		return "", nil, Error.New("failed getting user", err)
 	}
 	defer resp.Body.Close()
 
 	var discordAuthData map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&discordAuthData); err != nil {
-		return nil, Error.New("failed decoding user", err)
+		return "", nil, Error.New("failed decoding user", err)
 	}
-	return discordAuthData, nil
+	if discordAuthData["username"] == nil {
+		return "", nil, Error.New("failed getting session identity", nil)
+	}
+	return discordAuthData["username"].(string), discordAuthData, nil
 }
