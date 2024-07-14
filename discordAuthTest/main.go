@@ -16,12 +16,14 @@ import (
 func main() {
 	randomizer := Utilities.NewRandomizer(Utilities.GetSystemTime())
 	oauth2Server := (&Oauth2.Config{
-		Randomizer:        randomizer,
-		Oauth2State:       randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC),
-		SessionLifetimeMs: 5000,
-		Port:              8081,
-		AuthPath:          "/auth",
-		AuthCallbackPath:  "/callback",
+		Randomizer:              randomizer,
+		Oauth2State:             randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC),
+		SessionLifetimeMs:       5000,
+		Port:                    8081,
+		AuthPath:                "/auth",
+		AuthCallbackPath:        "/callback",
+		SucessCallbackRedirect:  "http://localhost:8080",
+		FailureCallbackRedirect: "http://google.com",
 		OAuth2Config: &oauth2.Config{
 			ClientID:     "1261641608886222908",
 			ClientSecret: "xD",

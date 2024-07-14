@@ -3,7 +3,6 @@ package Oauth2
 import (
 	"Systemge/Error"
 	"Systemge/Http"
-	"Systemge/Utilities"
 	"fmt"
 	"net/http"
 
@@ -15,19 +14,19 @@ type oauth2SessionRequest struct {
 	sessionIdChannel chan<- string
 }
 
-func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Utilities.Logger, oauth2TokenChannel chan<- *oauth2SessionRequest, successRedirectURL, failureRedirectURL string) Http.RequestHandler {
+func (server *Server) oauth2Callback() Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
-		if state != oauth2State {
-			logger.Warning(Error.New("oauth2 state mismatch", nil).Error())
-			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
+		if state != server.config.Oauth2State {
+			server.config.Logger.Warning(Error.New("oauth2 state mismatch", nil).Error())
+			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
 		code := httpRequest.FormValue("code")
-		token, err := oAuth2Config.Exchange(httpRequest.Context(), code)
+		token, err := server.config.OAuth2Config.Exchange(httpRequest.Context(), code)
 		if err != nil {
-			logger.Warning(Error.New(fmt.Sprintf("failed exchanging code for token: %s", err.Error()), nil).Error())
-			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
+			server.config.Logger.Warning(Error.New(fmt.Sprintf("failed exchanging code for token: %s", err.Error()), nil).Error())
+			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
 		sessionIdChannel := make(chan string)
@@ -35,19 +34,20 @@ func oauth2Callback(oAuth2Config *oauth2.Config, oauth2State string, logger *Uti
 			token:            token,
 			sessionIdChannel: sessionIdChannel,
 		}
-		oauth2TokenChannel <- Oauth2TokenRequest
+		server.sessionRequestChannel <- Oauth2TokenRequest
 		sessionId := <-sessionIdChannel
 		if sessionId == "" {
-			http.Redirect(responseWriter, httpRequest, failureRedirectURL, http.StatusMovedPermanently)
+			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
-		http.Redirect(responseWriter, httpRequest, successRedirectURL+"?sessionId="+sessionId, http.StatusMovedPermanently)
+		http.Redirect(responseWriter, httpRequest, server.config.SucessCallbackRedirect+"?sessionId="+sessionId, http.StatusMovedPermanently)
 	}
 }
 
-func oauth2Auth(oAuth2Config *oauth2.Config, oauth2State string) Http.RequestHandler {
+func (server *Server) oauth2Auth() Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		url := oAuth2Config.AuthCodeURL(oauth2State)
+		server.config.Logger.Info("auth request by " + httpRequest.RemoteAddr)
+		url := server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
 	}
 }
