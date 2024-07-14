@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	Name                    string
 	Port                    int
 	AuthPath                string
 	AuthCallbackPath        string

@@ -23,3 +23,7 @@ func (server *Server) Refresh(session *session) {
 func (server *Server) Expire(session *session) {
 	session.watchdog.Reset(0)
 }
+
+func (server *Server) stop(session *session) {
+	session.watchdog.Stop()
+}
