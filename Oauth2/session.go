@@ -29,16 +29,6 @@ func (session *session) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
-func (server *Server) Refresh(session *session) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	if session.Removed() {
-		return
-	}
-	session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
-	session.expired = false
-}
-
 func (server *Server) Expire(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()

@@ -17,7 +17,8 @@ func (server *Server) addSession(identity string, keyValuePairs map[string]inter
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if server.identities[identity] != nil {
-		server.Refresh(server.identities[identity])
+		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
+		session.expired = false
 		server.config.Logger.Info(Error.New("refreshed session \""+server.identities[identity].sessionId+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
 		return server.identities[identity], nil
 	}
