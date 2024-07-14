@@ -45,6 +45,7 @@ func (server *Server) Stop() error {
 	close(server.stopChannel)
 	for sessionId, session := range server.sessions {
 		server.stop(session)
+		session.watchdog = nil
 		delete(server.sessions, sessionId)
 	}
 	server.config.Logger.Info("stopped oauth2 server \"" + server.config.Name + "\"")
