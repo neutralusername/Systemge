@@ -20,11 +20,6 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 			broker.config.Logger.Warning(Error.New("Invalid message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 			return
 		}
-		err = broker.validateTopic(message)
-		if err != nil {
-			broker.config.Logger.Warning(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
-			return
-		}
 		if message.GetSyncResponseToken() != "" {
 			err := broker.handleSyncResponse(message)
 			if err != nil {
@@ -33,6 +28,12 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 				broker.config.Logger.Info(Error.New("Received sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
 			}
 			continue
+		} else {
+			err = broker.validateTopic(message)
+			if err != nil {
+				broker.config.Logger.Warning(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+				return
+			}
 		}
 		if message.GetSyncRequestToken() != "" {
 			if err := broker.addSyncRequest(nodeConnection, message); err != nil {
