@@ -6,18 +6,18 @@ import (
 	"time"
 )
 
-type Randomizer struct {
-	source rand.Source
-	seed   int64
-	mutex  *sync.Mutex
-}
-
 func RandomString(length int) string {
 	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, ALPHA_NUMERIC_SPECIAL)
 }
 
 func RandomNumber(min, max int) int {
 	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
+}
+
+type Randomizer struct {
+	source rand.Source
+	seed   int64
+	mutex  *sync.Mutex
 }
 
 const ALPHA_NUMERIC_SPECIAL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+"
