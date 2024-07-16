@@ -33,6 +33,11 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) {
 		broker.config.Logger.Warning(Error.New("Invalid connection request \""+string(messageBytes)+"\" from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", nil).Error())
 		return
 	}
+	err = broker.validateMessage(message)
+	if err != nil {
+		broker.config.Logger.Warning(Error.New("Invalid connection request message from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+		return
+	}
 	err = broker.handleConfigRequest(message)
 	if err != nil {
 		broker.config.Logger.Warning(Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())

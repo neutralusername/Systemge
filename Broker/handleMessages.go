@@ -20,6 +20,11 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 			broker.config.Logger.Warning(Error.New("Invalid message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 			return
 		}
+		err = broker.validateTopic(message)
+		if err != nil {
+			broker.config.Logger.Warning(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			return
+		}
 		if message.GetSyncResponseToken() != "" {
 			err := broker.handleSyncResponse(message)
 			if err != nil {
@@ -130,6 +135,26 @@ func (broker *Broker) validateMessage(message *Message.Message) error {
 	if message.GetSyncResponseToken() != "" {
 		return nil
 	}
+	if broker.config.MaxTopicSize > 0 && uint64(len(message.GetTopic())) > broker.config.MaxTopicSize {
+		return Error.New("message topic is too long", nil)
+	}
+	if broker.config.MaxOriginSize > 0 && uint64(len(message.GetOrigin())) > broker.config.MaxOriginSize {
+		return Error.New("message origin is too long", nil)
+	}
+	if broker.config.MaxSyncKeySize > 0 && uint64(len(message.GetSyncRequestToken())) > broker.config.MaxSyncKeySize {
+		return Error.New("message sync request token is too long", nil)
+	}
+	if broker.config.MaxSyncKeySize > 0 && uint64(len(message.GetSyncResponseToken())) > broker.config.MaxSyncKeySize {
+		return Error.New("message sync response token is too long", nil)
+	}
+	if broker.config.MaxPayloadSize > 0 && uint64(len(message.GetPayload())) > broker.config.MaxPayloadSize {
+		return Error.New("message payload is too long", nil)
+	}
+
+	return nil
+}
+
+func (broker *Broker) validateTopic(message *Message.Message) error {
 	broker.operationMutex.Lock()
 	syncTopicExists := broker.syncTopics[message.GetTopic()]
 	asyncTopicExists := broker.asyncTopics[message.GetTopic()]

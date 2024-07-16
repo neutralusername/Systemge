@@ -41,6 +41,10 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if message == nil || message.GetTopic() != "connect" || message.GetOrigin() == "" || message.GetPayload() != "" {
 		return nil, Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
 	}
+	err = broker.validateMessage(message)
+	if err != nil {
+		return nil, Error.New("Invalid connection request message", err)
+	}
 	nodeConnection := broker.newNodeConnection(message.GetOrigin(), netConn)
 	err = broker.addNodeConnection(nodeConnection)
 	if err != nil {

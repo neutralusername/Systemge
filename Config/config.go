@@ -46,6 +46,10 @@ type Broker struct {
 	SyncResponseTimeoutMs uint64 // default: 0
 	TcpTimeoutMs          uint64 // default: 0 = block forever
 	MaxMessageSize        uint64 // default: 0 = unlimited
+	MaxOriginSize         uint64 // default: 0 = unlimited
+	MaxPayloadSize        uint64 // default: 0 = unlimited
+	MaxTopicSize          uint64 // default: 0 = unlimited
+	MaxSyncKeySize        uint64 // default: 0 = unlimited
 
 	SyncTopics  []string
 	AsyncTopics []string
