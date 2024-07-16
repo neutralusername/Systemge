@@ -14,7 +14,7 @@ func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs uint64) (
 	if err != nil {
 		return nil, Error.New("Error sending message", err)
 	}
-	responseBytes, err := TcpReceive(netConn, timeoutMs)
+	responseBytes, _, err := TcpReceive(netConn, timeoutMs)
 	if err != nil {
 		return nil, Error.New("Error receiving response", err)
 	}
@@ -41,12 +41,13 @@ func TcpSend(netConn net.Conn, bytes []byte, timeoutMs uint64) error {
 	return nil
 }
 
-func TcpReceive(netConn net.Conn, timeoutMs uint64) ([]byte, error) {
+func TcpReceive(netConn net.Conn, timeoutMs uint64) ([]byte, uint64, error) {
 	if netConn == nil {
-		return nil, Error.New("net.Conn is nil", nil)
+		return nil, 0, Error.New("net.Conn is nil", nil)
 	}
 	buffer := make([]byte, 1)
 	message := make([]byte, 0)
+	var len uint64 = 0
 	if timeoutMs > 0 {
 		netConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 	} else {
@@ -55,13 +56,14 @@ func TcpReceive(netConn net.Conn, timeoutMs uint64) ([]byte, error) {
 	for {
 		n, err := netConn.Read(buffer)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		if buffer[n-1] == []byte(ENDOFMESSAGE)[0] {
 			break
 		} else {
+			len += uint64(n)
 			message = append(message, buffer[:n]...)
 		}
 	}
-	return message, nil
+	return message, len, nil
 }

@@ -23,7 +23,7 @@ func (broker *Broker) handleConfigConnections() {
 
 func (broker *Broker) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
+	messageBytes, _, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
 	if err != nil {
 		broker.config.Logger.Warning(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
 		return

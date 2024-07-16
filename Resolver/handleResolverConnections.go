@@ -22,7 +22,7 @@ func (resolver *Resolver) handleResolverConnections() {
 
 func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Utilities.TcpReceive(netConn, resolver.config.TcpTimeoutMs)
+	messageBytes, _, err := Utilities.TcpReceive(netConn, resolver.config.TcpTimeoutMs)
 	if err != nil {
 		resolver.logger.Warning(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
 		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)

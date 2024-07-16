@@ -8,7 +8,7 @@ import (
 func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
 	defer broker.removeNodeConnection(nodeConnection)
 	for broker.IsStarted() {
-		message, err := nodeConnection.receive()
+		message, err := broker.receive(nodeConnection)
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("Failed to receive message from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
 			return

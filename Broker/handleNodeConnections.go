@@ -33,9 +33,12 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
-	messageBytes, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
+	messageBytes, len, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
+	}
+	if broker.config.MaxMessageSize > 0 && len > broker.config.MaxMessageSize {
+		return nil, Error.New("Message size exceeds maximum size", nil)
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetTopic() != "connect" || message.GetOrigin() == "" {
