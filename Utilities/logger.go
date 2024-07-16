@@ -19,6 +19,10 @@ type LogString struct {
 	Msg   string
 }
 
+func (logger *Logger) GetMailer() *Mailer {
+	return logger.mailer
+}
+
 func NewLogger(infoPath string, warningPath string, errorPath string, debugPath string, mailer *Mailer) *Logger {
 	var errLogger *log.Logger
 	var warnLogger *log.Logger

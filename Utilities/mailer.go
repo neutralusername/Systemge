@@ -37,6 +37,10 @@ func NewMailer(smtpHost string, smtpPort uint16, senderEmail string, senderPassw
 	return mailer
 }
 
+func (mailer *Mailer) SetRecipients(recipients []string) {
+	mailer.recipients = recipients
+}
+
 func (mailer *Mailer) Close() {
 	close(mailer.stopChan)
 	close(mailer.mailQueue)
