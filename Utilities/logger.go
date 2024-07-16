@@ -90,9 +90,7 @@ func (logger *Logger) Error(str string) {
 		return
 	}
 	if logger.mailer != nil {
-		go func() {
-			logger.mailer.Send(NewMail(nil, "systemge error", str))
-		}()
+		logger.mailer.Send(NewMail(nil, "systemge error", str))
 	}
 	logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: str}
 }

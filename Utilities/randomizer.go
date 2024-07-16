@@ -12,6 +12,14 @@ type Randomizer struct {
 	mutex  *sync.Mutex
 }
 
+func RandomString(length int) string {
+	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, ALPHA_NUMERIC_SPECIAL)
+}
+
+func RandomNumber(min, max int) int {
+	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
+}
+
 const ALPHA_NUMERIC_SPECIAL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+"
 const ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
