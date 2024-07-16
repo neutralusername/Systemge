@@ -110,7 +110,7 @@ func (broker *Broker) stop(lock bool) error {
 	broker.tlsBrokerListener = nil
 	broker.tlsConfigListener.Close()
 	broker.tlsConfigListener = nil
-	broker.disconnectAllNodeConnections()
+	broker.removeAllNodeConnections()
 	broker.isStarted = false
 	close(broker.stopChannel)
 	topics := []string{}

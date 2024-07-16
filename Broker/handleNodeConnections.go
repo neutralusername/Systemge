@@ -48,7 +48,7 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	}
 	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.GetName(), ""))
 	if err != nil {
-		broker.disconnect(nodeConnection)
+		broker.removeNodeConnection(nodeConnection)
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nodeConnection, nil

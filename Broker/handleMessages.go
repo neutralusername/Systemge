@@ -6,7 +6,7 @@ import (
 )
 
 func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
-	defer broker.disconnect(nodeConnection)
+	defer broker.removeNodeConnection(nodeConnection)
 	for broker.IsStarted() {
 		message, err := nodeConnection.receive()
 		if err != nil {
@@ -109,7 +109,7 @@ func (broker *Broker) propagateMessage(message *Message.Message) {
 		err := broker.send(nodeConnection, message)
 		if err != nil {
 			broker.config.Logger.Warning(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
-			broker.disconnect(nodeConnection)
+			broker.removeNodeConnection(nodeConnection)
 		}
 	}
 }

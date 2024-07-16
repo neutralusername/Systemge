@@ -50,7 +50,7 @@ func (nodeConnection *nodeConnection) receive() (*Message.Message, error) {
 	return message, nil
 }
 
-func (broker *Broker) disconnect(nodeConnection *nodeConnection) {
+func (broker *Broker) removeNodeConnection(nodeConnection *nodeConnection) {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	if nodeConnection.netConn == nil {
@@ -74,10 +74,10 @@ func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
 	return nil
 }
 
-func (broker *Broker) disconnectAllNodeConnections() {
+func (broker *Broker) removeAllNodeConnections() {
 	broker.operationMutex.Lock()
 	defer broker.operationMutex.Unlock()
 	for _, nodeConnection := range broker.nodeConnections {
-		go broker.disconnect(nodeConnection)
+		go broker.removeNodeConnection(nodeConnection)
 	}
 }
