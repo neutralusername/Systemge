@@ -45,6 +45,7 @@ func (mailer *Mailer) GetRecipients() []string {
 	return mailer.recipients
 }
 
+// Send calls after Close will cause a panic
 func (mailer *Mailer) Close() {
 	close(mailer.stopChan)
 	close(mailer.mailQueue)
@@ -58,6 +59,7 @@ func NewMail(cc []string, subject string, body string) *Mail {
 	}
 }
 
+// Send calls after Close will cause a panic
 func (mailer *Mailer) Send(mail *Mail) {
 	mailer.mailQueue <- mail
 }

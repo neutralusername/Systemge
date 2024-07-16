@@ -68,6 +68,7 @@ const (
 	LEVEL_DEBUG   = 3 // debug information
 )
 
+// Info calls after Close will cause a panic
 func (logger *Logger) Info(str string) {
 	if logger == nil {
 		return
@@ -75,6 +76,7 @@ func (logger *Logger) Info(str string) {
 	logger.logQueue <- LogString{Level: LEVEL_INFO, Msg: str}
 }
 
+// Warning calls after Close will cause a panic
 func (logger *Logger) Warning(str string) {
 	if logger == nil {
 		return
@@ -82,6 +84,7 @@ func (logger *Logger) Warning(str string) {
 	logger.logQueue <- LogString{Level: LEVEL_WARNING, Msg: str}
 }
 
+// Error calls after Close will cause a panic
 func (logger *Logger) Error(str string) {
 	if logger == nil {
 		return
@@ -94,6 +97,7 @@ func (logger *Logger) Error(str string) {
 	logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: str}
 }
 
+// Debug calls after Close will cause a panic
 func (logger *Logger) Debug(str string) {
 	if logger == nil {
 		return
@@ -129,6 +133,7 @@ func (logger *Logger) logRoutine() {
 	}
 }
 
+// Log calls after Close will cause a panic
 func (logger *Logger) Close() {
 	if logger == nil {
 		return
