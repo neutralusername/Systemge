@@ -37,6 +37,14 @@ func NewMailer(smtpHost string, smtpPort uint16, senderEmail string, senderPassw
 	return mailer
 }
 
+func NewMail(cc []string, subject string, body string) *Mail {
+	return &Mail{
+		Cc:      cc,
+		Subject: subject,
+		Body:    body,
+	}
+}
+
 func (mailer *Mailer) SetRecipients(recipients []string) {
 	mailer.recipients = recipients
 }
@@ -49,14 +57,6 @@ func (mailer *Mailer) GetRecipients() []string {
 func (mailer *Mailer) Close() {
 	close(mailer.stopChan)
 	close(mailer.mailQueue)
-}
-
-func NewMail(cc []string, subject string, body string) *Mail {
-	return &Mail{
-		Cc:      cc,
-		Subject: subject,
-		Body:    body,
-	}
 }
 
 // Send calls after Close will cause a panic
