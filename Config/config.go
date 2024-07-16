@@ -45,11 +45,12 @@ type Broker struct {
 
 	SyncResponseTimeoutMs uint64 // default: 0
 	TcpTimeoutMs          uint64 // default: 0 = block forever
-	MaxMessageSize        uint64 // default: 0 = unlimited
-	MaxOriginSize         uint64 // default: 0 = unlimited
-	MaxPayloadSize        uint64 // default: 0 = unlimited
-	MaxTopicSize          uint64 // default: 0 = unlimited
-	MaxSyncKeySize        uint64 // default: 0 = unlimited
+
+	MaxMessageSize uint64 // default: 0 = unlimited
+	MaxOriginSize  int    // default: 0 = unlimited
+	MaxPayloadSize int    // default: 0 = unlimited
+	MaxTopicSize   int    // default: 0 = unlimited
+	MaxSyncKeySize int    // default: 0 = unlimited
 
 	SyncTopics  []string
 	AsyncTopics []string
@@ -63,6 +64,11 @@ type Resolver struct {
 	ConfigServer TcpServer.TcpServer // *required*
 
 	TcpTimeoutMs uint64 // default: 0 = block forever
+
+	MaxMessageSize uint64 // default: 0 = unlimited
+	MaxPayloadSize int    // default: 0 = unlimited
+	MaxOriginSize  int    // default: 0 = unlimited
+	MaxTopicSize   int    // default: 0 = unlimited
 }
 
 type Spawner struct {
