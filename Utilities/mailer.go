@@ -37,8 +37,9 @@ func NewMailer(smtpHost string, smtpPort uint16, senderEmail string, senderPassw
 	return mailer
 }
 
-func (mailer *Mailer) Stop() {
+func (mailer *Mailer) Close() {
 	close(mailer.stopChan)
+	close(mailer.mailQueue)
 }
 
 func NewMail(cc []string, subject string, body string) *Mail {
