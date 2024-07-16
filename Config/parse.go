@@ -148,7 +148,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
 	return Broker{
 		Name:                   name,
-		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
+		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
 		SyncResponseTimeoutMs:  syncResponseTimeoutMs,
 		TcpTimeoutMs:           tcpTimeoutMs,
@@ -260,7 +260,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	configServer := TcpServer.New(port, configTlsCertPath, configTlsKeyPath)
 	return Resolver{
 		Name:         name,
-		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
+		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil),
 		Server:       resolverServer,
 		ConfigServer: configServer,
 		TcpTimeoutMs: tcpTimeoutMs,
@@ -367,7 +367,7 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 	resolverEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
 	return Node{
 		Name:                      name,
-		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath),
+		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil),
 		ResolverEndpoint:          resolverEndpoint,
 		TcpTimeoutMs:              tcpTimeoutMs,
 		BrokerSubscribeDelayMs:    brokerSubscribeDelayMs,

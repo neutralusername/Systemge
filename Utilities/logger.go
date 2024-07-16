@@ -11,6 +11,7 @@ type Logger struct {
 	debug    *log.Logger
 	logQueue chan LogString
 	close    chan bool
+	mailer   *Mailer
 }
 
 type LogString struct {
@@ -18,42 +19,7 @@ type LogString struct {
 	Msg   string
 }
 
-const (
-	LEVEL_INFO    = 0 // general info about the system state. usually successful operations
-	LEVEL_WARNING = 1 // failed operations that do not affect the system's health and will auto-recover
-	LEVEL_ERROR   = 2 // failed operations which should not fail under normal circumstances
-	LEVEL_DEBUG   = 3 // debug information
-)
-
-func (logger *Logger) Info(str string) {
-	if logger == nil {
-		return
-	}
-	logger.logQueue <- LogString{Level: LEVEL_INFO, Msg: str}
-}
-
-func (logger *Logger) Warning(str string) {
-	if logger == nil {
-		return
-	}
-	logger.logQueue <- LogString{Level: LEVEL_WARNING, Msg: str}
-}
-
-func (logger *Logger) Error(str string) {
-	if logger == nil {
-		return
-	}
-	logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: str}
-}
-
-func (logger *Logger) Debug(str string) {
-	if logger == nil {
-		return
-	}
-	logger.logQueue <- LogString{Level: LEVEL_DEBUG, Msg: str}
-}
-
-func NewLogger(infoPath string, warningPath string, errorPath string, debugPath string) *Logger {
+func NewLogger(infoPath string, warningPath string, errorPath string, debugPath string, mailer *Mailer) *Logger {
 	var errLogger *log.Logger
 	var warnLogger *log.Logger
 	var infoLogger *log.Logger
@@ -81,9 +47,53 @@ func NewLogger(infoPath string, warningPath string, errorPath string, debugPath 
 		debug:    debugLogger,
 		logQueue: make(chan LogString, 1000),
 		close:    make(chan bool),
+		mailer:   mailer,
 	}
 	go loggerStruct.logRoutine()
 	return loggerStruct
+}
+
+const (
+	LEVEL_INFO    = 0 // general info about the system state. usually successful operations
+	LEVEL_WARNING = 1 // failed operations that do not affect the system's health and will auto-recover
+	LEVEL_ERROR   = 2 // failed operations which should not fail under normal circumstances
+	LEVEL_DEBUG   = 3 // debug information
+)
+
+func (logger *Logger) Info(str string) {
+	if logger == nil {
+		return
+	}
+	logger.logQueue <- LogString{Level: LEVEL_INFO, Msg: str}
+}
+
+func (logger *Logger) Warning(str string) {
+	if logger == nil {
+		return
+	}
+	logger.logQueue <- LogString{Level: LEVEL_WARNING, Msg: str}
+}
+
+func (logger *Logger) Error(str string) {
+	if logger == nil {
+		return
+	}
+	if logger.mailer != nil {
+		go func() {
+			err := logger.mailer.Send(NewMail(nil, "systemge error", str))
+			if err != nil {
+				logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: "Failed to send email: " + err.Error()}
+			}
+		}()
+	}
+	logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: str}
+}
+
+func (logger *Logger) Debug(str string) {
+	if logger == nil {
+		return
+	}
+	logger.logQueue <- LogString{Level: LEVEL_DEBUG, Msg: str}
 }
 
 func (logger *Logger) logRoutine() {
