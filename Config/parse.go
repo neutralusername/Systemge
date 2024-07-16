@@ -154,7 +154,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
 	var mailer *Utilities.Mailer = nil
 	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
-		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients)
+		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients, Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil))
 	}
 	return Broker{
 		Name:                   name,
@@ -285,7 +285,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	configServer := TcpServer.New(port, configTlsCertPath, configTlsKeyPath)
 	var mailer *Utilities.Mailer = nil
 	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
-		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients)
+		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients, Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil))
 	}
 	return Resolver{
 		Name:         name,
@@ -409,7 +409,7 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 	}
 	var mailer *Utilities.Mailer = nil
 	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
-		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients)
+		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients, Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil))
 	}
 	resolverEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
 	return Node{
