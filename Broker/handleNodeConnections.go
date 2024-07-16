@@ -48,10 +48,7 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	}
 	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.GetName(), ""))
 	if err != nil {
-		errRemove := broker.removeNodeConnection(nodeConnection)
-		if errRemove != nil { // This should never happen
-			broker.config.Logger.Error(Error.New("Failed to remove node \""+nodeConnection.name+"\" after failed connection response on broker \""+broker.GetName()+"\"", errRemove).Error())
-		}
+		broker.disconnect(nodeConnection)
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nodeConnection, nil

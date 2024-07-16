@@ -52,19 +52,16 @@ func (nodeConnection *nodeConnection) receive() (*Message.Message, error) {
 
 func (broker *Broker) disconnect(nodeConnection *nodeConnection) {
 	broker.operationMutex.Lock()
+	defer broker.operationMutex.Unlock()
 	if nodeConnection.netConn == nil {
-		broker.operationMutex.Unlock()
 		return
 	}
 	nodeConnection.netConn.Close()
 	nodeConnection.netConn = nil
-	broker.operationMutex.Unlock()
-	err := broker.removeNodeConnection(nodeConnection)
-	if err != nil { // This should never happen
-		broker.config.Logger.Error(Error.New("Failed to remove node \""+nodeConnection.name+"\" on broker \""+broker.config.Name+"\"", err).Error())
-	} else {
-		broker.config.Logger.Info(Error.New("Disconnected node \""+nodeConnection.name+"\" on broker \""+broker.config.Name+"\"", nil).Error())
+	for messageType := range nodeConnection.subscribedTopics {
+		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)
 	}
+	delete(broker.nodeConnections, nodeConnection.name)
 }
 
 func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
@@ -74,19 +71,6 @@ func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
 		return Error.New("Node name already in use", nil)
 	}
 	broker.nodeConnections[nodeConnection.name] = nodeConnection
-	return nil
-}
-
-func (broker *Broker) removeNodeConnection(nodeConnection *nodeConnection) error {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
-	if broker.nodeConnections[nodeConnection.name] == nil {
-		return Error.New("Node not found", nil)
-	}
-	for messageType := range nodeConnection.subscribedTopics {
-		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)
-	}
-	delete(broker.nodeConnections, nodeConnection.name)
 	return nil
 }
 
