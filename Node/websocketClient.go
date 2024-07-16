@@ -26,7 +26,6 @@ type WebsocketClient struct {
 
 	expired      bool
 	disconnected bool
-	removed      bool
 
 	// the timestamp of the previous message from the websocketClient.
 	// used to enforce messageCooldown.
@@ -50,15 +49,15 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 		websocketClient.expired = true
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
-		if websocketClient.removed || (!websocketClient.disconnected && !websocketClient.expired) {
+		if websocketClient.watchdog == nil || (!websocketClient.disconnected && !websocketClient.expired) {
 			return
 		}
 		websocketClient.watchdog.Stop()
+		websocketClient.watchdog = nil
 		websocketConn.Close()
 		node.websocketComponent.OnDisconnectHandler(node, websocketClient)
 		node.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
-		websocketClient.removed = true
 	})
 	return websocketClient
 }
@@ -67,7 +66,7 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
-	if websocketClient.disconnected || websocketClient.removed {
+	if websocketClient.watchdog == nil || websocketClient.disconnected {
 		return
 	}
 	websocketClient.expired = false
@@ -77,7 +76,7 @@ func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
 // Disconnects the websocketClient and blocks until the websocketClient is disconnected.
 func (websocketClient *WebsocketClient) Disconnect() {
 	websocketClient.watchdogMutex.Lock()
-	if websocketClient.disconnected || websocketClient.removed {
+	if websocketClient.watchdog == nil || websocketClient.disconnected {
 		websocketClient.watchdogMutex.Unlock()
 		return
 	}
