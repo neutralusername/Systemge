@@ -9,7 +9,7 @@ import (
 )
 
 func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint, error) {
-	netConn, err := node.config.ResolverEndpoint.TlsDial()
+	netConn, err := node.config.ResolverEndpoint.Dial()
 	if err != nil {
 		return nil, Error.New("failed dialing resolver", err)
 	}

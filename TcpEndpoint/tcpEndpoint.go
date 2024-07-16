@@ -41,11 +41,10 @@ func (tcpEndpoint TcpEndpoint) GetTlsCertificate() string {
 	return tcpEndpoint.tlsCertificate
 }
 
-func (tcpEndpoint TcpEndpoint) TcpDial() (net.Conn, error) {
-	return net.Dial("tcp", tcpEndpoint.address)
-}
-
-func (tcpEndpoint TcpEndpoint) TlsDial() (net.Conn, error) {
+func (tcpEndpoint TcpEndpoint) Dial() (net.Conn, error) {
+	if tcpEndpoint.tlsCertificate == "" {
+		return net.Dial("tcp", tcpEndpoint.address)
+	}
 	rootCAs := x509.NewCertPool()
 	if !rootCAs.AppendCertsFromPEM([]byte(tcpEndpoint.tlsCertificate)) {
 		return nil, Error.New("Error adding certificate to root CAs", nil)

@@ -8,7 +8,7 @@ import (
 )
 
 func (node *Node) connectToBroker(tcpEndpoint *TcpEndpoint.TcpEndpoint) (*brokerConnection, error) {
-	netConn, err := tcpEndpoint.TlsDial()
+	netConn, err := tcpEndpoint.Dial()
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}

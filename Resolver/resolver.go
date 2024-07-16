@@ -37,11 +37,11 @@ func (resolver *Resolver) Start() error {
 	if resolver.isStarted {
 		return Error.New("resolver already started", nil)
 	}
-	listener, err := resolver.config.Server.GetTlsListener()
+	listener, err := resolver.config.Server.GetListener()
 	if err != nil {
 		return Error.New("Failed to get listener: ", err)
 	}
-	configListener, err := resolver.config.ConfigServer.GetTlsListener()
+	configListener, err := resolver.config.ConfigServer.GetListener()
 	if err != nil {
 		return Error.New("Failed to get listener: ", err)
 	}

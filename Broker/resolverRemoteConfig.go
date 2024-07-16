@@ -10,7 +10,7 @@ func (broker *Broker) addResolverTopicsRemotely(topics ...string) error {
 	if len(topics) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	netConn, err := broker.config.ResolverConfigEndpoint.TlsDial()
+	netConn, err := broker.config.ResolverConfigEndpoint.Dial()
 	if err != nil {
 		return Error.New("failed dialing broker", err)
 	}
@@ -30,7 +30,7 @@ func (broker *Broker) removeResolverTopicsRemotely(topics ...string) error {
 	if len(topics) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	netConn, err := broker.config.ResolverConfigEndpoint.TlsDial()
+	netConn, err := broker.config.ResolverConfigEndpoint.Dial()
 	if err != nil {
 		return Error.New("failed dialing broker", err)
 	}

@@ -25,8 +25,8 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	errorPath := ""
 	debugPath := ""
 	resolverPort := ""
-	resolverTlsCertPath := ""
-	resolverTlsKeyPath := ""
+	resolverCertPath := ""
+	resolverKeyPath := ""
 	configPort := ""
 	configTlsCertPath := ""
 	configTlsKeyPath := ""
@@ -91,29 +91,37 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 			smtpPassword = lineSegments[4]
 			smtpRecipients = lineSegments[5:]
 		case "_resolver":
-			if len(lineSegments) != 4 {
-				panic("resolver line is invalid \"" + line + "\"")
+			if len(lineSegments) != 2 && len(lineSegments) != 4 {
+				panic("server line is invalid \"" + line + "\"")
 			}
-			resolverPort = lineSegments[1]
-			resolverTlsCertPath = lineSegments[2]
-			resolverTlsKeyPath = lineSegments[3]
+			if len(lineSegments) == 2 {
+				resolverPort = lineSegments[1]
+			} else {
+				resolverPort = lineSegments[1]
+				resolverCertPath = lineSegments[2]
+				resolverKeyPath = lineSegments[3]
+			}
 		case "_config":
-			if len(lineSegments) != 4 {
+			if len(lineSegments) != 2 && len(lineSegments) != 4 {
 				panic("config line is invalid \"" + line + "\"")
 			}
-			configPort = lineSegments[1]
-			configTlsCertPath = lineSegments[2]
-			configTlsKeyPath = lineSegments[3]
+			if len(lineSegments) == 2 {
+				configPort = lineSegments[1]
+			} else {
+				configPort = lineSegments[1]
+				configTlsCertPath = lineSegments[2]
+				configTlsKeyPath = lineSegments[3]
+			}
 		}
 	}
-	if resolverPort == "" || resolverTlsCertPath == "" || resolverTlsKeyPath == "" || configPort == "" || configTlsCertPath == "" || configTlsKeyPath == "" {
+	if resolverPort == "" || configPort == "" {
 		panic("missing required fields in config")
 	}
 	port := Utilities.StringToUint16(resolverPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + resolverPort + "\"")
 	}
-	resolverServer := TcpServer.New(port, resolverTlsCertPath, resolverTlsKeyPath)
+	resolverServer := TcpServer.New(port, resolverCertPath, resolverKeyPath)
 	port = Utilities.StringToUint16(configPort)
 	if port < 1 || port > 65535 {
 		panic("invalid port \"" + configPort + "\"")

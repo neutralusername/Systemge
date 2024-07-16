@@ -91,12 +91,16 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 			smtpPassword = lineSegments[4]
 			smtpRecipients = lineSegments[5:]
 		case "_resolver":
-			if len(lineSegments) != 4 {
+			if len(lineSegments) != 2 && len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
 			}
-			resolverAddress = lineSegments[1]
-			resolverServerNameIndication = lineSegments[2]
-			resolverCertPath = lineSegments[3]
+			if len(lineSegments) == 2 {
+				resolverAddress = lineSegments[1]
+			} else {
+				resolverAddress = lineSegments[1]
+				resolverServerNameIndication = lineSegments[2]
+				resolverCertPath = lineSegments[3]
+			}
 		case "_brokerSubscribeDelayMs":
 			if len(lineSegments) != 2 {
 				panic("brokerSubscribeDelayMs line is invalid \"" + line + "\"")
@@ -114,14 +118,18 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 			TopicResolutionLifetimeMs = Utilities.StringToUint64(lineSegments[1])
 		}
 	}
-	if resolverAddress == "" || resolverCertPath == "" {
+	if resolverAddress == "" {
 		panic("missing required fields in config")
 	}
 	var mailer *Utilities.Mailer = nil
 	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
 		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients, Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil))
 	}
-	resolverEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
+	resolverCert := ""
+	if resolverCertPath != "" {
+		resolverCert = Utilities.GetFileContent(resolverCertPath)
+	}
+	resolverEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, resolverCert)
 	return Node{
 		Name:                      name,
 		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, mailer),

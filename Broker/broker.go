@@ -48,11 +48,11 @@ func (broker *Broker) Start() error {
 	if broker.isStarted {
 		return Error.New("Broker \""+broker.GetName()+"\" is already started", nil)
 	}
-	listener, err := broker.config.Server.GetTlsListener()
+	listener, err := broker.config.Server.GetListener()
 	if err != nil {
 		return Error.New("Failed to get listener for broker \""+broker.GetName()+"\"", err)
 	}
-	configListener, err := broker.config.ConfigServer.GetTlsListener()
+	configListener, err := broker.config.ConfigServer.GetListener()
 	if err != nil {
 		return Error.New("Failed to get config listener for broker \""+broker.GetName()+"\"", err)
 	}

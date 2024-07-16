@@ -15,7 +15,7 @@ func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpo
 	if len(payload) == 0 {
 		return Error.New("no topics provided", nil)
 	}
-	netConn, err := brokerConfigEndpoint.TlsDial()
+	netConn, err := brokerConfigEndpoint.Dial()
 	if err != nil {
 		return Error.New("failed dialing broker", err)
 	}
@@ -35,7 +35,7 @@ func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEn
 	if len(payload) == 0 {
 		return Error.New("no topics provided", nil)
 	}
-	netConn, err := brokerConfigEndpoint.TlsDial()
+	netConn, err := brokerConfigEndpoint.Dial()
 	if err != nil {
 		return Error.New("failed dialing broker", err)
 	}
@@ -55,7 +55,7 @@ func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndp
 	if len(payload) == 0 {
 		return Error.New("no topics provided", nil)
 	}
-	netConn, err := brokerConfigEndpoint.TlsDial()
+	netConn, err := brokerConfigEndpoint.Dial()
 	if err != nil {
 		return Error.New("failed dialing broker", err)
 	}
@@ -75,7 +75,7 @@ func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpE
 	if len(payload) == 0 {
 		return Error.New("no topics provided", nil)
 	}
-	netConn, err := brokerConfigEndpoint.TlsDial()
+	netConn, err := brokerConfigEndpoint.Dial()
 	if err != nil {
 		return Error.New("failed dialing broker", err)
 	}

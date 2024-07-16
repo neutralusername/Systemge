@@ -100,32 +100,48 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			smtpPassword = lineSegments[4]
 			smtpRecipients = lineSegments[5:]
 		case "_broker":
-			if len(lineSegments) != 4 {
+			if len(lineSegments) != 2 && len(lineSegments) != 4 {
 				panic("broker line is invalid \"" + line + "\"")
 			}
-			brokerPort = lineSegments[1]
-			brokerCertPath = lineSegments[2]
-			brokerKeyPath = lineSegments[3]
+			if len(lineSegments) == 2 {
+				brokerPort = lineSegments[1]
+			} else {
+				brokerPort = lineSegments[1]
+				brokerCertPath = lineSegments[2]
+				brokerKeyPath = lineSegments[3]
+			}
 		case "_config":
-			if len(lineSegments) != 4 {
+			if len(lineSegments) != 2 && len(lineSegments) != 4 {
 				panic("config line is invalid \"" + line + "\"")
 			}
-			configPort = lineSegments[1]
-			configCertPath = lineSegments[2]
-			configKeyPath = lineSegments[3]
+			if len(lineSegments) == 2 {
+				configPort = lineSegments[1]
+			} else {
+				configPort = lineSegments[1]
+				configCertPath = lineSegments[2]
+				configKeyPath = lineSegments[3]
+			}
 		case "_endpoint":
-			if len(lineSegments) != 3 {
+			if len(lineSegments) != 2 && len(lineSegments) != 3 {
 				panic("endpoint line is invalid \"" + line + "\"")
 			}
-			publicIp = lineSegments[1]
-			serverNameIndication = lineSegments[2]
+			if len(lineSegments) == 2 {
+				publicIp = lineSegments[1]
+			} else {
+				publicIp = lineSegments[1]
+				serverNameIndication = lineSegments[2]
+			}
 		case "_resolverConfig":
-			if len(lineSegments) != 4 {
+			if len(lineSegments) != 2 && len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
 			}
-			resolverConfigAddress = lineSegments[1]
-			resolverConfigServerNameIndication = lineSegments[2]
-			resolverConfigCertPath = lineSegments[3]
+			if len(lineSegments) == 2 {
+				resolverConfigAddress = lineSegments[1]
+			} else {
+				resolverConfigAddress = lineSegments[1]
+				resolverConfigServerNameIndication = lineSegments[2]
+				resolverConfigCertPath = lineSegments[3]
+			}
 		case "_syncResponseTimeoutMs":
 			if len(lineSegments) != 2 {
 				panic("syncRequestTimeoutMs line is invalid \"" + line + "\"")
@@ -137,7 +153,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 			asyncTopics = append(asyncTopics, lineSegments[1:]...)
 		}
 	}
-	if brokerPort == "" || brokerCertPath == "" || brokerKeyPath == "" || configPort == "" || configCertPath == "" || configKeyPath == "" {
+	if brokerPort == "" || configPort == "" {
 		panic("missing required fields in config")
 	}
 	port := Utilities.StringToUint16(brokerPort)
@@ -150,8 +166,16 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		panic("invalid port \"" + configPort + "\"")
 	}
 	configServer := TcpServer.New(port, configCertPath, configKeyPath)
-	brokerEndpoint := TcpEndpoint.New(publicIp+":"+brokerPort, serverNameIndication, Utilities.GetFileContent(brokerCertPath))
-	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
+	brokerCert := ""
+	if brokerCertPath != "" {
+		brokerCert = Utilities.GetFileContent(brokerCertPath)
+	}
+	brokerEndpoint := TcpEndpoint.New(publicIp+":"+brokerPort, serverNameIndication, brokerCert)
+	resolverConfigCert := ""
+	if resolverConfigCertPath != "" {
+		resolverConfigCert = Utilities.GetFileContent(resolverConfigCertPath)
+	}
+	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, resolverConfigCert)
 	var mailer *Utilities.Mailer = nil
 	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
 		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients, Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil))
