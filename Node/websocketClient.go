@@ -24,6 +24,10 @@ type WebsocketClient struct {
 	// if the timer is nil, the websocketClient is already disconnected.
 	watchdog *time.Timer
 
+	expired      bool
+	disconnected bool
+	removed      bool
+
 	// the timestamp of the previous message from the websocketClient.
 	// used to enforce messageCooldown.
 	// updated automatically after every message to the current time.
@@ -31,7 +35,7 @@ type WebsocketClient struct {
 	lastMessageTimestamp time.Time
 }
 
-func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn, onDisconnectHandler func(*WebsocketClient)) *WebsocketClient {
+func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *WebsocketClient {
 	websocketClient := &WebsocketClient{
 		id:            id,
 		websocketConn: websocketConn,
@@ -41,21 +45,46 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn, o
 	}
 
 	websocketClient.watchdogMutex.Lock()
-	//without the mutex's there is a rare racecondition in which the anonymous function is called (if duration is extremely short or 0) before websocketClient.watchdog is assigned its value which results in a panic
+	defer websocketClient.watchdogMutex.Unlock()
 	websocketClient.watchdog = time.AfterFunc(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
+		websocketClient.expired = true
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
-		if websocketClient.watchdog == nil {
+		if websocketClient.removed || (!websocketClient.disconnected && !websocketClient.expired) {
 			return
 		}
 		websocketClient.watchdog.Stop()
-		websocketClient.watchdog = nil
 		websocketConn.Close()
-		onDisconnectHandler(websocketClient)
+		node.websocketComponent.OnDisconnectHandler(node, websocketClient)
+		node.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
+		websocketClient.removed = true
 	})
-	websocketClient.watchdogMutex.Unlock()
 	return websocketClient
+}
+
+// Resets the watchdog timer to its initial value
+func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
+	websocketClient.watchdogMutex.Lock()
+	defer websocketClient.watchdogMutex.Unlock()
+	if websocketClient.disconnected || websocketClient.removed {
+		return
+	}
+	websocketClient.expired = false
+	websocketClient.watchdog.Reset(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
+}
+
+// Disconnects the websocketClient and blocks until the websocketClient is disconnected.
+func (websocketClient *WebsocketClient) Disconnect() {
+	websocketClient.watchdogMutex.Lock()
+	if websocketClient.disconnected || websocketClient.removed {
+		websocketClient.watchdogMutex.Unlock()
+		return
+	}
+	websocketClient.disconnected = true
+	websocketClient.watchdog.Reset(0)
+	websocketClient.watchdogMutex.Unlock()
+	<-websocketClient.stopChannel
 }
 
 func (websocketClient *WebsocketClient) GetLastMessageTimestamp() time.Time {
@@ -64,28 +93,6 @@ func (websocketClient *WebsocketClient) GetLastMessageTimestamp() time.Time {
 
 func (websocketClient *WebsocketClient) SetLastMessageTimestamp(lastMessageTimestamp time.Time) {
 	websocketClient.lastMessageTimestamp = lastMessageTimestamp
-}
-
-// Resets the watchdog timer to its initial value
-func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
-	websocketClient.watchdogMutex.Lock()
-	defer websocketClient.watchdogMutex.Unlock()
-	if websocketClient.watchdog == nil {
-		return
-	}
-	websocketClient.watchdog.Reset(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
-}
-
-// Disconnects the websocketClient and blocks until after the onDisconnectHandler is called
-func (websocketClient *WebsocketClient) Disconnect() {
-	websocketClient.watchdogMutex.Lock()
-	if websocketClient.watchdog == nil {
-		websocketClient.watchdogMutex.Unlock()
-		return
-	}
-	websocketClient.watchdog.Reset(0)
-	websocketClient.watchdogMutex.Unlock()
-	<-websocketClient.stopChannel
 }
 
 func (websocketClient *WebsocketClient) GetIp() string {
@@ -124,10 +131,7 @@ func (node *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClie
 	for _, exists := node.websocketClients[websocketId]; exists; {
 		websocketId = "#" + node.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	}
-	websocketClient := node.newWebsocketClient(websocketId, websocketConn, func(websocketClient *WebsocketClient) {
-		node.websocketComponent.OnDisconnectHandler(node, websocketClient)
-		node.removeWebsocketClient(websocketClient)
-	})
+	websocketClient := node.newWebsocketClient(websocketId, websocketConn)
 	node.websocketClients[websocketId] = websocketClient
 	node.websocketClientGroups[websocketId] = make(map[string]bool)
 	return websocketClient
