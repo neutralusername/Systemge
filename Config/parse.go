@@ -37,6 +37,11 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	resolverConfigAddress := ""
 	resolverConfigServerNameIndication := ""
 	resolverConfigCertPath := ""
+	smtpHost := ""
+	smtpPort := uint16(0)
+	smtpUsername := ""
+	smtpPassword := ""
+	smtpRecipients := []string{}
 
 	syncTopics := []string{}
 	asyncTopics := []string{}
@@ -85,6 +90,15 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 				panic("logs line is invalid \"" + line + "\"")
 			}
 			debugPath = lineSegments[1]
+		case "_smtp":
+			if len(lineSegments) < 6 {
+				panic("smtp line is invalid \"" + line + "\"")
+			}
+			smtpHost = lineSegments[1]
+			smtpPort = Utilities.StringToUint16(lineSegments[2])
+			smtpUsername = lineSegments[3]
+			smtpPassword = lineSegments[4]
+			smtpRecipients = lineSegments[5:]
 		case "_broker":
 			if len(lineSegments) != 4 {
 				panic("broker line is invalid \"" + line + "\"")
@@ -146,9 +160,13 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 	configServer := TcpServer.New(port, configCertPath, configKeyPath)
 	brokerEndpoint := TcpEndpoint.New(publicIp+":"+brokerPort, serverNameIndication, Utilities.GetFileContent(brokerCertPath))
 	resolverConfigEndpoint := TcpEndpoint.New(resolverConfigAddress, resolverConfigServerNameIndication, Utilities.GetFileContent(resolverConfigCertPath))
+	var mailer *Utilities.Mailer = nil
+	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
+		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients)
+	}
 	return Broker{
 		Name:                   name,
-		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil),
+		Logger:                 Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, mailer),
 		ResolverConfigEndpoint: resolverConfigEndpoint,
 		SyncResponseTimeoutMs:  syncResponseTimeoutMs,
 		TcpTimeoutMs:           tcpTimeoutMs,
@@ -184,6 +202,12 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 	configPort := ""
 	configTlsCertPath := ""
 	configTlsKeyPath := ""
+	smtpHost := ""
+	smtpPort := uint16(0)
+	smtpUsername := ""
+	smtpPassword := ""
+	smtpRecipients := []string{}
+
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 3 {
 		panic("provided file has too few lines to be a valid config")
@@ -229,6 +253,15 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 				panic("logs line is invalid \"" + line + "\"")
 			}
 			debugPath = lineSegments[1]
+		case "_smtp":
+			if len(lineSegments) < 6 {
+				panic("smtp line is invalid \"" + line + "\"")
+			}
+			smtpHost = lineSegments[1]
+			smtpPort = Utilities.StringToUint16(lineSegments[2])
+			smtpUsername = lineSegments[3]
+			smtpPassword = lineSegments[4]
+			smtpRecipients = lineSegments[5:]
 		case "_resolver":
 			if len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
@@ -258,9 +291,13 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		panic("invalid port \"" + configPort + "\"")
 	}
 	configServer := TcpServer.New(port, configTlsCertPath, configTlsKeyPath)
+	var mailer *Utilities.Mailer = nil
+	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
+		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients)
+	}
 	return Resolver{
 		Name:         name,
-		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil),
+		Logger:       Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, mailer),
 		Server:       resolverServer,
 		ConfigServer: configServer,
 		TcpTimeoutMs: tcpTimeoutMs,
@@ -291,6 +328,11 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 	resolverAddress := ""
 	resolverServerNameIndication := ""
 	resolverCertPath := ""
+	smtpHost := ""
+	smtpPort := uint16(0)
+	smtpUsername := ""
+	smtpPassword := ""
+	smtpRecipients := []string{}
 
 	lines := Utilities.SplitLines(Utilities.GetFileContent(sytemgeConfigPath))
 	if len(lines) < 2 {
@@ -337,6 +379,15 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 				panic("logs line is invalid \"" + line + "\"")
 			}
 			debugPath = lineSegments[1]
+		case "_smtp":
+			if len(lineSegments) < 6 {
+				panic("smtp line is invalid \"" + line + "\"")
+			}
+			smtpHost = lineSegments[1]
+			smtpPort = Utilities.StringToUint16(lineSegments[2])
+			smtpUsername = lineSegments[3]
+			smtpPassword = lineSegments[4]
+			smtpRecipients = lineSegments[5:]
 		case "_resolver":
 			if len(lineSegments) != 4 {
 				panic("resolver line is invalid \"" + line + "\"")
@@ -364,10 +415,14 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 	if resolverAddress == "" || resolverCertPath == "" {
 		panic("missing required fields in config")
 	}
+	var mailer *Utilities.Mailer = nil
+	if smtpHost != "" && smtpPort != 0 && smtpUsername != "" && smtpPassword != "" && len(smtpRecipients) > 0 {
+		mailer = Utilities.NewMailer(smtpHost, smtpPort, smtpUsername, smtpPassword, smtpRecipients)
+	}
 	resolverEndpoint := TcpEndpoint.New(resolverAddress, resolverServerNameIndication, Utilities.GetFileContent(resolverCertPath))
 	return Node{
 		Name:                      name,
-		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, nil),
+		Logger:                    Utilities.NewLogger(infoPath, warningPath, errorPath, debugPath, mailer),
 		ResolverEndpoint:          resolverEndpoint,
 		TcpTimeoutMs:              tcpTimeoutMs,
 		BrokerSubscribeDelayMs:    brokerSubscribeDelayMs,
