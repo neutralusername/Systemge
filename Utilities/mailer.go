@@ -41,6 +41,10 @@ func (mailer *Mailer) SetRecipients(recipients []string) {
 	mailer.recipients = recipients
 }
 
+func (mailer *Mailer) GetRecipients() []string {
+	return mailer.recipients
+}
+
 func (mailer *Mailer) Close() {
 	close(mailer.stopChan)
 	close(mailer.mailQueue)
