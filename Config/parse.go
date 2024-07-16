@@ -53,7 +53,7 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 		if len(line) == 0 {
 			continue
 		}
-		lineSegmentss := strings.Split(line, " ")
+		lineSegmentss := strings.Split(line, "\t")
 		lineSegments := []string{}
 		for _, segment := range lineSegmentss {
 			if len(segment) > 0 {
@@ -131,18 +131,10 @@ func ParseBrokerConfigFromFile(sytemgeConfigPath string) Broker {
 				panic("syncRequestTimeoutMs line is invalid \"" + line + "\"")
 			}
 			syncResponseTimeoutMs = Utilities.StringToUint64(lineSegments[1])
-		default:
-			if len(lineSegments) != 2 {
-				panic("invalid topic line \"" + line + "\"")
-			}
-			if lineSegments[1] == "sync" {
-				syncTopics = append(syncTopics, lineSegments[0])
-			} else if lineSegments[1] == "async" {
-				asyncTopics = append(asyncTopics, lineSegments[0])
-			} else {
-				println(lineSegments[1])
-				panic("invalid topic type \"" + lineSegments[1] + "\"")
-			}
+		case "_sync":
+			syncTopics = append(syncTopics, lineSegments[1:]...)
+		case "_async":
+			asyncTopics = append(asyncTopics, lineSegments[1:]...)
 		}
 	}
 	if brokerPort == "" || brokerCertPath == "" || brokerKeyPath == "" || configPort == "" || configCertPath == "" || configKeyPath == "" {
@@ -216,7 +208,7 @@ func ParseResolverConfigFromFile(sytemgeConfigPath string) Resolver {
 		if len(line) == 0 {
 			continue
 		}
-		lineSegmentss := strings.Split(line, " ")
+		lineSegmentss := strings.Split(line, "\t")
 		lineSegments := []string{}
 		for _, segment := range lineSegmentss {
 			if len(segment) > 0 {
@@ -342,7 +334,7 @@ func ParseNodeConfigFromFile(sytemgeConfigPath string) Node {
 		if len(line) == 0 {
 			continue
 		}
-		lineSegmentss := strings.Split(line, " ")
+		lineSegmentss := strings.Split(line, "\t")
 		lineSegments := []string{}
 		for _, segment := range lineSegmentss {
 			if len(segment) > 0 {
