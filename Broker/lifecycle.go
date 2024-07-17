@@ -35,8 +35,7 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 		topicsToAddToResolver = append(topicsToAddToResolver, topic)
 	}
 	if len(topicsToAddToResolver) > 0 {
-		err = broker.addResolverTopicsRemotely(topicsToAddToResolver...)
-		if err != nil {
+		if err = broker.addResolverTopicsRemotely(topicsToAddToResolver...); err != nil {
 			broker.stop(node, false)
 			return Error.New("Failed to add resolver topics remotely on broker \""+node.GetName()+"\"", err)
 		}
@@ -81,8 +80,7 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 		delete(broker.asyncTopics, asyncTopic)
 	}
 	if len(topics) > 0 {
-		err := broker.removeResolverTopicsRemotely(topics...)
-		if err != nil { // This should never happen
+		if err := broker.removeResolverTopicsRemotely(topics...); err != nil {
 			node.GetLogger().Error(Error.New("Failed to remove resolver topics remotely on broker \""+node.GetName()+"\"", err).Error())
 		} else {
 			node.GetLogger().Info("Removed resolver topics remotely on broker \"" + node.GetName() + "\"")
