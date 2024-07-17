@@ -7,7 +7,6 @@ import (
 )
 
 type Application interface {
-	GetCustomCommandHandlers() map[string]CustomCommandHandler
 }
 
 func ImplementsSystemgeComponent(app Application) bool {
@@ -21,6 +20,15 @@ func ImplementsHTTPComponent(app Application) bool {
 func ImplementsWebsocketComponent(app Application) bool {
 	_, ok := app.(WebsocketComponent)
 	return ok
+}
+
+func ImplementsCLIComponent(app Application) bool {
+	_, ok := app.(CLIComponent)
+	return ok
+}
+
+type CLIComponent interface {
+	GetCustomCommandHandlers() map[string]CustomCommandHandler
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node

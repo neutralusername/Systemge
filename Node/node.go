@@ -193,3 +193,11 @@ func (node *Node) GetHTTPComponent() HTTPComponent {
 		return nil
 	}
 }
+
+func (node *Node) GetCLIComponent() CLIComponent {
+	if ImplementsCLIComponent(node.application) {
+		return node.application.(CLIComponent)
+	} else {
+		return nil
+	}
+}

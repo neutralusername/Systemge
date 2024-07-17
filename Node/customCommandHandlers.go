@@ -9,8 +9,8 @@ func (node *Node) GetCustomCommandHandlers() map[string]Module.CustomCommandHand
 		"websocketGroups":       node.handleWebsocketGroupsCommand,
 		"WebsocketGroupClients": node.handleWebsocketGroupClientsCommand,
 	}
-	if node.application != nil {
-		customHandlers := node.application.GetCustomCommandHandlers()
+	if cliComponent := node.GetCLIComponent(); cliComponent != nil {
+		customHandlers := cliComponent.GetCustomCommandHandlers()
 		for command, handler := range customHandlers {
 			handlers[command] = func(args []string) error {
 				return handler(node, args)
