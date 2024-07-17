@@ -56,7 +56,7 @@ func StartCommandLineInterface(module Module) {
 				println("module not started")
 				continue
 			}
-			customCommandHandlers := module.GetCustomCommandHandlers()
+			customCommandHandlers := module.GetCommandHandlers()
 			handler := customCommandHandlers[inputSegments[0]]
 			if handler != nil {
 				err := handler(inputSegments[1:])
