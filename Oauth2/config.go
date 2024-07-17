@@ -39,6 +39,5 @@ func (config Config) NewServer() (*Server, error) {
 		sessions:   make(map[string]*session),
 		identities: make(map[string]*session),
 	}
-	server.config.Oauth2State = server.config.Randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
 	return server, nil
 }
