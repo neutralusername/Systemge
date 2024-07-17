@@ -77,7 +77,7 @@ func (node *Node) Start() error {
 	node.stopChannel = make(chan bool)
 	node.isStarted = true
 
-	if node.GetSystemgeComponent() != nil {
+	if ImplementsSystemgeComponent(node.application) {
 		err := node.startSystemgeComponent()
 		if err != nil {
 			node.stop(false)
