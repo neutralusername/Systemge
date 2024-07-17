@@ -45,30 +45,30 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		broker.operationMutex.Unlock()
 		err := broker.send(syncRequest.nodeConnection, response)
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 		} else {
-			broker.config.Logger.Info(Error.New("sent sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+			broker.node.GetLogger().Info(Error.New("sent sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 
 		}
 	case <-broker.stopChannel:
 		broker.operationMutex.Lock()
 		delete(broker.openSyncRequests, syncRequest.message.GetSyncRequestToken())
 		broker.operationMutex.Unlock()
-		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.GetName(), "broker stopped"))
+		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.node.GetName(), "broker stopped"))
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 		} else {
-			broker.config.Logger.Info(Error.New("sent broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+			broker.node.GetLogger().Info(Error.New("sent broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		}
 	case <-timer.C:
 		broker.operationMutex.Lock()
 		delete(broker.openSyncRequests, syncRequest.message.GetSyncRequestToken())
 		broker.operationMutex.Unlock()
-		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.GetName(), "request timed out"))
+		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.node.GetName(), "request timed out"))
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 		} else {
-			broker.config.Logger.Info(Error.New("sent timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+			broker.node.GetLogger().Info(Error.New("sent timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		}
 	}
 }

@@ -8,13 +8,13 @@ import (
 )
 
 func (resolver *Resolver) handleResolverConnections() {
-	for resolver.IsStarted() {
+	for resolver.isStarted {
 		netConn, err := resolver.tlsResolverListener.Accept()
 		if err != nil {
-			resolver.logger.Warning(Error.New("Failed to accept connection request on resolver \""+resolver.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to accept connection request on resolver \""+resolver.node.GetName()+"\"", err).Error())
 			continue
 		} else {
-			resolver.logger.Info(Error.New("Accepted connection request on resolver \""+resolver.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			resolver.node.GetLogger().Info(Error.New("Accepted resolver connection request on resolver \""+resolver.node.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
 		go resolver.handleResolutionRequest(netConn)
 	}
@@ -24,36 +24,36 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	defer netConn.Close()
 	messageBytes, msgLen, err := Utilities.TcpReceive(netConn, resolver.config.TcpTimeoutMs)
 	if err != nil {
-		resolver.logger.Warning(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)
+		resolver.node.GetLogger().Warning(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
+		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
-			resolver.logger.Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
 		return
 	}
 	if resolver.config.MaxMessageSize > 0 && msgLen > resolver.config.MaxMessageSize {
-		resolver.logger.Warning(Error.New("Message size exceeds maximum message size from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.GetName(), "message size exceeds maximum message size").Serialize(), resolver.config.TcpTimeoutMs)
+		resolver.node.GetLogger().Warning(Error.New("Message size exceeds maximum message size from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
+		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "message size exceeds maximum message size").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
-			resolver.logger.Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
 		return
 	}
 	message := Message.Deserialize(messageBytes)
 	err = resolver.validateMessage(message)
 	if err != nil {
-		resolver.logger.Warning(Error.New("Invalid connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
+		resolver.node.GetLogger().Warning(Error.New("Invalid connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
+		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
-			resolver.logger.Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
 		return
 	}
 	if message == nil || message.GetTopic() != "resolve" || message.GetOrigin() == "" {
-		resolver.logger.Warning(Error.New("Invalid connection request \""+string(messageBytes)+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.GetName(), Error.New("invalid resolution request", nil).Error()).Serialize(), resolver.config.TcpTimeoutMs)
+		resolver.node.GetLogger().Warning(Error.New("Invalid connection request \""+string(messageBytes)+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
+		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), Error.New("invalid resolution request", nil).Error()).Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
-			resolver.logger.Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
 		return
 	}
@@ -61,20 +61,20 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	endpoint, ok := resolver.registeredTopics[message.GetPayload()]
 	resolver.mutex.Unlock()
 	if !ok {
-		resolver.logger.Warning(Error.New("Failed to resolve topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.GetName(), "unknwon topic").Serialize(), resolver.config.TcpTimeoutMs)
+		resolver.node.GetLogger().Warning(Error.New("Failed to resolve topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
+		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "unknwon topic").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
-			resolver.logger.Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 			return
 		}
 		return
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", resolver.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
+	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", resolver.node.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
 	if err != nil {
-		resolver.logger.Warning(Error.New("Failed to send resolution response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", err).Error())
+		resolver.node.GetLogger().Warning(Error.New("Failed to send resolution response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		return
 	}
-	resolver.logger.Info(Error.New("Successfully resolved topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.GetName()+"\"", nil).Error())
+	resolver.node.GetLogger().Info(Error.New("Successfully resolved topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
 }
 
 func (resolver *Resolver) validateMessage(message *Message.Message) error {

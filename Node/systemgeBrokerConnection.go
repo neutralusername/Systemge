@@ -41,7 +41,7 @@ func (node *Node) send(brokerConnection *brokerConnection, message *Message.Mess
 	if brokerConnection.netConn == nil {
 		return Error.New("Connection is closed", nil)
 	}
-	err := Utilities.TcpSend(brokerConnection.netConn, message.Serialize(), node.config.TcpTimeoutMs)
+	err := Utilities.TcpSend(brokerConnection.netConn, message.Serialize(), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed sending message", err)
 	}

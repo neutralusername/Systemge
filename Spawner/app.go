@@ -6,7 +6,6 @@ import (
 	"sync"
 )
 
-// implements Node.Application
 type Spawner struct {
 	spawnerConfig      Config.Spawner
 	spawnedNodes       map[string]*Node.Node

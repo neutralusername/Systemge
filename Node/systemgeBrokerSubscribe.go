@@ -13,7 +13,7 @@ func (node *Node) subscribeLoop(topic string) {
 		if node.subscribeAttempt(topic) {
 			break
 		}
-		time.Sleep(time.Duration(node.config.BrokerSubscribeDelayMs) * time.Millisecond)
+		time.Sleep(time.Duration(node.GetSystemgeComponent().GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 	}
 }
 

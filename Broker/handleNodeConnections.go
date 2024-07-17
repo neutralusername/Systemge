@@ -8,13 +8,13 @@ import (
 )
 
 func (broker *Broker) handleNodeConnections() {
-	for broker.IsStarted() {
+	for broker.isStarted {
 		netConn, err := broker.tlsBrokerListener.Accept()
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("Failed to accept connection request on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("Failed to accept connection request on broker \""+broker.node.GetName()+"\"", err).Error())
 			continue
 		} else {
-			broker.config.Logger.Info(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+			broker.node.GetLogger().Info(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		}
 		go broker.handleNodeConnection(netConn)
 	}
@@ -24,10 +24,10 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 	node, err := broker.handleNodeConnectionRequest(netConn)
 	if err != nil {
 		netConn.Close()
-		broker.config.Logger.Warning(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.GetName()+"\"", err).Error())
+		broker.node.GetLogger().Warning(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 		return
 	} else {
-		broker.config.Logger.Info(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+node.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+		broker.node.GetLogger().Info(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+node.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 	}
 	broker.handleNodeConnectionMessages(node)
 }
@@ -50,7 +50,7 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if err != nil {
 		return nil, Error.New("Failed to add node \""+nodeConnection.name+"\"", err)
 	}
-	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.GetName(), ""))
+	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.node.GetName(), ""))
 	if err != nil {
 		broker.removeNodeConnection(nodeConnection)
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)

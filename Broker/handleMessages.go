@@ -7,51 +7,51 @@ import (
 
 func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
 	defer broker.removeNodeConnection(nodeConnection)
-	for broker.IsStarted() {
+	for broker.isStarted {
 		message, err := broker.receive(nodeConnection)
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("Failed to receive message from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("Failed to receive message from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 			return
 		} else {
-			broker.config.Logger.Info(Error.New("Received message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+			broker.node.GetLogger().Info(Error.New("Received message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		}
 		err = broker.validateMessage(message)
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("Invalid message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("Invalid message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 			return
 		}
 		if message.GetSyncResponseToken() != "" {
 			err := broker.handleSyncResponse(message)
 			if err != nil {
-				broker.config.Logger.Warning(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+				broker.node.GetLogger().Warning(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 			} else {
-				broker.config.Logger.Info(Error.New("Received sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+				broker.node.GetLogger().Info(Error.New("Received sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 			}
 			continue
 		}
 		err = broker.validateTopic(message)
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 			return
 		}
 		if message.GetSyncRequestToken() != "" {
 			if err := broker.addSyncRequest(nodeConnection, message); err != nil {
-				broker.config.Logger.Warning(Error.New("Failed to add sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+				broker.node.GetLogger().Warning(Error.New("Failed to add sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 				//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
-				err := broker.send(nodeConnection, message.NewResponse("error", broker.GetName(), Error.New("sync request failed", err).Error()))
+				err := broker.send(nodeConnection, message.NewResponse("error", broker.node.GetName(), Error.New("sync request failed", err).Error()))
 				if err != nil {
-					broker.config.Logger.Warning(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+					broker.node.GetLogger().Warning(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 				}
 				continue
 			} else {
-				broker.config.Logger.Info(Error.New("Added sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+				broker.node.GetLogger().Info(Error.New("Added sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 			}
 		}
 		err = broker.handleMessage(nodeConnection, message)
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 		} else {
-			broker.config.Logger.Info(Error.New("Handled message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", nil).Error())
+			broker.node.GetLogger().Info(Error.New("Handled message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		}
 	}
 }
@@ -77,15 +77,15 @@ func (broker *Broker) handleMessage(nodeConnection *nodeConnection, message *Mes
 func (broker *Broker) handleSubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
 	err := broker.addSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
-		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.GetName(), Error.New("failed to add subscription", err).Error()))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.node.GetName(), Error.New("failed to add subscription", err).Error()))
 		if errResponse != nil {
-			broker.config.Logger.Warning(Error.New("Failed to send error response for failed subscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", errResponse).Error())
+			broker.node.GetLogger().Warning(Error.New("Failed to send error response for failed subscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", errResponse).Error())
 		}
 		return Error.New("Failed to add subscription", err)
 	}
-	err = broker.handleSyncResponse(message.NewResponse("subscribed", broker.GetName(), ""))
+	err = broker.handleSyncResponse(message.NewResponse("subscribed", broker.node.GetName(), ""))
 	if err != nil {
-		broker.config.Logger.Warning(Error.New("Failed to send sync response for successful subscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+		broker.node.GetLogger().Warning(Error.New("Failed to send sync response for successful subscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 	}
 	return nil
 }
@@ -93,15 +93,15 @@ func (broker *Broker) handleSubscribe(nodeConnection *nodeConnection, message *M
 func (broker *Broker) handleUnsubscribe(nodeConnection *nodeConnection, message *Message.Message) error {
 	err := broker.removeSubscription(nodeConnection, message.GetPayload())
 	if err != nil {
-		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.GetName(), Error.New("failed to remove subscription", err).Error()))
+		errResponse := broker.handleSyncResponse(message.NewResponse("error", broker.node.GetName(), Error.New("failed to remove subscription", err).Error()))
 		if errResponse != nil {
-			broker.config.Logger.Warning(Error.New("Failed to send error response for failed unsubscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", errResponse).Error())
+			broker.node.GetLogger().Warning(Error.New("Failed to send error response for failed unsubscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", errResponse).Error())
 		}
 		return Error.New("failed to remove subscription", err)
 	}
-	err = broker.handleSyncResponse(message.NewResponse("unsubscribed", broker.GetName(), ""))
+	err = broker.handleSyncResponse(message.NewResponse("unsubscribed", broker.node.GetName(), ""))
 	if err != nil {
-		broker.config.Logger.Warning(Error.New("Failed to send sync response for successful unsubscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+		broker.node.GetLogger().Warning(Error.New("Failed to send sync response for successful unsubscribe request for topic \""+message.GetTopic()+"\" with token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 	}
 	return nil
 }
@@ -113,7 +113,7 @@ func (broker *Broker) propagateMessage(message *Message.Message) {
 	for _, nodeConnection := range nodes {
 		err := broker.send(nodeConnection, message)
 		if err != nil {
-			broker.config.Logger.Warning(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to node \""+nodeConnection.name+"\" on broker \""+broker.GetName()+"\"", err).Error())
+			broker.node.GetLogger().Warning(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to node \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 			broker.removeNodeConnection(nodeConnection)
 		}
 	}

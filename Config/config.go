@@ -7,18 +7,19 @@ import (
 )
 
 type Node struct {
-	Name             string            // *required*
-	Logger           *Utilities.Logger // *required*
-	ResolverEndpoint TcpEndpoint.TcpEndpoint
+	Name   string            // *required*
+	Logger *Utilities.Logger // *required*
+}
+
+type Systemge struct {
+	HandleMessagesSequentially bool // default: false
 
 	BrokerSubscribeDelayMs    uint64 // default: 0 (delay after failed broker subscription attempt)
 	TopicResolutionLifetimeMs uint64 // default: 0
 	SyncResponseTimeoutMs     uint64 // default: 0
 	TcpTimeoutMs              uint64 // default: 0 = block forever
-}
 
-type Systemge struct {
-	HandleMessagesSequentially bool // default: false
+	ResolverEndpoint TcpEndpoint.TcpEndpoint // *required*
 }
 
 type Websocket struct {
@@ -35,13 +36,14 @@ type HTTP struct {
 }
 
 type Broker struct {
-	Name                   string                  // *required*
-	Logger                 *Utilities.Logger       // *required*
-	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
-
 	Server       TcpServer.TcpServer     // *required*
 	Endpoint     TcpEndpoint.TcpEndpoint // *required*
 	ConfigServer TcpServer.TcpServer     // *required*
+
+	SyncTopics  []string
+	AsyncTopics []string
+
+	ResolverConfigEndpoint TcpEndpoint.TcpEndpoint // *required*
 
 	SyncResponseTimeoutMs uint64 // default: 0
 	TcpTimeoutMs          uint64 // default: 0 = block forever
@@ -51,15 +53,9 @@ type Broker struct {
 	MaxPayloadSize int    // default: 0 = unlimited
 	MaxTopicSize   int    // default: 0 = unlimited
 	MaxSyncKeySize int    // default: 0 = unlimited
-
-	SyncTopics  []string
-	AsyncTopics []string
 }
 
 type Resolver struct {
-	Name   string // *required*
-	Logger *Utilities.Logger
-
 	Server       TcpServer.TcpServer // *required*
 	ConfigServer TcpServer.TcpServer // *required*
 

@@ -9,12 +9,12 @@ import (
 )
 
 func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint, error) {
-	netConn, err := node.config.ResolverEndpoint.Dial()
+	netConn, err := node.GetSystemgeComponent().GetSystemgeComponentConfig().ResolverEndpoint.Dial()
 	if err != nil {
 		return nil, Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.config.Name, topic), node.config.TcpTimeoutMs)
+	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.config.Name, topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("failed to recieve response from resolver", err)
 	}
@@ -50,7 +50,7 @@ func (node *Node) addTopicResolution(topic string, brokerConnection *brokerConne
 }
 
 func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *brokerConnection) {
-	timer := time.NewTimer(time.Duration(node.config.TopicResolutionLifetimeMs) * time.Millisecond)
+	timer := time.NewTimer(time.Duration(node.GetSystemgeComponent().GetSystemgeComponentConfig().TopicResolutionLifetimeMs) * time.Millisecond)
 	select {
 	case <-timer.C:
 		err := node.removeTopicResolution(topic)
