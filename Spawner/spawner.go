@@ -40,8 +40,8 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 	return nil
 }
 
-func (spawner *Spawner) GetApplicationConfig() Config.Application {
-	return Config.Application{
+func (spawner *Spawner) GetSystemgeConfig() Config.Systemge {
+	return Config.Systemge{
 		HandleMessagesSequentially: false,
 	}
 }

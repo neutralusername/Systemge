@@ -12,7 +12,7 @@ type SystemgeComponent interface {
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
 	OnStart(*Node) error
 	OnStop(*Node) error
-	GetSystemgeConfig() Config.Application
+	GetSystemgeConfig() Config.Systemge
 }
 type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)

@@ -17,7 +17,7 @@ type Node struct {
 	TcpTimeoutMs              uint64 // default: 0 = block forever
 }
 
-type Application struct {
+type Systemge struct {
 	HandleMessagesSequentially bool // default: false
 }
 
