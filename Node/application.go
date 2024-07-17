@@ -37,6 +37,7 @@ type CommandHandlerComponent interface {
 	GetCommandHandlers() map[string]CommandHandler
 }
 
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type LifecycleComponent interface {
 	OnStart(*Node) error
 	OnStop(*Node) error
