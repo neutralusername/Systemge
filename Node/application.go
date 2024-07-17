@@ -39,8 +39,8 @@ type CommandHandlerComponent interface {
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type LifecycleComponent interface {
-	OnStart(*Node) error
-	OnStop(*Node) error
+	OnStart(*Node) error // called after all components have been initialized and started. if an error is returned, the start process is aborted
+	OnStop(*Node) error  // called before all components are stopped and the node is shut down. if an error is returned, the stop process is aborted
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
