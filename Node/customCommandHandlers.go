@@ -31,7 +31,7 @@ func (node *Node) handleWebsocketClientsCommand(args []string) error {
 
 func (node *Node) handleWebsocketGroupsCommand(args []string) error {
 	node.websocketMutex.Lock()
-	for groupId := range node.WebsocketGroups {
+	for groupId := range node.websocketGroups {
 		println(groupId)
 	}
 	node.websocketMutex.Unlock()
@@ -44,7 +44,7 @@ func (node *Node) handleWebsocketGroupClientsCommand(args []string) error {
 	}
 	groupId := args[0]
 	node.websocketMutex.Lock()
-	group, ok := node.WebsocketGroups[groupId]
+	group, ok := node.websocketGroups[groupId]
 	node.websocketMutex.Unlock()
 	if !ok {
 		println("Group not found")

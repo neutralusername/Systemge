@@ -12,69 +12,61 @@ import (
 )
 
 type Node struct {
-	config Config.Node
-
+	config     Config.Node
 	randomizer *Utilities.Randomizer
 
-	application        Application
-	httpComponent      HTTPComponent
-	websocketComponent WebsocketComponent
+	stopChannel chan bool
+	isStarted   bool
+	nodeMutex   sync.Mutex
 
-	stopChannel      chan bool
-	isStarted        bool
-	websocketStarted bool
-	httpStarted      bool
+	application Application
 
+	//systemge
+	systemgeStarted                 bool
+	systemgeMutex                   sync.Mutex
 	handleMessagesSequentiallyMutex sync.Mutex
-	websocketMutex                  sync.Mutex
-	httpMutex                       sync.Mutex
-	mutex                           sync.Mutex
-	stateChangeMutex                sync.Mutex
-
-	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
-	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
+	messagesWaitingForResponse      map[string]chan *Message.Message // syncKey -> responseChannel
+	brokerConnections               map[string]*brokerConnection     // brokerAddress -> brokerConnection
+	topicResolutions                map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
+	websocketStarted             bool
+	websocketMutex               sync.Mutex
 	websocketHandshakeHTTPServer *http.Server
 	websocketConnChannel         chan *websocket.Conn
 	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
-	WebsocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	websocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
 
 	//http
-	httpServer *http.Server
+	httpStarted bool
+	httpMutex   sync.Mutex
+	httpServer  *http.Server
 }
 
 func New(config Config.Node, application Application) *Node {
 	node := &Node{
 		config: config,
 
-		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
-
 		application: application,
+
+		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
 		messagesWaitingForResponse: make(map[string]chan *Message.Message),
 		brokerConnections:          make(map[string]*brokerConnection),
 		topicResolutions:           make(map[string]*brokerConnection),
 
-		WebsocketGroups:       make(map[string]map[string]*WebsocketClient),
+		websocketGroups:       make(map[string]map[string]*WebsocketClient),
 		websocketConnChannel:  make(chan *websocket.Conn),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
-	}
-	if httpComponent, ok := application.(HTTPComponent); ok {
-		node.httpComponent = httpComponent
-	}
-	if websocketComponent, ok := application.(WebsocketComponent); ok {
-		node.websocketComponent = websocketComponent
 	}
 	return node
 }
 
 func (node *Node) Start() error {
-	node.stateChangeMutex.Lock()
-	defer node.stateChangeMutex.Unlock()
+	node.nodeMutex.Lock()
+	defer node.nodeMutex.Unlock()
 	if node.isStarted {
 		return Error.New("node already started", nil)
 	}
@@ -85,13 +77,16 @@ func (node *Node) Start() error {
 	node.stopChannel = make(chan bool)
 	node.isStarted = true
 
-	for topic := range node.application.GetAsyncMessageHandlers() {
-		node.subscribeLoop(topic)
+	if node.GetSystemgeComponent() != nil {
+		err := node.startSystemgeComponent()
+		if err != nil {
+			node.stop(false)
+			return Error.New("failed starting systemge component", err)
+		} else {
+			node.config.Logger.Info(Error.New("Started systemge component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
-	for topic := range node.application.GetSyncMessageHandlers() {
-		node.subscribeLoop(topic)
-	}
-	if node.websocketComponent != nil {
+	if ImplementsWebsocketComponent(node.application) {
 		err := node.startWebsocketComponent()
 		if err != nil {
 			node.stop(false)
@@ -100,7 +95,7 @@ func (node *Node) Start() error {
 			node.config.Logger.Info(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
-	if node.httpComponent != nil {
+	if ImplementsHTTPComponent(node.application) {
 		err := node.startHTTPComponent()
 		if err != nil {
 			node.stop(false)
@@ -109,10 +104,12 @@ func (node *Node) Start() error {
 			node.config.Logger.Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
-	err := node.application.OnStart(node)
-	if err != nil {
-		node.stop(false)
-		return Error.New("failed in OnStart", err)
+	if node.systemgeStarted {
+		err := node.GetSystemgeComponent().OnStart(node)
+		if err != nil {
+			node.stop(false)
+			return Error.New("failed in OnStart", err)
+		}
 	}
 	node.config.Logger.Info(Error.New("Started node \""+node.config.Name+"\"", nil).Error())
 	return nil
@@ -124,15 +121,17 @@ func (node *Node) Stop() error {
 
 func (node *Node) stop(lock bool) error {
 	if lock {
-		node.stateChangeMutex.Lock()
-		defer node.stateChangeMutex.Unlock()
+		node.nodeMutex.Lock()
+		defer node.nodeMutex.Unlock()
 	}
 	if !node.isStarted {
 		return Error.New("node not started", nil)
 	}
-	err := node.application.OnStop(node)
-	if err != nil {
-		return Error.New("failed to stop node. Error in OnStop", err)
+	if node.systemgeStarted {
+		err := node.application.(SystemgeComponent).OnStop(node)
+		if err != nil {
+			return Error.New("failed to stop node. Error in OnStop", err)
+		}
 	}
 	if node.websocketStarted {
 		err := node.stopWebsocketComponent()
@@ -150,13 +149,47 @@ func (node *Node) stop(lock bool) error {
 			node.config.Logger.Info(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
+	if node.systemgeStarted {
+		node.stopSystemgeComponent()
+	}
 	node.isStarted = false
 	close(node.stopChannel)
-	node.removeAllBrokerConnections()
 	node.config.Logger.Info(Error.New("Stopped node \""+node.config.Name+"\"", nil).Error())
 	return nil
 }
 
 func (node *Node) IsStarted() bool {
 	return node.isStarted
+}
+
+func (node *Node) GetName() string {
+	return node.config.Name
+}
+
+func (node *Node) GetLogger() *Utilities.Logger {
+	return node.config.Logger
+}
+
+func (node *Node) GetSystemgeComponent() SystemgeComponent {
+	if ImplementsSystemgeComponent(node.application) {
+		return node.application.(SystemgeComponent)
+	} else {
+		return nil
+	}
+}
+
+func (node *Node) GetWebsocketComponent() WebsocketComponent {
+	if ImplementsWebsocketComponent(node.application) {
+		return node.application.(WebsocketComponent)
+	} else {
+		return nil
+	}
+}
+
+func (node *Node) GetHTTPComponent() HTTPComponent {
+	if ImplementsHTTPComponent(node.application) {
+		return node.application.(HTTPComponent)
+	} else {
+		return nil
+	}
 }

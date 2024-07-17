@@ -52,10 +52,10 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
 	messageBytes := message.Serialize()
 	node.websocketMutex.Lock()
 	defer node.websocketMutex.Unlock()
-	if node.WebsocketGroups[groupId] == nil {
+	if node.websocketGroups[groupId] == nil {
 		return
 	}
-	for _, websocketClient := range node.WebsocketGroups[groupId] {
+	for _, websocketClient := range node.websocketGroups[groupId] {
 		go func() {
 			err := websocketClient.Send(messageBytes)
 			if err != nil {

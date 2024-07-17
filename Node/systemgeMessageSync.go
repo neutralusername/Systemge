@@ -9,6 +9,9 @@ import (
 
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
 func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
+	if !node.systemgeStarted {
+		return nil, Error.New("systemge component not started", nil)
+	}
 	message := Message.NewSync(topic, origin, payload, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
 	if !node.IsStarted() {
 		return nil, Error.New("node not started", nil)
@@ -55,8 +58,8 @@ func (node *Node) receiveSyncResponse(message *Message.Message, responseChannel 
 	}
 }
 func (node *Node) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
+	node.systemgeMutex.Lock()
+	defer node.systemgeMutex.Unlock()
 	if node.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
 		return nil, Error.New("syncRequestToken already exists", nil)
 	}
@@ -65,8 +68,8 @@ func (node *Node) addMessageWaitingForResponse(message *Message.Message) (chan *
 	return responseChannel, nil
 }
 func (node *Node) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
+	node.systemgeMutex.Lock()
+	defer node.systemgeMutex.Unlock()
 	close(responseChannel)
 	delete(node.messagesWaitingForResponse, syncRequestToken)
 }

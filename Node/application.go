@@ -7,10 +7,9 @@ import (
 )
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type Application interface {
+type SystemgeComponent interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
-	GetCustomCommandHandlers() map[string]CustomCommandHandler
 	OnStart(*Node) error
 	OnStop(*Node) error
 	GetApplicationConfig() Config.Application
@@ -34,17 +33,19 @@ type WebsocketComponent interface {
 }
 type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error
 
-func ImplementsApplication(obj interface{}) bool {
-	_, ok := obj.(Application)
-	return ok
+type Application interface {
+	GetCustomCommandHandlers() map[string]CustomCommandHandler
 }
 
-func ImplementsHTTPComponent(obj interface{}) bool {
-	_, ok := obj.(HTTPComponent)
+func ImplementsSystemgeComponent(app Application) bool {
+	_, ok := app.(SystemgeComponent)
 	return ok
 }
-
-func ImplementsWebsocketComponent(obj interface{}) bool {
-	_, ok := obj.(WebsocketComponent)
+func ImplementsHTTPComponent(app Application) bool {
+	_, ok := app.(HTTPComponent)
+	return ok
+}
+func ImplementsWebsocketComponent(app Application) bool {
+	_, ok := app.(WebsocketComponent)
 	return ok
 }

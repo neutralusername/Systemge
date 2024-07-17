@@ -8,8 +8,8 @@ import (
 func (node *Node) startHTTPComponent() error {
 	node.httpMutex.Lock()
 	defer node.httpMutex.Unlock()
-	httpServer := Http.New(node.httpComponent.GetHTTPComponentConfig().Server.GetPort(), node.httpComponent.GetHTTPRequestHandlers())
-	err := Http.Start(httpServer, node.httpComponent.GetHTTPComponentConfig().Server.GetTlsCertPath(), node.httpComponent.GetHTTPComponentConfig().Server.GetTlsKeyPath())
+	httpServer := Http.New(node.GetHTTPComponent().GetHTTPComponentConfig().Server.GetPort(), node.GetHTTPComponent().GetHTTPRequestHandlers())
+	err := Http.Start(httpServer, node.GetHTTPComponent().GetHTTPComponentConfig().Server.GetTlsCertPath(), node.GetHTTPComponent().GetHTTPComponentConfig().Server.GetTlsKeyPath())
 	if err != nil {
 		return Error.New("failed starting http server", err)
 	}

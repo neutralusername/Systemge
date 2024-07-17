@@ -45,7 +45,7 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
-	websocketClient.watchdog = time.AfterFunc(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
+	websocketClient.watchdog = time.AfterFunc(time.Duration(node.GetWebsocketComponent().GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
 		websocketClient.expired = true
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
@@ -55,7 +55,7 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 		websocketClient.watchdog.Stop()
 		websocketClient.watchdog = nil
 		websocketConn.Close()
-		node.websocketComponent.OnDisconnectHandler(node, websocketClient)
+		node.GetWebsocketComponent().OnDisconnectHandler(node, websocketClient)
 		node.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
 	})
@@ -63,27 +63,35 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 }
 
 // Resets the watchdog timer to its initial value
-func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) {
+func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
+	if websocketClient == nil {
+		return Error.New("websocketClient is nil", nil)
+	}
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
 	if websocketClient.watchdog == nil || websocketClient.disconnected {
-		return
+		return Error.New("websocketClient is disconnected", nil)
 	}
 	websocketClient.expired = false
-	websocketClient.watchdog.Reset(time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
+	websocketClient.watchdog.Reset(time.Duration(node.GetWebsocketComponent().GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
+	return nil
 }
 
 // Disconnects the websocketClient and blocks until the websocketClient is disconnected.
-func (websocketClient *WebsocketClient) Disconnect() {
+func (websocketClient *WebsocketClient) Disconnect() error {
+	if websocketClient == nil {
+		return Error.New("websocketClient is nil", nil)
+	}
 	websocketClient.watchdogMutex.Lock()
 	if websocketClient.watchdog == nil || websocketClient.disconnected {
 		websocketClient.watchdogMutex.Unlock()
-		return
+		return Error.New("websocketClient is already disconnected", nil)
 	}
 	websocketClient.disconnected = true
 	websocketClient.watchdog.Reset(0)
 	websocketClient.watchdogMutex.Unlock()
 	<-websocketClient.stopChannel
+	return nil
 }
 
 func (websocketClient *WebsocketClient) GetLastMessageTimestamp() time.Time {
@@ -142,9 +150,9 @@ func (node *Node) removeWebsocketClient(websocketClient *WebsocketClient) {
 	delete(node.websocketClients, websocketClient.GetId())
 	for groupId := range node.websocketClientGroups[websocketClient.GetId()] {
 		delete(node.websocketClientGroups[websocketClient.GetId()], groupId)
-		delete(node.WebsocketGroups[groupId], websocketClient.GetId())
-		if len(node.WebsocketGroups[groupId]) == 0 {
-			delete(node.WebsocketGroups, groupId)
+		delete(node.websocketGroups[groupId], websocketClient.GetId())
+		if len(node.websocketGroups[groupId]) == 0 {
+			delete(node.websocketGroups, groupId)
 		}
 	}
 }

@@ -20,7 +20,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			node.ResetWatchdog(websocketClient)
 			continue
 		}
-		if time.Since(websocketClient.GetLastMessageTimestamp()) <= time.Duration(node.websocketComponent.GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
+		if time.Since(websocketClient.GetLastMessageTimestamp()) <= time.Duration(node.GetWebsocketComponent().GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
 			err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				node.config.Logger.Warning(Error.New("failed to send rate limit error message to websocket client on node \""+node.GetName()+"\"", err).Error())
@@ -28,7 +28,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		websocketClient.SetLastMessageTimestamp(time.Now())
-		if node.websocketComponent.GetWebsocketComponentConfig().HandleClientMessagesSequentially {
+		if node.GetWebsocketComponent().GetWebsocketComponentConfig().HandleClientMessagesSequentially {
 			err := node.handleWebsocketMessage(websocketClient, message)
 			if err != nil {
 				node.config.Logger.Warning(Error.New("failed to handle message (sequentially) on node \""+node.GetName()+"\"", err).Error())
@@ -49,7 +49,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 }
 
 func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
-	handler := node.websocketComponent.GetWebsocketMessageHandlers()[message.GetTopic()]
+	handler := node.GetWebsocketComponent().GetWebsocketMessageHandlers()[message.GetTopic()]
 	if handler == nil {
 		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {

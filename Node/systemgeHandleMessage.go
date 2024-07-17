@@ -5,7 +5,7 @@ import (
 	"Systemge/Message"
 )
 
-func (node *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
+func (node *Node) handleSystemgeMessage(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		message, err := brokerConnection.receive()
 		if err != nil {
@@ -41,7 +41,7 @@ func (node *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
 			}
 			continue
 		}
-		if node.application.GetApplicationConfig().HandleMessagesSequentially {
+		if node.GetSystemgeComponent().GetApplicationConfig().HandleMessagesSequentially {
 			node.handleMessagesSequentiallyMutex.Lock()
 		}
 		err = node.handleAsyncMessage(message)
@@ -50,14 +50,14 @@ func (node *Node) handleBrokerMessages(brokerConnection *brokerConnection) {
 		} else {
 			node.config.Logger.Info(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", nil).Error())
 		}
-		if node.application.GetApplicationConfig().HandleMessagesSequentially {
+		if node.GetSystemgeComponent().GetApplicationConfig().HandleMessagesSequentially {
 			node.handleMessagesSequentiallyMutex.Unlock()
 		}
 	}
 }
 
 func (node *Node) handleAsyncMessage(message *Message.Message) error {
-	asyncHandler := node.application.GetAsyncMessageHandlers()[message.GetTopic()]
+	asyncHandler := node.GetSystemgeComponent().GetAsyncMessageHandlers()[message.GetTopic()]
 	if asyncHandler == nil {
 		return Error.New("No handler", nil)
 	}
@@ -69,7 +69,7 @@ func (node *Node) handleAsyncMessage(message *Message.Message) error {
 }
 
 func (node *Node) handleSyncMessage(message *Message.Message) (string, error) {
-	syncHandler := node.application.GetSyncMessageHandlers()[message.GetTopic()]
+	syncHandler := node.GetSystemgeComponent().GetSyncMessageHandlers()[message.GetTopic()]
 	if syncHandler == nil {
 		return "", Error.New("No handler", nil)
 	}
@@ -81,9 +81,9 @@ func (node *Node) handleSyncMessage(message *Message.Message) (string, error) {
 }
 
 func (node *Node) handleSyncResponse(message *Message.Message) error {
-	node.mutex.Lock()
+	node.systemgeMutex.Lock()
 	responseChannel := node.messagesWaitingForResponse[message.GetSyncResponseToken()]
-	node.mutex.Unlock()
+	node.systemgeMutex.Unlock()
 	if responseChannel == nil {
 		return Error.New("Unknown sync response token", nil)
 	}

@@ -29,14 +29,14 @@ func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint,
 }
 
 func (node *Node) getTopicResolution(topic string) *brokerConnection {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
+	node.systemgeMutex.Lock()
+	defer node.systemgeMutex.Unlock()
 	return node.topicResolutions[topic]
 }
 
 func (node *Node) addTopicResolution(topic string, brokerConnection *brokerConnection) error {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
+	node.systemgeMutex.Lock()
+	defer node.systemgeMutex.Unlock()
 	if node.topicResolutions[topic] != nil {
 		return Error.New("topic endpoint already exists", nil)
 	}
@@ -67,8 +67,8 @@ func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *b
 }
 
 func (node *Node) removeTopicResolution(topic string) error {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
+	node.systemgeMutex.Lock()
+	defer node.systemgeMutex.Unlock()
 	brokerConnection := node.topicResolutions[topic]
 	if brokerConnection == nil {
 		return Error.New("topic endpoint does not exist", nil)

@@ -9,8 +9,8 @@ func (node *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
 }
 
 func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
+	node.systemgeMutex.Lock()
+	defer node.systemgeMutex.Unlock()
 	brokerConnection.mutex.Lock()
 	delete(node.brokerConnections, brokerConnection.endpoint.GetAddress())
 	removedSubscribedTopics := make([]string, 0)
