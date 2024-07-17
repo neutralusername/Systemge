@@ -42,7 +42,7 @@ func (node *Node) handleSystemgeMessage(brokerConnection *brokerConnection) {
 			continue
 		}
 		if node.GetSystemgeComponent().GetSystemgeConfig().HandleMessagesSequentially {
-			node.handleMessagesSequentiallyMutex.Lock()
+			node.systemgeHandleSequentiallyMutex.Lock()
 		}
 		err = node.handleAsyncMessage(message)
 		if err != nil {
@@ -51,7 +51,7 @@ func (node *Node) handleSystemgeMessage(brokerConnection *brokerConnection) {
 			node.config.Logger.Info(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", nil).Error())
 		}
 		if node.GetSystemgeComponent().GetSystemgeConfig().HandleMessagesSequentially {
-			node.handleMessagesSequentiallyMutex.Unlock()
+			node.systemgeHandleSequentiallyMutex.Unlock()
 		}
 	}
 }
@@ -82,7 +82,7 @@ func (node *Node) handleSyncMessage(message *Message.Message) (string, error) {
 
 func (node *Node) handleSyncResponse(message *Message.Message) error {
 	node.systemgeMutex.Lock()
-	responseChannel := node.messagesWaitingForResponse[message.GetSyncResponseToken()]
+	responseChannel := node.systemgeMessagesWaitingForResponse[message.GetSyncResponseToken()]
 	node.systemgeMutex.Unlock()
 	if responseChannel == nil {
 		return Error.New("Unknown sync response token", nil)

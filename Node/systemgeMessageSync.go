@@ -60,16 +60,16 @@ func (node *Node) receiveSyncResponse(message *Message.Message, responseChannel 
 func (node *Node) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
-	if node.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
+	if node.systemgeMessagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
 		return nil, Error.New("syncRequestToken already exists", nil)
 	}
 	responseChannel := make(chan *Message.Message)
-	node.messagesWaitingForResponse[message.GetSyncRequestToken()] = responseChannel
+	node.systemgeMessagesWaitingForResponse[message.GetSyncRequestToken()] = responseChannel
 	return responseChannel, nil
 }
 func (node *Node) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
 	close(responseChannel)
-	delete(node.messagesWaitingForResponse, syncRequestToken)
+	delete(node.systemgeMessagesWaitingForResponse, syncRequestToken)
 }

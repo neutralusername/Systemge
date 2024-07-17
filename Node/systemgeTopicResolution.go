@@ -31,20 +31,20 @@ func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint,
 func (node *Node) getTopicResolution(topic string) *brokerConnection {
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
-	return node.topicResolutions[topic]
+	return node.systemgeTopicResolutions[topic]
 }
 
 func (node *Node) addTopicResolution(topic string, brokerConnection *brokerConnection) error {
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
-	if node.topicResolutions[topic] != nil {
+	if node.systemgeTopicResolutions[topic] != nil {
 		return Error.New("topic endpoint already exists", nil)
 	}
 	err := brokerConnection.addTopicResolution(topic)
 	if err != nil {
 		return Error.New("failed adding topic to server connection", err)
 	}
-	node.topicResolutions[topic] = brokerConnection
+	node.systemgeTopicResolutions[topic] = brokerConnection
 	go node.removeTopicResolutionTimeout(topic, brokerConnection)
 	return nil
 }
@@ -69,7 +69,7 @@ func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *b
 func (node *Node) removeTopicResolution(topic string) error {
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
-	brokerConnection := node.topicResolutions[topic]
+	brokerConnection := node.systemgeTopicResolutions[topic]
 	if brokerConnection == nil {
 		return Error.New("topic endpoint does not exist", nil)
 	}
@@ -77,7 +77,7 @@ func (node *Node) removeTopicResolution(topic string) error {
 	if err != nil {
 		return Error.New("failed removing topic from server connection", err)
 	}
-	delete(node.topicResolutions, topic)
+	delete(node.systemgeTopicResolutions, topic)
 	if len(brokerConnection.topicResolutions) == 0 && len(brokerConnection.subscribedTopics) == 0 {
 		err = brokerConnection.close()
 		if err != nil {

@@ -22,12 +22,12 @@ type Node struct {
 	application Application
 
 	//systemge
-	systemgeStarted                 bool
-	systemgeMutex                   sync.Mutex
-	handleMessagesSequentiallyMutex sync.Mutex
-	messagesWaitingForResponse      map[string]chan *Message.Message // syncKey -> responseChannel
-	brokerConnections               map[string]*brokerConnection     // brokerAddress -> brokerConnection
-	topicResolutions                map[string]*brokerConnection     // topic -> brokerConnection
+	systemgeStarted                    bool
+	systemgeMutex                      sync.Mutex
+	systemgeHandleSequentiallyMutex    sync.Mutex
+	systemgeMessagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
+	systemgeBrokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
+	systemgeTopicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
 	websocketStarted             bool
@@ -52,9 +52,9 @@ func New(config Config.Node, application Application) *Node {
 
 		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
 
-		messagesWaitingForResponse: make(map[string]chan *Message.Message),
-		brokerConnections:          make(map[string]*brokerConnection),
-		topicResolutions:           make(map[string]*brokerConnection),
+		systemgeMessagesWaitingForResponse: make(map[string]chan *Message.Message),
+		systemgeBrokerConnections:          make(map[string]*brokerConnection),
+		systemgeTopicResolutions:           make(map[string]*brokerConnection),
 
 		websocketGroups:       make(map[string]map[string]*WebsocketClient),
 		websocketConnChannel:  make(chan *websocket.Conn),

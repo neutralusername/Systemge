@@ -6,6 +6,23 @@ import (
 	"Systemge/Message"
 )
 
+type Application interface {
+	GetCustomCommandHandlers() map[string]CustomCommandHandler
+}
+
+func ImplementsSystemgeComponent(app Application) bool {
+	_, ok := app.(SystemgeComponent)
+	return ok
+}
+func ImplementsHTTPComponent(app Application) bool {
+	_, ok := app.(HTTPComponent)
+	return ok
+}
+func ImplementsWebsocketComponent(app Application) bool {
+	_, ok := app.(WebsocketComponent)
+	return ok
+}
+
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type SystemgeComponent interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
@@ -32,20 +49,3 @@ type WebsocketComponent interface {
 	GetWebsocketComponentConfig() Config.Websocket
 }
 type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error
-
-type Application interface {
-	GetCustomCommandHandlers() map[string]CustomCommandHandler
-}
-
-func ImplementsSystemgeComponent(app Application) bool {
-	_, ok := app.(SystemgeComponent)
-	return ok
-}
-func ImplementsHTTPComponent(app Application) bool {
-	_, ok := app.(HTTPComponent)
-	return ok
-}
-func ImplementsWebsocketComponent(app Application) bool {
-	_, ok := app.(WebsocketComponent)
-	return ok
-}
