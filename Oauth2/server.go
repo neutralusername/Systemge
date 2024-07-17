@@ -29,8 +29,16 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Error.New("oauth2 server \""+server.config.Name+"\" is already started", nil)
 	}
+	server.stopChannel = make(chan string)
+	server.httpServer = Http.New(server.config.Port, map[string]Http.RequestHandler{
+		server.config.AuthPath:         server.oauth2Auth(),
+		server.config.AuthCallbackPath: server.oauth2Callback(),
+	})
+	err := Http.Start(server.httpServer, "", "")
+	if err != nil {
+		return Error.New("failed to start oauth2 server \""+server.config.Name+"\"", err)
+	}
 	go handleSessionRequests(server)
-	Http.Start(server.httpServer, "", "")
 	server.isStarted = true
 	server.config.Logger.Info(Error.New("started oauth2 server \""+server.config.Name+"\"", nil).Error())
 	return nil
@@ -42,7 +50,10 @@ func (server *Server) Stop() error {
 	if !server.isStarted {
 		return Error.New("oauth2 server \""+server.config.Name+"\" is not started", nil)
 	}
-	server.httpServer.Close()
+	err := Http.Stop(server.httpServer)
+	if err != nil {
+		return Error.New("failed to stop oauth2 server \""+server.config.Name+"\"", err)
+	}
 	server.isStarted = false
 	close(server.stopChannel)
 	server.removeAllSessions()
