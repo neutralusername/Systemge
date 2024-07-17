@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func RandomString(length int) string {
-	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, ALPHA_NUMERIC_SPECIAL)
+func RandomString(length int, alphabet string) string {
+	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, alphabet)
 }
 
 func RandomNumber(min, max int) int {

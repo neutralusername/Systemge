@@ -1,28 +1,12 @@
 package Oauth2
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Utilities"
-
-	"golang.org/x/oauth2"
 )
 
-type Config struct {
-	Name                    string
-	Port                    uint16
-	AuthPath                string
-	AuthCallbackPath        string
-	OAuth2Config            *oauth2.Config
-	SucessCallbackRedirect  string
-	FailureCallbackRedirect string
-	Logger                  *Utilities.Logger
-	TokenHandler            func(*Server, *oauth2.Token) (string, map[string]interface{}, error)
-	SessionLifetimeMs       uint64
-	Randomizer              *Utilities.Randomizer
-	Oauth2State             string
-}
-
-func (config Config) NewServer() (*Server, error) {
+func New(config Config.Oauth2) (*Server, error) {
 	if config.Randomizer == nil {
 		config.Randomizer = Utilities.NewRandomizer(Utilities.GetSystemTime())
 	}

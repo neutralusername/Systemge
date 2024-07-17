@@ -1,6 +1,7 @@
 package Oauth2
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Http"
 	"Systemge/Utilities"
@@ -13,7 +14,7 @@ import (
 type Server struct {
 	httpServer            *http.Server
 	sessionRequestChannel chan *oauth2SessionRequest
-	config                *Config
+	config                *Config.Oauth2
 
 	sessions   map[string]*session
 	identities map[string]*session
@@ -88,7 +89,7 @@ func handleSessionRequests(server *Server) {
 }
 
 func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) {
-	identity, keyValuePairs, err := server.config.TokenHandler(server, sessionRequest.token)
+	identity, keyValuePairs, err := server.config.TokenHandler(server.config.OAuth2Config, sessionRequest.token)
 	if err != nil {
 		sessionRequest.sessionChannel <- nil
 		server.config.Logger.Warning(Error.New("failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.config.Name+"\"", err).Error())
