@@ -6,15 +6,17 @@ import (
 )
 
 type MultiModule struct {
-	Modules []Module
+	Modules      []Module
+	stopReversed bool
 }
 
 // starts and stops all modules in the MultiModule in the order the order they were provided.
 // this is for convenience and not the recommended way to use Systemge.
 // consider using a command-line interface for each module separately.
-func NewMultiModule(modules ...Module) Module {
+func NewMultiModule(stopReversed bool, modules ...Module) Module {
 	return &MultiModule{
-		Modules: modules,
+		Modules:      modules,
+		stopReversed: stopReversed,
 	}
 }
 
@@ -37,10 +39,19 @@ func (mm *MultiModule) Start() error {
 }
 
 func (mm *MultiModule) Stop() error {
-	for _, module := range mm.Modules {
-		err := module.Stop()
-		if err != nil {
-			return Error.New("Error stopping multi module", err)
+	if !mm.stopReversed {
+		for _, module := range mm.Modules {
+			err := module.Stop()
+			if err != nil {
+				return Error.New("Error stopping multi module", err)
+			}
+		}
+	} else {
+		for i := len(mm.Modules) - 1; i >= 0; i-- {
+			err := mm.Modules[i].Stop()
+			if err != nil {
+				return Error.New("Error stopping multi module", err)
+			}
 		}
 	}
 	return nil

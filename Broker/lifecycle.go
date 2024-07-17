@@ -60,13 +60,12 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 	if !broker.isStarted {
 		return Error.New("Broker \""+node.GetName()+"\" is already stopped", nil)
 	}
+	broker.isStarted = false
 	broker.tlsBrokerListener.Close()
 	broker.tlsBrokerListener = nil
 	broker.tlsConfigListener.Close()
 	broker.tlsConfigListener = nil
 	broker.removeAllNodeConnections()
-	broker.node = nil
-	broker.isStarted = false
 	close(broker.stopChannel)
 	topics := []string{}
 	for syncTopic := range broker.syncTopics {
@@ -89,6 +88,6 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 			node.GetLogger().Info("Removed resolver topics remotely on broker \"" + node.GetName() + "\"")
 		}
 	}
-	node.GetLogger().Info(Error.New("Stopped broker \""+node.GetName()+"\"", nil).Error())
+	broker.node = nil
 	return nil
 }
