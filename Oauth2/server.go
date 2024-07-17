@@ -29,7 +29,6 @@ func (server *Server) Start() error {
 	if server.isStarted {
 		return Error.New("oauth2 server \""+server.config.Name+"\" is already started", nil)
 	}
-	server.stopChannel = make(chan string)
 	server.httpServer = Http.New(server.config.Port, map[string]Http.RequestHandler{
 		server.config.AuthPath:         server.oauth2Auth(),
 		server.config.AuthCallbackPath: server.oauth2Callback(),
@@ -38,6 +37,7 @@ func (server *Server) Start() error {
 	if err != nil {
 		return Error.New("failed to start oauth2 server \""+server.config.Name+"\"", err)
 	}
+	server.stopChannel = make(chan string)
 	go handleSessionRequests(server)
 	server.isStarted = true
 	server.config.Logger.Info(Error.New("started oauth2 server \""+server.config.Name+"\"", nil).Error())

@@ -35,9 +35,8 @@ func (config Config) NewServer() (*Server, error) {
 	server := &Server{
 		sessionRequestChannel: make(chan *oauth2SessionRequest),
 		config:                &config,
-
-		sessions:   make(map[string]*session),
-		identities: make(map[string]*session),
+		sessions:              make(map[string]*session),
+		identities:            make(map[string]*session),
 	}
 	return server, nil
 }
