@@ -41,7 +41,7 @@ func (node *Node) handleSystemgeMessage(brokerConnection *brokerConnection) {
 			}
 			continue
 		}
-		if node.GetSystemgeComponent().GetApplicationConfig().HandleMessagesSequentially {
+		if node.GetSystemgeComponent().GetSystemgeConfig().HandleMessagesSequentially {
 			node.handleMessagesSequentiallyMutex.Lock()
 		}
 		err = node.handleAsyncMessage(message)
@@ -50,7 +50,7 @@ func (node *Node) handleSystemgeMessage(brokerConnection *brokerConnection) {
 		} else {
 			node.config.Logger.Info(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", nil).Error())
 		}
-		if node.GetSystemgeComponent().GetApplicationConfig().HandleMessagesSequentially {
+		if node.GetSystemgeComponent().GetSystemgeConfig().HandleMessagesSequentially {
 			node.handleMessagesSequentiallyMutex.Unlock()
 		}
 	}
