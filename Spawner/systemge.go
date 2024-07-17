@@ -23,7 +23,7 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 	return nil
 }
 
-func (spawner *Spawner) GetSystemgeConfig() Config.Systemge {
+func (spawner *Spawner) GetSystemgeComponentConfig() Config.Systemge {
 	return Config.Systemge{
 		HandleMessagesSequentially: false,
 	}

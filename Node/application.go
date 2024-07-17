@@ -47,7 +47,7 @@ type LifecycleComponent interface {
 type SystemgeComponent interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
-	GetSystemgeConfig() Config.Systemge
+	GetSystemgeComponentConfig() Config.Systemge
 }
 type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)
