@@ -194,9 +194,9 @@ func (node *Node) GetHTTPComponent() HTTPComponent {
 	}
 }
 
-func (node *Node) GetCLIComponent() CLIComponent {
-	if ImplementsCLIComponent(node.application) {
-		return node.application.(CLIComponent)
+func (node *Node) GetCommandHandlerComponent() CommandHandlerComponent {
+	if ImplementsCommandHandlerComponent(node.application) {
+		return node.application.(CommandHandlerComponent)
 	} else {
 		return nil
 	}

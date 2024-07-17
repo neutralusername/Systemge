@@ -22,13 +22,13 @@ func ImplementsWebsocketComponent(app Application) bool {
 	return ok
 }
 
-func ImplementsCLIComponent(app Application) bool {
-	_, ok := app.(CLIComponent)
+func ImplementsCommandHandlerComponent(app Application) bool {
+	_, ok := app.(CommandHandlerComponent)
 	return ok
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type CLIComponent interface {
+type CommandHandlerComponent interface {
 	GetCommandHandlers() map[string]CustomCommandHandler
 }
 
