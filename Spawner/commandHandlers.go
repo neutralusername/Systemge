@@ -5,8 +5,8 @@ import (
 	"Systemge/Node"
 )
 
-func (spawner *Spawner) GetCustomCommandHandlers() map[string]Node.CustomCommandHandler {
-	return map[string]Node.CustomCommandHandler{
+func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
+	return map[string]Node.CommandHandler{
 		"spawnedNodes": func(node *Node.Node, args []string) error {
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()

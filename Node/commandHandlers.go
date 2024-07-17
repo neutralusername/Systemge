@@ -2,7 +2,7 @@ package Node
 
 import "Systemge/Module"
 
-// returns a map of custom command handlers for the command-line interface
+// returns a map of command handlers for the command-line interface
 func (node *Node) GetCommandHandlers() map[string]Module.CommandHandler {
 	handlers := map[string]Module.CommandHandler{
 		"websocketClients":      node.handleWebsocketClientsCommand,
@@ -10,10 +10,10 @@ func (node *Node) GetCommandHandlers() map[string]Module.CommandHandler {
 		"WebsocketGroupClients": node.handleWebsocketGroupClientsCommand,
 	}
 	if commandHandlerComponent := node.GetCommandHandlerComponent(); commandHandlerComponent != nil {
-		customHandlers := commandHandlerComponent.GetCommandHandlers()
-		for command, handler := range customHandlers {
+		commandHandlers := commandHandlerComponent.GetCommandHandlers()
+		for command, commandHandler := range commandHandlers {
 			handlers[command] = func(args []string) error {
-				return handler(node, args)
+				return commandHandler(node, args)
 			}
 		}
 	}
