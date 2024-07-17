@@ -11,10 +11,10 @@ func (resolver *Resolver) handleResolverConnections() {
 	for resolver.isStarted {
 		netConn, err := resolver.tlsResolverListener.Accept()
 		if err != nil {
-			resolver.node.GetLogger().Warning(Error.New("Failed to accept connection request on resolver \""+resolver.node.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to accept resolution connection request on resolver \""+resolver.node.GetName()+"\"", err).Error())
 			continue
 		} else {
-			resolver.node.GetLogger().Info(Error.New("Accepted resolver connection request on resolver \""+resolver.node.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			resolver.node.GetLogger().Info(Error.New("Accepted resolution connection request on resolver \""+resolver.node.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
 		go resolver.handleResolutionRequest(netConn)
 	}
@@ -65,7 +65,6 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "unknwon topic").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
-			return
 		}
 		return
 	}

@@ -14,7 +14,7 @@ func (resolver *Resolver) handleConfigConnections() {
 		netConn, err := resolver.tlsConfigListener.Accept()
 		if err != nil {
 			resolver.tlsConfigListener.Close()
-			resolver.node.GetLogger().Warning(Error.New("Failed to accept connection request on resolver \""+resolver.node.GetName()+"\"", err).Error())
+			resolver.node.GetLogger().Warning(Error.New("Failed to accept config connection request on resolver \""+resolver.node.GetName()+"\"", err).Error())
 			continue
 		} else {
 			resolver.node.GetLogger().Info(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
