@@ -8,9 +8,7 @@ import (
 )
 
 func (spawner *Spawner) GetSystemgeComponentConfig() Config.Systemge {
-	return Config.Systemge{
-		HandleMessagesSequentially: false,
-	}
+	return spawner.systemgeConfig
 }
 
 func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHandler {
