@@ -21,34 +21,34 @@ func New(port uint16, tlsCertPath, tlsKeyPath string) TcpServer {
 	}
 }
 
-func (tlsEndpoint TcpServer) GetPort() uint16 {
-	return tlsEndpoint.port
+func (tlsServer TcpServer) GetPort() uint16 {
+	return tlsServer.port
 }
 
-func (tlsEndpoint TcpServer) GetTlsCertPath() string {
-	return tlsEndpoint.tlsCertPath
+func (tlsServer TcpServer) GetTlsCertPath() string {
+	return tlsServer.tlsCertPath
 }
 
-func (tlsEndpoint TcpServer) GetTlsKeyPath() string {
-	return tlsEndpoint.tlsKeyPath
+func (tlsServer TcpServer) GetTlsKeyPath() string {
+	return tlsServer.tlsKeyPath
 }
 
-func (tlsEndpoint TcpServer) GetListener() (net.Listener, error) {
-	if tlsEndpoint.tlsCertPath == "" || tlsEndpoint.tlsKeyPath == "" {
-		listener, err := net.Listen("tcp", ":"+Utilities.IntToString(int(tlsEndpoint.port)))
+func (tlsServer TcpServer) GetListener() (net.Listener, error) {
+	if tlsServer.tlsCertPath == "" || tlsServer.tlsKeyPath == "" {
+		listener, err := net.Listen("tcp", ":"+Utilities.IntToString(int(tlsServer.port)))
 		if err != nil {
 			return nil, Error.New("Failed to listen on port: ", err)
 		}
 		return listener, nil
 	}
-	cert, err := tls.LoadX509KeyPair(tlsEndpoint.tlsCertPath, tlsEndpoint.tlsKeyPath)
+	cert, err := tls.LoadX509KeyPair(tlsServer.tlsCertPath, tlsServer.tlsKeyPath)
 	if err != nil {
 		return nil, Error.New("Failed to load TLS certificate: ", err)
 	}
 	config := &tls.Config{
 		Certificates: []tls.Certificate{cert},
 	}
-	listener, err := tls.Listen("tcp", ":"+Utilities.IntToString(int(tlsEndpoint.port)), config)
+	listener, err := tls.Listen("tcp", ":"+Utilities.IntToString(int(tlsServer.port)), config)
 	if err != nil {
 		return nil, Error.New("Failed to listen on port: ", err)
 	}
