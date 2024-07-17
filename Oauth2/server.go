@@ -54,6 +54,7 @@ func (server *Server) Stop() error {
 	if err != nil {
 		return Error.New("failed to stop oauth2 server \""+server.config.Name+"\"", err)
 	}
+	server.httpServer = nil
 	server.isStarted = false
 	close(server.stopChannel)
 	server.removeAllSessions()
