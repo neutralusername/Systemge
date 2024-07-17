@@ -27,6 +27,7 @@ func ImplementsCLIComponent(app Application) bool {
 	return ok
 }
 
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type CLIComponent interface {
 	GetCustomCommandHandlers() map[string]CustomCommandHandler
 }
