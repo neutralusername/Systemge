@@ -38,14 +38,12 @@ type HTTP struct {
 }
 
 type Oauth2 struct {
-	Name                    string
 	Port                    uint16
 	AuthPath                string
 	AuthCallbackPath        string
 	OAuth2Config            *oauth2.Config
 	SucessCallbackRedirect  string
 	FailureCallbackRedirect string
-	Logger                  *Utilities.Logger
 	TokenHandler            func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error)
 	SessionLifetimeMs       uint64
 	Randomizer              *Utilities.Randomizer

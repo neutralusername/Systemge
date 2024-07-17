@@ -18,11 +18,11 @@ func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[s
 	session := server.identities[identity]
 	if session == nil {
 		session = server.createSession(identity, keyValuePairs)
-		server.config.Logger.Info(Error.New("added session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+		server.node.GetLogger().Info(Error.New("added session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
 	} else {
 		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
 		session.expired = false
-		server.config.Logger.Info(Error.New("refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+		server.node.GetLogger().Info(Error.New("refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
 	}
 	return session
 }
@@ -55,7 +55,7 @@ func (server *Server) getRemoveSessionFunc(session *session) func() {
 		session.watchdog = nil
 		delete(server.sessions, session.sessionId)
 		delete(server.identities, session.identity)
-		server.config.Logger.Info(Error.New("removed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.config.Name+"\"", nil).Error())
+		server.node.GetLogger().Info(Error.New("removed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
 	}
 }
 
