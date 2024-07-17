@@ -104,8 +104,8 @@ func (node *Node) Start() error {
 			node.config.Logger.Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
 		}
 	}
-	if node.systemgeStarted {
-		err := node.GetSystemgeComponent().OnStart(node)
+	if ImplementsLifecycleComponent(node.application) {
+		err := node.GetLifecycleComponent().OnStart(node)
 		if err != nil {
 			node.stop(false)
 			return Error.New("failed in OnStart", err)
@@ -127,8 +127,8 @@ func (node *Node) stop(lock bool) error {
 	if !node.isStarted {
 		return Error.New("node not started", nil)
 	}
-	if node.systemgeStarted {
-		err := node.application.(SystemgeComponent).OnStop(node)
+	if ImplementsLifecycleComponent(node.application) {
+		err := node.GetLifecycleComponent().OnStop(node)
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
@@ -197,6 +197,14 @@ func (node *Node) GetHTTPComponent() HTTPComponent {
 func (node *Node) GetCommandHandlerComponent() CommandHandlerComponent {
 	if ImplementsCommandHandlerComponent(node.application) {
 		return node.application.(CommandHandlerComponent)
+	} else {
+		return nil
+	}
+}
+
+func (node *Node) GetLifecycleComponent() LifecycleComponent {
+	if ImplementsLifecycleComponent(node.application) {
+		return node.application.(LifecycleComponent)
 	} else {
 		return nil
 	}

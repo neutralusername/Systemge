@@ -27,17 +27,25 @@ func ImplementsCommandHandlerComponent(app Application) bool {
 	return ok
 }
 
+func ImplementsLifecycleComponent(app Application) bool {
+	_, ok := app.(LifecycleComponent)
+	return ok
+}
+
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type CommandHandlerComponent interface {
 	GetCommandHandlers() map[string]CommandHandler
+}
+
+type LifecycleComponent interface {
+	OnStart(*Node) error
+	OnStop(*Node) error
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type SystemgeComponent interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
-	OnStart(*Node) error
-	OnStop(*Node) error
 	GetSystemgeConfig() Config.Systemge
 }
 type AsyncMessageHandler func(*Node, *Message.Message) error
