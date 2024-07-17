@@ -150,7 +150,12 @@ func (node *Node) stop(lock bool) error {
 		}
 	}
 	if node.systemgeStarted {
-		node.stopSystemgeComponent()
+		err := node.stopSystemgeComponent()
+		if err != nil {
+			return Error.New("failed to stop node. Error stopping systemge component", err)
+		} else {
+			node.config.Logger.Info(Error.New("Stopped systemge component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	node.isStarted = false
 	close(node.stopChannel)
