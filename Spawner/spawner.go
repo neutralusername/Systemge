@@ -4,44 +4,70 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Node"
-	"sync"
 )
 
-// implements Node.Application
-type Spawner struct {
-	spawnerConfig      Config.Spawner
-	spawnedNodes       map[string]*Node.Node
-	newApplicationFunc func(string) Node.Application
-	mutex              sync.Mutex
-}
-
-func New(spawnerConfig Config.Spawner, newApplicationFunc func(string) Node.Application) *Spawner {
-	spawner := &Spawner{
-		spawnerConfig:      spawnerConfig,
-		spawnedNodes:       make(map[string]*Node.Node),
-		newApplicationFunc: newApplicationFunc,
+func (spawner *Spawner) EndNode(node *Node.Node, id string) error {
+	spawnedNode := spawner.spawnedNodes[id]
+	if spawnedNode == nil {
+		return Error.New("Node "+id+" does not exist", nil)
 	}
-	return spawner
-}
-
-func (spawner *Spawner) OnStart(node *Node.Node) error {
-	return nil
-}
-
-func (spawner *Spawner) OnStop(node *Node.Node) error {
-	spawner.mutex.Lock()
-	defer spawner.mutex.Unlock()
-	for id := range spawner.spawnedNodes {
-		err := spawner.EndNode(node, id)
+	err := spawnedNode.Stop()
+	if err != nil {
+		return Error.New("Error stopping node "+id, err)
+	}
+	delete(spawner.spawnedNodes, id)
+	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
+		err = node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if err != nil {
-			node.GetLogger().Error(Error.New("Error stopping node "+id, err).Error())
+			node.GetLogger().Error(Error.New("Error removing sync topic \""+id+"\"", err).Error())
+		}
+	} else {
+		err = node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
+		if err != nil {
+			node.GetLogger().Error(Error.New("Error removing async topic \""+id+"\"", err).Error())
 		}
 	}
 	return nil
 }
 
-func (spawner *Spawner) GetSystemgeConfig() Config.Systemge {
-	return Config.Systemge{
-		HandleMessagesSequentially: false,
+func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
+	if _, ok := spawner.spawnedNodes[id]; ok {
+		return Error.New("Node "+id+" already exists", nil)
 	}
+	newNode := Node.New(Config.Node{
+		Name:                      id,
+		Logger:                    spawner.spawnerConfig.SpawnedNodeLogger,
+		ResolverEndpoint:          spawner.spawnerConfig.ResolverEndpoint,
+		SyncResponseTimeoutMs:     1000,
+		TopicResolutionLifetimeMs: 10000,
+		BrokerSubscribeDelayMs:    1000,
+	}, spawner.newApplicationFunc(id))
+	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
+		err := node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
+		if err != nil {
+			return Error.New("Error adding sync topic \""+id+"\"", err)
+		}
+	} else {
+		err := node.AddAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
+		if err != nil {
+			return Error.New("Error adding async topic \""+id+"\"", err)
+		}
+	}
+	err := newNode.Start()
+	if err != nil {
+		if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
+			removeErr := node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
+			if removeErr != nil {
+				node.GetLogger().Error(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
+			}
+		} else {
+			removeErr := node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
+			if removeErr != nil {
+				node.GetLogger().Error(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
+			}
+		}
+		return Error.New("Error starting node", err)
+	}
+	spawner.spawnedNodes[id] = newNode
+	return nil
 }
