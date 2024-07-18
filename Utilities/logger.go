@@ -63,6 +63,11 @@ func (logger *Logger) Info(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
 	}
+	for _, mailer := range mailers {
+		if mailer != nil {
+			mailer.Send(NewMail(nil, "systemge error", str))
+		}
+	}
 	logger.logQueue <- LogString{Level: LEVEL_INFO, Msg: str}
 }
 
@@ -70,6 +75,11 @@ func (logger *Logger) Info(str string, mailers ...*Mailer) {
 func (logger *Logger) Warning(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
+	}
+	for _, mailer := range mailers {
+		if mailer != nil {
+			mailer.Send(NewMail(nil, "systemge error", str))
+		}
 	}
 	logger.logQueue <- LogString{Level: LEVEL_WARNING, Msg: str}
 }
@@ -91,6 +101,11 @@ func (logger *Logger) Error(str string, mailers ...*Mailer) {
 func (logger *Logger) Debug(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
+	}
+	for _, mailer := range mailers {
+		if mailer != nil {
+			mailer.Send(NewMail(nil, "systemge error", str))
+		}
 	}
 	logger.logQueue <- LogString{Level: LEVEL_DEBUG, Msg: str}
 }
