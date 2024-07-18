@@ -5,10 +5,6 @@ import (
 	"Systemge/Node"
 )
 
-func (spawner *Spawner) OnStart(node *Node.Node) error {
-	return nil
-}
-
 func (spawner *Spawner) OnStop(node *Node.Node) error {
 	spawner.mutex.Lock()
 	defer spawner.mutex.Unlock()
