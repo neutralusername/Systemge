@@ -58,6 +58,9 @@ func (broker *Broker) removeNodeConnection(lock bool, nodeConnection *nodeConnec
 		broker.operationMutex.Lock()
 		defer broker.operationMutex.Unlock()
 	}
+	if nodeConnection.netConn == nil {
+		return
+	}
 	nodeConnection.netConn.Close()
 	nodeConnection.netConn = nil
 	for messageType := range nodeConnection.subscribedTopics {
