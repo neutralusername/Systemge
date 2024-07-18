@@ -14,7 +14,7 @@ func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint,
 		return nil, Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.config.Name, topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.GetName(), topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("failed to recieve response from resolver", err)
 	}
@@ -55,9 +55,9 @@ func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *b
 	case <-timer.C:
 		err := node.removeTopicResolution(topic)
 		if err != nil {
-			node.config.Logger.Warning(Error.New("Failed removing topic resolution", err).Error())
+			node.GetLogger().Warning(Error.New("Failed removing topic resolution", err).Error())
 		} else {
-			node.config.Logger.Info(Error.New("Removed topic resolution for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+			node.GetLogger().Info(Error.New("Removed topic resolution for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
 		}
 	case <-node.stopChannel:
 		timer.Stop()

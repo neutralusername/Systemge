@@ -22,7 +22,7 @@ func (node *Node) handleWebsocketConnections() {
 
 func (node *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
 	websocketClient := node.addWebsocketConn(websocketConn)
-	node.config.Logger.Info(Error.New("websocket client connected with id \""+websocketClient.GetId()+"\" and ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", nil).Error())
+	node.GetLogger().Info(Error.New("websocket client connected with id \""+websocketClient.GetId()+"\" and ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", nil).Error())
 	node.GetWebsocketComponent().OnConnectHandler(node, websocketClient)
 	node.handleMessages(websocketClient)
 }

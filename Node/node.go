@@ -83,7 +83,7 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed starting systemge component", err)
 		}
-		node.config.Logger.Info(Error.New("Started systemge component on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("Started systemge component on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if ImplementsWebsocketComponent(node.application) {
 		err := node.startWebsocketComponent()
@@ -91,7 +91,7 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed starting websocket server", err)
 		}
-		node.config.Logger.Info(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if ImplementsHTTPComponent(node.application) {
 		err := node.startHTTPComponent()
@@ -99,7 +99,7 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed starting http server", err)
 		}
-		node.config.Logger.Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if ImplementsLifecycleComponent(node.application) {
 		err := node.GetLifecycleComponent().OnStart(node)
@@ -107,9 +107,9 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed in OnStart", err)
 		}
-		node.config.Logger.Info(Error.New("executed OnStart on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("executed OnStart on node \""+node.GetName()+"\"", nil).Error())
 	}
-	node.config.Logger.Info(Error.New("Started node \""+node.config.Name+"\"", nil).Error())
+	node.GetLogger().Info(Error.New("Started node \""+node.GetName()+"\"", nil).Error())
 	return nil
 }
 
@@ -130,32 +130,32 @@ func (node *Node) stop(lock bool) error {
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
-		node.config.Logger.Info(Error.New("executed OnStop on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("executed OnStop on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if node.websocketStarted {
 		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping websocket server", err)
 		}
-		node.config.Logger.Info(Error.New("Stopped websocket component on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("Stopped websocket component on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if node.httpStarted {
 		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping http server", err)
 		}
-		node.config.Logger.Info(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if node.systemgeStarted {
 		err := node.stopSystemgeComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping systemge component", err)
 		}
-		node.config.Logger.Info(Error.New("Stopped systemge component on node \""+node.GetName()+"\"", nil).Error())
+		node.GetLogger().Info(Error.New("Stopped systemge component on node \""+node.GetName()+"\"", nil).Error())
 	}
 	node.isStarted = false
 	close(node.stopChannel)
-	node.config.Logger.Info(Error.New("Stopped node \""+node.config.Name+"\"", nil).Error())
+	node.GetLogger().Info(Error.New("Stopped node \""+node.GetName()+"\"", nil).Error())
 	return nil
 }
 

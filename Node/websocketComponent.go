@@ -17,7 +17,7 @@ func (node *Node) startWebsocketComponent() error {
 		},
 	}
 	handlers := map[string]Http.RequestHandler{
-		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: Http.WebsocketUpgrade(upgrader, node.config.Logger, &node.isStarted, node.websocketConnChannel),
+		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: Http.WebsocketUpgrade(upgrader, node.GetLogger(), &node.isStarted, node.websocketConnChannel),
 	}
 	httpServer := Http.New(node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.GetPort(), handlers)
 	err := Http.Start(httpServer, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.GetTlsCertPath(), node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.GetTlsKeyPath())
