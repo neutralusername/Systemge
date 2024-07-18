@@ -171,6 +171,18 @@ func (node *Node) GetLogger() *Utilities.Logger {
 	return node.config.Logger
 }
 
+func (node *Node) SetLogger(logger *Utilities.Logger) {
+	node.config.Logger = logger
+}
+
+func (node *Node) GetMailer() *Utilities.Mailer {
+	return node.config.Mailer
+}
+
+func (node *Node) SetMailer(mailer *Utilities.Mailer) {
+	node.config.Mailer = mailer
+}
+
 func (node *Node) GetSystemgeComponent() SystemgeComponent {
 	if ImplementsSystemgeComponent(node.application) {
 		return node.application.(SystemgeComponent)

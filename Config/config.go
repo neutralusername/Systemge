@@ -10,7 +10,8 @@ import (
 
 type Node struct {
 	Name   string            // *required*
-	Logger *Utilities.Logger // *required*
+	Logger *Utilities.Logger // *optional*
+	Mailer *Utilities.Mailer // *optional*
 }
 
 type Systemge struct {
@@ -38,16 +39,16 @@ type HTTP struct {
 }
 
 type Oauth2 struct {
-	Port                    uint16
-	AuthPath                string
-	AuthCallbackPath        string
-	OAuth2Config            *oauth2.Config
-	SucessCallbackRedirect  string
-	FailureCallbackRedirect string
-	TokenHandler            func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error)
-	SessionLifetimeMs       uint64
-	Randomizer              *Utilities.Randomizer
-	Oauth2State             string
+	Port                    uint16                                                                      // *required*
+	AuthPath                string                                                                      // *required*
+	AuthCallbackPath        string                                                                      // *required*
+	OAuth2Config            *oauth2.Config                                                              // *required*
+	SucessCallbackRedirect  string                                                                      // *required*
+	FailureCallbackRedirect string                                                                      // *required*
+	TokenHandler            func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error) // *required
+	SessionLifetimeMs       uint64                                                                      // default: 0
+	Randomizer              *Utilities.Randomizer                                                       // *required*
+	Oauth2State             string                                                                      // *required*
 }
 
 type Broker struct {

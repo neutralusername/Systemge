@@ -11,7 +11,6 @@ type Logger struct {
 	debug    *log.Logger
 	logQueue chan LogString
 	close    chan bool
-	mailer   *Mailer
 }
 
 type LogString struct {
@@ -19,15 +18,7 @@ type LogString struct {
 	Msg   string
 }
 
-func (logger *Logger) GetMailer() *Mailer {
-	return logger.mailer
-}
-
-func (logger *Logger) SetMailer(mailer *Mailer) {
-	logger.mailer = mailer
-}
-
-func NewLogger(infoPath string, warningPath string, errorPath string, debugPath string, mailer *Mailer) *Logger {
+func NewLogger(infoPath string, warningPath string, errorPath string, debugPath string) *Logger {
 	var errLogger *log.Logger
 	var warnLogger *log.Logger
 	var infoLogger *log.Logger
@@ -55,7 +46,6 @@ func NewLogger(infoPath string, warningPath string, errorPath string, debugPath 
 		debug:    debugLogger,
 		logQueue: make(chan LogString, 1000),
 		close:    make(chan bool),
-		mailer:   mailer,
 	}
 	go loggerStruct.logRoutine()
 	return loggerStruct
@@ -69,7 +59,7 @@ const (
 )
 
 // Info calls after Close will cause a panic
-func (logger *Logger) Info(str string) {
+func (logger *Logger) Info(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
 	}
@@ -77,7 +67,7 @@ func (logger *Logger) Info(str string) {
 }
 
 // Warning calls after Close will cause a panic
-func (logger *Logger) Warning(str string) {
+func (logger *Logger) Warning(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
 	}
@@ -85,18 +75,20 @@ func (logger *Logger) Warning(str string) {
 }
 
 // Error calls after Close will cause a panic
-func (logger *Logger) Error(str string) {
+func (logger *Logger) Error(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
 	}
-	if logger.mailer != nil {
-		logger.mailer.Send(NewMail(nil, "systemge error", str))
+	for _, mailer := range mailers {
+		if mailer != nil {
+			mailer.Send(NewMail(nil, "systemge error", str))
+		}
 	}
 	logger.logQueue <- LogString{Level: LEVEL_ERROR, Msg: str}
 }
 
 // Debug calls after Close will cause a panic
-func (logger *Logger) Debug(str string) {
+func (logger *Logger) Debug(str string, mailers ...*Mailer) {
 	if logger == nil {
 		return
 	}
