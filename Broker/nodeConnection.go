@@ -3,7 +3,7 @@ package Broker
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 	"net"
 	"sync"
 )
@@ -29,7 +29,7 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Message) error {
 	nodeConnection.sendMutex.Lock()
 	defer nodeConnection.sendMutex.Unlock()
-	err := Utilities.TcpSend(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
+	err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
@@ -39,7 +39,7 @@ func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Mess
 func (broker *Broker) receive(nodeConnection *nodeConnection) (*Message.Message, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
-	messageBytes, len, err := Utilities.TcpReceive(nodeConnection.netConn, 0)
+	messageBytes, len, err := Tcp.Receive(nodeConnection.netConn, 0)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
 	}

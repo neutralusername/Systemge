@@ -4,7 +4,7 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"net/http"
 	"sync"
 
@@ -13,7 +13,9 @@ import (
 
 type Node struct {
 	config     Config.Node
-	randomizer *Utilities.Randomizer
+	randomizer *Tools.Randomizer
+	logger     *Tools.Logger
+	mailer     *Tools.Mailer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -47,10 +49,12 @@ type Node struct {
 func New(config Config.Node, application Application) *Node {
 	node := &Node{
 		config: config,
+		logger: Tools.NewLogger(config.Logger),
+		mailer: Tools.NewMailer(config.Mailer),
 
 		application: application,
 
-		randomizer: Utilities.NewRandomizer(Utilities.GetSystemTime()),
+		randomizer: Tools.NewRandomizer(Tools.GetSystemTime()),
 
 		systemgeMessagesWaitingForResponse: make(map[string]chan *Message.Message),
 		systemgeBrokerConnections:          make(map[string]*brokerConnection),
@@ -167,20 +171,20 @@ func (node *Node) GetName() string {
 	return node.config.Name
 }
 
-func (node *Node) GetLogger() *Utilities.Logger {
-	return node.config.Logger
+func (node *Node) GetLogger() *Tools.Logger {
+	return node.logger
 }
 
-func (node *Node) SetLogger(logger *Utilities.Logger) {
-	node.config.Logger = logger
+func (node *Node) SetLogger(logger *Tools.Logger) {
+	node.logger = logger
 }
 
-func (node *Node) GetMailer() *Utilities.Mailer {
-	return node.config.Mailer
+func (node *Node) GetMailer() *Tools.Mailer {
+	return node.mailer
 }
 
-func (node *Node) SetMailer(mailer *Utilities.Mailer) {
-	node.config.Mailer = mailer
+func (node *Node) SetMailer(mailer *Tools.Mailer) {
+	node.mailer = mailer
 }
 
 func (node *Node) GetSystemgeComponent() SystemgeComponent {

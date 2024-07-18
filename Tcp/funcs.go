@@ -1,4 +1,4 @@
-package Utilities
+package Tcp
 
 import (
 	"Systemge/Error"
@@ -9,12 +9,12 @@ import (
 
 const ENDOFMESSAGE = "\x04"
 
-func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs uint64) (*Message.Message, error) {
-	err := TcpSend(netConn, message.Serialize(), timeoutMs)
+func Exchange(netConn net.Conn, message *Message.Message, timeoutMs uint64) (*Message.Message, error) {
+	err := Send(netConn, message.Serialize(), timeoutMs)
 	if err != nil {
 		return nil, Error.New("Error sending message", err)
 	}
-	responseBytes, _, err := TcpReceive(netConn, timeoutMs)
+	responseBytes, _, err := Receive(netConn, timeoutMs)
 	if err != nil {
 		return nil, Error.New("Error receiving response", err)
 	}
@@ -25,7 +25,7 @@ func TcpExchange(netConn net.Conn, message *Message.Message, timeoutMs uint64) (
 	return responseMessage, nil
 }
 
-func TcpSend(netConn net.Conn, bytes []byte, timeoutMs uint64) error {
+func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) error {
 	if netConn == nil {
 		return Error.New("net.Conn is nil", nil)
 	}
@@ -41,7 +41,7 @@ func TcpSend(netConn net.Conn, bytes []byte, timeoutMs uint64) error {
 	return nil
 }
 
-func TcpReceive(netConn net.Conn, timeoutMs uint64) ([]byte, uint64, error) {
+func Receive(netConn net.Conn, timeoutMs uint64) ([]byte, uint64, error) {
 	if netConn == nil {
 		return nil, 0, Error.New("net.Conn is nil", nil)
 	}

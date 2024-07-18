@@ -3,16 +3,15 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/TcpEndpoint"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 )
 
-func (node *Node) connectToBroker(tcpEndpoint *TcpEndpoint.TcpEndpoint) (*brokerConnection, error) {
+func (node *Node) connectToBroker(tcpEndpoint *Tcp.Endpoint) (*brokerConnection, error) {
 	netConn, err := tcpEndpoint.Dial()
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("connect", node.GetName(), ""), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("connect", node.GetName(), ""), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed sending connection request", err)

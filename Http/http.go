@@ -2,7 +2,7 @@ package Http
 
 import (
 	"Systemge/Error"
-	"Systemge/Utilities"
+	"Systemge/Helpers"
 	"net/http"
 	"time"
 )
@@ -15,7 +15,7 @@ func New(port uint16, handlers map[string]RequestHandler) *http.Server {
 		mux.HandleFunc(pattern, handler)
 	}
 	httpServer := &http.Server{
-		Addr:    ":" + Utilities.IntToString(int(port)),
+		Addr:    ":" + Helpers.IntToString(int(port)),
 		Handler: mux,
 	}
 	return httpServer

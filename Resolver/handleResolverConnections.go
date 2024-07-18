@@ -3,7 +3,7 @@ package Resolver
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 	"net"
 )
 
@@ -22,10 +22,10 @@ func (resolver *Resolver) handleResolverConnections() {
 
 func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, msgLen, err := Utilities.TcpReceive(netConn, resolver.config.TcpTimeoutMs)
+	messageBytes, msgLen, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs)
 	if err != nil {
 		resolver.node.GetLogger().Warning(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)
+		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
@@ -33,7 +33,7 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	}
 	if resolver.config.MaxMessageSize > 0 && msgLen > resolver.config.MaxMessageSize {
 		resolver.node.GetLogger().Warning(Error.New("Message size exceeds maximum message size from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "message size exceeds maximum message size").Serialize(), resolver.config.TcpTimeoutMs)
+		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "message size exceeds maximum message size").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
@@ -43,7 +43,7 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	err = resolver.validateMessage(message)
 	if err != nil {
 		resolver.node.GetLogger().Warning(Error.New("Invalid connection request from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
+		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
@@ -51,7 +51,7 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	}
 	if message == nil || message.GetTopic() != "resolve" || message.GetOrigin() == "" {
 		resolver.node.GetLogger().Warning(Error.New("Invalid connection request \""+string(messageBytes)+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), Error.New("invalid resolution request", nil).Error()).Serialize(), resolver.config.TcpTimeoutMs)
+		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), Error.New("invalid resolution request", nil).Error()).Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
@@ -62,13 +62,13 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	resolver.mutex.Unlock()
 	if !ok {
 		resolver.node.GetLogger().Warning(Error.New("Failed to resolve topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
-		err := Utilities.TcpSend(netConn, Message.NewAsync("error", resolver.node.GetName(), "unknwon topic").Serialize(), resolver.config.TcpTimeoutMs)
+		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "unknwon topic").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			resolver.node.GetLogger().Warning(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		}
 		return
 	}
-	err = Utilities.TcpSend(netConn, Message.NewAsync("resolution", resolver.node.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
+	err = Tcp.Send(netConn, Message.NewAsync("resolution", resolver.node.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
 	if err != nil {
 		resolver.node.GetLogger().Warning(Error.New("Failed to send resolution response to resolver connection \""+netConn.RemoteAddr().String()+"\" on resolver \""+resolver.node.GetName()+"\"", err).Error())
 		return

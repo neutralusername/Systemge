@@ -3,7 +3,7 @@ package Broker
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 	"net"
 )
 
@@ -32,7 +32,7 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
-	messageBytes, _, err := Utilities.TcpReceive(netConn, broker.config.TcpTimeoutMs)
+	messageBytes, _, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
 	}

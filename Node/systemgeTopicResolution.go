@@ -3,25 +3,24 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/TcpEndpoint"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 	"time"
 )
 
-func (node *Node) resolveBrokerForTopic(topic string) (*TcpEndpoint.TcpEndpoint, error) {
+func (node *Node) resolveBrokerForTopic(topic string) (*Tcp.Endpoint, error) {
 	netConn, err := node.GetSystemgeComponent().GetSystemgeComponentConfig().ResolverEndpoint.Dial()
 	if err != nil {
 		return nil, Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	responseMessage, err := Utilities.TcpExchange(netConn, Message.NewAsync("resolve", node.GetName(), topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("resolve", node.GetName(), topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("failed to recieve response from resolver", err)
 	}
 	if responseMessage.GetTopic() != "resolution" {
 		return nil, Error.New("received error response from resolver \""+responseMessage.GetPayload()+"\"", nil)
 	}
-	endpoint := TcpEndpoint.Unmarshal(responseMessage.GetPayload())
+	endpoint := Tcp.Unmarshal(responseMessage.GetPayload())
 	if endpoint == nil {
 		return nil, Error.New("failed unmarshalling broker", nil)
 	}

@@ -2,7 +2,7 @@ package Oauth2
 
 import (
 	"Systemge/Error"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"time"
 )
 
@@ -29,7 +29,7 @@ func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[s
 
 func (server *Server) createSession(identity string, keyValuePairs map[string]interface{}) (session *session) {
 	for {
-		sessionId := server.config.Randomizer.GenerateRandomString(32, Utilities.ALPHA_NUMERIC)
+		sessionId := server.randomizer.GenerateRandomString(32, Tools.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
 			session = newSession(sessionId, identity, keyValuePairs)
 			server.sessions[sessionId] = session

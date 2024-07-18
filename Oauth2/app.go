@@ -4,7 +4,7 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Node"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"net/http"
 	"sync"
 )
@@ -14,6 +14,7 @@ type Server struct {
 	httpServer            *http.Server
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config.Oauth2
+	randomizer            *Tools.Randomizer
 
 	sessions   map[string]*session
 	identities map[string]*session
@@ -24,9 +25,6 @@ type Server struct {
 }
 
 func New(config Config.Oauth2) (*Server, error) {
-	if config.Randomizer == nil {
-		config.Randomizer = Utilities.NewRandomizer(Utilities.GetSystemTime())
-	}
 	if config.TokenHandler == nil {
 		return nil, Error.New("TokenHandler is required", nil)
 	}
@@ -38,6 +36,7 @@ func New(config Config.Oauth2) (*Server, error) {
 		config:                &config,
 		sessions:              make(map[string]*session),
 		identities:            make(map[string]*session),
+		randomizer:            Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	return server, nil
 }

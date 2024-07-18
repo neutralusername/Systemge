@@ -2,7 +2,7 @@ package Http
 
 import (
 	"Systemge/Error"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"fmt"
 	"net/http"
 
@@ -21,7 +21,7 @@ func RedirectTo(toURL string) RequestHandler {
 	}
 }
 
-func WebsocketUpgrade(upgrader websocket.Upgrader, logger *Utilities.Logger, acceptConnection *bool, websocketConnChannel chan *websocket.Conn) RequestHandler {
+func WebsocketUpgrade(upgrader websocket.Upgrader, logger *Tools.Logger, acceptConnection *bool, websocketConnChannel chan *websocket.Conn) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if !*acceptConnection {
 			logger.Warning(Error.New("websocket connection not accepted", nil).Error())

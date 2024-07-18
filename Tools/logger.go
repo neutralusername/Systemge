@@ -1,6 +1,8 @@
-package Utilities
+package Tools
 
 import (
+	"Systemge/Config"
+	"Systemge/Helpers"
 	"log"
 )
 
@@ -18,26 +20,26 @@ type LogString struct {
 	Msg   string
 }
 
-func NewLogger(infoPath string, warningPath string, errorPath string, debugPath string) *Logger {
+func NewLogger(config Config.Logger) *Logger {
 	var errLogger *log.Logger
 	var warnLogger *log.Logger
 	var infoLogger *log.Logger
 	var debugLogger *log.Logger
-	if errorPath != "" {
-		file := OpenFileAppend(errorPath)
+	if config.ErrorPath != "" {
+		file := Helpers.OpenFileAppend(config.ErrorPath)
 		errLogger = log.New(file, "", log.LstdFlags)
 	}
-	if warningPath != "" {
-		file := OpenFileAppend(warningPath)
+	if config.WarningPath != "" {
+		file := Helpers.OpenFileAppend(config.WarningPath)
 		warnLogger = log.New(file, "", log.LstdFlags)
 	}
-	if infoPath != "" {
-		file := OpenFileAppend(infoPath)
-		infoLogger = log.New(file, "", log.Ldate|log.Lmicroseconds)
+	if config.InfoPath != "" {
+		file := Helpers.OpenFileAppend(config.InfoPath)
+		infoLogger = log.New(file, "", log.LstdFlags)
 	}
-	if debugPath != "" {
-		file := OpenFileAppend(debugPath)
-		debugLogger = log.New(file, "", log.Ldate|log.Lmicroseconds)
+	if config.DebugPath != "" {
+		file := Helpers.OpenFileAppend(config.DebugPath)
+		debugLogger = log.New(file, "", log.LstdFlags)
 	}
 	loggerStruct := &Logger{
 		info:     infoLogger,
@@ -57,6 +59,22 @@ const (
 	LEVEL_ERROR   = 2 // failed operations which should not fail under normal circumstances
 	LEVEL_DEBUG   = 3 // debug information
 )
+
+func (logger *Logger) GetInfo() *log.Logger {
+	return logger.info
+}
+
+func (logger *Logger) GetWarning() *log.Logger {
+	return logger.warn
+}
+
+func (logger *Logger) GetError() *log.Logger {
+	return logger.err
+}
+
+func (logger *Logger) GetDebug() *log.Logger {
+	return logger.debug
+}
 
 // Info calls after Close will cause a panic
 func (logger *Logger) Info(str string, mailers ...*Mailer) {

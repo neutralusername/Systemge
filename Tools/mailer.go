@@ -1,6 +1,7 @@
-package Utilities
+package Tools
 
 import (
+	"Systemge/Config"
 	"fmt"
 	"net/smtp"
 	"strings"
@@ -23,14 +24,14 @@ type Mail struct {
 	Body    string
 }
 
-func NewMailer(smtpHost string, smtpPort uint16, senderEmail string, senderPassword string, recipients []string, logger *Logger) *Mailer {
+func NewMailer(config Config.Mailer) *Mailer {
 	mailer := &Mailer{
-		smtpHost:       smtpHost,
-		smtpPort:       smtpPort,
-		senderEmail:    senderEmail,
-		senderPassword: senderPassword,
-		recipients:     recipients,
-		logger:         logger,
+		smtpHost:       config.SmtpHost,
+		smtpPort:       config.SmtpPort,
+		senderEmail:    config.SenderEmail,
+		senderPassword: config.SenderPassword,
+		recipients:     config.Recipients,
+		logger:         NewLogger(config.Logger),
 		mailQueue:      make(chan *Mail, 1000),
 	}
 	go mailer.sendRoutine()

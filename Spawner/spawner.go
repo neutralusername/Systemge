@@ -36,7 +36,7 @@ func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
 	}
 	newNode := Node.New(Config.Node{
 		Name:   id,
-		Logger: spawner.spawnerConfig.SpawnedNodeLogger,
+		Logger: spawner.spawnerConfig.Logger,
 	}, spawner.newApplicationFunc(id))
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		err := node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)

@@ -1,4 +1,4 @@
-package TcpEndpoint
+package Tcp
 
 import (
 	"Systemge/Error"
@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-type TcpEndpoint struct {
+type Endpoint struct {
 	address              string
 	serverNameIndication string
 	tlsCertificate       string
@@ -21,27 +21,27 @@ type TcpEndpointData struct {
 	TlsCertificate       string `json:"tlsCertificate"`
 }
 
-func New(address, serverNameIndication, cert string) TcpEndpoint {
-	return TcpEndpoint{
+func NewEndpoint(address, serverNameIndication, cert string) Endpoint {
+	return Endpoint{
 		address:              address,
 		serverNameIndication: serverNameIndication,
 		tlsCertificate:       cert,
 	}
 }
 
-func (tcpEndpoint TcpEndpoint) GetAddress() string {
+func (tcpEndpoint Endpoint) GetAddress() string {
 	return tcpEndpoint.address
 }
 
-func (tcpEndpoint TcpEndpoint) GetServerNameIndication() string {
+func (tcpEndpoint Endpoint) GetServerNameIndication() string {
 	return tcpEndpoint.serverNameIndication
 }
 
-func (tcpEndpoint TcpEndpoint) GetTlsCertificate() string {
+func (tcpEndpoint Endpoint) GetTlsCertificate() string {
 	return tcpEndpoint.tlsCertificate
 }
 
-func (tcpEndpoint TcpEndpoint) Dial() (net.Conn, error) {
+func (tcpEndpoint Endpoint) Dial() (net.Conn, error) {
 	if tcpEndpoint.tlsCertificate == "" {
 		return net.Dial("tcp", tcpEndpoint.address)
 	}
@@ -55,7 +55,7 @@ func (tcpEndpoint TcpEndpoint) Dial() (net.Conn, error) {
 	})
 }
 
-func (tcpEndpoint TcpEndpoint) Marshal() string {
+func (tcpEndpoint Endpoint) Marshal() string {
 	json, _ := json.Marshal(TcpEndpointData{
 		Address:              tcpEndpoint.address,
 		ServerNameIndication: tcpEndpoint.serverNameIndication,
@@ -64,9 +64,9 @@ func (tcpEndpoint TcpEndpoint) Marshal() string {
 	return string(json)
 }
 
-func Unmarshal(data string) *TcpEndpoint {
+func Unmarshal(data string) *Endpoint {
 	var resolutionData TcpEndpointData
 	json.Unmarshal([]byte(data), &resolutionData)
-	resolution := New(resolutionData.Address, resolutionData.ServerNameIndication, resolutionData.TlsCertificate)
-	return &resolution
+	endpoint := NewEndpoint(resolutionData.Address, resolutionData.ServerNameIndication, resolutionData.TlsCertificate)
+	return &endpoint
 }

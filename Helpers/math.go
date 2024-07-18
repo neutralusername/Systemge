@@ -1,4 +1,4 @@
-package Utilities
+package Helpers
 
 func Max(integers ...int) int {
 	numLen := len(integers)

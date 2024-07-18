@@ -3,15 +3,14 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/TcpEndpoint"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 	"net"
 	"sync"
 )
 
 type brokerConnection struct {
 	netConn  net.Conn
-	endpoint *TcpEndpoint.TcpEndpoint
+	endpoint *Tcp.Endpoint
 
 	topicResolutions map[string]bool
 	subscribedTopics map[string]bool
@@ -23,7 +22,7 @@ type brokerConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newBrokerConnection(netConn net.Conn, tcpEndpoint *TcpEndpoint.TcpEndpoint) *brokerConnection {
+func newBrokerConnection(netConn net.Conn, tcpEndpoint *Tcp.Endpoint) *brokerConnection {
 	return &brokerConnection{
 		netConn:  netConn,
 		endpoint: tcpEndpoint,
@@ -41,7 +40,7 @@ func (node *Node) send(brokerConnection *brokerConnection, message *Message.Mess
 	if brokerConnection.netConn == nil {
 		return Error.New("Connection is closed", nil)
 	}
-	err := Utilities.TcpSend(brokerConnection.netConn, message.Serialize(), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	err := Tcp.Send(brokerConnection.netConn, message.Serialize(), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed sending message", err)
 	}
@@ -54,7 +53,7 @@ func (brokerConnection *brokerConnection) receive() (*Message.Message, error) {
 	if brokerConnection.netConn == nil {
 		return nil, Error.New("Connection is closed", nil)
 	}
-	messageBytes, _, err := Utilities.TcpReceive(brokerConnection.netConn, 0)
+	messageBytes, _, err := Tcp.Receive(brokerConnection.netConn, 0)
 	if err != nil {
 		return nil, Error.New("Failed receiving message", err)
 	}

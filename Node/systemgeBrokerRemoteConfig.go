@@ -3,11 +3,10 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/TcpEndpoint"
-	"Systemge/Utilities"
+	"Systemge/Tcp"
 )
 
-func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpoint, topics ...string) error {
+func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint Tcp.Endpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -20,14 +19,14 @@ func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpo
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("addSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
 	return nil
 }
 
-func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpoint, topics ...string) error {
+func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint Tcp.Endpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -40,14 +39,14 @@ func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEn
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("removeSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
 	return nil
 }
 
-func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpoint, topics ...string) error {
+func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint Tcp.Endpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -60,14 +59,14 @@ func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndp
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("addAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("addAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
 	return nil
 }
 
-func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpEndpoint, topics ...string) error {
+func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint Tcp.Endpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -80,7 +79,7 @@ func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint TcpEndpoint.TcpE
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Utilities.TcpExchange(netConn, Message.NewAsync("removeAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("removeAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}

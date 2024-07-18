@@ -2,10 +2,10 @@ package Resolver
 
 import (
 	"Systemge/Error"
-	"Systemge/TcpEndpoint"
+	"Systemge/Tcp"
 )
 
-func (resolver *Resolver) addTopics(tcpEndpoint TcpEndpoint.TcpEndpoint, topics ...string) error {
+func (resolver *Resolver) addTopics(tcpEndpoint Tcp.Endpoint, topics ...string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, topic := range topics {

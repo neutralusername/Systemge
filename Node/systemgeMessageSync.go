@@ -3,7 +3,7 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"time"
 )
 
@@ -12,7 +12,7 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 	if !node.systemgeStarted {
 		return nil, Error.New("systemge component not started", nil)
 	}
-	message := Message.NewSync(topic, origin, payload, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
+	message := Message.NewSync(topic, origin, payload, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
 	if !node.IsStarted() {
 		return nil, Error.New("node not started", nil)
 	}

@@ -3,7 +3,7 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"sync"
 	"time"
 
@@ -134,9 +134,9 @@ func (websocketClient *WebsocketClient) Receive() (*Message.Message, error) {
 func (node *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
 	node.websocketMutex.Lock()
 	defer node.websocketMutex.Unlock()
-	websocketId := "#" + node.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+	websocketId := "#" + node.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	for _, exists := node.websocketClients[websocketId]; exists; {
-		websocketId = "#" + node.randomizer.GenerateRandomString(16, Utilities.ALPHA_NUMERIC)
+		websocketId = "#" + node.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	}
 	websocketClient := node.newWebsocketClient(websocketId, websocketConn)
 	node.websocketClients[websocketId] = websocketClient

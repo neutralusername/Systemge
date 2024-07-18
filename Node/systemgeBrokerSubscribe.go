@@ -3,7 +3,7 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Utilities"
+	"Systemge/Tools"
 	"time"
 )
 
@@ -65,7 +65,7 @@ func (node *Node) subscribeAttempt(topic string) bool {
 }
 
 func (node *Node) subscribeTopic(brokerConnection *brokerConnection, topic string) error {
-	message := Message.NewSync("subscribe", node.GetName(), topic, node.randomizer.GenerateRandomString(10, Utilities.ALPHA_NUMERIC))
+	message := Message.NewSync("subscribe", node.GetName(), topic, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
 	responseChannel, err := node.addMessageWaitingForResponse(message)
 	if err != nil {
 		return Error.New("failed to add message waiting for response", err)
