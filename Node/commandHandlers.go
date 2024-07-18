@@ -48,10 +48,10 @@ func (node *Node) handleWebsocketGroupClientsCommand(args []string) error {
 	node.websocketMutex.Unlock()
 	if !ok {
 		println("Group not found")
-	} else {
-		for _, websocketClient := range group {
-			println(websocketClient.GetId())
-		}
+		return nil
+	}
+	for _, websocketClient := range group {
+		println(websocketClient.GetId())
 	}
 	return nil
 }
