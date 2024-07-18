@@ -5,16 +5,15 @@ import (
 	"Systemge/Message"
 )
 
-func (node *Node) handleSystemgeMessage(brokerConnection *brokerConnection) {
+func (node *Node) handleSystemgeMessages(brokerConnection *brokerConnection) {
 	for brokerConnection.netConn != nil {
 		message, err := brokerConnection.receive()
 		if err != nil {
 			node.config.Logger.Warning(Error.New("Failed to receive message from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", err).Error())
 			node.handleBrokerDisconnect(brokerConnection)
 			return
-		} else {
-			node.config.Logger.Info(Error.New("Received message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", nil).Error())
 		}
+		node.config.Logger.Info(Error.New("Received message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.GetAddress()+"\" on node \""+node.config.Name+"\"", nil).Error())
 		if message.GetSyncResponseToken() != "" {
 			err := node.handleSyncResponse(message)
 			if err != nil {

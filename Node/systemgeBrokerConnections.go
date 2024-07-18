@@ -11,7 +11,7 @@ func (node *Node) addBrokerConnection(brokerConnection *brokerConnection) error 
 		return Error.New("broker connection already exists", nil)
 	}
 	node.systemgeBrokerConnections[brokerConnection.endpoint.GetAddress()] = brokerConnection
-	go node.handleSystemgeMessage(brokerConnection)
+	go node.handleSystemgeMessages(brokerConnection)
 	return nil
 }
 
