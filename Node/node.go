@@ -174,39 +174,34 @@ func (node *Node) GetLogger() *Utilities.Logger {
 func (node *Node) GetSystemgeComponent() SystemgeComponent {
 	if ImplementsSystemgeComponent(node.application) {
 		return node.application.(SystemgeComponent)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (node *Node) GetWebsocketComponent() WebsocketComponent {
 	if ImplementsWebsocketComponent(node.application) {
 		return node.application.(WebsocketComponent)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (node *Node) GetHTTPComponent() HTTPComponent {
 	if ImplementsHTTPComponent(node.application) {
 		return node.application.(HTTPComponent)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (node *Node) GetCommandHandlerComponent() CommandHandlerComponent {
 	if ImplementsCommandHandlerComponent(node.application) {
 		return node.application.(CommandHandlerComponent)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (node *Node) GetLifecycleComponent() LifecycleComponent {
 	if ImplementsLifecycleComponent(node.application) {
 		return node.application.(LifecycleComponent)
-	} else {
-		return nil
 	}
+	return nil
 }
