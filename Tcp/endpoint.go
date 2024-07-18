@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func NewClient(config Config.TcpEndpoint) (net.Conn, error) {
+func NewClient(config *Config.TcpEndpoint) (net.Conn, error) {
 	if config.TlsCert == "" {
 		return net.Dial("tcp", config.Address)
 	}

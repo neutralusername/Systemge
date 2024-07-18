@@ -7,7 +7,7 @@ import (
 	"Systemge/Node"
 )
 
-func (spawner *Spawner) GetSystemgeComponentConfig() Config.Systemge {
+func (spawner *Spawner) GetSystemgeComponentConfig() *Config.Systemge {
 	return spawner.systemgeConfig
 }
 

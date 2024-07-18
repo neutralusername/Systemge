@@ -3,7 +3,7 @@ package Config
 import "golang.org/x/oauth2"
 
 type Oauth2 struct {
-	Server                     TcpServer                                                                   // *required*
+	Server                     *TcpServer                                                                  // *required*
 	AuthPath                   string                                                                      // *required*
 	AuthCallbackPath           string                                                                      // *required*
 	OAuth2Config               *oauth2.Config                                                              // *required*
@@ -17,14 +17,14 @@ type Oauth2 struct {
 }
 
 type Broker struct {
-	Server       TcpServer   // *required*
-	Endpoint     TcpEndpoint // *required*
-	ConfigServer TcpServer   // *required*
+	Server       *TcpServer   // *required*
+	Endpoint     *TcpEndpoint // *required*
+	ConfigServer *TcpServer   // *required*
 
 	SyncTopics  []string
 	AsyncTopics []string
 
-	ResolverConfigEndpoint TcpEndpoint // *required*
+	ResolverConfigEndpoint *TcpEndpoint // *required*
 
 	SyncResponseTimeoutMs uint64 // default: 0
 	TcpTimeoutMs          uint64 // default: 0 = block forever
@@ -37,8 +37,8 @@ type Broker struct {
 }
 
 type Resolver struct {
-	Server       TcpServer // *required*
-	ConfigServer TcpServer // *required*
+	Server       *TcpServer // *required*
+	ConfigServer *TcpServer // *required*
 
 	TcpTimeoutMs uint64 // default: 0 = block forever
 
@@ -49,9 +49,9 @@ type Resolver struct {
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync bool   // default: false
-	Logger                 Logger // *required*
+	IsSpawnedNodeTopicSync bool    // default: false
+	Logger                 *Logger // *required*
 
-	ResolverEndpoint     TcpEndpoint // *required*
-	BrokerConfigEndpoint TcpEndpoint // *required*
+	ResolverEndpoint     *TcpEndpoint // *required*
+	BrokerConfigEndpoint *TcpEndpoint // *required*
 }

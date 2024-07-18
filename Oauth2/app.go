@@ -24,7 +24,7 @@ type Server struct {
 	isStarted   bool
 }
 
-func New(config Config.Oauth2) (*Server, error) {
+func New(config *Config.Oauth2) (*Server, error) {
 	if config.TokenHandler == nil {
 		return nil, Error.New("TokenHandler is required", nil)
 	}
@@ -33,7 +33,7 @@ func New(config Config.Oauth2) (*Server, error) {
 	}
 	server := &Server{
 		sessionRequestChannel: make(chan *oauth2SessionRequest),
-		config:                &config,
+		config:                config,
 		sessions:              make(map[string]*session),
 		identities:            make(map[string]*session),
 		randomizer:            Tools.NewRandomizer(config.RandomizerSeed),

@@ -12,7 +12,7 @@ import (
 )
 
 type Node struct {
-	config     Config.Node
+	config     *Config.Node
 	randomizer *Tools.Randomizer
 	logger     *Tools.Logger
 	mailer     *Tools.Mailer
@@ -46,7 +46,7 @@ type Node struct {
 	httpServer  *http.Server
 }
 
-func New(config Config.Node, application Application) *Node {
+func New(config *Config.Node, application Application) *Node {
 	node := &Node{
 		config: config,
 		logger: Tools.NewLogger(config.Logger),

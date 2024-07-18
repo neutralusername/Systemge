@@ -13,7 +13,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string) *brokerConnection {
 		node.GetLogger().Info(Error.New("Resolved broker address \""+endpoint.Address+"\" for topic \""+topic+" \" on node \""+node.GetName()+"\"", nil).Error())
 		brokerConnection = node.getBrokerConnection(endpoint.Address)
 		if brokerConnection == nil {
-			brokerConnection, err = node.connectToBroker(*endpoint)
+			brokerConnection, err = node.connectToBroker(endpoint)
 			if err != nil {
 				node.GetLogger().Warning(Error.New("Failed connecting to broker \""+endpoint.Address+"\" for topic \""+topic+"\" on node \""+node.GetName()+"\"", err).Error())
 				return nil

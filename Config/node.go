@@ -1,9 +1,9 @@
 package Config
 
 type Node struct {
-	Name   string // *required*
-	Logger Logger // *optional*
-	Mailer Mailer // *optional*
+	Name   string  // *required*
+	Logger *Logger // *optional*
+	Mailer *Mailer // *optional*
 }
 
 type Systemge struct {
@@ -14,18 +14,18 @@ type Systemge struct {
 	SyncResponseTimeoutMs     uint64 // default: 0
 	TcpTimeoutMs              uint64 // default: 0 = block forever
 
-	ResolverEndpoint TcpEndpoint // *required*
+	ResolverEndpoint *TcpEndpoint // *required*
 }
 
 type Websocket struct {
-	Pattern                          string    // *required*
-	Server                           TcpServer // *required*
-	HandleClientMessagesSequentially bool      // default: false
+	Pattern                          string     // *required*
+	Server                           *TcpServer // *required*
+	HandleClientMessagesSequentially bool       // default: false
 
 	ClientMessageCooldownMs uint64 // default: 0
 	ClientWatchdogTimeoutMs uint64 // default: 0
 }
 
 type HTTP struct {
-	Server TcpServer // *required*
+	Server *TcpServer // *required*
 }

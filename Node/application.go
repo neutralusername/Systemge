@@ -56,7 +56,7 @@ type OnStopComponent interface {
 type SystemgeComponent interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
-	GetSystemgeComponentConfig() Config.Systemge
+	GetSystemgeComponentConfig() *Config.Systemge
 }
 type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)
@@ -65,7 +65,7 @@ type CommandHandler func(*Node, []string) error
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type HTTPComponent interface {
 	GetHTTPRequestHandlers() map[string]Http.RequestHandler
-	GetHTTPComponentConfig() Config.HTTP
+	GetHTTPComponentConfig() *Config.HTTP
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
@@ -73,6 +73,6 @@ type WebsocketComponent interface {
 	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
 	OnConnectHandler(*Node, *WebsocketClient)
 	OnDisconnectHandler(*Node, *WebsocketClient)
-	GetWebsocketComponentConfig() Config.Websocket
+	GetWebsocketComponentConfig() *Config.Websocket
 }
 type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error

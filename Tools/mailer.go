@@ -24,7 +24,7 @@ type Mail struct {
 	Body    string
 }
 
-func NewMailer(config Config.Mailer) *Mailer {
+func NewMailer(config *Config.Mailer) *Mailer {
 	mailer := &Mailer{
 		smtpHost:       config.SmtpHost,
 		smtpPort:       config.SmtpPort,

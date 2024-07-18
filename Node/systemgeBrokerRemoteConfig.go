@@ -7,7 +7,7 @@ import (
 	"Systemge/Tcp"
 )
 
-func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoint, topics ...string) error {
+func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -27,7 +27,7 @@ func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoint, 
 	return nil
 }
 
-func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoint, topics ...string) error {
+func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -47,7 +47,7 @@ func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoin
 	return nil
 }
 
-func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoint, topics ...string) error {
+func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"
@@ -67,7 +67,7 @@ func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoint,
 	return nil
 }
 
-func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint Config.TcpEndpoint, topics ...string) error {
+func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint, topics ...string) error {
 	payload := ""
 	for _, topic := range topics {
 		payload += topic + "|"

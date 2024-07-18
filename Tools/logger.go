@@ -20,7 +20,7 @@ type LogString struct {
 	Msg   string
 }
 
-func NewLogger(config Config.Logger) *Logger {
+func NewLogger(config *Config.Logger) *Logger {
 	var errLogger *log.Logger
 	var warnLogger *log.Logger
 	var infoLogger *log.Logger

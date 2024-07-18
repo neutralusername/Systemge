@@ -14,5 +14,5 @@ type Mailer struct {
 	SenderEmail    string   // *required*
 	SenderPassword string   // *required*
 	Recipients     []string // *required*
-	Logger         Logger   // *required*
+	Logger         *Logger  // *required*
 }

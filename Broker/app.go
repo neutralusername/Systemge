@@ -8,7 +8,7 @@ import (
 )
 
 type Broker struct {
-	config Config.Broker
+	config *Config.Broker
 	node   *Node.Node
 
 	syncTopics  map[string]bool
@@ -28,7 +28,7 @@ type Broker struct {
 	stateMutex     sync.Mutex
 }
 
-func New(config Config.Broker) *Broker {
+func New(config *Config.Broker) *Broker {
 	broker := &Broker{
 		config: config,
 

@@ -34,7 +34,7 @@ func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
 	if _, ok := spawner.spawnedNodes[id]; ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
-	newNode := Node.New(Config.Node{
+	newNode := Node.New(&Config.Node{
 		Name:   id,
 		Logger: spawner.spawnerConfig.Logger,
 	}, spawner.newApplicationFunc(id))

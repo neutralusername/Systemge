@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func NewServer(config Config.TcpServer) (net.Listener, error) {
+func NewServer(config *Config.TcpServer) (net.Listener, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {

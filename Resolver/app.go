@@ -8,7 +8,7 @@ import (
 )
 
 type Resolver struct {
-	config Config.Resolver
+	config *Config.Resolver
 	node   *Node.Node
 
 	tlsResolverListener net.Listener
@@ -20,7 +20,7 @@ type Resolver struct {
 	mutex     sync.Mutex
 }
 
-func New(config Config.Resolver) *Resolver {
+func New(config *Config.Resolver) *Resolver {
 	resolver := &Resolver{
 		config:           config,
 		registeredTopics: map[string]Config.TcpEndpoint{},
