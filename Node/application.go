@@ -27,8 +27,13 @@ func ImplementsCommandHandlerComponent(app Application) bool {
 	return ok
 }
 
-func ImplementsLifecycleComponent(app Application) bool {
-	_, ok := app.(LifecycleComponent)
+func ImplementsOnStartComponent(app Application) bool {
+	_, ok := app.(OnStartComponent)
+	return ok
+}
+
+func ImplementsOnStopComponent(app Application) bool {
+	_, ok := app.(OnStopComponent)
 	return ok
 }
 
@@ -37,10 +42,12 @@ type CommandHandlerComponent interface {
 	GetCommandHandlers() map[string]CommandHandler
 }
 
-// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type LifecycleComponent interface {
-	OnStart(*Node) error // called after all components have been initialized and started. if an error is returned, the start operation is aborted
-	OnStop(*Node) error  // called before all components are stopped and the node is shut down. if an error is returned, the stop operation is aborted
+type OnStartComponent interface {
+	OnStart(*Node) error
+}
+
+type OnStopComponent interface {
+	OnStop(*Node) error
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node

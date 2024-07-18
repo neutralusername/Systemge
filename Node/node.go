@@ -101,8 +101,8 @@ func (node *Node) Start() error {
 		}
 		node.GetLogger().Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
 	}
-	if ImplementsLifecycleComponent(node.application) {
-		err := node.GetLifecycleComponent().OnStart(node)
+	if ImplementsOnStartComponent(node.application) {
+		err := node.GetOnStartComponent().OnStart(node)
 		if err != nil {
 			node.stop(false)
 			return Error.New("failed in OnStart", err)
@@ -125,8 +125,8 @@ func (node *Node) stop(lock bool) error {
 	if !node.IsStarted() {
 		return Error.New("node not started", nil)
 	}
-	if ImplementsLifecycleComponent(node.application) {
-		err := node.GetLifecycleComponent().OnStop(node)
+	if ImplementsOnStopComponent(node.application) {
+		err := node.GetOnStopComponent().OnStop(node)
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
@@ -211,9 +211,16 @@ func (node *Node) GetCommandHandlerComponent() CommandHandlerComponent {
 	return nil
 }
 
-func (node *Node) GetLifecycleComponent() LifecycleComponent {
-	if ImplementsLifecycleComponent(node.application) {
-		return node.application.(LifecycleComponent)
+func (node *Node) GetOnStartComponent() OnStartComponent {
+	if ImplementsOnStartComponent(node.application) {
+		return node.application.(OnStartComponent)
+	}
+	return nil
+}
+
+func (node *Node) GetOnStopComponent() OnStopComponent {
+	if ImplementsOnStopComponent(node.application) {
+		return node.application.(OnStopComponent)
 	}
 	return nil
 }
