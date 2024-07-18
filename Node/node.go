@@ -110,6 +110,7 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed in OnStart", err)
 		}
+		node.config.Logger.Info(Error.New("executed OnStart on node \""+node.GetName()+"\"", nil).Error())
 	}
 	node.config.Logger.Info(Error.New("Started node \""+node.config.Name+"\"", nil).Error())
 	return nil
@@ -132,6 +133,7 @@ func (node *Node) stop(lock bool) error {
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
+		node.config.Logger.Info(Error.New("executed OnStop on node \""+node.GetName()+"\"", nil).Error())
 	}
 	if node.websocketStarted {
 		err := node.stopWebsocketComponent()
