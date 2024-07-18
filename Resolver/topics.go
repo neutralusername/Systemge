@@ -1,11 +1,11 @@
 package Resolver
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
-	"Systemge/Tcp"
 )
 
-func (resolver *Resolver) addTopics(tcpEndpoint Tcp.Endpoint, topics ...string) error {
+func (resolver *Resolver) addTopics(tcpEndpoint Config.TcpEndpoint, topics ...string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, topic := range topics {
@@ -15,7 +15,7 @@ func (resolver *Resolver) addTopics(tcpEndpoint Tcp.Endpoint, topics ...string) 
 	}
 	for _, topic := range topics {
 		resolver.registeredTopics[topic] = tcpEndpoint
-		resolver.node.GetLogger().Info(Error.New("Added topic \""+topic+"\" with endpoint \""+tcpEndpoint.GetAddress()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
+		resolver.node.GetLogger().Info(Error.New("Added topic \""+topic+"\" with endpoint \""+tcpEndpoint.Address+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
 	}
 	return nil
 }
@@ -29,7 +29,7 @@ func (resolver *Resolver) removeTopics(topics ...string) error {
 		}
 	}
 	for _, topic := range topics {
-		resolver.node.GetLogger().Info(Error.New("Removed topic \""+topic+"\" with endpoint \""+resolver.registeredTopics[topic].GetAddress()+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
+		resolver.node.GetLogger().Info(Error.New("Removed topic \""+topic+"\" with endpoint \""+resolver.registeredTopics[topic].Address+"\" on resolver \""+resolver.node.GetName()+"\"", nil).Error())
 		delete(resolver.registeredTopics, topic)
 	}
 	return nil

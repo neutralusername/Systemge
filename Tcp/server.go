@@ -1,54 +1,29 @@
 package Tcp
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Helpers"
 	"crypto/tls"
 	"net"
 )
 
-type Server struct {
-	port        uint16
-	tlsCertPath string
-	tlsKeyPath  string
-}
-
-func NewServer(port uint16, tlsCertPath, tlsKeyPath string) Server {
-	return Server{
-		port:        port,
-		tlsCertPath: tlsCertPath,
-		tlsKeyPath:  tlsKeyPath,
-	}
-}
-
-func (tlsServer Server) GetPort() uint16 {
-	return tlsServer.port
-}
-
-func (tlsServer Server) GetTlsCertPath() string {
-	return tlsServer.tlsCertPath
-}
-
-func (tlsServer Server) GetTlsKeyPath() string {
-	return tlsServer.tlsKeyPath
-}
-
-func (tlsServer Server) GetListener() (net.Listener, error) {
-	if tlsServer.tlsCertPath == "" || tlsServer.tlsKeyPath == "" {
-		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(tlsServer.port)))
+func NewServer(config Config.TcpServer) (net.Listener, error) {
+	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
+		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {
 			return nil, Error.New("Failed to listen on port: ", err)
 		}
 		return listener, nil
 	}
-	cert, err := tls.LoadX509KeyPair(tlsServer.tlsCertPath, tlsServer.tlsKeyPath)
+	cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
 	if err != nil {
 		return nil, Error.New("Failed to load TLS certificate: ", err)
 	}
-	config := &tls.Config{
+	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
 	}
-	listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(tlsServer.port)), config)
+	listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
 	if err != nil {
 		return nil, Error.New("Failed to listen on port: ", err)
 	}

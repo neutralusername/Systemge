@@ -1,60 +1,9 @@
 package Config
 
-import (
-	"Systemge/Tcp"
-
-	"golang.org/x/oauth2"
-)
-
-type Node struct {
-	Name   string // *required*
-	Logger Logger // *optional*
-	Mailer Mailer // *optional*
-}
-
-type Systemge struct {
-	HandleMessagesSequentially bool // default: false
-
-	BrokerSubscribeDelayMs    uint64 // default: 0 (delay after failed broker subscription attempt)
-	TopicResolutionLifetimeMs uint64 // default: 0
-	SyncResponseTimeoutMs     uint64 // default: 0
-	TcpTimeoutMs              uint64 // default: 0 = block forever
-
-	ResolverEndpoint Tcp.Endpoint // *required*
-}
-
-type Websocket struct {
-	Pattern                          string     // *required*
-	Server                           Tcp.Server // *required*
-	HandleClientMessagesSequentially bool       // default: false
-
-	ClientMessageCooldownMs uint64 // default: 0
-	ClientWatchdogTimeoutMs uint64 // default: 0
-}
-
-type HTTP struct {
-	Server Tcp.Server // *required*
-}
-
-type Logger struct {
-	InfoPath    string // *required*
-	WarningPath string // *required*
-	ErrorPath   string // *required*
-	DebugPath   string // *required*
-	QueueBuffer int    // default: 0
-}
-
-type Mailer struct {
-	SmtpHost       string   // *required*
-	SmtpPort       uint16   // *required*
-	SenderEmail    string   // *required*
-	SenderPassword string   // *required*
-	Recipients     []string // *required*
-	Logger         Logger   // *required*
-}
+import "golang.org/x/oauth2"
 
 type Oauth2 struct {
-	Server                     Tcp.Server                                                                  // *required*
+	Server                     TcpServer                                                                   // *required*
 	AuthPath                   string                                                                      // *required*
 	AuthCallbackPath           string                                                                      // *required*
 	OAuth2Config               *oauth2.Config                                                              // *required*
@@ -68,14 +17,14 @@ type Oauth2 struct {
 }
 
 type Broker struct {
-	Server       Tcp.Server   // *required*
-	Endpoint     Tcp.Endpoint // *required*
-	ConfigServer Tcp.Server   // *required*
+	Server       TcpServer   // *required*
+	Endpoint     TcpEndpoint // *required*
+	ConfigServer TcpServer   // *required*
 
 	SyncTopics  []string
 	AsyncTopics []string
 
-	ResolverConfigEndpoint Tcp.Endpoint // *required*
+	ResolverConfigEndpoint TcpEndpoint // *required*
 
 	SyncResponseTimeoutMs uint64 // default: 0
 	TcpTimeoutMs          uint64 // default: 0 = block forever
@@ -88,8 +37,8 @@ type Broker struct {
 }
 
 type Resolver struct {
-	Server       Tcp.Server // *required*
-	ConfigServer Tcp.Server // *required*
+	Server       TcpServer // *required*
+	ConfigServer TcpServer // *required*
 
 	TcpTimeoutMs uint64 // default: 0 = block forever
 
@@ -103,6 +52,6 @@ type Spawner struct {
 	IsSpawnedNodeTopicSync bool   // default: false
 	Logger                 Logger // *required*
 
-	ResolverEndpoint     Tcp.Endpoint // *required*
-	BrokerConfigEndpoint Tcp.Endpoint // *required*
+	ResolverEndpoint     TcpEndpoint // *required*
+	BrokerConfigEndpoint TcpEndpoint // *required*
 }

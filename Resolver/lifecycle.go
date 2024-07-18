@@ -3,6 +3,7 @@ package Resolver
 import (
 	"Systemge/Error"
 	"Systemge/Node"
+	"Systemge/Tcp"
 )
 
 func (resolver *Resolver) OnStart(node *Node.Node) error {
@@ -11,11 +12,11 @@ func (resolver *Resolver) OnStart(node *Node.Node) error {
 	if resolver.isStarted {
 		return Error.New("resolver \""+node.GetName()+"\" is already started", nil)
 	}
-	listener, err := resolver.config.Server.GetListener()
+	listener, err := Tcp.NewServer(resolver.config.Server)
 	if err != nil {
 		return Error.New("Failed to get listener for resolver \""+node.GetName()+"\"", err)
 	}
-	configListener, err := resolver.config.ConfigServer.GetListener()
+	configListener, err := Tcp.NewServer(resolver.config.ConfigServer)
 	if err != nil {
 		return Error.New("Failed to get listener for resolver \""+node.GetName()+"\"", err)
 	}

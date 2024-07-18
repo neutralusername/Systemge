@@ -12,11 +12,11 @@ func (server *Server) OnStart(node *Node.Node) error {
 	if server.isStarted {
 		return Error.New("oauth2 server \""+server.node.GetName()+"\" is already started", nil)
 	}
-	server.httpServer = Http.New(server.config.Server.GetPort(), map[string]Http.RequestHandler{
+	server.httpServer = Http.New(server.config.Server.Port, map[string]Http.RequestHandler{
 		server.config.AuthPath:         server.oauth2Auth(),
 		server.config.AuthCallbackPath: server.oauth2Callback(),
 	})
-	err := Http.Start(server.httpServer, server.config.Server.GetTlsCertPath(), server.config.Server.GetTlsKeyPath())
+	err := Http.Start(server.httpServer, server.config.Server.TlsCertPath, server.config.Server.TlsKeyPath)
 	if err != nil {
 		return Error.New("failed to start oauth2 server \""+server.node.GetName()+"\"", err)
 	}

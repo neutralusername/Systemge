@@ -15,7 +15,7 @@ func (resolver *Resolver) handleTopicsCommand(node *Node.Node, args []string) er
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for topic, tcpEndpoint := range resolver.registeredTopics {
-		println(topic, tcpEndpoint.GetAddress())
+		println(topic, tcpEndpoint.Address)
 	}
 	return nil
 }

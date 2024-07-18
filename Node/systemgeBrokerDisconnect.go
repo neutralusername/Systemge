@@ -12,7 +12,7 @@ func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerCo
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
 	brokerConnection.mutex.Lock()
-	delete(node.systemgeBrokerConnections, brokerConnection.endpoint.GetAddress())
+	delete(node.systemgeBrokerConnections, brokerConnection.endpoint.Address)
 	removedSubscribedTopics := make([]string, 0)
 	for topic := range brokerConnection.topicResolutions {
 		delete(node.systemgeTopicResolutions, topic)

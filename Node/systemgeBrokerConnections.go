@@ -7,10 +7,10 @@ import (
 func (node *Node) addBrokerConnection(brokerConnection *brokerConnection) error {
 	node.systemgeMutex.Lock()
 	defer node.systemgeMutex.Unlock()
-	if node.systemgeBrokerConnections[brokerConnection.endpoint.GetAddress()] != nil {
+	if node.systemgeBrokerConnections[brokerConnection.endpoint.Address] != nil {
 		return Error.New("broker connection already exists", nil)
 	}
-	node.systemgeBrokerConnections[brokerConnection.endpoint.GetAddress()] = brokerConnection
+	node.systemgeBrokerConnections[brokerConnection.endpoint.Address] = brokerConnection
 	go node.handleSystemgeMessages(brokerConnection)
 	return nil
 }

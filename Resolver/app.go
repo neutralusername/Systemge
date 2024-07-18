@@ -3,7 +3,6 @@ package Resolver
 import (
 	"Systemge/Config"
 	"Systemge/Node"
-	"Systemge/Tcp"
 	"net"
 	"sync"
 )
@@ -15,7 +14,7 @@ type Resolver struct {
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener
 
-	registeredTopics map[string]Tcp.Endpoint // topic -> tcpEndpoint
+	registeredTopics map[string]Config.TcpEndpoint // topic -> tcpEndpoint
 
 	isStarted bool
 	mutex     sync.Mutex
@@ -24,7 +23,7 @@ type Resolver struct {
 func New(config Config.Resolver) *Resolver {
 	resolver := &Resolver{
 		config:           config,
-		registeredTopics: map[string]Tcp.Endpoint{},
+		registeredTopics: map[string]Config.TcpEndpoint{},
 	}
 	return resolver
 }

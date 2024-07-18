@@ -1,13 +1,14 @@
 package Node
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Tcp"
 )
 
-func (node *Node) connectToBroker(tcpEndpoint *Tcp.Endpoint) (*brokerConnection, error) {
-	netConn, err := tcpEndpoint.Dial()
+func (node *Node) connectToBroker(tcpEndpoint Config.TcpEndpoint) (*brokerConnection, error) {
+	netConn, err := Tcp.NewClient(tcpEndpoint)
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}

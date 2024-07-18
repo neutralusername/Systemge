@@ -1,6 +1,7 @@
 package Resolver
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Tcp"
@@ -78,7 +79,7 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 		if len(segments) < 2 {
 			return Error.New("Invalid payload", nil)
 		}
-		brokerEndpoint := Tcp.Unmarshal(segments[0])
+		brokerEndpoint := Config.UnmarshalTcpEndpoint(segments[0])
 		err := resolver.addTopics(*brokerEndpoint, segments[1:]...)
 		if err != nil {
 			return Error.New("Failed to add topics", err)

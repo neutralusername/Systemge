@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Tcp"
@@ -10,7 +11,7 @@ import (
 
 type brokerConnection struct {
 	netConn  net.Conn
-	endpoint *Tcp.Endpoint
+	endpoint Config.TcpEndpoint
 
 	topicResolutions map[string]bool
 	subscribedTopics map[string]bool
@@ -22,7 +23,7 @@ type brokerConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func newBrokerConnection(netConn net.Conn, tcpEndpoint *Tcp.Endpoint) *brokerConnection {
+func newBrokerConnection(netConn net.Conn, tcpEndpoint Config.TcpEndpoint) *brokerConnection {
 	return &brokerConnection{
 		netConn:  netConn,
 		endpoint: tcpEndpoint,

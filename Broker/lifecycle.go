@@ -3,6 +3,7 @@ package Broker
 import (
 	"Systemge/Error"
 	"Systemge/Node"
+	"Systemge/Tcp"
 )
 
 func (broker *Broker) OnStart(node *Node.Node) error {
@@ -11,11 +12,11 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 	if broker.isStarted {
 		return Error.New("Broker \""+node.GetName()+"\" is already started", nil)
 	}
-	listener, err := broker.config.Server.GetListener()
+	listener, err := Tcp.NewServer(broker.config.Server)
 	if err != nil {
 		return Error.New("Failed to get listener for broker \""+node.GetName()+"\"", err)
 	}
-	configListener, err := broker.config.ConfigServer.GetListener()
+	configListener, err := Tcp.NewServer(broker.config.ConfigServer)
 	if err != nil {
 		return Error.New("Failed to get config listener for broker \""+node.GetName()+"\"", err)
 	}
