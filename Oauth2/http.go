@@ -19,14 +19,14 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 		state := httpRequest.FormValue("state")
 		if state != server.config.Oauth2State {
 			server.node.GetLogger().Warning(Error.New("failed oauth2 state check for \""+state+"\" for client \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
-			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
+			http.Redirect(responseWriter, httpRequest, server.config.FailureUrlCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
 		code := httpRequest.FormValue("code")
 		token, err := server.config.OAuth2Config.Exchange(httpRequest.Context(), code)
 		if err != nil {
 			server.node.GetLogger().Warning(Error.New("failed exchanging code \""+code+"\" for token for client \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.node.GetName()+"\"", err).Error())
-			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
+			http.Redirect(responseWriter, httpRequest, server.config.FailureUrlCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
 		sessionChannel := make(chan *session)
@@ -38,18 +38,21 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 		session := <-sessionChannel
 		if session == nil {
 			server.node.GetLogger().Warning(Error.New("failed creating session for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
-			http.Redirect(responseWriter, httpRequest, server.config.FailureCallbackRedirect, http.StatusMovedPermanently)
+			http.Redirect(responseWriter, httpRequest, server.config.FailureUrlCallbackRedirect, http.StatusMovedPermanently)
 			return
 		}
 		server.node.GetLogger().Info(Error.New("oauth2 callback success for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" with sessionId \""+session.sessionId+"\" and identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
-		http.Redirect(responseWriter, httpRequest, server.config.SucessCallbackRedirect+"?sessionId="+session.sessionId, http.StatusMovedPermanently)
+		http.Redirect(responseWriter, httpRequest, server.config.SucessUrlCallbackRedirect+"?sessionId="+session.sessionId, http.StatusMovedPermanently)
 	}
 }
 
 func (server *Server) oauth2Auth() Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		server.node.GetLogger().Info(Error.New("new oauth2 request by \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
-		url := server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)
+		url := server.config.AuthUrlRedirect
+		if url == "" {
+			url = server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)
+		}
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
 	}
 }

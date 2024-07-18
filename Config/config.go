@@ -39,16 +39,17 @@ type HTTP struct {
 }
 
 type Oauth2 struct {
-	Port                    uint16                                                                      // *required*
-	AuthPath                string                                                                      // *required*
-	AuthCallbackPath        string                                                                      // *required*
-	OAuth2Config            *oauth2.Config                                                              // *required*
-	SucessCallbackRedirect  string                                                                      // *required*
-	FailureCallbackRedirect string                                                                      // *required*
-	TokenHandler            func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error) // *required
-	SessionLifetimeMs       uint64                                                                      // default: 0
-	Randomizer              *Utilities.Randomizer                                                       // *required*
-	Oauth2State             string                                                                      // *required*
+	Port                       uint16                                                                      // *required*
+	AuthPath                   string                                                                      // *required*
+	AuthCallbackPath           string                                                                      // *required*
+	OAuth2Config               *oauth2.Config                                                              // *required*
+	AuthUrlRedirect            string                                                                      // *optional*
+	SucessUrlCallbackRedirect  string                                                                      // *required*
+	FailureUrlCallbackRedirect string                                                                      // *required*
+	TokenHandler               func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error) // *required
+	SessionLifetimeMs          uint64                                                                      // default: 0
+	Randomizer                 *Utilities.Randomizer                                                       // *required*
+	Oauth2State                string                                                                      // *required*
 }
 
 type Broker struct {
