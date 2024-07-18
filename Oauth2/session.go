@@ -20,6 +20,14 @@ func newSession(sessionId, identity string, keyValuePairs map[string]interface{}
 	}
 }
 
+func (session *session) GetSessionId() string {
+	return session.sessionId
+}
+
+func (session *session) GetIdentity() string {
+	return session.identity
+}
+
 func (session *session) Get(key string) (interface{}, bool) {
 	value, ok := session.keyValuePairs[key]
 	return value, ok
