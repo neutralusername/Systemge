@@ -46,10 +46,19 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 				println("module not started")
 				continue
 			}
-			for _, node := range nodes {
-				err := node.Stop()
-				if err != nil {
-					panic(err.Error())
+			if stopReversedOrder {
+				for i := len(nodes) - 1; i >= 0; i-- {
+					err := nodes[i].Stop()
+					if err != nil {
+						panic(err.Error())
+					}
+				}
+			} else {
+				for _, node := range nodes {
+					err := node.Stop()
+					if err != nil {
+						panic(err.Error())
+					}
 				}
 			}
 			started = false
