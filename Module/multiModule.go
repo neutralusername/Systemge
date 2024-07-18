@@ -8,6 +8,7 @@ import (
 type MultiModule struct {
 	Modules      []Module
 	stopReversed bool
+	isStarted    bool
 }
 
 // starts and stops all modules in the MultiModule in the order the order they were provided.
@@ -18,6 +19,10 @@ func NewMultiModule(stopReversed bool, modules ...Module) Module {
 		Modules:      modules,
 		stopReversed: stopReversed,
 	}
+}
+
+func (mm *MultiModule) IsStarted() bool {
+	return mm.isStarted
 }
 
 func (mm *MultiModule) GetLogger() *Utilities.Logger {
@@ -35,6 +40,7 @@ func (mm *MultiModule) Start() error {
 			return Error.New("Error starting multi module", err)
 		}
 	}
+	mm.isStarted = true
 	return nil
 }
 
@@ -54,6 +60,7 @@ func (mm *MultiModule) Stop() error {
 			}
 		}
 	}
+	mm.isStarted = false
 	return nil
 }
 

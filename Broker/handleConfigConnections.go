@@ -14,9 +14,8 @@ func (broker *Broker) handleConfigConnections() {
 		if err != nil {
 			broker.node.GetLogger().Warning(Error.New("Failed to accept connection request on broker \""+broker.node.GetName()+"\"", err).Error())
 			continue
-		} else {
-			broker.node.GetLogger().Info(Error.New("Accepted connection request on broker \""+broker.node.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
+		broker.node.GetLogger().Info(Error.New("Accepted connection request on broker \""+broker.node.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		go broker.handleConfigConnection(netConn)
 	}
 }

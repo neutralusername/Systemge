@@ -1,16 +1,18 @@
 package Broker
 
-import "Systemge/Module"
+import (
+	"Systemge/Node"
+)
 
 // returns a map of command handlers for the command-line interface
-func (broker *Broker) GetCommandHandlers() map[string]Module.CommandHandler {
-	return map[string]Module.CommandHandler{
-		"brokerNodes": func(args []string) error {
+func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
+	return map[string]Node.CommandHandler{
+		"brokerNodes": func(node *Node.Node, args []string) error {
 			broker.operationMutex.Lock()
+			defer broker.operationMutex.Unlock()
 			for _, nodeConnection := range broker.nodeConnections {
 				println(nodeConnection.name)
 			}
-			broker.operationMutex.Unlock()
 			return nil
 		},
 	}

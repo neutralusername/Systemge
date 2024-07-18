@@ -8,6 +8,7 @@ type Module interface {
 	GetCommandHandlers() map[string]CommandHandler
 	GetName() string
 	GetLogger() *Utilities.Logger
+	IsStarted() bool
 }
 
 type CommandHandler func([]string) error

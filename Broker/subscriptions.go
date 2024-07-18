@@ -38,11 +38,3 @@ func (broker *Broker) removeSubscription(nodeConnection *nodeConnection, topic s
 	}
 	return nil
 }
-
-func (broker *Broker) getSubscribedNodes(topic string) []*nodeConnection {
-	subscribers := []*nodeConnection{}
-	for _, nodeConnection := range broker.nodeSubscriptions[topic] {
-		subscribers = append(subscribers, nodeConnection)
-	}
-	return subscribers
-}

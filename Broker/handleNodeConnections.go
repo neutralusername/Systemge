@@ -13,23 +13,22 @@ func (broker *Broker) handleNodeConnections() {
 		if err != nil {
 			broker.node.GetLogger().Warning(Error.New("Failed to accept connection request on broker \""+broker.node.GetName()+"\"", err).Error())
 			continue
-		} else {
-			broker.node.GetLogger().Info(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		}
+		broker.node.GetLogger().Info(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 		go broker.handleNodeConnection(netConn)
 	}
 }
 
 func (broker *Broker) handleNodeConnection(netConn net.Conn) {
-	node, err := broker.handleNodeConnectionRequest(netConn)
+	nodeConnection, err := broker.handleNodeConnectionRequest(netConn)
 	if err != nil {
 		netConn.Close()
 		broker.node.GetLogger().Warning(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
 		return
-	} else {
-		broker.node.GetLogger().Info(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+node.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
 	}
-	broker.handleNodeConnectionMessages(node)
+	broker.node.GetLogger().Info(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
+	broker.handleNodeConnectionMessages(nodeConnection)
+	broker.removeNodeConnection(true, nodeConnection)
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
@@ -52,7 +51,7 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	}
 	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.node.GetName(), ""))
 	if err != nil {
-		broker.removeNodeConnection(nodeConnection)
+		broker.removeNodeConnection(true, nodeConnection)
 		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)
 	}
 	return nodeConnection, nil
