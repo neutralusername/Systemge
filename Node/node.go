@@ -67,7 +67,7 @@ func New(config Config.Node, application Application) *Node {
 func (node *Node) Start() error {
 	node.nodeMutex.Lock()
 	defer node.nodeMutex.Unlock()
-	if node.isStarted {
+	if node.IsStarted() {
 		return Error.New("node already started", nil)
 	}
 	if node.application == nil {
@@ -122,7 +122,7 @@ func (node *Node) stop(lock bool) error {
 		node.nodeMutex.Lock()
 		defer node.nodeMutex.Unlock()
 	}
-	if !node.isStarted {
+	if !node.IsStarted() {
 		return Error.New("node not started", nil)
 	}
 	if ImplementsLifecycleComponent(node.application) {
