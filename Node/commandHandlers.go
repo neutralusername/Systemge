@@ -1,26 +1,22 @@
 package Node
 
-import "Systemge/Module"
-
 // returns a map of command handlers for the command-line interface
-func (node *Node) GetCommandHandlers() map[string]Module.CommandHandler {
-	handlers := map[string]Module.CommandHandler{
-		"websocketClients":      node.handleWebsocketClientsCommand,
-		"websocketGroups":       node.handleWebsocketGroupsCommand,
-		"WebsocketGroupClients": node.handleWebsocketGroupClientsCommand,
+func (node *Node) GetCommandHandlers() map[string]CommandHandler {
+	handlers := map[string]CommandHandler{
+		"websocketClients":      handleWebsocketClientsCommand,
+		"websocketGroups":       handleWebsocketGroupsCommand,
+		"WebsocketGroupClients": handleWebsocketGroupClientsCommand,
 	}
 	if commandHandlerComponent := node.GetCommandHandlerComponent(); commandHandlerComponent != nil {
 		commandHandlers := commandHandlerComponent.GetCommandHandlers()
 		for command, commandHandler := range commandHandlers {
-			handlers[command] = func(args []string) error {
-				return commandHandler(node, args)
-			}
+			handlers[command] = commandHandler
 		}
 	}
 	return handlers
 }
 
-func (node *Node) handleWebsocketClientsCommand(args []string) error {
+func handleWebsocketClientsCommand(node *Node, args []string) error {
 	node.websocketMutex.Lock()
 	for _, websocketClient := range node.websocketClients {
 		println(websocketClient.GetId())
@@ -29,7 +25,7 @@ func (node *Node) handleWebsocketClientsCommand(args []string) error {
 	return nil
 }
 
-func (node *Node) handleWebsocketGroupsCommand(args []string) error {
+func handleWebsocketGroupsCommand(node *Node, args []string) error {
 	node.websocketMutex.Lock()
 	for groupId := range node.websocketGroups {
 		println(groupId)
@@ -38,7 +34,7 @@ func (node *Node) handleWebsocketGroupsCommand(args []string) error {
 	return nil
 }
 
-func (node *Node) handleWebsocketGroupClientsCommand(args []string) error {
+func handleWebsocketGroupClientsCommand(node *Node, args []string) error {
 	if len(args) < 1 {
 		println("Usage: groupClients <groupId>")
 	}

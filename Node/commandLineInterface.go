@@ -1,4 +1,4 @@
-package Module
+package Node
 
 import (
 	"bufio"
@@ -8,9 +8,9 @@ import (
 )
 
 // starts a command-line interface for the module
-func StartCommandLineInterface(module Module) {
-	if module == nil {
-		panic("module cannot be nil")
+func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
+	if len(nodes) == 0 {
+		panic("no nodes provided")
 	}
 	newLineChar := '\n'
 	if runtime.GOOS == "windows" {
@@ -34,9 +34,11 @@ func StartCommandLineInterface(module Module) {
 				println("module already started")
 				continue
 			}
-			err := module.Start()
-			if err != nil {
-				panic(err.Error())
+			for _, node := range nodes {
+				err := node.Start()
+				if err != nil {
+					panic(err.Error())
+				}
 			}
 			started = true
 		case "stop":
@@ -44,9 +46,11 @@ func StartCommandLineInterface(module Module) {
 				println("module not started")
 				continue
 			}
-			err := module.Stop()
-			if err != nil {
-				panic(err.Error())
+			for _, node := range nodes {
+				err := node.Stop()
+				if err != nil {
+					panic(err.Error())
+				}
 			}
 			started = false
 		case "exit":
@@ -56,14 +60,19 @@ func StartCommandLineInterface(module Module) {
 				println("module not started")
 				continue
 			}
-			commandHandlers := module.GetCommandHandlers()
-			handler := commandHandlers[inputSegments[0]]
-			if handler != nil {
-				err := handler(inputSegments[1:])
-				if err != nil {
-					println(err.Error())
+			commandExecuted := false
+			for _, node := range nodes {
+				commandHandlers := node.GetCommandHandlers()
+				handler := commandHandlers[inputSegments[0]]
+				if handler != nil {
+					commandExecuted = true
+					err := handler(node, inputSegments[1:])
+					if err != nil {
+						println(err.Error())
+					}
 				}
-			} else {
+			}
+			if !commandExecuted {
 				println("command not found")
 			}
 		}
