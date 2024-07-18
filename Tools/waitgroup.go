@@ -2,21 +2,21 @@ package Tools
 
 import "sync"
 
-type MyWaitgroup struct {
+type Waitgroup struct {
 	waitGroup   *sync.WaitGroup
 	executeChan chan bool
 	abortChan   chan bool
 }
 
-func NewWaitgroup() *MyWaitgroup {
-	return &MyWaitgroup{
+func NewWaitgroup() *Waitgroup {
+	return &Waitgroup{
 		waitGroup:   &sync.WaitGroup{},
 		executeChan: make(chan bool),
 		abortChan:   make(chan bool),
 	}
 }
 
-func (myWaitgroup *MyWaitgroup) Add(function func()) {
+func (myWaitgroup *Waitgroup) Add(function func()) {
 	myWaitgroup.waitGroup.Add(1)
 	go func() {
 		defer myWaitgroup.waitGroup.Done()
@@ -29,13 +29,13 @@ func (myWaitgroup *MyWaitgroup) Add(function func()) {
 	}()
 }
 
-func (myWaitgroup *MyWaitgroup) Execute() {
+func (myWaitgroup *Waitgroup) Execute() {
 	close(myWaitgroup.executeChan)
 	myWaitgroup.waitGroup.Wait()
 	close(myWaitgroup.abortChan)
 }
 
-func (myWaitgroup *MyWaitgroup) Abort() {
+func (myWaitgroup *Waitgroup) Abort() {
 	close(myWaitgroup.abortChan)
 	myWaitgroup.waitGroup.Wait()
 	close(myWaitgroup.executeChan)
