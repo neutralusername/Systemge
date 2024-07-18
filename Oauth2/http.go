@@ -48,11 +48,11 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 
 func (server *Server) oauth2Auth() Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		server.node.GetLogger().Info(Error.New("new oauth2 request by \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
 		url := server.config.AuthRedirectUrl
 		if url == "" {
 			url = server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)
 		}
+		server.node.GetLogger().Info(Error.New("new oauth2 request by \""+httpRequest.RemoteAddr+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
 	}
 }

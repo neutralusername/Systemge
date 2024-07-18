@@ -39,7 +39,7 @@ type HTTP struct {
 }
 
 type Oauth2 struct {
-	Port                       uint16                                                                      // *required*
+	Server                     TcpServer.TcpServer                                                         // *required*
 	AuthPath                   string                                                                      // *required*
 	AuthCallbackPath           string                                                                      // *required*
 	OAuth2Config               *oauth2.Config                                                              // *required*
