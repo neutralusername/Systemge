@@ -118,6 +118,9 @@ func startSchedule(inputSegments []string, schedules map[string]*Schedule, nodes
 		command:     command,
 	}
 	scheduleId := Tools.RandomString(10, Tools.ALPHA_NUMERIC)
+	for schedules[scheduleId] != nil {
+		scheduleId = Tools.RandomString(10, Tools.ALPHA_NUMERIC)
+	}
 	schedules[scheduleId] = schedule
 	println("schedule started with id \"" + scheduleId + "\"")
 	schedule.timer = time.AfterFunc(schedule.duration, func() {
