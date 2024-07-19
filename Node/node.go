@@ -83,6 +83,9 @@ func (node *Node) Start() error {
 	if node.application == nil {
 		return Error.New("application not set", nil)
 	}
+	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Starting", nil).Error())
+	}
 
 	node.stopChannel = make(chan bool)
 	node.isStarted = true
@@ -144,6 +147,9 @@ func (node *Node) stop(lock bool) error {
 	}
 	if !node.IsStarted() {
 		return Error.New("node not started", nil)
+	}
+	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Stopping", nil).Error())
 	}
 	if ImplementsOnStopComponent(node.application) {
 		err := node.GetOnStopComponent().OnStop(node)

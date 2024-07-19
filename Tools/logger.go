@@ -19,7 +19,7 @@ func NewLogger(config *Config.Logger) *Logger {
 	}
 	file := Helpers.OpenFileAppend(config.Path)
 	loggerStruct := &Logger{
-		logger:   log.New(file, "", log.LstdFlags),
+		logger:   log.New(file, "", log.Ldate|log.Ltime|log.Lmicroseconds),
 		logQueue: make(chan string, config.QueueBuffer),
 		close:    make(chan bool),
 		prefix:   config.Prefix,
