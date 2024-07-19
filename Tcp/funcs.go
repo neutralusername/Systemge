@@ -9,12 +9,12 @@ import (
 
 const ENDOFMESSAGE = "\x04"
 
-func Exchange(netConn net.Conn, message *Message.Message, timeoutMs uint64) (*Message.Message, error) {
+func Exchange(netConn net.Conn, message *Message.Message, timeoutMs uint64, byteLimit uint64) (*Message.Message, error) {
 	err := Send(netConn, message.Serialize(), timeoutMs)
 	if err != nil {
 		return nil, Error.New("Error sending message", err)
 	}
-	responseBytes, _, err := Receive(netConn, timeoutMs)
+	responseBytes, err := Receive(netConn, timeoutMs, byteLimit)
 	if err != nil {
 		return nil, Error.New("Error receiving response", err)
 	}
@@ -41,9 +41,9 @@ func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) error {
 	return nil
 }
 
-func Receive(netConn net.Conn, timeoutMs uint64) ([]byte, uint64, error) {
+func Receive(netConn net.Conn, timeoutMs uint64, bytelimit uint64) ([]byte, error) {
 	if netConn == nil {
-		return nil, 0, Error.New("net.Conn is nil", nil)
+		return nil, Error.New("net.Conn is nil", nil)
 	}
 	buffer := make([]byte, 1)
 	message := make([]byte, 0)
@@ -56,14 +56,17 @@ func Receive(netConn net.Conn, timeoutMs uint64) ([]byte, uint64, error) {
 	for {
 		n, err := netConn.Read(buffer)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		if buffer[n-1] == []byte(ENDOFMESSAGE)[0] {
 			break
 		} else {
 			len += uint64(n)
+			if bytelimit > 0 && len > bytelimit {
+				return nil, Error.New("Message exceeds byte limit", nil)
+			}
 			message = append(message, buffer[:n]...)
 		}
 	}
-	return message, len, nil
+	return message, nil
 }

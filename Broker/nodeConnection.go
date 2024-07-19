@@ -39,12 +39,9 @@ func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Mess
 func (broker *Broker) receive(nodeConnection *nodeConnection) (*Message.Message, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
-	messageBytes, len, err := Tcp.Receive(nodeConnection.netConn, 0)
+	messageBytes, err := Tcp.Receive(nodeConnection.netConn, 0, broker.config.MaxMessageSize)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
-	}
-	if broker.config.MaxMessageSize > 0 && len > broker.config.MaxMessageSize {
-		return nil, Error.New("Message size exceeds maximum size", nil)
 	}
 	message := Message.Deserialize(messageBytes)
 	if message == nil {

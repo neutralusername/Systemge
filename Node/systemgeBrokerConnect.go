@@ -12,7 +12,7 @@ func (node *Node) connectToBroker(tcpEndpoint *Config.TcpEndpoint) (*brokerConne
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}
-	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("connect", node.GetName(), ""), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("connect", node.GetName(), ""), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed sending connection request", err)

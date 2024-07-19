@@ -14,7 +14,7 @@ func (node *Node) resolveBrokerForTopic(topic string) (*Config.TcpEndpoint, erro
 		return nil, Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("resolve", node.GetName(), topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("resolve", node.GetName(), topic), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return nil, Error.New("failed to recieve response from resolver", err)
 	}

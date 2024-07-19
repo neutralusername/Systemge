@@ -54,7 +54,7 @@ func (brokerConnection *brokerConnection) receive() (*Message.Message, error) {
 	if brokerConnection.netConn == nil {
 		return nil, Error.New("Connection is closed", nil)
 	}
-	messageBytes, _, err := Tcp.Receive(brokerConnection.netConn, 0)
+	messageBytes, err := Tcp.Receive(brokerConnection.netConn, 0, 0)
 	if err != nil {
 		return nil, Error.New("Failed receiving message", err)
 	}

@@ -20,7 +20,7 @@ func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint,
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Tcp.Exchange(netConn, Message.NewAsync("addSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("addSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
@@ -40,7 +40,7 @@ func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoi
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Tcp.Exchange(netConn, Message.NewAsync("removeSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("removeSyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
@@ -60,7 +60,7 @@ func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Tcp.Exchange(netConn, Message.NewAsync("addAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("addAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
@@ -80,7 +80,7 @@ func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpo
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	_, err = Tcp.Exchange(netConn, Message.NewAsync("removeAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	_, err = Tcp.Exchange(netConn, Message.NewAsync("removeAsyncTopics", node.GetName(), payload), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}

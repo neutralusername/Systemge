@@ -47,24 +47,12 @@ func (resolver *Resolver) handleResolverConnections() {
 
 func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, msgLen, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs)
+	messageBytes, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.MaxMessageSize)
 	if err != nil {
 		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 			warningLogger.Log(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 		}
 		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
-		return
-	}
-	if resolver.config.MaxMessageSize > 0 && msgLen > resolver.config.MaxMessageSize {
-		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Message size exceeds maximum message size from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "message size exceeds maximum message size").Serialize(), resolver.config.TcpTimeoutMs)
 		if err != nil {
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
