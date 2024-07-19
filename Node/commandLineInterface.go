@@ -39,7 +39,7 @@ func StartCommandLineInterface(nodes ...*Node) {
 		}
 		input = strings.Trim(input, "\r\n")
 		inputSegments := strings.Split(input, " ")
-		if inputSegments[0] == "" {
+		if inputSegments[0] == "" || inputSegments[0] == "!" {
 			continue
 		}
 		reverse := false
@@ -134,14 +134,13 @@ func handleCommands(reverse bool, inputSegments []string, nodes ...*Node) bool {
 		for i := len(nodes) - 1; i >= 0; i-- {
 			executeCommand(nodes[i], inputSegments[0], &commandExecuted, inputSegments[1:]...)
 		}
-		return true
 	} else {
 		for _, node := range nodes {
 			executeCommand(node, inputSegments[0], &commandExecuted, inputSegments[1:]...)
 		}
 	}
 	if !commandExecuted {
-		println("command not found")
+		println("command not found \"" + inputSegments[0] + "\"")
 	}
 	return true
 }
