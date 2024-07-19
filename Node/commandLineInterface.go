@@ -75,6 +75,7 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 				handler := commandHandlers[inputSegments[0]]
 				if handler != nil {
 					commandExecuted = true
+					println("\texecuting command on node \"" + node.GetName() + "\"")
 					err := handler(node, inputSegments[1:])
 					if err != nil {
 						println(err.Error())
