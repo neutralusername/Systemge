@@ -35,6 +35,7 @@ func StartCommandLineInterface(nodes ...*Node) {
 		print(">")
 		input, err := reader.ReadString(byte(newLineChar))
 		if err != nil {
+			println(err.Error())
 			continue
 		}
 		input = strings.Trim(input, "\r\n")
