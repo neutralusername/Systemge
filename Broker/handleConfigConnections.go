@@ -80,32 +80,40 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) {
 }
 
 func (broker *Broker) handleConfigRequest(message *Message.Message) error {
-	topics := strings.Split(message.GetPayload(), "|")
-	if len(topics) == 0 {
+	payloadSegments := strings.Split(message.GetPayload(), "|")
+	if len(payloadSegments) == 0 {
 		return Error.New("No topics provided", nil)
 	}
 	switch message.GetTopic() {
+	case "addWhitelist":
+		broker.addToWhitelist(payloadSegments...)
+	case "removeWhitelist":
+		broker.removeFromWhitelist(payloadSegments...)
+	case "addBlacklist":
+		broker.addToBlacklist(payloadSegments...)
+	case "removeBlacklist":
+		broker.removeFromBlacklist(payloadSegments...)
 	case "addSyncTopics":
-		broker.addSyncTopics(topics...)
-		err := broker.addResolverTopicsRemotely(topics...)
+		broker.addSyncTopics(payloadSegments...)
+		err := broker.addResolverTopicsRemotely(payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to add topics remotely", err)
 		}
 	case "removeSyncTopics":
-		broker.removeSyncTopics(topics...)
-		err := broker.removeResolverTopicsRemotely(topics...)
+		broker.removeSyncTopics(payloadSegments...)
+		err := broker.removeResolverTopicsRemotely(payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to remove topics remotely", err)
 		}
 	case "addAsyncTopics":
-		broker.addAsyncTopics(topics...)
-		err := broker.addResolverTopicsRemotely(topics...)
+		broker.addAsyncTopics(payloadSegments...)
+		err := broker.addResolverTopicsRemotely(payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to add topics remotely", err)
 		}
 	case "removeAsyncTopics":
-		broker.removeAsyncTopics(topics...)
-		err := broker.removeResolverTopicsRemotely(topics...)
+		broker.removeAsyncTopics(payloadSegments...)
+		err := broker.removeResolverTopicsRemotely(payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to remove topics remotely", err)
 		}
