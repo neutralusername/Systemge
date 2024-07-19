@@ -12,12 +12,12 @@ func (broker *Broker) handleNodeConnections() {
 		netConn, err := broker.tlsBrokerListener.Accept()
 		if err != nil {
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to accept connection request on broker \""+broker.node.GetName()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue
 		}
 		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Accepted connection request on broker \""+broker.node.GetName()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
 		go broker.handleNodeConnection(netConn)
 	}
@@ -28,12 +28,12 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 	if err != nil {
 		netConn.Close()
 		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
+			warningLogger.Log(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 		}
 		return
 	}
 	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
+		infoLogger.Log(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+nodeConnection.name+"\"", nil).Error())
 	}
 	broker.handleNodeConnectionMessages(nodeConnection)
 	broker.removeNodeConnection(true, nodeConnection)

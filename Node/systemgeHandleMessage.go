@@ -10,23 +10,23 @@ func (node *Node) handleSystemgeMessages(brokerConnection *brokerConnection) {
 		message, err := brokerConnection.receive()
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to receive message from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to receive message from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 			node.handleBrokerDisconnect(brokerConnection)
 			return
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", nil).Error())
+			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 		}
 		if message.GetSyncResponseToken() != "" {
 			err := node.handleSyncResponse(message)
 			if err != nil {
 				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 				}
 			} else {
 				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-					infoLogger.Log(Error.New("Handled sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", nil).Error())
+					infoLogger.Log(Error.New("Handled sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
 			}
 			continue
@@ -35,22 +35,22 @@ func (node *Node) handleSystemgeMessages(brokerConnection *brokerConnection) {
 			response, err := node.handleSyncMessage(message)
 			if err != nil {
 				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 				}
 				err := node.send(brokerConnection, message.NewResponse("error", node.GetName(), Error.New("failed handling message", err).Error()))
 				if err != nil {
 					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", err).Error())
+						warningLogger.Log(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
 				}
 			} else {
 				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", nil).Error())
+					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
 				err = node.send(brokerConnection, message.NewResponse(message.GetTopic(), node.GetName(), response))
 				if err != nil {
 					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send response for sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", err).Error())
+						warningLogger.Log(Error.New("Failed to send response for sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
 				}
 			}
@@ -62,11 +62,11 @@ func (node *Node) handleSystemgeMessages(brokerConnection *brokerConnection) {
 		err = node.handleAsyncMessage(message)
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 		} else {
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\" on node \""+node.GetName()+"\"", nil).Error())
+				infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 			}
 			if node.GetSystemgeComponent().GetSystemgeComponentConfig().HandleMessagesSequentially {
 				node.systemgeHandleSequentiallyMutex.Unlock()

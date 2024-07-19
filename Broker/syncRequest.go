@@ -46,11 +46,11 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		err := broker.send(syncRequest.nodeConnection, response)
 		if err != nil {
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", err).Error())
 			}
 		}
 		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Sent sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
+			infoLogger.Log(Error.New("Sent sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", nil).Error())
 		}
 	case <-broker.stopChannel:
 		broker.operationMutex.Lock()
@@ -59,11 +59,11 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.node.GetName(), "broker stopped"))
 		if err != nil {
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\"", err).Error())
 			}
 		}
 		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Sent broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
+			infoLogger.Log(Error.New("Sent broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\"", nil).Error())
 		}
 	case <-timer.C:
 		broker.operationMutex.Lock()
@@ -72,11 +72,11 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 		err := broker.send(syncRequest.nodeConnection, syncRequest.message.NewResponse("error", broker.node.GetName(), "request timed out"))
 		if err != nil {
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", err).Error())
 			}
 		}
 		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Sent timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\" on broker \""+broker.node.GetName()+"\"", nil).Error())
+			infoLogger.Log(Error.New("Sent timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", nil).Error())
 		}
 	}
 }

@@ -60,7 +60,7 @@ func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *b
 			}
 		} else {
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Removed topic resolution for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+				infoLogger.Log(Error.New("Removed topic resolution for topic \""+topic+"\"", nil).Error())
 			}
 		}
 	case <-node.stopChannel:

@@ -50,12 +50,12 @@ func handleSessionRequests(server *Server) {
 		select {
 		case sessionRequest := <-server.sessionRequestChannel:
 			if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+				infoLogger.Log(Error.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 			}
 			handleSessionRequest(server, sessionRequest)
 		case <-server.stopChannel:
 			if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Stopped handling session requests on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+				infoLogger.Log(Error.New("Stopped handling session requests", nil).Error())
 			}
 			return
 		}
@@ -67,14 +67,14 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 	if err != nil {
 		sessionRequest.sessionChannel <- nil
 		if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", err).Error())
+			warningLogger.Log(Error.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\"", err).Error())
 		}
 		return
 	}
 	if identity == "" {
 		sessionRequest.sessionChannel <- nil
 		if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+			warningLogger.Log(Error.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 		}
 		return
 	}

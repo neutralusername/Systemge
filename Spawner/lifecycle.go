@@ -12,7 +12,7 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 		err := spawner.EndNode(node, id)
 		if err != nil {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Error stopping node "+id, err).Error(), node.GetMailer())
+				errorLogger.Log(Error.New("Error stopping spawned node with id \""+id+"\"", err).Error(), node.GetMailer())
 			}
 		}
 	}
