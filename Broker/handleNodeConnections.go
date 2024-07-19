@@ -16,7 +16,7 @@ func (broker *Broker) handleNodeConnections() {
 			}
 			continue
 		}
-		err = broker.validateAddress(netConn.RemoteAddr().String())
+		err = broker.validateAddressBroker(netConn.RemoteAddr().String())
 		if err != nil {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {

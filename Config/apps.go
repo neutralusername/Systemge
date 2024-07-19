@@ -23,8 +23,11 @@ type Broker struct {
 	SyncTopics  []string
 	AsyncTopics []string
 
-	Whitelist []string
-	Blacklist []string
+	BrokerWhitelist []string
+	BrokerBlacklist []string
+
+	ConfigWhitelist []string
+	ConfigBlacklist []string
 
 	ResolverConfigEndpoint *TcpEndpoint // *required*
 

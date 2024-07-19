@@ -1,33 +1,65 @@
 package Broker
 
-func (broker *Broker) addToBlacklist(ips ...string) {
+func (broker *Broker) addToBrokerBlacklist(ips ...string) {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
 	for _, ip := range ips {
-		broker.blacklist[ip] = true
+		broker.brokerBlacklist[ip] = true
 	}
 }
 
-func (broker *Broker) addToWhitelist(ips ...string) {
+func (broker *Broker) addToBrokerWhitelist(ips ...string) {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
 	for _, ip := range ips {
-		broker.whitelist[ip] = true
+		broker.brokerWhitelist[ip] = true
 	}
 }
 
-func (broker *Broker) removeFromBlacklist(ips ...string) {
+func (broker *Broker) removeFromBrokerBlacklist(ips ...string) {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
 	for _, ip := range ips {
-		delete(broker.blacklist, ip)
+		delete(broker.brokerBlacklist, ip)
 	}
 }
 
-func (broker *Broker) removeFromWhitelist(ips ...string) {
+func (broker *Broker) removeFromBrokerWhitelist(ips ...string) {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
 	for _, ip := range ips {
-		delete(broker.whitelist, ip)
+		delete(broker.brokerWhitelist, ip)
+	}
+}
+
+func (broker *Broker) addToConfigBlacklist(ips ...string) {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	for _, ip := range ips {
+		broker.configBlacklist[ip] = true
+	}
+}
+
+func (broker *Broker) addToConfigWhitelist(ips ...string) {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	for _, ip := range ips {
+		broker.configWhitelist[ip] = true
+	}
+}
+
+func (broker *Broker) removeFromConfigBlacklist(ips ...string) {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	for _, ip := range ips {
+		delete(broker.configBlacklist, ip)
+	}
+}
+
+func (broker *Broker) removeFromConfigWhitelist(ips ...string) {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	for _, ip := range ips {
+		delete(broker.configWhitelist, ip)
 	}
 }

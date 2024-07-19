@@ -17,7 +17,7 @@ func (broker *Broker) handleConfigConnections() {
 			}
 			continue
 		}
-		err = broker.validateAddress(netConn.RemoteAddr().String())
+		err = broker.validateAddressConfig(netConn.RemoteAddr().String())
 		if err != nil {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
@@ -86,13 +86,13 @@ func (broker *Broker) handleConfigRequest(message *Message.Message) error {
 	}
 	switch message.GetTopic() {
 	case "addWhitelist":
-		broker.addToWhitelist(payloadSegments...)
+		broker.addToBrokerWhitelist(payloadSegments...)
 	case "removeWhitelist":
-		broker.removeFromWhitelist(payloadSegments...)
+		broker.removeFromBrokerWhitelist(payloadSegments...)
 	case "addBlacklist":
-		broker.addToBlacklist(payloadSegments...)
+		broker.addToBrokerBlacklist(payloadSegments...)
 	case "removeBlacklist":
-		broker.removeFromBlacklist(payloadSegments...)
+		broker.removeFromBrokerBlacklist(payloadSegments...)
 	case "addSyncTopics":
 		broker.addSyncTopics(payloadSegments...)
 		err := broker.addResolverTopicsRemotely(payloadSegments...)

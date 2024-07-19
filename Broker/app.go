@@ -15,8 +15,10 @@ type Broker struct {
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
-	whitelist map[string]bool
-	blacklist map[string]bool
+	brokerWhitelist map[string]bool
+	brokerBlacklist map[string]bool
+	configWhitelist map[string]bool
+	configBlacklist map[string]bool
 
 	nodeSubscriptions map[string]map[string]*nodeConnection // topic -> [nodeName-> nodeConnection]
 	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection
@@ -39,8 +41,10 @@ func New(config *Config.Broker) *Broker {
 		syncTopics:  map[string]bool{},
 		asyncTopics: map[string]bool{},
 
-		whitelist: map[string]bool{},
-		blacklist: map[string]bool{},
+		brokerWhitelist: map[string]bool{},
+		brokerBlacklist: map[string]bool{},
+		configWhitelist: map[string]bool{},
+		configBlacklist: map[string]bool{},
 
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},
@@ -49,27 +53,53 @@ func New(config *Config.Broker) *Broker {
 	return broker
 }
 
-func (broker *Broker) isBlacklisted(ip string) bool {
+func (broker *Broker) isBrokerBlacklisted(ip string) bool {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
-	return broker.blacklist[ip]
+	return broker.brokerBlacklist[ip]
 }
 
-func (broker *Broker) isWhitelisted(ip string) bool {
+func (broker *Broker) isBrokerWhitelisted(ip string) bool {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
-	return broker.whitelist[ip]
+	return broker.brokerWhitelist[ip]
 }
 
-func (broker *Broker) validateAddress(address string) error {
+func (broker *Broker) validateAddressBroker(address string) error {
 	ipAddress, _, err := net.SplitHostPort(address)
 	if err != nil {
 		return Error.New("Failed to get IP address and port from \""+address+"\"", err)
 	}
-	if broker.isBlacklisted(ipAddress) {
+	if broker.isBrokerBlacklisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
 	}
-	if len(broker.whitelist) > 0 && !broker.isWhitelisted(ipAddress) {
+	if len(broker.brokerWhitelist) > 0 && !broker.isBrokerWhitelisted(ipAddress) {
+		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
+	}
+	return nil
+}
+
+func (broker *Broker) isConfigBlacklisted(ip string) bool {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	return broker.configBlacklist[ip]
+}
+
+func (broker *Broker) isConfigWhitelisted(ip string) bool {
+	broker.stateMutex.Lock()
+	defer broker.stateMutex.Unlock()
+	return broker.configWhitelist[ip]
+}
+
+func (broker *Broker) validateAddressConfig(address string) error {
+	ipAddress, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return Error.New("Failed to get IP address and port from \""+address+"\"", err)
+	}
+	if broker.isConfigBlacklisted(ipAddress) {
+		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
+	}
+	if len(broker.configWhitelist) > 0 && !broker.isConfigWhitelisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
 	}
 	return nil

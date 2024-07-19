@@ -41,11 +41,17 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 			return Error.New("Failed to add resolver topics remotely", err)
 		}
 	}
-	for _, ip := range broker.config.Whitelist {
-		broker.whitelist[ip] = true
+	for _, ip := range broker.config.BrokerWhitelist {
+		broker.brokerWhitelist[ip] = true
 	}
-	for _, ip := range broker.config.Blacklist {
-		broker.blacklist[ip] = true
+	for _, ip := range broker.config.BrokerBlacklist {
+		broker.brokerBlacklist[ip] = true
+	}
+	for _, ip := range broker.config.ConfigWhitelist {
+		broker.configWhitelist[ip] = true
+	}
+	for _, ip := range broker.config.ConfigBlacklist {
+		broker.configBlacklist[ip] = true
 	}
 
 	broker.addAsyncTopics("heartbeat")
