@@ -24,6 +24,19 @@ func (resolver *Resolver) OnStart(node *Node.Node) error {
 	resolver.tlsConfigListener = configListener
 	resolver.isStarted = true
 	resolver.node = node
+	for _, ip := range resolver.config.ResolverWhitelist {
+		resolver.resolverWhitelist[ip] = true
+	}
+	for _, ip := range resolver.config.ConfigWhitelist {
+		resolver.configWhitelist[ip] = true
+	}
+	for _, ip := range resolver.config.ResolverBlacklist {
+		resolver.resolverBlacklist[ip] = true
+	}
+	for _, ip := range resolver.config.ConfigBlacklist {
+		resolver.configBlacklist[ip] = true
+	}
+
 	go resolver.handleResolverConnections()
 	go resolver.handleConfigConnections()
 	return nil
