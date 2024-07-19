@@ -15,6 +15,38 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			return nil
 		},
+		"syncTopics": func(node *Node.Node, args []string) error {
+			broker.operationMutex.Lock()
+			defer broker.operationMutex.Unlock()
+			for topic := range broker.syncTopics {
+				println(topic)
+			}
+			return nil
+		},
+		"asyncTopics": func(node *Node.Node, args []string) error {
+			broker.operationMutex.Lock()
+			defer broker.operationMutex.Unlock()
+			for topic := range broker.asyncTopics {
+				println(topic)
+			}
+			return nil
+		},
+		"whitelist": func(node *Node.Node, args []string) error {
+			broker.stateMutex.Lock()
+			defer broker.stateMutex.Unlock()
+			for ip := range broker.whitelist {
+				println(ip)
+			}
+			return nil
+		},
+		"blacklist": func(node *Node.Node, args []string) error {
+			broker.stateMutex.Lock()
+			defer broker.stateMutex.Unlock()
+			for ip := range broker.blacklist {
+				println(ip)
+			}
+			return nil
+		},
 		"addSyncTopic": func(node *Node.Node, args []string) error {
 			broker.addSyncTopics(args...)
 			broker.addResolverTopicsRemotely(args...)
