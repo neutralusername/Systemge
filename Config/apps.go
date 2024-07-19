@@ -23,6 +23,9 @@ type Broker struct {
 	SyncTopics  []string
 	AsyncTopics []string
 
+	Whitelist []string
+	Blacklist []string
+
 	ResolverConfigEndpoint *TcpEndpoint // *required*
 
 	SyncResponseTimeoutMs uint64 // default: 0

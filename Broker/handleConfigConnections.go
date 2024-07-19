@@ -17,6 +17,14 @@ func (broker *Broker) handleConfigConnections() {
 			}
 			continue
 		}
+		err = broker.validateAddress(netConn.RemoteAddr().String())
+		if err != nil {
+			netConn.Close()
+			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(err.Error())
+			}
+			continue
+		}
 		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
