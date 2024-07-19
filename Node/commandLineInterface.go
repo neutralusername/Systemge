@@ -58,6 +58,19 @@ func StartCommandLineInterface(nodes ...*Node) {
 			for command, schedule := range schedules {
 				fmt.Println("command: \"" + command + "\", time started: " + schedule.timeStarted.String() + ", duration: " + schedule.duration.String() + ", repeat: " + fmt.Sprint(schedule.repeat) + ", args: " + strings.Join(schedule.args, " "))
 			}
+		case "restart":
+			if reverse {
+				for i := len(nodes) - 1; i >= 0; i-- {
+					executeCommand(nodes[i], "stop", nil)
+				}
+			} else {
+				for _, node := range nodes {
+					executeCommand(node, "stop", nil)
+				}
+			}
+			for _, node := range nodes {
+				executeCommand(node, "start", nil)
+			}
 		default:
 			handleCommands(reverse, inputSegments, nodes...)
 		}
@@ -137,7 +150,9 @@ func executeCommand(node *Node, command string, commandExecuted *bool, args ...s
 	commandHandlers := node.GetCommandHandlers()
 	handler := commandHandlers[command]
 	if handler != nil {
-		*commandExecuted = true
+		if commandExecuted != nil {
+			*commandExecuted = true
+		}
 		println("\texecuting command \"" + command + "\" on node \"" + node.GetName() + "\"")
 		err := handler(node, args)
 		if err != nil {
