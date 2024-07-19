@@ -22,6 +22,7 @@ type Systemge struct {
 	TopicResolutionLifetimeMs uint64 // default: 0
 	SyncResponseTimeoutMs     uint64 // default: 0
 	TcpTimeoutMs              uint64 // default: 0 = block forever
+	MaxSubscribeAttempts      uint64 // default: 0 = infinite
 
 	ResolverEndpoint *TcpEndpoint // *required*
 }

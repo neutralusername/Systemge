@@ -12,7 +12,12 @@ func (node *Node) subscribeLoop(topic string) {
 	defer func() {
 		node.ongoingSubscribeLoops--
 	}()
+	subscribeAttempts := uint64(0)
 	for node.IsStarted() {
+		if subscribeAttempts >= node.GetSystemgeComponent().GetSystemgeComponentConfig().MaxSubscribeAttempts && node.GetSystemgeComponent().GetSystemgeComponentConfig().MaxSubscribeAttempts > 0 {
+			panic("Max subscribe attempts reached for topic \"" + topic + "\"")
+		}
+		subscribeAttempts++
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Attempting subscription to topic \""+topic+"\"", nil).Error())
 		}
