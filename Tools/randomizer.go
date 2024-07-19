@@ -6,13 +6,10 @@ import (
 	"time"
 )
 
-func RandomString(length int, alphabet string) string {
-	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, alphabet)
-}
-
-func RandomNumber(min, max int) int {
-	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
-}
+const ALPHA_NUMERIC_SPECIAL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+"
+const ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const NUMERIC = "0123456789"
 
 type Randomizer struct {
 	source rand.Source
@@ -20,10 +17,13 @@ type Randomizer struct {
 	mutex  *sync.Mutex
 }
 
-const ALPHA_NUMERIC_SPECIAL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+"
-const ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const NUMERIC = "0123456789"
+func RandomString(length int, alphabet string) string {
+	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, alphabet)
+}
+
+func RandomNumber(min, max int) int {
+	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
+}
 
 func NewRandomizer(seed int64) *Randomizer {
 	return &Randomizer{
