@@ -8,6 +8,10 @@ import (
 )
 
 func (node *Node) subscribeLoop(topic string) {
+	node.inSubscribeLoop++
+	defer func() {
+		node.inSubscribeLoop--
+	}()
 	for node.IsStarted() {
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Attempting subscription to topic \""+topic+"\"", nil).Error())

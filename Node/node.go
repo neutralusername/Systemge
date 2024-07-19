@@ -7,18 +7,20 @@ import (
 	"Systemge/Tools"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Node struct {
-	name          string
-	randomizer    *Tools.Randomizer
-	errorLogger   *Tools.Logger
-	warningLogger *Tools.Logger
-	infoLogger    *Tools.Logger
-	debugLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+	inSubscribeLoop int
+	name            string
+	randomizer      *Tools.Randomizer
+	errorLogger     *Tools.Logger
+	warningLogger   *Tools.Logger
+	infoLogger      *Tools.Logger
+	debugLogger     *Tools.Logger
+	mailer          *Tools.Mailer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -201,6 +203,9 @@ func (node *Node) stop(lock bool) error {
 	}
 	node.isStarted = false
 	close(node.stopChannel)
+	for node.inSubscribeLoop > 0 {
+		time.Sleep(10 * time.Millisecond)
+	}
 	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopped", nil).Error())
 	}
