@@ -9,13 +9,6 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 		"stop": func(node *Node, args []string) error {
 			return node.Stop()
 		},
-		"restart": func(node *Node, args []string) error {
-			err := node.Stop()
-			if err != nil {
-				return err
-			}
-			return node.Start()
-		},
 	}
 	if node.GetWebsocketComponent() != nil {
 		handlers["websocketClients"] = handleWebsocketClientsCommand

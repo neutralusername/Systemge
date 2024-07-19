@@ -119,34 +119,29 @@ func handleCommands(reverse bool, inputSegments []string, nodes ...*Node) bool {
 	commandExecuted := false
 	if reverse {
 		for i := len(nodes) - 1; i >= 0; i-- {
-			commandHandlers := nodes[i].GetCommandHandlers()
-			handler := commandHandlers[inputSegments[0]]
-			if handler != nil {
-				commandExecuted = true
-				println("\texecuting command \"" + inputSegments[0] + "\" on node \"" + nodes[i].GetName() + "\"")
-				err := handler(nodes[i], inputSegments[1:])
-				if err != nil {
-					println(err.Error())
-				}
-			}
+			executeCommand(nodes[i], inputSegments[0], &commandExecuted, inputSegments[1:]...)
 		}
 		return true
 	} else {
 		for _, node := range nodes {
-			commandHandlers := node.GetCommandHandlers()
-			handler := commandHandlers[inputSegments[0]]
-			if handler != nil {
-				commandExecuted = true
-				println("\texecuting command \"" + inputSegments[0] + "\" on node \"" + node.GetName() + "\"")
-				err := handler(node, inputSegments[1:])
-				if err != nil {
-					println(err.Error())
-				}
-			}
+			executeCommand(node, inputSegments[0], &commandExecuted, inputSegments[1:]...)
 		}
 	}
 	if !commandExecuted {
 		println("command not found")
 	}
 	return true
+}
+
+func executeCommand(node *Node, command string, commandExecuted *bool, args ...string) {
+	commandHandlers := node.GetCommandHandlers()
+	handler := commandHandlers[command]
+	if handler != nil {
+		*commandExecuted = true
+		println("\texecuting command \"" + command + "\" on node \"" + node.GetName() + "\"")
+		err := handler(node, args)
+		if err != nil {
+			println(err.Error())
+		}
+	}
 }
