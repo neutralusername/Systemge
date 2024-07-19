@@ -19,7 +19,7 @@ func (broker *Broker) addResolverTopicsRemotely(topics ...string) error {
 	for _, topic := range topics {
 		payload += "|" + topic
 	}
-	response, err := Tcp.Exchange(netConn, Message.NewAsync("addTopics", broker.node.GetName(), payload), broker.config.TcpTimeoutMs, broker.config.MaxMessageSize)
+	response, err := Tcp.Exchange(netConn, Message.NewAsync("addTopics", broker.node.GetName(), payload), broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed exchanging messages with resolver", err)
 	}
@@ -43,7 +43,7 @@ func (broker *Broker) removeResolverTopicsRemotely(topics ...string) error {
 		payload += topic + "|"
 	}
 	payload = payload[:len(payload)-1]
-	response, err := Tcp.Exchange(netConn, Message.NewAsync("removeTopics", broker.node.GetName(), payload), broker.config.TcpTimeoutMs, broker.config.MaxMessageSize)
+	response, err := Tcp.Exchange(netConn, Message.NewAsync("removeTopics", broker.node.GetName(), payload), broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed exchanging messages with resolver", err)
 	}
