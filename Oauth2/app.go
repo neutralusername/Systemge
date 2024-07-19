@@ -41,10 +41,10 @@ func New(config *Config.Oauth2) (*Server, error) {
 		whitelist:             make(map[string]bool),
 	}
 	for _, ip := range config.Blacklist {
-		server.blacklist[ip] = true
+		server.addToBlacklist(ip)
 	}
 	for _, ip := range config.Whitelist {
-		server.whitelist[ip] = true
+		server.addToWhitelist(ip)
 	}
 	return server, nil
 }

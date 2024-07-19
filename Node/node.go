@@ -42,6 +42,8 @@ type Node struct {
 	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
 	websocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
+	websocketBlacklist           map[string]bool
+	websocketWhitelist           map[string]bool
 
 	//http
 	httpStarted bool
@@ -70,6 +72,14 @@ func New(config *Config.Node, application Application) *Node {
 		websocketConnChannel:  make(chan *websocket.Conn),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
+	}
+	if ImplementsWebsocketComponent(application) {
+		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Blacklist {
+			node.addToWebsocketBlacklist(ip)
+		}
+		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Whitelist {
+			node.addToWebsocketWhitelist(ip)
+		}
 	}
 	return node
 }

@@ -50,16 +50,16 @@ func New(config *Config.Broker) *Broker {
 		openSyncRequests:  map[string]*syncRequest{},
 	}
 	for _, ip := range broker.config.BrokerWhitelist {
-		broker.brokerWhitelist[ip] = true
+		broker.addToBrokerWhitelist(ip)
 	}
 	for _, ip := range broker.config.BrokerBlacklist {
-		broker.brokerBlacklist[ip] = true
+		broker.addToBrokerBlacklist(ip)
 	}
 	for _, ip := range broker.config.ConfigWhitelist {
-		broker.configWhitelist[ip] = true
+		broker.addToConfigWhitelist(ip)
 	}
 	for _, ip := range broker.config.ConfigBlacklist {
-		broker.configBlacklist[ip] = true
+		broker.addToConfigBlacklist(ip)
 	}
 	return broker
 }
