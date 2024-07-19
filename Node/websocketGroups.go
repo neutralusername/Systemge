@@ -5,8 +5,7 @@ import "Systemge/Error"
 func (node *Node) AddToWebsocketGroup(groupId string, websocketId string) error {
 	node.websocketMutex.Lock()
 	defer node.websocketMutex.Unlock()
-	websocketClient := node.websocketClients[websocketId]
-	if websocketClient == nil {
+	if node.websocketClients[websocketId] == nil {
 		return Error.New("websocketClient with id "+websocketId+" does not exist", nil)
 	}
 	if node.websocketClientGroups[websocketId][groupId] {
