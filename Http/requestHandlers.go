@@ -1,11 +1,7 @@
 package Http
 
 import (
-	"Systemge/Error"
-	"Systemge/Tools"
 	"net/http"
-
-	"github.com/gorilla/websocket"
 )
 
 func SendDirectory(path string) RequestHandler {
@@ -17,21 +13,6 @@ func SendDirectory(path string) RequestHandler {
 func RedirectTo(toURL string) RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		http.Redirect(responseWriter, httpRequest, toURL, http.StatusMovedPermanently)
-	}
-}
-
-func WebsocketUpgrade(upgrader websocket.Upgrader, warningLogger *Tools.Logger, acceptConnection *bool, websocketConnChannel chan *websocket.Conn) RequestHandler {
-	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		if !*acceptConnection {
-			warningLogger.Log(Error.New("websocket connection not accepted", nil).Error())
-			return
-		}
-		websocketConn, err := upgrader.Upgrade(responseWriter, httpRequest, nil)
-		if err != nil {
-			warningLogger.Log(Error.New("failed upgrading connection to websocket", err).Error())
-			return
-		}
-		websocketConnChannel <- websocketConn
 	}
 }
 
