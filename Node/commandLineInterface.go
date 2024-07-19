@@ -39,6 +39,14 @@ func StartCommandLineInterface(nodes ...*Node) {
 		}
 		input = strings.Trim(input, "\r\n")
 		inputSegments := strings.Split(input, " ")
+		if inputSegments[0] == "" {
+			continue
+		}
+		reverse := false
+		if inputSegments[0][0] == '!' {
+			inputSegments[0] = inputSegments[0][1:]
+			reverse = true
+		}
 		switch inputSegments[0] {
 		case "exit":
 			return
@@ -51,7 +59,7 @@ func StartCommandLineInterface(nodes ...*Node) {
 				fmt.Println("command: \"" + command + "\", time started: " + schedule.timeStarted.String() + ", duration: " + schedule.duration.String() + ", repeat: " + fmt.Sprint(schedule.repeat) + ", args: " + strings.Join(schedule.args, " "))
 			}
 		default:
-			handleCommands(inputSegments, nodes...)
+			handleCommands(reverse, inputSegments, nodes...)
 		}
 	}
 }
@@ -90,38 +98,50 @@ func startSchedule(inputSegments []string, schedules map[string]*Schedule, nodes
 		args:        args,
 		command:     command,
 	}
+	schedules[command] = schedule
 	schedule.timer = time.AfterFunc(schedule.duration, func() {
-		handleCommands(append([]string{command}, args...), nodes...)
+		reverse := false
+		c := command
+		if command[0] == '!' {
+			reverse = true
+			c = command[1:]
+		}
+		handleCommands(reverse, append([]string{c}, args...), nodes...)
 		if schedule.repeat {
 			schedule.timer.Reset(schedule.duration)
 		} else {
 			delete(schedules, command)
 		}
 	})
-	schedules[command] = schedule
 }
 
-func handleCommands(inputSegments []string, nodes ...*Node) bool {
+func handleCommands(reverse bool, inputSegments []string, nodes ...*Node) bool {
 	commandExecuted := false
-	if inputSegments[0] == "stop" && len(inputSegments) > 1 && inputSegments[1] == "reverse" {
+	if reverse {
 		for i := len(nodes) - 1; i >= 0; i-- {
-			println("\texecuting command \"stop\" on node \"" + nodes[i].GetName() + "\"")
-			err := nodes[i].Stop()
-			if err != nil {
-				println(err.Error())
+			commandHandlers := nodes[i].GetCommandHandlers()
+			handler := commandHandlers[inputSegments[0]]
+			if handler != nil {
+				commandExecuted = true
+				println("\texecuting command \"" + inputSegments[0] + "\" on node \"" + nodes[i].GetName() + "\"")
+				err := handler(nodes[i], inputSegments[1:])
+				if err != nil {
+					println(err.Error())
+				}
 			}
 		}
 		return true
-	}
-	for _, node := range nodes {
-		commandHandlers := node.GetCommandHandlers()
-		handler := commandHandlers[inputSegments[0]]
-		if handler != nil {
-			commandExecuted = true
-			println("\texecuting command \"" + inputSegments[0] + "\" on node \"" + node.GetName() + "\"")
-			err := handler(node, inputSegments[1:])
-			if err != nil {
-				println(err.Error())
+	} else {
+		for _, node := range nodes {
+			commandHandlers := node.GetCommandHandlers()
+			handler := commandHandlers[inputSegments[0]]
+			if handler != nil {
+				commandExecuted = true
+				println("\texecuting command \"" + inputSegments[0] + "\" on node \"" + node.GetName() + "\"")
+				err := handler(node, inputSegments[1:])
+				if err != nil {
+					println(err.Error())
+				}
 			}
 		}
 	}
