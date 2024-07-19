@@ -3,7 +3,6 @@ package Http
 import (
 	"Systemge/Error"
 	"Systemge/Tools"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -29,7 +28,7 @@ func WebsocketUpgrade(upgrader websocket.Upgrader, warningLogger *Tools.Logger, 
 		}
 		websocketConn, err := upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			warningLogger.Log(Error.New(fmt.Sprintf("failed upgrading connection to websocket: %s", err.Error()), nil).Error())
+			warningLogger.Log(Error.New("failed upgrading connection to websocket", err).Error())
 			return
 		}
 		websocketConnChannel <- websocketConn
