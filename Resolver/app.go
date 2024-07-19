@@ -35,5 +35,17 @@ func New(config *Config.Resolver) *Resolver {
 		configWhitelist:   map[string]bool{},
 		configBlacklist:   map[string]bool{},
 	}
+	for _, ip := range resolver.config.ResolverWhitelist {
+		resolver.resolverWhitelist[ip] = true
+	}
+	for _, ip := range resolver.config.ConfigWhitelist {
+		resolver.configWhitelist[ip] = true
+	}
+	for _, ip := range resolver.config.ResolverBlacklist {
+		resolver.resolverBlacklist[ip] = true
+	}
+	for _, ip := range resolver.config.ConfigBlacklist {
+		resolver.configBlacklist[ip] = true
+	}
 	return resolver
 }
