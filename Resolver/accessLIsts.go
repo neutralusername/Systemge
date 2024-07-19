@@ -14,6 +14,9 @@ func (resolver *Resolver) isResolverBlacklisted(ip string) bool {
 func (resolver *Resolver) isResolverWhitelisted(ip string) bool {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
+	if len(resolver.resolverWhitelist) == 0 {
+		return true
+	}
 	return resolver.resolverWhitelist[ip]
 }
 
@@ -25,7 +28,7 @@ func (resolver *Resolver) validateAddressResolver(address string) error {
 	if resolver.isResolverBlacklisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
 	}
-	if len(resolver.resolverWhitelist) > 0 && !resolver.isResolverWhitelisted(ipAddress) {
+	if !resolver.isResolverWhitelisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
 	}
 	return nil
@@ -40,6 +43,9 @@ func (resolver *Resolver) isConfigBlacklisted(ip string) bool {
 func (resolver *Resolver) isConfigWhitelisted(ip string) bool {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
+	if len(resolver.configWhitelist) == 0 {
+		return true
+	}
 	return resolver.configWhitelist[ip]
 }
 
@@ -51,7 +57,7 @@ func (resolver *Resolver) validateAddressConfig(address string) error {
 	if resolver.isConfigBlacklisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
 	}
-	if len(resolver.configWhitelist) > 0 && !resolver.isConfigWhitelisted(ipAddress) {
+	if resolver.isConfigWhitelisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
 	}
 	return nil

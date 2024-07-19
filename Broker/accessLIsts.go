@@ -14,6 +14,9 @@ func (broker *Broker) isBrokerBlacklisted(ip string) bool {
 func (broker *Broker) isBrokerWhitelisted(ip string) bool {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
+	if len(broker.brokerWhitelist) == 0 {
+		return true
+	}
 	return broker.brokerWhitelist[ip]
 }
 
@@ -25,7 +28,7 @@ func (broker *Broker) validateAddressBroker(address string) error {
 	if broker.isBrokerBlacklisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
 	}
-	if len(broker.brokerWhitelist) > 0 && !broker.isBrokerWhitelisted(ipAddress) {
+	if !broker.isBrokerWhitelisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
 	}
 	return nil
@@ -40,6 +43,9 @@ func (broker *Broker) isConfigBlacklisted(ip string) bool {
 func (broker *Broker) isConfigWhitelisted(ip string) bool {
 	broker.stateMutex.Lock()
 	defer broker.stateMutex.Unlock()
+	if len(broker.configWhitelist) == 0 {
+		return true
+	}
 	return broker.configWhitelist[ip]
 }
 
@@ -51,7 +57,7 @@ func (broker *Broker) validateAddressConfig(address string) error {
 	if broker.isConfigBlacklisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
 	}
-	if len(broker.configWhitelist) > 0 && !broker.isConfigWhitelisted(ipAddress) {
+	if !broker.isConfigWhitelisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
 	}
 	return nil
