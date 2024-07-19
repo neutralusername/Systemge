@@ -40,28 +40,33 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 		case "exit":
 			return
 		default:
-			if !isStarted {
-				println("cli not started")
-				continue
-			}
-			commandExecuted := false
-			for _, node := range nodes {
-				commandHandlers := node.GetCommandHandlers()
-				handler := commandHandlers[inputSegments[0]]
-				if handler != nil {
-					commandExecuted = true
-					println("\texecuting command on node \"" + node.GetName() + "\"")
-					err := handler(node, inputSegments[1:])
-					if err != nil {
-						println(err.Error())
-					}
-				}
-			}
-			if !commandExecuted {
-				println("command not found")
+			handleCommands(isStarted, inputSegments, nodes...)
+		}
+	}
+}
+
+func handleCommands(isStarted bool, inputSegments []string, nodes ...*Node) bool {
+	if !isStarted {
+		println("cli not started")
+		return false
+	}
+	commandExecuted := false
+	for _, node := range nodes {
+		commandHandlers := node.GetCommandHandlers()
+		handler := commandHandlers[inputSegments[0]]
+		if handler != nil {
+			commandExecuted = true
+			println("\texecuting command on node \"" + node.GetName() + "\"")
+			err := handler(node, inputSegments[1:])
+			if err != nil {
+				println(err.Error())
 			}
 		}
 	}
+	if !commandExecuted {
+		println("command not found")
+	}
+	return true
 }
 
 func start(isStarted *bool, nodes ...*Node) bool {
