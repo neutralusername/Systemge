@@ -2,6 +2,7 @@ package Node
 
 import (
 	"Systemge/Helpers"
+	"Systemge/Tools"
 	"bufio"
 	"fmt"
 	"os"
@@ -116,7 +117,9 @@ func startSchedule(inputSegments []string, schedules map[string]*Schedule, nodes
 		args:        args,
 		command:     command,
 	}
-	schedules[command] = schedule
+	scheduleId := Tools.RandomString(10, Tools.ALPHA_NUMERIC)
+	schedules[scheduleId] = schedule
+	println("schedule started with id \"" + scheduleId + "\"")
 	schedule.timer = time.AfterFunc(schedule.duration, func() {
 		reverse := false
 		c := command
@@ -132,7 +135,7 @@ func startSchedule(inputSegments []string, schedules map[string]*Schedule, nodes
 		if schedule.repeat {
 			schedule.timer.Reset(schedule.duration)
 		} else {
-			delete(schedules, command)
+			delete(schedules, scheduleId)
 		}
 	})
 }
