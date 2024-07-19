@@ -2,7 +2,21 @@ package Node
 
 // returns a map of command handlers for the command-line interface
 func (node *Node) GetCommandHandlers() map[string]CommandHandler {
-	handlers := map[string]CommandHandler{}
+	handlers := map[string]CommandHandler{
+		"start": func(node *Node, args []string) error {
+			return node.Start()
+		},
+		"stop": func(node *Node, args []string) error {
+			return node.Stop()
+		},
+		"restart": func(node *Node, args []string) error {
+			err := node.Stop()
+			if err != nil {
+				return err
+			}
+			return node.Start()
+		},
+	}
 	if node.GetWebsocketComponent() != nil {
 		handlers["websocketClients"] = handleWebsocketClientsCommand
 		handlers["websocketGroups"] = handleWebsocketGroupsCommand

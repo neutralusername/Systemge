@@ -1,14 +1,26 @@
 package Node
 
 import (
+	"Systemge/Helpers"
 	"bufio"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
+	"time"
 )
 
+type Schedule struct {
+	timer       *time.Timer
+	timeStarted time.Time
+	duration    time.Duration
+	repeat      bool
+	args        []string
+	command     string
+}
+
 // starts a command-line interface for the provided nodes
-func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
+func StartCommandLineInterface(nodes ...*Node) {
 	if len(nodes) == 0 {
 		panic("no nodes provided")
 	}
@@ -17,8 +29,7 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 		newLineChar = '\r'
 	}
 	reader := bufio.NewReader(os.Stdin)
-	isStarted := false
-
+	schedules := map[string]*Schedule{}
 	println("enter command (exit to quit)")
 	for {
 		print(">")
@@ -29,34 +40,85 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 		input = strings.Trim(input, "\r\n")
 		inputSegments := strings.Split(input, " ")
 		switch inputSegments[0] {
-		case "restart":
-			if stop(&isStarted, stopReversedOrder, nodes...) {
-				start(&isStarted, nodes...)
-			}
-		case "start":
-			start(&isStarted, nodes...)
-		case "stop":
-			stop(&isStarted, stopReversedOrder, nodes...)
 		case "exit":
 			return
+		case "startSchedule":
+			startSchedule(inputSegments, schedules, nodes...)
+		case "stopSchedule":
+			stopSchedule(inputSegments, schedules)
+		case "listSchedules":
+			for command, schedule := range schedules {
+				fmt.Println("command: \"" + command + "\", time started: " + schedule.timeStarted.String() + ", duration: " + schedule.duration.String() + ", repeat: " + fmt.Sprint(schedule.repeat) + ", args: " + strings.Join(schedule.args, " "))
+			}
 		default:
-			handleCommands(isStarted, inputSegments, nodes...)
+			handleCommands(inputSegments, nodes...)
 		}
 	}
 }
 
-func handleCommands(isStarted bool, inputSegments []string, nodes ...*Node) bool {
-	if !isStarted {
-		println("cli not started")
-		return false
+func stopSchedule(inputSegments []string, schedules map[string]*Schedule) {
+	if len(inputSegments) < 2 {
+		println("invalid number of arguments")
+		return
 	}
+	command := inputSegments[1]
+	schedule := schedules[command]
+	if schedule == nil {
+		println("schedule not found")
+		return
+	}
+	schedule.timer.Stop()
+	delete(schedules, command)
+}
+
+func startSchedule(inputSegments []string, schedules map[string]*Schedule, nodes ...*Node) {
+	if len(inputSegments) < 4 {
+		println("invalid number of arguments")
+		return
+	}
+	if schedules[inputSegments[1]] != nil {
+		stopSchedule([]string{"stopSchedule", inputSegments[1]}, schedules)
+	}
+	command := inputSegments[1]
+	timeMs := Helpers.StringToUint64(inputSegments[2])
+	repeat := inputSegments[3] == "true"
+	args := inputSegments[4:]
+	schedule := &Schedule{
+		timeStarted: time.Now(),
+		duration:    time.Duration(timeMs) * time.Millisecond,
+		repeat:      repeat,
+		args:        args,
+		command:     command,
+	}
+	schedule.timer = time.AfterFunc(schedule.duration, func() {
+		handleCommands(append([]string{command}, args...), nodes...)
+		if schedule.repeat {
+			schedule.timer.Reset(schedule.duration)
+		} else {
+			delete(schedules, command)
+		}
+	})
+	schedules[command] = schedule
+}
+
+func handleCommands(inputSegments []string, nodes ...*Node) bool {
 	commandExecuted := false
+	if inputSegments[0] == "stop" && len(inputSegments) > 1 && inputSegments[1] == "reverse" {
+		for i := len(nodes) - 1; i >= 0; i-- {
+			println("\texecuting command \"stop\" on node \"" + nodes[i].GetName() + "\"")
+			err := nodes[i].Stop()
+			if err != nil {
+				println(err.Error())
+			}
+		}
+		return true
+	}
 	for _, node := range nodes {
 		commandHandlers := node.GetCommandHandlers()
 		handler := commandHandlers[inputSegments[0]]
 		if handler != nil {
 			commandExecuted = true
-			println("\texecuting command on node \"" + node.GetName() + "\"")
+			println("\texecuting command \"" + inputSegments[0] + "\" on node \"" + node.GetName() + "\"")
 			err := handler(node, inputSegments[1:])
 			if err != nil {
 				println(err.Error())
@@ -66,44 +128,5 @@ func handleCommands(isStarted bool, inputSegments []string, nodes ...*Node) bool
 	if !commandExecuted {
 		println("command not found")
 	}
-	return true
-}
-
-func start(isStarted *bool, nodes ...*Node) bool {
-	if *isStarted {
-		println("cli already started")
-		return false
-	}
-	for _, node := range nodes {
-		err := node.Start()
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	*isStarted = true
-	return true
-}
-
-func stop(isStarted *bool, stopReversedOrder bool, nodes ...*Node) bool {
-	if !*isStarted {
-		println("cli not started")
-		return false
-	}
-	if stopReversedOrder {
-		for i := len(nodes) - 1; i >= 0; i-- {
-			err := nodes[i].Stop()
-			if err != nil {
-				panic(err.Error())
-			}
-		}
-	} else {
-		for _, node := range nodes {
-			err := node.Stop()
-			if err != nil {
-				panic(err.Error())
-			}
-		}
-	}
-	*isStarted = false
 	return true
 }
