@@ -85,14 +85,22 @@ func (broker *Broker) handleConfigRequest(message *Message.Message) error {
 		return Error.New("No topics provided", nil)
 	}
 	switch message.GetTopic() {
-	case "addWhitelist":
+	case "addWhitelistBroker":
 		broker.addToBrokerWhitelist(payloadSegments...)
-	case "removeWhitelist":
+	case "removeWhitelistBroker":
 		broker.removeFromBrokerWhitelist(payloadSegments...)
-	case "addBlacklist":
+	case "addBlacklistBroker":
 		broker.addToBrokerBlacklist(payloadSegments...)
-	case "removeBlacklist":
+	case "removeBlacklistBroker":
 		broker.removeFromBrokerBlacklist(payloadSegments...)
+	case "addWhitelistConfig":
+		broker.addToConfigWhitelist(payloadSegments...)
+	case "removeWhitelistConfig":
+		broker.removeFromConfigWhitelist(payloadSegments...)
+	case "addBlacklistConfig":
+		broker.addToConfigBlacklist(payloadSegments...)
+	case "removeBlacklistConfig":
+		broker.removeFromConfigBlacklist(payloadSegments...)
 	case "addSyncTopics":
 		broker.addSyncTopics(payloadSegments...)
 		err := broker.addResolverTopicsRemotely(payloadSegments...)

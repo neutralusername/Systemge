@@ -14,6 +14,11 @@ type Resolver struct {
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener
 
+	resolverWhitelist map[string]bool
+	resolverBlacklist map[string]bool
+	configWhitelist   map[string]bool
+	configBlacklist   map[string]bool
+
 	registeredTopics map[string]Config.TcpEndpoint // topic -> tcpEndpoint
 
 	isStarted bool
@@ -24,6 +29,11 @@ func New(config *Config.Resolver) *Resolver {
 	resolver := &Resolver{
 		config:           config,
 		registeredTopics: map[string]Config.TcpEndpoint{},
+
+		resolverWhitelist: map[string]bool{},
+		resolverBlacklist: map[string]bool{},
+		configWhitelist:   map[string]bool{},
+		configBlacklist:   map[string]bool{},
 	}
 	return resolver
 }

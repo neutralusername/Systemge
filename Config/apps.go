@@ -45,6 +45,12 @@ type Resolver struct {
 	Server       *TcpServer // *required*
 	ConfigServer *TcpServer // *required*
 
+	ResolverWhitelist []string
+	ResolverBlacklist []string
+
+	ConfigWhitelist []string
+	ConfigBlacklist []string
+
 	TcpTimeoutMs uint64 // default: 0 = block forever
 
 	MaxMessageSize uint64 // default: 0 = unlimited

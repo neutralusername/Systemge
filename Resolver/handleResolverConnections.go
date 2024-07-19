@@ -15,10 +15,16 @@ func (resolver *Resolver) handleResolverConnections() {
 				warningLogger.Log(Error.New("Failed to accept resolution connection request", err).Error())
 			}
 			continue
-		} else {
-			if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+		}
+		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+		}
+		if err := resolver.validateAddressResolver(netConn.RemoteAddr().String()); err != nil {
+			netConn.Close()
+			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(err.Error())
 			}
+			continue
 		}
 		go resolver.handleResolutionRequest(netConn)
 	}

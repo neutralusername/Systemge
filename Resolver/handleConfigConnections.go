@@ -18,10 +18,16 @@ func (resolver *Resolver) handleConfigConnections() {
 				warningLogger.Log(Error.New("Failed to accept config connection request", err).Error())
 			}
 			continue
-		} else {
-			if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+		}
+		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+		}
+		if err := resolver.validateAddressConfig(netConn.RemoteAddr().String()); err != nil {
+			netConn.Close()
+			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(err.Error())
 			}
+			continue
 		}
 		go resolver.handleConfigConnection(netConn)
 	}
@@ -102,9 +108,23 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 }
 
 func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
+	segments := strings.Split(message.GetPayload(), "|")
 	switch message.GetTopic() {
+	case "addWhitelistResolver":
+		resolver.addToresolverWhitelist(segments...)
+	case "removeWhitelistResolver":
+		resolver.removeFromresolverWhitelist(segments...)
+	case "addBlacklistResolver":
+		resolver.addToresolverBlacklist(segments...)
+	case "removeBlacklistResolver":
+		resolver.removeFromresolverBlacklist(segments...)
+	case "addWhitelistConfig":
+		resolver.addToConfigWhitelist(segments...)
+	case "removeWhitelistConfig":
+		resolver.removeFromConfigWhitelist(segments...)
+	case "addBlacklistConfig":
+		resolver.addToConfigBlacklist(segments...)
 	case "addTopics":
-		segments := strings.Split(message.GetPayload(), "|")
 		if len(segments) < 2 {
 			return Error.New("Invalid payload", nil)
 		}
@@ -114,7 +134,6 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 			return Error.New("Failed to add topics", err)
 		}
 	case "removeTopics":
-		segments := strings.Split(message.GetPayload(), "|")
 		if len(segments) < 1 {
 			return Error.New("Invalid payload", nil)
 		}
