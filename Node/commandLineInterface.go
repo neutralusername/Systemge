@@ -60,21 +60,25 @@ func StartCommandLineInterface(nodes ...*Node) {
 				fmt.Println("command: \"" + command + "\", time started: " + schedule.timeStarted.String() + ", duration: " + schedule.duration.String() + ", repeat: " + fmt.Sprint(schedule.repeat) + ", args: " + strings.Join(schedule.args, " "))
 			}
 		case "restart":
-			if reverse {
-				for i := len(nodes) - 1; i >= 0; i-- {
-					executeCommand(nodes[i], "stop", nil)
-				}
-			} else {
-				for _, node := range nodes {
-					executeCommand(node, "stop", nil)
-				}
-			}
-			for _, node := range nodes {
-				executeCommand(node, "start", nil)
-			}
+			restart(reverse, nodes...)
 		default:
 			handleCommands(reverse, inputSegments, nodes...)
 		}
+	}
+}
+
+func restart(reverse bool, nodes ...*Node) {
+	if reverse {
+		for i := len(nodes) - 1; i >= 0; i-- {
+			executeCommand(nodes[i], "stop", nil)
+		}
+	} else {
+		for _, node := range nodes {
+			executeCommand(node, "stop", nil)
+		}
+	}
+	for _, node := range nodes {
+		executeCommand(node, "start", nil)
 	}
 }
 
@@ -120,7 +124,11 @@ func startSchedule(inputSegments []string, schedules map[string]*Schedule, nodes
 			reverse = true
 			c = command[1:]
 		}
-		handleCommands(reverse, append([]string{c}, args...), nodes...)
+		if c == "restart" {
+			restart(reverse, nodes...)
+		} else {
+			handleCommands(reverse, append([]string{c}, args...), nodes...)
+		}
 		if schedule.repeat {
 			schedule.timer.Reset(schedule.duration)
 		} else {
