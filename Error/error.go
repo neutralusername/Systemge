@@ -5,18 +5,20 @@ import (
 	"path"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 // description is used to provide context to the error message
 func New(description string, err error) error {
-	errStr := ""
+	builder := strings.Builder{}
+	builder.WriteString(description)
 	if err != nil {
 		if description != "" {
-			errStr = " -> "
+			builder.WriteString(" -> ")
 		}
-		errStr += err.Error()
+		builder.WriteString(err.Error())
 	}
-	return errors.New(description + errStr)
+	return errors.New(builder.String())
 }
 
 func NewTraced(description string, err error) error {
@@ -25,12 +27,13 @@ func NewTraced(description string, err error) error {
 		panic("could not get caller information")
 	}
 	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
-	errStr := ""
+	builder := strings.Builder{}
+	builder.WriteString(file + ":" + strconv.Itoa(line) + " : " + description)
 	if err != nil {
 		if description != "" {
-			errStr = " -> "
+			builder.WriteString(" -> ")
 		}
-		errStr += err.Error()
+		builder.WriteString(err.Error())
 	}
-	return errors.New(file + ":" + strconv.Itoa(line) + " : " + description + errStr)
+	return errors.New(builder.String())
 }
