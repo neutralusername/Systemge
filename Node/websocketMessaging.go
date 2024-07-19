@@ -12,7 +12,9 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) {
 		go func() {
 			err := websocketClient.Send(messageBytes)
 			if err != nil {
-				node.GetLogger().Warning("failed to broadcast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log("Failed to broadcast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+				}
 			}
 		}()
 	}
@@ -26,7 +28,9 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) {
 		go func() {
 			err := websocketClient.Send(messageBytes)
 			if err != nil {
-				node.GetLogger().Warning("failed to unicast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log("Failed to unicast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+				}
 			}
 		}()
 	}
@@ -41,7 +45,9 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) {
 			go func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
-					node.GetLogger().Warning("failed to multicast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log("Failed to multicast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+					}
 				}
 			}()
 		}
@@ -59,7 +65,9 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
 		go func() {
 			err := websocketClient.Send(messageBytes)
 			if err != nil {
-				node.GetLogger().Warning("failed to groupcast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log("Failed to groupcast message to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\" on node \"" + node.GetName() + "\"")
+				}
 			}
 		}()
 	}

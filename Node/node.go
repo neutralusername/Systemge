@@ -12,10 +12,13 @@ import (
 )
 
 type Node struct {
-	config     *Config.Node
-	randomizer *Tools.Randomizer
-	logger     *Tools.Logger
-	mailer     *Tools.Mailer
+	config        *Config.Node
+	randomizer    *Tools.Randomizer
+	errorLogger   *Tools.Logger
+	warningLogger *Tools.Logger
+	infoLogger    *Tools.Logger
+	debugLogger   *Tools.Logger
+	mailer        *Tools.Mailer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -48,9 +51,12 @@ type Node struct {
 
 func New(config *Config.Node, application Application) *Node {
 	node := &Node{
-		config: config,
-		logger: Tools.NewLogger(config.Logger),
-		mailer: Tools.NewMailer(config.Mailer),
+		config:        config,
+		errorLogger:   Tools.NewLogger(config.ErrorLogger),
+		warningLogger: Tools.NewLogger(config.WarningLogger),
+		infoLogger:    Tools.NewLogger(config.InfoLogger),
+		debugLogger:   Tools.NewLogger(config.DebugLogger),
+		mailer:        Tools.NewMailer(config.Mailer),
 
 		application: application,
 
@@ -87,7 +93,9 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed starting systemge component", err)
 		}
-		node.GetLogger().Info(Error.New("Started systemge component on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Started systemge component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	if ImplementsWebsocketComponent(node.application) {
 		err := node.startWebsocketComponent()
@@ -95,7 +103,9 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed starting websocket server", err)
 		}
-		node.GetLogger().Info(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Started websocket component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	if ImplementsHTTPComponent(node.application) {
 		err := node.startHTTPComponent()
@@ -103,7 +113,9 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed starting http server", err)
 		}
-		node.GetLogger().Info(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Started http component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	if ImplementsOnStartComponent(node.application) {
 		err := node.GetOnStartComponent().OnStart(node)
@@ -111,9 +123,13 @@ func (node *Node) Start() error {
 			node.stop(false)
 			return Error.New("failed in OnStart", err)
 		}
-		node.GetLogger().Info(Error.New("executed OnStart on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("executed OnStart on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
-	node.GetLogger().Info(Error.New("Started node \""+node.GetName()+"\"", nil).Error())
+	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Started node \""+node.GetName()+"\"", nil).Error())
+	}
 	return nil
 }
 
@@ -134,32 +150,42 @@ func (node *Node) stop(lock bool) error {
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
-		node.GetLogger().Info(Error.New("executed OnStop on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("executed OnStop on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	if node.websocketStarted {
 		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping websocket server", err)
 		}
-		node.GetLogger().Info(Error.New("Stopped websocket component on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped websocket component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	if node.httpStarted {
 		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping http server", err)
 		}
-		node.GetLogger().Info(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped http component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	if node.systemgeStarted {
 		err := node.stopSystemgeComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping systemge component", err)
 		}
-		node.GetLogger().Info(Error.New("Stopped systemge component on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped systemge component on node \""+node.GetName()+"\"", nil).Error())
+		}
 	}
 	node.isStarted = false
 	close(node.stopChannel)
-	node.GetLogger().Info(Error.New("Stopped node \""+node.GetName()+"\"", nil).Error())
+	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Stopped node \""+node.GetName()+"\"", nil).Error())
+	}
 	return nil
 }
 
@@ -171,12 +197,36 @@ func (node *Node) GetName() string {
 	return node.config.Name
 }
 
-func (node *Node) GetLogger() *Tools.Logger {
-	return node.logger
+func (node *Node) GetErrorLogger() *Tools.Logger {
+	return node.errorLogger
 }
 
-func (node *Node) SetLogger(logger *Tools.Logger) {
-	node.logger = logger
+func (node *Node) SetErrorLogger(logger *Tools.Logger) {
+	node.errorLogger = logger
+}
+
+func (node *Node) GetWarningLogger() *Tools.Logger {
+	return node.warningLogger
+}
+
+func (node *Node) SetWarningLogger(logger *Tools.Logger) {
+	node.warningLogger = logger
+}
+
+func (node *Node) GetInfoLogger() *Tools.Logger {
+	return node.infoLogger
+}
+
+func (node *Node) SetInfoLogger(logger *Tools.Logger) {
+	node.infoLogger = logger
+}
+
+func (node *Node) GetDebugLogger() *Tools.Logger {
+	return node.debugLogger
+}
+
+func (node *Node) SetDebugLogger(logger *Tools.Logger) {
+	node.debugLogger = logger
 }
 
 func (node *Node) GetMailer() *Tools.Mailer {

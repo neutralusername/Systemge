@@ -49,10 +49,14 @@ func handleSessionRequests(server *Server) {
 	for {
 		select {
 		case sessionRequest := <-server.sessionRequestChannel:
-			server.node.GetLogger().Info(Error.New("handling session request with access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+			if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+			}
 			handleSessionRequest(server, sessionRequest)
 		case <-server.stopChannel:
-			server.node.GetLogger().Info(Error.New("stopped handling session requests on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+			if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopped handling session requests on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+			}
 			return
 		}
 	}
@@ -62,12 +66,16 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 	identity, keyValuePairs, err := server.config.TokenHandler(server.config.OAuth2Config, sessionRequest.token)
 	if err != nil {
 		sessionRequest.sessionChannel <- nil
-		server.node.GetLogger().Warning(Error.New("failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", err).Error())
+		if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
+			warningLogger.Log(Error.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", err).Error())
+		}
 		return
 	}
 	if identity == "" {
 		sessionRequest.sessionChannel <- nil
-		server.node.GetLogger().Warning(Error.New("no session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
+			warningLogger.Log(Error.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		}
 		return
 	}
 	sessionRequest.sessionChannel <- server.getSessionForIdentity(identity, keyValuePairs)

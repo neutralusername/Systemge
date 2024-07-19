@@ -7,14 +7,17 @@ import (
 )
 
 func (node *Node) handleMessages(websocketClient *WebsocketClient) {
-	defer websocketClient.Disconnect()
 	for node.IsStarted() {
 		message, err := websocketClient.Receive()
 		if err != nil {
-			node.GetLogger().Warning(Error.New("failed to receive message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", err).Error())
+			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to receive message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", err).Error())
+			}
 			return
 		}
-		node.GetLogger().Info(Error.New("received message with topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", nil).Error())
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\" on node \""+node.GetName()+"\"", nil).Error())
+		}
 		if message.GetTopic() == "heartbeat" {
 			node.ResetWatchdog(websocketClient)
 			continue
@@ -22,7 +25,9 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		if time.Since(websocketClient.GetLastMessageTimestamp()) <= time.Duration(node.GetWebsocketComponent().GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
 			err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
-				node.GetLogger().Warning(Error.New("failed to send rate limit error message to websocket client on node \""+node.GetName()+"\"", err).Error())
+				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client on node \""+node.GetName()+"\"", err).Error())
+				}
 			}
 			continue
 		}
@@ -30,17 +35,25 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		if node.GetWebsocketComponent().GetWebsocketComponentConfig().HandleClientMessagesSequentially {
 			err := node.handleWebsocketMessage(websocketClient, message)
 			if err != nil {
-				node.GetLogger().Warning(Error.New("failed to handle message (sequentially) on node \""+node.GetName()+"\"", err).Error())
+				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to handle message (sequentially) on node \""+node.GetName()+"\"", err).Error())
+				}
 			} else {
-				node.GetLogger().Info(Error.New("handled message (sequentially) on node \""+node.GetName()+"\"", nil).Error())
+				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Handled message (sequentially) on node \""+node.GetName()+"\"", nil).Error())
+				}
 			}
 		} else {
 			go func() {
 				err := node.handleWebsocketMessage(websocketClient, message)
 				if err != nil {
-					node.GetLogger().Warning(Error.New("failed to handle message (concurrently) on node \""+node.GetName()+"\"", err).Error())
+					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to handle message (concurrently) on node \""+node.GetName()+"\"", err).Error())
+					}
 				} else {
-					node.GetLogger().Info(Error.New("handled message (concurrently) on node \""+node.GetName()+"\"", nil).Error())
+					if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+						infoLogger.Log(Error.New("Handled message (concurrently) on node \""+node.GetName()+"\"", nil).Error())
+					}
 				}
 			}()
 		}
@@ -52,7 +65,9 @@ func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, messa
 	if handler == nil {
 		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {
-			node.GetLogger().Warning(Error.New("failed to send error message to websocket client", err).Error())
+			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to send error message to websocket client on node \""+node.GetName()+"\"", err).Error())
+			}
 		}
 		return Error.New("no handler for topic \""+message.GetTopic()+"\"", nil)
 	}
@@ -60,7 +75,9 @@ func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, messa
 	if err != nil {
 		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
 		if err != nil {
-			node.GetLogger().Warning(Error.New("failed to send error message to websocket client", err).Error())
+			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to send error message to websocket client on node \""+node.GetName()+"\"", err).Error())
+			}
 		}
 	}
 	return nil

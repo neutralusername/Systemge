@@ -18,11 +18,15 @@ func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[s
 	session := server.identities[identity]
 	if session == nil {
 		session = server.createSession(identity, keyValuePairs)
-		server.node.GetLogger().Info(Error.New("added session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Created session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		}
 	} else {
 		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
 		session.expired = false
-		server.node.GetLogger().Info(Error.New("refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		}
 	}
 	return session
 }
@@ -55,7 +59,9 @@ func (server *Server) getRemoveSessionFunc(session *session) func() {
 		session.watchdog = nil
 		delete(server.sessions, session.sessionId)
 		delete(server.identities, session.identity)
-		server.node.GetLogger().Info(Error.New("removed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Removed session \""+session.sessionId+"\" with identity \""+session.identity+"\" on oauth2 server \""+server.node.GetName()+"\"", nil).Error())
+		}
 	}
 }
 

@@ -55,9 +55,13 @@ func (node *Node) removeTopicResolutionTimeout(topic string, brokerConnection *b
 	case <-timer.C:
 		err := node.removeTopicResolution(topic)
 		if err != nil {
-			node.GetLogger().Warning(Error.New("Failed removing topic resolution", err).Error())
+			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed removing topic resolution", err).Error())
+			}
 		} else {
-			node.GetLogger().Info(Error.New("Removed topic resolution for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Removed topic resolution for topic \""+topic+"\" on node \""+node.GetName()+"\"", nil).Error())
+			}
 		}
 	case <-node.stopChannel:
 		timer.Stop()

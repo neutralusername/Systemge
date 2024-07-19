@@ -82,9 +82,13 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 	}
 	if len(topics) > 0 {
 		if err := broker.removeResolverTopicsRemotely(topics...); err != nil {
-			node.GetLogger().Error(Error.New("Failed to remove resolver topics remotely on broker \""+node.GetName()+"\"", err).Error(), node.GetMailer())
+			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Failed to remove resolver topics remotely on broker \""+node.GetName()+"\"", err).Error(), node.GetMailer())
+			}
 		} else {
-			node.GetLogger().Info("Removed resolver topics remotely on broker \"" + node.GetName() + "\"")
+			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log("Removed resolver topics remotely on broker \"" + node.GetName() + "\"")
+			}
 		}
 	}
 	broker.node = nil

@@ -1,9 +1,12 @@
 package Config
 
 type Node struct {
-	Name   string  // *required*
-	Logger *Logger // *optional*
-	Mailer *Mailer // *optional*
+	Name          string  // *required*
+	ErrorLogger   *Logger // *optional*
+	WarningLogger *Logger // *optional*
+	InfoLogger    *Logger // *optional*
+	DebugLogger   *Logger // *optional*
+	Mailer        *Mailer // *optional*
 }
 
 type Systemge struct {

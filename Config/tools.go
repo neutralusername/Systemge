@@ -1,11 +1,9 @@
 package Config
 
 type Logger struct {
-	InfoPath    string // *required*
-	WarningPath string // *required*
-	ErrorPath   string // *required*
-	DebugPath   string // *required*
-	QueueBuffer int    // default: 0
+	Path        string
+	QueueBuffer int // default: 0
+	Prefix      string
 }
 
 type Mailer struct {

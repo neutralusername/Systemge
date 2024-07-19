@@ -50,7 +50,11 @@ type Resolver struct {
 
 type Spawner struct {
 	IsSpawnedNodeTopicSync bool    // default: false
-	Logger                 *Logger // *required*
+	ErrorLogger            *Logger // *required*
+	WarningLogger          *Logger // *required*
+	InfoLogger             *Logger // *required*
+	DebugLogger            *Logger // *required*
+	Mailer                 *Mailer // *required*
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*

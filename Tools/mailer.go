@@ -76,7 +76,7 @@ func (mailer *Mailer) sendRoutine() {
 		case mail := <-mailer.mailQueue:
 			err := mailer.sendMail(mail)
 			if err != nil {
-				mailer.logger.Error("failed sending email: " + err.Error())
+				mailer.logger.Log("failed sending email: " + err.Error())
 			}
 		}
 	}
