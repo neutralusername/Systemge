@@ -14,6 +14,9 @@ type Logger struct {
 }
 
 func NewLogger(config *Config.Logger) *Logger {
+	if config == nil {
+		return nil
+	}
 	file := Helpers.OpenFileAppend(config.Path)
 	loggerStruct := &Logger{
 		logger:   log.New(file, "", log.LstdFlags),
