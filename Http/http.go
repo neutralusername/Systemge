@@ -7,9 +7,7 @@ import (
 	"time"
 )
 
-type RequestHandler func(w http.ResponseWriter, r *http.Request)
-
-func New(port uint16, handlers map[string]RequestHandler) *http.Server {
+func New(port uint16, handlers map[string]http.HandlerFunc) *http.Server {
 	mux := http.NewServeMux()
 	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, handler)

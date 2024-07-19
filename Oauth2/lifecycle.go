@@ -4,6 +4,7 @@ import (
 	"Systemge/Error"
 	"Systemge/Http"
 	"Systemge/Node"
+	"net/http"
 )
 
 func (server *Server) OnStart(node *Node.Node) error {
@@ -12,9 +13,9 @@ func (server *Server) OnStart(node *Node.Node) error {
 	if server.isStarted {
 		return Error.New("oauth2 server \""+server.node.GetName()+"\" is already started", nil)
 	}
-	server.httpServer = Http.New(server.config.Server.Port, map[string]Http.RequestHandler{
-		server.config.AuthPath:         server.oauth2Auth(),
-		server.config.AuthCallbackPath: server.oauth2Callback(),
+	server.httpServer = Http.New(server.config.Server.Port, map[string]http.HandlerFunc{
+		server.config.AuthPath:         Http.AccessControllWrapper(server.oauth2Auth(), server.blacklist, server.whitelist),
+		server.config.AuthCallbackPath: Http.AccessControllWrapper(server.oauth2AuthCallback(), server.blacklist, server.whitelist),
 	})
 	err := Http.Start(server.httpServer, server.config.Server.TlsCertPath, server.config.Server.TlsKeyPath)
 	if err != nil {

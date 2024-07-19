@@ -49,9 +49,11 @@ type Node struct {
 	websocketWhitelist           map[string]bool
 
 	//http
-	httpStarted bool
-	httpMutex   sync.Mutex
-	httpServer  *http.Server
+	httpStarted   bool
+	httpMutex     sync.Mutex
+	httpServer    *http.Server
+	httpBlacklist map[string]bool
+	httpWhitelist map[string]bool
 }
 
 func New(config *Config.Node, application Application) *Node {
@@ -75,8 +77,11 @@ func New(config *Config.Node, application Application) *Node {
 		websocketConnChannel:  make(chan *websocket.Conn),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
-		websocketBlacklist:    make(map[string]bool),
-		websocketWhitelist:    make(map[string]bool),
+
+		websocketBlacklist: make(map[string]bool),
+		websocketWhitelist: make(map[string]bool),
+		httpBlacklist:      make(map[string]bool),
+		httpWhitelist:      make(map[string]bool),
 	}
 	if ImplementsWebsocketComponent(application) {
 		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Blacklist {
@@ -84,6 +89,14 @@ func New(config *Config.Node, application Application) *Node {
 		}
 		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Whitelist {
 			node.addToWebsocketWhitelist(ip)
+		}
+	}
+	if ImplementsHTTPComponent(application) {
+		for _, ip := range application.(HTTPComponent).GetHTTPComponentConfig().Blacklist {
+			node.addToHttpBlacklist(ip)
+		}
+		for _, ip := range application.(HTTPComponent).GetHTTPComponentConfig().Whitelist {
+			node.addToHttpWhitelist(ip)
 		}
 	}
 	return node

@@ -3,11 +3,12 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Http"
+	"net/http"
 )
 
 func (node *Node) startWebsocketComponent() error {
-	handlers := map[string]Http.RequestHandler{
-		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: node.WebsocketUpgrade(),
+	handlers := map[string]http.HandlerFunc{
+		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: Http.AccessControllWrapper(node.WebsocketUpgrade(), node.websocketBlacklist, node.websocketWhitelist),
 	}
 	httpServer := Http.New(node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.Port, handlers)
 	err := Http.Start(httpServer, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.TlsCertPath, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.TlsKeyPath)

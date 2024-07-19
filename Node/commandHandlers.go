@@ -21,6 +21,14 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 		handlers["removeWebsocketBlacklist"] = handleRemoveFromWebsocketBlacklistCommand
 		handlers["removeWebsocketWhitelist"] = handleRemoveFromWebsocketWhitelistCommand
 	}
+	if node.GetHTTPComponent() != nil {
+		handlers["httpBlacklist"] = handleHttpBlacklistCommand
+		handlers["httpWhitelist"] = handleHttpWhitelistCommand
+		handlers["addHttpBlacklist"] = handleAddToHttpBlacklistCommand
+		handlers["addHttpWhitelist"] = handleAddToHttpWhitelistCommand
+		handlers["removeHttpBlacklist"] = handleRemoveFromHttpBlacklistCommand
+		handlers["removeHttpWhitelist"] = handleRemoveFromHttpWhitelistCommand
+	}
 	if commandHandlerComponent := node.GetCommandHandlerComponent(); commandHandlerComponent != nil {
 		commandHandlers := commandHandlerComponent.GetCommandHandlers()
 		for command, commandHandler := range commandHandlers {
@@ -101,5 +109,43 @@ func handleRemoveFromWebsocketBlacklistCommand(node *Node, args []string) error 
 
 func handleRemoveFromWebsocketWhitelistCommand(node *Node, args []string) error {
 	node.removeFromWebsocketWhitelist(args...)
+	return nil
+}
+
+func handleHttpBlacklistCommand(node *Node, args []string) error {
+	node.httpMutex.Lock()
+	for ip := range node.httpBlacklist {
+		println(ip)
+	}
+	node.httpMutex.Unlock()
+	return nil
+}
+
+func handleHttpWhitelistCommand(node *Node, args []string) error {
+	node.httpMutex.Lock()
+	for ip := range node.httpWhitelist {
+		println(ip)
+	}
+	node.httpMutex.Unlock()
+	return nil
+}
+
+func handleAddToHttpBlacklistCommand(node *Node, args []string) error {
+	node.addToHttpBlacklist(args...)
+	return nil
+}
+
+func handleAddToHttpWhitelistCommand(node *Node, args []string) error {
+	node.addToHttpWhitelist(args...)
+	return nil
+}
+
+func handleRemoveFromHttpBlacklistCommand(node *Node, args []string) error {
+	node.removeFromHttpBlacklist(args...)
+	return nil
+}
+
+func handleRemoveFromHttpWhitelistCommand(node *Node, args []string) error {
+	node.removeFromHttpWhitelist(args...)
 	return nil
 }

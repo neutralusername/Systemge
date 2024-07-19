@@ -2,7 +2,6 @@ package Oauth2
 
 import (
 	"Systemge/Error"
-	"Systemge/Http"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -13,7 +12,7 @@ type oauth2SessionRequest struct {
 	sessionChannel chan<- *session
 }
 
-func (server *Server) oauth2Callback() Http.RequestHandler {
+func (server *Server) oauth2AuthCallback() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Oauth2 callback for \""+httpRequest.RemoteAddr+"\" called", nil).Error())
@@ -56,15 +55,8 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 	}
 }
 
-func (server *Server) oauth2Auth() Http.RequestHandler {
+func (server *Server) oauth2Auth() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		if err := server.validateAddress(httpRequest.RemoteAddr); err != nil {
-			if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(err.Error())
-			}
-			http.Error(responseWriter, err.Error(), http.StatusForbidden)
-			return
-		}
 		url := server.config.AuthRedirectUrl
 		if url == "" {
 			url = server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)
