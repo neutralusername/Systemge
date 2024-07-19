@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// starts a command-line interface for the module
+// starts a command-line interface for the provided nodes
 func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 	if len(nodes) == 0 {
 		panic("no nodes provided")
@@ -31,7 +31,7 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 
 		case "start":
 			if started {
-				println("module already started")
+				println("cli already started")
 				continue
 			}
 			for _, node := range nodes {
@@ -43,7 +43,7 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 			started = true
 		case "stop":
 			if !started {
-				println("module not started")
+				println("cli not started")
 				continue
 			}
 			if stopReversedOrder {
@@ -66,7 +66,7 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 			return
 		default:
 			if !started {
-				println("module not started")
+				println("cli not started")
 				continue
 			}
 			commandExecuted := false
