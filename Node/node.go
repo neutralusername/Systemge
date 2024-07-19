@@ -12,7 +12,7 @@ import (
 )
 
 type Node struct {
-	config        *Config.Node
+	name          string
 	randomizer    *Tools.Randomizer
 	errorLogger   *Tools.Logger
 	warningLogger *Tools.Logger
@@ -51,7 +51,7 @@ type Node struct {
 
 func New(config *Config.Node, application Application) *Node {
 	node := &Node{
-		config:        config,
+		name:          config.Name,
 		errorLogger:   Tools.NewLogger(config.ErrorLogger),
 		warningLogger: Tools.NewLogger(config.WarningLogger),
 		infoLogger:    Tools.NewLogger(config.InfoLogger),
@@ -194,7 +194,7 @@ func (node *Node) IsStarted() bool {
 }
 
 func (node *Node) GetName() string {
-	return node.config.Name
+	return node.name
 }
 
 func (node *Node) GetErrorLogger() *Tools.Logger {
