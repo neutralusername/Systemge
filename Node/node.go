@@ -72,6 +72,8 @@ func New(config *Config.Node, application Application) *Node {
 		websocketConnChannel:  make(chan *websocket.Conn),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
+		websocketBlacklist:    make(map[string]bool),
+		websocketWhitelist:    make(map[string]bool),
 	}
 	if ImplementsWebsocketComponent(application) {
 		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Blacklist {
