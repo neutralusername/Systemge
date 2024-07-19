@@ -57,8 +57,8 @@ func StartCommandLineInterface(nodes ...*Node) {
 		case "stopSchedule":
 			stopSchedule(inputSegments, schedules)
 		case "listSchedules":
-			for command, schedule := range schedules {
-				fmt.Println("command: \"" + command + "\", time started: " + schedule.timeStarted.String() + ", duration: " + schedule.duration.String() + ", repeat: " + fmt.Sprint(schedule.repeat) + ", args: " + strings.Join(schedule.args, " "))
+			for scheduleId, schedule := range schedules {
+				fmt.Println("scheduleId: \"" + scheduleId + "\", command: \"" + schedule.command + "\" time started: " + schedule.timeStarted.String() + ", duration: " + schedule.duration.String() + ", repeat: " + fmt.Sprint(schedule.repeat) + ", args: " + strings.Join(schedule.args, " "))
 			}
 		case "restart":
 			restart(reverse, nodes...)
