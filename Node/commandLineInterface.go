@@ -18,6 +18,51 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 	}
 	reader := bufio.NewReader(os.Stdin)
 	started := false
+
+	start := func() {
+		if started {
+			println("cli already started")
+			return
+		}
+		for _, node := range nodes {
+			err := node.Start()
+			if err != nil {
+				panic(err.Error())
+			}
+		}
+		started = true
+	}
+	stop := func() {
+		if !started {
+			println("cli not started")
+			return
+		}
+		if stopReversedOrder {
+			for i := len(nodes) - 1; i >= 0; i-- {
+				err := nodes[i].Stop()
+				if err != nil {
+					panic(err.Error())
+				}
+			}
+		} else {
+			for _, node := range nodes {
+				err := node.Stop()
+				if err != nil {
+					panic(err.Error())
+				}
+			}
+		}
+		started = false
+	}
+	restart := func() {
+		if !started {
+			println("cli not started")
+			return
+		}
+		stop()
+		start()
+	}
+
 	println("enter command (exit to quit)")
 	for {
 		print(">")
@@ -29,39 +74,12 @@ func StartCommandLineInterface(stopReversedOrder bool, nodes ...*Node) {
 		inputSegments := strings.Split(input, " ")
 		switch inputSegments[0] {
 
+		case "restart":
+			restart()
 		case "start":
-			if started {
-				println("cli already started")
-				continue
-			}
-			for _, node := range nodes {
-				err := node.Start()
-				if err != nil {
-					panic(err.Error())
-				}
-			}
-			started = true
+			start()
 		case "stop":
-			if !started {
-				println("cli not started")
-				continue
-			}
-			if stopReversedOrder {
-				for i := len(nodes) - 1; i >= 0; i-- {
-					err := nodes[i].Stop()
-					if err != nil {
-						panic(err.Error())
-					}
-				}
-			} else {
-				for _, node := range nodes {
-					err := node.Stop()
-					if err != nil {
-						panic(err.Error())
-					}
-				}
-			}
-			started = false
+			stop()
 		case "exit":
 			return
 		default:
