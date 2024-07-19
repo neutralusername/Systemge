@@ -12,7 +12,6 @@ type Oauth2 struct {
 	CallbackFailureRedirectUrl string                                                                      // *required*
 	TokenHandler               func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error) // *required
 	SessionLifetimeMs          uint64                                                                      // default: 0
-	RandomizerSeed             int64                                                                       // *required*
 	Oauth2State                string                                                                      // *required*
 }
 

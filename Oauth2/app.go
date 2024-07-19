@@ -4,7 +4,6 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Node"
-	"Systemge/Tools"
 	"net/http"
 	"sync"
 )
@@ -14,7 +13,6 @@ type Server struct {
 	httpServer            *http.Server
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config.Oauth2
-	randomizer            *Tools.Randomizer
 
 	sessions   map[string]*session
 	identities map[string]*session
@@ -36,7 +34,6 @@ func New(config *Config.Oauth2) (*Server, error) {
 		config:                config,
 		sessions:              make(map[string]*session),
 		identities:            make(map[string]*session),
-		randomizer:            Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	return server, nil
 }

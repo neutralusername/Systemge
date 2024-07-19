@@ -60,7 +60,7 @@ func New(config *Config.Node, application Application) *Node {
 
 		application: application,
 
-		randomizer: Tools.NewRandomizer(Tools.GetSystemTime()),
+		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 
 		systemgeMessagesWaitingForResponse: make(map[string]chan *Message.Message),
 		systemgeBrokerConnections:          make(map[string]*brokerConnection),
@@ -235,6 +235,14 @@ func (node *Node) GetMailer() *Tools.Mailer {
 
 func (node *Node) SetMailer(mailer *Tools.Mailer) {
 	node.mailer = mailer
+}
+
+func (node *Node) GetRandomizer() *Tools.Randomizer {
+	return node.randomizer
+}
+
+func (node *Node) SetRandomizer(randomizer *Tools.Randomizer) {
+	node.randomizer = randomizer
 }
 
 func (node *Node) GetSystemgeComponent() SystemgeComponent {

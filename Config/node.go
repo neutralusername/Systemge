@@ -1,12 +1,13 @@
 package Config
 
 type Node struct {
-	Name          string  // *required*
-	ErrorLogger   *Logger // *optional*
-	WarningLogger *Logger // *optional*
-	InfoLogger    *Logger // *optional*
-	DebugLogger   *Logger // *optional*
-	Mailer        *Mailer // *optional*
+	Name           string  // *required*
+	ErrorLogger    *Logger // *optional*
+	WarningLogger  *Logger // *optional*
+	InfoLogger     *Logger // *optional*
+	DebugLogger    *Logger // *optional*
+	Mailer         *Mailer // *optional*
+	RandomizerSeed int64   // default: 0
 }
 
 type Systemge struct {
