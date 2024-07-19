@@ -37,7 +37,7 @@ type Websocket struct {
 	Upgrader *websocket.Upgrader // *required*
 
 	Blacklist []string // *optional*
-	Whitelist []string // *optional*
+	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }
 
 type HTTP struct {

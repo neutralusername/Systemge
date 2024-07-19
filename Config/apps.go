@@ -15,7 +15,7 @@ type Oauth2 struct {
 	Oauth2State                string                                                                      // *required*
 
 	Blacklist []string // *optional*
-	Whitelist []string // *optional*
+	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }
 
 type Broker struct {
@@ -26,11 +26,11 @@ type Broker struct {
 	SyncTopics  []string
 	AsyncTopics []string
 
-	BrokerWhitelist []string
-	BrokerBlacklist []string
+	BrokerWhitelist []string // *optional* (if empty, all IPs are allowed)
+	BrokerBlacklist []string // *optional*
 
-	ConfigWhitelist []string
-	ConfigBlacklist []string
+	ConfigWhitelist []string // *optional* (if empty, all IPs are allowed)
+	ConfigBlacklist []string // *optional*
 
 	ResolverConfigEndpoint *TcpEndpoint // *required*
 
@@ -48,11 +48,11 @@ type Resolver struct {
 	Server       *TcpServer // *required*
 	ConfigServer *TcpServer // *required*
 
-	ResolverWhitelist []string
-	ResolverBlacklist []string
+	ResolverWhitelist []string // *optional* (if empty, all IPs are allowed)
+	ResolverBlacklist []string // *optional*
 
-	ConfigWhitelist []string
-	ConfigBlacklist []string
+	ConfigWhitelist []string // *optional* (if empty, all IPs are allowed)
+	ConfigBlacklist []string // *optional*
 
 	TcpTimeoutMs uint64 // default: 0 = block forever
 
