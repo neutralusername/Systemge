@@ -29,6 +29,7 @@ func (logger *Logger) GetLogger() *log.Logger {
 	return logger.logger
 }
 
+// if called with nil logger or mailers, it will cause a panic
 func (logger *Logger) Log(str string, mailers ...*Mailer) {
 	for _, mailer := range mailers {
 		if mailer != nil {
