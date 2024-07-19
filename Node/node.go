@@ -14,14 +14,14 @@ import (
 )
 
 type Node struct {
-	inSubscribeLoop int
-	name            string
-	randomizer      *Tools.Randomizer
-	errorLogger     *Tools.Logger
-	warningLogger   *Tools.Logger
-	infoLogger      *Tools.Logger
-	debugLogger     *Tools.Logger
-	mailer          *Tools.Mailer
+	ongoingSubscribeLoops int
+	name                  string
+	randomizer            *Tools.Randomizer
+	errorLogger           *Tools.Logger
+	warningLogger         *Tools.Logger
+	infoLogger            *Tools.Logger
+	debugLogger           *Tools.Logger
+	mailer                *Tools.Mailer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -204,8 +204,8 @@ func (node *Node) stop(lock bool) error {
 	}
 	node.isStarted = false
 	close(node.stopChannel)
-	for node.inSubscribeLoop > 0 {
-		node.GetWarningLogger().Log(Error.New("Waiting for "+Helpers.IntToString(node.inSubscribeLoop)+" subscribe loops to finish", nil).Error())
+	for node.ongoingSubscribeLoops > 0 {
+		node.GetWarningLogger().Log(Error.New("Waiting for "+Helpers.IntToString(node.ongoingSubscribeLoops)+" subscribe loops to finish", nil).Error())
 		time.Sleep(time.Duration(node.GetSystemgeComponent().GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 	}
 	if infoLogger := node.GetInfoLogger(); infoLogger != nil {

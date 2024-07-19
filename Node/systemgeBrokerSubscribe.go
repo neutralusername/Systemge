@@ -8,9 +8,9 @@ import (
 )
 
 func (node *Node) subscribeLoop(topic string) {
-	node.inSubscribeLoop++
+	node.ongoingSubscribeLoops++
 	defer func() {
-		node.inSubscribeLoop--
+		node.ongoingSubscribeLoops--
 	}()
 	for node.IsStarted() {
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
