@@ -2,16 +2,17 @@ package Node
 
 // returns a map of command handlers for the command-line interface
 func (node *Node) GetCommandHandlers() map[string]CommandHandler {
-	handlers := map[string]CommandHandler{
-		"websocketClients":         handleWebsocketClientsCommand,
-		"websocketGroups":          handleWebsocketGroupsCommand,
-		"WebsocketGroupClients":    handleWebsocketGroupClientsCommand,
-		"websocketBlacklist":       handleWebsocketBlacklistCommand,
-		"websocketWhitelist":       handleWebsocketWhitelistCommand,
-		"addWebsocketBlacklist":    handleAddToWebsocketBlacklistCommand,
-		"addWebsocketWhitelist":    handleAddToWebsocketWhitelistCommand,
-		"removeWebsocketBlacklist": handleRemoveFromWebsocketBlacklistCommand,
-		"removeWebsocketWhitelist": handleRemoveFromWebsocketWhitelistCommand,
+	handlers := map[string]CommandHandler{}
+	if node.GetWebsocketComponent() != nil {
+		handlers["websocketClients"] = handleWebsocketClientsCommand
+		handlers["websocketGroups"] = handleWebsocketGroupsCommand
+		handlers["websocketGroupClients"] = handleWebsocketGroupClientsCommand
+		handlers["websocketBlacklist"] = handleWebsocketBlacklistCommand
+		handlers["websocketWhitelist"] = handleWebsocketWhitelistCommand
+		handlers["addWebsocketBlacklist"] = handleAddToWebsocketBlacklistCommand
+		handlers["addWebsocketWhitelist"] = handleAddToWebsocketWhitelistCommand
+		handlers["removeWebsocketBlacklist"] = handleRemoveFromWebsocketBlacklistCommand
+		handlers["removeWebsocketWhitelist"] = handleRemoveFromWebsocketWhitelistCommand
 	}
 	if commandHandlerComponent := node.GetCommandHandlerComponent(); commandHandlerComponent != nil {
 		commandHandlers := commandHandlerComponent.GetCommandHandlers()
