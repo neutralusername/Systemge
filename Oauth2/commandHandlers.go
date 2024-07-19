@@ -26,39 +26,45 @@ func (server *Server) handleSessionsCommand(node *Node.Node, args []string) erro
 }
 
 func (server *Server) handleBlacklistCommand(node *Node.Node, args []string) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	for ip := range server.blacklist {
+	blacklist := server.blacklist.GetElements()
+	for _, ip := range blacklist {
 		println(ip)
 	}
 	return nil
 }
 
 func (server *Server) handleWhitelistCommand(node *Node.Node, args []string) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	for ip := range server.whitelist {
+	whitelist := server.whitelist.GetElements()
+	for _, ip := range whitelist {
 		println(ip)
 	}
 	return nil
 }
 
 func (server *Server) handleAddWhitelistCommand(node *Node.Node, args []string) error {
-	server.addToWhitelist(args...)
+	for _, ip := range args {
+		server.whitelist.Add(ip)
+	}
 	return nil
 }
 
 func (server *Server) handleAddBlacklistCommand(node *Node.Node, args []string) error {
-	server.addToBlacklist(args...)
+	for _, ip := range args {
+		server.blacklist.Add(ip)
+	}
 	return nil
 }
 
 func (server *Server) handleRemoveWhitelistCommand(node *Node.Node, args []string) error {
-	server.removeFromWhitelist(args...)
+	for _, ip := range args {
+		server.whitelist.Remove(ip)
+	}
 	return nil
 }
 
 func (server *Server) handleRemoveBlacklistCommand(node *Node.Node, args []string) error {
-	server.removeFromBlacklist(args...)
+	for _, ip := range args {
+		server.blacklist.Remove(ip)
+	}
 	return nil
 }

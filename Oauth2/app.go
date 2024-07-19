@@ -4,6 +4,7 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Node"
+	"Systemge/Tools"
 	"net/http"
 	"sync"
 )
@@ -21,8 +22,8 @@ type Server struct {
 	stopChannel chan string
 	isStarted   bool
 
-	blacklist map[string]bool
-	whitelist map[string]bool
+	blacklist Tools.AccessControlList
+	whitelist Tools.AccessControlList
 }
 
 func New(config *Config.Oauth2) (*Server, error) {
@@ -37,14 +38,14 @@ func New(config *Config.Oauth2) (*Server, error) {
 		config:                config,
 		sessions:              make(map[string]*session),
 		identities:            make(map[string]*session),
-		blacklist:             make(map[string]bool),
-		whitelist:             make(map[string]bool),
+		blacklist:             Tools.AccessControlList{},
+		whitelist:             Tools.AccessControlList{},
 	}
 	for _, ip := range config.Blacklist {
-		server.addToBlacklist(ip)
+		server.blacklist.Add(ip)
 	}
 	for _, ip := range config.Whitelist {
-		server.addToWhitelist(ip)
+		server.whitelist.Add(ip)
 	}
 	return server, nil
 }

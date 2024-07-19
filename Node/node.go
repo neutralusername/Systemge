@@ -45,15 +45,15 @@ type Node struct {
 	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
 	websocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
-	websocketBlacklist           map[string]bool
-	websocketWhitelist           map[string]bool
+	websocketBlacklist           Tools.AccessControlList
+	websocketWhitelist           Tools.AccessControlList
 
 	//http
 	httpStarted   bool
 	httpMutex     sync.Mutex
 	httpServer    *http.Server
-	httpBlacklist map[string]bool
-	httpWhitelist map[string]bool
+	httpBlacklist Tools.AccessControlList
+	httpWhitelist Tools.AccessControlList
 }
 
 func New(config *Config.Node, application Application) *Node {
@@ -78,25 +78,25 @@ func New(config *Config.Node, application Application) *Node {
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
 
-		websocketBlacklist: make(map[string]bool),
-		websocketWhitelist: make(map[string]bool),
-		httpBlacklist:      make(map[string]bool),
-		httpWhitelist:      make(map[string]bool),
+		websocketBlacklist: Tools.AccessControlList{},
+		websocketWhitelist: Tools.AccessControlList{},
+		httpBlacklist:      Tools.AccessControlList{},
+		httpWhitelist:      Tools.AccessControlList{},
 	}
 	if ImplementsWebsocketComponent(application) {
 		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Blacklist {
-			node.addToWebsocketBlacklist(ip)
+			node.websocketBlacklist.Add(ip)
 		}
 		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Whitelist {
-			node.addToWebsocketWhitelist(ip)
+			node.websocketWhitelist.Add(ip)
 		}
 	}
 	if ImplementsHTTPComponent(application) {
 		for _, ip := range application.(HTTPComponent).GetHTTPComponentConfig().Blacklist {
-			node.addToHttpBlacklist(ip)
+			node.httpBlacklist.Add(ip)
 		}
 		for _, ip := range application.(HTTPComponent).GetHTTPComponentConfig().Whitelist {
-			node.addToHttpWhitelist(ip)
+			node.httpWhitelist.Add(ip)
 		}
 	}
 	return node

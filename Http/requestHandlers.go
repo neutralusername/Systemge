@@ -1,6 +1,7 @@
 package Http
 
 import (
+	"Systemge/Tools"
 	"net"
 	"net/http"
 )
@@ -50,19 +51,21 @@ func Send403(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	responseWriter.Write([]byte("403 forbidden"))
 }
 
-func AccessControllWrapper(handler func(w http.ResponseWriter, r *http.Request), blacklist map[string]bool, whitelist map[string]bool) http.HandlerFunc {
+func AccessControllWrapper(handler func(w http.ResponseWriter, r *http.Request), blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
 			Send403(w, r)
 			return
 		}
-		if _, exists := blacklist[ip]; exists {
-			Send403(w, r)
-			return
+		if blacklist != nil {
+			if blacklist.Contains(ip) {
+				Send403(w, r)
+				return
+			}
 		}
-		if len(whitelist) > 0 {
-			if _, exists := whitelist[ip]; !exists {
+		if whitelist != nil && whitelist.ElementCount() > 0 {
+			if !whitelist.Contains(ip) {
 				Send403(w, r)
 				return
 			}

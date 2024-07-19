@@ -16,67 +16,75 @@ func (resolver *Resolver) GetCommandHandlers() map[string]Node.CommandHandler {
 			return nil
 		},
 		"resolverWhitelist": func(node *Node.Node, args []string) error {
-			resolver.mutex.Lock()
-			defer resolver.mutex.Unlock()
-			for ip := range resolver.resolverWhitelist {
+			for _, ip := range resolver.resolverWhitelist.GetElements() {
 				println(ip)
 			}
 			return nil
 		},
 		"resolverBlacklist": func(node *Node.Node, args []string) error {
-			resolver.mutex.Lock()
-			defer resolver.mutex.Unlock()
-			for ip := range resolver.resolverBlacklist {
+			for _, ip := range resolver.resolverBlacklist.GetElements() {
 				println(ip)
 			}
 			return nil
 		},
 		"configWhitelist": func(node *Node.Node, args []string) error {
-			resolver.mutex.Lock()
-			defer resolver.mutex.Unlock()
-			for ip := range resolver.configWhitelist {
+			for _, ip := range resolver.configWhitelist.GetElements() {
 				println(ip)
 			}
 			return nil
 		},
 		"configBlacklist": func(node *Node.Node, args []string) error {
-			resolver.mutex.Lock()
-			defer resolver.mutex.Unlock()
-			for ip := range resolver.configBlacklist {
+			for _, ip := range resolver.configBlacklist.GetElements() {
 				println(ip)
 			}
 			return nil
 		},
 		"addResolverWhitelist": func(node *Node.Node, args []string) error {
-			resolver.addToResolverWhitelist(args...)
+			for _, ip := range args {
+				resolver.resolverWhitelist.Add(ip)
+			}
 			return nil
 		},
 		"addResolverBlacklist": func(node *Node.Node, args []string) error {
-			resolver.addToResolverBlacklist(args...)
+			for _, ip := range args {
+				resolver.resolverBlacklist.Add(ip)
+			}
 			return nil
 		},
 		"removeResolverWhitelist": func(node *Node.Node, args []string) error {
-			resolver.removeFromResolverWhitelist(args...)
+			for _, ip := range args {
+				resolver.resolverWhitelist.Remove(ip)
+			}
 			return nil
 		},
 		"removeResolverBlacklist": func(node *Node.Node, args []string) error {
-			resolver.removeFromResolverBlacklist(args...)
+			for _, ip := range args {
+				resolver.resolverBlacklist.Remove(ip)
+			}
 			return nil
 		},
 		"addConfigWhitelist": func(node *Node.Node, args []string) error {
-			resolver.addToConfigWhitelist(args...)
+			for _, ip := range args {
+				resolver.configWhitelist.Add(ip)
+			}
 			return nil
 		},
 		"addConfigBlacklist": func(node *Node.Node, args []string) error {
-			resolver.addToConfigBlacklist(args...)
+			for _, ip := range args {
+				resolver.configBlacklist.Add(ip)
+			}
 			return nil
 		},
 		"removeConfigWhitelist": func(node *Node.Node, args []string) error {
-			resolver.removeFromConfigWhitelist(args...)
+			for _, ip := range args {
+				resolver.configWhitelist.Remove(ip)
+			}
 			return nil
 		},
 		"removeConfigBlacklist": func(node *Node.Node, args []string) error {
-			resolver.removeFromConfigBlacklist(args...)
+			for _, ip := range args {
+				resolver.configBlacklist.Remove(ip)
+			}
 			return nil
 		},
 	}

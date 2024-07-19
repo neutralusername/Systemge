@@ -16,11 +16,25 @@ func (broker *Broker) handleNodeConnections() {
 			}
 			continue
 		}
-		err = broker.validateAddressBroker(netConn.RemoteAddr().String())
+		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
 		if err != nil {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(err.Error())
+				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+			}
+			continue
+		}
+		if broker.brokerBlacklist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			continue
+		}
+		if broker.brokerWhitelist.ElementCount() > 0 && !broker.brokerWhitelist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}

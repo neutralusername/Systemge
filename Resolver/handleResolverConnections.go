@@ -19,10 +19,25 @@ func (resolver *Resolver) handleResolverConnections() {
 		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
-		if err := resolver.validateAddressResolver(netConn.RemoteAddr().String()); err != nil {
+		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
+		if err != nil {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(err.Error())
+				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+			}
+			continue
+		}
+		if resolver.resolverBlacklist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			continue
+		}
+		if resolver.resolverWhitelist.ElementCount() > 0 && !resolver.resolverWhitelist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}

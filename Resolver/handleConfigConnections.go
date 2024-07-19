@@ -22,10 +22,25 @@ func (resolver *Resolver) handleConfigConnections() {
 		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
-		if err := resolver.validateAddressConfig(netConn.RemoteAddr().String()); err != nil {
+		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
+		if err != nil {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(err.Error())
+				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+			}
+			continue
+		}
+		if resolver.configBlacklist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			continue
+		}
+		if resolver.configWhitelist.ElementCount() > 0 && !resolver.configWhitelist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}
@@ -111,19 +126,37 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 	segments := strings.Split(message.GetPayload(), "|")
 	switch message.GetTopic() {
 	case "addWhitelistResolver":
-		resolver.addToResolverWhitelist(segments...)
+		for _, segment := range segments {
+			resolver.resolverWhitelist.Add(segment)
+		}
 	case "removeWhitelistResolver":
-		resolver.removeFromResolverWhitelist(segments...)
+		for _, segment := range segments {
+			resolver.resolverWhitelist.Remove(segment)
+		}
 	case "addBlacklistResolver":
-		resolver.addToResolverBlacklist(segments...)
+		for _, segment := range segments {
+			resolver.resolverBlacklist.Add(segment)
+		}
 	case "removeBlacklistResolver":
-		resolver.removeFromResolverBlacklist(segments...)
+		for _, segment := range segments {
+			resolver.resolverBlacklist.Remove(segment)
+		}
 	case "addWhitelistConfig":
-		resolver.addToConfigWhitelist(segments...)
+		for _, segment := range segments {
+			resolver.configWhitelist.Add(segment)
+		}
 	case "removeWhitelistConfig":
-		resolver.removeFromConfigWhitelist(segments...)
+		for _, segment := range segments {
+			resolver.configWhitelist.Remove(segment)
+		}
 	case "addBlacklistConfig":
-		resolver.addToConfigBlacklist(segments...)
+		for _, segment := range segments {
+			resolver.configBlacklist.Add(segment)
+		}
+	case "removeBlacklistConfig":
+		for _, segment := range segments {
+			resolver.configBlacklist.Remove(segment)
+		}
 	case "addTopics":
 		if len(segments) < 2 {
 			return Error.New("Invalid payload", nil)

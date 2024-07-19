@@ -75,77 +75,85 @@ func handleWebsocketGroupClientsCommand(node *Node, args []string) error {
 }
 
 func handleWebsocketBlacklistCommand(node *Node, args []string) error {
-	node.websocketMutex.Lock()
-	for ip := range node.websocketBlacklist {
+	for ip := range node.websocketBlacklist.GetElements() {
 		println(ip)
 	}
-	node.websocketMutex.Unlock()
 	return nil
 }
 
 func handleWebsocketWhitelistCommand(node *Node, args []string) error {
-	node.websocketMutex.Lock()
-	for ip := range node.websocketWhitelist {
+	for ip := range node.websocketWhitelist.GetElements() {
 		println(ip)
 	}
-	node.websocketMutex.Unlock()
 	return nil
 }
 
 func handleAddToWebsocketBlacklistCommand(node *Node, args []string) error {
-	node.addToWebsocketBlacklist(args...)
+	for _, ip := range args {
+		node.websocketBlacklist.Add(ip)
+	}
 	return nil
 }
 
 func handleAddToWebsocketWhitelistCommand(node *Node, args []string) error {
-	node.addToWebsocketWhitelist(args...)
+	for _, ip := range args {
+		node.websocketWhitelist.Add(ip)
+	}
 	return nil
 }
 
 func handleRemoveFromWebsocketBlacklistCommand(node *Node, args []string) error {
-	node.removeFromWebsocketBlacklist(args...)
+	for _, ip := range args {
+		node.websocketBlacklist.Remove(ip)
+	}
 	return nil
 }
 
 func handleRemoveFromWebsocketWhitelistCommand(node *Node, args []string) error {
-	node.removeFromWebsocketWhitelist(args...)
+	for _, ip := range args {
+		node.websocketWhitelist.Remove(ip)
+	}
 	return nil
 }
 
 func handleHttpBlacklistCommand(node *Node, args []string) error {
-	node.httpMutex.Lock()
-	for ip := range node.httpBlacklist {
+	for ip := range node.httpBlacklist.GetElements() {
 		println(ip)
 	}
-	node.httpMutex.Unlock()
 	return nil
 }
 
 func handleHttpWhitelistCommand(node *Node, args []string) error {
-	node.httpMutex.Lock()
-	for ip := range node.httpWhitelist {
+	for ip := range node.httpWhitelist.GetElements() {
 		println(ip)
 	}
-	node.httpMutex.Unlock()
 	return nil
 }
 
 func handleAddToHttpBlacklistCommand(node *Node, args []string) error {
-	node.addToHttpBlacklist(args...)
+	for _, ip := range args {
+		node.httpBlacklist.Add(ip)
+	}
 	return nil
 }
 
 func handleAddToHttpWhitelistCommand(node *Node, args []string) error {
-	node.addToHttpWhitelist(args...)
+	for _, ip := range args {
+		node.httpWhitelist.Add(ip)
+	}
 	return nil
 }
 
 func handleRemoveFromHttpBlacklistCommand(node *Node, args []string) error {
-	node.removeFromHttpBlacklist(args...)
+	for _, ip := range args {
+		node.httpBlacklist.Remove(ip)
+	}
 	return nil
 }
 
 func handleRemoveFromHttpWhitelistCommand(node *Node, args []string) error {
-	node.removeFromHttpWhitelist(args...)
+	for _, ip := range args {
+		node.httpWhitelist.Remove(ip)
+	}
 	return nil
 }

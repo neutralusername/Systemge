@@ -17,11 +17,25 @@ func (broker *Broker) handleConfigConnections() {
 			}
 			continue
 		}
-		err = broker.validateAddressConfig(netConn.RemoteAddr().String())
+		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
 		if err != nil {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(err.Error())
+				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+			}
+			continue
+		}
+		if broker.configBlacklist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			continue
+		}
+		if broker.configWhitelist.ElementCount() > 0 && !broker.configWhitelist.Contains(ip) {
+			netConn.Close()
+			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}
@@ -86,21 +100,37 @@ func (broker *Broker) handleConfigRequest(message *Message.Message) error {
 	}
 	switch message.GetTopic() {
 	case "addWhitelistBroker":
-		broker.addToBrokerWhitelist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.brokerWhitelist.Add(payloadSegment)
+		}
 	case "removeWhitelistBroker":
-		broker.removeFromBrokerWhitelist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.brokerWhitelist.Remove(payloadSegment)
+		}
 	case "addBlacklistBroker":
-		broker.addToBrokerBlacklist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.brokerBlacklist.Add(payloadSegment)
+		}
 	case "removeBlacklistBroker":
-		broker.removeFromBrokerBlacklist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.brokerBlacklist.Remove(payloadSegment)
+		}
 	case "addWhitelistConfig":
-		broker.addToConfigWhitelist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.configWhitelist.Add(payloadSegment)
+		}
 	case "removeWhitelistConfig":
-		broker.removeFromConfigWhitelist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.configWhitelist.Remove(payloadSegment)
+		}
 	case "addBlacklistConfig":
-		broker.addToConfigBlacklist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.configBlacklist.Add(payloadSegment)
+		}
 	case "removeBlacklistConfig":
-		broker.removeFromConfigBlacklist(payloadSegments...)
+		for _, payloadSegment := range payloadSegments {
+			broker.configBlacklist.Remove(payloadSegment)
+		}
 	case "addSyncTopics":
 		broker.addSyncTopics(payloadSegments...)
 		err := broker.addResolverTopicsRemotely(payloadSegments...)
