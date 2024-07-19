@@ -36,7 +36,7 @@ func (resolver *Resolver) OnStop(node *Node.Node) error {
 	if !resolver.isStarted {
 		return Error.New("resolver is not started", nil)
 	}
-	for topic, _ := range resolver.registeredTopics {
+	for topic := range resolver.registeredTopics {
 		delete(resolver.registeredTopics, topic)
 	}
 	resolver.isStarted = false
