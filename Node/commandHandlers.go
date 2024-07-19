@@ -3,15 +3,15 @@ package Node
 // returns a map of command handlers for the command-line interface
 func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 	handlers := map[string]CommandHandler{
-		"websocketClients":             handleWebsocketClientsCommand,
-		"websocketGroups":              handleWebsocketGroupsCommand,
-		"WebsocketGroupClients":        handleWebsocketGroupClientsCommand,
-		"websocketBlacklist":           handleWebsocketBlacklistCommand,
-		"websocketWhitelist":           handleWebsocketWhitelistCommand,
-		"addToWebsocketBlacklist":      handleAddToWebsocketBlacklistCommand,
-		"addToWebsocketWhitelist":      handleAddToWebsocketWhitelistCommand,
-		"removeFromWebsocketBlacklist": handleRemoveFromWebsocketBlacklistCommand,
-		"removeFromWebsocketWhitelist": handleRemoveFromWebsocketWhitelistCommand,
+		"websocketClients":         handleWebsocketClientsCommand,
+		"websocketGroups":          handleWebsocketGroupsCommand,
+		"WebsocketGroupClients":    handleWebsocketGroupClientsCommand,
+		"websocketBlacklist":       handleWebsocketBlacklistCommand,
+		"websocketWhitelist":       handleWebsocketWhitelistCommand,
+		"addWebsocketBlacklist":    handleAddToWebsocketBlacklistCommand,
+		"addWebsocketWhitelist":    handleAddToWebsocketWhitelistCommand,
+		"removeWebsocketBlacklist": handleRemoveFromWebsocketBlacklistCommand,
+		"removeWebsocketWhitelist": handleRemoveFromWebsocketWhitelistCommand,
 	}
 	if commandHandlerComponent := node.GetCommandHandlerComponent(); commandHandlerComponent != nil {
 		commandHandlers := commandHandlerComponent.GetCommandHandlers()
@@ -77,37 +77,21 @@ func handleWebsocketWhitelistCommand(node *Node, args []string) error {
 }
 
 func handleAddToWebsocketBlacklistCommand(node *Node, args []string) error {
-	if len(args) < 1 {
-		println("Usage: addToWebsocketBlacklist <ip>")
-		return nil
-	}
 	node.addToWebsocketBlacklist(args...)
 	return nil
 }
 
 func handleAddToWebsocketWhitelistCommand(node *Node, args []string) error {
-	if len(args) < 1 {
-		println("Usage: addToWebsocketWhitelist <ip>")
-		return nil
-	}
 	node.addToWebsocketWhitelist(args...)
 	return nil
 }
 
 func handleRemoveFromWebsocketBlacklistCommand(node *Node, args []string) error {
-	if len(args) < 1 {
-		println("Usage: removeFromWebsocketBlacklist <ip>")
-		return nil
-	}
 	node.removeFromWebsocketBlacklist(args...)
 	return nil
 }
 
 func handleRemoveFromWebsocketWhitelistCommand(node *Node, args []string) error {
-	if len(args) < 1 {
-		println("Usage: removeFromWebsocketWhitelist <ip>")
-		return nil
-	}
 	node.removeFromWebsocketWhitelist(args...)
 	return nil
 }
