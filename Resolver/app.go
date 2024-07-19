@@ -15,10 +15,10 @@ type Resolver struct {
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener
 
-	resolverWhitelist *Tools.AccessControlList_
-	resolverBlacklist *Tools.AccessControlList_
-	configWhitelist   *Tools.AccessControlList_
-	configBlacklist   *Tools.AccessControlList_
+	resolverWhitelist *Tools.AccessControlList
+	resolverBlacklist *Tools.AccessControlList
+	configWhitelist   *Tools.AccessControlList
+	configBlacklist   *Tools.AccessControlList
 
 	registeredTopics map[string]Config.TcpEndpoint // topic -> tcpEndpoint
 

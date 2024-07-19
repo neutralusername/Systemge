@@ -45,15 +45,15 @@ type Node struct {
 	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
 	websocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
-	websocketBlacklist           *Tools.AccessControlList_
-	websocketWhitelist           *Tools.AccessControlList_
+	websocketBlacklist           *Tools.AccessControlList
+	websocketWhitelist           *Tools.AccessControlList
 
 	//http
 	httpStarted   bool
 	httpMutex     sync.Mutex
 	httpServer    *http.Server
-	httpBlacklist *Tools.AccessControlList_
-	httpWhitelist *Tools.AccessControlList_
+	httpBlacklist *Tools.AccessControlList
+	httpWhitelist *Tools.AccessControlList
 }
 
 func New(config *Config.Node, application Application) *Node {

@@ -22,8 +22,8 @@ type Server struct {
 	stopChannel chan string
 	isStarted   bool
 
-	blacklist *Tools.AccessControlList_
-	whitelist *Tools.AccessControlList_
+	blacklist *Tools.AccessControlList
+	whitelist *Tools.AccessControlList
 }
 
 func New(config *Config.Oauth2) (*Server, error) {

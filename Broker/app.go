@@ -15,10 +15,10 @@ type Broker struct {
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
-	brokerWhitelist *Tools.AccessControlList_
-	brokerBlacklist *Tools.AccessControlList_
-	configWhitelist *Tools.AccessControlList_
-	configBlacklist *Tools.AccessControlList_
+	brokerWhitelist *Tools.AccessControlList
+	brokerBlacklist *Tools.AccessControlList
+	configWhitelist *Tools.AccessControlList
+	configBlacklist *Tools.AccessControlList
 
 	nodeSubscriptions map[string]map[string]*nodeConnection // topic -> [nodeName-> nodeConnection]
 	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection

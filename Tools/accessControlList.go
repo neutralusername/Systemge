@@ -2,43 +2,43 @@ package Tools
 
 import "sync"
 
-type AccessControlList_ struct {
+type AccessControlList struct {
 	list  map[string]bool
 	mutex sync.Mutex
 }
 
-func NewAccessControlList() *AccessControlList_ {
-	return &AccessControlList_{
+func NewAccessControlList() *AccessControlList {
+	return &AccessControlList{
 		list: make(map[string]bool),
 	}
 }
 
-func (acl *AccessControlList_) Add(item string) {
+func (acl *AccessControlList) Add(item string) {
 	acl.mutex.Lock()
 	defer acl.mutex.Unlock()
 	acl.list[item] = true
 }
 
-func (acl *AccessControlList_) Remove(item string) {
+func (acl *AccessControlList) Remove(item string) {
 	acl.mutex.Lock()
 	defer acl.mutex.Unlock()
 	delete(acl.list, item)
 }
 
-func (acl *AccessControlList_) Contains(item string) bool {
+func (acl *AccessControlList) Contains(item string) bool {
 	acl.mutex.Lock()
 	defer acl.mutex.Unlock()
 	_, ok := acl.list[item]
 	return ok
 }
 
-func (acl *AccessControlList_) ElementCount() int {
+func (acl *AccessControlList) ElementCount() int {
 	acl.mutex.Lock()
 	defer acl.mutex.Unlock()
 	return len(acl.list)
 }
 
-func (acl *AccessControlList_) GetElements() []string {
+func (acl *AccessControlList) GetElements() []string {
 	acl.mutex.Lock()
 	defer acl.mutex.Unlock()
 	items := make([]string, 0, len(acl.list))
