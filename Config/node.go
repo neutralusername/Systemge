@@ -1,13 +1,18 @@
 package Config
 
+import "github.com/gorilla/websocket"
+
 type Node struct {
-	Name           string  // *required*
-	ErrorLogger    *Logger // *optional*
-	WarningLogger  *Logger // *optional*
-	InfoLogger     *Logger // *optional*
-	DebugLogger    *Logger // *optional*
-	Mailer         *Mailer // *optional*
-	RandomizerSeed int64   // default: 0
+	Name string // *required*
+
+	ErrorLogger   *Logger // *optional*
+	WarningLogger *Logger // *optional*
+	InfoLogger    *Logger // *optional*
+	DebugLogger   *Logger // *optional*
+
+	Mailer *Mailer // *optional*
+
+	RandomizerSeed int64 // default: 0
 }
 
 type Systemge struct {
@@ -22,12 +27,17 @@ type Systemge struct {
 }
 
 type Websocket struct {
-	Pattern                          string     // *required*
-	Server                           *TcpServer // *required*
-	HandleClientMessagesSequentially bool       // default: false
+	Pattern string     // *required*
+	Server  *TcpServer // *required*
 
-	ClientMessageCooldownMs uint64 // default: 0
-	ClientWatchdogTimeoutMs uint64 // default: 0
+	HandleClientMessagesSequentially bool   // default: false
+	ClientMessageCooldownMs          uint64 // default: 0
+	ClientWatchdogTimeoutMs          uint64 // default: 0
+
+	Upgrader *websocket.Upgrader // *required*
+
+	Blacklist []string // *optional*
+	Whitelist []string // *optional*
 }
 
 type HTTP struct {

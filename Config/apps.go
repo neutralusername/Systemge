@@ -13,8 +13,9 @@ type Oauth2 struct {
 	TokenHandler               func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error) // *required
 	SessionLifetimeMs          uint64                                                                      // default: 0
 	Oauth2State                string                                                                      // *required*
-	Blacklist                  []string                                                                    // *optional*
-	Whitelist                  []string                                                                    // *optional*
+
+	Blacklist []string // *optional*
+	Whitelist []string // *optional*
 }
 
 type Broker struct {

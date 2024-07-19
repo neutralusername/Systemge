@@ -57,7 +57,7 @@ func (resolver *Resolver) validateAddressConfig(address string) error {
 	if resolver.isConfigBlacklisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to blacklist", nil)
 	}
-	if resolver.isConfigWhitelisted(ipAddress) {
+	if !resolver.isConfigWhitelisted(ipAddress) {
 		return Error.New("Rejected connection request from \""+address+"\" due to whitelist", nil)
 	}
 	return nil

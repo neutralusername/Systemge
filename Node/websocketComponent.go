@@ -3,21 +3,11 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Http"
-	"net/http"
-
-	"github.com/gorilla/websocket"
 )
 
 func (node *Node) startWebsocketComponent() error {
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(httpRequest *http.Request) bool {
-			return true
-		},
-	}
 	handlers := map[string]Http.RequestHandler{
-		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: Http.WebsocketUpgrade(upgrader, node.GetWarningLogger(), &node.isStarted, node.websocketConnChannel),
+		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: node.WebsocketUpgrade(),
 	}
 	httpServer := Http.New(node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.Port, handlers)
 	err := Http.Start(httpServer, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.TlsCertPath, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.TlsKeyPath)
