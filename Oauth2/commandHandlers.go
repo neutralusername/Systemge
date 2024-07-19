@@ -6,13 +6,13 @@ import (
 
 func (server *Server) GetCommandHandlers() map[string]Node.CommandHandler {
 	return map[string]Node.CommandHandler{
-		"oauth2Sessions":  server.handleSessionsCommand,
-		"blacklist":       server.handleBlacklistCommand,
-		"whitelist":       server.handleWhitelistCommand,
-		"addWhitelist":    server.handleAddWhitelistCommand,
-		"addBlacklist":    server.handleAddBlacklistCommand,
-		"removeWhitelist": server.handleRemoveWhitelistCommand,
-		"removeBlacklist": server.handleRemoveBlacklistCommand,
+		"oauth2Sessions":        server.handleSessionsCommand,
+		"oauth2Blacklist":       server.handleBlacklistCommand,
+		"oauth2Whitelist":       server.handleWhitelistCommand,
+		"addOauth2Whitelist":    server.handleAddWhitelistCommand,
+		"addOauth2Blacklist":    server.handleAddBlacklistCommand,
+		"removeOauth2Whitelist": server.handleRemoveWhitelistCommand,
+		"removeOauth2Blacklist": server.handleRemoveBlacklistCommand,
 	}
 }
 
