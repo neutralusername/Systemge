@@ -20,6 +20,9 @@ type Server struct {
 
 	stopChannel chan string
 	isStarted   bool
+
+	blacklist map[string]bool
+	whitelist map[string]bool
 }
 
 func New(config *Config.Oauth2) (*Server, error) {
@@ -34,6 +37,14 @@ func New(config *Config.Oauth2) (*Server, error) {
 		config:                config,
 		sessions:              make(map[string]*session),
 		identities:            make(map[string]*session),
+		blacklist:             make(map[string]bool),
+		whitelist:             make(map[string]bool),
+	}
+	for _, ip := range config.Blacklist {
+		server.blacklist[ip] = true
+	}
+	for _, ip := range config.Whitelist {
+		server.whitelist[ip] = true
 	}
 	return server, nil
 }

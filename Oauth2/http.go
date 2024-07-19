@@ -58,6 +58,13 @@ func (server *Server) oauth2Callback() Http.RequestHandler {
 
 func (server *Server) oauth2Auth() Http.RequestHandler {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+		if err := server.validateAddress(httpRequest.RemoteAddr); err != nil {
+			if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(err.Error())
+			}
+			http.Error(responseWriter, err.Error(), http.StatusForbidden)
+			return
+		}
 		url := server.config.AuthRedirectUrl
 		if url == "" {
 			url = server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)

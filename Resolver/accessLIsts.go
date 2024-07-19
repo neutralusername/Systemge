@@ -63,7 +63,7 @@ func (resolver *Resolver) validateAddressConfig(address string) error {
 	return nil
 }
 
-func (resolver *Resolver) addToresolverBlacklist(ips ...string) {
+func (resolver *Resolver) addToResolverBlacklist(ips ...string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, ip := range ips {
@@ -71,7 +71,7 @@ func (resolver *Resolver) addToresolverBlacklist(ips ...string) {
 	}
 }
 
-func (resolver *Resolver) addToresolverWhitelist(ips ...string) {
+func (resolver *Resolver) addToResolverWhitelist(ips ...string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, ip := range ips {
@@ -79,7 +79,7 @@ func (resolver *Resolver) addToresolverWhitelist(ips ...string) {
 	}
 }
 
-func (resolver *Resolver) removeFromresolverBlacklist(ips ...string) {
+func (resolver *Resolver) removeFromResolverBlacklist(ips ...string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, ip := range ips {
@@ -87,7 +87,7 @@ func (resolver *Resolver) removeFromresolverBlacklist(ips ...string) {
 	}
 }
 
-func (resolver *Resolver) removeFromresolverWhitelist(ips ...string) {
+func (resolver *Resolver) removeFromResolverWhitelist(ips ...string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, ip := range ips {

@@ -48,19 +48,19 @@ func (resolver *Resolver) GetCommandHandlers() map[string]Node.CommandHandler {
 			return nil
 		},
 		"addResolverWhitelist": func(node *Node.Node, args []string) error {
-			resolver.addToresolverWhitelist(args...)
+			resolver.addToResolverWhitelist(args...)
 			return nil
 		},
 		"addResolverBlacklist": func(node *Node.Node, args []string) error {
-			resolver.addToresolverBlacklist(args...)
+			resolver.addToResolverBlacklist(args...)
 			return nil
 		},
 		"removeResolverWhitelist": func(node *Node.Node, args []string) error {
-			resolver.removeFromresolverWhitelist(args...)
+			resolver.removeFromResolverWhitelist(args...)
 			return nil
 		},
 		"removeResolverBlacklist": func(node *Node.Node, args []string) error {
-			resolver.removeFromresolverBlacklist(args...)
+			resolver.removeFromResolverBlacklist(args...)
 			return nil
 		},
 		"addConfigWhitelist": func(node *Node.Node, args []string) error {

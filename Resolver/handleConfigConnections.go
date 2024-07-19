@@ -111,13 +111,13 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 	segments := strings.Split(message.GetPayload(), "|")
 	switch message.GetTopic() {
 	case "addWhitelistResolver":
-		resolver.addToresolverWhitelist(segments...)
+		resolver.addToResolverWhitelist(segments...)
 	case "removeWhitelistResolver":
-		resolver.removeFromresolverWhitelist(segments...)
+		resolver.removeFromResolverWhitelist(segments...)
 	case "addBlacklistResolver":
-		resolver.addToresolverBlacklist(segments...)
+		resolver.addToResolverBlacklist(segments...)
 	case "removeBlacklistResolver":
-		resolver.removeFromresolverBlacklist(segments...)
+		resolver.removeFromResolverBlacklist(segments...)
 	case "addWhitelistConfig":
 		resolver.addToConfigWhitelist(segments...)
 	case "removeWhitelistConfig":
