@@ -3,6 +3,7 @@ package Node
 import (
 	"Systemge/Config"
 	"Systemge/Error"
+	"Systemge/Helpers"
 	"Systemge/Message"
 	"Systemge/Tools"
 	"net/http"
@@ -204,7 +205,8 @@ func (node *Node) stop(lock bool) error {
 	node.isStarted = false
 	close(node.stopChannel)
 	for node.inSubscribeLoop > 0 {
-		time.Sleep(10 * time.Millisecond)
+		node.GetWarningLogger().Log(Error.New("Waiting for "+Helpers.IntToString(node.inSubscribeLoop)+" subscribe loops to finish", nil).Error())
+		time.Sleep(time.Duration(node.GetSystemgeComponent().GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 	}
 	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopped", nil).Error())
