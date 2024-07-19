@@ -15,10 +15,10 @@ type Resolver struct {
 	tlsResolverListener net.Listener
 	tlsConfigListener   net.Listener
 
-	resolverWhitelist Tools.AccessControlList
-	resolverBlacklist Tools.AccessControlList
-	configWhitelist   Tools.AccessControlList
-	configBlacklist   Tools.AccessControlList
+	resolverWhitelist *Tools.AccessControlList_
+	resolverBlacklist *Tools.AccessControlList_
+	configWhitelist   *Tools.AccessControlList_
+	configBlacklist   *Tools.AccessControlList_
 
 	registeredTopics map[string]Config.TcpEndpoint // topic -> tcpEndpoint
 
@@ -31,10 +31,10 @@ func New(config *Config.Resolver) *Resolver {
 		config:           config,
 		registeredTopics: map[string]Config.TcpEndpoint{},
 
-		resolverWhitelist: Tools.AccessControlList{},
-		resolverBlacklist: Tools.AccessControlList{},
-		configWhitelist:   Tools.AccessControlList{},
-		configBlacklist:   Tools.AccessControlList{},
+		resolverWhitelist: Tools.NewAccessControlList(),
+		resolverBlacklist: Tools.NewAccessControlList(),
+		configWhitelist:   Tools.NewAccessControlList(),
+		configBlacklist:   Tools.NewAccessControlList(),
 	}
 	for _, ip := range resolver.config.ResolverWhitelist {
 		resolver.resolverWhitelist.Add(ip)

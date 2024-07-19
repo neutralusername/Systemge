@@ -45,15 +45,15 @@ type Node struct {
 	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
 	websocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
-	websocketBlacklist           Tools.AccessControlList
-	websocketWhitelist           Tools.AccessControlList
+	websocketBlacklist           *Tools.AccessControlList_
+	websocketWhitelist           *Tools.AccessControlList_
 
 	//http
 	httpStarted   bool
 	httpMutex     sync.Mutex
 	httpServer    *http.Server
-	httpBlacklist Tools.AccessControlList
-	httpWhitelist Tools.AccessControlList
+	httpBlacklist *Tools.AccessControlList_
+	httpWhitelist *Tools.AccessControlList_
 }
 
 func New(config *Config.Node, application Application) *Node {
@@ -78,10 +78,10 @@ func New(config *Config.Node, application Application) *Node {
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
 
-		websocketBlacklist: Tools.AccessControlList{},
-		websocketWhitelist: Tools.AccessControlList{},
-		httpBlacklist:      Tools.AccessControlList{},
-		httpWhitelist:      Tools.AccessControlList{},
+		websocketBlacklist: Tools.NewAccessControlList(),
+		websocketWhitelist: Tools.NewAccessControlList(),
+		httpBlacklist:      Tools.NewAccessControlList(),
+		httpWhitelist:      Tools.NewAccessControlList(),
 	}
 	if ImplementsWebsocketComponent(application) {
 		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Blacklist {

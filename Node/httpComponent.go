@@ -11,7 +11,7 @@ func (node *Node) startHTTPComponent() error {
 	defer node.httpMutex.Unlock()
 	handlers := make(map[string]http.HandlerFunc)
 	for pattern, handler := range node.GetHTTPComponent().GetHTTPRequestHandlers() {
-		handlers[pattern] = Http.AccessControllWrapper(handler, &node.httpBlacklist, &node.httpWhitelist)
+		handlers[pattern] = Http.AccessControllWrapper(handler, node.httpBlacklist, node.httpWhitelist)
 	}
 	httpServer := Http.New(node.GetHTTPComponent().GetHTTPComponentConfig().Server.Port, handlers)
 	err := Http.Start(httpServer, node.GetHTTPComponent().GetHTTPComponentConfig().Server.TlsCertPath, node.GetHTTPComponent().GetHTTPComponentConfig().Server.TlsKeyPath)

@@ -51,7 +51,7 @@ func Send403(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	responseWriter.Write([]byte("403 forbidden"))
 }
 
-func AccessControllWrapper(handler func(w http.ResponseWriter, r *http.Request), blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList) http.HandlerFunc {
+func AccessControllWrapper(handler func(w http.ResponseWriter, r *http.Request), blacklist *Tools.AccessControlList_, whitelist *Tools.AccessControlList_) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {

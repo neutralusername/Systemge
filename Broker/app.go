@@ -15,10 +15,10 @@ type Broker struct {
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
-	brokerWhitelist Tools.AccessControlList
-	brokerBlacklist Tools.AccessControlList
-	configWhitelist Tools.AccessControlList
-	configBlacklist Tools.AccessControlList
+	brokerWhitelist *Tools.AccessControlList_
+	brokerBlacklist *Tools.AccessControlList_
+	configWhitelist *Tools.AccessControlList_
+	configBlacklist *Tools.AccessControlList_
 
 	nodeSubscriptions map[string]map[string]*nodeConnection // topic -> [nodeName-> nodeConnection]
 	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection
@@ -41,10 +41,10 @@ func New(config *Config.Broker) *Broker {
 		syncTopics:  map[string]bool{},
 		asyncTopics: map[string]bool{},
 
-		brokerWhitelist: Tools.AccessControlList{},
-		brokerBlacklist: Tools.AccessControlList{},
-		configWhitelist: Tools.AccessControlList{},
-		configBlacklist: Tools.AccessControlList{},
+		brokerWhitelist: Tools.NewAccessControlList(),
+		brokerBlacklist: Tools.NewAccessControlList(),
+		configWhitelist: Tools.NewAccessControlList(),
+		configBlacklist: Tools.NewAccessControlList(),
 
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},
