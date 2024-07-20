@@ -1,11 +1,19 @@
 package Node
 
+import "Systemge/Error"
+
 func (node *Node) startSystemgeComponent() error {
 	for topic := range node.GetSystemgeComponent().GetAsyncMessageHandlers() {
-		node.subscribeLoop(topic)
+		err := node.subscribeLoop(topic, 1)
+		if err != nil {
+			return Error.New("Failed to subscribe for topic \""+topic+"\"", err)
+		}
 	}
 	for topic := range node.GetSystemgeComponent().GetSyncMessageHandlers() {
-		node.subscribeLoop(topic)
+		err := node.subscribeLoop(topic, 1)
+		if err != nil {
+			return Error.New("Failed to subscribe for topic \""+topic+"\"", err)
+		}
 	}
 	node.systemgeStarted = true
 	return nil

@@ -4,7 +4,15 @@ func (node *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
 	brokerConnection.close()
 	removedSubscribedTopics := node.cleanUpDisconnectedBrokerConnection(brokerConnection)
 	for _, topic := range removedSubscribedTopics {
-		go node.subscribeLoop(topic)
+		go func() {
+			err := node.subscribeLoop(topic, node.GetSystemgeComponent().GetSystemgeComponentConfig().MaxSubscribeAttempts)
+			if err != nil { //not sure if code past here currently works as intended. will check tmrw
+				err := node.stop(true)
+				if err != nil {
+					panic(err)
+				}
+			}
+		}()
 	}
 }
 

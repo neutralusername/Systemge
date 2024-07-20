@@ -7,15 +7,15 @@ import (
 	"time"
 )
 
-func (node *Node) subscribeLoop(topic string) {
+func (node *Node) subscribeLoop(topic string, maxAttempts uint64) error {
 	node.ongoingSubscribeLoops++
 	defer func() {
 		node.ongoingSubscribeLoops--
 	}()
 	subscribeAttempts := uint64(0)
 	for node.IsStarted() {
-		if subscribeAttempts >= node.GetSystemgeComponent().GetSystemgeComponentConfig().MaxSubscribeAttempts && node.GetSystemgeComponent().GetSystemgeComponentConfig().MaxSubscribeAttempts > 0 {
-			panic("Max subscribe attempts reached for topic \"" + topic + "\"")
+		if subscribeAttempts >= maxAttempts && maxAttempts > 0 {
+			return Error.New("Reached maximum subscribe attempts", nil)
 		}
 		subscribeAttempts++
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
@@ -26,6 +26,7 @@ func (node *Node) subscribeLoop(topic string) {
 		}
 		time.Sleep(time.Duration(node.GetSystemgeComponent().GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 	}
+	return nil
 }
 
 func (node *Node) subscribeAttempt(topic string) bool {
