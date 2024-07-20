@@ -11,7 +11,7 @@ type App struct {
 	config *Config.Dashboard
 }
 
-func new(config *Config.Dashboard, nodes ...*Node.Node) *App {
+func New(config *Config.Dashboard, nodes ...*Node.Node) *App {
 	server := &App{
 		nodes:  make(map[string]*Node.Node),
 		config: config,
