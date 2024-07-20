@@ -29,7 +29,7 @@ export class root extends React.Component {
             setTimeout(() => {
                 if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {}
                 window.location.reload();
-            }, 2000);
+            }, 1000*60*4);
         };
         this.state.WS_CONNECTION.onopen = () => {
             let myLoop = () => {

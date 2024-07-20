@@ -17,7 +17,7 @@ func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
 		},
 		HandleClientMessagesSequentially: true,
 		ClientMessageCooldownMs:          0,
-		ClientWatchdogTimeoutMs:          20000,
+		ClientWatchdogTimeoutMs:          1000 * 60 * 5,
 		Upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
