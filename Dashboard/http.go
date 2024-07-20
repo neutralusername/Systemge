@@ -18,7 +18,7 @@ func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
 func (app *App) GetHTTPComponentConfig() *Config.HTTP {
 	return &Config.HTTP{
 		Server: &Config.TcpServer{
-			Port: app.httpPort,
+			Port: app.config.HttpPort,
 		},
 	}
 }

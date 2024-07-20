@@ -30,7 +30,10 @@ func StartDashboard(httpPort uint16, loggerPath string, nodes ...*Node.Node) {
 			QueueBuffer: 1000,
 			Prefix:      "[Debug \"Dashboard\"] ",
 		},
-	}, new(httpPort, nodes...)).Start()
+	}, new(&Config.Dashboard{
+		HttpPort:               httpPort,
+		StatusUpdateIntervalMs: 1000,
+	}, nodes...)).Start()
 	if err != nil {
 		panic(err)
 	}
