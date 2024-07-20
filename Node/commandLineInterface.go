@@ -51,6 +51,8 @@ func StartCommandLineInterface(nodes ...*Node) {
 		}
 		switch inputSegments[0] {
 		case "?":
+			println("> commands from the custom command handlers of nodes can be executed in this command line interface")
+			println("> type <availableCommands> to see the available commands for each node")
 			println("> precede any command with an exclamation mark <!command> to reverse the order of nodes for the command")
 			println("> schedule a command to be executed at a later time")
 			println("> after starting a schedule its scheduleId will be returned which can be used to stop the schedule")
@@ -62,6 +64,13 @@ func StartCommandLineInterface(nodes ...*Node) {
 			return
 		case "startSchedule":
 			startSchedule(inputSegments, schedules, nodes...)
+		case "availableCommands":
+			for _, node := range nodes {
+				println("node: \"" + node.GetName() + "\"")
+				for command := range node.GetCommandHandlers() {
+					println("\t\"" + command + "\"")
+				}
+			}
 		case "stopSchedule":
 			stopSchedule(inputSegments, schedules)
 		case "listSchedules":
