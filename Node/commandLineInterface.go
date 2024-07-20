@@ -31,12 +31,7 @@ func StartCommandLineInterface(nodes ...*Node) {
 	}
 	reader := bufio.NewReader(os.Stdin)
 	schedules := map[string]*Schedule{}
-	println("enter command (exit to quit)")
-	println("start the command with ! to reverse the order of the nodes in which they were provided")
-	println("startSchedule <command> <time in ms> <repeat> <args...>")
-	println("stopSchedule <scheduleId>")
-	println("listSchedules")
-	println("restart stops all nodes and then starts them again in the order they were provided (! affects only the stop part)")
+	println("enter command (exit to quit) (? for help)")
 	for {
 		print(">")
 		input, err := reader.ReadString(byte(newLineChar))
@@ -55,6 +50,12 @@ func StartCommandLineInterface(nodes ...*Node) {
 			reverse = true
 		}
 		switch inputSegments[0] {
+		case "?":
+			println("start the command with ! to reverse the order of the nodes in which they were provided")
+			println("startSchedule <command> <time in ms> <repeat> <args...>")
+			println("stopSchedule <scheduleId>")
+			println("listSchedules")
+			println("restart stops all nodes and then starts them again in the order they were provided (! affects only the stop part)")
 		case "exit":
 			return
 		case "startSchedule":
