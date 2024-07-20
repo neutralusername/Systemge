@@ -68,13 +68,12 @@ func StartCommandLineInterface(nodes ...*Node) {
 		switch command {
 		case "?":
 			println("> commands from the custom command handlers of nodes can be executed in this command line interface")
-			println("> type <listNodes> to see the available nodes")
-			println("> type <listCommands> to see the available commands for each node")
+			println("> <listNodes> to see the available nodes")
+			println("> <listCommands> to see the available commands for each node")
 			println("> precede any command with a variable amount of <@nodeName> to execute the command on specific nodes")
 			println("> precede any command with an exclamation mark (<!command>) to reverse the order of nodes for the command")
-			println("> schedule a command to be executed at a later time")
+			println("> schedule a command to be executed at a later time using startSchedule (<@nodeName>)<command> <time in ms> <repeat> <args...>")
 			println("> after starting a schedule its scheduleId will be returned which can be used to stop the schedule")
-			println("> startSchedule <command> <time in ms> <repeat> <args...>")
 			println("> restart stops all nodes and then starts them again in the order they were provided (! affects only the stop part)")
 		case "exit":
 			return
