@@ -34,6 +34,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			for _, node := range app.nodes {
 				node.Start()
 			}
+			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), "started").Serialize())
 			return nil
 		},
 	}

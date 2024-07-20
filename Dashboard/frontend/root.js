@@ -2,6 +2,8 @@ export class root extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+                responseMessage: "\u00A0",
+                responseMessageTimeout: null,
                 WS_CONNECTION: new WebSocket("ws://localhost:18251/ws"),
                 constructMessage: (topic, payload) => {
                     return JSON.stringify({
@@ -11,14 +13,24 @@ export class root extends React.Component {
                 },
                 setStateRoot: (state) => {
                     this.setState(state)
-                }
+                },
+                setResponseMessage: (message) => {
+                    clearTimeout(this.state.responseMessageTimeout);
+                    this.setState({
+                        responseMessage: message,
+                        responseMessageTimeout: setTimeout(() => {
+                            this.setState({
+                                responseMessage: "\u00A0",
+                            });
+                        }, 5000),
+                    });
+                },
             },
             (this.state.WS_CONNECTION.onmessage = (event) => {
                 let message = JSON.parse(event.data);
                 switch (message.topic) {
-                    case "error":
-                        let errorMessage = message.payload.split("->").reverse()[0]
-                        console.log(errorMessage)
+                    case "responseMessage":
+                        this.state.setResponseMessage(message.payload);
                         break;
                     default:
                         console.log("Unknown message topic: " + event.data);
@@ -57,6 +69,7 @@ export class root extends React.Component {
                     userSelect: "none",
                 },
             },
+            this.state.responseMessage,
             React.createElement(
                 "button", {
                     onClick: () => {
