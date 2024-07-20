@@ -10,5 +10,5 @@ func StartDashboard(dashboardNodeConfig *Config.Node, dashboardConfig *Config.Da
 	if err != nil {
 		panic(err)
 	}
-	<-make(chan bool)
+	<-make(chan any)
 }
