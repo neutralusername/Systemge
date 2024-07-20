@@ -2,7 +2,6 @@ package Oauth2
 
 import (
 	"Systemge/Error"
-	"Systemge/Http"
 	"Systemge/Node"
 )
 
@@ -18,11 +17,6 @@ func (server *App) OnStart(node *Node.Node) error {
 func (server *App) OnStop(node *Node.Node) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	err := Http.Stop(server.httpServer)
-	if err != nil {
-		return Error.New("failed to stop oauth2 server \""+server.node.GetName()+"\"", err)
-	}
-	server.httpServer = nil
 	server.node = nil
 	close(server.sessionRequestChannel)
 	server.removeAllSessions()

@@ -5,13 +5,11 @@ import (
 	"Systemge/Error"
 	"Systemge/Node"
 	"Systemge/Tools"
-	"net/http"
 	"sync"
 )
 
 type App struct {
 	node                  *Node.Node
-	httpServer            *http.Server
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config.Oauth2
 
