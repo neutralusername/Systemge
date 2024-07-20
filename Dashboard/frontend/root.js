@@ -104,7 +104,7 @@ export class root extends React.Component {
                         }
                     },
                 },
-                "start systemge",
+                "start all",
             ),
             React.createElement(
                 "button", {
@@ -114,7 +114,7 @@ export class root extends React.Component {
                         }
                     },
                 },
-                "stop systemge",
+                "stop all",
             ),
         );
     }
