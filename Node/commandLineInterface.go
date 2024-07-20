@@ -53,6 +53,7 @@ func StartCommandLineInterface(nodes ...*Node) {
 		case "?":
 			println("start the command with ! <!command> to reverse the order of nodes for the command")
 			println("schedule a command to be executed at a later time")
+			println("after starting a schedule a scheduleId will be returned which can be used to stop the schedule")
 			println("startSchedule <command> <time in ms> <repeat> <args...>")
 			println("stopSchedule <scheduleId>")
 			println("listSchedules")
