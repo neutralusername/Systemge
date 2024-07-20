@@ -121,7 +121,10 @@ func (node *Node) Start() error {
 	if ImplementsSystemgeComponent(node.application) {
 		err := node.startSystemgeComponent()
 		if err != nil {
-			node.stop(false)
+			err := node.stop(false)
+			if err != nil {
+				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+			}
 			return Error.New("failed starting systemge component", err)
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
@@ -131,7 +134,10 @@ func (node *Node) Start() error {
 	if ImplementsWebsocketComponent(node.application) {
 		err := node.startWebsocketComponent()
 		if err != nil {
-			node.stop(false)
+			err := node.stop(false)
+			if err != nil {
+				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+			}
 			return Error.New("failed starting websocket server", err)
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
@@ -141,7 +147,10 @@ func (node *Node) Start() error {
 	if ImplementsHTTPComponent(node.application) {
 		err := node.startHTTPComponent()
 		if err != nil {
-			node.stop(false)
+			err := node.stop(false)
+			if err != nil {
+				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+			}
 			return Error.New("failed starting http server", err)
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
@@ -151,7 +160,9 @@ func (node *Node) Start() error {
 	if ImplementsOnStartComponent(node.application) {
 		err := node.GetOnStartComponent().OnStart(node)
 		if err != nil {
-			node.stop(false)
+			if err := node.stop(false); err != nil {
+				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+			}
 			return Error.New("failed in OnStart", err)
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {

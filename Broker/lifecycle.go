@@ -37,7 +37,6 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 	}
 	if len(topicsToAddToResolver) > 0 {
 		if err = broker.addResolverTopicsRemotely(topicsToAddToResolver...); err != nil {
-			broker.stop(node, false)
 			return Error.New("Failed to add resolver topics remotely", err)
 		}
 	}
