@@ -20,8 +20,8 @@ func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
 	}
 }
 
-func (app *App) GetHTTPComponentConfig() *Config.HTTP {
-	return &Config.HTTP{
+func (app *App) GetHTTPComponentConfig() *Config.Http {
+	return &Config.Http{
 		Server:    app.config.Server,
 		Blacklist: app.config.Blacklist,
 		Whitelist: app.config.Whitelist,

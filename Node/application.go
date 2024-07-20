@@ -65,7 +65,7 @@ type CommandHandler func(*Node, []string) error
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type HTTPComponent interface {
 	GetHTTPRequestHandlers() map[string]http.HandlerFunc
-	GetHTTPComponentConfig() *Config.HTTP
+	GetHTTPComponentConfig() *Config.Http
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node

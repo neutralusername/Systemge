@@ -41,7 +41,7 @@ type Websocket struct {
 	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }
 
-type HTTP struct {
+type Http struct {
 	Server *TcpServer // *required*
 
 	Blacklist []string // *optional*

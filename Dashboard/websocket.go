@@ -5,7 +5,6 @@ import (
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Node"
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -53,23 +52,6 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			return nil
 		},
 	}
-}
-
-type NodeStatus struct {
-	Name   string `json:"name"`
-	Status bool   `json:"status"`
-}
-
-func newNodeStatus(name string, status bool) NodeStatus {
-	return NodeStatus{
-		Name:   name,
-		Status: status,
-	}
-}
-
-func jsonMarshal(data interface{}) string {
-	json, _ := json.Marshal(data)
-	return string(json)
 }
 
 func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {

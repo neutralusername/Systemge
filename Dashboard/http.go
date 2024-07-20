@@ -15,8 +15,6 @@ func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
 	}
 }
 
-func (app *App) GetHTTPComponentConfig() *Config.HTTP {
-	return &Config.HTTP{
-		Server: app.config.Server,
-	}
+func (app *App) GetHTTPComponentConfig() *Config.Http {
+	return app.config.Http
 }
