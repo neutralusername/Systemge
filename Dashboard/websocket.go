@@ -40,6 +40,16 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			}
 			return nil
 		},
+		"stop": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
+			for _, node := range app.nodes {
+				err := node.Stop()
+				if err != nil {
+					app.node.GetErrorLogger().Log(Error.New("Failed to stop node \""+node.GetName()+"\": "+err.Error(), nil).Error())
+				}
+			}
+			return nil
+
+		},
 	}
 }
 

@@ -77,7 +77,15 @@ export class root extends React.Component {
                     },
                 },
                 "start systemge",
-            )
+            ),
+            React.createElement(
+                "button", {
+                    onClick: () => {
+                        this.state.WS_CONNECTION.send(this.state.constructMessage("stop", ""));
+                    },
+                },
+                "stop systemge",
+            ),
         );
     }
 }
