@@ -5,6 +5,7 @@ import (
 	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Node"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -37,6 +38,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 				if err != nil {
 					app.node.GetErrorLogger().Log(Error.New("Failed to start node \""+node.GetName()+"\": "+err.Error(), nil).Error())
 				}
+				websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(node.GetName(), node.IsStarted()))).Serialize())
 			}
 			return nil
 		},
@@ -46,15 +48,34 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 				if err != nil {
 					app.node.GetErrorLogger().Log(Error.New("Failed to stop node \""+node.GetName()+"\": "+err.Error(), nil).Error())
 				}
+				websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(node.GetName(), node.IsStarted()))).Serialize())
 			}
 			return nil
-
 		},
 	}
 }
 
-func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
+type NodeStatus struct {
+	Name   string `json:"name"`
+	Status bool   `json:"status"`
+}
 
+func newNodeStatus(name string, status bool) NodeStatus {
+	return NodeStatus{
+		Name:   name,
+		Status: status,
+	}
+}
+
+func jsonMarshal(data interface{}) string {
+	json, _ := json.Marshal(data)
+	return string(json)
+}
+
+func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
+	for _, n := range app.nodes {
+		websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(n.GetName(), n.IsStarted()))).Serialize())
+	}
 }
 
 func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {

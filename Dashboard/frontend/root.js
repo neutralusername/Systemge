@@ -1,42 +1,57 @@
+import { 
+    nodeStatus 
+} from "./nodeStatus.js";
+
 export class root extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-                responseMessage: "\u00A0",
-                responseMessageTimeout: null,
-                WS_CONNECTION: new WebSocket("ws://localhost:18251/ws"),
-                constructMessage: (topic, payload) => {
-                    return JSON.stringify({
-                        topic: topic,
-                        payload: payload,
-                    });
-                },
-                setStateRoot: (state) => {
-                    this.setState(state)
-                },
-                setResponseMessage: (message) => {
-                    clearTimeout(this.state.responseMessageTimeout);
-                    this.setState({
-                        responseMessage: message,
-                        responseMessageTimeout: setTimeout(() => {
-                            this.setState({
-                                responseMessage: "\u00A0",
-                            });
-                        }, 5000),
-                    });
-                },
+            responseMessage: "\u00A0",
+            responseMessageTimeout: null,
+            nodes : {},
+            WS_CONNECTION: new WebSocket("ws://localhost:18251/ws"),
+            constructMessage: (topic, payload) => {
+                return JSON.stringify({
+                    topic: topic,
+                    payload: payload,
+                });
             },
-            (this.state.WS_CONNECTION.onmessage = (event) => {
-                let message = JSON.parse(event.data);
-                switch (message.topic) {
-                    case "responseMessage":
-                        this.state.setResponseMessage(message.payload);
-                        break;
-                    default:
-                        console.log("Unknown message topic: " + event.data);
-                        break;
-                }
-            });
+            setStateRoot: (state) => {
+                this.setState(state)
+            },
+            setResponseMessage: (message) => {
+                clearTimeout(this.state.responseMessageTimeout);
+                this.setState({
+                    responseMessage: message,
+                    responseMessageTimeout: setTimeout(() => {
+                        this.setState({
+                            responseMessage: "\u00A0",
+                        });
+                    }, 5000),
+                });
+            },
+        }
+        this.state.WS_CONNECTION.onmessage = (event) => {
+            let message = JSON.parse(event.data);
+            switch (message.topic) {
+                case "responseMessage":
+                    this.state.setResponseMessage(message.payload);
+                    break;
+                case "nodeStatus":
+                    let nodeStatus = JSON.parse(message.payload);
+                    console.log(nodeStatus);
+                    this.state.setStateRoot({
+                        nodes: {
+                            ...this.state.nodes,
+                            [nodeStatus.name]: nodeStatus,
+                        },
+                    });
+                    break;
+                default:
+                    console.log("Unknown message topic: " + event.data);
+                    break;
+            }
+        }
         this.state.WS_CONNECTION.onclose = () => {
             setTimeout(() => {
                 if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {}
@@ -53,6 +68,15 @@ export class root extends React.Component {
     }
 
     render() {
+        let nodeStatuses = [];
+        for (let nodeName in this.state.nodes) {
+            nodeStatuses.push(React.createElement(
+                nodeStatus, {   
+                    node: this.state.nodes[nodeName],
+                    key: nodeName,
+                },
+            ));
+        }
         return React.createElement(
             "div", {
                 id: "root",
@@ -69,7 +93,7 @@ export class root extends React.Component {
                     userSelect: "none",
                 },
             },
-            this.state.responseMessage,
+            nodeStatuses,
             React.createElement(
                 "button", {
                     onClick: () => {
