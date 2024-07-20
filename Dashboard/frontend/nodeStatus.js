@@ -20,11 +20,18 @@ export class nodeStatus extends React.Component {
 					className: "nodeStatus",
 					style: {
 						display: "flex",
-						flexDirection: "column",
 						alignItems: "center",
 					},
 				}, 
-				 this.props.node.name,
+				React.createElement(
+					"button", {
+						onClick: () => {
+							this.props.node.status ? this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.node.name)) : this.props.WS_CONNECTION.send(this.props.constructMessage("start", this.props.node.name));
+						},
+					},
+					this.props.node.status ? "stop" : "start",
+				),
+				this.props.node.name,
 				this.props.node.status ? "🟢" : "🔴",
 			),
 		)		

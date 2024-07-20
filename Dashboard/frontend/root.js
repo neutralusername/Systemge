@@ -74,6 +74,8 @@ export class root extends React.Component {
                 nodeStatus, {   
                     node: this.state.nodes[nodeName],
                     key: nodeName,
+                    WS_CONNECTION: this.state.WS_CONNECTION,
+                    constructMessage: this.state.constructMessage,
                 },
             ));
         }
@@ -97,7 +99,9 @@ export class root extends React.Component {
             React.createElement(
                 "button", {
                     onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("start", ""));
+                        for (let nodeName in this.state.nodes) {
+                            this.state.WS_CONNECTION.send(this.state.constructMessage("start", nodeName));
+                        }
                     },
                 },
                 "start systemge",
@@ -105,7 +109,9 @@ export class root extends React.Component {
             React.createElement(
                 "button", {
                     onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("stop", ""));
+                        for (let nodeName in this.state.nodes) {
+                            this.state.WS_CONNECTION.send(this.state.constructMessage("stop", nodeName));
+                        }
                     },
                 },
                 "stop systemge",

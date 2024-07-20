@@ -33,22 +33,22 @@ func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
 func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
 	return map[string]Node.WebsocketMessageHandler{
 		"start": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			for _, node := range app.nodes {
-				err := node.Start()
-				if err != nil {
-					app.node.GetErrorLogger().Log(Error.New("Failed to start node \""+node.GetName()+"\": "+err.Error(), nil).Error())
-				}
-				websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(node.GetName(), node.IsStarted()))).Serialize())
+			n := app.nodes[message.GetPayload()]
+			err := n.Start()
+			if err != nil {
+				app.node.GetErrorLogger().Log(Error.New("Failed to start node \""+n.GetName()+"\": "+err.Error(), nil).Error())
+			} else {
+				websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(n.GetName(), n.IsStarted()))).Serialize())
 			}
 			return nil
 		},
 		"stop": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			for _, node := range app.nodes {
-				err := node.Stop()
-				if err != nil {
-					app.node.GetErrorLogger().Log(Error.New("Failed to stop node \""+node.GetName()+"\": "+err.Error(), nil).Error())
-				}
-				websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(node.GetName(), node.IsStarted()))).Serialize())
+			n := app.nodes[message.GetPayload()]
+			err := n.Stop()
+			if err != nil {
+				app.node.GetErrorLogger().Log(Error.New("Failed to stop node \""+n.GetName()+"\": "+err.Error(), nil).Error())
+			} else {
+				websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(n.GetName(), n.IsStarted()))).Serialize())
 			}
 			return nil
 		},
