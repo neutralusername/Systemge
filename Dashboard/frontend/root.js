@@ -29,14 +29,14 @@ export class root extends React.Component {
             setTimeout(() => {
                 if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {}
                 window.location.reload();
-            }, 1000*60*4);
+            }, 2000);
         };
         this.state.WS_CONNECTION.onopen = () => {
             let myLoop = () => {
                 this.state.WS_CONNECTION.send(this.state.constructMessage("heartbeat", ""));
-                setTimeout(myLoop, 15 * 1000);
+                setTimeout(myLoop, 1000*60*4);
             };
-            setTimeout(myLoop, 15 * 1000);
+            setTimeout(myLoop, 1000*60*4);
         };
     }
 
