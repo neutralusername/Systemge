@@ -1,6 +1,7 @@
 package Oauth2
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"net/http"
 
@@ -12,7 +13,22 @@ type oauth2SessionRequest struct {
 	sessionChannel chan<- *session
 }
 
-func (server *Server) oauth2AuthCallback() http.HandlerFunc {
+func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
+	return map[string]http.HandlerFunc{
+		app.config.AuthPath:         app.oauth2Auth(),
+		app.config.AuthCallbackPath: app.oauth2AuthCallback(),
+	}
+}
+
+func (app *App) GetHTTPComponentConfig() *Config.HTTP {
+	return &Config.HTTP{
+		Server:    app.config.Server,
+		Blacklist: app.config.Blacklist,
+		Whitelist: app.config.Whitelist,
+	}
+}
+
+func (server *App) oauth2AuthCallback() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Oauth2 callback for \""+httpRequest.RemoteAddr+"\" called", nil).Error())
@@ -55,7 +71,7 @@ func (server *Server) oauth2AuthCallback() http.HandlerFunc {
 	}
 }
 
-func (server *Server) oauth2Auth() http.HandlerFunc {
+func (server *App) oauth2Auth() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		url := server.config.AuthRedirectUrl
 		if url == "" {

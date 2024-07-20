@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-func (server *Server) GetSession(sessionId string) *session {
+func (server *App) GetSession(sessionId string) *session {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	return server.sessions[sessionId]
 }
 
-func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[string]interface{}) *session {
+func (server *App) getSessionForIdentity(identity string, keyValuePairs map[string]interface{}) *session {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	session := server.identities[identity]
@@ -31,7 +31,7 @@ func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[s
 	return session
 }
 
-func (server *Server) createSession(identity string, keyValuePairs map[string]interface{}) (session *session) {
+func (server *App) createSession(identity string, keyValuePairs map[string]interface{}) (session *session) {
 	for {
 		sessionId := server.node.GetRandomizer().GenerateRandomString(32, Tools.ALPHA_NUMERIC)
 		if _, ok := server.sessions[sessionId]; !ok {
@@ -45,7 +45,7 @@ func (server *Server) createSession(identity string, keyValuePairs map[string]in
 	return
 }
 
-func (server *Server) getRemoveSessionFunc(session *session) func() {
+func (server *App) getRemoveSessionFunc(session *session) func() {
 	return func() {
 		session.expired = true
 		server.mutex.Lock()
@@ -65,7 +65,7 @@ func (server *Server) getRemoveSessionFunc(session *session) func() {
 	}
 }
 
-func (server *Server) removeAllSessions() {
+func (server *App) removeAllSessions() {
 	for _, session := range server.sessions {
 		session.watchdog.Stop()
 		session.watchdog = nil

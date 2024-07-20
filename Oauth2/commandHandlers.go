@@ -4,67 +4,17 @@ import (
 	"Systemge/Node"
 )
 
-func (server *Server) GetCommandHandlers() map[string]Node.CommandHandler {
+func (server *App) GetCommandHandlers() map[string]Node.CommandHandler {
 	return map[string]Node.CommandHandler{
-		"oauth2Sessions":        server.handleSessionsCommand,
-		"oauth2Blacklist":       server.handleBlacklistCommand,
-		"oauth2Whitelist":       server.handleWhitelistCommand,
-		"addOauth2Whitelist":    server.handleAddWhitelistCommand,
-		"addOauth2Blacklist":    server.handleAddBlacklistCommand,
-		"removeOauth2Whitelist": server.handleRemoveWhitelistCommand,
-		"removeOauth2Blacklist": server.handleRemoveBlacklistCommand,
+		"oauth2Sessions": server.handleSessionsCommand,
 	}
 }
 
-func (server *Server) handleSessionsCommand(node *Node.Node, args []string) error {
+func (server *App) handleSessionsCommand(node *Node.Node, args []string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, session := range server.sessions {
 		println(session.identity, session.sessionId)
-	}
-	return nil
-}
-
-func (server *Server) handleBlacklistCommand(node *Node.Node, args []string) error {
-	blacklist := server.blacklist.GetElements()
-	for _, ip := range blacklist {
-		println(ip)
-	}
-	return nil
-}
-
-func (server *Server) handleWhitelistCommand(node *Node.Node, args []string) error {
-	whitelist := server.whitelist.GetElements()
-	for _, ip := range whitelist {
-		println(ip)
-	}
-	return nil
-}
-
-func (server *Server) handleAddWhitelistCommand(node *Node.Node, args []string) error {
-	for _, ip := range args {
-		server.whitelist.Add(ip)
-	}
-	return nil
-}
-
-func (server *Server) handleAddBlacklistCommand(node *Node.Node, args []string) error {
-	for _, ip := range args {
-		server.blacklist.Add(ip)
-	}
-	return nil
-}
-
-func (server *Server) handleRemoveWhitelistCommand(node *Node.Node, args []string) error {
-	for _, ip := range args {
-		server.whitelist.Remove(ip)
-	}
-	return nil
-}
-
-func (server *Server) handleRemoveBlacklistCommand(node *Node.Node, args []string) error {
-	for _, ip := range args {
-		server.blacklist.Remove(ip)
 	}
 	return nil
 }

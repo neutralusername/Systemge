@@ -33,7 +33,7 @@ func (session *session) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
-func (server *Server) Expire(session *session) {
+func (server *App) Expire(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if session.watchdog == nil {
