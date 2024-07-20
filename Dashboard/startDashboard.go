@@ -13,22 +13,22 @@ func StartDashboard(httpPort uint16, loggerPath string, nodes ...*Node.Node) {
 		ErrorLogger: &Config.Logger{
 			Path:        loggerPath,
 			QueueBuffer: 1000,
-			Prefix:      "[Error \"Dashboard\"]",
+			Prefix:      "[Error \"Dashboard\"] ",
 		},
 		WarningLogger: &Config.Logger{
 			Path:        loggerPath,
 			QueueBuffer: 1000,
-			Prefix:      "[Warning \"Dashboard\"]",
+			Prefix:      "[Warning \"Dashboard\"] ",
 		},
 		InfoLogger: &Config.Logger{
 			Path:        loggerPath,
 			QueueBuffer: 1000,
-			Prefix:      "[Info \"Dashboard\"]",
+			Prefix:      "[Info \"Dashboard\"] ",
 		},
 		DebugLogger: &Config.Logger{
 			Path:        loggerPath,
 			QueueBuffer: 1000,
-			Prefix:      "[Debug \"Dashboard\"]",
+			Prefix:      "[Debug \"Dashboard\"] ",
 		},
 	}, new(httpPort, nodes...)).Start()
 	if err != nil {

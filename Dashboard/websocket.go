@@ -2,6 +2,7 @@ package Dashboard
 
 import (
 	"Systemge/Config"
+	"Systemge/Error"
 	"Systemge/Message"
 	"Systemge/Node"
 	"net/http"
@@ -32,9 +33,11 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 	return map[string]Node.WebsocketMessageHandler{
 		"start": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
 			for _, node := range app.nodes {
-				node.Start()
+				err := node.Start()
+				if err != nil {
+					app.node.GetErrorLogger().Log(Error.New("Failed to start node \""+node.GetName()+"\": "+err.Error(), nil).Error())
+				}
 			}
-			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), "started").Serialize())
 			return nil
 		},
 	}

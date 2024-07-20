@@ -5,6 +5,7 @@ import "Systemge/Node"
 type App struct {
 	httpPort uint16
 	nodes    []*Node.Node
+	node     *Node.Node
 }
 
 func new(httpPort uint16, nodes ...*Node.Node) *App {
