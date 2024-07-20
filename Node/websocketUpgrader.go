@@ -13,7 +13,9 @@ func (node *Node) WebsocketUpgrade() http.HandlerFunc {
 		}
 		websocketConn, err := node.GetWebsocketComponent().GetWebsocketComponentConfig().Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			node.GetWarningLogger().Log(Error.New("failed upgrading connection to websocket", err).Error())
+			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("failed upgrading connection to websocket", err).Error())
+			}
 			return
 		}
 		node.websocketConnChannel <- websocketConn
