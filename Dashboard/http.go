@@ -8,10 +8,10 @@ import (
 )
 
 func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
-	_, file, _, _ := runtime.Caller(0)
-	file = file[:len(file)-len("http.go")]
+	_, filePath, _, _ := runtime.Caller(0)
+	filePath = filePath[:len(filePath)-len("http.go")]
 	return map[string]http.HandlerFunc{
-		"/": Http.SendDirectory(file + "frontend"),
+		"/": Http.SendDirectory(filePath + "frontend"),
 	}
 }
 
