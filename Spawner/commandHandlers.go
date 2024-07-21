@@ -7,37 +7,38 @@ import (
 
 func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 	return map[string]Node.CommandHandler{
-		"spawnedNodes": func(node *Node.Node, args []string) error {
+		"spawnedNodes": func(node *Node.Node, args []string) (string, error) {
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
+			resultStr := ""
 			for _, spawnedNode := range spawner.spawnedNodes {
-				println(spawnedNode.GetName())
+				resultStr += spawnedNode.GetName() + ";"
 			}
-			return nil
+			return resultStr, nil
 		},
-		"spawnNode": func(node *Node.Node, args []string) error {
+		"spawnNode": func(node *Node.Node, args []string) (string, error) {
 			if len(args) != 1 {
-				return Error.New("Invalid number of arguments", nil)
+				return "", Error.New("Invalid number of arguments", nil)
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
 			err := spawner.StartNode(node, args[0])
 			if err != nil {
-				return Error.New("Error starting node "+args[0], err)
+				return "", Error.New("Error starting node "+args[0], err)
 			}
-			return nil
+			return "success", nil
 		},
-		"endNode": func(node *Node.Node, args []string) error {
+		"endNode": func(node *Node.Node, args []string) (string, error) {
 			if len(args) != 1 {
-				return Error.New("Invalid number of arguments", nil)
+				return "", Error.New("Invalid number of arguments", nil)
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
 			err := spawner.EndNode(node, args[0])
 			if err != nil {
-				return Error.New("Error ending node "+args[0], err)
+				return "", Error.New("Error ending node "+args[0], err)
 			}
-			return nil
+			return "success", nil
 		},
 	}
 }

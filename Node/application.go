@@ -60,7 +60,7 @@ type SystemgeComponent interface {
 }
 type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)
-type CommandHandler func(*Node, []string) error
+type CommandHandler func(*Node, []string) (string, error)
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type HTTPComponent interface {

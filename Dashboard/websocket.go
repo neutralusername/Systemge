@@ -65,10 +65,11 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if commandHandler == nil {
 				return Error.New("Command not found", nil)
 			}
-			err := commandHandler(n, command.Args)
+			result, err := commandHandler(n, command.Args)
 			if err != nil {
 				return Error.New("Failed to execute command \""+command.Command+"\": "+err.Error(), nil)
 			}
+			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), result).Serialize())
 			return nil
 		},
 	}

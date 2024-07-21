@@ -238,10 +238,11 @@ func executeCommand(node *Node, command string, commandExecuted *bool, args ...s
 			*commandExecuted = true
 		}
 		println("\texecuting command \"" + command + "\" on node \"" + node.GetName() + "\"")
-		err := handler(node, args)
+		result, err := handler(node, args)
 		if err != nil {
 			println(err.Error())
 		}
+		println(result)
 	}
 }
 

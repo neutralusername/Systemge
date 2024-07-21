@@ -10,11 +10,12 @@ func (server *App) GetCommandHandlers() map[string]Node.CommandHandler {
 	}
 }
 
-func (server *App) handleSessionsCommand(node *Node.Node, args []string) error {
+func (server *App) handleSessionsCommand(node *Node.Node, args []string) (string, error) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	returnString := ""
 	for _, session := range server.sessions {
-		println(session.identity, session.sessionId)
+		returnString += session.identity + ":" + session.sessionId + ";"
 	}
-	return nil
+	return returnString, nil
 }

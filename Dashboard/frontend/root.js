@@ -39,6 +39,9 @@ export class root extends React.Component {
             switch (message.topic) {
                 case "error":
                 case "responseMessage":
+                    if (message.payload === "") {
+                        message.payload = "\u00A0";
+                    }
                     this.state.setResponseMessage(message.payload);
                     break;
                 case "nodeStatus":
