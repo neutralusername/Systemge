@@ -121,8 +121,7 @@ func (node *Node) Start() error {
 	if ImplementsSystemgeComponent(node.application) {
 		err := node.startSystemgeComponent()
 		if err != nil {
-			err := node.stop(false)
-			if err != nil {
+			if err := node.stop(false); err != nil {
 				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting systemge component", err)
@@ -134,8 +133,7 @@ func (node *Node) Start() error {
 	if ImplementsWebsocketComponent(node.application) {
 		err := node.startWebsocketComponent()
 		if err != nil {
-			err := node.stop(false)
-			if err != nil {
+			if err := node.stop(false); err != nil {
 				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting websocket server", err)
@@ -147,8 +145,7 @@ func (node *Node) Start() error {
 	if ImplementsHTTPComponent(node.application) {
 		err := node.startHTTPComponent()
 		if err != nil {
-			err := node.stop(false)
-			if err != nil {
+			if err := node.stop(false); err != nil {
 				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting http server", err)
