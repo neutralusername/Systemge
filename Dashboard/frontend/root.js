@@ -9,7 +9,7 @@ export class root extends React.Component {
             responseMessage: "\u00A0",
             responseMessageTimeout: null,
             nodes : {},
-            WS_CONNECTION: new WebSocket("ws://localhost:18251/ws"),
+            WS_CONNECTION: new WebSocket("wss://localhost:18251/ws"),
             constructMessage: (topic, payload) => {
                 return JSON.stringify({
                     topic: topic,

@@ -14,7 +14,9 @@ func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
 	return &Config.Websocket{
 		Pattern: "/ws",
 		Server: &Config.TcpServer{
-			Port: 18251,
+			Port:        18251,
+			TlsCertPath: app.config.Http.Server.TlsCertPath,
+			TlsKeyPath:  app.config.Http.Server.TlsKeyPath,
 		},
 		HandleClientMessagesSequentially: true,
 		ClientMessageCooldownMs:          0,
