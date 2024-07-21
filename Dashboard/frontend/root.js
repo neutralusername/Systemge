@@ -1,7 +1,11 @@
 import { 
     nodeStatus 
 } from "./nodeStatus.js";
-
+import {
+    GetWsConnection,
+    GetWssConnection,
+} from "./wsConnection.js";
+ 
 export class root extends React.Component {
     constructor(props) {
         super(props);
@@ -9,7 +13,7 @@ export class root extends React.Component {
             responseMessage: "\u00A0",
             responseMessageTimeout: null,
             nodes : {},
-            WS_CONNECTION: new WebSocket("wss://localhost:18251/ws"),
+            WS_CONNECTION: window.location.protocol === 'https:' ? GetWssConnection() : GetWsConnection(),
             constructMessage: (topic, payload) => {
                 return JSON.stringify({
                     topic: topic,
