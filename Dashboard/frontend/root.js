@@ -46,7 +46,23 @@ export class root extends React.Component {
                     this.state.setStateRoot({
                         nodes: {
                             ...this.state.nodes,
-                            [nodeStatus.name]: nodeStatus,
+                            [nodeStatus.name]: {
+                                ...this.state.nodes[nodeStatus.name],
+                                name: nodeStatus.name,
+                                status: nodeStatus.status,
+                            },
+                        },
+                    });
+                    break;
+                case "nodeCommands":
+                    let nodeCommands = JSON.parse(message.payload);
+                    this.state.setStateRoot({
+                        nodes: {
+                            ...this.state.nodes,
+                            [nodeCommands.name]: {
+                                ...this.state.nodes[nodeCommands.name],
+                                commands: nodeCommands.commands,
+                            },
                         },
                     });
                     break;

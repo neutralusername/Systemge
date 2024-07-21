@@ -1,16 +1,36 @@
 package Dashboard
 
-import "encoding/json"
+import (
+	"Systemge/Node"
+	"encoding/json"
+)
 
 type NodeStatus struct {
 	Name   string `json:"name"`
 	Status bool   `json:"status"`
 }
 
-func newNodeStatus(name string, status bool) NodeStatus {
+type NodeCommands struct {
+	Name     string   `json:"name"`
+	Commands []string `json:"commands"`
+}
+
+func newNodeStatus(node *Node.Node) NodeStatus {
 	return NodeStatus{
-		Name:   name,
-		Status: status,
+		Name:   node.GetName(),
+		Status: node.IsStarted(),
+	}
+}
+
+func newNodeCommands(node *Node.Node) NodeCommands {
+	commands := []string{}
+	for command := range node.GetCommandHandlers() {
+		commands = append(commands, command)
+
+	}
+	return NodeCommands{
+		Commands: commands,
+		Name:     node.GetName(),
 	}
 }
 
