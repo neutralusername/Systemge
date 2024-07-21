@@ -101,9 +101,6 @@ export class root extends React.Component {
         return React.createElement(
             "div", {
                 id: "root",
-                onContextMenu: (e) => {
-                    e.preventDefault();
-                },
                 style: {
                     fontFamily: "sans-serif",
                     display: "flex",
