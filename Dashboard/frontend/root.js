@@ -37,12 +37,12 @@ export class root extends React.Component {
         this.state.WS_CONNECTION.onmessage = (event) => {
             let message = JSON.parse(event.data);
             switch (message.topic) {
+                case "error":
                 case "responseMessage":
                     this.state.setResponseMessage(message.payload);
                     break;
                 case "nodeStatus":
                     let nodeStatus = JSON.parse(message.payload);
-                    console.log(nodeStatus);
                     this.state.setStateRoot({
                         nodes: {
                             ...this.state.nodes,
@@ -114,6 +114,7 @@ export class root extends React.Component {
                     userSelect: "none",
                 },
             },
+            this.state.responseMessage,
             nodeStatuses,
             React.createElement(
                 "button", {

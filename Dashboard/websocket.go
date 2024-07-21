@@ -52,6 +52,26 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
 			return nil
 		},
+		"command": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
+			command := parseCommand(message.GetPayload())
+			if command == nil {
+				return Error.New("Invalid command", nil)
+			}
+			n := app.nodes[command.Name]
+			if n == nil {
+				return Error.New("Node not found", nil)
+			}
+			commandHandler := n.GetCommandHandlers()[command.Command]
+			if commandHandler == nil {
+				return Error.New("Command not found", nil)
+			}
+			err := commandHandler(n, command.Args)
+			if err != nil {
+				websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), err.Error()).Serialize())
+				return Error.New("Failed to execute command: "+err.Error(), nil)
+			}
+			return nil
+		},
 	}
 }
 
