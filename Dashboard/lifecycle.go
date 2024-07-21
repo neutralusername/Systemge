@@ -1,6 +1,7 @@
 package Dashboard
 
 import (
+	"Systemge/Helpers"
 	"Systemge/Message"
 	"Systemge/Node"
 	"time"
@@ -22,7 +23,7 @@ func (app *App) OnStop(node *Node.Node) error {
 func (app *App) statusUpdateRoutine() {
 	for {
 		for _, node := range app.nodes {
-			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), jsonMarshal(newNodeStatus(node))))
+			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), Helpers.JsonMarshal(newNodeStatus(node))))
 		}
 		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
 	}

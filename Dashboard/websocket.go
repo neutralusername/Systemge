@@ -3,6 +3,7 @@ package Dashboard
 import (
 	"Systemge/Config"
 	"Systemge/Error"
+	"Systemge/Helpers"
 	"Systemge/Message"
 	"Systemge/Node"
 	"net/http"
@@ -39,7 +40,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if err != nil {
 				return Error.New("Failed to start node \""+n.GetName()+"\": "+err.Error(), nil)
 			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
 			return nil
 		},
 		"stop": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
@@ -48,7 +49,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if err != nil {
 				return Error.New("Failed to stop node \""+n.GetName()+"\": "+err.Error(), nil)
 			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
 			return nil
 		},
 	}
@@ -56,8 +57,8 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 
 func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
 	for _, n := range app.nodes {
-		websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), jsonMarshal(newNodeStatus(n))).Serialize())
-		websocketClient.Send(Message.NewAsync("nodeCommands", node.GetName(), jsonMarshal(newNodeCommands(n))).Serialize())
+		websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
+		websocketClient.Send(Message.NewAsync("nodeCommands", node.GetName(), Helpers.JsonMarshal(newNodeCommands(n))).Serialize())
 	}
 }
 
