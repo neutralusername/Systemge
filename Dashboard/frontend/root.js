@@ -1,6 +1,7 @@
 import { 
     nodeStatus 
 } from "./nodeStatus.js";
+import { GenerateRandomAlphaNumericString } from "./randomizer.js";
 import {
     GetWebsocketConnection,
 } from "./wsConnection.js";
@@ -9,8 +10,8 @@ export class root extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            responseMessage: "\u00A0",
-            responseMessageTimeout: null,
+            responseMessages : {},
+            responseMessageTimeouts : {},
             nodes : {},
             WS_CONNECTION: GetWebsocketConnection(),
             constructMessage: (topic, payload) => {
@@ -23,14 +24,25 @@ export class root extends React.Component {
                 this.setState(state)
             },
             setResponseMessage: (message) => {
-                clearTimeout(this.state.responseMessageTimeout);
+                let responseId = GenerateRandomAlphaNumericString(10);
+                let responseMessages = this.state.responseMessages;
+                responseMessages[responseId] = message;
+                let responseMessageTimeouts = this.state.responseMessageTimeouts;
+                if (responseMessageTimeouts[responseId] !== undefined) {
+                    clearTimeout(responseMessageTimeouts[responseId]);
+                }
+                responseMessageTimeouts[responseId] = setTimeout(() => {
+                    delete responseMessages[responseId];
+                    delete responseMessageTimeouts[responseId];
+                    this.setState({
+                        responseMessages: responseMessages,
+                        responseMessageTimeouts: responseMessageTimeouts,
+                    });
+                }, 10000);
+                console.log(responseMessages);
                 this.setState({
-                    responseMessage: message,
-                    responseMessageTimeout: setTimeout(() => {
-                        this.setState({
-                            responseMessage: "\u00A0",
-                        });
-                    }, 5000),
+                    responseMessages: responseMessages,
+                    responseMessageTimeouts: responseMessageTimeouts,
                 });
             },
         }
@@ -101,6 +113,17 @@ export class root extends React.Component {
                 },
             ));
         }
+        let responseMessages = [];
+        for (let responseId in this.state.responseMessages) {
+            responseMessages.push(React.createElement(
+                "div", {
+                    key: responseId,
+                    style: {
+                    },
+                },
+                this.state.responseMessages[responseId],
+            ));
+        }
         return React.createElement(
             "div", {
                 id: "root",
@@ -112,7 +135,6 @@ export class root extends React.Component {
                     alignItems: "center",
                 },
             },
-            this.state.responseMessage,
             nodeStatuses,
             React.createElement(
                 "button", {
@@ -134,6 +156,7 @@ export class root extends React.Component {
                 },
                 "stop all",
             ),
+            responseMessages
         );
     }
 }
