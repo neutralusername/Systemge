@@ -67,8 +67,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			}
 			err := commandHandler(n, command.Args)
 			if err != nil {
-				websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), err.Error()).Serialize())
-				return Error.New("Failed to execute command: "+err.Error(), nil)
+				return Error.New("Failed to execute command \""+command.Command+"\": "+err.Error(), nil)
 			}
 			return nil
 		},
