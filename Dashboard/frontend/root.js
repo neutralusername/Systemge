@@ -107,8 +107,6 @@ export class root extends React.Component {
                     flexDirection: "column",
                     justifyContent: "center",
                     alignItems: "center",
-                    touchAction: "none",
-                    userSelect: "none",
                 },
             },
             this.state.responseMessage,
