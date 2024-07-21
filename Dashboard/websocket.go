@@ -53,7 +53,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			return nil
 		},
 		"command": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			command := parseCommand(message.GetPayload())
+			command := jsonUnmarshal(message.GetPayload())
 			if command == nil {
 				return Error.New("Invalid command", nil)
 			}

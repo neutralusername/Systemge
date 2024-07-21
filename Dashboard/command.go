@@ -10,7 +10,7 @@ type Command struct {
 	Args    []string `json:"args"`
 }
 
-func parseCommand(command string) *Command {
+func jsonUnmarshal(command string) *Command {
 	c := &Command{}
 	err := json.Unmarshal([]byte(command), c)
 	if err != nil {
