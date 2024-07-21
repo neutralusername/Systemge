@@ -1,3 +1,0 @@
-package Node
-
-const WEBSOCKETCONNCHANNEL_BUFFERSIZE = 100
