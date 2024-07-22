@@ -177,6 +177,19 @@ export class root extends React.Component {
                     alignItems: "center",
                 },
             },
+            React.createElement(
+                "button", {
+                    style: {
+                        position: "fixed",
+                        top: "0",
+                        right: "90%",
+                    },
+                    onClick: () => {
+                        this.state.WS_CONNECTION.send(this.state.constructMessage("close"));
+                    },
+                },
+                "close",
+            ),
             nodeStatuses,
             React.createElement(
                 "button", {

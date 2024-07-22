@@ -48,6 +48,11 @@ func New(config *Config.Node, application Application) *Node {
 	return node
 }
 
+func (node *Node) StartBlocking() {
+	node.Start()
+	<-node.stopChannel
+}
+
 func (node *Node) Start() error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()

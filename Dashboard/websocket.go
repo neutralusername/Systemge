@@ -79,6 +79,10 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			runtime.GC()
 			return nil
 		},
+		"close": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
+			node.Stop()
+			return nil
+		},
 	}
 }
 
