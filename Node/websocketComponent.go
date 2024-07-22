@@ -11,14 +11,15 @@ import (
 )
 
 type websocketComponent struct {
-	application        WebsocketComponent
-	mutex              sync.Mutex
-	httpServer         *Http.Server
-	connChannel        chan *websocket.Conn
-	clients            map[string]*WebsocketClient            // websocketId -> websocketClient
-	groups             map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
-	clientGroups       map[string]map[string]bool             // websocketId -> map[groupId]bool
-	onDisconnectWraper func(websocketClient *WebsocketClient)
+	application         WebsocketComponent
+	mutex               sync.Mutex
+	httpServer          *Http.Server
+	connChannel         chan *websocket.Conn
+	clients             map[string]*WebsocketClient            // websocketId -> websocketClient
+	groups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	clientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
+	onDisconnectWraper  func(websocketClient *WebsocketClient)
+	messageHandlerMutex sync.Mutex
 }
 
 func (node *Node) startWebsocketComponent() error {

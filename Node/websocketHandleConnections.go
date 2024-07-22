@@ -86,7 +86,9 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 }
 
 func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
+	node.websocket.messageHandlerMutex.Lock()
 	handler := node.websocket.application.GetWebsocketMessageHandlers()[message.GetTopic()]
+	node.websocket.messageHandlerMutex.Unlock()
 	if handler == nil {
 		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {

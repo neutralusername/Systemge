@@ -100,7 +100,9 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 }
 
 func (node *Node) handleAsyncMessage(message *Message.Message) error {
+	node.systemge.asyncMessageHandlerMutex.Lock()
 	asyncHandler := node.systemge.application.GetAsyncMessageHandlers()[message.GetTopic()]
+	node.systemge.asyncMessageHandlerMutex.Unlock()
 	if asyncHandler == nil {
 		return Error.New("No handler", nil)
 	}
@@ -112,7 +114,9 @@ func (node *Node) handleAsyncMessage(message *Message.Message) error {
 }
 
 func (node *Node) handleSyncMessage(message *Message.Message) (string, error) {
+	node.systemge.syncMessageHandlerMutex.Lock()
 	syncHandler := node.systemge.application.GetSyncMessageHandlers()[message.GetTopic()]
+	node.systemge.syncMessageHandlerMutex.Unlock()
 	if syncHandler == nil {
 		return "", Error.New("No handler", nil)
 	}

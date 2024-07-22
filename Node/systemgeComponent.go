@@ -13,6 +13,8 @@ type systemgeComponent struct {
 	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
 	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
 	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
+	asyncMessageHandlerMutex   sync.Mutex
+	syncMessageHandlerMutex    sync.Mutex
 }
 
 func (node *Node) startSystemgeComponent() error {
