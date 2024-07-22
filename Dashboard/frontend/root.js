@@ -15,6 +15,7 @@ export class root extends React.Component {
             responseMessages : {},
             responseMessageTimeouts : {},
             nodes : {},
+            heapUpdates : {},
             WS_CONNECTION: GetWebsocketConnection(),
             constructMessage: (topic, payload) => {
                 return JSON.stringify({
@@ -41,7 +42,6 @@ export class root extends React.Component {
                         responseMessageTimeouts: responseMessageTimeouts,
                     });
                 }, 10000);
-                console.log(responseMessages);
                 this.setState({
                     responseMessages: responseMessages,
                     responseMessageTimeouts: responseMessageTimeouts,
@@ -80,6 +80,22 @@ export class root extends React.Component {
                                 ...this.state.nodes[nodeCommands.name],
                                 commands: nodeCommands.commands,
                             },
+                        },
+                    });
+                    break;
+                case "heapStatus":
+                    let heapStatus = Number(message.payload);
+                    if (Object.keys(this.state.heapUpdates).length > 50) {
+                        let heapUpdates = this.state.heapUpdates;
+                        delete heapUpdates[Object.keys(heapUpdates)[0]];
+                        this.state.setStateRoot({
+                            heapUpdates: heapUpdates,
+                        });
+                    }
+                    this.state.setStateRoot({
+                        heapUpdates: {
+                            ...this.state.heapUpdates,
+                            [new Date().toLocaleTimeString()]: heapStatus,
                         },
                     });
                     break;
@@ -126,6 +142,30 @@ export class root extends React.Component {
                 this.state.responseMessages[responseId],
             ));
         }
+       new Chart("myChart", {
+            type: "line",
+            data: {
+                labels: Object.keys(this.state.heapUpdates),
+                datasets: [{
+                    label: "Heap Usage",
+                    data: Object.values(this.state.heapUpdates),
+                    fill: false,
+                    borderColor: "rgb(75, 192, 192)",
+                    tension: 0.1,
+                }],
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                    },
+                },
+                animation : true
+
+            },
+        });
         return React.createElement(
             "div", {
                 id: "root",
@@ -158,23 +198,16 @@ export class root extends React.Component {
                 },
                 "stop all",
             ),
+            responseMessages,
             React.createElement(
-                "button", {
-                    onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("heap"));
+                "canvas", {
+                    id: "myChart",
+                    style : {
+                        width : "70%",
+                        height : "1000"
                     },
                 },
-                "check heap usage",
-            ),
-            React.createElement(
-                "button", {
-                    onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("gc"));
-                    },
-                },
-                "collect garbage",
-            ),
-            responseMessages
+            )
         );
     }
 }

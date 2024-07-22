@@ -63,4 +63,5 @@ type Spawner struct {
 type Dashboard struct {
 	Server                 *TcpServer // *required*
 	StatusUpdateIntervalMs uint64     // default: 0 = disabled
+	HeapUpdateIntervalMs   uint64     // default: 0 = disabled
 }
