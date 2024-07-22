@@ -11,9 +11,8 @@ import (
 
 func (resolver *Resolver) handleConfigConnections() {
 	for resolver.isStarted {
-		netConn, err := resolver.tlsConfigListener.Accept()
+		netConn, err := resolver.configTcpServer.GetListener().Accept()
 		if err != nil {
-			resolver.tlsConfigListener.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept config connection request", err).Error())
 			}
@@ -30,14 +29,14 @@ func (resolver *Resolver) handleConfigConnections() {
 			}
 			continue
 		}
-		if resolver.configBlacklist.Contains(ip) {
+		if resolver.configTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}
-		if resolver.configWhitelist.ElementCount() > 0 && !resolver.configWhitelist.Contains(ip) {
+		if resolver.configTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.configTcpServer.GetWhitelist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
@@ -115,35 +114,35 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 	switch message.GetTopic() {
 	case "addWhitelistResolver":
 		for _, segment := range segments {
-			resolver.resolverWhitelist.Add(segment)
+			resolver.resolverTcpServer.GetWhitelist().Add(segment)
 		}
 	case "removeWhitelistResolver":
 		for _, segment := range segments {
-			resolver.resolverWhitelist.Remove(segment)
+			resolver.resolverTcpServer.GetWhitelist().Remove(segment)
 		}
 	case "addBlacklistResolver":
 		for _, segment := range segments {
-			resolver.resolverBlacklist.Add(segment)
+			resolver.resolverTcpServer.GetBlacklist().Add(segment)
 		}
 	case "removeBlacklistResolver":
 		for _, segment := range segments {
-			resolver.resolverBlacklist.Remove(segment)
+			resolver.resolverTcpServer.GetBlacklist().Remove(segment)
 		}
 	case "addWhitelistConfig":
 		for _, segment := range segments {
-			resolver.configWhitelist.Add(segment)
+			resolver.configTcpServer.GetWhitelist().Add(segment)
 		}
 	case "removeWhitelistConfig":
 		for _, segment := range segments {
-			resolver.configWhitelist.Remove(segment)
+			resolver.configTcpServer.GetWhitelist().Remove(segment)
 		}
 	case "addBlacklistConfig":
 		for _, segment := range segments {
-			resolver.configBlacklist.Add(segment)
+			resolver.configTcpServer.GetBlacklist().Add(segment)
 		}
 	case "removeBlacklistConfig":
 		for _, segment := range segments {
-			resolver.configBlacklist.Remove(segment)
+			resolver.configTcpServer.GetBlacklist().Remove(segment)
 		}
 	case "addTopics":
 		if len(segments) < 2 {

@@ -1,6 +1,10 @@
 package Config
 
-import "github.com/gorilla/websocket"
+import (
+	"net/http"
+
+	"github.com/gorilla/websocket"
+)
 
 type Node struct {
 	Name string // *required*
@@ -28,8 +32,8 @@ type Systemge struct {
 }
 
 type Websocket struct {
-	Pattern string // *required*
-	Http    *Http  // *required*
+	Pattern string     // *required*
+	Server  *TcpServer // *required*
 
 	HandleClientMessagesSequentially bool   // default: false
 	ClientMessageCooldownMs          uint64 // default: 0
@@ -37,4 +41,9 @@ type Websocket struct {
 
 	Upgrader *websocket.Upgrader // *required*
 
+}
+
+type Http struct {
+	Server   *TcpServer                  // *required*
+	Handlers map[string]http.HandlerFunc // *required*
 }

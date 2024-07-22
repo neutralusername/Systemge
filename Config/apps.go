@@ -3,7 +3,7 @@ package Config
 import "golang.org/x/oauth2"
 
 type Oauth2 struct {
-	Http                       *Http                                                                       // *required*
+	Server                     *TcpServer                                                                  // *required*
 	AuthPath                   string                                                                      // *required*
 	AuthCallbackPath           string                                                                      // *required*
 	OAuth2Config               *oauth2.Config                                                              // *required*
@@ -23,12 +23,6 @@ type Broker struct {
 	SyncTopics  []string
 	AsyncTopics []string
 
-	BrokerWhitelist []string // *optional* (if empty, all IPs are allowed)
-	BrokerBlacklist []string // *optional*
-
-	ConfigWhitelist []string // *optional* (if empty, all IPs are allowed)
-	ConfigBlacklist []string // *optional*
-
 	ResolverConfigEndpoint *TcpEndpoint // *required*
 
 	SyncResponseTimeoutMs uint64 // default: 0
@@ -44,12 +38,6 @@ type Broker struct {
 type Resolver struct {
 	Server       *TcpServer // *required*
 	ConfigServer *TcpServer // *required*
-
-	ResolverWhitelist []string // *optional* (if empty, all IPs are allowed)
-	ResolverBlacklist []string // *optional*
-
-	ConfigWhitelist []string // *optional* (if empty, all IPs are allowed)
-	ConfigBlacklist []string // *optional*
 
 	TcpTimeoutMs uint64 // default: 0 = block forever
 
@@ -71,9 +59,8 @@ type Spawner struct {
 	BrokerConfigEndpoint *TcpEndpoint // *required*
 }
 
-// websocket and http share the same Http config (tls, blacklist, whitelist) besides the port, which only applies to http
-// websocket runs on port 18251 which is hardcoded
+// Server applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
-	Http                   *Http  // default: nil (app)
-	StatusUpdateIntervalMs uint64 // default: 0 = disabled
+	Server                 *TcpServer // *required*
+	StatusUpdateIntervalMs uint64     // default: 0 = disabled
 }

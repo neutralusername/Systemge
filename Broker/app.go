@@ -3,8 +3,7 @@ package Broker
 import (
 	"Systemge/Config"
 	"Systemge/Node"
-	"Systemge/Tools"
-	"net"
+	"Systemge/Tcp"
 	"sync"
 )
 
@@ -15,17 +14,12 @@ type Broker struct {
 	syncTopics  map[string]bool
 	asyncTopics map[string]bool
 
-	brokerWhitelist *Tools.AccessControlList
-	brokerBlacklist *Tools.AccessControlList
-	configWhitelist *Tools.AccessControlList
-	configBlacklist *Tools.AccessControlList
-
 	nodeSubscriptions map[string]map[string]*nodeConnection // topic -> [nodeName-> nodeConnection]
 	nodeConnections   map[string]*nodeConnection            // nodeName -> nodeConnection
 	openSyncRequests  map[string]*syncRequest               // syncKey -> syncRequest
 
-	tlsBrokerListener net.Listener
-	tlsConfigListener net.Listener
+	brokerTcpServer *Tcp.Server
+	configTcpServer *Tcp.Server
 
 	isStarted   bool
 	stopChannel chan bool
@@ -41,26 +35,9 @@ func New(config *Config.Broker) *Broker {
 		syncTopics:  map[string]bool{},
 		asyncTopics: map[string]bool{},
 
-		brokerWhitelist: Tools.NewAccessControlList(),
-		brokerBlacklist: Tools.NewAccessControlList(),
-		configWhitelist: Tools.NewAccessControlList(),
-		configBlacklist: Tools.NewAccessControlList(),
-
 		nodeSubscriptions: map[string]map[string]*nodeConnection{},
 		nodeConnections:   map[string]*nodeConnection{},
 		openSyncRequests:  map[string]*syncRequest{},
-	}
-	for _, ip := range broker.config.BrokerWhitelist {
-		broker.brokerWhitelist.Add(ip)
-	}
-	for _, ip := range broker.config.BrokerBlacklist {
-		broker.brokerBlacklist.Add(ip)
-	}
-	for _, ip := range broker.config.ConfigWhitelist {
-		broker.configWhitelist.Add(ip)
-	}
-	for _, ip := range broker.config.ConfigBlacklist {
-		broker.configBlacklist.Add(ip)
 	}
 	return broker
 }

@@ -1,21 +1,24 @@
 package Node
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Http"
 	"net/http"
 )
 
 func (node *Node) startWebsocketComponent() error {
-	handlers := map[string]http.HandlerFunc{
-		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: Http.AccessControllWrapper(node.WebsocketUpgrade(), node.websocketBlacklist, node.websocketWhitelist),
-	}
-	httpServer := Http.New(node.GetWebsocketComponent().GetWebsocketComponentConfig().Http.Server.Port, handlers)
-	err := Http.Start(httpServer, node.GetWebsocketComponent().GetWebsocketComponentConfig().Http.Server.TlsCertPath, node.GetWebsocketComponent().GetWebsocketComponentConfig().Http.Server.TlsKeyPath)
+	httpServer := Http.New(&Config.Http{
+		Server: node.GetWebsocketComponent().GetWebsocketComponentConfig().Server,
+		Handlers: map[string]http.HandlerFunc{
+			node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: node.WebsocketUpgrade(),
+		},
+	})
+	err := httpServer.Start()
 	if err != nil {
 		return Error.New("failed starting websocket handshake handler", err)
 	}
-	node.websocketHandshakeHTTPServer = httpServer
+	node.websocketHttpServer = httpServer
 	node.websocketClients = make(map[string]*WebsocketClient)
 	go node.handleWebsocketConnections()
 	node.websocketStarted = true
@@ -23,12 +26,11 @@ func (node *Node) startWebsocketComponent() error {
 }
 
 func (node *Node) stopWebsocketComponent() error {
-	err := Http.Stop(node.websocketHandshakeHTTPServer)
+	err := node.websocketHttpServer.Stop()
 	if err != nil {
 		return Error.New("failed stopping websocket handshake handler", err)
 	}
-	node.websocketHandshakeHTTPServer = nil
-
+	node.websocketHttpServer = nil
 	node.websocketMutex.Lock()
 	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
 	for _, websocketClient := range node.websocketClients {

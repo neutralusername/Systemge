@@ -14,14 +14,12 @@ import (
 func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
 	return &Config.Websocket{
 		Pattern: "/ws",
-		Http: &Config.Http{
-			Server: &Config.TcpServer{
-				Port:        18251,
-				TlsCertPath: app.config.Http.Server.TlsCertPath,
-				TlsKeyPath:  app.config.Http.Server.TlsKeyPath,
-			},
-			Blacklist: app.config.Http.Blacklist,
-			Whitelist: app.config.Http.Whitelist,
+		Server: &Config.TcpServer{
+			Port:        18251,
+			TlsCertPath: app.config.Server.TlsCertPath,
+			TlsKeyPath:  app.config.Server.TlsKeyPath,
+			Blacklist:   app.config.Server.Blacklist,
+			Whitelist:   app.config.Server.Whitelist,
 		},
 		HandleClientMessagesSequentially: true,
 		ClientMessageCooldownMs:          0,

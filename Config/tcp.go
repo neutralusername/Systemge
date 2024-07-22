@@ -6,6 +6,9 @@ type TcpServer struct {
 	Port        uint16 // *required*
 	TlsCertPath string // *optional*
 	TlsKeyPath  string // *optional*
+
+	Blacklist []string // *optional*
+	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }
 
 type TcpEndpoint struct {

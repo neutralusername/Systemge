@@ -7,9 +7,13 @@ type AccessControlList struct {
 	mutex sync.Mutex
 }
 
-func NewAccessControlList() *AccessControlList {
+func NewAccessControlList(entries []string) *AccessControlList {
+	list := map[string]bool{}
+	for _, item := range entries {
+		list[item] = true
+	}
 	return &AccessControlList{
-		list: make(map[string]bool),
+		list: list,
 	}
 }
 

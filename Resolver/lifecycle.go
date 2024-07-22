@@ -20,8 +20,8 @@ func (resolver *Resolver) OnStart(node *Node.Node) error {
 	if err != nil {
 		return Error.New("Failed to get listener for resolver \""+node.GetName()+"\"", err)
 	}
-	resolver.tlsResolverListener = listener
-	resolver.tlsConfigListener = configListener
+	resolver.resolverTcpServer = listener
+	resolver.configTcpServer = configListener
 	resolver.isStarted = true
 	resolver.node = node
 
@@ -40,10 +40,10 @@ func (resolver *Resolver) OnStop(node *Node.Node) error {
 		delete(resolver.registeredTopics, topic)
 	}
 	resolver.isStarted = false
-	resolver.tlsResolverListener.Close()
-	resolver.tlsResolverListener = nil
-	resolver.tlsConfigListener.Close()
-	resolver.tlsConfigListener = nil
+	resolver.resolverTcpServer.GetListener().Close()
+	resolver.resolverTcpServer = nil
+	resolver.configTcpServer.GetListener().Close()
+	resolver.configTcpServer = nil
 	resolver.node = nil
 	return nil
 }

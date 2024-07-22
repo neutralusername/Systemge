@@ -9,7 +9,7 @@ import (
 
 func (broker *Broker) handleNodeConnections() {
 	for broker.isStarted {
-		netConn, err := broker.tlsBrokerListener.Accept()
+		netConn, err := broker.brokerTcpServer.GetListener().Accept()
 		if err != nil {
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept connection request", err).Error())
@@ -24,14 +24,14 @@ func (broker *Broker) handleNodeConnections() {
 			}
 			continue
 		}
-		if broker.brokerBlacklist.Contains(ip) {
+		if broker.brokerTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}
-		if broker.brokerWhitelist.ElementCount() > 0 && !broker.brokerWhitelist.Contains(ip) {
+		if broker.brokerTcpServer.GetWhitelist().ElementCount() > 0 && !broker.brokerTcpServer.GetWhitelist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())

@@ -9,7 +9,7 @@ import (
 
 func (resolver *Resolver) handleResolverConnections() {
 	for resolver.isStarted {
-		netConn, err := resolver.tlsResolverListener.Accept()
+		netConn, err := resolver.resolverTcpServer.GetListener().Accept()
 		if err != nil {
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept resolution connection request", err).Error())
@@ -27,14 +27,14 @@ func (resolver *Resolver) handleResolverConnections() {
 			}
 			continue
 		}
-		if resolver.resolverBlacklist.Contains(ip) {
+		if resolver.resolverTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}
-		if resolver.resolverWhitelist.ElementCount() > 0 && !resolver.resolverWhitelist.Contains(ip) {
+		if resolver.resolverTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.resolverTcpServer.GetWhitelist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())

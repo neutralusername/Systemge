@@ -10,7 +10,7 @@ import (
 
 func (broker *Broker) handleConfigConnections() {
 	for broker.isStarted {
-		netConn, err := broker.tlsConfigListener.Accept()
+		netConn, err := broker.configTcpServer.GetListener().Accept()
 		if err != nil {
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept connection request", err).Error())
@@ -25,14 +25,14 @@ func (broker *Broker) handleConfigConnections() {
 			}
 			continue
 		}
-		if broker.configBlacklist.Contains(ip) {
+		if broker.configTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			continue
 		}
-		if broker.configWhitelist.ElementCount() > 0 && !broker.configWhitelist.Contains(ip) {
+		if broker.configTcpServer.GetWhitelist().ElementCount() > 0 && !broker.configTcpServer.GetWhitelist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
@@ -101,35 +101,35 @@ func (broker *Broker) handleConfigRequest(message *Message.Message) error {
 	switch message.GetTopic() {
 	case "addWhitelistBroker":
 		for _, payloadSegment := range payloadSegments {
-			broker.brokerWhitelist.Add(payloadSegment)
+			broker.brokerTcpServer.GetWhitelist().Add(payloadSegment)
 		}
 	case "removeWhitelistBroker":
 		for _, payloadSegment := range payloadSegments {
-			broker.brokerWhitelist.Remove(payloadSegment)
+			broker.brokerTcpServer.GetWhitelist().Remove(payloadSegment)
 		}
 	case "addBlacklistBroker":
 		for _, payloadSegment := range payloadSegments {
-			broker.brokerBlacklist.Add(payloadSegment)
+			broker.brokerTcpServer.GetBlacklist().Add(payloadSegment)
 		}
 	case "removeBlacklistBroker":
 		for _, payloadSegment := range payloadSegments {
-			broker.brokerBlacklist.Remove(payloadSegment)
+			broker.brokerTcpServer.GetBlacklist().Remove(payloadSegment)
 		}
 	case "addWhitelistConfig":
 		for _, payloadSegment := range payloadSegments {
-			broker.configWhitelist.Add(payloadSegment)
+			broker.configTcpServer.GetWhitelist().Add(payloadSegment)
 		}
 	case "removeWhitelistConfig":
 		for _, payloadSegment := range payloadSegments {
-			broker.configWhitelist.Remove(payloadSegment)
+			broker.configTcpServer.GetWhitelist().Remove(payloadSegment)
 		}
 	case "addBlacklistConfig":
 		for _, payloadSegment := range payloadSegments {
-			broker.configBlacklist.Add(payloadSegment)
+			broker.configTcpServer.GetBlacklist().Add(payloadSegment)
 		}
 	case "removeBlacklistConfig":
 		for _, payloadSegment := range payloadSegments {
-			broker.configBlacklist.Remove(payloadSegment)
+			broker.configTcpServer.GetBlacklist().Remove(payloadSegment)
 		}
 	case "addSyncTopics":
 		broker.addSyncTopics(payloadSegments...)

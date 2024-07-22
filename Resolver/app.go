@@ -3,8 +3,7 @@ package Resolver
 import (
 	"Systemge/Config"
 	"Systemge/Node"
-	"Systemge/Tools"
-	"net"
+	"Systemge/Tcp"
 	"sync"
 )
 
@@ -12,13 +11,8 @@ type Resolver struct {
 	config *Config.Resolver
 	node   *Node.Node
 
-	tlsResolverListener net.Listener
-	tlsConfigListener   net.Listener
-
-	resolverWhitelist *Tools.AccessControlList
-	resolverBlacklist *Tools.AccessControlList
-	configWhitelist   *Tools.AccessControlList
-	configBlacklist   *Tools.AccessControlList
+	resolverTcpServer *Tcp.Server
+	configTcpServer   *Tcp.Server
 
 	registeredTopics map[string]Config.TcpEndpoint // topic -> tcpEndpoint
 
@@ -30,23 +24,6 @@ func New(config *Config.Resolver) *Resolver {
 	resolver := &Resolver{
 		config:           config,
 		registeredTopics: map[string]Config.TcpEndpoint{},
-
-		resolverWhitelist: Tools.NewAccessControlList(),
-		resolverBlacklist: Tools.NewAccessControlList(),
-		configWhitelist:   Tools.NewAccessControlList(),
-		configBlacklist:   Tools.NewAccessControlList(),
-	}
-	for _, ip := range resolver.config.ResolverWhitelist {
-		resolver.resolverWhitelist.Add(ip)
-	}
-	for _, ip := range resolver.config.ConfigWhitelist {
-		resolver.configWhitelist.Add(ip)
-	}
-	for _, ip := range resolver.config.ResolverBlacklist {
-		resolver.resolverBlacklist.Add(ip)
-	}
-	for _, ip := range resolver.config.ConfigBlacklist {
-		resolver.configBlacklist.Add(ip)
 	}
 	return resolver
 }

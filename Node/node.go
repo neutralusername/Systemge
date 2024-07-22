@@ -4,9 +4,9 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Helpers"
+	"Systemge/Http"
 	"Systemge/Message"
 	"Systemge/Tools"
-	"net/http"
 	"sync"
 	"time"
 
@@ -38,22 +38,18 @@ type Node struct {
 	systemgeTopicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
 
 	//websocket
-	websocketStarted             bool
-	websocketMutex               sync.Mutex
-	websocketHandshakeHTTPServer *http.Server
-	websocketConnChannel         chan *websocket.Conn
-	websocketClients             map[string]*WebsocketClient            // websocketId -> websocketClient
-	websocketGroups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
-	websocketClientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
-	websocketBlacklist           *Tools.AccessControlList
-	websocketWhitelist           *Tools.AccessControlList
+	websocketStarted      bool
+	websocketMutex        sync.Mutex
+	websocketHttpServer   *Http.Server
+	websocketConnChannel  chan *websocket.Conn
+	websocketClients      map[string]*WebsocketClient            // websocketId -> websocketClient
+	websocketGroups       map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	websocketClientGroups map[string]map[string]bool             // websocketId -> map[groupId]bool
 
 	//http
-	httpStarted   bool
-	httpMutex     sync.Mutex
-	httpServer    *http.Server
-	httpBlacklist *Tools.AccessControlList
-	httpWhitelist *Tools.AccessControlList
+	httpStarted bool
+	httpMutex   sync.Mutex
+	httpServer  *Http.Server
 }
 
 func New(config *Config.Node, application Application) *Node {
@@ -77,27 +73,6 @@ func New(config *Config.Node, application Application) *Node {
 		websocketConnChannel:  make(chan *websocket.Conn),
 		websocketClients:      make(map[string]*WebsocketClient),
 		websocketClientGroups: make(map[string]map[string]bool),
-
-		websocketBlacklist: Tools.NewAccessControlList(),
-		websocketWhitelist: Tools.NewAccessControlList(),
-		httpBlacklist:      Tools.NewAccessControlList(),
-		httpWhitelist:      Tools.NewAccessControlList(),
-	}
-	if ImplementsWebsocketComponent(application) {
-		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Http.Blacklist {
-			node.websocketBlacklist.Add(ip)
-		}
-		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Http.Whitelist {
-			node.websocketWhitelist.Add(ip)
-		}
-	}
-	if ImplementsHTTPComponent(application) {
-		for _, ip := range application.(HTTPComponent).GetHTTPComponentConfig().Blacklist {
-			node.httpBlacklist.Add(ip)
-		}
-		for _, ip := range application.(HTTPComponent).GetHTTPComponentConfig().Whitelist {
-			node.httpWhitelist.Add(ip)
-		}
 	}
 	return node
 }

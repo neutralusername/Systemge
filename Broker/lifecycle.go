@@ -20,8 +20,8 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 	if err != nil {
 		return Error.New("Failed to get config listener for broker \""+node.GetName()+"\"", err)
 	}
-	broker.tlsBrokerListener = listener
-	broker.tlsConfigListener = configListener
+	broker.brokerTcpServer = listener
+	broker.configTcpServer = configListener
 	broker.isStarted = true
 	broker.node = node
 	broker.stopChannel = make(chan bool)
@@ -61,10 +61,10 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 		return Error.New("Broker \""+node.GetName()+"\" is already stopped", nil)
 	}
 	broker.isStarted = false
-	broker.tlsBrokerListener.Close()
-	broker.tlsBrokerListener = nil
-	broker.tlsConfigListener.Close()
-	broker.tlsConfigListener = nil
+	broker.brokerTcpServer.GetListener().Close()
+	broker.brokerTcpServer = nil
+	broker.configTcpServer.GetListener().Close()
+	broker.configTcpServer = nil
 	broker.removeAllNodeConnections()
 	close(broker.stopChannel)
 	topics := []string{}

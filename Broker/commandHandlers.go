@@ -35,7 +35,7 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 			return resultStr, nil
 		},
 		"brokerWhitelist": func(node *Node.Node, args []string) (string, error) {
-			brokerWhiteList := broker.brokerWhitelist.GetElements()
+			brokerWhiteList := broker.brokerTcpServer.GetWhitelist().GetElements()
 			resultStr := ""
 			for _, ip := range brokerWhiteList {
 				resultStr += ip + ";"
@@ -43,7 +43,7 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 			return resultStr, nil
 		},
 		"brokerBlacklist": func(node *Node.Node, args []string) (string, error) {
-			brokerBlackList := broker.brokerBlacklist.GetElements()
+			brokerBlackList := broker.brokerTcpServer.GetBlacklist().GetElements()
 			resultStr := ""
 			for _, ip := range brokerBlackList {
 				resultStr += ip + ";"
@@ -51,7 +51,7 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 			return resultStr, nil
 		},
 		"configWhitelist": func(node *Node.Node, args []string) (string, error) {
-			configWhiteList := broker.configWhitelist.GetElements()
+			configWhiteList := broker.configTcpServer.GetWhitelist().GetElements()
 			resultStr := ""
 			for _, ip := range configWhiteList {
 				resultStr += ip + ";"
@@ -59,7 +59,7 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 			return resultStr, nil
 		},
 		"configBlacklist": func(node *Node.Node, args []string) (string, error) {
-			configBlackList := broker.configBlacklist.GetElements()
+			configBlackList := broker.configTcpServer.GetBlacklist().GetElements()
 			resultStr := ""
 			for _, ip := range configBlackList {
 				resultStr += ip + ";"
@@ -88,49 +88,49 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 		},
 		"addBrokerWhitelist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.brokerWhitelist.Add(ip)
+				broker.brokerTcpServer.GetWhitelist().Add(ip)
 			}
 			return "success", nil
 		},
 		"addBrokerBlacklist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.brokerBlacklist.Add(ip)
+				broker.brokerTcpServer.GetBlacklist().Add(ip)
 			}
 			return "success", nil
 		},
 		"removeBrokerWhitelist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.brokerWhitelist.Remove(ip)
+				broker.brokerTcpServer.GetWhitelist().Remove(ip)
 			}
 			return "success", nil
 		},
 		"removeBrokerBlacklist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.brokerBlacklist.Remove(ip)
+				broker.brokerTcpServer.GetBlacklist().Remove(ip)
 			}
 			return "success", nil
 		},
 		"addConfigWhitelist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.configWhitelist.Add(ip)
+				broker.configTcpServer.GetWhitelist().Add(ip)
 			}
 			return "success", nil
 		},
 		"addConfigBlacklist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.configBlacklist.Add(ip)
+				broker.configTcpServer.GetBlacklist().Add(ip)
 			}
 			return "success", nil
 		},
 		"removeConfigWhitelist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.configWhitelist.Remove(ip)
+				broker.configTcpServer.GetWhitelist().Remove(ip)
 			}
 			return "success", nil
 		},
 		"removeConfigBlacklist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
-				broker.configBlacklist.Remove(ip)
+				broker.configTcpServer.GetBlacklist().Remove(ip)
 			}
 			return "success", nil
 		},

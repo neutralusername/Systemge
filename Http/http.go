@@ -1,29 +1,55 @@
 package Http
 
 import (
+	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Helpers"
+	"Systemge/Tools"
 	"net/http"
 	"time"
 )
 
-func New(port uint16, handlers map[string]http.HandlerFunc) *http.Server {
-	mux := http.NewServeMux()
-	for pattern, handler := range handlers {
-		mux.HandleFunc(pattern, handler)
-	}
-	httpServer := &http.Server{
-		Addr:    ":" + Helpers.IntToString(int(port)),
-		Handler: mux,
-	}
-	return httpServer
+type Server struct {
+	config     *Config.Http
+	httpServer *http.Server
+	blacklist  *Tools.AccessControlList
+	whitelist  *Tools.AccessControlList
 }
 
-func Start(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
+func (server *Server) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
+}
+
+func (server *Server) GetBlacklist() *Tools.AccessControlList {
+	return server.blacklist
+}
+
+func (server *Server) GetHttpServer() *http.Server {
+	return server.httpServer
+}
+
+func New(config *Config.Http) *Server {
+	mux := http.NewServeMux()
+	server := &Server{
+		config: config,
+		httpServer: &http.Server{
+			Addr:    ":" + Helpers.IntToString(int(config.Server.Port)),
+			Handler: mux,
+		},
+		blacklist: Tools.NewAccessControlList(config.Server.Blacklist),
+		whitelist: Tools.NewAccessControlList(config.Server.Whitelist),
+	}
+	for pattern, handler := range config.Handlers {
+		mux.HandleFunc(pattern, server.accessControllWrapper(handler))
+	}
+	return server
+}
+
+func (server *Server) Start() error {
 	errorChannel := make(chan error)
 	go func() {
-		if tlsCertPath != "" && tlsKeyPath != "" {
-			err := httpServer.ListenAndServeTLS(tlsCertPath, tlsKeyPath)
+		if server.config.Server.TlsCertPath != "" && server.config.Server.TlsKeyPath != "" {
+			err := server.httpServer.ListenAndServeTLS(server.config.Server.TlsCertPath, server.config.Server.TlsKeyPath)
 			if err != nil {
 				if err != http.ErrServerClosed {
 					panic(err)
@@ -31,7 +57,7 @@ func Start(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
 				errorChannel <- err
 			}
 		} else {
-			err := httpServer.ListenAndServe()
+			err := server.httpServer.ListenAndServe()
 			if err != nil {
 				if err != http.ErrServerClosed {
 					panic(err)
@@ -49,8 +75,8 @@ func Start(httpServer *http.Server, tlsCertPath, tlsKeyPath string) error {
 	return nil
 }
 
-func Stop(httpServer *http.Server) error {
-	err := httpServer.Close()
+func (server *Server) Stop() error {
+	err := server.httpServer.Close()
 	if err != nil {
 		return Error.New("failed stopping http server", err)
 	}

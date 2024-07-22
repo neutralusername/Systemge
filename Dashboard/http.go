@@ -7,14 +7,12 @@ import (
 	"runtime"
 )
 
-func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
-	_, filePath, _, _ := runtime.Caller(0)
-	filePath = filePath[:len(filePath)-len("http.go")]
-	return map[string]http.HandlerFunc{
-		"/": Http.SendDirectory(filePath + "frontend"),
-	}
-}
-
 func (app *App) GetHTTPComponentConfig() *Config.Http {
-	return app.config.Http
+	_, filePath, _, _ := runtime.Caller(0)
+	return &Config.Http{
+		Server: app.config.Server,
+		Handlers: map[string]http.HandlerFunc{
+			"/": Http.SendDirectory(filePath[:len(filePath)-len("http.go")] + "frontend"),
+		},
+	}
 }
