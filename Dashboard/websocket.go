@@ -79,8 +79,14 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 		"heap": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
 			var memStats runtime.MemStats
 			runtime.ReadMemStats(&memStats)
-			heap := memStats.HeapAlloc
-			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), strconv.FormatUint(heap, 10)).Serialize())
+			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), strconv.FormatUint(memStats.HeapAlloc, 10)).Serialize())
+			return nil
+		},
+		"gc": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
+			runtime.GC()
+			memStats := new(runtime.MemStats)
+			runtime.ReadMemStats(memStats)
+			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), strconv.FormatUint(memStats.HeapAlloc, 10)).Serialize())
 			return nil
 		},
 	}
