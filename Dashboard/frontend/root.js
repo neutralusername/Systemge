@@ -198,6 +198,7 @@ export class root extends React.Component {
                 },
                 "stop all",
             ),
+            responseMessages,
             React.createElement(
                 "button", {
                     onClick: () => {
@@ -206,7 +207,6 @@ export class root extends React.Component {
                 },
                 "collect garbage",
             ),
-            responseMessages,
             React.createElement(
                 "canvas", {
                     id: "myChart",
