@@ -16,18 +16,6 @@ type Server struct {
 	whitelist *Tools.AccessControlList
 }
 
-func (server *Server) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
-func (server *Server) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *Server) GetListener() net.Listener {
-	return server.listener
-}
-
 func NewServer(config *Config.TcpServer) (*Server, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
@@ -60,4 +48,16 @@ func NewServer(config *Config.TcpServer) (*Server, error) {
 		whitelist: Tools.NewAccessControlList(config.Whitelist),
 	}
 	return server, nil
+}
+
+func (server *Server) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
+}
+
+func (server *Server) GetBlacklist() *Tools.AccessControlList {
+	return server.blacklist
+}
+
+func (server *Server) GetListener() net.Listener {
+	return server.listener
 }

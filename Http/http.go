@@ -16,18 +16,6 @@ type Server struct {
 	whitelist  *Tools.AccessControlList
 }
 
-func (server *Server) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
-func (server *Server) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *Server) GetHttpServer() *http.Server {
-	return server.httpServer
-}
-
 func New(config *Config.Http) *Server {
 	mux := http.NewServeMux()
 	server := &Server{
@@ -43,6 +31,18 @@ func New(config *Config.Http) *Server {
 		mux.HandleFunc(pattern, server.accessControllWrapper(handler))
 	}
 	return server
+}
+
+func (server *Server) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
+}
+
+func (server *Server) GetBlacklist() *Tools.AccessControlList {
+	return server.blacklist
+}
+
+func (server *Server) GetHttpServer() *http.Server {
+	return server.httpServer
 }
 
 func (server *Server) Start() error {

@@ -11,18 +11,14 @@ const ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234
 const ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const NUMERIC = "0123456789"
 
+func GetSystemTime() int64 {
+	return time.Now().UnixNano()
+}
+
 type Randomizer struct {
 	source rand.Source
 	seed   int64
 	mutex  *sync.Mutex
-}
-
-func RandomString(length int, alphabet string) string {
-	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, alphabet)
-}
-
-func RandomNumber(min, max int) int {
-	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
 }
 
 func NewRandomizer(seed int64) *Randomizer {
@@ -63,6 +59,10 @@ func (randomizer *Randomizer) GenerateRandomNumberWithSeed(min, max int, seed in
 	return int(rand.NewSource(randomizer.seed+int64(seed)).Int63()%int64(max-min+1)) + min
 }
 
-func GetSystemTime() int64 {
-	return time.Now().UnixNano()
+func RandomString(length int, alphabet string) string {
+	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, alphabet)
+}
+
+func RandomNumber(min, max int) int {
+	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
 }

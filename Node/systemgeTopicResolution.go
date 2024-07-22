@@ -9,7 +9,7 @@ import (
 )
 
 func (node *Node) resolveBrokerForTopic(topic string) (*Config.TcpEndpoint, error) {
-	netConn, err := Tcp.NewClient(node.GetSystemgeComponent().GetSystemgeComponentConfig().ResolverEndpoint)
+	netConn, err := Tcp.NewEndpoint(node.GetSystemgeComponent().GetSystemgeComponentConfig().ResolverEndpoint)
 	if err != nil {
 		return nil, Error.New("failed dialing resolver", err)
 	}

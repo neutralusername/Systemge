@@ -8,7 +8,7 @@ import (
 )
 
 func (node *Node) connectToBroker(tcpEndpoint *Config.TcpEndpoint) (*brokerConnection, error) {
-	netConn, err := Tcp.NewClient(tcpEndpoint)
+	netConn, err := Tcp.NewEndpoint(tcpEndpoint)
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}
