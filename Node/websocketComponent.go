@@ -3,7 +3,7 @@ package Node
 import (
 	"Systemge/Config"
 	"Systemge/Error"
-	"Systemge/Http"
+	"Systemge/HTTP"
 	"net/http"
 	"sync"
 
@@ -13,7 +13,7 @@ import (
 type websocketComponent struct {
 	application         WebsocketComponent
 	mutex               sync.Mutex
-	httpServer          *Http.Server
+	httpServer          *HTTP.Server
 	connChannel         chan *websocket.Conn
 	clients             map[string]*WebsocketClient            // websocketId -> websocketClient
 	groups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
@@ -31,11 +31,10 @@ func (node *Node) startWebsocketComponent() error {
 		clientGroups: make(map[string]map[string]bool),
 	}
 	node.websocket = websocket
-	node.websocket.httpServer = Http.New(&Config.Http{
+	node.websocket.httpServer = HTTP.New(&Config.HTTP{
 		Server: node.websocket.application.GetWebsocketComponentConfig().Server,
-		Handlers: map[string]http.HandlerFunc{
-			node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetWarningLogger()),
-		},
+	}, map[string]http.HandlerFunc{
+		node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetWarningLogger()),
 	})
 	node.websocket.onDisconnectWraper = func(websocketClient *WebsocketClient) {
 		websocket.application.OnDisconnectHandler(node, websocketClient)

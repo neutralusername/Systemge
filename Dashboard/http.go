@@ -2,17 +2,20 @@ package Dashboard
 
 import (
 	"Systemge/Config"
-	"Systemge/Http"
+	"Systemge/HTTP"
 	"net/http"
 	"runtime"
 )
 
-func (app *App) GetHTTPComponentConfig() *Config.Http {
+func (app *App) GetHTTPMessageHandlers() map[string]http.HandlerFunc {
 	_, filePath, _, _ := runtime.Caller(0)
-	return &Config.Http{
+	return map[string]http.HandlerFunc{
+		"/": HTTP.SendDirectory(filePath[:len(filePath)-len("http.go")] + "frontend"),
+	}
+}
+
+func (app *App) GetHTTPComponentConfig() *Config.HTTP {
+	return &Config.HTTP{
 		Server: app.config.Server,
-		Handlers: map[string]http.HandlerFunc{
-			"/": Http.SendDirectory(filePath[:len(filePath)-len("http.go")] + "frontend"),
-		},
 	}
 }

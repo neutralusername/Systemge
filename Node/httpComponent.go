@@ -2,19 +2,19 @@ package Node
 
 import (
 	"Systemge/Error"
-	"Systemge/Http"
+	"Systemge/HTTP"
 )
 
 type httpComponent struct {
 	application HTTPComponent
-	server      *Http.Server
+	server      *HTTP.Server
 }
 
 func (node *Node) startHTTPComponent() error {
 	node.http = &httpComponent{
 		application: node.application.(HTTPComponent),
 	}
-	node.http.server = Http.New(node.http.application.GetHTTPComponentConfig())
+	node.http.server = HTTP.New(node.http.application.GetHTTPComponentConfig(), node.http.application.GetHTTPMessageHandlers())
 	err := node.http.server.Start()
 	if err != nil {
 		return Error.New("failed starting http server", err)

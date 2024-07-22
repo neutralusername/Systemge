@@ -13,13 +13,16 @@ type oauth2SessionRequest struct {
 	sessionChannel chan<- *session
 }
 
-func (app *App) GetHTTPComponentConfig() *Config.Http {
-	return &Config.Http{
+func (app *App) GetHTTPComponentConfig() *Config.HTTP {
+	return &Config.HTTP{
 		Server: app.config.Server,
-		Handlers: map[string]http.HandlerFunc{
-			app.config.AuthPath:         app.oauth2Auth(),
-			app.config.AuthCallbackPath: app.oauth2AuthCallback(),
-		},
+	}
+}
+
+func (app *App) GetHTTPMessageHandlers() map[string]http.HandlerFunc {
+	return map[string]http.HandlerFunc{
+		app.config.AuthPath:         app.oauth2Auth(),
+		app.config.AuthCallbackPath: app.oauth2AuthCallback(),
 	}
 }
 

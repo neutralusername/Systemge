@@ -1,4 +1,4 @@
-package Http
+package HTTP
 
 import (
 	"Systemge/Config"
@@ -10,13 +10,13 @@ import (
 )
 
 type Server struct {
-	config     *Config.Http
+	config     *Config.HTTP
 	httpServer *http.Server
 	blacklist  *Tools.AccessControlList
 	whitelist  *Tools.AccessControlList
 }
 
-func New(config *Config.Http) *Server {
+func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 	mux := http.NewServeMux()
 	server := &Server{
 		config: config,
@@ -27,7 +27,7 @@ func New(config *Config.Http) *Server {
 		blacklist: Tools.NewAccessControlList(config.Server.Blacklist),
 		whitelist: Tools.NewAccessControlList(config.Server.Whitelist),
 	}
-	for pattern, handler := range config.Handlers {
+	for pattern, handler := range handlers {
 		mux.HandleFunc(pattern, server.accessControllWrapper(handler))
 	}
 	return server
@@ -41,7 +41,7 @@ func (server *Server) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *Server) GetHttpServer() *http.Server {
+func (server *Server) GetHTTPServer() *http.Server {
 	return server.httpServer
 }
 

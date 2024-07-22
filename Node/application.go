@@ -3,6 +3,7 @@ package Node
 import (
 	"Systemge/Config"
 	"Systemge/Message"
+	"net/http"
 )
 
 type Application interface {
@@ -63,7 +64,8 @@ type CommandHandler func(*Node, []string) (string, error)
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type HTTPComponent interface {
-	GetHTTPComponentConfig() *Config.Http
+	GetHTTPMessageHandlers() map[string]http.HandlerFunc
+	GetHTTPComponentConfig() *Config.HTTP
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node

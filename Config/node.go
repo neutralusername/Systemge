@@ -1,8 +1,6 @@
 package Config
 
 import (
-	"net/http"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -43,7 +41,6 @@ type Websocket struct {
 
 }
 
-type Http struct {
-	Server   *TcpServer                  // *required*
-	Handlers map[string]http.HandlerFunc // *required*
+type HTTP struct {
+	Server *TcpServer // *required*
 }
