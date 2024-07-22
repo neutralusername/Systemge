@@ -48,9 +48,10 @@ func New(config *Config.Node, application Application) *Node {
 	return node
 }
 
-func (node *Node) StartBlocking() {
-	node.Start()
+func (node *Node) StartBlocking() error {
+	err := node.Start()
 	<-node.stopChannel
+	return err
 }
 
 func (node *Node) Start() error {
