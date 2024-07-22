@@ -10,8 +10,8 @@ func (node *Node) startWebsocketComponent() error {
 	handlers := map[string]http.HandlerFunc{
 		node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: Http.AccessControllWrapper(node.WebsocketUpgrade(), node.websocketBlacklist, node.websocketWhitelist),
 	}
-	httpServer := Http.New(node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.Port, handlers)
-	err := Http.Start(httpServer, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.TlsCertPath, node.GetWebsocketComponent().GetWebsocketComponentConfig().Server.TlsKeyPath)
+	httpServer := Http.New(node.GetWebsocketComponent().GetWebsocketComponentConfig().Http.Server.Port, handlers)
+	err := Http.Start(httpServer, node.GetWebsocketComponent().GetWebsocketComponentConfig().Http.Server.TlsCertPath, node.GetWebsocketComponent().GetWebsocketComponentConfig().Http.Server.TlsKeyPath)
 	if err != nil {
 		return Error.New("failed starting websocket handshake handler", err)
 	}

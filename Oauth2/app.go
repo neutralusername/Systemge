@@ -35,10 +35,10 @@ func New(config *Config.Oauth2) (*App, error) {
 		blacklist:  Tools.NewAccessControlList(),
 		whitelist:  Tools.NewAccessControlList(),
 	}
-	for _, ip := range config.Blacklist {
+	for _, ip := range config.Http.Blacklist {
 		server.blacklist.Add(ip)
 	}
-	for _, ip := range config.Whitelist {
+	for _, ip := range config.Http.Whitelist {
 		server.whitelist.Add(ip)
 	}
 	return server, nil

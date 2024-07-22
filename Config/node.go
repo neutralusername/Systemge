@@ -19,8 +19,8 @@ type Systemge struct {
 	HandleMessagesSequentially bool // default: false
 
 	BrokerSubscribeDelayMs    uint64 // default: 0 (delay after failed broker subscription attempt)
-	TopicResolutionLifetimeMs uint64 // default: 0
-	SyncResponseTimeoutMs     uint64 // default: 0
+	TopicResolutionLifetimeMs uint64 // default: 0 = resolve topic every time a message is sent
+	SyncResponseTimeoutMs     uint64 // default: 0 = sync messages are not supported
 	TcpTimeoutMs              uint64 // default: 0 = block forever
 	MaxSubscribeAttempts      uint64 // default: 0 = infinite
 
@@ -28,8 +28,8 @@ type Systemge struct {
 }
 
 type Websocket struct {
-	Pattern string     // *required*
-	Server  *TcpServer // *required*
+	Pattern string // *required*
+	Http    *Http  // *required*
 
 	HandleClientMessagesSequentially bool   // default: false
 	ClientMessageCooldownMs          uint64 // default: 0
@@ -37,13 +37,4 @@ type Websocket struct {
 
 	Upgrader *websocket.Upgrader // *required*
 
-	Blacklist []string // *optional*
-	Whitelist []string // *optional* (if empty, all IPs are allowed)
-}
-
-type Http struct {
-	Server *TcpServer // *required*
-
-	Blacklist []string // *optional*
-	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }

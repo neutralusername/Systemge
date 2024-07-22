@@ -84,10 +84,10 @@ func New(config *Config.Node, application Application) *Node {
 		httpWhitelist:      Tools.NewAccessControlList(),
 	}
 	if ImplementsWebsocketComponent(application) {
-		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Blacklist {
+		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Http.Blacklist {
 			node.websocketBlacklist.Add(ip)
 		}
-		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Whitelist {
+		for _, ip := range application.(WebsocketComponent).GetWebsocketComponentConfig().Http.Whitelist {
 			node.websocketWhitelist.Add(ip)
 		}
 	}

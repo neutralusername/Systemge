@@ -3,7 +3,7 @@ package Config
 import "golang.org/x/oauth2"
 
 type Oauth2 struct {
-	Server                     *TcpServer                                                                  // *required*
+	Http                       *Http                                                                       // *required*
 	AuthPath                   string                                                                      // *required*
 	AuthCallbackPath           string                                                                      // *required*
 	OAuth2Config               *oauth2.Config                                                              // *required*
@@ -13,9 +13,6 @@ type Oauth2 struct {
 	TokenHandler               func(*oauth2.Config, *oauth2.Token) (string, map[string]interface{}, error) // *required
 	SessionLifetimeMs          uint64                                                                      // default: 0
 	Oauth2State                string                                                                      // *required*
-
-	Blacklist []string // *optional*
-	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }
 
 type Broker struct {
@@ -72,4 +69,11 @@ type Spawner struct {
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*
+}
+
+// websocket and http share the same Http config (tls, blacklist, whitelist) besides the port, which only applies to http
+// websocket runs on port 18251 which is hardcoded
+type Dashboard struct {
+	Http                   *Http  // default: nil (app)
+	StatusUpdateIntervalMs uint64 // default: 0 = disabled
 }

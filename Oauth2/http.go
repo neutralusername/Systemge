@@ -21,11 +21,7 @@ func (app *App) GetHTTPRequestHandlers() map[string]http.HandlerFunc {
 }
 
 func (app *App) GetHTTPComponentConfig() *Config.Http {
-	return &Config.Http{
-		Server:    app.config.Server,
-		Blacklist: app.config.Blacklist,
-		Whitelist: app.config.Whitelist,
-	}
+	return app.config.Http
 }
 
 func (server *App) oauth2AuthCallback() http.HandlerFunc {
