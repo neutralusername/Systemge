@@ -21,6 +21,8 @@ https://github.com/neutralusername/Systemge-Sample-Chat
 https://github.com/neutralusername/Systemge-Sample-PingSpawner  
 https://github.com/neutralusername/Systemge-Sample-ChessServer  
 
+![Screenshot from 2024-07-22 23-13-36](https://github.com/user-attachments/assets/2db43478-bdfe-4632-88e2-49462a3ae677)
+
   
 ![Leeres Diagramm(9)](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
 
