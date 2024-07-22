@@ -56,19 +56,20 @@ func (node *Node) StartBlocking() {
 func (node *Node) Start() error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
+	node.stopChannel = make(chan bool)
 	if node.IsStarted() {
+		close(node.stopChannel)
 		return Error.New("node already started", nil)
 	}
 	if node.application == nil {
+		close(node.stopChannel)
 		return Error.New("application not set", nil)
 	}
 	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
 
-	node.stopChannel = make(chan bool)
 	node.isStarted = true
-
 	if ImplementsSystemgeComponent(node.application) {
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
