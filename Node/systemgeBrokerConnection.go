@@ -35,13 +35,13 @@ func newBrokerConnection(netConn net.Conn, tcpEndpoint *Config.TcpEndpoint) *bro
 	}
 }
 
-func (node *Node) send(brokerConnection *brokerConnection, message *Message.Message) error {
+func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, message *Message.Message) error {
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
 	if brokerConnection.netConn == nil {
 		return Error.New("Connection is closed", nil)
 	}
-	err := Tcp.Send(brokerConnection.netConn, message.Serialize(), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs)
+	err := Tcp.Send(brokerConnection.netConn, message.Serialize(), tcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed sending message", err)
 	}

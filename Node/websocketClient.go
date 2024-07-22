@@ -3,7 +3,6 @@ package Node
 import (
 	"Systemge/Error"
 	"Systemge/Message"
-	"Systemge/Tools"
 	"sync"
 	"time"
 
@@ -34,7 +33,7 @@ type WebsocketClient struct {
 	lastMessageTimestamp time.Time
 }
 
-func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *WebsocketClient {
+func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn *websocket.Conn) *WebsocketClient {
 	websocketClient := &WebsocketClient{
 		id:            id,
 		websocketConn: websocketConn,
@@ -45,7 +44,7 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
-	websocketClient.watchdog = time.AfterFunc(time.Duration(node.GetWebsocketComponent().GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
+	websocketClient.watchdog = time.AfterFunc(time.Duration(websocket.application.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
 		websocketClient.expired = true
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
@@ -55,8 +54,8 @@ func (node *Node) newWebsocketClient(id string, websocketConn *websocket.Conn) *
 		websocketClient.watchdog.Stop()
 		websocketClient.watchdog = nil
 		websocketConn.Close()
-		node.GetWebsocketComponent().OnDisconnectHandler(node, websocketClient)
-		node.removeWebsocketClient(websocketClient)
+		websocket.onDisconnectWraper(websocketClient)
+		websocket.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
 	})
 	return websocketClient
@@ -73,7 +72,7 @@ func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
 		return Error.New("websocketClient is disconnected", nil)
 	}
 	websocketClient.expired = false
-	websocketClient.watchdog.Reset(time.Duration(node.GetWebsocketComponent().GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
+	websocketClient.watchdog.Reset(time.Duration(node.websocket.application.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
 	return nil
 }
 
@@ -129,37 +128,4 @@ func (websocketClient *WebsocketClient) Receive() (*Message.Message, error) {
 	}
 	message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 	return message, err
-}
-
-func (node *Node) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
-	node.websocketMutex.Lock()
-	defer node.websocketMutex.Unlock()
-	websocketId := "#" + node.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
-	for _, exists := node.websocketClients[websocketId]; exists; {
-		websocketId = "#" + node.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
-	}
-	websocketClient := node.newWebsocketClient(websocketId, websocketConn)
-	node.websocketClients[websocketId] = websocketClient
-	node.websocketClientGroups[websocketId] = make(map[string]bool)
-	return websocketClient
-}
-
-func (node *Node) removeWebsocketClient(websocketClient *WebsocketClient) {
-	node.websocketMutex.Lock()
-	defer node.websocketMutex.Unlock()
-	delete(node.websocketClients, websocketClient.GetId())
-	for groupId := range node.websocketClientGroups[websocketClient.GetId()] {
-		delete(node.websocketClientGroups[websocketClient.GetId()], groupId)
-		delete(node.websocketGroups[groupId], websocketClient.GetId())
-		if len(node.websocketGroups[groupId]) == 0 {
-			delete(node.websocketGroups, groupId)
-		}
-	}
-}
-
-func (node *Node) WebsocketClientExists(websocketId string) bool {
-	node.websocketMutex.Lock()
-	defer node.websocketMutex.Unlock()
-	_, exists := node.websocketClients[websocketId]
-	return exists
 }

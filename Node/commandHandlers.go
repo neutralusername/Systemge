@@ -20,7 +20,7 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 			return "success", nil
 		},
 	}
-	if node.GetWebsocketComponent() != nil {
+	if node.websocket != nil {
 		handlers["websocketClients"] = handleWebsocketClientsCommand
 		handlers["websocketGroups"] = handleWebsocketGroupsCommand
 		handlers["websocketGroupClients"] = handleWebsocketGroupClientsCommand
@@ -31,7 +31,7 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 		handlers["removeWebsocketBlacklist"] = handleRemoveFromWebsocketBlacklistCommand
 		handlers["removeWebsocketWhitelist"] = handleRemoveFromWebsocketWhitelistCommand
 	}
-	if node.GetHTTPComponent() != nil {
+	if node.http != nil {
 		handlers["httpBlacklist"] = handleHttpBlacklistCommand
 		handlers["httpWhitelist"] = handleHttpWhitelistCommand
 		handlers["addHttpBlacklist"] = handleAddToHttpBlacklistCommand
@@ -49,22 +49,22 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 }
 
 func handleWebsocketClientsCommand(node *Node, args []string) (string, error) {
-	node.websocketMutex.Lock()
-	defer node.websocketMutex.Unlock()
+	node.websocket.mutex.Lock()
+	defer node.websocket.mutex.Unlock()
 	returnString := ""
-	for _, websocketClient := range node.websocketClients {
+	for _, websocketClient := range node.websocket.clients {
 		returnString += websocketClient.GetId() + ";"
 	}
 	return returnString, nil
 }
 
 func handleWebsocketGroupsCommand(node *Node, args []string) (string, error) {
-	node.websocketMutex.Lock()
+	node.websocket.mutex.Lock()
 	returnString := ""
-	for groupId := range node.websocketGroups {
+	for groupId := range node.websocket.groups {
 		returnString += groupId + ";"
 	}
-	node.websocketMutex.Unlock()
+	node.websocket.mutex.Unlock()
 	return returnString, nil
 }
 
@@ -73,9 +73,9 @@ func handleWebsocketGroupClientsCommand(node *Node, args []string) (string, erro
 		return "", Error.New("Invalid arguments", nil)
 	}
 	groupId := args[0]
-	node.websocketMutex.Lock()
-	group, ok := node.websocketGroups[groupId]
-	node.websocketMutex.Unlock()
+	node.websocket.mutex.Lock()
+	group, ok := node.websocket.groups[groupId]
+	node.websocket.mutex.Unlock()
 	if !ok {
 		return "", Error.New("Group not found", nil)
 	}
@@ -88,7 +88,7 @@ func handleWebsocketGroupClientsCommand(node *Node, args []string) (string, erro
 
 func handleWebsocketBlacklistCommand(node *Node, args []string) (string, error) {
 	returnString := ""
-	for _, ip := range node.websocketHttpServer.GetBlacklist().GetElements() {
+	for _, ip := range node.websocket.httpServer.GetBlacklist().GetElements() {
 		returnString += ip + ";"
 	}
 	return returnString, nil
@@ -96,7 +96,7 @@ func handleWebsocketBlacklistCommand(node *Node, args []string) (string, error) 
 
 func handleWebsocketWhitelistCommand(node *Node, args []string) (string, error) {
 	returnString := ""
-	for _, ip := range node.websocketHttpServer.GetWhitelist().GetElements() {
+	for _, ip := range node.websocket.httpServer.GetWhitelist().GetElements() {
 		returnString += ip + ";"
 	}
 	return returnString, nil
@@ -104,35 +104,35 @@ func handleWebsocketWhitelistCommand(node *Node, args []string) (string, error) 
 
 func handleAddToWebsocketBlacklistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.websocketHttpServer.GetBlacklist().Add(ip)
+		node.websocket.httpServer.GetBlacklist().Add(ip)
 	}
 	return "success", nil
 }
 
 func handleAddToWebsocketWhitelistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.websocketHttpServer.GetWhitelist().Add(ip)
+		node.websocket.httpServer.GetWhitelist().Add(ip)
 	}
 	return "success", nil
 }
 
 func handleRemoveFromWebsocketBlacklistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.websocketHttpServer.GetBlacklist().Remove(ip)
+		node.websocket.httpServer.GetBlacklist().Remove(ip)
 	}
 	return "success", nil
 }
 
 func handleRemoveFromWebsocketWhitelistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.websocketHttpServer.GetWhitelist().Remove(ip)
+		node.websocket.httpServer.GetWhitelist().Remove(ip)
 	}
 	return "success", nil
 }
 
 func handleHttpBlacklistCommand(node *Node, args []string) (string, error) {
 	returnString := ""
-	for _, ip := range node.httpServer.GetBlacklist().GetElements() {
+	for _, ip := range node.http.server.GetBlacklist().GetElements() {
 		returnString += ip + ";"
 	}
 	return returnString, nil
@@ -140,7 +140,7 @@ func handleHttpBlacklistCommand(node *Node, args []string) (string, error) {
 
 func handleHttpWhitelistCommand(node *Node, args []string) (string, error) {
 	returnString := ""
-	for _, ip := range node.httpServer.GetWhitelist().GetElements() {
+	for _, ip := range node.http.server.GetWhitelist().GetElements() {
 		returnString += ip + ";"
 	}
 	return returnString, nil
@@ -148,28 +148,28 @@ func handleHttpWhitelistCommand(node *Node, args []string) (string, error) {
 
 func handleAddToHttpBlacklistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.httpServer.GetBlacklist().Add(ip)
+		node.http.server.GetBlacklist().Add(ip)
 	}
 	return "success", nil
 }
 
 func handleAddToHttpWhitelistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.httpServer.GetWhitelist().Add(ip)
+		node.http.server.GetWhitelist().Add(ip)
 	}
 	return "success", nil
 }
 
 func handleRemoveFromHttpBlacklistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.httpServer.GetBlacklist().Remove(ip)
+		node.http.server.GetBlacklist().Remove(ip)
 	}
 	return "success", nil
 }
 
 func handleRemoveFromHttpWhitelistCommand(node *Node, args []string) (string, error) {
 	for _, ip := range args {
-		node.httpServer.GetWhitelist().Remove(ip)
+		node.http.server.GetWhitelist().Remove(ip)
 	}
 	return "success", nil
 }

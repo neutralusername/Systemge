@@ -4,32 +4,31 @@ import (
 	"Systemge/Error"
 )
 
-func (node *Node) addBrokerConnection(brokerConnection *brokerConnection) error {
-	node.systemgeMutex.Lock()
-	defer node.systemgeMutex.Unlock()
-	if node.systemgeBrokerConnections[brokerConnection.endpoint.Address] != nil {
+func (systemge *systemgeComponent) addBrokerConnection(brokerConnection *brokerConnection) error {
+	systemge.mutex.Lock()
+	defer systemge.mutex.Unlock()
+	if systemge.brokerConnections[brokerConnection.endpoint.Address] != nil {
 		return Error.New("broker connection already exists", nil)
 	}
-	node.systemgeBrokerConnections[brokerConnection.endpoint.Address] = brokerConnection
-	go node.handleSystemgeMessages(brokerConnection)
+	systemge.brokerConnections[brokerConnection.endpoint.Address] = brokerConnection
 	return nil
 }
 
-func (node *Node) getBrokerConnection(brokerAddress string) *brokerConnection {
-	node.systemgeMutex.Lock()
-	defer node.systemgeMutex.Unlock()
-	return node.systemgeBrokerConnections[brokerAddress]
+func (systemge *systemgeComponent) getBrokerConnection(brokerAddress string) *brokerConnection {
+	systemge.mutex.Lock()
+	defer systemge.mutex.Unlock()
+	return systemge.brokerConnections[brokerAddress]
 }
 
-func (node *Node) removeAllBrokerConnections() {
-	node.systemgeMutex.Lock()
-	defer node.systemgeMutex.Unlock()
-	for address, brokerConnection := range node.systemgeBrokerConnections {
+func (systemge *systemgeComponent) removeAllBrokerConnections() {
+	systemge.mutex.Lock()
+	defer systemge.mutex.Unlock()
+	for address, brokerConnection := range systemge.brokerConnections {
 		brokerConnection.close()
 		brokerConnection.mutex.Lock()
-		delete(node.systemgeBrokerConnections, address)
+		delete(systemge.brokerConnections, address)
 		for topic := range brokerConnection.topicResolutions {
-			delete(node.systemgeTopicResolutions, topic)
+			delete(systemge.topicResolutions, topic)
 		}
 		for topic := range brokerConnection.subscribedTopics {
 			delete(brokerConnection.subscribedTopics, topic)

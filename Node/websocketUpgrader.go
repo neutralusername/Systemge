@@ -2,22 +2,25 @@ package Node
 
 import (
 	"Systemge/Error"
+	"Systemge/Tools"
 	"net/http"
 )
 
-func (node *Node) WebsocketUpgrade() http.HandlerFunc {
+func (websocket *websocketComponent) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		if !node.isStarted {
-			node.GetWarningLogger().Log(Error.New("websocket connection not accepted", nil).Error())
-			return
-		}
-		websocketConn, err := node.GetWebsocketComponent().GetWebsocketComponentConfig().Upgrader.Upgrade(responseWriter, httpRequest, nil)
-		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("failed upgrading connection to websocket", err).Error())
+		if websocket.httpServer == nil {
+			if logger != nil {
+				logger.Log(Error.New("websocket component not started", nil).Error())
 			}
 			return
 		}
-		node.websocketConnChannel <- websocketConn
+		websocketConn, err := websocket.application.GetWebsocketComponentConfig().Upgrader.Upgrade(responseWriter, httpRequest, nil)
+		if err != nil {
+			if logger != nil {
+				logger.Log(Error.New("failed upgrading connection to websocket", err).Error())
+			}
+			return
+		}
+		websocket.connChannel <- websocketConn
 	}
 }

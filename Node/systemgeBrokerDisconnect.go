@@ -1,35 +1,22 @@
 package Node
 
-func (node *Node) handleBrokerDisconnect(brokerConnection *brokerConnection) {
-	brokerConnection.close()
-	removedSubscribedTopics := node.cleanUpDisconnectedBrokerConnection(brokerConnection)
-	for _, topic := range removedSubscribedTopics {
-		go func() {
-			err := node.subscribeLoop(topic, node.GetSystemgeComponent().GetSystemgeComponentConfig().MaxSubscribeAttempts)
-			if err != nil { //not sure if code past here currently works as intended. will check tmrw
-				err := node.stop(true)
-				if err != nil {
-					panic(err)
-				}
-			}
-		}()
-	}
-}
-
-func (node *Node) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
-	node.systemgeMutex.Lock()
-	defer node.systemgeMutex.Unlock()
+func (systemge *systemgeComponent) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) []string {
+	systemge.mutex.Lock()
 	brokerConnection.mutex.Lock()
-	delete(node.systemgeBrokerConnections, brokerConnection.endpoint.Address)
+	defer func() {
+		brokerConnection.mutex.Unlock()
+		systemge.mutex.Unlock()
+	}()
+	defer delete(systemge.brokerConnections, brokerConnection.endpoint.Address)
 	removedSubscribedTopics := make([]string, 0)
 	for topic := range brokerConnection.topicResolutions {
-		delete(node.systemgeTopicResolutions, topic)
+		delete(systemge.topicResolutions, topic)
 	}
 	for topic := range brokerConnection.subscribedTopics {
 		removedSubscribedTopics = append(removedSubscribedTopics, topic)
 		delete(brokerConnection.subscribedTopics, topic)
 	}
 	brokerConnection.topicResolutions = make(map[string]bool)
-	brokerConnection.mutex.Unlock()
+
 	return removedSubscribedTopics
 }

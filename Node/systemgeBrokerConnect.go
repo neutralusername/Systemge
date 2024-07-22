@@ -7,12 +7,12 @@ import (
 	"Systemge/Tcp"
 )
 
-func (node *Node) connectToBroker(tcpEndpoint *Config.TcpEndpoint) (*brokerConnection, error) {
+func (systemge *systemgeComponent) connectToBroker(nodeName string, tcpEndpoint *Config.TcpEndpoint) (*brokerConnection, error) {
 	netConn, err := Tcp.NewEndpoint(tcpEndpoint)
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}
-	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("connect", node.GetName(), ""), node.GetSystemgeComponent().GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("connect", nodeName, ""), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed sending connection request", err)

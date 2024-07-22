@@ -5,42 +5,64 @@ import (
 	"Systemge/Error"
 	"Systemge/Http"
 	"net/http"
+	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
+type websocketComponent struct {
+	application        WebsocketComponent
+	mutex              sync.Mutex
+	httpServer         *Http.Server
+	connChannel        chan *websocket.Conn
+	clients            map[string]*WebsocketClient            // websocketId -> websocketClient
+	groups             map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	clientGroups       map[string]map[string]bool             // websocketId -> map[groupId]bool
+	onDisconnectWraper func(websocketClient *WebsocketClient)
+}
+
 func (node *Node) startWebsocketComponent() error {
-	httpServer := Http.New(&Config.Http{
-		Server: node.GetWebsocketComponent().GetWebsocketComponentConfig().Server,
+	websocket := &websocketComponent{
+		application:  node.application.(WebsocketComponent),
+		connChannel:  make(chan *websocket.Conn),
+		clients:      make(map[string]*WebsocketClient),
+		groups:       make(map[string]map[string]*WebsocketClient),
+		clientGroups: make(map[string]map[string]bool),
+	}
+	node.websocket = websocket
+	node.websocket.httpServer = Http.New(&Config.Http{
+		Server: node.websocket.application.GetWebsocketComponentConfig().Server,
 		Handlers: map[string]http.HandlerFunc{
-			node.GetWebsocketComponent().GetWebsocketComponentConfig().Pattern: node.WebsocketUpgrade(),
+			node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetWarningLogger()),
 		},
 	})
-	err := httpServer.Start()
+	node.websocket.onDisconnectWraper = func(websocketClient *WebsocketClient) {
+		websocket.application.OnDisconnectHandler(node, websocketClient)
+	}
+	err := node.websocket.httpServer.Start()
 	if err != nil {
 		return Error.New("failed starting websocket handshake handler", err)
 	}
-	node.websocketHttpServer = httpServer
-	node.websocketClients = make(map[string]*WebsocketClient)
 	go node.handleWebsocketConnections()
-	node.websocketStarted = true
 	return nil
 }
 
 func (node *Node) stopWebsocketComponent() error {
-	err := node.websocketHttpServer.Stop()
+	websocket := node.websocket
+	node.websocket = nil
+	err := websocket.httpServer.Stop()
 	if err != nil {
 		return Error.New("failed stopping websocket handshake handler", err)
 	}
-	node.websocketHttpServer = nil
-	node.websocketMutex.Lock()
+	websocket.httpServer = nil
+	websocket.mutex.Lock()
 	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
-	for _, websocketClient := range node.websocketClients {
+	for _, websocketClient := range websocket.clients {
 		websocketClientsToDisconnect = append(websocketClientsToDisconnect, websocketClient)
 	}
-	node.websocketMutex.Unlock()
-
+	websocket.mutex.Unlock()
 	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()
 	}
-	node.websocketStarted = false
 	return nil
 }

@@ -5,27 +5,29 @@ import (
 	"Systemge/Http"
 )
 
+type httpComponent struct {
+	application HTTPComponent
+	server      *Http.Server
+}
+
 func (node *Node) startHTTPComponent() error {
-	node.httpMutex.Lock()
-	defer node.httpMutex.Unlock()
-	httpServer := Http.New(node.GetHTTPComponent().GetHTTPComponentConfig())
-	err := httpServer.Start()
+	node.http = &httpComponent{
+		application: node.application.(HTTPComponent),
+	}
+	node.http.server = Http.New(node.http.application.GetHTTPComponentConfig())
+	err := node.http.server.Start()
 	if err != nil {
 		return Error.New("failed starting http server", err)
 	}
-	node.httpServer = httpServer
-	node.httpStarted = true
 	return nil
 }
 
 func (node *Node) stopHTTPComponent() error {
-	node.httpMutex.Lock()
-	defer node.httpMutex.Unlock()
-	err := node.httpServer.Stop()
+	http := node.http
+	node.http = nil
+	err := http.server.Stop()
 	if err != nil {
 		return Error.New("failed stopping http server", err)
 	}
-	node.httpServer = nil
-	node.httpStarted = false
 	return nil
 }

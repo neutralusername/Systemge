@@ -158,6 +158,14 @@ export class root extends React.Component {
                 },
                 "stop all",
             ),
+            React.createElement(
+                "button", {
+                    onClick: () => {
+                        this.state.WS_CONNECTION.send(this.state.constructMessage("heap"));
+                    },
+                },
+                "check heap usage",
+            ),
             responseMessages
         );
     }

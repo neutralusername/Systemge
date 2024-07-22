@@ -3,53 +3,33 @@ package Node
 import (
 	"Systemge/Config"
 	"Systemge/Error"
-	"Systemge/Helpers"
-	"Systemge/Http"
-	"Systemge/Message"
 	"Systemge/Tools"
 	"sync"
-	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 type Node struct {
-	ongoingSubscribeLoops int
-	name                  string
-	randomizer            *Tools.Randomizer
-	errorLogger           *Tools.Logger
-	warningLogger         *Tools.Logger
-	infoLogger            *Tools.Logger
-	debugLogger           *Tools.Logger
-	mailer                *Tools.Mailer
+	name          string
+	randomizer    *Tools.Randomizer
+	errorLogger   *Tools.Logger
+	warningLogger *Tools.Logger
+	infoLogger    *Tools.Logger
+	debugLogger   *Tools.Logger
+	mailer        *Tools.Mailer
 
 	stopChannel chan bool
 	isStarted   bool
-	nodeMutex   sync.Mutex
+	mutex       sync.Mutex
 
 	application Application
 
 	//systemge
-	systemgeStarted                    bool
-	systemgeMutex                      sync.Mutex
-	systemgeHandleSequentiallyMutex    sync.Mutex
-	systemgeMessagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-	systemgeBrokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
-	systemgeTopicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
+	systemge *systemgeComponent
 
 	//websocket
-	websocketStarted      bool
-	websocketMutex        sync.Mutex
-	websocketHttpServer   *Http.Server
-	websocketConnChannel  chan *websocket.Conn
-	websocketClients      map[string]*WebsocketClient            // websocketId -> websocketClient
-	websocketGroups       map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
-	websocketClientGroups map[string]map[string]bool             // websocketId -> map[groupId]bool
+	websocket *websocketComponent
 
 	//http
-	httpStarted bool
-	httpMutex   sync.Mutex
-	httpServer  *Http.Server
+	http *httpComponent
 }
 
 func New(config *Config.Node, application Application) *Node {
@@ -64,22 +44,13 @@ func New(config *Config.Node, application Application) *Node {
 		application: application,
 
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
-
-		systemgeMessagesWaitingForResponse: make(map[string]chan *Message.Message),
-		systemgeBrokerConnections:          make(map[string]*brokerConnection),
-		systemgeTopicResolutions:           make(map[string]*brokerConnection),
-
-		websocketGroups:       make(map[string]map[string]*WebsocketClient),
-		websocketConnChannel:  make(chan *websocket.Conn),
-		websocketClients:      make(map[string]*WebsocketClient),
-		websocketClientGroups: make(map[string]map[string]bool),
 	}
 	return node
 }
 
 func (node *Node) Start() error {
-	node.nodeMutex.Lock()
-	defer node.nodeMutex.Unlock()
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
 	if node.IsStarted() {
 		return Error.New("node already started", nil)
 	}
@@ -94,10 +65,13 @@ func (node *Node) Start() error {
 	node.isStarted = true
 
 	if ImplementsSystemgeComponent(node.application) {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
+		}
 		err := node.startSystemgeComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
-				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+				node.GetWarningLogger().Log(Error.New("failed to stop node", err).Error())
 			}
 			return Error.New("failed starting systemge component", err)
 		}
@@ -153,8 +127,8 @@ func (node *Node) Stop() error {
 
 func (node *Node) stop(lock bool) error {
 	if lock {
-		node.nodeMutex.Lock()
-		defer node.nodeMutex.Unlock()
+		node.mutex.Lock()
+		defer node.mutex.Unlock()
 	}
 	if !node.IsStarted() {
 		return Error.New("node not started", nil)
@@ -171,7 +145,7 @@ func (node *Node) stop(lock bool) error {
 			infoLogger.Log(Error.New("executed OnStop", nil).Error())
 		}
 	}
-	if node.websocketStarted {
+	if node.websocket != nil {
 		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping websocket server", err)
@@ -180,7 +154,7 @@ func (node *Node) stop(lock bool) error {
 			infoLogger.Log(Error.New("Stopped websocket component", nil).Error())
 		}
 	}
-	if node.httpStarted {
+	if node.http != nil {
 		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping http server", err)
@@ -189,7 +163,7 @@ func (node *Node) stop(lock bool) error {
 			infoLogger.Log(Error.New("Stopped http component", nil).Error())
 		}
 	}
-	if node.systemgeStarted {
+	if node.systemge != nil {
 		err := node.stopSystemgeComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping systemge component", err)
@@ -200,10 +174,6 @@ func (node *Node) stop(lock bool) error {
 	}
 	node.isStarted = false
 	close(node.stopChannel)
-	for node.ongoingSubscribeLoops > 0 {
-		node.GetWarningLogger().Log(Error.New("Waiting for "+Helpers.IntToString(node.ongoingSubscribeLoops)+" subscribe loops to finish", nil).Error())
-		time.Sleep(time.Duration(node.GetSystemgeComponent().GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
-	}
 	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopped", nil).Error())
 	}
@@ -264,27 +234,6 @@ func (node *Node) GetRandomizer() *Tools.Randomizer {
 
 func (node *Node) SetRandomizer(randomizer *Tools.Randomizer) {
 	node.randomizer = randomizer
-}
-
-func (node *Node) GetSystemgeComponent() SystemgeComponent {
-	if ImplementsSystemgeComponent(node.application) {
-		return node.application.(SystemgeComponent)
-	}
-	return nil
-}
-
-func (node *Node) GetWebsocketComponent() WebsocketComponent {
-	if ImplementsWebsocketComponent(node.application) {
-		return node.application.(WebsocketComponent)
-	}
-	return nil
-}
-
-func (node *Node) GetHTTPComponent() HTTPComponent {
-	if ImplementsHTTPComponent(node.application) {
-		return node.application.(HTTPComponent)
-	}
-	return nil
 }
 
 func (node *Node) GetCommandHandlerComponent() CommandHandlerComponent {
