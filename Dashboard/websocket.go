@@ -8,7 +8,6 @@ import (
 	"Systemge/Node"
 	"net/http"
 	"runtime"
-	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -78,9 +77,6 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 		},
 		"gc": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
 			runtime.GC()
-			memStats := new(runtime.MemStats)
-			runtime.ReadMemStats(memStats)
-			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), strconv.FormatUint(memStats.HeapAlloc, 10)).Serialize())
 			return nil
 		},
 	}
