@@ -106,28 +106,29 @@ export class root extends React.Component {
                     });
                     break;
                 case "nodeSystemgeCounters":
+                    console.log(message.payload);
                     let nodeSystemgeCounters = JSON.parse(message.payload);
                     let node = this.state.nodes[nodeSystemgeCounters.name];
                     if (node === undefined) {
                         node = {
                             name: nodeSystemgeCounters.name,
-                            counters: {},
+                            nodeSystemgeCounters: {},
                         };
                     }
-                    let counters = node.counters;
-                    if (counters === undefined) {
-                        counters = {};
+                    let currentNodeSystemgeCounters = node.nodeSystemgeCounters;
+                    if (currentNodeSystemgeCounters === undefined) {
+                        currentNodeSystemgeCounters = {};
                     }
-                    if (Object.keys(counters).length > 50) {
-                        delete counters[Object.keys(counters)[0]];
+                    if (Object.keys(currentNodeSystemgeCounters).length > 50) {
+                        delete currentNodeSystemgeCounters[Object.keys(currentNodeSystemgeCounters)[0]];
                     }
                     this.state.setStateRoot({
                         nodes: {
                             ...this.state.nodes,
                             [nodeSystemgeCounters.name]: {
                                 ...node,
-                                counters: {
-                                    ...counters,
+                                nodeSystemgeCounters: {
+                                    ...currentNodeSystemgeCounters,
                                     [new Date().toLocaleTimeString()]: {
                                         incSyncReq : nodeSystemgeCounters.incSyncReq,
                                         incSyncRes : nodeSystemgeCounters.incSyncRes,
@@ -168,23 +169,23 @@ export class root extends React.Component {
         let multiLineGraphs = [];
         if (urlPath === "/") {
             for (let nodeName in this.state.nodes) {
-                if (this.state.nodes[nodeName].counters) {
+                if (this.state.nodes[nodeName].nodeSystemgeCounters) {
                     let nodeCounters = {};
-                    Object.keys(this.state.nodes[nodeName].counters).forEach((key) => {
+                    Object.keys(this.state.nodes[nodeName].nodeSystemgeCounters).forEach((key) => {
                         nodeCounters[key] = [
-                            this.state.nodes[nodeName].counters[key].incSyncReq,
-                            this.state.nodes[nodeName].counters[key].incSyncRes,
-                            this.state.nodes[nodeName].counters[key].incAsync,
-                            this.state.nodes[nodeName].counters[key].outSyncReq,
-                            this.state.nodes[nodeName].counters[key].outSyncRes,
-                            this.state.nodes[nodeName].counters[key].outAsync,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].incSyncReq,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].incSyncRes,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].incAsync,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].outSyncReq,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].outSyncRes,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].outAsync,
                         ]
                     })
                     multiLineGraphs.push(React.createElement(
                         multiLineGraph, {
-                            title: "systemge message counters \"" + nodeName + "\"",
+                            title: "systemge counters \"" + nodeName + "\"",
                             chartName: "nodeCounters " + nodeName,
-                            dataLabel: "node counters",
+                            dataLabel: "node systemge counters",
                             dataSet: nodeCounters,
                             labels : [
                                 "incSyncReq",
@@ -241,23 +242,23 @@ export class root extends React.Component {
         } else {
             if (this.state.nodes[urlPath.substring(1)]) {
                 if (this.state.nodes[urlPath.substring(1)]) {
-                    if (this.state.nodes[urlPath.substring(1)].counters) {
+                    if (this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters) {
                         let nodeCounters = {};
-                        Object.keys(this.state.nodes[urlPath.substring(1)].counters).forEach((key) => {
+                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters).forEach((key) => {
                             nodeCounters[key] = [
-                                this.state.nodes[urlPath.substring(1)].counters[key].incSyncReq,
-                                this.state.nodes[urlPath.substring(1)].counters[key].incSyncRes,
-                                this.state.nodes[urlPath.substring(1)].counters[key].incAsync,
-                                this.state.nodes[urlPath.substring(1)].counters[key].outSyncReq,
-                                this.state.nodes[urlPath.substring(1)].counters[key].outSyncRes,
-                                this.state.nodes[urlPath.substring(1)].counters[key].outAsync,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].incSyncReq,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].incSyncRes,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].incAsync,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outSyncReq,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outSyncRes,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outAsync,
                             ]
                         })
                         multiLineGraphs.push(React.createElement(
                             multiLineGraph, {
-                                title: "systemge message counters \"" + urlPath.substring(1) + "\"",
+                                title: "systemge counters \"" + urlPath.substring(1) + "\"",
                                 chartName: "nodeCounters " + urlPath.substring(1),
-                                dataLabel: "node counters",
+                                dataLabel: "node systemge counters",
                                 dataSet: nodeCounters,
                                 labels : [
                                     "incSyncReq",
