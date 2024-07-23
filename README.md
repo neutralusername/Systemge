@@ -43,7 +43,7 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
 - [Systemge-Sample-ChessServer](https://github.com/neutralusername/Systemge-Sample-ChessServer)
 
-## Support
+## Contact
 
 Feel free to get in touch if you encounter issues, have questions or are interested in acquisition  
 **Discord**: https://discord.gg/y4KYj25A8K  
