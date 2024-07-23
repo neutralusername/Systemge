@@ -23,9 +23,7 @@ func New(config *Config.Dashboard, nodes ...*Node.Node) *App {
 		config: config,
 	}
 	_, filePath, _, _ := runtime.Caller(0)
-	app.httpMessageHandlers = map[string]http.HandlerFunc{
-		"/": HTTP.SendDirectory(filePath[:len(filePath)-len("app.go")] + "frontend"),
-	}
+	app.httpMessageHandlers = map[string]http.HandlerFunc{}
 	for _, node := range nodes {
 		app.nodes[node.GetName()] = node
 		if config.AutoStart {
@@ -66,5 +64,6 @@ func New(config *Config.Dashboard, nodes ...*Node.Node) *App {
 			w.Write([]byte(result))
 		}
 	}
+	app.httpMessageHandlers["/"] = HTTP.SendDirectory(filePath[:len(filePath)-len("app.go")] + "frontend")
 	return app
 }
