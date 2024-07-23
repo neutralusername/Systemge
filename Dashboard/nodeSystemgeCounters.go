@@ -10,6 +10,8 @@ type NodeSystemgeCounters struct {
 	OutSyncReq uint32 `json:"outSyncReq"`
 	OutSyncRes uint32 `json:"outSyncRes"`
 	OutAsync   uint32 `json:"outAsync"`
+	BytesSent  uint64 `json:"bytesSent"`
+	BytesRecv  uint64 `json:"bytesRecv"`
 }
 
 func newNodeSystemgeCounters(node *Node.Node) NodeSystemgeCounters {
@@ -21,5 +23,7 @@ func newNodeSystemgeCounters(node *Node.Node) NodeSystemgeCounters {
 		OutSyncReq: node.GetSystemgeOutgoingSyncRequestMessageCounter(),
 		OutSyncRes: node.GetSystemgeOutgoingSyncResponseMessageCounter(),
 		OutAsync:   node.GetSystemgeOutgoingAsyncMessageCounter(),
+		BytesSent:  node.GetSystemgeBytesSentCounter(),
+		BytesRecv:  node.GetSystemgeBytesReceivedCounter(),
 	}
 }

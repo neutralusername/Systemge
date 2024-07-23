@@ -23,6 +23,23 @@ type systemgeComponent struct {
 	outgoingAsyncMessageCounter        atomic.Uint32
 	outgoingSyncRequestMessageCounter  atomic.Uint32
 	outgoingSyncResponseMessageCounter atomic.Uint32
+
+	bytesReceivedCounter atomic.Uint64
+	bytesSentCounter     atomic.Uint64
+}
+
+func (node *Node) GetSystemgeBytesReceivedCounter() uint64 {
+	if systemge := node.systemge; systemge != nil {
+		return systemge.bytesReceivedCounter.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) GetSystemgeBytesSentCounter() uint64 {
+	if systemge := node.systemge; systemge != nil {
+		return systemge.bytesSentCounter.Swap(0)
+	}
+	return 0
 }
 
 func (node *Node) GetSystemgeIncomingAsyncMessageCounter() uint32 {

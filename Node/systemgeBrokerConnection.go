@@ -3,7 +3,6 @@ package Node
 import (
 	"Systemge/Config"
 	"Systemge/Error"
-	"Systemge/Message"
 	"Systemge/Tcp"
 	"net"
 	"sync"
@@ -35,34 +34,17 @@ func newBrokerConnection(netConn net.Conn, tcpEndpoint *Config.TcpEndpoint) *bro
 	}
 }
 
-func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, message *Message.Message) error {
+func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, messageBytes []byte) error {
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
 	if brokerConnection.netConn == nil {
 		return Error.New("Connection is closed", nil)
 	}
-	err := Tcp.Send(brokerConnection.netConn, message.Serialize(), tcpTimeoutMs)
+	err := Tcp.Send(brokerConnection.netConn, messageBytes, tcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed sending message", err)
 	}
 	return nil
-}
-
-func (brokerConnection *brokerConnection) receive() (*Message.Message, error) {
-	brokerConnection.receiveMutex.Lock()
-	defer brokerConnection.receiveMutex.Unlock()
-	if brokerConnection.netConn == nil {
-		return nil, Error.New("Connection is closed", nil)
-	}
-	messageBytes, err := Tcp.Receive(brokerConnection.netConn, 0, 0)
-	if err != nil {
-		return nil, Error.New("Failed receiving message", err)
-	}
-	message := Message.Deserialize(messageBytes)
-	if message == nil {
-		return nil, Error.New("Failed to deserialize message \""+string(messageBytes)+"\"", nil)
-	}
-	return message, nil
 }
 
 func (brokerConnection *brokerConnection) close() error {

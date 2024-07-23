@@ -14,10 +14,13 @@ func (systemge *systemgeComponent) resolveBrokerForTopic(nodeName string, topic 
 		return nil, Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("resolve", nodeName, topic), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	messageBytes := Message.NewAsync("resolve", nodeName, topic).Serialize()
+	responseMessage, bytesReceived, err := Tcp.Exchange(netConn, messageBytes, systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return nil, Error.New("failed to recieve response from resolver", err)
 	}
+	systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+	systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
 	if responseMessage.GetTopic() != "resolution" {
 		return nil, Error.New("received error response from resolver \""+responseMessage.GetPayload()+"\"", nil)
 	}

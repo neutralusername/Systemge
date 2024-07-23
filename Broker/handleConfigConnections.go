@@ -48,7 +48,7 @@ func (broker *Broker) handleConfigConnections() {
 
 func (broker *Broker) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+	messageBytes, _, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 			warningLogger.Log(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())

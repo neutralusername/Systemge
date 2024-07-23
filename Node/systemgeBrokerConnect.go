@@ -12,11 +12,14 @@ func (systemge *systemgeComponent) connectToBroker(nodeName string, tcpEndpoint 
 	if err != nil {
 		return nil, Error.New("Failed connecting to broker", err)
 	}
-	responseMessage, err := Tcp.Exchange(netConn, Message.NewAsync("connect", nodeName, ""), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	messageBytes := Message.NewAsync("connect", nodeName, "").Serialize()
+	responseMessage, bytesReceived, err := Tcp.Exchange(netConn, messageBytes, systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed sending connection request", err)
 	}
+	systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+	systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
 	if responseMessage.GetTopic() != "connected" {
 		netConn.Close()
 		return nil, Error.New("Invalid response topic \""+responseMessage.GetTopic()+"\"", nil)

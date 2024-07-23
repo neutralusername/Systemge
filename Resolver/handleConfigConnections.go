@@ -49,7 +49,7 @@ func (resolver *Resolver) handleConfigConnections() {
 
 func (resolver *Resolver) handleConfigConnection(netConn net.Conn) {
 	defer netConn.Close()
-	messageBytes, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
+	messageBytes, _, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
 	if err != nil {
 		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
 			warningLogger.Log(Error.New("Failed to receive message from \""+netConn.RemoteAddr().String()+"\"", err).Error())

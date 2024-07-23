@@ -135,6 +135,8 @@ export class root extends React.Component {
                                         outSyncReq : nodeSystemgeCounters.outSyncReq,
                                         outSyncRes : nodeSystemgeCounters.outSyncRes,
                                         outAsync : nodeSystemgeCounters.outAsync,
+                                        bytesSent : nodeSystemgeCounters.bytesSent,
+                                        bytesReceived : nodeSystemgeCounters.bytesReceived,
                                     },
                                 }
                             },
@@ -247,6 +249,8 @@ export class root extends React.Component {
                             this.state.nodes[nodeName].nodeSystemgeCounters[key].outSyncReq,
                             this.state.nodes[nodeName].nodeSystemgeCounters[key].outSyncRes,
                             this.state.nodes[nodeName].nodeSystemgeCounters[key].outAsync,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].bytesSent,
+                            this.state.nodes[nodeName].nodeSystemgeCounters[key].bytesReceived,
                         ]
                     })
                     multiLineGraphs.push(React.createElement(
@@ -262,6 +266,8 @@ export class root extends React.Component {
                                 "outSyncReq",
                                 "outSyncRes",
                                 "outAsync",
+                                "bytesSent",
+                                "bytesReceived",
                             ],
                             colors : [
                                 "rgb(75, 192, 192)",
@@ -270,6 +276,8 @@ export class root extends React.Component {
                                 "rgb(75, 192, 75)",
                                 "rgb(75, 75, 192)",
                                 "rgb(192, 75, 75)",
+                                "rgb(75, 192, 192)",
+                                "rgb(192, 75, 192)",
                             ],
                             height : "400px",
                             width : "1200px",    
@@ -353,6 +361,8 @@ export class root extends React.Component {
                                 this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outSyncReq,
                                 this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outSyncRes,
                                 this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outAsync,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].bytesSent,
+                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].bytesReceived,
                             ]
                         })
                         multiLineGraphs.push(React.createElement(
@@ -368,6 +378,8 @@ export class root extends React.Component {
                                     "outSyncReq",
                                     "outSyncRes",
                                     "outAsync",
+                                    "bytesSent",
+                                    "bytesReceived",
                                 ],
                                 colors : [
                                     "rgb(75, 192, 192)",
@@ -376,6 +388,8 @@ export class root extends React.Component {
                                     "rgb(75, 192, 75)",
                                     "rgb(75, 75, 192)",
                                     "rgb(192, 75, 75)",
+                                    "rgb(75, 192, 192)",
+                                    "rgb(192, 75, 192)",
                                 ],
                                 height : "400px",
                                 width : "1200px",    

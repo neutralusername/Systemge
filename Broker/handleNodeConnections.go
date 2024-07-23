@@ -62,7 +62,7 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
-	messageBytes, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+	messageBytes, _, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
 	}
