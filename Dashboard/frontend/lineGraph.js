@@ -38,16 +38,14 @@ export class lineGraph extends React.Component {
             },
 			options: options,
         });
-		return (
-			React.createElement(
-                "canvas", {
-                    id: this.props.chartName,
-                    style : {
-						height : this.props.height,
-						width : this.props.width,
-                    },
-                }
-            )
+		return React.createElement(
+			"canvas", {
+				id: this.props.chartName,
+				style : {
+					height : this.props.height,
+					width : this.props.width,
+				},
+			}
 		)
 	}
 }
