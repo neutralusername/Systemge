@@ -20,6 +20,17 @@ export class multiLineGraph extends React.Component {
 				scales: {
 					y: {
 						beginAtZero: false,
+						min : 0,
+						ticks: {
+							stepSize: 1
+						  }
+					},
+					x: {
+						beginAtZero: false,
+						min : 0,
+						ticks: {
+							stepSize: 1	
+						  }
 					},
 				},
 				animation: false,
