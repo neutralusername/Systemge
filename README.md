@@ -51,4 +51,5 @@ For information on how to use this library, check out the samples:
 
 Please contact me if you encounter issues using this library:
 
-**Email**: stuck.fabian@gmail.com
+**Email**: stuck.fabian@gmail.com  
+**Discord**: https://discord.gg/y4KYj25A8K
