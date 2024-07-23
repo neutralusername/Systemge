@@ -6,30 +6,30 @@ export class lineGraph extends React.Component {
 		}
 	}
 	render() {
-		let options = this.props.options;
-		if (this.props.options === undefined) {
-			options = {
-				responsive: false,
-				maintainAspectRatio: true,
-				scales: {
-					y: {
-						beginAtZero: false,
-					},
-				},
-				animation: false,
-				interaction: false,
-			}
-		}
-		let fill = this.props.fill;
-		if (this.props.fill === undefined) {
-			fill = true;
-		}
-		let graphColor = this.props.graphColor;
-		if (this.props.graphColor === undefined) {
-			graphColor = "rgb(75, 192, 192)";
-		}
 		if (document.getElementById(this.props.chartName) !== null) {
 			if ( this.state.chart === null) {
+				let options = this.props.options;
+				if (this.props.options === undefined) {
+					options = {
+						responsive: false,
+						maintainAspectRatio: true,
+						scales: {
+							y: {
+								beginAtZero: false,
+							},
+						},
+						animation: false,
+						interaction: false,
+					}
+				}
+				let fill = this.props.fill;
+				if (this.props.fill === undefined) {
+					fill = true;
+				}
+				let graphColor = this.props.graphColor;
+				if (this.props.graphColor === undefined) {
+					graphColor = "rgb(75, 192, 192)";
+				}
 				this.setState({
 					chart : new Chart(document.getElementById(this.props.chartName).getContext('2d'), {
 						type: 'line',
