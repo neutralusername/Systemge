@@ -11,6 +11,7 @@ import (
 
 func (app *App) OnStart(node *Node.Node) error {
 	app.node = node
+	app.started = true
 	if app.config.StatusUpdateIntervalMs > 0 {
 		go app.statusUpdateRoutine()
 	}
@@ -22,11 +23,12 @@ func (app *App) OnStart(node *Node.Node) error {
 
 func (app *App) OnStop(node *Node.Node) error {
 	app.node = nil
+	app.started = false
 	return nil
 }
 
 func (app *App) statusUpdateRoutine() {
-	for {
+	for app.started {
 		for _, node := range app.nodes {
 			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), Helpers.JsonMarshal(newNodeStatus(node))))
 		}
@@ -35,7 +37,7 @@ func (app *App) statusUpdateRoutine() {
 }
 
 func (app *App) heapUpdateRoutine() {
-	for {
+	for app.started {
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
 		app.node.WebsocketBroadcast(Message.NewAsync("heapStatus", app.node.GetName(), strconv.FormatUint(memStats.HeapAlloc, 10)))

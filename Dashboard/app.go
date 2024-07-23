@@ -6,9 +6,10 @@ import (
 )
 
 type App struct {
-	nodes  map[string]*Node.Node
-	node   *Node.Node
-	config *Config.Dashboard
+	nodes   map[string]*Node.Node
+	node    *Node.Node
+	config  *Config.Dashboard
+	started bool
 }
 
 func New(config *Config.Dashboard, nodes ...*Node.Node) *App {

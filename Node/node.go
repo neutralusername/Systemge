@@ -48,10 +48,18 @@ func New(config *Config.Node, application Application) *Node {
 	return node
 }
 
-func (node *Node) StartBlocking() error {
-	err := node.Start()
-	<-node.stopChannel
-	return err
+func (node *Node) StartBlocking(autoRestart *bool) error {
+	for {
+		err := node.Start()
+		<-node.stopChannel
+		if autoRestart == nil || !*autoRestart {
+			return err
+		} else {
+			if err != nil {
+				node.GetWarningLogger().Log(Error.New("Restarting", err).Error())
+			}
+		}
+	}
 }
 
 func (node *Node) Start() error {
