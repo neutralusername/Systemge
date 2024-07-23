@@ -10,7 +10,7 @@ Additionally Nodes can interact with external systems through HTTP/Websocket API
 
 - Nodes do not communicate directly with each other  
 - Instead Nodes communicate through a "Broker"  
-- Brokers are a particular type of Node that receive "Messages" from regular Nodes, which always possess a certain "Topic"  
+- Brokers are a particular type of Node that receives "Messages" from regular Nodes, which always possess a certain "Topic"  
 - Nodes connect to Brokers and can subscribe to any Topic this Broker is responsible for  
 - Nodes will receive a copy of each Message whose Topic they have subscribed to
 <br>
