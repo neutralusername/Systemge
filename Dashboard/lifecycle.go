@@ -34,7 +34,11 @@ func (app *App) nodeSystemgeCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
 			if node.ImplementsSystemgeComponent() {
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", app.node.GetName(), Helpers.JsonMarshal(newNodeSystemgeCounters(node))))
+				systemgeCountersJson := Helpers.JsonMarshal(newNodeSystemgeCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", app.node.GetName(), systemgeCountersJson))
+				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log("systemge counter routine: \"" + systemgeCountersJson + "\"")
+				}
 			}
 		}
 		time.Sleep(time.Duration(app.config.NodeSystemgeCountersIntervalMs) * time.Millisecond)
@@ -44,7 +48,11 @@ func (app *App) nodeSystemgeCountersRoutine() {
 func (app *App) statusUpdateRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
-			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), Helpers.JsonMarshal(newNodeStatus(node))))
+			statusUpdateJson := Helpers.JsonMarshal(newNodeStatus(node))
+			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), statusUpdateJson))
+			if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
+			}
 		}
 		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
 	}
@@ -54,7 +62,11 @@ func (app *App) heapUpdateRoutine() {
 	for app.started {
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
-		app.node.WebsocketBroadcast(Message.NewAsync("heapStatus", app.node.GetName(), strconv.FormatUint(memStats.HeapAlloc, 10)))
+		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
+		app.node.WebsocketBroadcast(Message.NewAsync("heapStatus", app.node.GetName(), heapSize))
+		if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log("heap update routine: \"" + heapSize + "\"")
+		}
 		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
 	}
 }

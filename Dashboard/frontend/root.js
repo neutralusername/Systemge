@@ -106,7 +106,6 @@ export class root extends React.Component {
                     });
                     break;
                 case "nodeSystemgeCounters":
-                    console.log(message.payload);
                     let nodeSystemgeCounters = JSON.parse(message.payload);
                     let node = this.state.nodes[nodeSystemgeCounters.name];
                     if (node === undefined) {
