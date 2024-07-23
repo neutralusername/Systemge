@@ -25,10 +25,12 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 						if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 							warningLogger.Log(Error.New("Failed to subscribe for topic \""+topic+"\"", err).Error())
 						}
-						err := node.stop(true)
-						if err != nil {
-							if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-								warningLogger.Log(Error.New("Failed to stop node due to failed subscription for topic \""+topic+"\"", err).Error())
+						if node.systemge == systemge {
+							err := node.stop(true)
+							if err != nil {
+								if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+									warningLogger.Log(Error.New("Failed to stop node due to failed subscription for topic \""+topic+"\"", err).Error())
+								}
 							}
 						}
 					}

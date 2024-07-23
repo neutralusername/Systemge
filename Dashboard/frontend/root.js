@@ -328,7 +328,6 @@ export class root extends React.Component {
             ),
             nodeStatuses,
             buttons,
-            responseMessages,
             multiLineGraphs, 
             React.createElement(
                 lineGraph, {
@@ -347,6 +346,7 @@ export class root extends React.Component {
                 },
                 "collect garbage",
             ),
+            responseMessages,
         );
     }
 }

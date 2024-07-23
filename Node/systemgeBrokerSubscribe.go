@@ -9,10 +9,14 @@ import (
 
 func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error {
 	subscribeAttempts := uint64(0)
+	systemge_ := node.systemge
 	for {
 		systemge := node.systemge
 		if systemge == nil {
 			return Error.New("systemge not initialized", nil)
+		}
+		if systemge != systemge_ {
+			return Error.New("systemge changed", nil)
 		}
 		if subscribeAttempts >= maxSubscribeAttempts && maxSubscribeAttempts > 0 {
 			return Error.New("Reached maximum subscribe attempts", nil)
