@@ -43,12 +43,12 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
 - [Systemge-Sample-ChessServer](https://github.com/neutralusername/Systemge-Sample-ChessServer)
 
-![Screenshot](https://github.com/user-attachments/assets/2db43478-bdfe-4632-88e2-49462a3ae677)
-
-![Diagram](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
-
 ## Support
 
 Feel free to get in touch if you encounter issues, have questions or are interested in acquisition  
 **Discord**: https://discord.gg/y4KYj25A8K  
 **Email**: stuck.fabian@gmail.com  
+
+![Screenshot](https://github.com/user-attachments/assets/2db43478-bdfe-4632-88e2-49462a3ae677)
+
+![Diagram](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
