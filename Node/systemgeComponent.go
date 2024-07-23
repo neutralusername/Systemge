@@ -24,7 +24,7 @@ type systemgeComponent struct {
 	outgoingSyncResponseMessageCounter atomic.Uint32
 }
 
-func (node *Node) GetMessageCounters() (uint32, uint32, uint32, uint32, uint32, uint32) {
+func (node *Node) GetSystemgeCounters() (uint32, uint32, uint32, uint32, uint32, uint32) {
 	if systemge := node.systemge; systemge != nil {
 		incSyncRequest := node.systemge.incomingSyncRequestMessageCounter.Swap(0)
 		incSyncResponse := node.systemge.incomingSyncResponseMessageCounter.Swap(0)

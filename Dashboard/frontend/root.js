@@ -105,12 +105,12 @@ export class root extends React.Component {
                         },
                     });
                     break;
-                case "nodeCounters":
-                    let nodeCounters = JSON.parse(message.payload);
-                    let node = this.state.nodes[nodeCounters.name];
+                case "nodeSystemgeCounters":
+                    let nodeSystemgeCounters = JSON.parse(message.payload);
+                    let node = this.state.nodes[nodeSystemgeCounters.name];
                     if (node === undefined) {
                         node = {
-                            name: nodeCounters.name,
+                            name: nodeSystemgeCounters.name,
                             counters: {},
                         };
                     }
@@ -124,17 +124,17 @@ export class root extends React.Component {
                     this.state.setStateRoot({
                         nodes: {
                             ...this.state.nodes,
-                            [nodeCounters.name]: {
+                            [nodeSystemgeCounters.name]: {
                                 ...node,
                                 counters: {
                                     ...counters,
                                     [new Date().toLocaleTimeString()]: {
-                                        incSyncReq : nodeCounters.incSyncReq,
-                                        incSyncRes : nodeCounters.incSyncRes,
-                                        incAsync : nodeCounters.incAsync,
-                                        outSyncReq : nodeCounters.outSyncReq,
-                                        outSyncRes : nodeCounters.outSyncRes,
-                                        outAsync : nodeCounters.outAsync,
+                                        incSyncReq : nodeSystemgeCounters.incSyncReq,
+                                        incSyncRes : nodeSystemgeCounters.incSyncRes,
+                                        incAsync : nodeSystemgeCounters.incAsync,
+                                        outSyncReq : nodeSystemgeCounters.outSyncReq,
+                                        outSyncRes : nodeSystemgeCounters.outSyncRes,
+                                        outAsync : nodeSystemgeCounters.outAsync,
                                     },
                                 }
                             },

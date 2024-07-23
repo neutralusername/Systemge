@@ -18,8 +18,8 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.HeapUpdateIntervalMs > 0 {
 		go app.heapUpdateRoutine()
 	}
-	if app.config.MessageCountIntervalMs > 0 {
-		go app.nodeCountersRoutine()
+	if app.config.NodeSystemgeCountersIntervalMs > 0 {
+		go app.nodeSystemgeCountersRoutine()
 	}
 	return nil
 }
@@ -30,14 +30,14 @@ func (app *App) OnStop(node *Node.Node) error {
 	return nil
 }
 
-func (app *App) nodeCountersRoutine() {
+func (app *App) nodeSystemgeCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
 			if node.ImplementsSystemgeComponent() {
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeCounters", app.node.GetName(), Helpers.JsonMarshal(newNodeCounters(node))))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", app.node.GetName(), Helpers.JsonMarshal(newNodeSystemgeCounters(node))))
 			}
 		}
-		time.Sleep(time.Duration(app.config.MessageCountIntervalMs) * time.Millisecond)
+		time.Sleep(time.Duration(app.config.NodeSystemgeCountersIntervalMs) * time.Millisecond)
 	}
 }
 

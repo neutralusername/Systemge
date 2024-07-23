@@ -61,9 +61,9 @@ type Spawner struct {
 
 // Server applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
-	Server                 *TcpServer // *required*
-	AutoStart              bool       // default: false
-	StatusUpdateIntervalMs uint64     // default: 0 = disabled
-	HeapUpdateIntervalMs   uint64     // default: 0 = disabled
-	MessageCountIntervalMs uint64     // default: 0 = disabled
+	Server                         *TcpServer // *required*
+	AutoStart                      bool       // default: false
+	StatusUpdateIntervalMs         uint64     // default: 0 = disabled
+	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
+	NodeSystemgeCountersIntervalMs uint64     // default: 0 = disabled
 }

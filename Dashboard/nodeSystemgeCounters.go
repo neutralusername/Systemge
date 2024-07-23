@@ -2,7 +2,7 @@ package Dashboard
 
 import "Systemge/Node"
 
-type NodeCounters struct {
+type NodeSystemgeCounters struct {
 	Name       string `json:"name"`
 	IncSyncReq uint32 `json:"incSyncReq"`
 	IncSyncRes uint32 `json:"incSyncRes"`
@@ -12,9 +12,9 @@ type NodeCounters struct {
 	OutAsync   uint32 `json:"outAsync"`
 }
 
-func newNodeCounters(node *Node.Node) NodeCounters {
-	incSyncReq, incSyncRes, incAsync, outSyncReq, outSyncRes, outAsync := node.GetMessageCounters()
-	return NodeCounters{
+func newNodeSystemgeCounters(node *Node.Node) NodeSystemgeCounters {
+	incSyncReq, incSyncRes, incAsync, outSyncReq, outSyncRes, outAsync := node.GetSystemgeCounters()
+	return NodeSystemgeCounters{
 		Name:       node.GetName(),
 		IncSyncReq: incSyncReq,
 		IncSyncRes: incSyncRes,
