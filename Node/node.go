@@ -49,6 +49,9 @@ func New(config *Config.Node, application Application) *Node {
 }
 
 func (node *Node) StartBlocking() error {
+	if node.isStarted {
+		return Error.New("node already started", nil)
+	}
 	err := node.Start()
 	<-node.stopChannel
 	return err
@@ -57,19 +60,13 @@ func (node *Node) StartBlocking() error {
 func (node *Node) Start() error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
-	node.stopChannel = make(chan bool)
 	if node.IsStarted() {
-		close(node.stopChannel)
 		return Error.New("node already started", nil)
-	}
-	if node.application == nil {
-		close(node.stopChannel)
-		return Error.New("application not set", nil)
 	}
 	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
-
+	node.stopChannel = make(chan bool)
 	node.isStarted = true
 	if ImplementsSystemgeComponent(node.application) {
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
