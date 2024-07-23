@@ -35,9 +35,11 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 		broker.addSyncTopics(topic)
 		topicsToAddToResolver = append(topicsToAddToResolver, topic)
 	}
-	err = broker.addResolverTopicsRemotely(topicsToAddToResolver...)
-	if err != nil {
-		return err
+	if len(topicsToAddToResolver) > 0 {
+		err = broker.addResolverTopicsRemotely(topicsToAddToResolver...)
+		if err != nil {
+			return err
+		}
 	}
 	broker.addAsyncTopics("heartbeat")
 	broker.addSyncTopics("subscribe", "unsubscribe")
