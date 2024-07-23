@@ -36,8 +36,8 @@ export class lineGraph extends React.Component {
                 "canvas", {
                     id: this.props.chartName,
                     style : {
-                        width : "70%",
-                        height : "1000"
+						height : this.props.height,
+						width : this.props.width,
                     },
                 }
             )

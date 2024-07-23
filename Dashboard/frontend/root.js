@@ -204,6 +204,8 @@ export class root extends React.Component {
                     chartName: "heapChart",
                     dataLabel: "heap usage",
                     dataSet: this.state.heapUpdates,
+                    height : "400px",
+                    width : "1200px",    
                 },
             ),
         );
