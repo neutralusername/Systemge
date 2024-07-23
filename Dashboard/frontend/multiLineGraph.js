@@ -44,7 +44,6 @@ export class multiLineGraph extends React.Component {
 				borderColor: this.props.colors[index],
 			})
 		})
-		console.log(dataSets);
 		this.setState({
 			chart : new Chart(this.props.chartName, {
 				type: 'line',
@@ -76,6 +75,7 @@ export class multiLineGraph extends React.Component {
 			this.state.chart.data.datasets.forEach((dataSet, index) => {
 				this.state.chart.getDatasetMeta(index).hidden = visibilityStates[index];
 			})
+			this.state.chart.options.plugins.title.text = this.props.title;
 			this.state.chart.update();
 		}
 	}
