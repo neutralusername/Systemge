@@ -87,6 +87,9 @@ func (node *Node) Start() error {
 		}
 	}
 	if ImplementsWebsocketComponent(node.application) {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Starting websocket component", nil).Error())
+		}
 		err := node.startWebsocketComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
@@ -99,6 +102,9 @@ func (node *Node) Start() error {
 		}
 	}
 	if ImplementsHTTPComponent(node.application) {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Starting http component", nil).Error())
+		}
 		err := node.startHTTPComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
@@ -111,6 +117,9 @@ func (node *Node) Start() error {
 		}
 	}
 	if ImplementsOnStartComponent(node.application) {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Executing OnStart", nil).Error())
+		}
 		err := node.GetOnStartComponent().OnStart(node)
 		if err != nil {
 			if err := node.stop(false); err != nil {
@@ -144,6 +153,9 @@ func (node *Node) stop(lock bool) error {
 		infoLogger.Log(Error.New("Stopping", nil).Error())
 	}
 	if ImplementsOnStopComponent(node.application) {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Executing OnStop", nil).Error())
+		}
 		err := node.GetOnStopComponent().OnStop(node)
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
@@ -153,6 +165,9 @@ func (node *Node) stop(lock bool) error {
 		}
 	}
 	if node.websocket != nil {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopping websocket component", nil).Error())
+		}
 		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping websocket server", err)
@@ -162,6 +177,9 @@ func (node *Node) stop(lock bool) error {
 		}
 	}
 	if node.http != nil {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopping http component", nil).Error())
+		}
 		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping http server", err)
@@ -171,6 +189,9 @@ func (node *Node) stop(lock bool) error {
 		}
 	}
 	if node.systemge != nil {
+		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopping systemge component", nil).Error())
+		}
 		err := node.stopSystemgeComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping systemge component", err)

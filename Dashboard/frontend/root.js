@@ -1,4 +1,7 @@
 import { 
+    lineGraph 
+} from "./lineGraph.js";
+import { 
     nodeStatus 
 } from "./nodeStatus.js";
 import { 
@@ -142,30 +145,6 @@ export class root extends React.Component {
                 this.state.responseMessages[responseId],
             ));
         }
-       new Chart("myChart", {
-            type: "line",
-            data: {
-                labels: Object.keys(this.state.heapUpdates),
-                datasets: [{
-                    label: "Heap Usage",
-                    data: Object.values(this.state.heapUpdates),
-                    fill: false,
-                    borderColor: "rgb(75, 192, 192)",
-                    tension: 0.1,
-                }],
-            },
-            options: {
-                responsive: false,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                    },
-                },
-                animation : true
-
-            },
-        });
         return React.createElement(
             "div", {
                 id: "root",
@@ -221,14 +200,12 @@ export class root extends React.Component {
                 "collect garbage",
             ),
             React.createElement(
-                "canvas", {
-                    id: "myChart",
-                    style : {
-                        width : "70%",
-                        height : "1000"
-                    },
+                lineGraph, {
+                    chartName: "heapChart",
+                    dataLabel: "heap usage",
+                    dataSet: this.state.heapUpdates,
                 },
-            )
+            ),
         );
     }
 }
