@@ -17,7 +17,14 @@ export class lineGraph extends React.Component {
 		if (this.props.options) {
 			options = this.props.options;
 		}
-
+		let fill = this.props.fill;
+		if (this.props.fill === undefined) {
+			fill = true;
+		}
+		let graphColor = this.props.graphColor;
+		if (this.props.graphColor === undefined) {
+			graphColor = "rgb(75, 192, 192)";
+		}
 		new Chart(this.props.chartName, {
             type: 'line',
             data: {
@@ -25,8 +32,8 @@ export class lineGraph extends React.Component {
                 datasets: [{
                     label: this.props.dataLabel,
                     data: Object.values(this.props.dataSet),
-                    fill: true,
-                    borderColor: "rgb(75, 192, 192)",
+                    fill: fill,
+                    borderColor: graphColor,
                 }],
             },
 			options: options,
