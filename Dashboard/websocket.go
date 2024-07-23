@@ -35,46 +35,6 @@ func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
 	}
 }
 
-func (app *App) startNode(nodeName string) error {
-	n := app.nodes[nodeName]
-	if n == nil {
-		return Error.New("Node not found", nil)
-	}
-	err := n.Start()
-	if err != nil {
-		return Error.New("Failed to start node \""+n.GetName()+"\": "+err.Error(), nil)
-	}
-	return nil
-}
-
-func (app *App) stopNode(nodeName string) error {
-	n := app.nodes[nodeName]
-	if n == nil {
-		return Error.New("Node not found", nil)
-	}
-	err := n.Stop()
-	if err != nil {
-		return Error.New("Failed to stop node \""+n.GetName()+"\": "+err.Error(), nil)
-	}
-	return nil
-}
-
-func (app *App) nodeCommand(command *Command) (string, error) {
-	n := app.nodes[command.Name]
-	if n == nil {
-		return "", Error.New("Node not found", nil)
-	}
-	commandHandler := n.GetCommandHandlers()[command.Command]
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	result, err := commandHandler(n, command.Args)
-	if err != nil {
-		return "", Error.New("Failed to execute command \""+command.Name+"\": "+err.Error(), nil)
-	}
-	return result, nil
-}
-
 func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
 	return map[string]Node.WebsocketMessageHandler{
 		"start": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
@@ -125,4 +85,44 @@ func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.Websocke
 
 func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
 
+}
+
+func (app *App) startNode(nodeName string) error {
+	n := app.nodes[nodeName]
+	if n == nil {
+		return Error.New("Node not found", nil)
+	}
+	err := n.Start()
+	if err != nil {
+		return Error.New("Failed to start node \""+n.GetName()+"\": "+err.Error(), nil)
+	}
+	return nil
+}
+
+func (app *App) stopNode(nodeName string) error {
+	n := app.nodes[nodeName]
+	if n == nil {
+		return Error.New("Node not found", nil)
+	}
+	err := n.Stop()
+	if err != nil {
+		return Error.New("Failed to stop node \""+n.GetName()+"\": "+err.Error(), nil)
+	}
+	return nil
+}
+
+func (app *App) nodeCommand(command *Command) (string, error) {
+	n := app.nodes[command.Name]
+	if n == nil {
+		return "", Error.New("Node not found", nil)
+	}
+	commandHandler := n.GetCommandHandlers()[command.Command]
+	if commandHandler == nil {
+		return "", Error.New("Command not found", nil)
+	}
+	result, err := commandHandler(n, command.Args)
+	if err != nil {
+		return "", Error.New("Failed to execute command \""+command.Name+"\": "+err.Error(), nil)
+	}
+	return result, nil
 }

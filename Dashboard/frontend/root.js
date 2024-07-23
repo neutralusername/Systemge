@@ -123,21 +123,59 @@ export class root extends React.Component {
     }
 
     render() {
+        let urlPath = window.location.pathname;
         let nodeStatuses = [];
-        for (let nodeName in this.state.nodes) {
-            nodeStatuses.push(React.createElement(
-                nodeStatus, {   
-                    node: this.state.nodes[nodeName],
-                    key: nodeName,
-                    WS_CONNECTION: this.state.WS_CONNECTION,
-                    constructMessage: this.state.constructMessage,
-                },
-            ));
+        let buttons = [];
+        if (urlPath === "/") {
+            for (let nodeName in this.state.nodes) {
+                nodeStatuses.push(React.createElement(
+                    nodeStatus, {   
+                        node: this.state.nodes[nodeName],
+                        key: nodeName,
+                        WS_CONNECTION: this.state.WS_CONNECTION,
+                        constructMessage: this.state.constructMessage,
+                    },
+                ));
+            } 
+            buttons.push(
+                React.createElement(
+                    "button", {
+                        onClick: () => {
+                            for (let nodeName in this.state.nodes) {
+                                this.state.WS_CONNECTION.send(this.state.constructMessage("start", nodeName));
+                            }
+                        },
+                    },
+                    "start all",
+                ),
+                React.createElement(
+                    "button", {
+                        onClick: () => {
+                            for (let nodeName in this.state.nodes) {
+                                this.state.WS_CONNECTION.send(this.state.constructMessage("stop", nodeName));
+                            }
+                        },
+                    },
+                    "stop all",
+                )
+            )
+        } else {
+            if (this.state.nodes[urlPath.substring(1)]) {
+                nodeStatuses.push(React.createElement(
+                    nodeStatus, {
+                        node: this.state.nodes[urlPath.substring(1)],
+                        key: urlPath.substring(1),
+                        WS_CONNECTION: this.state.WS_CONNECTION,
+                        constructMessage: this.state.constructMessage,
+                    },
+                ));
+            }
         }
         let responseMessages = [];
         for (let responseId in this.state.responseMessages) {
             responseMessages.push(React.createElement(
-                "div", {
+                "div", {           
+
                     key: responseId,
                     style: {
                     },
@@ -170,35 +208,8 @@ export class root extends React.Component {
                 "close",
             ),
             nodeStatuses,
-            React.createElement(
-                "button", {
-                    onClick: () => {
-                        for (let nodeName in this.state.nodes) {
-                            this.state.WS_CONNECTION.send(this.state.constructMessage("start", nodeName));
-                        }
-                    },
-                },
-                "start all",
-            ),
-            React.createElement(
-                "button", {
-                    onClick: () => {
-                        for (let nodeName in this.state.nodes) {
-                            this.state.WS_CONNECTION.send(this.state.constructMessage("stop", nodeName));
-                        }
-                    },
-                },
-                "stop all",
-            ),
+            buttons,
             responseMessages,
-            React.createElement(
-                "button", {
-                    onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("gc"));
-                    },
-                },
-                "collect garbage",
-            ),
             React.createElement(
                 lineGraph, {
                     chartName: "heapChart",
@@ -207,6 +218,14 @@ export class root extends React.Component {
                     height : "400px",
                     width : "1200px",    
                 },
+            ),
+            React.createElement(
+                "button", {
+                    onClick: () => {
+                        this.state.WS_CONNECTION.send(this.state.constructMessage("gc"));
+                    },
+                },
+                "collect garbage",
             ),
         );
     }
