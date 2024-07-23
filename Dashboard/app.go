@@ -19,6 +19,12 @@ func New(config *Config.Dashboard, nodes ...*Node.Node) *App {
 	}
 	for _, node := range nodes {
 		server.nodes[node.GetName()] = node
+		if config.AutoStart {
+			err := node.Start()
+			if err != nil {
+				panic(err)
+			}
+		}
 	}
 	return server
 }
