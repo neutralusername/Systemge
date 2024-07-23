@@ -2,6 +2,9 @@ import {
     lineGraph 
 } from "./lineGraph.js";
 import { 
+    multiLineGraph 
+} from "./multiLineGraph.js";
+import { 
     nodeStatus 
 } from "./nodeStatus.js";
 import { 
@@ -102,6 +105,42 @@ export class root extends React.Component {
                         },
                     });
                     break;
+                case "nodeCounters":
+                    let nodeCounters = JSON.parse(message.payload);
+                    let node = this.state.nodes[nodeCounters.name];
+                    if (node === undefined) {
+                        node = {
+                            name: nodeCounters.name,
+                            counters: {},
+                        };
+                    }
+                    let counters = node.counters;
+                    if (counters === undefined) {
+                        counters = {};
+                    }
+                    if (Object.keys(counters).length > 50) {
+                        delete counters[Object.keys(counters)[0]];
+                    }
+                    this.state.setStateRoot({
+                        nodes: {
+                            ...this.state.nodes,
+                            [nodeCounters.name]: {
+                                ...node,
+                                counters: {
+                                    ...counters,
+                                    [new Date().toLocaleTimeString()]: {
+                                        incSyncReq : nodeCounters.incSyncReq,
+                                        incSyncRes : nodeCounters.incSyncRes,
+                                        incAsync : nodeCounters.incAsync,
+                                        outSyncReq : nodeCounters.outSyncReq,
+                                        outSyncRes : nodeCounters.outSyncRes,
+                                        outAsync : nodeCounters.outAsync,
+                                    },
+                                }
+                            },
+                        },
+                    });
+                    break;
                 default:
                     console.log("Unknown message topic: " + event.data);
                     break;
@@ -126,8 +165,48 @@ export class root extends React.Component {
         let urlPath = window.location.pathname;
         let nodeStatuses = [];
         let buttons = [];
+        let multiLineGraphs = [];
         if (urlPath === "/") {
             for (let nodeName in this.state.nodes) {
+                if (this.state.nodes[nodeName].counters) {
+                    let nodeCounters = {};
+                    Object.keys(this.state.nodes[nodeName].counters).forEach((key) => {
+                        nodeCounters[key] = [
+                            this.state.nodes[nodeName].counters[key].incSyncReq,
+                            this.state.nodes[nodeName].counters[key].incSyncRes,
+                            this.state.nodes[nodeName].counters[key].incAsync,
+                            this.state.nodes[nodeName].counters[key].outSyncReq,
+                            this.state.nodes[nodeName].counters[key].outSyncRes,
+                            this.state.nodes[nodeName].counters[key].outAsync,
+                        ]
+                    })
+                    multiLineGraphs.push(React.createElement(
+                        multiLineGraph, {
+                            title: "systemge message counters \"" + nodeName + "\"",
+                            chartName: "nodeCounters " + nodeName,
+                            dataLabel: "node counters",
+                            dataSet: nodeCounters,
+                            labels : [
+                                "incSyncReq",
+                                "incSyncRes",
+                                "incAsync",
+                                "outSyncReq",
+                                "outSyncRes",
+                                "outAsync",
+                            ],
+                            colors : [
+                                "rgb(75, 192, 192)",
+                                "rgb(192, 75, 192)",
+                                "rgb(192, 192, 75)",
+                                "rgb(75, 192, 75)",
+                                "rgb(75, 75, 192)",
+                                "rgb(192, 75, 75)",
+                            ],
+                            height : "400px",
+                            width : "1200px",    
+                        },
+                    ));
+                }
                 nodeStatuses.push(React.createElement(
                     nodeStatus, {   
                         node: this.state.nodes[nodeName],
@@ -161,21 +240,61 @@ export class root extends React.Component {
             )
         } else {
             if (this.state.nodes[urlPath.substring(1)]) {
-                nodeStatuses.push(React.createElement(
-                    nodeStatus, {
-                        node: this.state.nodes[urlPath.substring(1)],
-                        key: urlPath.substring(1),
-                        WS_CONNECTION: this.state.WS_CONNECTION,
-                        constructMessage: this.state.constructMessage,
-                    },
-                ));
+                if (this.state.nodes[urlPath.substring(1)]) {
+                    if (this.state.nodes[urlPath.substring(1)].counters) {
+                        let nodeCounters = {};
+                        Object.keys(this.state.nodes[urlPath.substring(1)].counters).forEach((key) => {
+                            nodeCounters[key] = [
+                                this.state.nodes[urlPath.substring(1)].counters[key].incSyncReq,
+                                this.state.nodes[urlPath.substring(1)].counters[key].incSyncRes,
+                                this.state.nodes[urlPath.substring(1)].counters[key].incAsync,
+                                this.state.nodes[urlPath.substring(1)].counters[key].outSyncReq,
+                                this.state.nodes[urlPath.substring(1)].counters[key].outSyncRes,
+                                this.state.nodes[urlPath.substring(1)].counters[key].outAsync,
+                            ]
+                        })
+                        multiLineGraphs.push(React.createElement(
+                            multiLineGraph, {
+                                title: "systemge message counters \"" + urlPath.substring(1) + "\"",
+                                chartName: "nodeCounters " + urlPath.substring(1),
+                                dataLabel: "node counters",
+                                dataSet: nodeCounters,
+                                labels : [
+                                    "incSyncReq",
+                                    "incSyncRes",
+                                    "incAsync",
+                                    "outSyncReq",
+                                    "outSyncRes",
+                                    "outAsync",
+                                ],
+                                colors : [
+                                    "rgb(75, 192, 192)",
+                                    "rgb(192, 75, 192)",
+                                    "rgb(192, 192, 75)",
+                                    "rgb(75, 192, 75)",
+                                    "rgb(75, 75, 192)",
+                                    "rgb(192, 75, 75)",
+                                ],
+                                height : "400px",
+                                width : "1200px",    
+                            },
+                        ));
+                    }
+                    nodeStatuses.push(React.createElement(
+                        nodeStatus, {
+                            node: this.state.nodes[urlPath.substring(1)],
+                            key: urlPath.substring(1),
+                            WS_CONNECTION: this.state.WS_CONNECTION,
+                            constructMessage: this.state.constructMessage,
+                        },
+                    ));
+                }
             }
         }
         let responseMessages = [];
         for (let responseId in this.state.responseMessages) {
             responseMessages.push(React.createElement(
                 "div", {           
-
                     key: responseId,
                     style: {
                     },
@@ -210,6 +329,7 @@ export class root extends React.Component {
             nodeStatuses,
             buttons,
             responseMessages,
+            multiLineGraphs, 
             React.createElement(
                 lineGraph, {
                     chartName: "heapChart",

@@ -16,6 +16,7 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 		if err != nil {
 			return Error.New("failed getting broker connection", err)
 		}
+		systemge.outgoingAsyncMessageCounter.Add(1)
 		return brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message)
 	}
 	return Error.New("systemge component not initialized", nil)

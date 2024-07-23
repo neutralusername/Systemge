@@ -65,4 +65,5 @@ type Dashboard struct {
 	AutoStart              bool       // default: false
 	StatusUpdateIntervalMs uint64     // default: 0 = disabled
 	HeapUpdateIntervalMs   uint64     // default: 0 = disabled
+	MessageCountIntervalMs uint64     // default: 0 = disabled
 }

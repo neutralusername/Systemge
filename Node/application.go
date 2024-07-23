@@ -9,6 +9,10 @@ import (
 type Application interface {
 }
 
+func (node *Node) ImplementsSystemgeComponent() bool {
+	return ImplementsSystemgeComponent(node.application)
+}
+
 func ImplementsSystemgeComponent(app Application) bool {
 	_, ok := app.(SystemgeComponent)
 	return ok

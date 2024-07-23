@@ -30,10 +30,12 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 			systemge.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 			return nil, Error.New("failed sending sync request message", err)
 		}
+		systemge.outgoingSyncRequestMessageCounter.Add(1)
 		response, err := systemge.receiveSyncResponse(message, responseChannel)
 		if err != nil {
 			return nil, Error.New("failed receiving sync response", err)
 		}
+		systemge.incomingSyncResponseMessageCounter.Add(1)
 		return response, nil
 	}
 	return nil, Error.New("systemge not initialized", nil)

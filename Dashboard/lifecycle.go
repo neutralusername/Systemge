@@ -18,6 +18,9 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.HeapUpdateIntervalMs > 0 {
 		go app.heapUpdateRoutine()
 	}
+	if app.config.MessageCountIntervalMs > 0 {
+		go app.nodeCountersRoutine()
+	}
 	return nil
 }
 
@@ -25,6 +28,17 @@ func (app *App) OnStop(node *Node.Node) error {
 	app.node = nil
 	app.started = false
 	return nil
+}
+
+func (app *App) nodeCountersRoutine() {
+	for app.started {
+		for _, node := range app.nodes {
+			if node.ImplementsSystemgeComponent() {
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeCounters", app.node.GetName(), Helpers.JsonMarshal(newNodeCounters(node))))
+			}
+		}
+		time.Sleep(time.Duration(app.config.MessageCountIntervalMs) * time.Millisecond)
+	}
 }
 
 func (app *App) statusUpdateRoutine() {

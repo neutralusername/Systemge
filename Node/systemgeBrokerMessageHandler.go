@@ -46,6 +46,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 					warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 				}
 			} else {
+				systemge.incomingSyncResponseMessageCounter.Add(1)
 				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
@@ -65,6 +66,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 					}
 				}
 			} else {
+				systemge.incomingSyncRequestMessageCounter.Add(1)
 				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
@@ -77,6 +79,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			}
 			continue
 		}
+		systemge.incomingAsyncMessageCounter.Add(1)
 		if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {
 			systemge.handleSequentiallyMutex.Lock()
 		}
