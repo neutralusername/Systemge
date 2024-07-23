@@ -6,13 +6,13 @@ Additionally Nodes can interact with external systems through HTTP/Websocket API
 - Each Application can implement various predefined Interfaces which are called "Components"  
 - Each implemented Component provides automated functionality for the Node  
 - The Components currently available are: "Systemge-Component", "HTTP-Component", "Websocket-Component", "Command-Component", "OnStart-Component", "OnStop-Component"  
-
+  
 - Nodes do not communicate directly with each other  
 - Instead Nodes communicate through a "Broker"  
 - Brokers are particular Nodes that receive "Messages" from regular Nodes, which always possess a certain "Topic"  
 - Nodes connect to Brokers and can subscribe to any Topic this Broker is responsible for  
 - Nodes will receive a copy of each Message whose Topic they have subscribed to  
-  
+    
 - Nodes are not configured with Endpoints to Brokers directly  
 - Instead Nodes are configured with an Endpoint to a "Resolver" which are another kind of particular Nodes  
 - Resolvers are used to deteremine which Broker is responsible for which topic at this point in time  
