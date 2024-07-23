@@ -46,7 +46,7 @@ For information on how to use this library, check out the samples:
 
 ## Contact
 
-Feel free to get in touch if you encounter issues, have questions or are interested in acquisition  
+Feel free to get in touch if you encounter issues, have questions, suggestions or are interested in acquisition  
 **Discord**: https://discord.gg/y4KYj25A8K  
 **Email**: stuck.fabian@gmail.com  
 
