@@ -39,6 +39,10 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 		handlers["removeHttpBlacklist"] = handleRemoveFromHttpBlacklistCommand
 		handlers["removeHttpWhitelist"] = handleRemoveFromHttpWhitelistCommand
 	}
+	if node.systemge != nil {
+		handlers["topicResolutions"] = handleTopicResolutionsCommand
+		handlers["brokerConnections"] = handleBrokerConnectionsCommand
+	}
 	if commandHandlerComponent := node.GetCommandHandlerComponent(); commandHandlerComponent != nil {
 		commandHandlers := commandHandlerComponent.GetCommandHandlers()
 		for command, commandHandler := range commandHandlers {
@@ -46,6 +50,26 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 		}
 	}
 	return handlers
+}
+
+func handleTopicResolutionsCommand(node *Node, args []string) (string, error) {
+	node.systemge.mutex.Lock()
+	returnString := ""
+	for topic, brokerConnection := range node.systemge.topicResolutions {
+		returnString += topic + ":" + brokerConnection.endpoint.Address + ";"
+	}
+	node.systemge.mutex.Unlock()
+	return returnString, nil
+}
+
+func handleBrokerConnectionsCommand(node *Node, args []string) (string, error) {
+	node.systemge.mutex.Lock()
+	returnString := ""
+	for address := range node.systemge.brokerConnections {
+		returnString += address + ";"
+	}
+	node.systemge.mutex.Unlock()
+	return returnString, nil
 }
 
 func handleWebsocketClientsCommand(node *Node, args []string) (string, error) {
