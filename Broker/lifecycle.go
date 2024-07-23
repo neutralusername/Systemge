@@ -39,7 +39,6 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 	if err != nil {
 		return err
 	}
-
 	broker.addAsyncTopics("heartbeat")
 	broker.addSyncTopics("subscribe", "unsubscribe")
 	go broker.handleNodeConnections()
