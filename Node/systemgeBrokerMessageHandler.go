@@ -54,6 +54,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			continue
 		}
 		if message.GetSyncRequestToken() != "" {
+			systemge.incomingSyncRequestMessageCounter.Add(1)
 			response, err := node.handleSyncMessage(message)
 			if err != nil {
 				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
@@ -66,7 +67,6 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 					}
 				}
 			} else {
-				systemge.incomingSyncRequestMessageCounter.Add(1)
 				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
@@ -75,6 +75,8 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send response for sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
+				} else {
+					systemge.outgoingSyncResponseMessageCounter.Add(1)
 				}
 			}
 			continue
