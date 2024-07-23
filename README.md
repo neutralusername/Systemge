@@ -29,6 +29,12 @@
   - Nodes are not configured with direct Endpoints to Brokers.
   - Nodes are configured with an Endpoint to a "Resolver," another specific type of Node.
   - Resolvers determine which Broker is responsible for which Topic at any given time.
+  - There are various additional configurations that control how the system operates (e.g. how long resolved topics are valid)
+
+- **Dashboard**
+  - The Dashboard is web-based and is accessible both locally and remotely.
+  - Through the Dashboard, you can monitor and modify the status of Nodes in real-time.
+  - The Dashboard allows the execution of "Commands" for each Node.
 
 ## Objective
 
