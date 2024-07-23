@@ -35,7 +35,7 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 		broker.addSyncTopics(topic)
 		topicsToAddToResolver = append(topicsToAddToResolver, topic)
 	}
-	err = broker.propagateTopics(topicsToAddToResolver...)
+	err = broker.addResolverTopicsRemotely(topicsToAddToResolver...)
 	if err != nil {
 		return err
 	}
@@ -44,15 +44,6 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 	broker.addSyncTopics("subscribe", "unsubscribe")
 	go broker.handleNodeConnections()
 	go broker.handleConfigConnections()
-	return nil
-}
-
-func (broker *Broker) propagateTopics(topics ...string) error {
-	if len(topics) > 0 {
-		if err := broker.addResolverTopicsRemotely(topics...); err != nil {
-			return Error.New("Failed to add resolver topics remotely", err)
-		}
-	}
 	return nil
 }
 

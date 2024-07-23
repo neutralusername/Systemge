@@ -135,7 +135,7 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			return "success", nil
 		},
-		"propagateTopics": func(node *Node.Node, args []string) (string, error) {
+		"addResolverTopics": func(node *Node.Node, args []string) (string, error) {
 			if len(args) > 0 {
 				for _, topic := range args {
 					if err := broker.addResolverTopicsRemotely(topic); err != nil {
@@ -154,7 +154,33 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 						topics = append(topics, asyncTopic)
 					}
 				}
-				err := broker.propagateTopics(topics...)
+				err := broker.addResolverTopicsRemotely(topics...)
+				if err != nil {
+					return "", err
+				}
+			}
+			return "success", nil
+		},
+		"removeResolverTopics": func(node *Node.Node, args []string) (string, error) {
+			if len(args) > 0 {
+				for _, topic := range args {
+					if err := broker.removeResolverTopicsRemotely(topic); err != nil {
+						return "", Error.New("Failed to remove resolver topic remotely", err)
+					}
+				}
+			} else {
+				topics := []string{}
+				for syncTopic := range broker.syncTopics {
+					if syncTopic != "subscribe" && syncTopic != "unsubscribe" {
+						topics = append(topics, syncTopic)
+					}
+				}
+				for asyncTopic := range broker.asyncTopics {
+					if asyncTopic != "heartbeat" {
+						topics = append(topics, asyncTopic)
+					}
+				}
+				err := broker.removeResolverTopicsRemotely(topics...)
 				if err != nil {
 					return "", err
 				}
