@@ -19,10 +19,10 @@ Additionally Nodes can interact with external systems through HTTP/Websocket API
 - Instead Nodes are configured with an Endpoint to a "Resolver" which are another type of particular Node  
 - Resolvers are used to deteremine which Broker is responsible for which topic at this point in time  
 <br>
-The goal of this framework is to automate the networking aspects of distributed computing while streamlining the process of writing distributed applications.  
+The goal of this framework is to automate the networking aspects of distributed computing while streamlining the process of writing distributed applications. <br>  
 After initial configuration all tasks are automated by the framework.  
-
-  
+<br>
+<br>
 For informations on how to use this library check out the samples:  
 https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife  
 https://github.com/neutralusername/Systemge-Sample-PingPong  
