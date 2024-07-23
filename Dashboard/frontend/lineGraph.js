@@ -4,18 +4,18 @@ export class lineGraph extends React.Component {
 	}
 
 	render() {
-		let options = {
-			responsive: false,
-			maintainAspectRatio: true,
-			scales: {
-				y: {
-					beginAtZero: false,
+		let options = this.props.options;
+		if (this.props.options === undefined) {
+			options = {
+				responsive: false,
+				maintainAspectRatio: true,
+				scales: {
+					y: {
+						beginAtZero: false,
+					},
 				},
-			},
-			animation : true
-		}
-		if (this.props.options) {
-			options = this.props.options;
+				animation : true
+			}
 		}
 		let fill = this.props.fill;
 		if (this.props.fill === undefined) {
