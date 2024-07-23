@@ -1,40 +1,54 @@
-Systemge is a config-driven Framework desgined for crafting performant distributed systems in which "Nodes" communicate through asynchronous as well as synchronous messages over a lightweight custom protocol.  
-Additionally Nodes can interact with external systems through HTTP/Websocket API's.  
-  
-- Each Node must have an "Application" which is a pointer to any go-struct  
-- The Application acts as the state for your Application  
-- Each Application can implement various predefined Interfaces which are called "Components"  
-- Each implemented Component provides automated functionality for the Node  
-- The Components currently available are: "Systemge-Component", "HTTP-Component", "Websocket-Component", "Command-Component", "OnStart-Component", "OnStop-Component"
-<br>
+# Systemge Framework
 
-- Nodes do not communicate directly with each other  
-- Instead Nodes communicate through a "Broker"  
-- Brokers are a particular type of Node that receives "Messages" from regular Nodes, which always possess a certain "Topic"  
-- Nodes connect to Brokers and can subscribe to any Topic this Broker is responsible for  
-- Nodes will receive a copy of each Message whose Topic they have subscribed to
-<br>
+**Systemge** is a configuration-driven framework designed for crafting performant distributed systems where "Nodes" communicate through asynchronous and synchronous messages over a lightweight custom protocol. Nodes can also interact with external systems through HTTP/WebSocket APIs.
 
-- Nodes are not configured with Endpoints to Brokers directly  
-- Instead Nodes are configured with an Endpoint to a "Resolver" which are another type of particular Node  
-- Resolvers are used to deteremine which Broker is responsible for which topic at this point in time  
-<br>
-The goal of this framework is to automate the networking aspects of distributed computing while streamlining the process of writing distributed applications. <br>  
-After initial configuration all tasks are automated by the framework.  
-<br>
-<br>
-For informations on how to use this library check out the samples:  
-https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife  
-https://github.com/neutralusername/Systemge-Sample-PingPong  
-https://github.com/neutralusername/Systemge-Sample-Chat  
-https://github.com/neutralusername/Systemge-Sample-PingSpawner  
-https://github.com/neutralusername/Systemge-Sample-ChessServer  
+## Key Features
 
-![Screenshot from 2024-07-22 23-13-36](https://github.com/user-attachments/assets/2db43478-bdfe-4632-88e2-49462a3ae677)
+- **Node Structure**:
+  - Each Node must have an "Application," which is a pointer to any Go struct.
+  - The Application acts as the state for your Node.
+  - Each Application can implement various predefined interfaces called "Components."
+  - Each implemented Component provides automated functionality for the Node.
 
-  
-![Leeres Diagramm(9)](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
+- **Available Components**:
+  - `Systemge-Component`
+  - `HTTP-Component`
+  - `WebSocket-Component`
+  - `Command-Component`
+  - `OnStart-Component`
+  - `OnStop-Component`
 
-Please contact me if you encounter issues using this library
+- **Communication**:
+  - Nodes do not communicate directly with each other.
+  - Nodes communicate through a "Broker."
+  - Brokers are a type of Node that receives "Messages" from regular Nodes, each message having a specific "Topic."
+  - Nodes connect to Brokers and can subscribe to any Topic the Broker handles.
+  - Nodes receive copies of messages for Topics they are subscribed to.
 
-stuck.fabian@gmail.com
+- **Configuration**:
+  - Nodes are not configured with direct Endpoints to Brokers.
+  - Nodes are configured with an Endpoint to a "Resolver," another specific type of Node.
+  - Resolvers determine which Broker is responsible for which Topic at any given time.
+
+## Objective
+
+The goal of this framework is to automate the networking aspects of distributed computing while streamlining the process of writing distributed applications. After the initial configuration, all tasks are automated by the framework.
+
+## Usage
+
+For information on how to use this library, check out the samples:
+- [Systemge-Sample-ConwaysGameOfLife](https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife)
+- [Systemge-Sample-PingPong](https://github.com/neutralusername/Systemge-Sample-PingPong)
+- [Systemge-Sample-Chat](https://github.com/neutralusername/Systemge-Sample-Chat)
+- [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
+- [Systemge-Sample-ChessServer](https://github.com/neutralusername/Systemge-Sample-ChessServer)
+
+![Screenshot](https://github.com/user-attachments/assets/2db43478-bdfe-4632-88e2-49462a3ae677)
+
+![Diagram](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
+
+## Support
+
+Please contact me if you encounter issues using this library:
+
+**Email**: stuck.fabian@gmail.com
