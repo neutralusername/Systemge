@@ -63,7 +63,8 @@ type Spawner struct {
 type Dashboard struct {
 	Server                         *TcpServer // *required*
 	AutoStart                      bool       // default: false
-	StatusUpdateIntervalMs         uint64     // default: 0 = disabled
 	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
+	NodeStatusIntervalMs           uint64     // default: 0 = disabled
 	NodeSystemgeCountersIntervalMs uint64     // default: 0 = disabled
+	NodeWebsocketCounterIntervalMs uint64     // default: 0 = disabled
 }

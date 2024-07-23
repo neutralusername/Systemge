@@ -32,7 +32,15 @@ func (node *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
 }
 
 func (node *Node) handleMessages(websocketClient *WebsocketClient) {
-	for node.IsStarted() {
+	websocket_ := node.websocket
+	for {
+		websocket := node.websocket
+		if websocket == nil {
+			return
+		}
+		if websocket != websocket_ {
+			return
+		}
 		message, err := websocketClient.Receive()
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
@@ -40,6 +48,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			}
 			return
 		}
+		websocket.websocketIncomingMessageCounter.Add(1)
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", nil).Error())
 		}
@@ -47,7 +56,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			node.ResetWatchdog(websocketClient)
 			continue
 		}
-		if time.Since(websocketClient.GetLastMessageTimestamp()) <= time.Duration(node.websocket.application.GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
+		if time.Since(websocketClient.GetLastMessageTimestamp()) <= time.Duration(websocket.application.GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
 			err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
@@ -57,7 +66,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		websocketClient.SetLastMessageTimestamp(time.Now())
-		if node.websocket.application.GetWebsocketComponentConfig().HandleClientMessagesSequentially {
+		if websocket.application.GetWebsocketComponentConfig().HandleClientMessagesSequentially {
 			err := node.handleWebsocketMessage(websocketClient, message)
 			if err != nil {
 				if warningLogger := node.GetWarningLogger(); warningLogger != nil {

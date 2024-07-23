@@ -17,6 +17,7 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) {
 						warningLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
 					}
 				}
+				websocket.websocketOutgoingMessageCounter.Add(1)
 			}()
 		}
 	}
@@ -35,6 +36,7 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) {
 						warningLogger.Log("Failed to unicast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
 					}
 				}
+				websocket.websocketOutgoingMessageCounter.Add(1)
 			}()
 		}
 	}
@@ -54,6 +56,7 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) {
 							warningLogger.Log("Failed to multicast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
 						}
 					}
+					websocket.websocketOutgoingMessageCounter.Add(1)
 				}()
 			}
 		}
@@ -76,6 +79,7 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
 						warningLogger.Log("Failed to groupcast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
 					}
 				}
+				websocket.websocketOutgoingMessageCounter.Add(1)
 			}()
 		}
 	}

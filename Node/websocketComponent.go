@@ -6,20 +6,37 @@ import (
 	"Systemge/HTTP"
 	"net/http"
 	"sync"
+	"sync/atomic"
 
 	"github.com/gorilla/websocket"
 )
 
 type websocketComponent struct {
-	application         WebsocketComponent
-	mutex               sync.Mutex
-	httpServer          *HTTP.Server
-	connChannel         chan *websocket.Conn
-	clients             map[string]*WebsocketClient            // websocketId -> websocketClient
-	groups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
-	clientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
-	onDisconnectWraper  func(websocketClient *WebsocketClient)
-	messageHandlerMutex sync.Mutex
+	application                     WebsocketComponent
+	mutex                           sync.Mutex
+	httpServer                      *HTTP.Server
+	connChannel                     chan *websocket.Conn
+	clients                         map[string]*WebsocketClient            // websocketId -> websocketClient
+	groups                          map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	clientGroups                    map[string]map[string]bool             // websocketId -> map[groupId]bool
+	onDisconnectWraper              func(websocketClient *WebsocketClient)
+	messageHandlerMutex             sync.Mutex
+	websocketIncomingMessageCounter atomic.Uint32
+	websocketOutgoingMessageCounter atomic.Uint32
+}
+
+func (node *Node) GetWebsocketIncomingMessageCounter() uint32 {
+	if websocket := node.websocket; websocket != nil {
+		return websocket.websocketIncomingMessageCounter.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) GetWebsocketOutgoingMessageCounter() uint32 {
+	if websocket := node.websocket; websocket != nil {
+		return websocket.websocketOutgoingMessageCounter.Swap(0)
+	}
+	return 0
 }
 
 func (node *Node) startWebsocketComponent() error {

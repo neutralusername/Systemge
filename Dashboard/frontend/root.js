@@ -64,6 +64,22 @@ export class root extends React.Component {
                     }
                     this.state.setResponseMessage(message.payload);
                     break;
+                case "heapStatus":
+                    let heapStatus = Number(message.payload);
+                    if (Object.keys(this.state.heapUpdates).length > 50) {
+                        let heapUpdates = this.state.heapUpdates;
+                        delete heapUpdates[Object.keys(heapUpdates)[0]];
+                        this.state.setStateRoot({
+                            heapUpdates: heapUpdates,
+                        });
+                    }
+                    this.state.setStateRoot({
+                        heapUpdates: {
+                            ...this.state.heapUpdates,
+                            [new Date().toLocaleTimeString()]: heapStatus,
+                        },
+                    });
+                    break;
                 case "nodeStatus":
                     let nodeStatus = JSON.parse(message.payload);
                     this.state.setStateRoot({
@@ -86,22 +102,6 @@ export class root extends React.Component {
                                 ...this.state.nodes[nodeCommands.name],
                                 commands: nodeCommands.commands,
                             },
-                        },
-                    });
-                    break;
-                case "heapStatus":
-                    let heapStatus = Number(message.payload);
-                    if (Object.keys(this.state.heapUpdates).length > 50) {
-                        let heapUpdates = this.state.heapUpdates;
-                        delete heapUpdates[Object.keys(heapUpdates)[0]];
-                        this.state.setStateRoot({
-                            heapUpdates: heapUpdates,
-                        });
-                    }
-                    this.state.setStateRoot({
-                        heapUpdates: {
-                            ...this.state.heapUpdates,
-                            [new Date().toLocaleTimeString()]: heapStatus,
                         },
                     });
                     break;
@@ -141,6 +141,42 @@ export class root extends React.Component {
                         },
                     });
                     break;
+                case "nodeWebsocketCounters": {
+                    let nodeWebsocketCounters = JSON.parse(message.payload);
+                    console.log(nodeWebsocketCounters);
+                    let node = this.state.nodes[nodeWebsocketCounters.name];
+                    if (node === undefined) {
+                        node = {
+                            name: nodeWebsocketCounters.name,
+                            nodeWebsocketCounters: {},
+                        };
+                    }
+                    let currentNodeWebsocketCounters = node.nodeWebsocketCounters;
+                    if (currentNodeWebsocketCounters === undefined) {
+                        currentNodeWebsocketCounters = {};
+                    }
+                    if (Object.keys(currentNodeWebsocketCounters).length > 50) {
+                        delete currentNodeWebsocketCounters[Object.keys(currentNodeWebsocketCounters)[0]];
+                    }
+                    this.state.setStateRoot({
+                        nodes: {
+                            ...this.state.nodes,
+                            [nodeWebsocketCounters.name]: {
+                                ...node,
+                                nodeWebsocketCounters: {
+                                    ...currentNodeWebsocketCounters,
+                                    [new Date().toLocaleTimeString()]: {
+                                        inc : nodeWebsocketCounters.inc,
+                                        out : nodeWebsocketCounters.out,
+                                        clientCount : nodeWebsocketCounters.clientCount,
+                                        groupCount : nodeWebsocketCounters.groupCount,
+                                    },
+                                }
+                            },
+                        },
+                    });
+                }
+                break;
                 default:
                     console.log("Unknown message topic: " + event.data);
                     break;
@@ -168,6 +204,39 @@ export class root extends React.Component {
         let multiLineGraphs = [];
         if (urlPath === "/") {
             for (let nodeName in this.state.nodes) {
+                if (this.state.nodes[nodeName].nodeWebsocketCounters) {
+                    let nodeCounters = {};
+                    Object.keys(this.state.nodes[nodeName].nodeWebsocketCounters).forEach((key) => {
+                        nodeCounters[key] = [
+                            this.state.nodes[nodeName].nodeWebsocketCounters[key].inc,
+                            this.state.nodes[nodeName].nodeWebsocketCounters[key].out,
+                            this.state.nodes[nodeName].nodeWebsocketCounters[key].clientCount,
+                            this.state.nodes[nodeName].nodeWebsocketCounters[key].groupCount,
+                        ]
+                    })
+                    multiLineGraphs.push(React.createElement(
+                        multiLineGraph, {
+                            title: "websocket counters \"" + nodeName + "\"",
+                            chartName: "nodeWebsocketCounters " + nodeName,
+                            dataLabel: "node websocket counters",
+                            dataSet: nodeCounters,
+                            labels : [
+                                "inc",
+                                "out",
+                                "clientCount",
+                                "groupCount",
+                            ],
+                            colors : [
+                                "rgb(75, 192, 192)",
+                                "rgb(192, 75, 192)",
+                                "rgb(192, 192, 75)",
+                                "rgb(75, 192, 75)",
+                            ],
+                            height : "400px",
+                            width : "1200px",    
+                        },
+                    ));
+                }
                 if (this.state.nodes[nodeName].nodeSystemgeCounters) {
                     let nodeCounters = {};
                     Object.keys(this.state.nodes[nodeName].nodeSystemgeCounters).forEach((key) => {
@@ -183,7 +252,7 @@ export class root extends React.Component {
                     multiLineGraphs.push(React.createElement(
                         multiLineGraph, {
                             title: "systemge counters \"" + nodeName + "\"",
-                            chartName: "nodeCounters " + nodeName,
+                            chartName: "nodeSystemgeCounters " + nodeName,
                             dataLabel: "node systemge counters",
                             dataSet: nodeCounters,
                             labels : [
@@ -241,6 +310,39 @@ export class root extends React.Component {
         } else {
             if (this.state.nodes[urlPath.substring(1)]) {
                 if (this.state.nodes[urlPath.substring(1)]) {
+                    if (this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters) {
+                        let nodeCounters = {};
+                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters).forEach((key) => {
+                            nodeCounters[key] = [
+                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].inc,
+                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].out,
+                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].clientCount,
+                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].groupCount,
+                            ]
+                        })
+                        multiLineGraphs.push(React.createElement(
+                            multiLineGraph, {
+                                title: "websocket counters \"" + urlPath.substring(1) + "\"",
+                                chartName: "nodeWebsocketCounters " + urlPath.substring(1),
+                                dataLabel: "node websocket counters",
+                                dataSet: nodeCounters,
+                                labels : [
+                                    "inc",
+                                    "out",
+                                    "clientCount",
+                                    "groupCount",
+                                ],
+                                colors : [
+                                    "rgb(75, 192, 192)",
+                                    "rgb(192, 75, 192)",
+                                    "rgb(192, 192, 75)",
+                                    "rgb(75, 192, 75)",
+                                ],
+                                height : "400px",
+                                width : "1200px",    
+                            },
+                        ));
+                    }
                     if (this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters) {
                         let nodeCounters = {};
                         Object.keys(this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters).forEach((key) => {
@@ -256,7 +358,7 @@ export class root extends React.Component {
                         multiLineGraphs.push(React.createElement(
                             multiLineGraph, {
                                 title: "systemge counters \"" + urlPath.substring(1) + "\"",
-                                chartName: "nodeCounters " + urlPath.substring(1),
+                                chartName: "nodeSystemgeCounters " + urlPath.substring(1),
                                 dataLabel: "node systemge counters",
                                 dataSet: nodeCounters,
                                 labels : [

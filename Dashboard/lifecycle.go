@@ -12,14 +12,17 @@ import (
 func (app *App) OnStart(node *Node.Node) error {
 	app.node = node
 	app.started = true
-	if app.config.StatusUpdateIntervalMs > 0 {
-		go app.statusUpdateRoutine()
+	if app.config.NodeStatusIntervalMs > 0 {
+		go app.nodeStatusRoutine()
 	}
 	if app.config.HeapUpdateIntervalMs > 0 {
 		go app.heapUpdateRoutine()
 	}
 	if app.config.NodeSystemgeCountersIntervalMs > 0 {
 		go app.nodeSystemgeCountersRoutine()
+	}
+	if app.config.NodeWebsocketCounterIntervalMs > 0 {
+		go app.nodeWebsocketCountersRoutine()
 	}
 	return nil
 }
@@ -45,7 +48,22 @@ func (app *App) nodeSystemgeCountersRoutine() {
 	}
 }
 
-func (app *App) statusUpdateRoutine() {
+func (app *App) nodeWebsocketCountersRoutine() {
+	for app.started {
+		for _, node := range app.nodes {
+			if node.ImplementsWebsocketComponent() {
+				messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
+				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
+				}
+			}
+		}
+		time.Sleep(time.Duration(app.config.NodeWebsocketCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) nodeStatusRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
 			statusUpdateJson := Helpers.JsonMarshal(newNodeStatus(node))
@@ -54,7 +72,7 @@ func (app *App) statusUpdateRoutine() {
 				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
 			}
 		}
-		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
+		time.Sleep(time.Duration(app.config.NodeStatusIntervalMs) * time.Millisecond)
 	}
 }
 

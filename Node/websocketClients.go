@@ -41,3 +41,21 @@ func (node *Node) WebsocketClientExists(websocketId string) bool {
 	}
 	return false
 }
+
+func (node *Node) GetWebsocketClientCount() int {
+	if websocket := node.websocket; websocket != nil {
+		node.websocket.mutex.Lock()
+		defer node.websocket.mutex.Unlock()
+		return len(node.websocket.clients)
+	}
+	return 0
+}
+
+func (node *Node) GetWebsocketGroupCount() int {
+	if websocket := node.websocket; websocket != nil {
+		node.websocket.mutex.Lock()
+		defer node.websocket.mutex.Unlock()
+		return len(node.websocket.groups)
+	}
+	return 0
+}

@@ -2,6 +2,7 @@ package Broker
 
 import (
 	"Systemge/Error"
+	"Systemge/Helpers"
 	"Systemge/Node"
 )
 
@@ -16,6 +17,11 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 				resultStr += nodeConnection.name + ";"
 			}
 			return resultStr, nil
+		},
+		"brokerNodeCount": func(node *Node.Node, args []string) (string, error) {
+			broker.operationMutex.Lock()
+			defer broker.operationMutex.Unlock()
+			return Helpers.IntToString(len(broker.nodeConnections)), nil
 		},
 		"syncTopics": func(node *Node.Node, args []string) (string, error) {
 			broker.operationMutex.Lock()

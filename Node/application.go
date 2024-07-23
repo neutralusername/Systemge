@@ -13,6 +13,14 @@ func (node *Node) ImplementsSystemgeComponent() bool {
 	return ImplementsSystemgeComponent(node.application)
 }
 
+func (node *Node) ImplementsHTTPComponent() bool {
+	return ImplementsHTTPComponent(node.application)
+}
+
+func (node *Node) ImplementsWebsocketComponent() bool {
+	return ImplementsWebsocketComponent(node.application)
+}
+
 func ImplementsSystemgeComponent(app Application) bool {
 	_, ok := app.(SystemgeComponent)
 	return ok
