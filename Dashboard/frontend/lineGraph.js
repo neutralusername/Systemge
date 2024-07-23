@@ -1,8 +1,10 @@
 export class lineGraph extends React.Component {
 	constructor(props) {
 		super(props);
+		this.state = {
+			chart : null,
+		}
 	}
-
 	render() {
 		let options = this.props.options;
 		if (this.props.options === undefined) {
@@ -14,7 +16,8 @@ export class lineGraph extends React.Component {
 						beginAtZero: false,
 					},
 				},
-				animation : true
+				animation: false,
+				interaction: false,
 			}
 		}
 		let fill = this.props.fill;
@@ -25,20 +28,30 @@ export class lineGraph extends React.Component {
 		if (this.props.graphColor === undefined) {
 			graphColor = "rgb(75, 192, 192)";
 		}
-		new Chart(this.props.chartName, {
-            type: 'line',
-            data: {
-                labels: Object.keys(this.props.dataSet),
-                datasets: [{
-                    label: this.props.dataLabel,
-                    data: Object.values(this.props.dataSet),
-                    fill: fill,
-                    borderColor: graphColor,
-                }],
-            },
-			options: options,
-        });
-		return React.createElement(
+		if (document.getElementById(this.props.chartName) !== null) {
+			if ( this.state.chart === null) {
+				this.setState({
+					chart : new Chart(document.getElementById(this.props.chartName).getContext('2d'), {
+						type: 'line',
+						data: {
+							labels: Object.keys(this.props.dataSet),
+							datasets: [{
+								label: this.props.dataLabel,
+								data: Object.values(this.props.dataSet),
+								fill: fill,
+								borderColor: graphColor,
+							}],
+						},
+						options: options,
+					}),
+				});
+			} else {
+				this.state.chart.data.labels = Object.keys(this.props.dataSet);
+				this.state.chart.data.datasets[0].data = Object.values(this.props.dataSet);
+				this.state.chart.update();
+			}
+		}
+		return 	React.createElement(
 			"canvas", {
 				id: this.props.chartName,
 				style : {
@@ -46,6 +59,6 @@ export class lineGraph extends React.Component {
 					width : this.props.width,
 				},
 			}
-		)
+		);
 	}
 }
