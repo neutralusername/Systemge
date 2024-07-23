@@ -24,7 +24,7 @@ export class nodeStatus extends React.Component {
 							this.props.WS_CONNECTION.send(this.props.constructMessage("command", JSON.stringify({
 								name: this.props.node.name,
 								command: command,
-								args: document.getElementById(command).value.split(" "),
+								args: document.getElementById(command).value !== "" ? document.getElementById(command).value.split(" ") : [],
 							})));
 						},
 					},

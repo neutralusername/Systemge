@@ -1,6 +1,7 @@
 package Broker
 
 import (
+	"Systemge/Error"
 	"Systemge/Node"
 )
 
@@ -131,6 +132,32 @@ func (broker *Broker) GetCommandHandlers() map[string]Node.CommandHandler {
 		"removeConfigBlacklist": func(node *Node.Node, args []string) (string, error) {
 			for _, ip := range args {
 				broker.configTcpServer.GetBlacklist().Remove(ip)
+			}
+			return "success", nil
+		},
+		"propagateTopics": func(node *Node.Node, args []string) (string, error) {
+			if len(args) > 0 {
+				for _, topic := range args {
+					if err := broker.addResolverTopicsRemotely(topic); err != nil {
+						return "", Error.New("Failed to add resolver topic remotely", err)
+					}
+				}
+			} else {
+				topics := []string{}
+				for syncTopic := range broker.syncTopics {
+					if syncTopic != "subscribe" && syncTopic != "unsubscribe" {
+						topics = append(topics, syncTopic)
+					}
+				}
+				for asyncTopic := range broker.asyncTopics {
+					if asyncTopic != "heartbeat" {
+						topics = append(topics, asyncTopic)
+					}
+				}
+				err := broker.propagateTopics(topics...)
+				if err != nil {
+					return "", err
+				}
 			}
 			return "success", nil
 		},
