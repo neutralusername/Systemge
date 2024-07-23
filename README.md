@@ -1,4 +1,5 @@
-Systemge is a Library/Framework for building distributed systems in which "Nodes" communicate through asynchronous and synchronous messages over a custom protocol. 
+Systemge is a Library/Framework desgined for crafting performant distributed systems in which "Nodes" communicate through asynchronous as well as synchronous messages over a lightweight custom protocol.  
+Additionally "Nodes" can interact with external systems through HTTP/Websocket API's.  
   
 - Each "Node" must have an "Application" that provides both synchronous and asynchronous message handlers for a set of "Topics".
 - Each "Node" can optionally implement a "HTTP-Component" or "Websocket-Component" to facilitate communication with external systems, enabling real-time data exchange and integration with web services and applications.
