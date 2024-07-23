@@ -23,7 +23,7 @@ func ImplementsWebsocketComponent(app Application) bool {
 }
 
 func ImplementsCommandHandlerComponent(app Application) bool {
-	_, ok := app.(CommandHandlerComponent)
+	_, ok := app.(CommandComponent)
 	return ok
 }
 
@@ -38,7 +38,7 @@ func ImplementsOnStopComponent(app Application) bool {
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type CommandHandlerComponent interface {
+type CommandComponent interface {
 	GetCommandHandlers() map[string]CommandHandler
 }
 

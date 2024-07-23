@@ -264,9 +264,9 @@ func (node *Node) SetRandomizer(randomizer *Tools.Randomizer) {
 	node.randomizer = randomizer
 }
 
-func (node *Node) GetCommandHandlerComponent() CommandHandlerComponent {
+func (node *Node) GetCommandHandlerComponent() CommandComponent {
 	if ImplementsCommandHandlerComponent(node.application) {
-		return node.application.(CommandHandlerComponent)
+		return node.application.(CommandComponent)
 	}
 	return nil
 }
