@@ -62,11 +62,11 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 }
 
 func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnection, error) {
-	messageBytes, _, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
 	}
-	broker.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+	broker.bytesReceivedCounter.Add(bytesReceived)
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetTopic() != "connect" || message.GetOrigin() == "" || message.GetPayload() != "" {
 		return nil, Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)
