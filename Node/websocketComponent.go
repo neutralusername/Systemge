@@ -12,29 +12,46 @@ import (
 )
 
 type websocketComponent struct {
-	application                     WebsocketComponent
-	mutex                           sync.Mutex
-	httpServer                      *HTTP.Server
-	connChannel                     chan *websocket.Conn
-	clients                         map[string]*WebsocketClient            // websocketId -> websocketClient
-	groups                          map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
-	clientGroups                    map[string]map[string]bool             // websocketId -> map[groupId]bool
-	onDisconnectWraper              func(websocketClient *WebsocketClient)
-	messageHandlerMutex             sync.Mutex
-	websocketIncomingMessageCounter atomic.Uint32
-	websocketOutgoingMessageCounter atomic.Uint32
+	application         WebsocketComponent
+	mutex               sync.Mutex
+	httpServer          *HTTP.Server
+	connChannel         chan *websocket.Conn
+	clients             map[string]*WebsocketClient            // websocketId -> websocketClient
+	groups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	clientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
+	onDisconnectWraper  func(websocketClient *WebsocketClient)
+	messageHandlerMutex sync.Mutex
+
+	incomingMessageCounter atomic.Uint32
+	outgoigMessageCounter  atomic.Uint32
+	bytesSentCounter       atomic.Uint64
+	bytesReceivedCounter   atomic.Uint64
 }
 
-func (node *Node) GetWebsocketIncomingMessageCounter() uint32 {
+func (node *Node) RetrieveWebsocketBytesSentCounter() uint64 {
 	if websocket := node.websocket; websocket != nil {
-		return websocket.websocketIncomingMessageCounter.Swap(0)
+		return websocket.bytesSentCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetWebsocketOutgoingMessageCounter() uint32 {
+func (node *Node) RetrieveWebsocketBytesReceivedCounter() uint64 {
 	if websocket := node.websocket; websocket != nil {
-		return websocket.websocketOutgoingMessageCounter.Swap(0)
+		return websocket.bytesReceivedCounter.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) RetrieveWebsocketIncomingMessageCounter() uint32 {
+	if websocket := node.websocket; websocket != nil {
+		return websocket.incomingMessageCounter.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) RetrieveWebsocketOutgoingMessageCounter() uint32 {
+	if websocket := node.websocket; websocket != nil {
+		return websocket.outgoigMessageCounter.Swap(0)
 	}
 	return 0
 }

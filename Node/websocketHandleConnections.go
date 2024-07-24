@@ -41,14 +41,23 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		if websocket != websocket_ {
 			return
 		}
-		message, err := websocketClient.Receive()
+		messageBytes, err := websocketClient.Receive()
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error())
 			}
 			return
 		}
-		websocket.websocketIncomingMessageCounter.Add(1)
+		websocket.incomingMessageCounter.Add(1)
+		websocket.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+		message := Message.Deserialize(messageBytes)
+		if message == nil {
+			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to deserialize message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", nil).Error())
+			}
+			continue
+		}
+		message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", nil).Error())
 		}

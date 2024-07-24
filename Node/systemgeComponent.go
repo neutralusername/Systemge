@@ -28,56 +28,56 @@ type systemgeComponent struct {
 	bytesSentCounter     atomic.Uint64
 }
 
-func (node *Node) GetSystemgeBytesReceivedCounter() uint64 {
+func (node *Node) RetrieveSystemgeBytesReceivedCounter() uint64 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.bytesReceivedCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeBytesSentCounter() uint64 {
+func (node *Node) RetrieveSystemgeBytesSentCounter() uint64 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.bytesSentCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeIncomingAsyncMessageCounter() uint32 {
+func (node *Node) RetrieveSystemgeIncomingAsyncMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.incomingAsyncMessageCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeIncomingSyncRequestMessageCounter() uint32 {
+func (node *Node) RetrieveSystemgeIncomingSyncRequestMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.incomingSyncRequestMessageCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeIncomingSyncResponseMessageCounter() uint32 {
+func (node *Node) RetrieveSystemgeIncomingSyncResponseMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.incomingSyncResponseMessageCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeOutgoingAsyncMessageCounter() uint32 {
+func (node *Node) RetrieveSystemgeOutgoingAsyncMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.outgoingAsyncMessageCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeOutgoingSyncRequestMessageCounter() uint32 {
+func (node *Node) RetrieveSystemgeOutgoingSyncRequestMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.outgoingSyncRequestMessageCounter.Swap(0)
 	}
 	return 0
 }
 
-func (node *Node) GetSystemgeOutgoingSyncResponseMessageCounter() uint32 {
+func (node *Node) RetrieveSystemgeOutgoingSyncResponseMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.outgoingSyncResponseMessageCounter.Swap(0)
 	}

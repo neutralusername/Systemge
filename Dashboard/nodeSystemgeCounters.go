@@ -17,13 +17,13 @@ type NodeSystemgeCounters struct {
 func newNodeSystemgeCounters(node *Node.Node) NodeSystemgeCounters {
 	return NodeSystemgeCounters{
 		Name:           node.GetName(),
-		IncSyncReq:     node.GetSystemgeIncomingSyncRequestMessageCounter(),
-		IncSyncRes:     node.GetSystemgeIncomingSyncResponseMessageCounter(),
-		IncAsync:       node.GetSystemgeIncomingAsyncMessageCounter(),
-		OutSyncReq:     node.GetSystemgeOutgoingSyncRequestMessageCounter(),
-		OutSyncRes:     node.GetSystemgeOutgoingSyncResponseMessageCounter(),
-		OutAsync:       node.GetSystemgeOutgoingAsyncMessageCounter(),
-		BytesSent:      node.GetSystemgeBytesSentCounter(),
-		BytesRecveived: node.GetSystemgeBytesReceivedCounter(),
+		IncSyncReq:     node.RetrieveSystemgeIncomingSyncRequestMessageCounter(),
+		IncSyncRes:     node.RetrieveSystemgeIncomingSyncResponseMessageCounter(),
+		IncAsync:       node.RetrieveSystemgeIncomingAsyncMessageCounter(),
+		OutSyncReq:     node.RetrieveSystemgeOutgoingSyncRequestMessageCounter(),
+		OutSyncRes:     node.RetrieveSystemgeOutgoingSyncResponseMessageCounter(),
+		OutAsync:       node.RetrieveSystemgeOutgoingAsyncMessageCounter(),
+		BytesSent:      node.RetrieveSystemgeBytesSentCounter(),
+		BytesRecveived: node.RetrieveSystemgeBytesReceivedCounter(),
 	}
 }

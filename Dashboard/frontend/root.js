@@ -172,6 +172,8 @@ export class root extends React.Component {
                                         out : nodeWebsocketCounters.out,
                                         clientCount : nodeWebsocketCounters.clientCount,
                                         groupCount : nodeWebsocketCounters.groupCount,
+                                        bytesSent : nodeWebsocketCounters.bytesSent,
+                                        bytesReceived : nodeWebsocketCounters.bytesReceived,
                                     },
                                 }
                             },
@@ -214,6 +216,8 @@ export class root extends React.Component {
                             this.state.nodes[nodeName].nodeWebsocketCounters[key].out,
                             this.state.nodes[nodeName].nodeWebsocketCounters[key].clientCount,
                             this.state.nodes[nodeName].nodeWebsocketCounters[key].groupCount,
+                            this.state.nodes[nodeName].nodeWebsocketCounters[key].bytesSent,
+                            this.state.nodes[nodeName].nodeWebsocketCounters[key].bytesReceived,
                         ]
                     })
                     multiLineGraphs.push(React.createElement(
@@ -227,12 +231,16 @@ export class root extends React.Component {
                                 "out",
                                 "clientCount",
                                 "groupCount",
+                                "bytesSent",
+                                "bytesReceived",
                             ],
                             colors : [
                                 "rgb(75, 192, 192)",
                                 "rgb(192, 75, 192)",
                                 "rgb(192, 192, 75)",
                                 "rgb(75, 192, 75)",
+                                "rgb(75, 75, 192)",
+                                "rgb(192, 75, 75)",
                             ],
                             height : "400px",
                             width : "1200px",    
@@ -326,6 +334,8 @@ export class root extends React.Component {
                                 this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].out,
                                 this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].clientCount,
                                 this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].groupCount,
+                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].bytesSent,
+                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].bytesReceived,
                             ]
                         })
                         multiLineGraphs.push(React.createElement(
@@ -339,12 +349,16 @@ export class root extends React.Component {
                                     "out",
                                     "clientCount",
                                     "groupCount",
+                                    "bytesSent",
+                                    "bytesReceived",
                                 ],
                                 colors : [
                                     "rgb(75, 192, 192)",
                                     "rgb(192, 75, 192)",
                                     "rgb(192, 192, 75)",
                                     "rgb(75, 192, 75)",
+                                    "rgb(75, 75, 192)",
+                                    "rgb(192, 75, 75)",
                                 ],
                                 height : "400px",
                                 width : "1200px",    
