@@ -179,6 +179,7 @@ export class root extends React.Component {
                         },
                     });
                 }
+                break;
                 case "nodeBrokerCounters": {
                     let nodeBrokerCounters = JSON.parse(message.payload);
                     let node = this.state.nodes[nodeBrokerCounters.name];
@@ -249,6 +250,7 @@ export class root extends React.Component {
                         },
                     });
                 }
+                break;
                 default:
                     console.log("Unknown message topic: " + event.data);
                     break;
