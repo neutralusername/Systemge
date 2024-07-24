@@ -69,4 +69,5 @@ type Dashboard struct {
 	NodeWebsocketCounterIntervalMs uint64     // default: 0 = disabled
 	NodeBrokerCounterIntervalMs    uint64     // default: 0 = disabled
 	NodeResolverCounterIntervalMs  uint64     // default: 0 = disabled
+	NodeSpawnerCounterIntervalMs   uint64     // default: 0 = disabled
 }

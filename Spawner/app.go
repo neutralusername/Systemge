@@ -23,3 +23,14 @@ func New(spawnerConfig *Config.Spawner, systemgeConfig *Config.Systemge, newAppl
 	}
 	return spawner
 }
+
+func ImplementsSpawner(node *Node.Node) bool {
+	_, ok := node.GetApplication().(*Spawner)
+	return ok
+}
+
+func (spawner *Spawner) GetSpawnedNodeCount() int {
+	spawner.mutex.Lock()
+	defer spawner.mutex.Unlock()
+	return len(spawner.spawnedNodes)
+}

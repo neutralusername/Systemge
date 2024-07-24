@@ -44,6 +44,10 @@ export class root extends React.Component {
                 labels: ["incSyncReq", "incSyncRes", "incAsync", "outSyncReq", "outSyncRes", "outAsync", "bytesSent", "bytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)", "rgb(75, 192, 192)", "rgb(54, 235, 162)"],
             },
+            nodeSpawnerCounters: {
+                labels: ["spawnedNodeCount"],
+                colors: ["rgb(255, 99, 132)"],
+            },
         };
     }
 
@@ -100,6 +104,7 @@ export class root extends React.Component {
             case "nodeWebsocketCounters":
             case "nodeBrokerCounters":
             case "nodeResolverCounters":
+            case "nodeSpawnerCounters":
                 this.handleNodeCounters(message.topic, JSON.parse(message.payload));
                 break;
             default:

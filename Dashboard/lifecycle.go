@@ -6,6 +6,7 @@ import (
 	"Systemge/Message"
 	"Systemge/Node"
 	"Systemge/Resolver"
+	"Systemge/Spawner"
 	"runtime"
 	"strconv"
 	"time"
@@ -32,6 +33,9 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeResolverCounterIntervalMs > 0 {
 		go app.nodeResolverCountersRoutine()
 	}
+	if app.config.NodeSpawnerCounterIntervalMs > 0 {
+		go app.nodeSpawnerCountersRoutine()
+	}
 	return nil
 }
 
@@ -39,6 +43,21 @@ func (app *App) OnStop(node *Node.Node) error {
 	app.node = nil
 	app.started = false
 	return nil
+}
+
+func (app *App) nodeSpawnerCountersRoutine() {
+	for app.started {
+		for _, node := range app.nodes {
+			if Spawner.ImplementsSpawner(node) {
+				spawnerCountersJson := Helpers.JsonMarshal(newNodeSpawnerCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSpawnerCounters", app.node.GetName(), spawnerCountersJson))
+				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log("spawner counter routine: \"" + spawnerCountersJson + "\"")
+				}
+			}
+		}
+		time.Sleep(time.Duration(app.config.NodeSpawnerCounterIntervalMs) * time.Millisecond)
+	}
 }
 
 func (app *App) nodeResolverCountersRoutine() {
