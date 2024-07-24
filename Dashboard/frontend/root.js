@@ -27,6 +27,24 @@ export class root extends React.Component {
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+        this.counterConfig = {
+            nodeResolverCounters: {
+                labels: ["configRequests", "resolutionRequests", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)"],
+            },
+            nodeBrokerCounters: {
+                labels: ["incomingMessages", "outgoingMessages", "configRequests", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)"],
+            },
+            nodeWebsocketCounters: {
+                labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)", "rgb(192, 75, 75)"],
+            },
+            nodeSystemgeCounters: {
+                labels: ["incSyncReq", "incSyncRes", "incAsync", "outSyncReq", "outSyncRes", "outAsync", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)", "rgb(192, 75, 75)", "rgb(75, 192, 192)", "rgb(192, 75, 192)"],
+            },
+        };
     }
 
     constructMessage(topic, payload) {
@@ -183,29 +201,11 @@ export class root extends React.Component {
         let nodeStatuses = [];
         let buttons = [];
         let multiLineGraphs = [];
-        const counterConfig = {
-            nodeResolverCounters: {
-                labels: ["configRequests", "resolutionRequests", "bytesSent", "bytesReceived"],
-                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)"],
-            },
-            nodeBrokerCounters: {
-                labels: ["incomingMessages", "outgoingMessages", "configRequests", "bytesSent", "bytesReceived"],
-                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)"],
-            },
-            nodeWebsocketCounters: {
-                labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
-                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)", "rgb(192, 75, 75)"],
-            },
-            nodeSystemgeCounters: {
-                labels: ["incSyncReq", "incSyncRes", "incAsync", "outSyncReq", "outSyncRes", "outAsync", "bytesSent", "bytesReceived"],
-                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)", "rgb(192, 75, 75)", "rgb(75, 192, 192)", "rgb(192, 75, 192)"],
-            },
-        };
 
         const renderGraphsForNode = (nodeName) => {
-            Object.keys(counterConfig).forEach((key) => {
+            Object.keys(this.counterConfig).forEach((key) => {
                 if (this.state.nodes[nodeName][key]) {
-                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, counterConfig[key].labels, counterConfig[key].colors));
+                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
                 }
             });
             nodeStatuses.push(React.createElement(
