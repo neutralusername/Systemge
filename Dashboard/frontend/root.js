@@ -164,7 +164,6 @@ export class root extends React.Component {
         Object.keys(this.state.nodes[nodeName][countersType]).forEach((key) => {
             nodeCounters[key] = labels.map((label) => this.state.nodes[nodeName][countersType][key][label]);
         });
-        console.log(nodeCounters);
         return React.createElement(
             multiLineGraph, {
                 title: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters "${nodeName}"`,
