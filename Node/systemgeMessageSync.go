@@ -17,7 +17,7 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 		if message.GetSyncRequestToken() == "" {
 			return nil, Error.New("syncRequestToken not set", nil)
 		}
-		brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic())
+		brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic(), true)
 		if err != nil {
 			return nil, Error.New("failed getting broker connection", err)
 		}

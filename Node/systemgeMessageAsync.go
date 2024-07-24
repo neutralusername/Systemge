@@ -12,7 +12,7 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 		if !node.IsStarted() {
 			return Error.New("node not started", nil)
 		}
-		brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic())
+		brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic(), true)
 		if err != nil {
 			return Error.New("failed getting broker connection", err)
 		}

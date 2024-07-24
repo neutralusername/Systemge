@@ -25,7 +25,7 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Attempting subscription to topic \""+topic+"\"", nil).Error())
 		}
-		brokerConnection, err := node.getBrokerConnectionForTopic(topic)
+		brokerConnection, err := node.getBrokerConnectionForTopic(topic, false)
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\"", err).Error())
