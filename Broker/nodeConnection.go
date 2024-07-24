@@ -29,7 +29,7 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Message) error {
 	nodeConnection.sendMutex.Lock()
 	defer nodeConnection.sendMutex.Unlock()
-	err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
+	_, err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}

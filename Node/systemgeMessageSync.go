@@ -25,13 +25,12 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 		if err != nil {
 			return nil, Error.New("failed to add message waiting for response", err)
 		}
-		messageBytes := message.Serialize()
-		err = brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, messageBytes)
+		bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.Serialize())
 		if err != nil {
 			systemge.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 			return nil, Error.New("failed sending sync request message", err)
 		}
-		systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+		systemge.bytesSentCounter.Add(bytesSent)
 		systemge.outgoingSyncRequestMessageCounter.Add(1)
 		response, err := systemge.receiveSyncResponse(message, responseChannel)
 		if err != nil {

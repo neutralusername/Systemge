@@ -20,13 +20,12 @@ func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint,
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	messageBytes := Message.NewAsync("addSyncTopics", node.GetName(), payload).Serialize()
-	_, bytesReceived, err := Tcp.Exchange(netConn, messageBytes, node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	_, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("addSyncTopics", node.GetName(), payload).Serialize(), node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
-	node.systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
-	node.systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
+	node.systemge.bytesSentCounter.Add(bytesSent)
+	node.systemge.bytesReceivedCounter.Add(bytesReceived)
 	return nil
 }
 
@@ -43,13 +42,12 @@ func (node *Node) RemoveSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoi
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	messageBytes := Message.NewAsync("removeSyncTopics", node.GetName(), payload).Serialize()
-	_, bytesReceived, err := Tcp.Exchange(netConn, messageBytes, node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	_, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("removeSyncTopics", node.GetName(), payload).Serialize(), node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
-	node.systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
-	node.systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
+	node.systemge.bytesSentCounter.Add(bytesSent)
+	node.systemge.bytesReceivedCounter.Add(bytesReceived)
 	return nil
 }
 
@@ -66,13 +64,12 @@ func (node *Node) AddAsyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	messageBytesCounter := Message.NewAsync("addAsyncTopics", node.GetName(), payload).Serialize()
-	_, bytesReceived, err := Tcp.Exchange(netConn, messageBytesCounter, node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	_, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("addAsyncTopics", node.GetName(), payload).Serialize(), node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
-	node.systemge.bytesSentCounter.Add(uint64(len(messageBytesCounter)))
-	node.systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
+	node.systemge.bytesSentCounter.Add(bytesSent)
+	node.systemge.bytesReceivedCounter.Add(bytesReceived)
 	return nil
 }
 
@@ -89,12 +86,11 @@ func (node *Node) RemoveAsyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpo
 		return Error.New("failed dialing broker", err)
 	}
 	defer netConn.Close()
-	messageBytesCoutner := Message.NewAsync("removeAsyncTopics", node.GetName(), payload).Serialize()
-	_, bytesReceived, err := Tcp.Exchange(netConn, messageBytesCoutner, node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
+	_, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("removeAsyncTopics", node.GetName(), payload).Serialize(), node.systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, 0)
 	if err != nil {
 		return Error.New("failed exchanging messages with broker", err)
 	}
-	node.systemge.bytesSentCounter.Add(uint64(len(messageBytesCoutner)))
-	node.systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
+	node.systemge.bytesSentCounter.Add(bytesSent)
+	node.systemge.bytesReceivedCounter.Add(bytesReceived)
 	return nil
 }

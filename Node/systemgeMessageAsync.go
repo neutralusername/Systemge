@@ -16,15 +16,14 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 		if err != nil {
 			return Error.New("failed getting broker connection", err)
 		}
-		messageBytes := message.Serialize()
-		err = brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, messageBytes)
+		bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.Serialize())
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send async message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 			return Error.New("failed sending async message", err)
 		}
-		systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+		systemge.bytesSentCounter.Add(bytesSent)
 		systemge.outgoingAsyncMessageCounter.Add(1)
 		return nil
 	}

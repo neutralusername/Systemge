@@ -34,17 +34,17 @@ func newBrokerConnection(netConn net.Conn, tcpEndpoint *Config.TcpEndpoint) *bro
 	}
 }
 
-func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, messageBytes []byte) error {
+func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, messageBytes []byte) (uint64, error) {
 	brokerConnection.sendMutex.Lock()
 	defer brokerConnection.sendMutex.Unlock()
 	if brokerConnection.netConn == nil {
-		return Error.New("Connection is closed", nil)
+		return 0, Error.New("Connection is closed", nil)
 	}
-	err := Tcp.Send(brokerConnection.netConn, messageBytes, tcpTimeoutMs)
+	bytesSent, err := Tcp.Send(brokerConnection.netConn, messageBytes, tcpTimeoutMs)
 	if err != nil {
-		return Error.New("Failed sending message", err)
+		return 0, Error.New("Failed sending message", err)
 	}
-	return nil
+	return bytesSent, nil
 }
 
 func (brokerConnection *brokerConnection) close() error {

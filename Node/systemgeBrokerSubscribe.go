@@ -62,13 +62,12 @@ func (systemge *systemgeComponent) subscribeTopic(nodeName string, brokerConnect
 	if err != nil {
 		return Error.New("failed to add message waiting for response", err)
 	}
-	messageBytes := message.Serialize()
-	err = brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, messageBytes)
+	bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.Serialize())
 	if err != nil {
 		systemge.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 		return Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to broker", err)
 	}
-	systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+	systemge.bytesSentCounter.Add(bytesSent)
 	response, err := systemge.receiveSyncResponse(message, responseChannel)
 	if err != nil {
 		return Error.New("Error sending subscription sync request", err)

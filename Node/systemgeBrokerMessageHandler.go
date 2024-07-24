@@ -41,7 +41,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			}
 			return
 		}
-		systemge.bytesReceivedCounter.Add(uint64(bytesReceived))
+		systemge.bytesReceivedCounter.Add(bytesReceived)
 		message := Message.Deserialize(messageBytes)
 		if message == nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
@@ -73,26 +73,24 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 				}
-				messageBytes := message.NewResponse("error", node.GetName(), Error.New("failed handling message", err).Error()).Serialize()
-				err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, messageBytes)
+				bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.NewResponse("error", node.GetName(), Error.New("failed handling message", err).Error()).Serialize())
 				if err != nil {
 					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
 				}
-				systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+				systemge.bytesSentCounter.Add(bytesSent)
 			} else {
 				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
-				messageBytes := message.NewResponse(message.GetTopic(), node.GetName(), response).Serialize()
-				err = brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, messageBytes)
+				bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.NewResponse(message.GetTopic(), node.GetName(), response).Serialize())
 				if err != nil {
 					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send response for sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
 				} else {
-					systemge.bytesSentCounter.Add(uint64(len(messageBytes)))
+					systemge.bytesSentCounter.Add(bytesSent)
 					systemge.outgoingSyncResponseMessageCounter.Add(1)
 				}
 			}
