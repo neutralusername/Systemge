@@ -145,7 +145,6 @@ export class root extends React.Component {
                     break;
                 case "nodeWebsocketCounters": {
                     let nodeWebsocketCounters = JSON.parse(message.payload);
-                    console.log(nodeWebsocketCounters);
                     let node = this.state.nodes[nodeWebsocketCounters.name];
                     if (node === undefined) {
                         node = {
@@ -180,6 +179,41 @@ export class root extends React.Component {
                         },
                     });
                 }
+                case "nodeBrokerCounters": {
+                    let nodeBrokerCounters = JSON.parse(message.payload);
+                    let node = this.state.nodes[nodeBrokerCounters.name];
+                    if (node === undefined) {
+                        node = {
+                            name: nodeBrokerCounters.name,
+                            nodeBrokerCounters: {},
+                        };
+                    }
+                    let currentNodeBrokerCounters = node.nodeBrokerCounters;
+                    if (currentNodeBrokerCounters === undefined) {
+                        currentNodeBrokerCounters = {};
+                    }
+                    if (Object.keys(currentNodeBrokerCounters).length > 50) {
+                        delete currentNodeBrokerCounters[Object.keys(currentNodeBrokerCounters)[0]];
+                    }
+                    this.state.setStateRoot({
+                        nodes: {
+                            ...this.state.nodes,
+                            [nodeBrokerCounters.name]: {
+                                ...node,
+                                nodeBrokerCounters: {
+                                    ...currentNodeBrokerCounters,
+                                    [new Date().toLocaleTimeString()]: {
+                                        incomingMessages : nodeBrokerCounters.incomingMessages,
+                                        outgoingMessages : nodeBrokerCounters.outgoingMessages,
+                                        configRequests : nodeBrokerCounters.configRequests,
+                                        bytesSent : nodeBrokerCounters.bytesSent,
+                                        bytesReceived : nodeBrokerCounters.bytesReceived,
+                                    },
+                                }
+                            },
+                        },
+                    });
+                }
                 break;
                 default:
                     console.log("Unknown message topic: " + event.data);
@@ -208,6 +242,42 @@ export class root extends React.Component {
         let multiLineGraphs = [];
         if (urlPath === "/") {
             for (let nodeName in this.state.nodes) {
+                if (this.state.nodes[nodeName].nodeBrokerCounters) {
+                    let nodeCounters = {};
+                    Object.keys(this.state.nodes[nodeName].nodeBrokerCounters).forEach((key) => {
+                        nodeCounters[key] = [
+                            this.state.nodes[nodeName].nodeBrokerCounters[key].incomingMessages,
+                            this.state.nodes[nodeName].nodeBrokerCounters[key].outgoingMessages,
+                            this.state.nodes[nodeName].nodeBrokerCounters[key].configRequests,
+                            this.state.nodes[nodeName].nodeBrokerCounters[key].bytesSent,
+                            this.state.nodes[nodeName].nodeBrokerCounters[key].bytesReceived,
+                        ]
+                    })
+                    multiLineGraphs.push(React.createElement(
+                        multiLineGraph, {
+                            title: "broker counters \"" + nodeName + "\"",
+                            chartName: "nodeBrokerCounters " + nodeName,
+                            dataLabel: "node broker counters",
+                            dataSet: nodeCounters,
+                            labels : [
+                                "incomingMessages",
+                                "outgoingMessages",
+                                "configRequests",
+                                "bytesSent",
+                                "bytesReceived",
+                            ],
+                            colors : [
+                                "rgb(75, 192, 192)",
+                                "rgb(192, 75, 192)",
+                                "rgb(192, 192, 75)",
+                                "rgb(75, 192, 75)",
+                                "rgb(75, 75, 192)",
+                            ],
+                            height : "400px",
+                            width : "1200px",    
+                        },
+                    ));
+                }
                 if (this.state.nodes[nodeName].nodeWebsocketCounters) {
                     let nodeCounters = {};
                     Object.keys(this.state.nodes[nodeName].nodeWebsocketCounters).forEach((key) => {
@@ -326,6 +396,42 @@ export class root extends React.Component {
         } else {
             if (this.state.nodes[urlPath.substring(1)]) {
                 if (this.state.nodes[urlPath.substring(1)]) {
+                    if (this.state.nodes[urlPath.substring(1)].nodeBrokerCounters) {
+                        let nodeCounters = {};
+                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeBrokerCounters).forEach((key) => {
+                            nodeCounters[key] = [
+                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].incomingMessages,
+                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].outgoingMessages,
+                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].configRequests,
+                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].bytesSent,
+                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].bytesReceived,
+                            ]
+                        })
+                        multiLineGraphs.push(React.createElement(
+                            multiLineGraph, {
+                                title: "broker counters \"" + urlPath.substring(1) + "\"",
+                                chartName: "nodeBrokerCounters " + urlPath.substring(1),
+                                dataLabel: "node broker counters",
+                                dataSet: nodeCounters,
+                                labels : [
+                                    "incomingMessages",
+                                    "outgoingMessages",
+                                    "configRequests",
+                                    "bytesSent",
+                                    "bytesReceived",
+                                ],
+                                colors : [
+                                    "rgb(75, 192, 192)",
+                                    "rgb(192, 75, 192)",
+                                    "rgb(192, 192, 75)",
+                                    "rgb(75, 192, 75)",
+                                    "rgb(75, 75, 192)",
+                                ],
+                                height : "400px",
+                                width : "1200px",    
+                            },
+                        ));   
+                    }
                     if (this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters) {
                         let nodeCounters = {};
                         Object.keys(this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters).forEach((key) => {

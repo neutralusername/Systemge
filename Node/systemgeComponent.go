@@ -17,12 +17,12 @@ type systemgeComponent struct {
 	asyncMessageHandlerMutex   sync.Mutex
 	syncMessageHandlerMutex    sync.Mutex
 
-	incomingAsyncMessageCounter        atomic.Uint32
-	incomingSyncRequestMessageCounter  atomic.Uint32
-	incomingSyncResponseMessageCounter atomic.Uint32
-	outgoingAsyncMessageCounter        atomic.Uint32
-	outgoingSyncRequestMessageCounter  atomic.Uint32
-	outgoingSyncResponseMessageCounter atomic.Uint32
+	incomingAsyncMessageCounter atomic.Uint32
+	incomingSyncRequestCounter  atomic.Uint32
+	incomingSyncResponseCounter atomic.Uint32
+	outgoingAsyncMessageCounter atomic.Uint32
+	outgoingSyncRequestCounter  atomic.Uint32
+	outgoingSyncResponseCounter atomic.Uint32
 
 	bytesReceivedCounter atomic.Uint64
 	bytesSentCounter     atomic.Uint64
@@ -51,14 +51,14 @@ func (node *Node) RetrieveSystemgeIncomingAsyncMessageCounter() uint32 {
 
 func (node *Node) RetrieveSystemgeIncomingSyncRequestMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
-		return systemge.incomingSyncRequestMessageCounter.Swap(0)
+		return systemge.incomingSyncRequestCounter.Swap(0)
 	}
 	return 0
 }
 
 func (node *Node) RetrieveSystemgeIncomingSyncResponseMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
-		return systemge.incomingSyncResponseMessageCounter.Swap(0)
+		return systemge.incomingSyncResponseCounter.Swap(0)
 	}
 	return 0
 }
@@ -72,14 +72,14 @@ func (node *Node) RetrieveSystemgeOutgoingAsyncMessageCounter() uint32 {
 
 func (node *Node) RetrieveSystemgeOutgoingSyncRequestMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingSyncRequestMessageCounter.Swap(0)
+		return systemge.outgoingSyncRequestCounter.Swap(0)
 	}
 	return 0
 }
 
 func (node *Node) RetrieveSystemgeOutgoingSyncResponseMessageCounter() uint32 {
 	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingSyncResponseMessageCounter.Swap(0)
+		return systemge.outgoingSyncResponseCounter.Swap(0)
 	}
 	return 0
 }

@@ -65,6 +65,7 @@ type Dashboard struct {
 	AutoStart                      bool       // default: false
 	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
 	NodeStatusIntervalMs           uint64     // default: 0 = disabled
-	NodeSystemgeCountersIntervalMs uint64     // default: 0 = disabled
+	NodeSystemgeCounterIntervalMs  uint64     // default: 0 = disabled
 	NodeWebsocketCounterIntervalMs uint64     // default: 0 = disabled
+	NodeBrokerCounterIntervalMs    uint64     // default: 0 = disabled
 }

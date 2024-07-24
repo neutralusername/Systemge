@@ -21,16 +21,10 @@ export class multiLineGraph extends React.Component {
 					y: {
 						beginAtZero: false,
 						min : 0,
-						ticks: {
-							stepSize: 1
-						  }
 					},
 					x: {
 						beginAtZero: false,
 						min : 0,
-						ticks: {
-							stepSize: 1	
-						  }
 					},
 				},
 				animation: false,

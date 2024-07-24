@@ -1,6 +1,7 @@
 package Dashboard
 
 import (
+	"Systemge/Broker"
 	"Systemge/Helpers"
 	"Systemge/Message"
 	"Systemge/Node"
@@ -18,11 +19,14 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.HeapUpdateIntervalMs > 0 {
 		go app.heapUpdateRoutine()
 	}
-	if app.config.NodeSystemgeCountersIntervalMs > 0 {
+	if app.config.NodeSystemgeCounterIntervalMs > 0 {
 		go app.nodeSystemgeCountersRoutine()
 	}
 	if app.config.NodeWebsocketCounterIntervalMs > 0 {
 		go app.nodeWebsocketCountersRoutine()
+	}
+	if app.config.NodeBrokerCounterIntervalMs > 0 {
+		go app.nodeBrokerCountersRoutine()
 	}
 	return nil
 }
@@ -31,6 +35,21 @@ func (app *App) OnStop(node *Node.Node) error {
 	app.node = nil
 	app.started = false
 	return nil
+}
+
+func (app *App) nodeBrokerCountersRoutine() {
+	for app.started {
+		for _, node := range app.nodes {
+			if Broker.ImplementsBroker(node) {
+				brokerCountersJson := Helpers.JsonMarshal(newNodeBrokerCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeBrokerCounters", app.node.GetName(), brokerCountersJson))
+				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log("broker counter routine: \"" + brokerCountersJson + "\"")
+				}
+			}
+		}
+		time.Sleep(time.Duration(app.config.NodeBrokerCounterIntervalMs) * time.Millisecond)
+	}
 }
 
 func (app *App) nodeSystemgeCountersRoutine() {
@@ -44,7 +63,7 @@ func (app *App) nodeSystemgeCountersRoutine() {
 				}
 			}
 		}
-		time.Sleep(time.Duration(app.config.NodeSystemgeCountersIntervalMs) * time.Millisecond)
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 

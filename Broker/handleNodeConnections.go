@@ -79,10 +79,11 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if err != nil {
 		return nil, Error.New("Failed to add node \""+nodeConnection.name+"\"", err)
 	}
-	err = broker.send(nodeConnection, Message.NewAsync("connected", broker.node.GetName(), ""))
+	bytesSent, err := Tcp.Send(nodeConnection.netConn, Message.NewAsync("connected", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
 	if err != nil {
 		broker.removeNodeConnection(true, nodeConnection)
-		return nil, Error.New("Failed to send connection response to node \""+nodeConnection.name+"\"", err)
+		return nil, Error.New("Failed to send message", err)
 	}
+	broker.bytesSentCounter.Add(bytesSent)
 	return nodeConnection, nil
 }

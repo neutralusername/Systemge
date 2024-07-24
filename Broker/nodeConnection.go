@@ -29,20 +29,24 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Message) error {
 	nodeConnection.sendMutex.Lock()
 	defer nodeConnection.sendMutex.Unlock()
-	_, err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
+	broker.bytesSentCounter.Add(bytesSent)
+	broker.outgoingMessageCounter.Add(1)
 	return nil
 }
 
 func (broker *Broker) receive(nodeConnection *nodeConnection) (*Message.Message, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
-	messageBytes, _, err := Tcp.Receive(nodeConnection.netConn, 0, broker.config.IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(nodeConnection.netConn, 0, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
 	}
+	broker.bytesReceivedCounter.Add(bytesReceived)
+	broker.incomingMessageCounter.Add(1)
 	message := Message.Deserialize(messageBytes)
 	if message == nil {
 		return nil, Error.New("Failed to deserialize message \""+string(messageBytes)+"\"", nil)

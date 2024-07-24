@@ -21,6 +21,10 @@ func (node *Node) ImplementsWebsocketComponent() bool {
 	return ImplementsWebsocketComponent(node.application)
 }
 
+func (node *Node) GetApplication() Application {
+	return node.application
+}
+
 func ImplementsSystemgeComponent(app Application) bool {
 	_, ok := app.(SystemgeComponent)
 	return ok

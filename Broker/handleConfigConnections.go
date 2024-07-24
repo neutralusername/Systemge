@@ -17,6 +17,7 @@ func (broker *Broker) handleConfigConnections() {
 			}
 			continue
 		}
+		broker.configRequestCounter.Add(1)
 		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
 		if err != nil {
 			netConn.Close()
@@ -28,69 +29,69 @@ func (broker *Broker) handleConfigConnections() {
 		if broker.configTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
 			}
 			continue
 		}
 		if broker.configTcpServer.GetWhitelist().ElementCount() > 0 && !broker.configTcpServer.GetWhitelist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
 			}
 			continue
 		}
 		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
-		go broker.handleConfigConnection(netConn)
+		go func() {
+			err := broker.handleConfigConnection(netConn)
+			if err != nil {
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
+				}
+				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("error", broker.node.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), broker.config.TcpTimeoutMs)
+				if err != nil {
+					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
+					}
+				}
+				broker.bytesSentCounter.Add(bytesSend)
+			} else {
+				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("success", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
+				if err != nil {
+					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
+					}
+				}
+				broker.bytesSentCounter.Add(bytesSend)
+			}
+		}()
 	}
 }
 
-func (broker *Broker) handleConfigConnection(netConn net.Conn) {
+func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	defer netConn.Close()
-	messageBytes, _, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+	messageBytes, bytesSent, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
-		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
-		}
-		return
+		return Error.New("Failed to receive connection request", err)
 	}
+	broker.bytesReceivedCounter.Add(bytesSent)
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetOrigin() == "" {
-		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Invalid connection request \""+string(messageBytes)+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		return
+		return Error.New("Invalid connection request", nil)
 	}
 	err = broker.validateMessage(message)
 	if err != nil {
-		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Invalid connection request message from \""+netConn.RemoteAddr().String()+"\"", err).Error())
-		}
-		return
+		return Error.New("Invalid connection request message", err)
 	}
 	err = broker.handleConfigRequest(message)
 	if err != nil {
-		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
-		}
-		_, err := Tcp.Send(netConn, Message.NewAsync("error", broker.node.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), broker.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
-	} else {
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Handled config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		_, err := Tcp.Send(netConn, Message.NewAsync("success", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
+		return Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\"", err)
 	}
+	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handled config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+	}
+	return nil
 }
 
 func (broker *Broker) handleConfigRequest(message *Message.Message) error {
