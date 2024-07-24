@@ -22,13 +22,11 @@ export class root extends React.Component {
             responseMessageTimeouts: {},
             nodes: {},
             heapUpdates: {},
-            WS_CONNECTION: GetWebsocketConnection(),
         };
-        this.state.constructMessage = this.constructMessage.bind(this);
-        this.state.setStateRoot = this.setStateRoot.bind(this);
-        this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
-        this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
-        this.state.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+        this.WS_CONNECTION = GetWebsocketConnection();
+        this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
+        this.WS_CONNECTION.onclose = this.handleClose.bind(this);
+        this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
     }
 
     constructMessage(topic, payload) {
@@ -99,11 +97,11 @@ export class root extends React.Component {
             delete heapUpdates[Object.keys(heapUpdates)[0]];
         }
         heapUpdates[new Date().toLocaleTimeString()] = heapStatus;
-        this.state.setStateRoot({ heapUpdates });
+        this.setState({ heapUpdates });
     }
 
     handleNodeStatus(nodeStatus) {
-        this.state.setStateRoot({
+        this.setState({
             nodes: {
                 ...this.state.nodes,
                 [nodeStatus.name]: {
@@ -116,7 +114,7 @@ export class root extends React.Component {
     }
 
     handleNodeCommands(nodeCommands) {
-        this.state.setStateRoot({
+        this.setState({
             nodes: {
                 ...this.state.nodes,
                 [nodeCommands.name]: {
@@ -134,7 +132,7 @@ export class root extends React.Component {
             delete currentCounters[Object.keys(currentCounters)[0]];
         }
         currentCounters[new Date().toLocaleTimeString()] = nodeCounters;
-        this.state.setStateRoot({
+        this.setState({
             nodes: {
                 ...this.state.nodes,
                 [nodeCounters.name]: {
@@ -147,7 +145,7 @@ export class root extends React.Component {
 
     handleClose() {
         setTimeout(() => {
-            if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {
+            if (this.WS_CONNECTION.readyState === WebSocket.CLOSED) {
                 window.location.reload();
             }
         }, 2000);
@@ -155,7 +153,7 @@ export class root extends React.Component {
 
     handleOpen() {
         let myLoop = () => {
-            this.state.WS_CONNECTION.send(this.state.constructMessage("heartbeat", ""));
+            this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
             setTimeout(myLoop, 1000 * 60 * 4);
         };
         setTimeout(myLoop, 1000 * 60 * 4);
@@ -214,8 +212,8 @@ export class root extends React.Component {
                 nodeStatus, {
                     node: this.state.nodes[nodeName],
                     key: nodeName,
-                    WS_CONNECTION: this.state.WS_CONNECTION,
-                    constructMessage: this.state.constructMessage,
+                    WS_CONNECTION: this.WS_CONNECTION,
+                    constructMessage: this.constructMessage,
                 },
             ));
         };
@@ -227,7 +225,7 @@ export class root extends React.Component {
                     "button", {
                         onClick: () => {
                             Object.keys(this.state.nodes).forEach((nodeName) => {
-                                this.state.WS_CONNECTION.send(this.state.constructMessage("start", nodeName));
+                                this.WS_CONNECTION.send(this.constructMessage("start", nodeName));
                             });
                         },
                     },
@@ -237,7 +235,7 @@ export class root extends React.Component {
                     "button", {
                         onClick: () => {
                             Object.keys(this.state.nodes).forEach((nodeName) => {
-                                this.state.WS_CONNECTION.send(this.state.constructMessage("stop", nodeName));
+                                this.WS_CONNECTION.send(this.constructMessage("stop", nodeName));
                             });
                         },
                     },
@@ -292,7 +290,7 @@ export class root extends React.Component {
                         left: "0",
                     },
                     onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("close"));
+                        this.WS_CONNECTION.send(this.constructMessage("close"));
                     },
                 },
                 "close",
@@ -312,7 +310,7 @@ export class root extends React.Component {
             React.createElement(
                 "button", {
                     onClick: () => {
-                        this.state.WS_CONNECTION.send(this.state.constructMessage("gc"));
+                        this.WS_CONNECTION.send(this.constructMessage("gc"));
                     },
                 },
                 "collect garbage",
