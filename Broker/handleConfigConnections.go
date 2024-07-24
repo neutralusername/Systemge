@@ -67,12 +67,12 @@ func (broker *Broker) handleConfigConnections() {
 					broker.bytesSentCounter.Add(bytesSend)
 				}
 			}
+			netConn.Close()
 		}()
 	}
 }
 
 func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
-	defer netConn.Close()
 	messageBytes, bytesSent, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("Failed to receive connection request", err)
