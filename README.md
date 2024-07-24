@@ -57,7 +57,12 @@ Feel free to get in touch if you encounter issues, have questions, suggestions o
 **Discord**: https://discord.gg/y4KYj25A8K  
 **Email**: stuck.fabian@gmail.com  
 
-![Screenshot from 2024-07-24 07-55-14](https://github.com/user-attachments/assets/21c21b52-c637-4a8e-b60b-7f6d36abe6a0)
+![Screenshot from 2024-07-24 09-29-32](https://github.com/user-attachments/assets/ca0951cc-220f-4131-ac65-edbb718bf13c)
+
+![Screenshot from 2024-07-24 09-28-38](https://github.com/user-attachments/assets/548d891b-bc64-48eb-b97b-8022ca0c17d8)
+
+![Screenshot from 2024-07-24 09-29-43](https://github.com/user-attachments/assets/66fe338c-33d8-4794-93c1-ff89f779793e)
+
 
 
 ![Diagram](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
