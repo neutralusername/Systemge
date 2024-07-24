@@ -53,7 +53,9 @@ export class multiLineGraph extends React.Component {
 			chart : new Chart(this.props.chartName, {
 				type: 'line',
 				data: {
-					labels: Object.keys(this.props.dataSet),
+					labels: Object.keys(this.props.dataSet).map((key) => {
+						return new Date(parseInt(key)).toLocaleTimeString();
+					}),
 					datasets: dataSets,
 				},
 				options: options,
@@ -75,7 +77,9 @@ export class multiLineGraph extends React.Component {
 					borderColor: this.props.colors[index],
 				})
 			})
-			this.state.chart.data.labels = Object.keys(this.props.dataSet);
+			this.state.chart.data.labels = Object.keys(this.props.dataSet).map((key) => {
+				return new Date(parseInt(key)).toLocaleTimeString();
+			})
 			this.state.chart.data.datasets = dataSets
 			this.state.chart.data.datasets.forEach((dataSet, index) => {
 				this.state.chart.getDatasetMeta(index).hidden = visibilityStates[index];

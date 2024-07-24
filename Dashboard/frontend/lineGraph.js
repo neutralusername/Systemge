@@ -32,7 +32,9 @@ export class lineGraph extends React.Component {
 			chart : new Chart(this.props.chartName, {
 				type: 'line',
 				data: {
-					labels: Object.keys(this.props.dataSet),
+					labels: Object.keys(this.props.dataSet).map((label) => {
+						return new Date(parseInt(label)).toLocaleTimeString();	
+					}),
 					datasets: [{
 						label: this.props.dataLabel,
 						data: Object.values(this.props.dataSet),
@@ -46,7 +48,9 @@ export class lineGraph extends React.Component {
 	}
 	componentDidUpdate() {
 		if (this.state.chart !== null) {
-			this.state.chart.data.labels = Object.keys(this.props.dataSet);
+			this.state.chart.data.labels = Object.keys(this.props.dataSet).map((label) => {
+				return new Date(parseInt(label)).toLocaleTimeString();	
+			});
 			this.state.chart.data.datasets[0].data = Object.values(this.props.dataSet);
 			this.state.chart.update();
 		}

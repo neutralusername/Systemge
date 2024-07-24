@@ -114,7 +114,7 @@ export class root extends React.Component {
         if (Object.keys(heapUpdates).length > 50) {
             delete heapUpdates[Object.keys(heapUpdates)[0]];
         }
-        heapUpdates[new Date().toLocaleTimeString()] = heapStatus;
+        heapUpdates[new Date().valueOf()] = heapStatus;
         this.setState({ heapUpdates });
     }
 
@@ -149,7 +149,7 @@ export class root extends React.Component {
         if (Object.keys(currentCounters).length > 50) {
             delete currentCounters[Object.keys(currentCounters)[0]];
         }
-        currentCounters[new Date().toLocaleTimeString()] = nodeCounters;
+        currentCounters[new Date().valueOf()] = nodeCounters;
         this.setState({
             nodes: {
                 ...this.state.nodes,
