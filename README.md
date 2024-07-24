@@ -35,7 +35,7 @@
   - The Dashboard is web-based and accessible both locally and remotely.
   - Through the Dashboard, you can monitor and modify the status of Nodes in real-time.
   - The Dashboard allows the execution of "Commands" for each Node.
-  - Monitoring of various metrics for each node (e.g. incoming/outgoing message count, bytes Received, bytes Sent, etc.)
+  - Monitoring of various metrics for each node (e.g. incoming/outgoing message count, bytes received, bytes sent, etc.)
 
 ## Objective
 
