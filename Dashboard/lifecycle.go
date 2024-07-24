@@ -5,6 +5,7 @@ import (
 	"Systemge/Helpers"
 	"Systemge/Message"
 	"Systemge/Node"
+	"Systemge/Resolver"
 	"runtime"
 	"strconv"
 	"time"
@@ -28,6 +29,9 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeBrokerCounterIntervalMs > 0 {
 		go app.nodeBrokerCountersRoutine()
 	}
+	if app.config.NodeResolverCounterIntervalMs > 0 {
+		go app.nodeResolverCountersRoutine()
+	}
 	return nil
 }
 
@@ -35,6 +39,21 @@ func (app *App) OnStop(node *Node.Node) error {
 	app.node = nil
 	app.started = false
 	return nil
+}
+
+func (app *App) nodeResolverCountersRoutine() {
+	for app.started {
+		for _, node := range app.nodes {
+			if Resolver.ImplementsResolver(node) {
+				resolverCountersJson := Helpers.JsonMarshal(newNodeResolverCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeResolverCounters", app.node.GetName(), resolverCountersJson))
+				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log("resolver counter routine: \"" + resolverCountersJson + "\"")
+				}
+			}
+		}
+		time.Sleep(time.Duration(app.config.NodeResolverCounterIntervalMs) * time.Millisecond)
+	}
 }
 
 func (app *App) nodeBrokerCountersRoutine() {

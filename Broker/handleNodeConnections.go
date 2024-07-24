@@ -66,6 +66,7 @@ func (broker *Broker) handleNodeConnectionRequest(netConn net.Conn) (*nodeConnec
 	if err != nil {
 		return nil, Error.New("Failed to receive connection request", err)
 	}
+	broker.bytesReceivedCounter.Add(uint64(len(messageBytes)))
 	message := Message.Deserialize(messageBytes)
 	if message == nil || message.GetTopic() != "connect" || message.GetOrigin() == "" || message.GetPayload() != "" {
 		return nil, Error.New("Invalid connection request \""+string(messageBytes)+"\"", nil)

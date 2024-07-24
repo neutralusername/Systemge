@@ -5,6 +5,7 @@ import (
 	"Systemge/Node"
 	"Systemge/Tcp"
 	"sync"
+	"sync/atomic"
 )
 
 type Resolver struct {
@@ -18,6 +19,32 @@ type Resolver struct {
 
 	isStarted bool
 	mutex     sync.Mutex
+
+	configRequestCounter     atomic.Uint32
+	resolutionRequestCounter atomic.Uint32
+	bytesReceivedCounter     atomic.Uint64
+	bytesSentCounter         atomic.Uint64
+}
+
+func (resolver *Resolver) RetrieveConfigRequestCounter() uint32 {
+	return resolver.configRequestCounter.Swap(0)
+}
+
+func (resolver *Resolver) RetrieveResolutionRequestCounter() uint32 {
+	return resolver.resolutionRequestCounter.Swap(0)
+}
+
+func (resolver *Resolver) RetrieveBytesReceivedCounter() uint64 {
+	return resolver.bytesReceivedCounter.Swap(0)
+}
+
+func (resolver *Resolver) RetrieveBytesSentCounter() uint64 {
+	return resolver.bytesSentCounter.Swap(0)
+}
+
+func ImplementsResolver(node *Node.Node) bool {
+	_, ok := node.GetApplication().(*Resolver)
+	return ok
 }
 
 func New(config *Config.Resolver) *Resolver {

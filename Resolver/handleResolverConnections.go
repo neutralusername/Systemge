@@ -16,6 +16,7 @@ func (resolver *Resolver) handleResolverConnections() {
 			}
 			continue
 		}
+		resolver.resolutionRequestCounter.Add(1)
 		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
@@ -41,76 +42,55 @@ func (resolver *Resolver) handleResolverConnections() {
 			}
 			continue
 		}
-		go resolver.handleResolutionRequest(netConn)
+		go func() {
+			err := resolver.handleResolutionRequest(netConn)
+			if err != nil {
+				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to handle resolution request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
+				}
+				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
+				if err != nil {
+					if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
+					}
+				} else {
+					resolver.bytesSentCounter.Add(uint64(bytesSent))
+				}
+			}
+		}()
 	}
 }
 
-func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) {
+func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
 	defer netConn.Close()
 	messageBytes, _, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
 	if err != nil {
-		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to receive connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
-		}
-		_, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "failed to receive resolution request").Serialize(), resolver.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
-		return
+		return Error.New("failed to receive resolution request", err)
 	}
+	resolver.bytesReceivedCounter.Add(uint64(len(messageBytes)))
 	message := Message.Deserialize(messageBytes)
 	err = resolver.validateMessage(message)
 	if err != nil {
-		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Invalid connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
-		}
-		_, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
-		return
+		return Error.New("invalid resolution request", err)
 	}
 	if message == nil || message.GetTopic() != "resolve" || message.GetOrigin() == "" {
-		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Invalid connection request \""+string(messageBytes)+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		_, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), Error.New("invalid resolution request", nil).Error()).Serialize(), resolver.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
-		return
+		return Error.New("invalid resolution request", nil)
 	}
 	resolver.mutex.Lock()
 	endpoint, ok := resolver.registeredTopics[message.GetPayload()]
 	resolver.mutex.Unlock()
 	if !ok {
-		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to resolve topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		_, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), "unknwon topic").Serialize(), resolver.config.TcpTimeoutMs)
-		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-			}
-		}
-		return
+		return Error.New("unknown topic", nil)
 	}
-	_, err = Tcp.Send(netConn, Message.NewAsync("resolution", resolver.node.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync("resolution", resolver.node.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
 	if err != nil {
-		if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to send resolution response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
-		}
-		return
+		return Error.New("failed to send resolution response", err)
 	}
+	resolver.bytesSentCounter.Add(uint64(bytesSent))
 	if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Resolved topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}
+	return nil
 }
 
 func (resolver *Resolver) validateMessage(message *Message.Message) error {

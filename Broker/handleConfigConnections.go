@@ -54,16 +54,18 @@ func (broker *Broker) handleConfigConnections() {
 					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
+				} else {
+					broker.bytesSentCounter.Add(bytesSend)
 				}
-				broker.bytesSentCounter.Add(bytesSend)
 			} else {
 				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("success", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
 				if err != nil {
 					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
+				} else {
+					broker.bytesSentCounter.Add(bytesSend)
 				}
-				broker.bytesSentCounter.Add(bytesSend)
 			}
 		}()
 	}

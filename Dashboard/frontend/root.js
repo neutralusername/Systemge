@@ -215,6 +215,40 @@ export class root extends React.Component {
                     });
                 }
                 break;
+                case "nodeResolverCounters": {
+                    let nodeResolverCounters = JSON.parse(message.payload);
+                    let node = this.state.nodes[nodeResolverCounters.name];
+                    if (node === undefined) {
+                        node = {
+                            name: nodeResolverCounters.name,
+                            nodeResolverCounters: {},
+                        };
+                    }
+                    let currentNodeResolverCounters = node.nodeResolverCounters;
+                    if (currentNodeResolverCounters === undefined) {
+                        currentNodeResolverCounters = {};
+                    }
+                    if (Object.keys(currentNodeResolverCounters).length > 50) {
+                        delete currentNodeResolverCounters[Object.keys(currentNodeResolverCounters)[0]];
+                    }
+                    this.state.setStateRoot({
+                        nodes: {
+                            ...this.state.nodes,
+                            [nodeResolverCounters.name]: {
+                                ...node,
+                                nodeResolverCounters: {
+                                    ...currentNodeResolverCounters,
+                                    [new Date().toLocaleTimeString()]: {
+                                        configRequests : nodeResolverCounters.configRequests,
+                                        resolutionRequests : nodeResolverCounters.resolutionRequests,
+                                        bytesSent : nodeResolverCounters.bytesSent,
+                                        bytesReceived : nodeResolverCounters.bytesReceived,
+                                    },
+                                }
+                            },
+                        },
+                    });
+                }
                 default:
                     console.log("Unknown message topic: " + event.data);
                     break;
@@ -242,6 +276,39 @@ export class root extends React.Component {
         let multiLineGraphs = [];
         if (urlPath === "/") {
             for (let nodeName in this.state.nodes) {
+                if (this.state.nodes[nodeName].nodeResolverCounters) {
+                    let nodeCounters = {};
+                    Object.keys(this.state.nodes[nodeName].nodeResolverCounters).forEach((key) => {
+                        nodeCounters[key] = [
+                            this.state.nodes[nodeName].nodeResolverCounters[key].configRequests,
+                            this.state.nodes[nodeName].nodeResolverCounters[key].resolutionRequests,
+                            this.state.nodes[nodeName].nodeResolverCounters[key].bytesSent,
+                            this.state.nodes[nodeName].nodeResolverCounters[key].bytesReceived,
+                        ]
+                    })
+                    multiLineGraphs.push(React.createElement(
+                        multiLineGraph, {
+                            title: "resolver counters \"" + nodeName + "\"",
+                            chartName: "nodeResolverCounters " + nodeName,
+                            dataLabel: "node resolver counters",
+                            dataSet: nodeCounters,
+                            labels : [
+                                "configRequests",
+                                "resolutionRequests",
+                                "bytesSent",
+                                "bytesReceived",
+                            ],
+                            colors : [
+                                "rgb(75, 192, 192)",
+                                "rgb(192, 75, 192)",
+                                "rgb(192, 192, 75)",
+                                "rgb(75, 192, 75)",
+                            ],
+                            height : "400px",
+                            width : "1200px",    
+                        },
+                    ));
+                }
                 if (this.state.nodes[nodeName].nodeBrokerCounters) {
                     let nodeCounters = {};
                     Object.keys(this.state.nodes[nodeName].nodeBrokerCounters).forEach((key) => {
@@ -396,6 +463,39 @@ export class root extends React.Component {
         } else {
             if (this.state.nodes[urlPath.substring(1)]) {
                 if (this.state.nodes[urlPath.substring(1)]) {
+                    if (this.state.nodes[urlPath.substring(1)].nodeResolverCounters) {
+                        let nodeCounters = {};
+                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeResolverCounters).forEach((key) => {
+                            nodeCounters[key] = [
+                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].configRequests,
+                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].resolutionRequests,
+                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].bytesSent,
+                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].bytesReceived,
+                            ]
+                        })
+                        multiLineGraphs.push(React.createElement(
+                            multiLineGraph, {
+                                title: "resolver counters \"" + urlPath.substring(1) + "\"",
+                                chartName: "nodeResolverCounters " + urlPath.substring(1),
+                                dataLabel: "node resolver counters",
+                                dataSet: nodeCounters,
+                                labels : [
+                                    "configRequests",
+                                    "resolutionRequests",
+                                    "bytesSent",
+                                    "bytesReceived",
+                                ],
+                                colors : [
+                                    "rgb(75, 192, 192)",
+                                    "rgb(192, 75, 192)",
+                                    "rgb(192, 192, 75)",
+                                    "rgb(75, 192, 75)",
+                                ],
+                                height : "400px",
+                                width : "1200px",    
+                            },
+                        ));
+                    }
                     if (this.state.nodes[urlPath.substring(1)].nodeBrokerCounters) {
                         let nodeCounters = {};
                         Object.keys(this.state.nodes[urlPath.substring(1)].nodeBrokerCounters).forEach((key) => {
