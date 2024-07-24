@@ -18,257 +18,167 @@ export class root extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            responseMessages : {},
-            responseMessageTimeouts : {},
-            nodes : {},
-            heapUpdates : {},
+            responseMessages: {},
+            responseMessageTimeouts: {},
+            nodes: {},
+            heapUpdates: {},
             WS_CONNECTION: GetWebsocketConnection(),
-            constructMessage: (topic, payload) => {
-                return JSON.stringify({
-                    topic: topic,
-                    payload: payload,
-                });
-            },
-            setStateRoot: (state) => {
-                this.setState(state)
-            },
-            setResponseMessage: (message) => {
-                let responseId = GenerateRandomAlphaNumericString(10);
-                let responseMessages = this.state.responseMessages;
-                responseMessages[responseId] = message;
-                let responseMessageTimeouts = this.state.responseMessageTimeouts;
-                if (responseMessageTimeouts[responseId] !== undefined) {
-                    clearTimeout(responseMessageTimeouts[responseId]);
-                }
-                responseMessageTimeouts[responseId] = setTimeout(() => {
-                    delete responseMessages[responseId];
-                    delete responseMessageTimeouts[responseId];
-                    this.setState({
-                        responseMessages: responseMessages,
-                        responseMessageTimeouts: responseMessageTimeouts,
-                    });
-                }, 10000);
-                this.setState({
-                    responseMessages: responseMessages,
-                    responseMessageTimeouts: responseMessageTimeouts,
-                });
-            },
+        };
+        this.state.constructMessage = this.constructMessage.bind(this);
+        this.state.setStateRoot = this.setStateRoot.bind(this);
+        this.state.setResponseMessage = this.setResponseMessage.bind(this);
+        this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
+        this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
+        this.state.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+    }
+
+    constructMessage(topic, payload) {
+        return JSON.stringify({
+            topic: topic,
+            payload: payload,
+        });
+    }
+
+    setStateRoot(state) {
+        this.setState(state);
+    }
+
+    setResponseMessage(message) {
+        let responseId = GenerateRandomAlphaNumericString(10);
+        let responseMessages = this.state.responseMessages;
+        responseMessages[responseId] = message;
+        let responseMessageTimeouts = this.state.responseMessageTimeouts;
+        if (responseMessageTimeouts[responseId] !== undefined) {
+            clearTimeout(responseMessageTimeouts[responseId]);
         }
-        this.state.WS_CONNECTION.onmessage = (event) => {
-            let message = JSON.parse(event.data);
-            switch (message.topic) {
-                case "error":
-                case "responseMessage":
-                    if (message.payload === "") {
-                        message.payload = "\u00A0";
-                    }
-                    this.state.setResponseMessage(message.payload);
-                    break;
-                case "heapStatus":
-                    let heapStatus = Number(message.payload);
-                    if (Object.keys(this.state.heapUpdates).length > 50) {
-                        let heapUpdates = this.state.heapUpdates;
-                        delete heapUpdates[Object.keys(heapUpdates)[0]];
-                        this.state.setStateRoot({
-                            heapUpdates: heapUpdates,
-                        });
-                    }
-                    this.state.setStateRoot({
-                        heapUpdates: {
-                            ...this.state.heapUpdates,
-                            [new Date().toLocaleTimeString()]: heapStatus,
-                        },
-                    });
-                    break;
-                case "nodeStatus":
-                    let nodeStatus = JSON.parse(message.payload);
-                    this.state.setStateRoot({
-                        nodes: {
-                            ...this.state.nodes,
-                            [nodeStatus.name]: {
-                                ...this.state.nodes[nodeStatus.name],
-                                name: nodeStatus.name,
-                                status: nodeStatus.status,
-                            },
-                        },
-                    });
-                    break;
-                case "nodeCommands":
-                    let nodeCommands = JSON.parse(message.payload);
-                    this.state.setStateRoot({
-                        nodes: {
-                            ...this.state.nodes,
-                            [nodeCommands.name]: {
-                                ...this.state.nodes[nodeCommands.name],
-                                commands: nodeCommands.commands,
-                            },
-                        },
-                    });
-                    break;
-                case "nodeSystemgeCounters":
-                    let nodeSystemgeCounters = JSON.parse(message.payload);
-                    let node = this.state.nodes[nodeSystemgeCounters.name];
-                    if (node === undefined) {
-                        node = {
-                            name: nodeSystemgeCounters.name,
-                            nodeSystemgeCounters: {},
-                        };
-                    }
-                    let currentNodeSystemgeCounters = node.nodeSystemgeCounters;
-                    if (currentNodeSystemgeCounters === undefined) {
-                        currentNodeSystemgeCounters = {};
-                    }
-                    if (Object.keys(currentNodeSystemgeCounters).length > 50) {
-                        delete currentNodeSystemgeCounters[Object.keys(currentNodeSystemgeCounters)[0]];
-                    }
-                    this.state.setStateRoot({
-                        nodes: {
-                            ...this.state.nodes,
-                            [nodeSystemgeCounters.name]: {
-                                ...node,
-                                nodeSystemgeCounters: {
-                                    ...currentNodeSystemgeCounters,
-                                    [new Date().toLocaleTimeString()]: {
-                                        incSyncReq : nodeSystemgeCounters.incSyncReq,
-                                        incSyncRes : nodeSystemgeCounters.incSyncRes,
-                                        incAsync : nodeSystemgeCounters.incAsync,
-                                        outSyncReq : nodeSystemgeCounters.outSyncReq,
-                                        outSyncRes : nodeSystemgeCounters.outSyncRes,
-                                        outAsync : nodeSystemgeCounters.outAsync,
-                                        bytesSent : nodeSystemgeCounters.bytesSent,
-                                        bytesReceived : nodeSystemgeCounters.bytesReceived,
-                                    },
-                                }
-                            },
-                        },
-                    });
-                    break;
-                case "nodeWebsocketCounters": {
-                    let nodeWebsocketCounters = JSON.parse(message.payload);
-                    let node = this.state.nodes[nodeWebsocketCounters.name];
-                    if (node === undefined) {
-                        node = {
-                            name: nodeWebsocketCounters.name,
-                            nodeWebsocketCounters: {},
-                        };
-                    }
-                    let currentNodeWebsocketCounters = node.nodeWebsocketCounters;
-                    if (currentNodeWebsocketCounters === undefined) {
-                        currentNodeWebsocketCounters = {};
-                    }
-                    if (Object.keys(currentNodeWebsocketCounters).length > 50) {
-                        delete currentNodeWebsocketCounters[Object.keys(currentNodeWebsocketCounters)[0]];
-                    }
-                    this.state.setStateRoot({
-                        nodes: {
-                            ...this.state.nodes,
-                            [nodeWebsocketCounters.name]: {
-                                ...node,
-                                nodeWebsocketCounters: {
-                                    ...currentNodeWebsocketCounters,
-                                    [new Date().toLocaleTimeString()]: {
-                                        inc : nodeWebsocketCounters.inc,
-                                        out : nodeWebsocketCounters.out,
-                                        clientCount : nodeWebsocketCounters.clientCount,
-                                        groupCount : nodeWebsocketCounters.groupCount,
-                                        bytesSent : nodeWebsocketCounters.bytesSent,
-                                        bytesReceived : nodeWebsocketCounters.bytesReceived,
-                                    },
-                                }
-                            },
-                        },
-                    });
-                }
+        responseMessageTimeouts[responseId] = setTimeout(() => {
+            delete responseMessages[responseId];
+            delete responseMessageTimeouts[responseId];
+            this.setState({
+                responseMessages: responseMessages,
+                responseMessageTimeouts: responseMessageTimeouts,
+            });
+        }, 10000);
+        this.setState({
+            responseMessages: responseMessages,
+            responseMessageTimeouts: responseMessageTimeouts,
+        });
+    }
+
+    handleMessage(event) {
+        let message = JSON.parse(event.data);
+        switch (message.topic) {
+            case "error":
+            case "responseMessage":
+                this.state.setResponseMessage(message.payload || "\u00A0");
                 break;
-                case "nodeBrokerCounters": {
-                    let nodeBrokerCounters = JSON.parse(message.payload);
-                    let node = this.state.nodes[nodeBrokerCounters.name];
-                    if (node === undefined) {
-                        node = {
-                            name: nodeBrokerCounters.name,
-                            nodeBrokerCounters: {},
-                        };
-                    }
-                    let currentNodeBrokerCounters = node.nodeBrokerCounters;
-                    if (currentNodeBrokerCounters === undefined) {
-                        currentNodeBrokerCounters = {};
-                    }
-                    if (Object.keys(currentNodeBrokerCounters).length > 50) {
-                        delete currentNodeBrokerCounters[Object.keys(currentNodeBrokerCounters)[0]];
-                    }
-                    this.state.setStateRoot({
-                        nodes: {
-                            ...this.state.nodes,
-                            [nodeBrokerCounters.name]: {
-                                ...node,
-                                nodeBrokerCounters: {
-                                    ...currentNodeBrokerCounters,
-                                    [new Date().toLocaleTimeString()]: {
-                                        incomingMessages : nodeBrokerCounters.incomingMessages,
-                                        outgoingMessages : nodeBrokerCounters.outgoingMessages,
-                                        configRequests : nodeBrokerCounters.configRequests,
-                                        bytesSent : nodeBrokerCounters.bytesSent,
-                                        bytesReceived : nodeBrokerCounters.bytesReceived,
-                                    },
-                                }
-                            },
-                        },
-                    });
-                }
+            case "heapStatus":
+                this.handleHeapStatus(message.payload);
                 break;
-                case "nodeResolverCounters": {
-                    let nodeResolverCounters = JSON.parse(message.payload);
-                    let node = this.state.nodes[nodeResolverCounters.name];
-                    if (node === undefined) {
-                        node = {
-                            name: nodeResolverCounters.name,
-                            nodeResolverCounters: {},
-                        };
-                    }
-                    let currentNodeResolverCounters = node.nodeResolverCounters;
-                    if (currentNodeResolverCounters === undefined) {
-                        currentNodeResolverCounters = {};
-                    }
-                    if (Object.keys(currentNodeResolverCounters).length > 50) {
-                        delete currentNodeResolverCounters[Object.keys(currentNodeResolverCounters)[0]];
-                    }
-                    this.state.setStateRoot({
-                        nodes: {
-                            ...this.state.nodes,
-                            [nodeResolverCounters.name]: {
-                                ...node,
-                                nodeResolverCounters: {
-                                    ...currentNodeResolverCounters,
-                                    [new Date().toLocaleTimeString()]: {
-                                        configRequests : nodeResolverCounters.configRequests,
-                                        resolutionRequests : nodeResolverCounters.resolutionRequests,
-                                        bytesSent : nodeResolverCounters.bytesSent,
-                                        bytesReceived : nodeResolverCounters.bytesReceived,
-                                    },
-                                }
-                            },
-                        },
-                    });
-                }
+            case "nodeStatus":
+                this.handleNodeStatus(JSON.parse(message.payload));
                 break;
-                default:
-                    console.log("Unknown message topic: " + event.data);
-                    break;
-            }
+            case "nodeCommands":
+                this.handleNodeCommands(JSON.parse(message.payload));
+                break;
+            case "nodeSystemgeCounters":
+            case "nodeWebsocketCounters":
+            case "nodeBrokerCounters":
+            case "nodeResolverCounters":
+                this.handleNodeCounters(message.topic, JSON.parse(message.payload));
+                break;
+            default:
+                console.log("Unknown message topic: " + event.data);
+                break;
         }
-        this.state.WS_CONNECTION.onclose = () => {
-            setTimeout(() => {
-                if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {}
+    }
+
+    handleHeapStatus(payload) {
+        let heapStatus = Number(payload);
+        let heapUpdates = { ...this.state.heapUpdates };
+        if (Object.keys(heapUpdates).length > 50) {
+            delete heapUpdates[Object.keys(heapUpdates)[0]];
+        }
+        heapUpdates[new Date().toLocaleTimeString()] = heapStatus;
+        this.state.setStateRoot({ heapUpdates });
+    }
+
+    handleNodeStatus(nodeStatus) {
+        this.state.setStateRoot({
+            nodes: {
+                ...this.state.nodes,
+                [nodeStatus.name]: {
+                    ...this.state.nodes[nodeStatus.name],
+                    name: nodeStatus.name,
+                    status: nodeStatus.status,
+                },
+            },
+        });
+    }
+
+    handleNodeCommands(nodeCommands) {
+        this.state.setStateRoot({
+            nodes: {
+                ...this.state.nodes,
+                [nodeCommands.name]: {
+                    ...this.state.nodes[nodeCommands.name],
+                    commands: nodeCommands.commands,
+                },
+            },
+        });
+    }
+
+    handleNodeCounters(type, nodeCounters) {
+        let node = this.state.nodes[nodeCounters.name] || { name: nodeCounters.name };
+        let currentCounters = node[type] || {};
+        if (Object.keys(currentCounters).length > 50) {
+            delete currentCounters[Object.keys(currentCounters)[0]];
+        }
+        currentCounters[new Date().toLocaleTimeString()] = nodeCounters;
+        this.state.setStateRoot({
+            nodes: {
+                ...this.state.nodes,
+                [nodeCounters.name]: {
+                    ...node,
+                    [type]: currentCounters,
+                },
+            },
+        });
+    }
+
+    handleClose() {
+        setTimeout(() => {
+            if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {
                 window.location.reload();
-            }, 2000);
+            }
+        }, 2000);
+    }
+
+    handleOpen() {
+        let myLoop = () => {
+            this.state.WS_CONNECTION.send(this.state.constructMessage("heartbeat", ""));
+            setTimeout(myLoop, 1000 * 60 * 4);
         };
-        this.state.WS_CONNECTION.onopen = () => {
-            let myLoop = () => {
-                this.state.WS_CONNECTION.send(this.state.constructMessage("heartbeat", ""));
-                setTimeout(myLoop, 1000*60*4);
-            };
-            setTimeout(myLoop, 1000*60*4);
-        };
+        setTimeout(myLoop, 1000 * 60 * 4);
+    }
+
+    renderMultiLineGraph(nodeName, countersType, labels, colors) {
+        let nodeCounters = {};
+        Object.keys(this.state.nodes[nodeName][countersType]).forEach((key) => {
+            nodeCounters[key] = Object.values(this.state.nodes[nodeName][countersType][key]);
+        });
+        return React.createElement(
+            multiLineGraph, {
+                title: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters "${nodeName}"`,
+                chartName: `${countersType} ${nodeName}`,
+                dataLabel: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters`,
+                dataSet: nodeCounters,
+                labels,
+                colors,
+                height: "400px",
+                width: "1200px",
+            },
+        );
     }
 
     render() {
@@ -276,177 +186,50 @@ export class root extends React.Component {
         let nodeStatuses = [];
         let buttons = [];
         let multiLineGraphs = [];
+        const counterConfig = {
+            nodeResolverCounters: {
+                labels: ["configRequests", "resolutionRequests", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)"],
+            },
+            nodeBrokerCounters: {
+                labels: ["incomingMessages", "outgoingMessages", "configRequests", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)"],
+            },
+            nodeWebsocketCounters: {
+                labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)", "rgb(192, 75, 75)"],
+            },
+            nodeSystemgeCounters: {
+                labels: ["incSyncReq", "incSyncRes", "incAsync", "outSyncReq", "outSyncRes", "outAsync", "bytesSent", "bytesReceived"],
+                colors: ["rgb(75, 192, 192)", "rgb(192, 75, 192)", "rgb(192, 192, 75)", "rgb(75, 192, 75)", "rgb(75, 75, 192)", "rgb(192, 75, 75)", "rgb(75, 192, 192)", "rgb(192, 75, 192)"],
+            },
+        };
+
+        const renderGraphsForNode = (nodeName) => {
+            Object.keys(counterConfig).forEach((key) => {
+                if (this.state.nodes[nodeName][key]) {
+                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, counterConfig[key].labels, counterConfig[key].colors));
+                }
+            });
+            nodeStatuses.push(React.createElement(
+                nodeStatus, {
+                    node: this.state.nodes[nodeName],
+                    key: nodeName,
+                    WS_CONNECTION: this.state.WS_CONNECTION,
+                    constructMessage: this.state.constructMessage,
+                },
+            ));
+        };
+
         if (urlPath === "/") {
-            for (let nodeName in this.state.nodes) {
-                if (this.state.nodes[nodeName].nodeResolverCounters) {
-                    let nodeCounters = {};
-                    Object.keys(this.state.nodes[nodeName].nodeResolverCounters).forEach((key) => {
-                        nodeCounters[key] = [
-                            this.state.nodes[nodeName].nodeResolverCounters[key].configRequests,
-                            this.state.nodes[nodeName].nodeResolverCounters[key].resolutionRequests,
-                            this.state.nodes[nodeName].nodeResolverCounters[key].bytesSent,
-                            this.state.nodes[nodeName].nodeResolverCounters[key].bytesReceived,
-                        ]
-                    })
-                    multiLineGraphs.push(React.createElement(
-                        multiLineGraph, {
-                            title: "resolver counters \"" + nodeName + "\"",
-                            chartName: "nodeResolverCounters " + nodeName,
-                            dataLabel: "node resolver counters",
-                            dataSet: nodeCounters,
-                            labels : [
-                                "configRequests",
-                                "resolutionRequests",
-                                "bytesSent",
-                                "bytesReceived",
-                            ],
-                            colors : [
-                                "rgb(75, 192, 192)",
-                                "rgb(192, 75, 192)",
-                                "rgb(192, 192, 75)",
-                                "rgb(75, 192, 75)",
-                            ],
-                            height : "400px",
-                            width : "1200px",    
-                        },
-                    ));
-                }
-                if (this.state.nodes[nodeName].nodeBrokerCounters) {
-                    let nodeCounters = {};
-                    Object.keys(this.state.nodes[nodeName].nodeBrokerCounters).forEach((key) => {
-                        nodeCounters[key] = [
-                            this.state.nodes[nodeName].nodeBrokerCounters[key].incomingMessages,
-                            this.state.nodes[nodeName].nodeBrokerCounters[key].outgoingMessages,
-                            this.state.nodes[nodeName].nodeBrokerCounters[key].configRequests,
-                            this.state.nodes[nodeName].nodeBrokerCounters[key].bytesSent,
-                            this.state.nodes[nodeName].nodeBrokerCounters[key].bytesReceived,
-                        ]
-                    })
-                    multiLineGraphs.push(React.createElement(
-                        multiLineGraph, {
-                            title: "broker counters \"" + nodeName + "\"",
-                            chartName: "nodeBrokerCounters " + nodeName,
-                            dataLabel: "node broker counters",
-                            dataSet: nodeCounters,
-                            labels : [
-                                "incomingMessages",
-                                "outgoingMessages",
-                                "configRequests",
-                                "bytesSent",
-                                "bytesReceived",
-                            ],
-                            colors : [
-                                "rgb(75, 192, 192)",
-                                "rgb(192, 75, 192)",
-                                "rgb(192, 192, 75)",
-                                "rgb(75, 192, 75)",
-                                "rgb(75, 75, 192)",
-                            ],
-                            height : "400px",
-                            width : "1200px",    
-                        },
-                    ));
-                }
-                if (this.state.nodes[nodeName].nodeWebsocketCounters) {
-                    let nodeCounters = {};
-                    Object.keys(this.state.nodes[nodeName].nodeWebsocketCounters).forEach((key) => {
-                        nodeCounters[key] = [
-                            this.state.nodes[nodeName].nodeWebsocketCounters[key].inc,
-                            this.state.nodes[nodeName].nodeWebsocketCounters[key].out,
-                            this.state.nodes[nodeName].nodeWebsocketCounters[key].clientCount,
-                            this.state.nodes[nodeName].nodeWebsocketCounters[key].groupCount,
-                            this.state.nodes[nodeName].nodeWebsocketCounters[key].bytesSent,
-                            this.state.nodes[nodeName].nodeWebsocketCounters[key].bytesReceived,
-                        ]
-                    })
-                    multiLineGraphs.push(React.createElement(
-                        multiLineGraph, {
-                            title: "websocket counters \"" + nodeName + "\"",
-                            chartName: "nodeWebsocketCounters " + nodeName,
-                            dataLabel: "node websocket counters",
-                            dataSet: nodeCounters,
-                            labels : [
-                                "inc",
-                                "out",
-                                "clientCount",
-                                "groupCount",
-                                "bytesSent",
-                                "bytesReceived",
-                            ],
-                            colors : [
-                                "rgb(75, 192, 192)",
-                                "rgb(192, 75, 192)",
-                                "rgb(192, 192, 75)",
-                                "rgb(75, 192, 75)",
-                                "rgb(75, 75, 192)",
-                                "rgb(192, 75, 75)",
-                            ],
-                            height : "400px",
-                            width : "1200px",    
-                        },
-                    ));
-                }
-                if (this.state.nodes[nodeName].nodeSystemgeCounters) {
-                    let nodeCounters = {};
-                    Object.keys(this.state.nodes[nodeName].nodeSystemgeCounters).forEach((key) => {
-                        nodeCounters[key] = [
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].incSyncReq,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].incSyncRes,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].incAsync,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].outSyncReq,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].outSyncRes,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].outAsync,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].bytesSent,
-                            this.state.nodes[nodeName].nodeSystemgeCounters[key].bytesReceived,
-                        ]
-                    })
-                    multiLineGraphs.push(React.createElement(
-                        multiLineGraph, {
-                            title: "systemge counters \"" + nodeName + "\"",
-                            chartName: "nodeSystemgeCounters " + nodeName,
-                            dataLabel: "node systemge counters",
-                            dataSet: nodeCounters,
-                            labels : [
-                                "incSyncReq",
-                                "incSyncRes",
-                                "incAsync",
-                                "outSyncReq",
-                                "outSyncRes",
-                                "outAsync",
-                                "bytesSent",
-                                "bytesReceived",
-                            ],
-                            colors : [
-                                "rgb(75, 192, 192)",
-                                "rgb(192, 75, 192)",
-                                "rgb(192, 192, 75)",
-                                "rgb(75, 192, 75)",
-                                "rgb(75, 75, 192)",
-                                "rgb(192, 75, 75)",
-                                "rgb(75, 192, 192)",
-                                "rgb(192, 75, 192)",
-                            ],
-                            height : "400px",
-                            width : "1200px",    
-                        },
-                    ));
-                }
-                nodeStatuses.push(React.createElement(
-                    nodeStatus, {   
-                        node: this.state.nodes[nodeName],
-                        key: nodeName,
-                        WS_CONNECTION: this.state.WS_CONNECTION,
-                        constructMessage: this.state.constructMessage,
-                    },
-                ));
-            } 
+            Object.keys(this.state.nodes).forEach(renderGraphsForNode);
             buttons.push(
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            for (let nodeName in this.state.nodes) {
+                            Object.keys(this.state.nodes).forEach((nodeName) => {
                                 this.state.WS_CONNECTION.send(this.state.constructMessage("start", nodeName));
-                            }
+                            });
                         },
                     },
                     "start all",
@@ -454,192 +237,30 @@ export class root extends React.Component {
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            for (let nodeName in this.state.nodes) {
+                            Object.keys(this.state.nodes).forEach((nodeName) => {
                                 this.state.WS_CONNECTION.send(this.state.constructMessage("stop", nodeName));
-                            }
+                            });
                         },
                     },
                     "stop all",
-                )
-            )
+                ),
+            );
         } else {
-            if (this.state.nodes[urlPath.substring(1)]) {
-                if (this.state.nodes[urlPath.substring(1)]) {
-                    if (this.state.nodes[urlPath.substring(1)].nodeResolverCounters) {
-                        let nodeCounters = {};
-                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeResolverCounters).forEach((key) => {
-                            nodeCounters[key] = [
-                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].configRequests,
-                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].resolutionRequests,
-                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].bytesSent,
-                                this.state.nodes[urlPath.substring(1)].nodeResolverCounters[key].bytesReceived,
-                            ]
-                        })
-                        multiLineGraphs.push(React.createElement(
-                            multiLineGraph, {
-                                title: "resolver counters \"" + urlPath.substring(1) + "\"",
-                                chartName: "nodeResolverCounters " + urlPath.substring(1),
-                                dataLabel: "node resolver counters",
-                                dataSet: nodeCounters,
-                                labels : [
-                                    "configRequests",
-                                    "resolutionRequests",
-                                    "bytesSent",
-                                    "bytesReceived",
-                                ],
-                                colors : [
-                                    "rgb(75, 192, 192)",
-                                    "rgb(192, 75, 192)",
-                                    "rgb(192, 192, 75)",
-                                    "rgb(75, 192, 75)",
-                                ],
-                                height : "400px",
-                                width : "1200px",    
-                            },
-                        ));
-                    }
-                    if (this.state.nodes[urlPath.substring(1)].nodeBrokerCounters) {
-                        let nodeCounters = {};
-                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeBrokerCounters).forEach((key) => {
-                            nodeCounters[key] = [
-                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].incomingMessages,
-                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].outgoingMessages,
-                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].configRequests,
-                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].bytesSent,
-                                this.state.nodes[urlPath.substring(1)].nodeBrokerCounters[key].bytesReceived,
-                            ]
-                        })
-                        multiLineGraphs.push(React.createElement(
-                            multiLineGraph, {
-                                title: "broker counters \"" + urlPath.substring(1) + "\"",
-                                chartName: "nodeBrokerCounters " + urlPath.substring(1),
-                                dataLabel: "node broker counters",
-                                dataSet: nodeCounters,
-                                labels : [
-                                    "incomingMessages",
-                                    "outgoingMessages",
-                                    "configRequests",
-                                    "bytesSent",
-                                    "bytesReceived",
-                                ],
-                                colors : [
-                                    "rgb(75, 192, 192)",
-                                    "rgb(192, 75, 192)",
-                                    "rgb(192, 192, 75)",
-                                    "rgb(75, 192, 75)",
-                                    "rgb(75, 75, 192)",
-                                ],
-                                height : "400px",
-                                width : "1200px",    
-                            },
-                        ));   
-                    }
-                    if (this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters) {
-                        let nodeCounters = {};
-                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters).forEach((key) => {
-                            nodeCounters[key] = [
-                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].inc,
-                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].out,
-                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].clientCount,
-                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].groupCount,
-                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].bytesSent,
-                                this.state.nodes[urlPath.substring(1)].nodeWebsocketCounters[key].bytesReceived,
-                            ]
-                        })
-                        multiLineGraphs.push(React.createElement(
-                            multiLineGraph, {
-                                title: "websocket counters \"" + urlPath.substring(1) + "\"",
-                                chartName: "nodeWebsocketCounters " + urlPath.substring(1),
-                                dataLabel: "node websocket counters",
-                                dataSet: nodeCounters,
-                                labels : [
-                                    "inc",
-                                    "out",
-                                    "clientCount",
-                                    "groupCount",
-                                    "bytesSent",
-                                    "bytesReceived",
-                                ],
-                                colors : [
-                                    "rgb(75, 192, 192)",
-                                    "rgb(192, 75, 192)",
-                                    "rgb(192, 192, 75)",
-                                    "rgb(75, 192, 75)",
-                                    "rgb(75, 75, 192)",
-                                    "rgb(192, 75, 75)",
-                                ],
-                                height : "400px",
-                                width : "1200px",    
-                            },
-                        ));
-                    }
-                    if (this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters) {
-                        let nodeCounters = {};
-                        Object.keys(this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters).forEach((key) => {
-                            nodeCounters[key] = [
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].incSyncReq,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].incSyncRes,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].incAsync,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outSyncReq,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outSyncRes,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].outAsync,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].bytesSent,
-                                this.state.nodes[urlPath.substring(1)].nodeSystemgeCounters[key].bytesReceived,
-                            ]
-                        })
-                        multiLineGraphs.push(React.createElement(
-                            multiLineGraph, {
-                                title: "systemge counters \"" + urlPath.substring(1) + "\"",
-                                chartName: "nodeSystemgeCounters " + urlPath.substring(1),
-                                dataLabel: "node systemge counters",
-                                dataSet: nodeCounters,
-                                labels : [
-                                    "incSyncReq",
-                                    "incSyncRes",
-                                    "incAsync",
-                                    "outSyncReq",
-                                    "outSyncRes",
-                                    "outAsync",
-                                    "bytesSent",
-                                    "bytesReceived",
-                                ],
-                                colors : [
-                                    "rgb(75, 192, 192)",
-                                    "rgb(192, 75, 192)",
-                                    "rgb(192, 192, 75)",
-                                    "rgb(75, 192, 75)",
-                                    "rgb(75, 75, 192)",
-                                    "rgb(192, 75, 75)",
-                                    "rgb(75, 192, 192)",
-                                    "rgb(192, 75, 192)",
-                                ],
-                                height : "400px",
-                                width : "1200px",    
-                            },
-                        ));
-                    }
-                    nodeStatuses.push(React.createElement(
-                        nodeStatus, {
-                            node: this.state.nodes[urlPath.substring(1)],
-                            key: urlPath.substring(1),
-                            WS_CONNECTION: this.state.WS_CONNECTION,
-                            constructMessage: this.state.constructMessage,
-                        },
-                    ));
-                }
+            let nodeName = urlPath.substring(1);
+            if (this.state.nodes[nodeName]) {
+                renderGraphsForNode(nodeName);
             }
         }
-        let responseMessages = [];
-        for (let responseId in this.state.responseMessages) {
-            responseMessages.push(React.createElement(
-                "div", {           
+
+        let responseMessages = Object.keys(this.state.responseMessages).map((responseId) =>
+            React.createElement(
+                "div", {
                     key: responseId,
-                    style: {
-                    },
                 },
                 this.state.responseMessages[responseId],
-            ));
-        }
+            ),
+        );
+
         return React.createElement(
             "div", {
                 id: "root",
@@ -658,7 +279,7 @@ export class root extends React.Component {
                         top: "0",
                         right: "0",
                         padding: "10px",
-                        width : "30%",
+                        width: "30%",
                         textAlign: "right",
                     },
                 },
@@ -669,7 +290,7 @@ export class root extends React.Component {
                     style: {
                         position: "fixed",
                         top: "0",
-                        left : "0",
+                        left: "0",
                     },
                     onClick: () => {
                         this.state.WS_CONNECTION.send(this.state.constructMessage("close"));
@@ -679,14 +300,14 @@ export class root extends React.Component {
             ),
             nodeStatuses,
             buttons,
-            multiLineGraphs, 
+            multiLineGraphs,
             React.createElement(
                 lineGraph, {
                     chartName: "heapChart",
                     dataLabel: "heap usage",
                     dataSet: this.state.heapUpdates,
-                    height : "400px",
-                    width : "1200px",    
+                    height: "400px",
+                    width: "1200px",
                 },
             ),
             React.createElement(
