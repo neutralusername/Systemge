@@ -26,7 +26,6 @@ export class root extends React.Component {
         };
         this.state.constructMessage = this.constructMessage.bind(this);
         this.state.setStateRoot = this.setStateRoot.bind(this);
-        this.state.setResponseMessage = this.setResponseMessage.bind(this);
         this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.state.WS_CONNECTION.onopen = this.handleOpen.bind(this);
@@ -70,7 +69,7 @@ export class root extends React.Component {
         switch (message.topic) {
             case "error":
             case "responseMessage":
-                this.state.setResponseMessage(message.payload || "\u00A0");
+                this.setResponseMessage(message.payload || "\u00A0");
                 break;
             case "heapStatus":
                 this.handleHeapStatus(message.payload);
