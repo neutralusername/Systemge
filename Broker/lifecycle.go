@@ -91,6 +91,5 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 			}
 		}
 	}
-	broker.node = nil
 	return nil
 }

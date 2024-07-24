@@ -44,6 +44,5 @@ func (resolver *Resolver) OnStop(node *Node.Node) error {
 	resolver.resolverTcpServer = nil
 	resolver.configTcpServer.GetListener().Close()
 	resolver.configTcpServer = nil
-	resolver.node = nil
 	return nil
 }
