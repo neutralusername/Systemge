@@ -162,8 +162,9 @@ export class root extends React.Component {
     renderMultiLineGraph(nodeName, countersType, labels, colors) {
         let nodeCounters = {};
         Object.keys(this.state.nodes[nodeName][countersType]).forEach((key) => {
-            nodeCounters[key] = Object.values(this.state.nodes[nodeName][countersType][key]);
+            nodeCounters[key] = labels.map((label) => this.state.nodes[nodeName][countersType][key][label]);
         });
+        console.log(nodeCounters);
         return React.createElement(
             multiLineGraph, {
                 title: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters "${nodeName}"`,
