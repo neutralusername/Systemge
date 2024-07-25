@@ -94,6 +94,11 @@ export class root extends React.Component {
             case "heapStatus":
                 this.handleHeapStatus(message.payload);
                 break;
+            case "removeNode":
+                let nodes = { ...this.state.nodes };
+                delete nodes[message.payload];
+                this.setState({ nodes });
+                break;
             case "nodeStatus":
                 this.handleNodeStatus(JSON.parse(message.payload));
                 break;

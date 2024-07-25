@@ -36,6 +36,14 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeSpawnerCounterIntervalMs > 0 {
 		go app.nodeSpawnerCountersRoutine()
 	}
+	if app.config.AddSpawnedNodesToDashboard {
+		for _, node := range app.nodes {
+			if Spawner.ImplementsSpawner(node) {
+				go app.addNodeRoutine(node)
+				go app.removeNodeRoutine(node)
+			}
+		}
+	}
 	return nil
 }
 

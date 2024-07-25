@@ -12,6 +12,8 @@ type Spawner struct {
 	spawnedNodes       map[string]*Node.Node
 	newApplicationFunc func(string) Node.Application
 	mutex              sync.Mutex
+	addNodeChannel     chan *Node.Node
+	removeNodeChannel  chan *Node.Node
 }
 
 func New(spawnerConfig *Config.Spawner, systemgeConfig *Config.Systemge, newApplicationFunc func(string) Node.Application) *Spawner {
@@ -20,8 +22,18 @@ func New(spawnerConfig *Config.Spawner, systemgeConfig *Config.Systemge, newAppl
 		systemgeConfig:     systemgeConfig,
 		spawnedNodes:       make(map[string]*Node.Node),
 		newApplicationFunc: newApplicationFunc,
+		addNodeChannel:     make(chan *Node.Node),
+		removeNodeChannel:  make(chan *Node.Node),
 	}
 	return spawner
+}
+
+func (spawner *Spawner) GetAddNodeChannel() chan *Node.Node {
+	return spawner.addNodeChannel
+}
+
+func (spawner *Spawner) GetRemoveNodeChannel() chan *Node.Node {
+	return spawner.removeNodeChannel
 }
 
 func ImplementsSpawner(node *Node.Node) bool {

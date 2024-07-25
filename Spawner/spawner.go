@@ -31,6 +31,7 @@ func (spawner *Spawner) EndNode(node *Node.Node, id string) error {
 			}
 		}
 	}
+	spawner.removeNodeChannel <- spawnedNode
 	return nil
 }
 
@@ -77,5 +78,6 @@ func (spawner *Spawner) StartNode(node *Node.Node, id string) error {
 		return Error.New("Error starting node", err)
 	}
 	spawner.spawnedNodes[id] = newNode
+	spawner.addNodeChannel <- newNode
 	return nil
 }
