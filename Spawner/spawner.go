@@ -7,7 +7,10 @@ import (
 )
 
 func (spawner *Spawner) spawnNode(id string) error {
-	if _, ok := spawner.spawnedNodes[id]; ok {
+	spawner.mutex.Lock()
+	_, ok := spawner.spawnedNodes[id]
+	spawner.mutex.Unlock()
+	if ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
 	newNode := Node.New(&Config.Node{
@@ -37,7 +40,9 @@ func (spawner *Spawner) spawnNode(id string) error {
 }
 
 func (spawner *Spawner) despawnNode(id string) error {
+	spawner.mutex.Lock()
 	spawnedNode := spawner.spawnedNodes[id]
+	spawner.mutex.Unlock()
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
 	}
