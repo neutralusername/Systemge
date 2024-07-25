@@ -58,7 +58,7 @@ func (spawner *Spawner) despawnNode(id string) error {
 		err := spawnedNode.Stop()
 		if err != nil {
 			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
-				return Error.New("Error stopping node "+id, err)
+				errorLogger.Log(Error.New("Error stopping node "+id, err).Error(), spawnedNode.GetMailer())
 			}
 		}
 	}
