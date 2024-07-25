@@ -14,7 +14,7 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 	spawner.mutex.Lock()
 	defer spawner.mutex.Unlock()
 	for id := range spawner.spawnedNodes {
-		err := spawner.endNode(id)
+		err := spawner.stopNode(id)
 		if err != nil {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Error stopping spawned node with id \""+id+"\"", err).Error(), node.GetMailer())

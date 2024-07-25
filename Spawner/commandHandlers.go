@@ -52,13 +52,13 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			return "success", nil
 		},
-		"endNode": func(node *Node.Node, args []string) (string, error) {
+		"stopNode": func(node *Node.Node, args []string) (string, error) {
 			if len(args) != 1 {
 				return "", Error.New("Invalid number of arguments", nil)
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
-			err := spawner.endNode(args[0])
+			err := spawner.stopNode(args[0])
 			if err != nil {
 				return "", Error.New("Error ending node "+args[0], err)
 			}

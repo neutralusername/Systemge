@@ -59,7 +59,7 @@ func (spawner *Spawner) despawnNode(id string) error {
 	return nil
 }
 
-func (spawner *Spawner) endNode(id string) error {
+func (spawner *Spawner) stopNode(id string) error {
 	spawnedNode := spawner.spawnedNodes[id]
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
