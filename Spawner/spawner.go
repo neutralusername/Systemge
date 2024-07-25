@@ -39,6 +39,14 @@ func (spawner *Spawner) despawnNode(id string) error {
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
 	}
+	if spawnedNode.IsStarted() {
+		err := spawnedNode.Stop()
+		if err != nil {
+			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Error stopping node "+id, err).Error(), spawnedNode.GetMailer())
+			}
+		}
+	}
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		removeErr := spawner.node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if removeErr != nil {
@@ -51,14 +59,6 @@ func (spawner *Spawner) despawnNode(id string) error {
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
 				return Error.New("Error removing async topic \""+id+"\"", removeErr)
-			}
-		}
-	}
-	if spawnedNode.IsStarted() {
-		err := spawnedNode.Stop()
-		if err != nil {
-			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Error stopping node "+id, err).Error(), spawnedNode.GetMailer())
 			}
 		}
 	}
