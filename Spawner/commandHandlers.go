@@ -22,7 +22,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
-			err := spawner.SpawnNode(args[0])
+			err := spawner.spawnNode(args[0])
 			if err != nil {
 				return "", Error.New("Error spawning node "+args[0], err)
 			}
@@ -34,7 +34,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
-			err := spawner.DespawnNode(args[0])
+			err := spawner.despawnNode(args[0])
 			if err != nil {
 				return "", Error.New("Error despawning node "+args[0], err)
 			}
@@ -46,7 +46,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
-			err := spawner.StartNode(args[0])
+			err := spawner.startNode(args[0])
 			if err != nil {
 				return "", Error.New("Error starting node "+args[0], err)
 			}
@@ -58,7 +58,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
-			err := spawner.EndNode(args[0])
+			err := spawner.endNode(args[0])
 			if err != nil {
 				return "", Error.New("Error ending node "+args[0], err)
 			}

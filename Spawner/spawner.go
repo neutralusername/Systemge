@@ -6,7 +6,7 @@ import (
 	"Systemge/Node"
 )
 
-func (spawner *Spawner) SpawnNode(id string) error {
+func (spawner *Spawner) spawnNode(id string) error {
 	if _, ok := spawner.spawnedNodes[id]; ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
@@ -34,7 +34,7 @@ func (spawner *Spawner) SpawnNode(id string) error {
 	return nil
 }
 
-func (spawner *Spawner) DespawnNode(id string) error {
+func (spawner *Spawner) despawnNode(id string) error {
 	spawnedNode := spawner.spawnedNodes[id]
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
@@ -59,7 +59,7 @@ func (spawner *Spawner) DespawnNode(id string) error {
 	return nil
 }
 
-func (spawner *Spawner) EndNode(id string) error {
+func (spawner *Spawner) endNode(id string) error {
 	spawnedNode := spawner.spawnedNodes[id]
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
@@ -71,7 +71,7 @@ func (spawner *Spawner) EndNode(id string) error {
 	return nil
 }
 
-func (spawner *Spawner) StartNode(id string) error {
+func (spawner *Spawner) startNode(id string) error {
 	spawnedNode := spawner.spawnedNodes[id]
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
