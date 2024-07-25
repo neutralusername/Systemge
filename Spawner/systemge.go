@@ -78,7 +78,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			}
 			return nil
 		},
-		"endNodeAsync": func(node *Node.Node, message *Message.Message) error {
+		"stopNodeAsync": func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.stopNode(id)
