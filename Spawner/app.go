@@ -12,6 +12,7 @@ type Spawner struct {
 	spawnedNodes       map[string]*Node.Node
 	newApplicationFunc func(string) Node.Application
 	mutex              sync.Mutex
+	node               *Node.Node
 	addNodeChannel     chan *Node.Node
 	removeNodeChannel  chan *Node.Node
 }

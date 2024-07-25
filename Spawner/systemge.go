@@ -13,10 +13,30 @@ func (spawner *Spawner) GetSystemgeComponentConfig() *Config.Systemge {
 
 func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHandler {
 	return map[string]Node.SyncMessageHandler{
+		"spawnNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
+			id := message.GetPayload()
+			spawner.mutex.Lock()
+			err := spawner.SpawnNode(id)
+			spawner.mutex.Unlock()
+			if err != nil {
+				return "", Error.New("Error spawning node "+id, err)
+			}
+			return id, nil
+		},
+		"despawnNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
+			id := message.GetPayload()
+			spawner.mutex.Lock()
+			err := spawner.DespawnNode(id)
+			spawner.mutex.Unlock()
+			if err != nil {
+				return "", Error.New("Error despawning node "+id, err)
+			}
+			return id, nil
+		},
 		"endNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.EndNode(node, id)
+			err := spawner.EndNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
 				return "", Error.New("Error ending node "+id, err)
@@ -26,7 +46,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 		"startNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.StartNode(node, id)
+			err := spawner.StartNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
 				return "", Error.New("Error starting node "+id, err)
@@ -38,10 +58,30 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 
 func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHandler {
 	return map[string]Node.AsyncMessageHandler{
+		"spawnNodeAsync": func(node *Node.Node, message *Message.Message) error {
+			id := message.GetPayload()
+			spawner.mutex.Lock()
+			err := spawner.SpawnNode(id)
+			spawner.mutex.Unlock()
+			if err != nil {
+				return Error.New("Error spawning node "+id, err)
+			}
+			return nil
+		},
+		"despawnNodeAsync": func(node *Node.Node, message *Message.Message) error {
+			id := message.GetPayload()
+			spawner.mutex.Lock()
+			err := spawner.DespawnNode(id)
+			spawner.mutex.Unlock()
+			if err != nil {
+				return Error.New("Error despawning node "+id, err)
+			}
+			return nil
+		},
 		"endNodeAsync": func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.EndNode(node, id)
+			err := spawner.EndNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
 				return Error.New("Error ending node "+id, err)
@@ -51,7 +91,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 		"startNodeAsync": func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.StartNode(node, id)
+			err := spawner.StartNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
 				return Error.New("Error starting node "+id, err)
