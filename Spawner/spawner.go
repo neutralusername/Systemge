@@ -29,7 +29,9 @@ func (spawner *Spawner) spawnNode(id string) error {
 			return Error.New("Error adding async topic \""+id+"\"", err)
 		}
 	}
+	spawner.mutex.Lock()
 	spawner.spawnedNodes[id] = newNode
+	spawner.mutex.Unlock()
 	spawner.addNodeChannel <- newNode
 	return nil
 }
@@ -62,7 +64,9 @@ func (spawner *Spawner) despawnNode(id string) error {
 			}
 		}
 	}
+	spawner.mutex.Lock()
 	delete(spawner.spawnedNodes, id)
+	spawner.mutex.Unlock()
 	spawner.removeNodeChannel <- spawnedNode
 	return nil
 }
