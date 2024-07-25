@@ -54,6 +54,14 @@ func (spawner *Spawner) despawnNode(id string) error {
 			}
 		}
 	}
+	if spawnedNode.IsStarted() {
+		err := spawnedNode.Stop()
+		if err != nil {
+			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
+				return Error.New("Error stopping node "+id, err)
+			}
+		}
+	}
 	delete(spawner.spawnedNodes, id)
 	spawner.removeNodeChannel <- spawnedNode
 	return nil
