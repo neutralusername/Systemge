@@ -7,9 +7,7 @@ import (
 )
 
 func (spawner *Spawner) spawnNode(id string) error {
-	spawner.mutex.Lock()
 	_, ok := spawner.spawnedNodes[id]
-	spawner.mutex.Unlock()
 	if ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
@@ -32,17 +30,13 @@ func (spawner *Spawner) spawnNode(id string) error {
 			return Error.New("Error adding async topic \""+id+"\"", err)
 		}
 	}
-	spawner.mutex.Lock()
 	spawner.spawnedNodes[id] = newNode
-	spawner.mutex.Unlock()
 	spawner.addNodeChannel <- newNode
 	return nil
 }
 
 func (spawner *Spawner) despawnNode(id string) error {
-	spawner.mutex.Lock()
 	spawnedNode := spawner.spawnedNodes[id]
-	spawner.mutex.Unlock()
 	if spawnedNode == nil {
 		return Error.New("Node "+id+" does not exist", nil)
 	}
@@ -69,9 +63,7 @@ func (spawner *Spawner) despawnNode(id string) error {
 			}
 		}
 	}
-	spawner.mutex.Lock()
 	delete(spawner.spawnedNodes, id)
-	spawner.mutex.Unlock()
 	spawner.removeNodeChannel <- spawnedNode
 	return nil
 }
