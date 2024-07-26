@@ -8,13 +8,8 @@ import (
 )
 
 type Node struct {
-	name          string
-	randomizer    *Tools.Randomizer
-	errorLogger   *Tools.Logger
-	warningLogger *Tools.Logger
-	infoLogger    *Tools.Logger
-	debugLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+	config     *Config.Node
+	randomizer *Tools.Randomizer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -34,12 +29,7 @@ type Node struct {
 
 func New(config *Config.Node, application Application) *Node {
 	node := &Node{
-		name:          config.Name,
-		errorLogger:   Tools.NewLogger(config.ErrorLogger),
-		warningLogger: Tools.NewLogger(config.WarningLogger),
-		infoLogger:    Tools.NewLogger(config.InfoLogger),
-		debugLogger:   Tools.NewLogger(config.DebugLogger),
-		mailer:        Tools.NewMailer(config.Mailer),
+		config: config,
 
 		application: application,
 
@@ -210,47 +200,27 @@ func (node *Node) IsStarted() bool {
 }
 
 func (node *Node) GetName() string {
-	return node.name
+	return node.config.Name
 }
 
 func (node *Node) GetErrorLogger() *Tools.Logger {
-	return node.errorLogger
-}
-
-func (node *Node) SetErrorLogger(logger *Tools.Logger) {
-	node.errorLogger = logger
+	return node.config.ErrorLogger
 }
 
 func (node *Node) GetWarningLogger() *Tools.Logger {
-	return node.warningLogger
-}
-
-func (node *Node) SetWarningLogger(logger *Tools.Logger) {
-	node.warningLogger = logger
+	return node.config.WarningLogger
 }
 
 func (node *Node) GetInfoLogger() *Tools.Logger {
-	return node.infoLogger
-}
-
-func (node *Node) SetInfoLogger(logger *Tools.Logger) {
-	node.infoLogger = logger
+	return node.config.InfoLogger
 }
 
 func (node *Node) GetDebugLogger() *Tools.Logger {
-	return node.debugLogger
-}
-
-func (node *Node) SetDebugLogger(logger *Tools.Logger) {
-	node.debugLogger = logger
+	return node.config.DebugLogger
 }
 
 func (node *Node) GetMailer() *Tools.Mailer {
-	return node.mailer
-}
-
-func (node *Node) SetMailer(mailer *Tools.Mailer) {
-	node.mailer = mailer
+	return node.config.Mailer
 }
 
 func (node *Node) GetRandomizer() *Tools.Randomizer {

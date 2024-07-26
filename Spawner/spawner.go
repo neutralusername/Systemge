@@ -4,6 +4,7 @@ import (
 	"Systemge/Config"
 	"Systemge/Error"
 	"Systemge/Node"
+	"Systemge/Tools"
 )
 
 func (spawner *Spawner) spawnNode(id string) error {
@@ -44,7 +45,10 @@ func (spawner *Spawner) despawnNode(id string) error {
 		err := spawnedNode.Stop()
 		if err != nil {
 			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Error stopping node "+id, err).Error(), spawnedNode.GetMailer())
+				errorLogger.Log(Error.New("Error stopping node "+id, err).Error())
+				if mailer := spawner.node.GetMailer(); mailer != nil {
+					mailer.Send(Tools.NewMail(nil, "error", Error.New("Error stopping node "+id, err).Error()))
+				}
 			}
 		}
 	}

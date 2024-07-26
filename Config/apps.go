@@ -1,6 +1,10 @@
 package Config
 
-import "golang.org/x/oauth2"
+import (
+	"Systemge/Tools"
+
+	"golang.org/x/oauth2"
+)
 
 type Oauth2 struct {
 	Server                     *TcpServer                                                                  // *required*
@@ -48,12 +52,12 @@ type Resolver struct {
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync bool    // default: false
-	ErrorLogger            *Logger // *required*
-	WarningLogger          *Logger // *required*
-	InfoLogger             *Logger // *required*
-	DebugLogger            *Logger // *required*
-	Mailer                 *Mailer // *required*
+	IsSpawnedNodeTopicSync bool // default: false
+	InfoLogger             *Tools.Logger
+	WarningLogger          *Tools.Logger
+	ErrorLogger            *Tools.Logger
+	DebugLogger            *Tools.Logger
+	Mailer                 *Tools.Mailer // *required*
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*

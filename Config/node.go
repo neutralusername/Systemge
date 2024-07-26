@@ -1,18 +1,19 @@
 package Config
 
 import (
+	"Systemge/Tools"
+
 	"github.com/gorilla/websocket"
 )
 
 type Node struct {
 	Name string // *required*
 
-	ErrorLogger   *Logger // *optional*
-	WarningLogger *Logger // *optional*
-	InfoLogger    *Logger // *optional*
-	DebugLogger   *Logger // *optional*
-
-	Mailer *Mailer // *optional*
+	Mailer        *Tools.Mailer // *optional*
+	InfoLogger    *Tools.Logger
+	WarningLogger *Tools.Logger
+	ErrorLogger   *Tools.Logger
+	DebugLogger   *Tools.Logger
 
 	RandomizerSeed int64 // default: 0
 }

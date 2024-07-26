@@ -37,7 +37,7 @@ func (node *Node) RemoveFromWebsocketGroup(groupId string, websocketIds ...strin
 			if node.websocket.clients[websocketId] == nil {
 				return Error.New("websocketClient with id "+websocketId+" does not exist", nil)
 			}
-			if node.websocket.clientGroups[websocketId][groupId] == false {
+			if !node.websocket.clientGroups[websocketId][groupId] {
 				return Error.New("websocketClient with id "+websocketId+" is not in group "+groupId, nil)
 			}
 		}

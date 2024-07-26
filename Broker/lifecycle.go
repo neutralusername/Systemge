@@ -4,6 +4,7 @@ import (
 	"Systemge/Error"
 	"Systemge/Node"
 	"Systemge/Tcp"
+	"Systemge/Tools"
 )
 
 func (broker *Broker) OnStart(node *Node.Node) error {
@@ -84,7 +85,10 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 	if len(topics) > 0 {
 		if err := broker.removeResolverTopicsRemotely(topics...); err != nil {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed to remove resolver topics remotely", err).Error(), node.GetMailer())
+				errorLogger.Log(Error.New("Failed to remove resolver topics remotely", err).Error())
+				if mailer := node.GetMailer(); mailer != nil {
+					mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove resolver topics remotely", err).Error()))
+				}
 			}
 		} else {
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {

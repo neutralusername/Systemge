@@ -1,7 +1,6 @@
 package Tools
 
 import (
-	"Systemge/Config"
 	"fmt"
 	"net/smtp"
 	"strings"
@@ -13,9 +12,6 @@ type Mailer struct {
 	senderEmail    string
 	senderPassword string
 	recipients     []string
-	mailQueue      chan *Mail
-	logger         *Logger
-	stopChan       chan bool
 }
 
 type Mail struct {
@@ -24,20 +20,14 @@ type Mail struct {
 	Body    string
 }
 
-func NewMailer(config *Config.Mailer) *Mailer {
-	if config == nil {
-		return nil
-	}
+func NewMailer(smtpPort uint16, smtpHost, senderEmail, senderPassword string, recipientEmails ...string) *Mailer {
 	mailer := &Mailer{
-		smtpHost:       config.SmtpHost,
-		smtpPort:       config.SmtpPort,
-		senderEmail:    config.SenderEmail,
-		senderPassword: config.SenderPassword,
-		recipients:     config.Recipients,
-		logger:         NewLogger(config.Logger),
-		mailQueue:      make(chan *Mail, 1000),
+		smtpHost:       smtpHost,
+		smtpPort:       smtpPort,
+		senderEmail:    senderEmail,
+		senderPassword: senderPassword,
+		recipients:     recipientEmails,
 	}
-	go mailer.sendRoutine()
 	return mailer
 }
 
@@ -57,32 +47,7 @@ func (mailer *Mailer) GetRecipients() []string {
 	return mailer.recipients
 }
 
-// Send calls after Close will cause a panic
-func (mailer *Mailer) Close() {
-	close(mailer.stopChan)
-	close(mailer.mailQueue)
-}
-
-// Send calls after Close will cause a panic
-func (mailer *Mailer) Send(mail *Mail) {
-	mailer.mailQueue <- mail
-}
-
-func (mailer *Mailer) sendRoutine() {
-	for {
-		select {
-		case <-mailer.stopChan:
-			return
-		case mail := <-mailer.mailQueue:
-			err := mailer.sendMail(mail)
-			if err != nil {
-				mailer.logger.Log("failed sending email: " + err.Error())
-			}
-		}
-	}
-}
-
-func (mailer *Mailer) sendMail(mail *Mail) error {
+func (mailer *Mailer) Send(mail *Mail) error {
 	auth := smtp.PlainAuth("", mailer.senderEmail, mailer.senderPassword, mailer.smtpHost)
 	to := append(mailer.recipients, mail.Cc...)
 	msg := mailer.constructEmail(mail)
