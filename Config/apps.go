@@ -52,9 +52,9 @@ type Resolver struct {
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync bool // default: false
-	LoggerQueue            *Tools.LoggerQueue
-	Mailer                 *Tools.Mailer
+	IsSpawnedNodeTopicSync bool               // default: false
+	LoggerQueue            *Tools.LoggerQueue // *optional*
+	Mailer                 *Tools.Mailer      // *optional*
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*

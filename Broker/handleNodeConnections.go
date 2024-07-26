@@ -55,7 +55,7 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 		return
 	}
 	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with name \""+nodeConnection.name+"\"", nil).Error())
+		infoLogger.Log(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with origin \""+nodeConnection.name+"\"", nil).Error())
 	}
 	broker.handleNodeConnectionMessages(nodeConnection)
 	broker.removeNodeConnection(true, nodeConnection)

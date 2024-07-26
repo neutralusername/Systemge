@@ -7,6 +7,9 @@ import (
 )
 
 func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnection) {
+	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handling messages from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+	}
 	for {
 		systemge := node.systemge
 		if systemge == nil {

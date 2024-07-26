@@ -20,25 +20,18 @@ func (resolver *Resolver) handleResolverConnections() {
 		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
-		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
-		if err != nil {
-			netConn.Close()
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
-			}
-			continue
-		}
+		ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 		if resolver.resolverTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
 			}
 			continue
 		}
 		if resolver.resolverTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.resolverTcpServer.GetWhitelist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
 			}
 			continue
 		}
@@ -88,7 +81,7 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
 	}
 	resolver.bytesSentCounter.Add(bytesSent)
 	if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Resolved topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+		infoLogger.Log(Error.New("Resolved topic \""+message.GetPayload()+"\" to \""+endpoint.Address+"\" from resolver connection \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}
 	return nil
 }
