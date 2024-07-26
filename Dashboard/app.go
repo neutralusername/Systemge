@@ -3,10 +3,7 @@ package Dashboard
 import (
 	"Systemge/Config"
 	"Systemge/HTTP"
-	"Systemge/Helpers"
-	"Systemge/Message"
 	"Systemge/Node"
-	"Systemge/Spawner"
 	"net/http"
 	"runtime"
 	"strings"
@@ -60,34 +57,5 @@ func (app *App) registerNodeHttpHandlers(node *Node.Node) {
 			return
 		}
 		w.Write([]byte(result))
-	}
-}
-
-func (app *App) addNodeRoutine(node *Node.Node) {
-	spawner := node.GetApplication().(*Spawner.Spawner)
-	for spawnedNode := range spawner.GetAddNodeChannel() {
-		if spawnedNode == nil {
-			if warningLogger := app.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
-			}
-			return
-		}
-		app.nodes[spawnedNode.GetName()] = spawnedNode
-		app.registerNodeHttpHandlers(spawnedNode)
-		app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), Helpers.JsonMarshal(newNodeStatus(spawnedNode))))
-	}
-}
-
-func (app *App) removeNodeRoutine(node *Node.Node) {
-	spawner := node.GetApplication().(*Spawner.Spawner)
-	for removedNode := range spawner.GetRemoveNodeChannel() {
-		if removedNode == nil {
-			if warningLogger := app.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
-			}
-			return
-		}
-		delete(app.nodes, removedNode.GetName())
-		app.node.WebsocketBroadcast(Message.NewAsync("removeNode", app.node.GetName(), removedNode.GetName()))
 	}
 }

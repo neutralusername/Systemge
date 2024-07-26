@@ -14,10 +14,10 @@ func (spawner *Spawner) spawnNode(id string) error {
 	}
 	newNode := Node.New(&Config.Node{
 		Name:          id,
-		ErrorLogger:   spawner.spawnerConfig.ErrorLogger,
-		WarningLogger: spawner.spawnerConfig.WarningLogger,
-		InfoLogger:    spawner.spawnerConfig.InfoLogger,
-		DebugLogger:   spawner.spawnerConfig.DebugLogger,
+		ErrorLogger:   Tools.NewLogger("[Error \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		WarningLogger: Tools.NewLogger("[Warning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		InfoLogger:    Tools.NewLogger("[Info \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		DebugLogger:   Tools.NewLogger("[Debug \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
 		Mailer:        spawner.spawnerConfig.Mailer,
 	}, spawner.newApplicationFunc(id))
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
