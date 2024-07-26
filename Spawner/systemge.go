@@ -13,7 +13,7 @@ func (spawner *Spawner) GetSystemgeComponentConfig() *Config.Systemge {
 
 func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHandler {
 	return map[string]Node.SyncMessageHandler{
-		"spawnNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
+		SPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.spawnNode(id)
@@ -23,7 +23,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			}
 			return id, nil
 		},
-		"despawnNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
+		DESPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.despawnNode(id)
@@ -33,7 +33,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			}
 			return id, nil
 		},
-		"stopNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
+		STOP_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.stopNode(id)
@@ -43,7 +43,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			}
 			return id, nil
 		},
-		"startNodeSync": func(node *Node.Node, message *Message.Message) (string, error) {
+		START_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.startNode(id)
@@ -58,7 +58,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 
 func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHandler {
 	return map[string]Node.AsyncMessageHandler{
-		"spawnNodeAsync": func(node *Node.Node, message *Message.Message) error {
+		SPAWN_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.spawnNode(id)
@@ -68,7 +68,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			}
 			return nil
 		},
-		"despawnNodeAsync": func(node *Node.Node, message *Message.Message) error {
+		DESPAWN_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.despawnNode(id)
@@ -78,7 +78,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			}
 			return nil
 		},
-		"stopNodeAsync": func(node *Node.Node, message *Message.Message) error {
+		STOP_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.stopNode(id)
@@ -88,7 +88,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			}
 			return nil
 		},
-		"startNodeAsync": func(node *Node.Node, message *Message.Message) error {
+		START_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
 			err := spawner.startNode(id)
