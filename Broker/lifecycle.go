@@ -18,6 +18,7 @@ func (broker *Broker) OnStart(node *Node.Node) error {
 	}
 	configListener, err := Tcp.NewServer(broker.config.ConfigServer)
 	if err != nil {
+		listener.GetListener().Close()
 		return Error.New("Failed to get config listener for broker \""+node.GetName()+"\"", err)
 	}
 	broker.brokerTcpServer = listener

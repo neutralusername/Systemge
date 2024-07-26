@@ -54,7 +54,7 @@ func (resolver *Resolver) handleResolverConnections() {
 						warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
-					resolver.bytesSentCounter.Add(uint64(bytesSent))
+					resolver.bytesSentCounter.Add(bytesSent)
 				}
 			}
 		}()
@@ -63,11 +63,11 @@ func (resolver *Resolver) handleResolverConnections() {
 
 func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
 	defer netConn.Close()
-	messageBytes, _, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed to receive resolution request", err)
 	}
-	resolver.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+	resolver.bytesReceivedCounter.Add(bytesReceived)
 	message := Message.Deserialize(messageBytes)
 	err = resolver.validateMessage(message)
 	if err != nil {
@@ -86,7 +86,7 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
 	if err != nil {
 		return Error.New("failed to send resolution response", err)
 	}
-	resolver.bytesSentCounter.Add(uint64(bytesSent))
+	resolver.bytesSentCounter.Add(bytesSent)
 	if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Resolved topic \""+message.GetPayload()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}

@@ -56,7 +56,7 @@ func (resolver *Resolver) handleConfigConnections() {
 						warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
-					resolver.bytesSentCounter.Add(uint64(bytesSent))
+					resolver.bytesSentCounter.Add(bytesSent)
 				}
 			} else {
 				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("success", resolver.node.GetName(), "").Serialize(), resolver.config.TcpTimeoutMs)
@@ -65,7 +65,7 @@ func (resolver *Resolver) handleConfigConnections() {
 						warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
-					resolver.bytesSentCounter.Add(uint64(bytesSent))
+					resolver.bytesSentCounter.Add(bytesSent)
 				}
 			}
 			netConn.Close()
@@ -74,11 +74,11 @@ func (resolver *Resolver) handleConfigConnections() {
 }
 
 func (resolver *Resolver) handleConfigConnection(netConn net.Conn) error {
-	messageBytes, _, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("Failed to receive connection request", err)
 	}
-	resolver.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+	resolver.bytesReceivedCounter.Add(bytesReceived)
 	message := Message.Deserialize(messageBytes)
 	err = resolver.validateMessage(message)
 	if err != nil {
