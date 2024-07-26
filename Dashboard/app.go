@@ -47,20 +47,6 @@ func (app *App) registerNodeHttpHandlers(node *Node.Node) {
 	app.httpMessageHandlers["/"+node.GetName()] = func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+node.GetName(), http.FileServer(http.Dir(filePath[:len(filePath)-len("app.go")]+"frontend"))).ServeHTTP(w, r)
 	}
-	app.httpMessageHandlers["/"+node.GetName()+"/start"] = func(w http.ResponseWriter, r *http.Request) {
-		err := node.Start()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		w.WriteHeader(http.StatusOK)
-	}
-	app.httpMessageHandlers["/"+node.GetName()+"/stop"] = func(w http.ResponseWriter, r *http.Request) {
-		err := node.Stop()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		w.Write([]byte("OK"))
-	}
 	app.httpMessageHandlers["/"+node.GetName()+"/command/"] = func(w http.ResponseWriter, r *http.Request) {
 		args := r.URL.Path[len("/"+node.GetName()+"/command/"):]
 		argsSplit := strings.Split(args, " ")
