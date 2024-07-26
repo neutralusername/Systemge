@@ -17,6 +17,9 @@ func (broker *Broker) handleNodeConnections() {
 			continue
 		}
 		go func() {
+			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
 			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
 			if err != nil {
 				netConn.Close()
@@ -40,7 +43,7 @@ func (broker *Broker) handleNodeConnections() {
 				return
 			}
 			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				infoLogger.Log(Error.New("Handling connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			broker.handleNodeConnection(netConn)
 		}()

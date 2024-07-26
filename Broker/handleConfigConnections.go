@@ -19,6 +19,9 @@ func (broker *Broker) handleConfigConnections() {
 		}
 		broker.configRequestCounter.Add(1)
 		go func() {
+			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
 			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
 			if err != nil {
 				netConn.Close()
@@ -42,7 +45,7 @@ func (broker *Broker) handleConfigConnections() {
 				return
 			}
 			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				infoLogger.Log(Error.New("Handling connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			err = broker.handleConfigConnection(netConn)
 			if err != nil {
@@ -58,6 +61,9 @@ func (broker *Broker) handleConfigConnections() {
 					broker.bytesSentCounter.Add(bytesSend)
 				}
 			} else {
+				if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				}
 				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("success", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
 				if err != nil {
 					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
