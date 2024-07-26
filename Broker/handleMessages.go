@@ -6,6 +6,9 @@ import (
 )
 
 func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
+	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handling messages from node \""+nodeConnection.name+"\"", nil).Error())
+	}
 	for broker.isStarted {
 		message, err := broker.receive(nodeConnection)
 		if err != nil {

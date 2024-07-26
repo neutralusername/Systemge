@@ -9,6 +9,9 @@ import (
 )
 
 func (broker *Broker) handleConfigConnections() {
+	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handling config connections", nil).Error())
+	}
 	for broker.isStarted {
 		netConn, err := broker.configTcpServer.GetListener().Accept()
 		if err != nil {
