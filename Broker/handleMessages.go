@@ -14,64 +14,66 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 			}
 			return
 		}
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
-		}
-		err = broker.validateMessage(message)
-		if err != nil {
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Invalid message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+		go func() {
+			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
 			}
-			return
-		}
-		if message.GetSyncResponseToken() != "" {
-			err := broker.handleSyncResponse(message)
+			err = broker.validateMessage(message)
 			if err != nil {
 				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+					warningLogger.Log(Error.New("Invalid message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+				}
+				return
+			}
+			if message.GetSyncResponseToken() != "" {
+				err := broker.handleSyncResponse(message)
+				if err != nil {
+					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+					}
+				} else {
+					if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+						infoLogger.Log(Error.New("Received sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
+					}
+				}
+				return
+			}
+			err = broker.validateTopic(message)
+			if err != nil {
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+				}
+				return
+			}
+			if message.GetSyncRequestToken() != "" {
+				if err := broker.addSyncRequest(nodeConnection, message); err != nil {
+					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to add sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+					}
+					//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
+					err := broker.send(nodeConnection, message.NewResponse("error", broker.node.GetName(), Error.New("sync request failed", err).Error()))
+					if err != nil {
+						if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+							warningLogger.Log(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
+						}
+					}
+					return
+				}
+				if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Added sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
+				}
+			}
+			err = broker.handleMessage(nodeConnection, message)
+			if err != nil {
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
 				}
 			} else {
 				if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-					infoLogger.Log(Error.New("Received sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
+					infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
 				}
 			}
-			continue
-		}
-		err = broker.validateTopic(message)
-		if err != nil {
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Invalid topic for message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
-			}
-			return
-		}
-		if message.GetSyncRequestToken() != "" {
-			if err := broker.addSyncRequest(nodeConnection, message); err != nil {
-				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to add sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
-				}
-				//not using handleSyncResponse because the request failed, which means the syncRequest token has not been registered
-				err := broker.send(nodeConnection, message.NewResponse("error", broker.node.GetName(), Error.New("sync request failed", err).Error()))
-				if err != nil {
-					if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
-					}
-				}
-				continue
-			}
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Added sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
-			}
-		}
-		err = broker.handleMessage(nodeConnection, message)
-		if err != nil {
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
-			}
-		} else {
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
-			}
-		}
+		}()
 	}
 }
 

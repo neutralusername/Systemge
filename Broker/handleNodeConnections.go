@@ -16,32 +16,34 @@ func (broker *Broker) handleNodeConnections() {
 			}
 			continue
 		}
-		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
-		if err != nil {
-			netConn.Close()
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+		go func() {
+			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
+			if err != nil {
+				netConn.Close()
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+				}
+				return
 			}
-			continue
-		}
-		if broker.brokerTcpServer.GetBlacklist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			if broker.brokerTcpServer.GetBlacklist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				}
+				return
 			}
-			continue
-		}
-		if broker.brokerTcpServer.GetWhitelist().ElementCount() > 0 && !broker.brokerTcpServer.GetWhitelist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			if broker.brokerTcpServer.GetWhitelist().ElementCount() > 0 && !broker.brokerTcpServer.GetWhitelist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				}
+				return
 			}
-			continue
-		}
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		go broker.handleNodeConnection(netConn)
+			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			broker.handleNodeConnection(netConn)
+		}()
 	}
 }
 

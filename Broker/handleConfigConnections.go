@@ -18,33 +18,33 @@ func (broker *Broker) handleConfigConnections() {
 			continue
 		}
 		broker.configRequestCounter.Add(1)
-		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
-		if err != nil {
-			netConn.Close()
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
-			}
-			continue
-		}
-		if broker.configTcpServer.GetBlacklist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
-			}
-			continue
-		}
-		if broker.configTcpServer.GetWhitelist().ElementCount() > 0 && !broker.configTcpServer.GetWhitelist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
-			}
-			continue
-		}
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
 		go func() {
-			err := broker.handleConfigConnection(netConn)
+			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
+			if err != nil {
+				netConn.Close()
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to get remote address", err).Error())
+				}
+				return
+			}
+			if broker.configTcpServer.GetBlacklist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
+				}
+				return
+			}
+			if broker.configTcpServer.GetWhitelist().ElementCount() > 0 && !broker.configTcpServer.GetWhitelist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
+				}
+				return
+			}
+			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			err = broker.handleConfigConnection(netConn)
 			if err != nil {
 				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())

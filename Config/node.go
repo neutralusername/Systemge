@@ -10,10 +10,10 @@ type Node struct {
 	Name string // *required*
 
 	Mailer        *Tools.Mailer // *optional*
-	InfoLogger    *Tools.Logger
-	WarningLogger *Tools.Logger
-	ErrorLogger   *Tools.Logger
-	DebugLogger   *Tools.Logger
+	InfoLogger    *Tools.Logger // *optional*
+	WarningLogger *Tools.Logger // *optional*
+	ErrorLogger   *Tools.Logger // *optional*
+	DebugLogger   *Tools.Logger // *optional*
 
 	RandomizerSeed int64 // default: 0
 }
