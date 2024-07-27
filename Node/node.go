@@ -54,13 +54,13 @@ func (node *Node) Start() error {
 	if node.IsStarted() {
 		return Error.New("node already started", nil)
 	}
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
 	node.stopChannel = make(chan bool)
 	node.isStarted = true
 	if ImplementsSystemgeComponent(node.application) {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
 		}
 		err := node.startSystemgeComponent()
@@ -70,12 +70,12 @@ func (node *Node) Start() error {
 			}
 			return Error.New("failed starting systemge component", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Started systemge component", nil).Error())
 		}
 	}
 	if ImplementsWebsocketComponent(node.application) {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting websocket component", nil).Error())
 		}
 		err := node.startWebsocketComponent()
@@ -85,12 +85,12 @@ func (node *Node) Start() error {
 			}
 			return Error.New("failed starting websocket server", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Started websocket component", nil).Error())
 		}
 	}
 	if ImplementsHTTPComponent(node.application) {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting http component", nil).Error())
 		}
 		err := node.startHTTPComponent()
@@ -100,12 +100,12 @@ func (node *Node) Start() error {
 			}
 			return Error.New("failed starting http server", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Started http component", nil).Error())
 		}
 	}
 	if ImplementsOnStartComponent(node.application) {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Executing OnStart", nil).Error())
 		}
 		err := node.GetOnStartComponent().OnStart(node)
@@ -115,11 +115,11 @@ func (node *Node) Start() error {
 			}
 			return Error.New("failed in OnStart", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("executed OnStart", nil).Error())
 		}
 	}
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Started", nil).Error())
 	}
 	return nil
@@ -137,60 +137,60 @@ func (node *Node) stop(lock bool) error {
 	if !node.IsStarted() {
 		return Error.New("node not started", nil)
 	}
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopping", nil).Error())
 	}
 	if ImplementsOnStopComponent(node.application) {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Executing OnStop", nil).Error())
 		}
 		err := node.GetOnStopComponent().OnStop(node)
 		if err != nil {
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("executed OnStop", nil).Error())
 		}
 	}
 	if node.websocket != nil {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping websocket component", nil).Error())
 		}
 		err := node.stopWebsocketComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping websocket server", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped websocket component", nil).Error())
 		}
 	}
 	if node.http != nil {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping http component", nil).Error())
 		}
 		err := node.stopHTTPComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping http server", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped http component", nil).Error())
 		}
 	}
 	if node.systemge != nil {
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping systemge component", nil).Error())
 		}
 		err := node.stopSystemgeComponent()
 		if err != nil {
 			return Error.New("failed to stop node. Error stopping systemge component", err)
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
 		}
 	}
 	node.isStarted = false
 	close(node.stopChannel)
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopped", nil).Error())
 	}
 	return nil
@@ -218,6 +218,10 @@ func (node *Node) GetWarningLogger() *Tools.Logger {
 
 func (node *Node) GetInfoLogger() *Tools.Logger {
 	return node.config.InfoLogger
+}
+
+func (node *Node) GetInternalInfoLogger() *Tools.Logger {
+	return node.config.InternalInfoLogger
 }
 
 func (node *Node) GetDebugLogger() *Tools.Logger {

@@ -1,9 +1,10 @@
 package Oauth2
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tools"
-	"time"
 )
 
 func (server *App) GetSession(sessionId string) *session {
@@ -18,13 +19,13 @@ func (server *App) getSessionForIdentity(identity string, keyValuePairs map[stri
 	session := server.identities[identity]
 	if session == nil {
 		session = server.createSession(identity, keyValuePairs)
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Created session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
 		}
 	} else {
 		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
 		session.expired = false
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
 		}
 	}
@@ -59,7 +60,7 @@ func (server *App) getRemoveSessionFunc(session *session) func() {
 		session.watchdog = nil
 		delete(server.sessions, session.sessionId)
 		delete(server.identities, session.identity)
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Removed session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
 		}
 	}

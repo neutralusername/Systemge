@@ -69,7 +69,7 @@ func (broker *Broker) removeNodeConnection(lock bool, nodeConnection *nodeConnec
 		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)
 	}
 	delete(broker.nodeConnections, nodeConnection.name)
-	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Removed node connection \""+nodeConnection.name+"\"", nil).Error())
 	}
 }

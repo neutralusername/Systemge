@@ -89,7 +89,7 @@ func (app *App) nodeSpawnerCountersRoutine() {
 			if Spawner.ImplementsSpawner(node.GetApplication()) {
 				spawnerCountersJson := Helpers.JsonMarshal(newNodeSpawnerCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeSpawnerCounters", app.node.GetName(), spawnerCountersJson))
-				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("spawner counter routine: \"" + spawnerCountersJson + "\"")
 				}
 			}
@@ -104,7 +104,7 @@ func (app *App) nodeResolverCountersRoutine() {
 			if Resolver.ImplementsResolver(node.GetApplication()) {
 				resolverCountersJson := Helpers.JsonMarshal(newNodeResolverCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeResolverCounters", app.node.GetName(), resolverCountersJson))
-				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("resolver counter routine: \"" + resolverCountersJson + "\"")
 				}
 			}
@@ -119,7 +119,7 @@ func (app *App) nodeBrokerCountersRoutine() {
 			if Broker.ImplementsBroker(node.GetApplication()) {
 				brokerCountersJson := Helpers.JsonMarshal(newNodeBrokerCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeBrokerCounters", app.node.GetName(), brokerCountersJson))
-				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("broker counter routine: \"" + brokerCountersJson + "\"")
 				}
 			}
@@ -134,7 +134,7 @@ func (app *App) nodeSystemgeCountersRoutine() {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				systemgeCountersJson := Helpers.JsonMarshal(newNodeSystemgeCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", app.node.GetName(), systemgeCountersJson))
-				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("systemge counter routine: \"" + systemgeCountersJson + "\"")
 				}
 			}
@@ -149,7 +149,7 @@ func (app *App) nodeWebsocketCountersRoutine() {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
-				if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
 				}
 			}
@@ -163,7 +163,7 @@ func (app *App) nodeStatusRoutine() {
 		for _, node := range app.nodes {
 			statusUpdateJson := Helpers.JsonMarshal(newNodeStatus(node))
 			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), statusUpdateJson))
-			if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
 			}
 		}
@@ -177,7 +177,7 @@ func (app *App) heapUpdateRoutine() {
 		runtime.ReadMemStats(&memStats)
 		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
 		app.node.WebsocketBroadcast(Message.NewAsync("heapStatus", app.node.GetName(), heapSize))
-		if infoLogger := app.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log("heap update routine: \"" + heapSize + "\"")
 		}
 		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)

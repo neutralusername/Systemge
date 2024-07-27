@@ -1,9 +1,10 @@
 package Node
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -20,13 +21,13 @@ func (node *Node) handleWebsocketConnections() {
 
 func (node *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
 	websocketClient := node.websocket.addWebsocketConn(websocketConn)
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("websocket client connected with id \""+websocketClient.GetId()+"\" and ip \""+websocketClient.GetIp()+"\"", nil).Error())
 	}
 	node.websocket.application.OnConnectHandler(node, websocketClient)
 	node.handleMessages(websocketClient)
 	websocketClient.Disconnect()
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("websocket client disconnected with id \""+websocketClient.GetId()+"\" and ip \""+websocketClient.GetIp()+"\"", nil).Error())
 	}
 }
@@ -58,7 +59,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		message = Message.NewAsync(message.GetTopic(), websocketClient.GetId(), message.GetPayload())
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", nil).Error())
 		}
 		if message.GetTopic() == "heartbeat" {
@@ -82,7 +83,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 					warningLogger.Log(Error.New("Failed to handle message (sequentially)", err).Error())
 				}
 			} else {
-				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled message (sequentially)", nil).Error())
 				}
 			}
@@ -94,7 +95,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 						warningLogger.Log(Error.New("Failed to handle message (concurrently)", err).Error())
 					}
 				} else {
-					if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+					if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 						infoLogger.Log(Error.New("Handled message (concurrently)", nil).Error())
 					}
 				}

@@ -10,7 +10,7 @@ import (
 )
 
 func (broker *Broker) handleConfigConnections() {
-	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Handling config connections", nil).Error())
 	}
 	for broker.isStarted {
@@ -23,7 +23,7 @@ func (broker *Broker) handleConfigConnections() {
 		}
 		broker.configRequestCounter.Add(1)
 		go func() {
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
@@ -48,7 +48,7 @@ func (broker *Broker) handleConfigConnections() {
 				}
 				return
 			}
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Handling config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			err = broker.handleConfigConnection(netConn)
@@ -65,7 +65,7 @@ func (broker *Broker) handleConfigConnections() {
 					broker.bytesSentCounter.Add(bytesSend)
 				}
 			} else {
-				if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("success", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)

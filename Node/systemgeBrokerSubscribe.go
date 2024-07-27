@@ -24,7 +24,7 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 			return Error.New("Reached maximum subscribe attempts", nil)
 		}
 		subscribeAttempts++
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Attempting subscription to topic \""+topic+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts+1)+"). Getting broker connection", nil).Error())
 		}
 		brokerConnection, err := node.getBrokerConnectionForTopic(topic, false)
@@ -35,13 +35,13 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 			continue
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Got broker connection \""+brokerConnection.endpoint.Address+"\" for topic \""+topic+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+"). Subscribing to topic", nil).Error())
 		}
 		err = systemge.subscribeTopic(node.GetName(), brokerConnection, topic)
 		if err != nil {
 			if brokerConnection.closeIfNoTopics() {
-				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Closed broker connection \""+brokerConnection.endpoint.Address+"\" due to no topics (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", nil).Error())
 				}
 			}
@@ -51,7 +51,7 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 			continue
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Subscribed to topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", nil).Error())
 		}
 		return nil

@@ -15,7 +15,7 @@ func (resolver *Resolver) addTopics(tcpEndpoint Config.TcpEndpoint, topics ...st
 	}
 	for _, topic := range topics {
 		resolver.registeredTopics[topic] = tcpEndpoint
-		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Added topic \""+topic+"\" with endpoint \""+tcpEndpoint.Address+"\"", nil).Error())
 		}
 	}
@@ -31,7 +31,7 @@ func (resolver *Resolver) removeTopics(topics ...string) error {
 		}
 	}
 	for _, topic := range topics {
-		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Removed topic \""+topic+"\" with endpoint \""+resolver.registeredTopics[topic].Address+"\"", nil).Error())
 		}
 		delete(resolver.registeredTopics, topic)

@@ -13,12 +13,12 @@ func (spawner *Spawner) spawnNode(id string) error {
 		return Error.New("Node "+id+" already exists", nil)
 	}
 	newNode := Node.New(&Config.Node{
-		Name:          id,
-		ErrorLogger:   Tools.NewLogger("[Error \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		WarningLogger: Tools.NewLogger("[Warning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		InfoLogger:    Tools.NewLogger("[Info \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		DebugLogger:   Tools.NewLogger("[Debug \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		Mailer:        spawner.spawnerConfig.Mailer,
+		Name:               id,
+		ErrorLogger:        Tools.NewLogger("[Error \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		WarningLogger:      Tools.NewLogger("[Warning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		InternalInfoLogger: Tools.NewLogger("[InternalInfo \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		DebugLogger:        Tools.NewLogger("[Debug \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		Mailer:             spawner.spawnerConfig.Mailer,
 	}, spawner.newApplicationFunc(id))
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		err := spawner.node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)

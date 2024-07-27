@@ -28,7 +28,7 @@ func handleSessionRequests(server *App) {
 		if sessionRequest == nil {
 			return
 		}
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 		}
 		handleSessionRequest(server, sessionRequest)

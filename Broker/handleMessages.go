@@ -6,7 +6,7 @@ import (
 )
 
 func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnection) {
-	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Handling messages from node \""+nodeConnection.name+"\"", nil).Error())
 	}
 	for broker.isStarted {
@@ -18,7 +18,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 			return
 		}
 		go func() {
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
 			}
 			err = broker.validateMessage(message)
@@ -35,7 +35,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 						warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\"", err).Error())
 					}
 				} else {
-					if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+					if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 						infoLogger.Log(Error.New("Received sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
 					}
 				}
@@ -62,7 +62,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 					}
 					return
 				}
-				if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Added sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
 				}
 			}
@@ -72,7 +72,7 @@ func (broker *Broker) handleNodeConnectionMessages(nodeConnection *nodeConnectio
 					warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", err).Error())
 				}
 			} else {
-				if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from node \""+nodeConnection.name+"\"", nil).Error())
 				}
 			}

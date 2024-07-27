@@ -1,9 +1,10 @@
 package Broker
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
-	"time"
 )
 
 type syncRequest struct {
@@ -49,7 +50,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 				warningLogger.Log(Error.New("Failed to send sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", err).Error())
 			}
 		}
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Sent sync response with topic \""+response.GetTopic()+"\" and token \""+response.GetSyncResponseToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", nil).Error())
 		}
 	case <-broker.stopChannel:
@@ -62,7 +63,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 				warningLogger.Log(Error.New("Failed to send broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\"", err).Error())
 			}
 		}
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Sent broker stopped sync response to node \""+syncRequest.nodeConnection.name+"\" with token \""+syncRequest.message.GetSyncRequestToken()+"\"", nil).Error())
 		}
 	case <-timer.C:
@@ -75,7 +76,7 @@ func (broker *Broker) handleSyncRequest(syncRequest *syncRequest) {
 				warningLogger.Log(Error.New("Failed to send timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", err).Error())
 			}
 		}
-		if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Sent timeout sync response with token \""+syncRequest.message.GetSyncRequestToken()+"\" to node \""+syncRequest.nodeConnection.name+"\"", nil).Error())
 		}
 	}

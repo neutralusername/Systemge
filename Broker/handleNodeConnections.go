@@ -1,14 +1,15 @@
 package Broker
 
 import (
+	"net"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
-	"net"
 )
 
 func (broker *Broker) handleNodeConnections() {
-	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Handling node connections", nil).Error())
 	}
 	for broker.isStarted {
@@ -20,7 +21,7 @@ func (broker *Broker) handleNodeConnections() {
 			continue
 		}
 		go func() {
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
@@ -45,7 +46,7 @@ func (broker *Broker) handleNodeConnections() {
 				}
 				return
 			}
-			if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Handling connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			broker.handleNodeConnection(netConn)
@@ -62,7 +63,7 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 		}
 		return
 	}
-	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Handled connection request from \""+netConn.RemoteAddr().String()+"\" with origin \""+nodeConnection.name+"\"", nil).Error())
 	}
 	broker.handleNodeConnectionMessages(nodeConnection)

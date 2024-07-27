@@ -7,7 +7,7 @@ import (
 )
 
 func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnection) {
-	if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Handling messages from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 	}
 	for {
@@ -51,7 +51,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			}
 			continue
 		}
-		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 		}
 		if message.GetSyncResponseToken() != "" {
@@ -62,7 +62,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 				}
 			} else {
 				systemge.incomingSyncResponseCounter.Add(1)
-				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
 			}
@@ -83,7 +83,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 				}
 				systemge.bytesSentCounter.Add(bytesSent)
 			} else {
-				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 				}
 				bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.NewResponse(message.GetTopic(), node.GetName(), response).Serialize())
@@ -108,7 +108,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 				warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 		} else {
-			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 			}
 			if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {

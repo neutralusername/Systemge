@@ -1,12 +1,13 @@
 package Resolver
 
 import (
+	"net"
+	"strings"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
-	"net"
-	"strings"
 )
 
 func (resolver *Resolver) handleConfigConnections() {
@@ -19,7 +20,7 @@ func (resolver *Resolver) handleConfigConnections() {
 			continue
 		}
 		resolver.configRequestCounter.Add(1)
-		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
 		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
@@ -91,7 +92,7 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) error {
 	if err != nil {
 		return Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\"", err)
 	}
-	if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Handled config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}
 	return nil

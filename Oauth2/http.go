@@ -1,9 +1,10 @@
 package Oauth2
 
 import (
+	"net/http"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"net/http"
 
 	"golang.org/x/oauth2"
 )
@@ -28,7 +29,7 @@ func (app *App) GetHTTPMessageHandlers() map[string]http.HandlerFunc {
 
 func (server *App) oauth2AuthCallback() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Oauth2 callback for \""+httpRequest.RemoteAddr+"\" called", nil).Error())
 		}
 		state := httpRequest.FormValue("state")
@@ -62,7 +63,7 @@ func (server *App) oauth2AuthCallback() http.HandlerFunc {
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)
 			return
 		}
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Created session for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\" with sessionId \""+session.sessionId+"\" and identity \""+session.identity+"\"", nil).Error())
 		}
 		http.Redirect(responseWriter, httpRequest, server.config.CallbackSuccessRedirectUrl+"?sessionId="+session.sessionId, http.StatusMovedPermanently)
@@ -75,7 +76,7 @@ func (server *App) oauth2Auth() http.HandlerFunc {
 		if url == "" {
 			url = server.config.OAuth2Config.AuthCodeURL(server.config.Oauth2State)
 		}
-		if infoLogger := server.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := server.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Oauth2 auth request by \""+httpRequest.RemoteAddr+"\"", nil).Error())
 		}
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)

@@ -91,7 +91,7 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 				}
 			}
 		} else {
-			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log("Removed resolver topics remotely")
 			}
 		}

@@ -23,7 +23,7 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 			}
 			return Error.New("failed sending async message", err)
 		} else {
-			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Sent async message with topic \""+message.GetTopic()+"\" to broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 			}
 		}

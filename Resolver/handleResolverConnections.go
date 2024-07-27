@@ -1,10 +1,11 @@
 package Resolver
 
 import (
+	"net"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
-	"net"
 )
 
 func (resolver *Resolver) handleResolverConnections() {
@@ -17,7 +18,7 @@ func (resolver *Resolver) handleResolverConnections() {
 			continue
 		}
 		resolver.resolutionRequestCounter.Add(1)
-		if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
 		ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
@@ -80,7 +81,7 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
 		return Error.New("failed to send resolution response", err)
 	}
 	resolver.bytesSentCounter.Add(bytesSent)
-	if infoLogger := resolver.node.GetInfoLogger(); infoLogger != nil {
+	if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Resolved topic \""+message.GetPayload()+"\" to \""+endpoint.Address+"\" from resolver connection \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}
 	return nil
