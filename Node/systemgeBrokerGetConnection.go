@@ -68,6 +68,14 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 			}
 			if systemge.application.GetSystemgeComponentConfig().TopicResolutionLifetimeMs > 0 {
 				go func() {
+					if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+						infoLogger.Log(Error.New("Starting topic resolution lifetime loop for topic \""+topic+"\" on broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+					}
+					defer func() {
+						if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+							infoLogger.Log(Error.New("Stopped topic resolution lifetime loop for topic \""+topic+"\" on broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+						}
+					}()
 					for systemge == node.systemge {
 						err := systemge.topicResolutionLifetimeTimeout(node.GetName(), topic, brokerConnection)
 						if err != nil {
