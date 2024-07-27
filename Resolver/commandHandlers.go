@@ -1,7 +1,7 @@
 package Resolver
 
 import (
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 // returns a map of custom command handlers for the command-line interface

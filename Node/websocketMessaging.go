@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"Systemge/Message"
+	"github.com/neutralusername/Systemge/Message"
 )
 
 func (node *Node) WebsocketBroadcast(message *Message.Message) {

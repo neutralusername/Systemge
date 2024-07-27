@@ -1,9 +1,9 @@
 package Spawner
 
 import (
-	"Systemge/Error"
-	"Systemge/Node"
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (spawner *Spawner) OnStart(node *Node.Node) error {

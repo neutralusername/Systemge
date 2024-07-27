@@ -1,6 +1,6 @@
 package Node
 
-import "Systemge/Error"
+import "github.com/neutralusername/Systemge/Error"
 
 // returns a map of command handlers for the command-line interface
 func (node *Node) GetCommandHandlers() map[string]CommandHandler {

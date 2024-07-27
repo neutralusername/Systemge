@@ -1,6 +1,6 @@
 package Node
 
-import "Systemge/Error"
+import "github.com/neutralusername/Systemge/Error"
 
 func (node *Node) AddToWebsocketGroup(groupId string, websocketIds ...string) error {
 	if websocket := node.websocket; websocket != nil {

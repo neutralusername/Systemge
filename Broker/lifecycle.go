@@ -1,10 +1,10 @@
 package Broker
 
 import (
-	"Systemge/Error"
-	"Systemge/Node"
-	"Systemge/Tcp"
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (broker *Broker) OnStart(node *Node.Node) error {

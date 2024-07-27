@@ -1,8 +1,8 @@
 package Dashboard
 
 import (
-	"Systemge/Node"
-	"Systemge/Spawner"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Spawner"
 )
 
 type NodeSpawnerCounters struct {

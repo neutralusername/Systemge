@@ -1,7 +1,7 @@
 package Tools
 
 import (
-	"Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Helpers"
 	"log"
 )
 

@@ -1,9 +1,9 @@
 package Broker
 
 import (
-	"Systemge/Error"
-	"Systemge/Helpers"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 // returns a map of command handlers for the command-line interface

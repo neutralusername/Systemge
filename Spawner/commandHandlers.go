@@ -1,8 +1,8 @@
 package Spawner
 
 import (
-	"Systemge/Error"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {

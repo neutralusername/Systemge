@@ -1,11 +1,11 @@
 package Dashboard
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Helpers"
-	"Systemge/Message"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Node"
 	"net/http"
 	"runtime"
 

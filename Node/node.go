@@ -1,9 +1,9 @@
 package Node
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Tools"
 	"sync"
 )
 

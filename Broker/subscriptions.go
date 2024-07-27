@@ -1,6 +1,6 @@
 package Broker
 
-import "Systemge/Error"
+import "github.com/neutralusername/Systemge/Error"
 
 func (broker *Broker) addSubscription(nodeConnection *nodeConnection, topic string) error {
 	broker.operationMutex.Lock()

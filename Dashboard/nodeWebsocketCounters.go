@@ -1,6 +1,6 @@
 package Dashboard
 
-import "Systemge/Node"
+import "github.com/neutralusername/Systemge/Node"
 
 type NodeWebsocketCounters struct {
 	Name          string `json:"name"`

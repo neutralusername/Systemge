@@ -1,7 +1,7 @@
 package Oauth2
 
 import (
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 func (server *App) GetCommandHandlers() map[string]Node.CommandHandler {

@@ -1,9 +1,9 @@
 package Node
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/HTTP"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/HTTP"
 	"net/http"
 	"sync"
 	"sync/atomic"

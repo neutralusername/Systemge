@@ -1,8 +1,8 @@
 package Oauth2
 
 import (
-	"Systemge/Error"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 func (server *App) OnStart(node *Node.Node) error {

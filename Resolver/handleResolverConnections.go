@@ -1,9 +1,9 @@
 package Resolver
 
 import (
-	"Systemge/Error"
-	"Systemge/Message"
-	"Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tcp"
 	"net"
 )
 

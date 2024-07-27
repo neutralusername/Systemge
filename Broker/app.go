@@ -1,9 +1,9 @@
 package Broker
 
 import (
-	"Systemge/Config"
-	"Systemge/Node"
-	"Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Tcp"
 	"sync"
 	"sync/atomic"
 )

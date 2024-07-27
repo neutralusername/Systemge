@@ -1,8 +1,8 @@
 package Node
 
 import (
-	"Systemge/Error"
-	"Systemge/HTTP"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/HTTP"
 )
 
 type httpComponent struct {

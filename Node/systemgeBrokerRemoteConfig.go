@@ -1,10 +1,10 @@
 package Node
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Message"
-	"Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tcp"
 )
 
 func (node *Node) AddSyncTopicRemotely(brokerConfigEndpoint *Config.TcpEndpoint, topics ...string) error {

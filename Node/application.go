@@ -1,8 +1,8 @@
 package Node
 
 import (
-	"Systemge/Config"
-	"Systemge/Message"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Message"
 	"net/http"
 )
 

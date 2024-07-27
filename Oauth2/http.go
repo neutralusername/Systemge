@@ -1,8 +1,8 @@
 package Oauth2
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 	"net/http"
 
 	"golang.org/x/oauth2"

@@ -1,8 +1,8 @@
 package Node
 
 import (
-	"Systemge/Error"
-	"Systemge/Message"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 )
 
 // resolves the broker address for the provided topic and sends the async message to the broker responsible for the topic.

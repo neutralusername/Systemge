@@ -1,8 +1,8 @@
 package Resolver
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 )
 
 func (resolver *Resolver) addTopics(tcpEndpoint Config.TcpEndpoint, topics ...string) error {

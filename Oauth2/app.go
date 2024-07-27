@@ -1,9 +1,9 @@
 package Oauth2
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
 	"sync"
 )
 

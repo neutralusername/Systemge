@@ -1,10 +1,10 @@
 package Tcp
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 	"net"
 )
 

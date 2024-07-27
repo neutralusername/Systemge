@@ -1,10 +1,10 @@
 package Resolver
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Message"
-	"Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tcp"
 	"net"
 	"strings"
 )

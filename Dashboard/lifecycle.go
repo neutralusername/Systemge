@@ -1,12 +1,12 @@
 package Dashboard
 
 import (
-	"Systemge/Broker"
-	"Systemge/Helpers"
-	"Systemge/Message"
-	"Systemge/Node"
-	"Systemge/Resolver"
-	"Systemge/Spawner"
+	"github.com/neutralusername/Systemge/Broker"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Resolver"
+	"github.com/neutralusername/Systemge/Spawner"
 	"runtime"
 	"strconv"
 	"time"

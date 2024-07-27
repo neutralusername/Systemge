@@ -1,8 +1,8 @@
 package Oauth2
 
 import (
-	"Systemge/Error"
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Tools"
 	"time"
 )
 

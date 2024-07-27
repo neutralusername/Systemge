@@ -1,8 +1,8 @@
 package Spawner
 
 import (
-	"Systemge/Config"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Node"
 	"sync"
 )
 

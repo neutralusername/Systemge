@@ -1,7 +1,7 @@
 package Dashboard
 
 import (
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 type NodeStatus struct {

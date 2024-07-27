@@ -1,8 +1,8 @@
 package Dashboard
 
 import (
-	"Systemge/Broker"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Broker"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 type NodeBrokerCounters struct {

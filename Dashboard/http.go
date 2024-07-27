@@ -1,7 +1,7 @@
 package Dashboard
 
 import (
-	"Systemge/Config"
+	"github.com/neutralusername/Systemge/Config"
 	"net/http"
 )
 

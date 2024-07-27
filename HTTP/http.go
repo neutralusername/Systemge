@@ -1,10 +1,10 @@
 package HTTP
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Helpers"
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Tools"
 	"net/http"
 	"time"
 )

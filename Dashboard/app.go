@@ -1,9 +1,9 @@
 package Dashboard
 
 import (
-	"Systemge/Config"
-	"Systemge/HTTP"
-	"Systemge/Node"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/HTTP"
+	"github.com/neutralusername/Systemge/Node"
 	"net/http"
 	"runtime"
 	"strings"

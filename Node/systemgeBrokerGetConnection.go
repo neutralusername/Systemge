@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"Systemge/Error"
+	"github.com/neutralusername/Systemge/Error"
 )
 
 func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution bool) (*brokerConnection, error) {

@@ -1,7 +1,7 @@
 package Config
 
 import (
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Tools"
 
 	"golang.org/x/oauth2"
 )

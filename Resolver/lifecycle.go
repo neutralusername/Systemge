@@ -1,9 +1,9 @@
 package Resolver
 
 import (
-	"Systemge/Error"
-	"Systemge/Node"
-	"Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Tcp"
 )
 
 func (resolver *Resolver) OnStart(node *Node.Node) error {

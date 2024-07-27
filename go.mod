@@ -1,4 +1,4 @@
-module Systemge
+module github.com/neutralusername/Systemge
 
 go 1.22.3
 

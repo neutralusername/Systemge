@@ -1,8 +1,8 @@
 package Broker
 
 import (
-	"Systemge/Error"
-	"Systemge/Message"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 	"time"
 )
 

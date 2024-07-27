@@ -1,7 +1,7 @@
 package Config
 
 import (
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
 )

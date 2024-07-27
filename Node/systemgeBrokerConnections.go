@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"Systemge/Error"
+	"github.com/neutralusername/Systemge/Error"
 )
 
 func (systemge *systemgeComponent) addBrokerConnection(brokerConnection *brokerConnection) error {

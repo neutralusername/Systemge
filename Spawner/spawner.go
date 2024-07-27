@@ -1,10 +1,10 @@
 package Spawner
 
 import (
-	"Systemge/Config"
-	"Systemge/Error"
-	"Systemge/Node"
-	"Systemge/Tools"
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (spawner *Spawner) spawnNode(id string) error {

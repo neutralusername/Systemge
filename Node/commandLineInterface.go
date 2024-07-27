@@ -1,10 +1,10 @@
 package Node
 
 import (
-	"Systemge/Helpers"
-	"Systemge/Tools"
 	"bufio"
 	"fmt"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Tools"
 	"os"
 	"runtime"
 	"strings"

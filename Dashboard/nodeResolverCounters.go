@@ -1,8 +1,8 @@
 package Dashboard
 
 import (
-	"Systemge/Node"
-	"Systemge/Resolver"
+	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Resolver"
 )
 
 type NodeResolverCounters struct {
