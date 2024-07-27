@@ -68,6 +68,7 @@ type Dashboard struct {
 	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
 	NodeStatusIntervalMs           uint64     // default: 0 = disabled
 	NodeSystemgeCounterIntervalMs  uint64     // default: 0 = disabled
+	NodeHTTPCounterIntervalMs      uint64     // default: 0 = disabled
 	NodeWebsocketCounterIntervalMs uint64     // default: 0 = disabled
 	NodeBrokerCounterIntervalMs    uint64     // default: 0 = disabled
 	NodeResolverCounterIntervalMs  uint64     // default: 0 = disabled

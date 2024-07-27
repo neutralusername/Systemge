@@ -48,6 +48,10 @@ export class root extends React.Component {
                 labels: ["spawnedNodeCount"],
                 colors: ["rgb(255, 99, 132)"],
             },
+            nodeHttpCounters: {
+                labels: ["requestCount" ],
+                colors: ["rgb(255, 99, 132)" ],
+            }
         };
     }
 
@@ -110,6 +114,7 @@ export class root extends React.Component {
             case "nodeBrokerCounters":
             case "nodeResolverCounters":
             case "nodeSpawnerCounters":
+            case "nodeHttpCounters":
                 this.handleNodeCounters(message.topic, JSON.parse(message.payload));
                 break;
             default:

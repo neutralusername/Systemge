@@ -25,6 +25,9 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeSystemgeCounterIntervalMs > 0 {
 		go app.nodeSystemgeCountersRoutine()
 	}
+	if app.config.NodeHTTPCounterIntervalMs > 0 {
+		go app.nodeHTTPCountersRoutine()
+	}
 	if app.config.NodeWebsocketCounterIntervalMs > 0 {
 		go app.nodeWebsocketCountersRoutine()
 	}
@@ -98,6 +101,26 @@ func (app *App) nodeSpawnerCountersRoutine() {
 	}
 }
 
+func (app *App) nodeHTTPCountersRoutine() {
+	for app.started {
+		for _, node := range app.nodes {
+			if Node.ImplementsHTTPComponent(node.GetApplication()) {
+				httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("http counter routine: \"" + httpCountersJson + "\"")
+				}
+			}
+		}
+		httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(app.node))
+		app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
+		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log("http counter routine: \"" + httpCountersJson + "\"")
+		}
+		time.Sleep(time.Duration(app.config.NodeHTTPCounterIntervalMs) * time.Millisecond)
+	}
+}
+
 func (app *App) nodeResolverCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
@@ -153,6 +176,11 @@ func (app *App) nodeWebsocketCountersRoutine() {
 					infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
 				}
 			}
+		}
+		messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(app.node))
+		app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
+		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
 		}
 		time.Sleep(time.Duration(app.config.NodeWebsocketCounterIntervalMs) * time.Millisecond)
 	}
