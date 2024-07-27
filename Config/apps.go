@@ -65,6 +65,7 @@ type Dashboard struct {
 	Server                         *TcpServer // *required*
 	AutoStart                      bool       // default: false
 	AddSpawnedNodesToDashboard     bool       // default: false
+	EnableDashboardCounters        bool       // default: false
 	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
 	NodeStatusIntervalMs           uint64     // default: 0 = disabled
 	NodeSystemgeCounterIntervalMs  uint64     // default: 0 = disabled

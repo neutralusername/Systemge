@@ -112,10 +112,12 @@ func (app *App) nodeHTTPCountersRoutine() {
 				}
 			}
 		}
-		httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(app.node))
-		app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
-		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log("http counter routine: \"" + httpCountersJson + "\"")
+		if app.config.EnableDashboardCounters {
+			httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(app.node))
+			app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
+			if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log("http counter routine: \"" + httpCountersJson + "\"")
+			}
 		}
 		time.Sleep(time.Duration(app.config.NodeHTTPCounterIntervalMs) * time.Millisecond)
 	}
@@ -177,10 +179,12 @@ func (app *App) nodeWebsocketCountersRoutine() {
 				}
 			}
 		}
-		messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(app.node))
-		app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
-		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
+		if app.config.EnableDashboardCounters {
+			messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(app.node))
+			app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
+			if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
+			}
 		}
 		time.Sleep(time.Duration(app.config.NodeWebsocketCounterIntervalMs) * time.Millisecond)
 	}
