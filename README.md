@@ -41,6 +41,12 @@
 
 The goal of this framework is to automate the networking aspects of distributed computing while streamlining the process of writing distributed applications. After the initial configuration, all tasks are automated by the framework.
 
+## Installation
+
+```sh
+go get github.com/neutralusername/Systemge
+```
+
 ## Usage
 
 For information on how to use this library, check out the samples:
