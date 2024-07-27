@@ -50,7 +50,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 				infoLogger.Log(Error.New("Found existing broker connection \""+endpoint.Address+"\" for topic \""+topic+"\"", nil).Error())
 			}
 		}
-		if addTopicResolution {
+		if addTopicResolution && systemge.application.GetSystemgeComponentConfig().TopicResolutionLifetimeMs != 0 {
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Adding topic resolution for topic \""+topic+"\" to broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 			}
