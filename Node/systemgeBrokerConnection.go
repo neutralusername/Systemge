@@ -18,7 +18,7 @@ type brokerConnection struct {
 
 	closeChannel chan bool
 
-	mapMutex     sync.Mutex
+	mutex        sync.Mutex
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
 }
@@ -49,8 +49,8 @@ func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, messageBytes
 }
 
 func (brokerConnection *brokerConnection) addTopicResolution(topic string) error {
-	brokerConnection.mapMutex.Lock()
-	defer brokerConnection.mapMutex.Unlock()
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.topicResolutions[topic] {
 		return Error.New("Topic already exists", nil)
 	}
@@ -59,14 +59,14 @@ func (brokerConnection *brokerConnection) addTopicResolution(topic string) error
 }
 
 func (brokerConnection *brokerConnection) removeTopicResolution(topic string) {
-	brokerConnection.mapMutex.Lock()
-	defer brokerConnection.mapMutex.Unlock()
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	delete(brokerConnection.topicResolutions, topic)
 }
 
 func (brokerConnection *brokerConnection) addSubscribedTopic(topic string) error {
-	brokerConnection.mapMutex.Lock()
-	defer brokerConnection.mapMutex.Unlock()
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	if brokerConnection.subscribedTopics[topic] {
 		return Error.New("Topic already exists", nil)
 	}
@@ -75,25 +75,33 @@ func (brokerConnection *brokerConnection) addSubscribedTopic(topic string) error
 }
 
 func (brokerConnection *brokerConnection) closeIfNoTopics() (closed bool) {
-	brokerConnection.mapMutex.Lock()
-	defer brokerConnection.mapMutex.Unlock()
+	brokerConnection.mutex.Lock()
+	defer brokerConnection.mutex.Unlock()
 	subscribedTopicsCount := len(brokerConnection.subscribedTopics)
 	topicResolutionsCount := len(brokerConnection.topicResolutions)
 	if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
-		brokerConnection.closeNetConn()
-		return true
+		return brokerConnection.closeNetConn(false)
 	}
 	return false
 }
-func (brokerConnection *brokerConnection) closeNetConn() {
+func (brokerConnection *brokerConnection) closeNetConn(lock bool) (closed bool) {
+	if lock {
+		brokerConnection.mutex.Lock()
+		defer brokerConnection.mutex.Unlock()
+	}
+	if brokerConnection.netConn == nil {
+		return false
+	}
 	brokerConnection.netConn.Close()
+	brokerConnection.netConn = nil
+	return true
 }
 
 func (systemge *systemgeComponent) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) (previouslySubscribedTopics []string) {
 	systemge.mutex.Lock()
-	brokerConnection.mapMutex.Lock()
+	brokerConnection.mutex.Lock()
 	defer func() {
-		brokerConnection.mapMutex.Unlock()
+		brokerConnection.mutex.Unlock()
 		systemge.mutex.Unlock()
 	}()
 	delete(systemge.brokerConnections, brokerConnection.endpoint.Address)

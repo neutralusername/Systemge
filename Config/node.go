@@ -22,7 +22,7 @@ type Systemge struct {
 	HandleMessagesSequentially bool // default: false
 
 	BrokerSubscribeDelayMs    uint64 // default: 0 (delay after failed broker subscription attempt)
-	TopicResolutionLifetimeMs uint64 // default: 0 = resolve topic every time a message is sent
+	TopicResolutionLifetimeMs uint64 // default: 0 = infinite
 	SyncResponseTimeoutMs     uint64 // default: 0 = sync messages are not supported
 	TcpTimeoutMs              uint64 // default: 0 = block forever
 	MaxSubscribeAttempts      uint64 // default: 0 = infinite

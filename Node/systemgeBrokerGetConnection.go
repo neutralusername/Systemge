@@ -38,7 +38,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 			}
 			err = systemge.addBrokerConnection(brokerConnection)
 			if err != nil {
-				brokerConnection.closeNetConn()
+				brokerConnection.closeNetConn(true)
 				return nil, Error.New("Failed adding broker connection \""+endpoint.Address+"\" for topic \""+topic+"\". Closed broker connection", err)
 			}
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
