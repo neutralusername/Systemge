@@ -110,10 +110,10 @@ func (node *Node) startSystemgeComponent() error {
 func (node *Node) stopSystemgeComponent() error {
 	node.systemge.mutex.Lock()
 	defer node.systemge.mutex.Unlock()
-	node.systemge = nil
 	for _, brokerConnection := range node.systemge.brokerConnections {
 		brokerConnection.closeNetConn()
 		delete(node.systemge.brokerConnections, brokerConnection.endpoint.Address)
 	}
+	node.systemge = nil
 	return nil
 }
