@@ -1,11 +1,12 @@
 package Resolver
 
 import (
+	"sync"
+	"sync/atomic"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Node"
 	"github.com/neutralusername/Systemge/Tcp"
-	"sync"
-	"sync/atomic"
 )
 
 type Resolver struct {
@@ -42,8 +43,8 @@ func (resolver *Resolver) RetrieveBytesSentCounter() uint64 {
 	return resolver.bytesSentCounter.Swap(0)
 }
 
-func ImplementsResolver(node *Node.Node) bool {
-	_, ok := node.GetApplication().(*Resolver)
+func ImplementsResolver(application Node.Application) bool {
+	_, ok := application.(*Resolver)
 	return ok
 }
 

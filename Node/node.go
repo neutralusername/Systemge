@@ -1,10 +1,11 @@
 package Node
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tools"
-	"sync"
 )
 
 type Node struct {
@@ -201,6 +202,10 @@ func (node *Node) IsStarted() bool {
 
 func (node *Node) GetName() string {
 	return node.config.Name
+}
+
+func (node *Node) GetApplication() Application {
+	return node.application
 }
 
 func (node *Node) GetErrorLogger() *Tools.Logger {

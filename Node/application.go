@@ -1,28 +1,13 @@
 package Node
 
 import (
+	"net/http"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
-	"net/http"
 )
 
 type Application interface {
-}
-
-func (node *Node) ImplementsSystemgeComponent() bool {
-	return ImplementsSystemgeComponent(node.application)
-}
-
-func (node *Node) ImplementsHTTPComponent() bool {
-	return ImplementsHTTPComponent(node.application)
-}
-
-func (node *Node) ImplementsWebsocketComponent() bool {
-	return ImplementsWebsocketComponent(node.application)
-}
-
-func (node *Node) GetApplication() Application {
-	return node.application
 }
 
 func ImplementsSystemgeComponent(app Application) bool {

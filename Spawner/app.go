@@ -1,9 +1,10 @@
 package Spawner
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Node"
-	"sync"
 )
 
 type Spawner struct {
@@ -37,8 +38,8 @@ func (spawner *Spawner) GetRemoveNodeChannel() chan *Node.Node {
 	return spawner.removeNodeChannel
 }
 
-func ImplementsSpawner(node *Node.Node) bool {
-	_, ok := node.GetApplication().(*Spawner)
+func ImplementsSpawner(application Node.Application) bool {
+	_, ok := application.(*Spawner)
 	return ok
 }
 

@@ -1,11 +1,12 @@
 package Broker
 
 import (
+	"sync"
+	"sync/atomic"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Node"
 	"github.com/neutralusername/Systemge/Tcp"
-	"sync"
-	"sync/atomic"
 )
 
 type Broker struct {
@@ -35,8 +36,8 @@ type Broker struct {
 	bytesSentCounter       atomic.Uint64
 }
 
-func ImplementsBroker(node *Node.Node) bool {
-	_, ok := node.GetApplication().(*Broker)
+func ImplementsBroker(application Node.Application) bool {
+	_, ok := application.(*Broker)
 	return ok
 }
 
