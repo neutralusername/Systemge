@@ -1,10 +1,11 @@
 package Node
 
 import (
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Message"
 	"sync"
 	"sync/atomic"
+
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 )
 
 type systemgeComponent struct {
@@ -107,8 +108,12 @@ func (node *Node) startSystemgeComponent() error {
 }
 
 func (node *Node) stopSystemgeComponent() error {
-	systemge := node.systemge
+	node.systemge.mutex.Lock()
+	defer node.systemge.mutex.Unlock()
 	node.systemge = nil
-	systemge.removeAllBrokerConnections()
+	for _, brokerConnection := range node.systemge.brokerConnections {
+		brokerConnection.closeNetConn()
+		delete(node.systemge.brokerConnections, brokerConnection.endpoint.Address)
+	}
 	return nil
 }

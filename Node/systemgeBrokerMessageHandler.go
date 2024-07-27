@@ -19,13 +19,12 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 		messageBytes, bytesReceived, err := Tcp.Receive(brokerConnection.netConn, 0, 0)
 		brokerConnection.receiveMutex.Unlock()
 		if err != nil {
+			close(brokerConnection.closeChannel)
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
-			brokerConnection.close()
-			removedSubscribedTopics := systemge.cleanUpDisconnectedBrokerConnection(brokerConnection)
-			for _, topic := range removedSubscribedTopics {
-				go func() {
+			for _, topic := range systemge.cleanUpDisconnectedBrokerConnection(brokerConnection) {
+				go func(topic string) {
 					err := node.subscribeLoop(topic, systemge.application.GetSystemgeComponentConfig().MaxSubscribeAttempts)
 					if err != nil {
 						if warningLogger := node.GetWarningLogger(); warningLogger != nil {
@@ -40,7 +39,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 							}
 						}
 					}
-				}()
+				}(topic)
 			}
 			return
 		}

@@ -1,10 +1,12 @@
 package Node
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
-	"time"
 )
 
 func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error {
@@ -23,36 +25,34 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 		}
 		subscribeAttempts++
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Attempting subscription to topic \""+topic+"\". Getting broker connection", nil).Error())
+			infoLogger.Log(Error.New("Attempting subscription to topic \""+topic+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts+1)+"). Getting broker connection", nil).Error())
 		}
 		brokerConnection, err := node.getBrokerConnectionForTopic(topic, false)
 		if err != nil {
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to get broker connection for topic \""+topic+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", err).Error())
 			}
 			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 			continue
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Got broker connection for topic \""+topic+"\". Subscribing to topic", nil).Error())
+			infoLogger.Log(Error.New("Got broker connection \""+brokerConnection.endpoint.Address+"\" for topic \""+topic+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+"). Subscribing to topic", nil).Error())
 		}
 		err = systemge.subscribeTopic(node.GetName(), brokerConnection, topic)
 		if err != nil {
-			brokerConnection.mutex.Lock()
-			subscribedTopicsCount := len(brokerConnection.subscribedTopics)
-			topicResolutionsCount := len(brokerConnection.topicResolutions)
-			if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
-				brokerConnection.close()
+			if brokerConnection.closeIfNoTopics() {
+				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Closed broker connection \""+brokerConnection.endpoint.Address+"\" due to no topics (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", nil).Error())
+				}
 			}
-			brokerConnection.mutex.Unlock()
 			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", err).Error())
 			}
 			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
 			continue
 		}
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Subscribed to topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+			infoLogger.Log(Error.New("Subscribed to topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", nil).Error())
 		}
 		return nil
 	}

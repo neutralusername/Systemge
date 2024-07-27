@@ -1,11 +1,12 @@
 package Broker
 
 import (
+	"net"
+	"sync"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
-	"net"
-	"sync"
 )
 
 type nodeConnection struct {
@@ -68,6 +69,9 @@ func (broker *Broker) removeNodeConnection(lock bool, nodeConnection *nodeConnec
 		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)
 	}
 	delete(broker.nodeConnections, nodeConnection.name)
+	if infoLogger := broker.node.GetInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Removed node connection \""+nodeConnection.name+"\"", nil).Error())
+	}
 }
 
 func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {

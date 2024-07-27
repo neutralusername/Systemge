@@ -1,10 +1,11 @@
 package Node
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
-	"time"
 )
 
 // resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
@@ -29,6 +30,10 @@ func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, 
 		if err != nil {
 			systemge.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
 			return nil, Error.New("failed sending sync request message", err)
+		} else {
+			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Sent sync request message with topic \""+message.GetTopic()+"\" to broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+			}
 		}
 		systemge.bytesSentCounter.Add(bytesSent)
 		systemge.outgoingSyncRequestCounter.Add(1)

@@ -1,11 +1,12 @@
 package Broker
 
 import (
+	"net"
+	"strings"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
-	"net"
-	"strings"
 )
 
 func (broker *Broker) handleConfigConnections() {
@@ -88,7 +89,7 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	}
 	broker.bytesReceivedCounter.Add(bytesSent)
 	message := Message.Deserialize(messageBytes)
-	if message == nil || message.GetOrigin() == "" {
+	if message == nil {
 		return Error.New("Invalid connection request", nil)
 	}
 	err = broker.validateMessage(message)

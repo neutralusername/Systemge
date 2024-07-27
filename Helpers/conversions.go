@@ -51,6 +51,10 @@ func StringToUint16(str string) uint16 {
 	return uint16(int)
 }
 
+func Uint64ToString(i uint64) string {
+	return strconv.FormatUint(i, 10)
+}
+
 func StringToFloat64(str string) float64 {
 	float, _ := strconv.ParseFloat(str, 64)
 	return float

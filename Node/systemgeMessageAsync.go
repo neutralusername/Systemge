@@ -22,6 +22,10 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 				warningLogger.Log(Error.New("Failed to send async message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 			return Error.New("failed sending async message", err)
+		} else {
+			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Sent async message with topic \""+message.GetTopic()+"\" to broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+			}
 		}
 		systemge.bytesSentCounter.Add(bytesSent)
 		systemge.outgoingAsyncMessageCounter.Add(1)

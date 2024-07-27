@@ -1,11 +1,12 @@
 package Node
 
 import (
+	"net"
+	"sync"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tcp"
-	"net"
-	"sync"
 )
 
 type brokerConnection struct {
@@ -17,7 +18,7 @@ type brokerConnection struct {
 
 	closeChannel chan bool
 
-	mutex        sync.Mutex
+	mapMutex     sync.Mutex
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
 }
@@ -47,21 +48,9 @@ func (brokerConnection *brokerConnection) send(tcpTimeoutMs uint64, messageBytes
 	return bytesSent, nil
 }
 
-func (brokerConnection *brokerConnection) close() error {
-	brokerConnection.mutex.Lock()
-	defer brokerConnection.mutex.Unlock()
-	if brokerConnection.netConn == nil {
-		return Error.New("Connection is already closed", nil)
-	}
-	brokerConnection.netConn.Close()
-	brokerConnection.netConn = nil
-	close(brokerConnection.closeChannel)
-	return nil
-}
-
 func (brokerConnection *brokerConnection) addTopicResolution(topic string) error {
-	brokerConnection.mutex.Lock()
-	defer brokerConnection.mutex.Unlock()
+	brokerConnection.mapMutex.Lock()
+	defer brokerConnection.mapMutex.Unlock()
 	if brokerConnection.topicResolutions[topic] {
 		return Error.New("Topic already exists", nil)
 	}
@@ -69,22 +58,50 @@ func (brokerConnection *brokerConnection) addTopicResolution(topic string) error
 	return nil
 }
 
-func (brokerConnection *brokerConnection) removeTopicResolution(topic string) error {
-	brokerConnection.mutex.Lock()
-	defer brokerConnection.mutex.Unlock()
-	if !brokerConnection.topicResolutions[topic] {
-		return Error.New("Topic does not exist", nil)
-	}
+func (brokerConnection *brokerConnection) removeTopicResolution(topic string) {
+	brokerConnection.mapMutex.Lock()
+	defer brokerConnection.mapMutex.Unlock()
 	delete(brokerConnection.topicResolutions, topic)
-	return nil
 }
 
 func (brokerConnection *brokerConnection) addSubscribedTopic(topic string) error {
-	brokerConnection.mutex.Lock()
-	defer brokerConnection.mutex.Unlock()
+	brokerConnection.mapMutex.Lock()
+	defer brokerConnection.mapMutex.Unlock()
 	if brokerConnection.subscribedTopics[topic] {
 		return Error.New("Topic already exists", nil)
 	}
 	brokerConnection.subscribedTopics[topic] = true
 	return nil
+}
+
+func (brokerConnection *brokerConnection) closeIfNoTopics() (closed bool) {
+	brokerConnection.mapMutex.Lock()
+	defer brokerConnection.mapMutex.Unlock()
+	subscribedTopicsCount := len(brokerConnection.subscribedTopics)
+	topicResolutionsCount := len(brokerConnection.topicResolutions)
+	if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
+		brokerConnection.closeNetConn()
+		return true
+	}
+	return false
+}
+func (brokerConnection *brokerConnection) closeNetConn() {
+	brokerConnection.netConn.Close()
+}
+
+func (systemge *systemgeComponent) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) (previouslySubscribedTopics []string) {
+	systemge.mutex.Lock()
+	brokerConnection.mapMutex.Lock()
+	defer func() {
+		brokerConnection.mapMutex.Unlock()
+		systemge.mutex.Unlock()
+	}()
+	delete(systemge.brokerConnections, brokerConnection.endpoint.Address)
+	brokerConnection.topicResolutions = make(map[string]bool)
+	previouslySubscribedTopics = make([]string, 0)
+	for topic := range brokerConnection.subscribedTopics {
+		previouslySubscribedTopics = append(previouslySubscribedTopics, topic)
+		delete(brokerConnection.subscribedTopics, topic)
+	}
+	return previouslySubscribedTopics
 }

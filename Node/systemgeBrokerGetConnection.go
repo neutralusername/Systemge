@@ -38,7 +38,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 			}
 			err = systemge.addBrokerConnection(brokerConnection)
 			if err != nil {
-				brokerConnection.close()
+				brokerConnection.closeNetConn()
 				return nil, Error.New("Failed adding broker connection \""+endpoint.Address+"\" for topic \""+topic+"\". Closed broker connection", err)
 			}
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
@@ -56,32 +56,45 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 			}
 			err = systemge.addTopicResolution(topic, brokerConnection)
 			if err != nil {
-				brokerConnection.mutex.Lock()
-				subscribedTopicsCount := len(brokerConnection.subscribedTopics)
-				topicResolutionsCount := len(brokerConnection.topicResolutions)
-				if subscribedTopicsCount == 0 && topicResolutionsCount == 0 {
+				if brokerConnection.closeIfNoTopics() {
 					if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-						infoLogger.Log(Error.New("Closing broker connection \""+brokerConnection.endpoint.Address+"\". No subscribed topics or topic resolutions", nil).Error())
+						infoLogger.Log(Error.New("Closed broker connection \""+brokerConnection.endpoint.Address+"\" due to no topics", nil).Error())
 					}
-					brokerConnection.close()
 				}
-				brokerConnection.mutex.Unlock()
 				return nil, Error.New("Failed adding topic resolution for topic \""+topic+"\" to broker connection \""+brokerConnection.endpoint.Address+"\"", err)
 			}
 			if infoLogger := node.GetInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Added topic resolution for topic \""+topic+"\" to broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 			}
-			go func() {
-				err := systemge.removeTopicResolutionTimeout(topic, brokerConnection)
-				if err != nil {
-					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to remove topic resolution for topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\"", err).Error())
+			if systemge.application.GetSystemgeComponentConfig().TopicResolutionLifetimeMs > 0 {
+				go func() {
+					for {
+						err := systemge.topicResolutionLifetimeTimeout(node.GetName(), topic, brokerConnection)
+						if err != nil {
+							if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+								warningLogger.Log(err.Error())
+							}
+							systemge.mutex.Lock()
+							defer systemge.mutex.Unlock()
+							delete(systemge.topicResolutions, topic)
+							brokerConnection.removeTopicResolution(topic)
+							if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+								infoLogger.Log(Error.New("Removed topic resolution for topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
+							}
+							if brokerConnection.closeIfNoTopics() {
+								if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+									infoLogger.Log(Error.New("Closed broker connection \""+brokerConnection.endpoint.Address+"\" due to no topics", nil).Error())
+								}
+							}
+							return
+						} else {
+							if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+								infoLogger.Log(Error.New("Resolved same broker address for topic \""+topic+"\". Resetting topic resolution timer", nil).Error())
+							}
+						}
 					}
-				}
-				if infoLogger := node.GetInfoLogger(); infoLogger != nil {
-					infoLogger.Log(Error.New("Removed topic resolution for topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\"", nil).Error())
-				}
-			}()
+				}()
+			}
 		}
 	} else {
 		if infoLogger := node.GetInfoLogger(); infoLogger != nil {
