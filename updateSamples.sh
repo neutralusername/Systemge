@@ -1,23 +1,47 @@
 cd ../SystemgeSampleChat/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
+cd ..
+git add .
+git commit -m "Update Systemge"
+git push
 
-cd ../../SystemgeSampleConwaysGameOfLife/main
+cd ../SystemgeSampleConwaysGameOfLife/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
+cd ..
+git add .
+git commit -m "Update Systemge"
+git push
 
-cd ../../SystemgeSamplePingPong/main
+cd ../SystemgeSamplePingPong/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
+cd ..
+git add .
+git commit -m "Update Systemge"
+git push
 
-cd ../../SystemgeSamplePingSpawner/main
+cd ../SystemgeSamplePingSpawner/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
+cd ..
+git add .
+git commit -m "Update Systemge"
+git push
 
-cd ../../SystemgeSampleChessServer/main
+cd ../SystemgeSampleChessServer/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
+cd ..
+git add .
+git commit -m "Update Systemge"
+git push
 
-cd ../../SystemgeSampleDiscordAuth/main
+cd ../SystemgeSampleDiscordAuth/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
+cd ..
+git add .
+git commit -m "Update Systemge"
+git push
