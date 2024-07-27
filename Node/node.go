@@ -213,7 +213,11 @@ func (node *Node) GetErrorLogger() *Tools.Logger {
 }
 
 func (node *Node) GetWarningLogger() *Tools.Logger {
-	return node.config.WarningLogger
+	return node.config.InternalWarningLogger
+}
+
+func (node *Node) GetInternalWarningLogger() *Tools.Logger {
+	return node.config.InternalWarningLogger
 }
 
 func (node *Node) GetInfoLogger() *Tools.Logger {
