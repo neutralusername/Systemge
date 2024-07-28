@@ -36,6 +36,7 @@ type Dashboard struct {
 	AutoStart                      bool       // default: false
 	AddDashboardToDashboard        bool       // default: false
 	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
+	GoroutineUpdateIntervalMs      uint64     // default: 0 = disabled
 	NodeStatusIntervalMs           uint64     // default: 0 = disabled
 	NodeSystemgeCounterIntervalMs  uint64     // default: 0 = disabled
 	NodeHTTPCounterIntervalMs      uint64     // default: 0 = disabled

@@ -53,6 +53,9 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.AddDashboardToDashboard {
 		app.nodes[node.GetName()] = node
 	}
+	if app.config.GoroutineUpdateIntervalMs > 0 {
+		go app.goroutineUpdateRoutine()
+	}
 	if app.config.NodeStatusIntervalMs > 0 {
 		go app.nodeStatusRoutine()
 	}
@@ -90,6 +93,17 @@ func (app *App) OnStop(node *Node.Node) error {
 	app.node = nil
 	app.started = false
 	return nil
+}
+
+func (app *App) goroutineUpdateRoutine() {
+	for app.started {
+		goroutineCount := runtime.NumGoroutine()
+		app.node.WebsocketBroadcast(Message.NewAsync("goroutineCount", app.node.GetName(), strconv.Itoa(goroutineCount)))
+		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log("goroutine update routine: \"" + strconv.Itoa(goroutineCount) + "\"")
+		}
+		time.Sleep(time.Duration(app.config.GoroutineUpdateIntervalMs) * time.Millisecond)
+	}
 }
 
 func (app *App) addNodeRoutine(node *Node.Node) {

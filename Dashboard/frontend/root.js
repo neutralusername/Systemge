@@ -23,6 +23,7 @@ export class root extends React.Component {
             responseMessageTimeouts: {},
             nodes: {},
             heapUpdates: {},
+            goroutineUpdates: {},
         };
         this.WS_CONNECTION = GetWebsocketConnection();
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
@@ -99,6 +100,9 @@ export class root extends React.Component {
             case "heapStatus":
                 this.handleHeapStatus(message.payload);
                 break;
+            case "goroutineCount":
+                this.handleGoroutineCount(message.payload);
+                break;
             case "removeNode":
                 let nodes = { ...this.state.nodes };
                 delete nodes[message.payload];
@@ -132,6 +136,16 @@ export class root extends React.Component {
         }
         heapUpdates[new Date().valueOf()] = heapStatus;
         this.setState({ heapUpdates });
+    }
+
+    handleGoroutineCount(payload) {
+        let goroutineCount = Number(payload);
+        let goroutineUpdates = { ...this.state.goroutineUpdates };
+        if (Object.keys(goroutineUpdates).length > 50) {
+            delete goroutineUpdates[Object.keys(goroutineUpdates)[0]];
+        }
+        goroutineUpdates[new Date().valueOf()] = goroutineCount;
+        this.setState({ goroutineUpdates });
     }
 
     handleNodeStatus(nodeStatus) {
@@ -364,6 +378,15 @@ export class root extends React.Component {
                     chartName: "heapChart",
                     dataLabel: "heap usage",
                     dataSet: this.state.heapUpdates,
+                    height: "400px",
+                    width: "1200px",
+                },
+            ) : null,
+            Object.keys(this.state.goroutineUpdates).length > 0 ? React.createElement(
+                lineGraph, {
+                    chartName: "goroutineChart",
+                    dataLabel: "goroutine count",
+                    dataSet: this.state.goroutineUpdates,
                     height: "400px",
                     width: "1200px",
                 },
