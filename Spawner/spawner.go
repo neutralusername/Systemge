@@ -12,14 +12,19 @@ func (spawner *Spawner) spawnNode(id string) error {
 	if ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
-	newNode := Node.New(&Config.Node{
-		Name:                  id,
-		ErrorLogger:           Tools.NewLogger("[Error \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		InternalWarningLogger: Tools.NewLogger("[InternalWarning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		InternalInfoLogger:    Tools.NewLogger("[InternalInfo \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		DebugLogger:           Tools.NewLogger("[Debug \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		Mailer:                spawner.spawnerConfig.Mailer,
-	}, spawner.newApplicationFunc(id))
+	node := &Config.Node{
+		Name:          id,
+		InfoLogger:    Tools.NewLogger("[Info \""+id+"\"]", spawner.spawnerConfig.LoggerQueue),
+		WarningLogger: Tools.NewLogger("[Warning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		ErrorLogger:   Tools.NewLogger("[Error \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		DebugLogger:   Tools.NewLogger("[Debug \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
+		Mailer:        spawner.spawnerConfig.Mailer,
+	}
+	if spawner.spawnerConfig.LogInternals {
+		node.InternalInfoLogger = Tools.NewLogger("[InternalInfo \""+id+"\"]", spawner.spawnerConfig.LoggerQueue)
+		node.InternalWarningLogger = Tools.NewLogger("[InternalWarning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue)
+	}
+	newNode := Node.New(node, spawner.newApplicationFunc(id))
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		err := spawner.node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if err != nil {
@@ -58,14 +63,14 @@ func (spawner *Spawner) despawnNode(id string) error {
 		removeErr := spawner.node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-				return Error.New("Error removing sync topic \""+id+"\"", removeErr)
+				errorLogger.Log(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
 			}
 		}
 	} else {
 		removeErr := spawner.node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-				return Error.New("Error removing async topic \""+id+"\"", removeErr)
+				errorLogger.Log(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
 			}
 		}
 	}

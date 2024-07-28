@@ -56,6 +56,7 @@ type Spawner struct {
 	PropagateSpawnedNodeChanges bool               // default: false (if true, changes need to be received through the corresponding channel)(automated by dashboard)
 	LoggerQueue                 *Tools.LoggerQueue // *optional*
 	Mailer                      *Tools.Mailer      // *optional*
+	LogInternals                bool               // default: false
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*
