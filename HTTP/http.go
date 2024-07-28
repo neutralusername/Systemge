@@ -77,12 +77,12 @@ func (server *Server) Start() error {
 		}
 	}()
 	time.Sleep(10 * time.Millisecond)
+	ended = true
 	select {
 	case err := <-errorChannel:
 		return Error.New("failed to start http server", err)
 	default:
 	}
-	ended = true
 	return nil
 }
 
