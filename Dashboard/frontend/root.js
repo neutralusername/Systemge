@@ -217,12 +217,7 @@ export class root extends React.Component {
         let buttons = [];
         let multiLineGraphs = [];
 
-        const renderGraphsForNode = (nodeName) => {
-            Object.keys(this.counterConfig).forEach((key) => {
-                if (this.state.nodes[nodeName][key]) {
-                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
-                }
-            });
+        for (let nodeName in this.state.nodes) {
             nodeStatuses.push(React.createElement(
                 nodeStatus, {
                     node: this.state.nodes[nodeName],
@@ -231,10 +226,20 @@ export class root extends React.Component {
                     constructMessage: this.constructMessage,
                 },
             ));
+        }
+
+        const renderGraphsForNode = (nodeName) => {
+            Object.keys(this.counterConfig).forEach((key) => {
+                if (this.state.nodes[nodeName][key]) {
+                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
+                }
+            });
         };
 
         if (urlPath === "/") {
-            Object.keys(this.state.nodes).forEach(renderGraphsForNode);
+            if (this.state.nodes.dashboard) {
+                renderGraphsForNode("dashboard");
+            }
             buttons.push(
                 React.createElement(
                     "button", {
