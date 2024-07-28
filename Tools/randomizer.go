@@ -46,6 +46,8 @@ func (rand *Randomizer) GenerateRandomNumber(min, max int) int {
 	return number
 }
 
+// Uses a combination of the randomizer seed and the seed provided.
+// Two calls to the same randomizer with the same parameters will always generate the same result.
 func (randomizer *Randomizer) GenerateRandomStringWithSeed(length int, validChars string, seed int) string {
 	str := ""
 	for i := 0; i < length; i++ {
@@ -55,6 +57,8 @@ func (randomizer *Randomizer) GenerateRandomStringWithSeed(length int, validChar
 
 }
 
+// Uses a combination of the randomizer seed and the seed provided.
+// Two calls to the same randomizer with the same parameters will always generate the same result.
 func (randomizer *Randomizer) GenerateRandomNumberWithSeed(min, max int, seed int) int {
 	return int(rand.NewSource(randomizer.seed+int64(seed)).Int63()%int64(max-min+1)) + min
 }
