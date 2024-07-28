@@ -24,14 +24,7 @@ func (broker *Broker) handleNodeConnections() {
 			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
-			ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
-			if err != nil {
-				netConn.Close()
-				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to get remote address", err).Error())
-				}
-				return
-			}
+			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if broker.brokerTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
 				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {

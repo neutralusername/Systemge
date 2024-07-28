@@ -23,14 +23,7 @@ func (resolver *Resolver) handleConfigConnections() {
 		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 		}
-		ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
-		if err != nil {
-			netConn.Close()
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to get remote address", err).Error())
-			}
-			continue
-		}
+		ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 		if resolver.configTcpServer.GetBlacklist().Contains(ip) {
 			netConn.Close()
 			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
