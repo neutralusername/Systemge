@@ -10,6 +10,28 @@ import (
 type Application interface {
 }
 
+type BrokerApplication struct {
+	Config *Config.Broker
+}
+
+func (brokerApp *BrokerApplication) GetBrokerComponentConfig() *Config.Broker {
+	return brokerApp.Config
+}
+func NewBrokerApplication(config *Config.Broker) Application {
+	return &BrokerApplication{config}
+}
+
+type ResolverApplication struct {
+	Config *Config.Resolver
+}
+
+func (resolverApp *ResolverApplication) GetResolverComponentConfig() *Config.Resolver {
+	return resolverApp.Config
+}
+func NewResolverApplication(config *Config.Resolver) Application {
+	return &ResolverApplication{config}
+}
+
 func ImplementsSystemgeComponent(app Application) bool {
 	_, ok := app.(SystemgeComponent)
 	return ok
