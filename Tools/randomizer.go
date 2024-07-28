@@ -67,16 +67,16 @@ func (randomizer *Randomizer) GenerateRandomNumberWithSeed(min, max int, seed in
 	return int(rand.NewSource(randomizer.seed+int64(seed)).Int63()%int64(max-min+1)) + min
 }
 
-// RandomString generates a random string of a given length and alphabet
-// Seed is the current system time
-// Two calls to this function will usually not generate the same result
+// RandomString generates a random string of a given length and alphabet.
+// Seed is the current system time.
+// Two calls to this function will usually not generate the same result.
 func RandomString(length int, alphabet string) string {
 	return NewRandomizer(GetSystemTime()).GenerateRandomString(length, alphabet)
 }
 
-// RandomNumber generates a random number between min and max
-// Seed is the current system time
-// Two calls to this function will usually not generate the same result
+// RandomNumber generates a random number between min and max.
+// Seed is the current system time.
+// Two calls to this function will usually not generate the same result.
 func RandomNumber(min, max int) int {
 	return NewRandomizer(GetSystemTime()).GenerateRandomNumber(min, max)
 }
