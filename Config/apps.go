@@ -52,9 +52,10 @@ type Resolver struct {
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync bool               // default: false
-	LoggerQueue            *Tools.LoggerQueue // *optional*
-	Mailer                 *Tools.Mailer      // *optional*
+	IsSpawnedNodeTopicSync      bool               // default: false
+	PropagateSpawnedNodeChanges bool               // default: false (if true, changes need to be received through the corresponding channel)(automated by dashboard)
+	LoggerQueue                 *Tools.LoggerQueue // *optional*
+	Mailer                      *Tools.Mailer      // *optional*
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*
@@ -64,7 +65,6 @@ type Spawner struct {
 type Dashboard struct {
 	Server                         *TcpServer // *required*
 	AutoStart                      bool       // default: false
-	AddSpawnedNodesToDashboard     bool       // default: false
 	EnableDashboardCounters        bool       // default: false
 	HeapUpdateIntervalMs           uint64     // default: 0 = disabled
 	NodeStatusIntervalMs           uint64     // default: 0 = disabled

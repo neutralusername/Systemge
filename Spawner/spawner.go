@@ -32,7 +32,9 @@ func (spawner *Spawner) spawnNode(id string) error {
 		}
 	}
 	spawner.spawnedNodes[id] = newNode
-	spawner.addNodeChannel <- newNode
+	if spawner.spawnerConfig.PropagateSpawnedNodeChanges {
+		spawner.addNodeChannel <- newNode
+	}
 	return nil
 }
 
@@ -68,7 +70,9 @@ func (spawner *Spawner) despawnNode(id string) error {
 		}
 	}
 	delete(spawner.spawnedNodes, id)
-	spawner.removeNodeChannel <- spawnedNode
+	if spawner.spawnerConfig.PropagateSpawnedNodeChanges {
+		spawner.removeNodeChannel <- spawnedNode
+	}
 	return nil
 }
 
