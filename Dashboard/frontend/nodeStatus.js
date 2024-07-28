@@ -2,44 +2,11 @@ export class nodeStatus extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			commandsCollapsed: true,
 		}
 		
 	}
 
 	render() {
-		let commands = this.props.node.commands ? this.props.node.commands.map((command) => {
-			return React.createElement(
-				"div", {
-					key: command,
-					style: {
-						display: "flex",
-						flexDirection: "row",
-						alignItems: "center",
-					},
-				},
-				React.createElement(
-					"button", {
-						onClick: () => {
-							this.props.WS_CONNECTION.send(this.props.constructMessage("command", JSON.stringify({
-								name: this.props.node.name,
-								command: command,
-								args: document.getElementById(command).value !== "" ? document.getElementById(command).value.split(" ") : [],
-							})));
-						},
-					},
-					command,
-				),
-				React.createElement(
-					"input", {
-						type: "text",
-						id: command,
-						name: command,
-						placeholder: "args",
-					},
-				),
-			);
-		}): null;
 		return React.createElement(
 			"div", {
 				className: "nodeStatus",
@@ -71,17 +38,24 @@ export class nodeStatus extends React.Component {
 						style: {
 							margin: "0 10px",
 						},
-						onClick: () => {
-							this.setState({
-								commandsCollapsed: !this.state.commandsCollapsed,
-							});
-						},
 					},
-					this.props.node.name,
+					React.createElement(
+						"a", {
+							href: this.props.node.name !== "dashboard" ? `/${this.props.node.name}` : "",
+							onClick: (e) => {
+								e.preventDefault();
+								if (this.props.node.name !== "dashboard") {
+									//if not current page
+									if (window.location.pathname !== `/${this.props.node.name}`)
+										window.location.href = `/${this.props.node.name}`;
+								}
+							},
+						},
+						this.props.node.name,
+					),
 				),
 				this.props.node.status ? "🟢" : "🔴",
 			),
-			commands && !this.state.commandsCollapsed ? commands : null,
 		)		
 	}
 }

@@ -1,12 +1,13 @@
 package Dashboard
 
 import (
-	"github.com/neutralusername/Systemge/Config"
 	"net/http"
+
+	"github.com/neutralusername/Systemge/Config"
 )
 
 func (app *App) GetHTTPMessageHandlers() map[string]http.HandlerFunc {
-	return app.httpMessageHandlers
+	return nil
 }
 
 func (app *App) GetHTTPComponentConfig() *Config.HTTP {

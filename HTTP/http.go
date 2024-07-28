@@ -1,12 +1,13 @@
 package HTTP
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Tools"
-	"net/http"
-	"time"
 )
 
 type Server struct {
@@ -17,7 +18,7 @@ type Server struct {
 }
 
 func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
-	mux := http.NewServeMux()
+	mux := newCustomMux()
 	server := &Server{
 		config: config,
 		httpServer: &http.Server{
@@ -28,9 +29,17 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 		whitelist: Tools.NewAccessControlList(config.Server.Whitelist),
 	}
 	for pattern, handler := range handlers {
-		mux.HandleFunc(pattern, server.accessControllWrapper(handler))
+		mux.AddRoute(pattern, server.accessControllWrapper(handler))
 	}
 	return server
+}
+
+func (server *Server) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
+	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, server.accessControllWrapper(handlerFunc))
+}
+
+func (server *Server) RemoveRoute(pattern string) {
+	server.httpServer.Handler.(*CustomMux).RemoveRoute(pattern)
 }
 
 func (server *Server) GetWhitelist() *Tools.AccessControlList {
@@ -39,10 +48,6 @@ func (server *Server) GetWhitelist() *Tools.AccessControlList {
 
 func (server *Server) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
-}
-
-func (server *Server) GetHTTPServer() *http.Server {
-	return server.httpServer
 }
 
 func (server *Server) Start() error {

@@ -1,19 +1,55 @@
 package Dashboard
 
 import (
+	"net/http"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/neutralusername/Systemge/HTTP"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Node"
 	"github.com/neutralusername/Systemge/Spawner"
 )
 
+func (app *App) registerNodeHttpHandlers(node *Node.Node) {
+	_, filePath, _, _ := runtime.Caller(0)
+
+	app.node.AddHttpRoute("/"+node.GetName(), func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+node.GetName(), http.FileServer(http.Dir(filePath[:len(filePath)-len("lifecycle.go")]+"frontend"))).ServeHTTP(w, r)
+	})
+	app.node.AddHttpRoute("/"+node.GetName()+"/command/", func(w http.ResponseWriter, r *http.Request) {
+		args := r.URL.Path[len("/"+node.GetName()+"/command/"):]
+		argsSplit := strings.Split(args, " ")
+		if len(argsSplit) == 0 {
+			http.Error(w, "No command", http.StatusBadRequest)
+			return
+		}
+		result, err := app.nodeCommand(&Command{Name: node.GetName(), Command: argsSplit[0], Args: argsSplit[1:]})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(result))
+	})
+}
+
+func (app *App) unregisterNodeHttpHandlers(node *Node.Node) {
+	app.node.RemoveHttpRoute("/" + node.GetName())
+	app.node.RemoveHttpRoute("/" + node.GetName() + "/command/")
+}
+
 func (app *App) OnStart(node *Node.Node) error {
 	app.node = node
 	app.started = true
+	for _, node := range app.nodes {
+		app.registerNodeHttpHandlers(node)
+	}
+	_, filePath, _, _ := runtime.Caller(0)
+	app.node.AddHttpRoute("/", HTTP.SendDirectory(filePath[:len(filePath)-len("lifecycle.go")]+"frontend"))
+
 	if app.config.AddDashboardToDashboard {
 		app.nodes[node.GetName()] = node
 	}
@@ -80,6 +116,7 @@ func (app *App) removeNodeRoutine(node *Node.Node) {
 			}
 			return
 		}
+		app.unregisterNodeHttpHandlers(removedNode)
 		delete(app.nodes, removedNode.GetName())
 		app.node.WebsocketBroadcast(Message.NewAsync("removeNode", app.node.GetName(), removedNode.GetName()))
 	}

@@ -14,6 +14,20 @@ type httpComponent struct {
 	requestCounter atomic.Uint64
 }
 
+func (node *Node) AddHttpRoute(path string, handler http.HandlerFunc) {
+	if node.http == nil {
+		return
+	}
+	node.http.server.AddRoute(path, handler)
+}
+
+func (node *Node) RemoveHttpRoute(path string) {
+	if node.http == nil {
+		return
+	}
+	node.http.server.RemoveRoute(path)
+}
+
 func (node *Node) GetHTTPRequestCounter() uint64 {
 	if node.http == nil {
 		return 0

@@ -1,3 +1,4 @@
+import { commands } from "./commands.js";
 import { 
     lineGraph 
 } from "./lineGraph.js";
@@ -216,17 +217,9 @@ export class root extends React.Component {
         let nodeStatuses = [];
         let buttons = [];
         let multiLineGraphs = [];
+        let commandsComponent = null;
 
-        for (let nodeName in this.state.nodes) {
-            nodeStatuses.push(React.createElement(
-                nodeStatus, {
-                    node: this.state.nodes[nodeName],
-                    key: nodeName,
-                    WS_CONNECTION: this.WS_CONNECTION,
-                    constructMessage: this.constructMessage,
-                },
-            ));
-        }
+
 
         const renderGraphsForNode = (nodeName) => {
             Object.keys(this.counterConfig).forEach((key) => {
@@ -237,6 +230,16 @@ export class root extends React.Component {
         };
 
         if (urlPath === "/") {
+            for (let nodeName in this.state.nodes) {
+                nodeStatuses.push(React.createElement(
+                    nodeStatus, {
+                        node: this.state.nodes[nodeName],
+                        key: nodeName,
+                        WS_CONNECTION: this.WS_CONNECTION,
+                        constructMessage: this.constructMessage,
+                    },
+                ));
+            }
             if (this.state.nodes.dashboard) {
                 renderGraphsForNode("dashboard");
             }
@@ -271,7 +274,22 @@ export class root extends React.Component {
         } else {
             let nodeName = urlPath.substring(1);
             if (this.state.nodes[nodeName]) {
+                nodeStatuses.push(React.createElement(
+                    nodeStatus, {
+                        node: this.state.nodes[nodeName],
+                        key: nodeName,
+                        WS_CONNECTION: this.WS_CONNECTION,
+                        constructMessage: this.constructMessage,
+                    },
+                ));
                 renderGraphsForNode(nodeName);
+                commandsComponent = React.createElement(
+                    commands, {
+                        node: this.state.nodes[nodeName],
+                        WS_CONNECTION: this.WS_CONNECTION,
+                        constructMessage: this.constructMessage,
+                    },
+                );
             }
         }
 
@@ -308,12 +326,28 @@ export class root extends React.Component {
                 },
                 responseMessages,
             ),
-            React.createElement(
+            urlPath != "/" ? React.createElement(
                 "button", {
                     style: {
                         position: "fixed",
                         top: "0",
                         left: "0",
+                        width: "100px",
+                        height: "30px",
+                    },
+                    onClick: () => {
+                        window.location.href = "/";
+                    },
+                },
+                "back",
+            ) :  React.createElement(
+                "button", {
+                    style: {
+                        position: "fixed",
+                        top: "0",
+                        right: "0",
+                        width: "100px",
+                        height: "30px",
                     },
                     onClick: () => {
                         this.WS_CONNECTION.send(this.constructMessage("close"));
@@ -322,6 +356,7 @@ export class root extends React.Component {
                 "close",
             ),
             nodeStatuses,
+            commandsComponent,
             buttons,
             multiLineGraphs,
             React.createElement(
