@@ -6,6 +6,9 @@ import (
 
 func (node *Node) WebsocketBroadcast(message *Message.Message) {
 	if websocket := node.websocket; websocket != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log("Broadcasting message with topic \"" + message.GetTopic() + "\"")
+		}
 		messageBytes := message.Serialize()
 		websocket.mutex.Lock()
 		defer websocket.mutex.Unlock()
@@ -26,6 +29,9 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) {
 
 func (node *Node) WebsocketUnicast(id string, message *Message.Message) {
 	if websocket := node.websocket; websocket != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log("Unicasting message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + id + "\"")
+		}
 		messageBytes := message.Serialize()
 		websocket.mutex.Lock()
 		defer websocket.mutex.Unlock()
@@ -46,6 +52,13 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) {
 
 func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) {
 	if websocket := node.websocket; websocket != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			idsString := ""
+			for _, id := range ids {
+				idsString += id + ", "
+			}
+			infoLogger.Log("Multicasting message with topic \"" + message.GetTopic() + "\" to websocketClients \"" + idsString[:len(idsString)-2] + "\"")
+		}
 		messageBytes := message.Serialize()
 		websocket.mutex.Lock()
 		defer websocket.mutex.Unlock()
@@ -68,6 +81,9 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) {
 
 func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) {
 	if websocket := node.websocket; websocket != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log("Groupcasting message with topic \"" + message.GetTopic() + "\" to group \"" + groupId + "\"")
+		}
 		messageBytes := message.Serialize()
 		websocket.mutex.Lock()
 		defer websocket.mutex.Unlock()
