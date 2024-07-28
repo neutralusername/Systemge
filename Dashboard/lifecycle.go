@@ -169,7 +169,7 @@ func (app *App) nodeSystemgeCountersRoutine() {
 func (app *App) nodeWebsocketCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
-			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+			if Node.ImplementsWebsocketComponent(node.GetApplication()) {
 				messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
