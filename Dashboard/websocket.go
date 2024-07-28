@@ -78,9 +78,13 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 }
 
 func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
 	for _, n := range app.nodes {
-		websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
-		websocketClient.Send(Message.NewAsync("nodeCommands", node.GetName(), Helpers.JsonMarshal(newNodeCommands(n))).Serialize())
+		go func() {
+			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeCommands", node.GetName(), Helpers.JsonMarshal(newNodeCommands(n))).Serialize())
+		}()
 	}
 }
 
@@ -89,7 +93,9 @@ func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.Webso
 }
 
 func (app *App) startNode(nodeName string) error {
+	app.mutex.Lock()
 	n := app.nodes[nodeName]
+	app.mutex.Unlock()
 	if n == nil {
 		return Error.New("Node not found", nil)
 	}
@@ -101,7 +107,9 @@ func (app *App) startNode(nodeName string) error {
 }
 
 func (app *App) stopNode(nodeName string) error {
+	app.mutex.Lock()
 	n := app.nodes[nodeName]
+	app.mutex.Unlock()
 	if n == nil {
 		return Error.New("Node not found", nil)
 	}
@@ -113,7 +121,9 @@ func (app *App) stopNode(nodeName string) error {
 }
 
 func (app *App) nodeCommand(command *Command) (string, error) {
+	app.mutex.Lock()
 	n := app.nodes[command.Name]
+	app.mutex.Unlock()
 	if n == nil {
 		return "", Error.New("Node not found", nil)
 	}

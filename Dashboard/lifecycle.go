@@ -44,14 +44,18 @@ func (app *App) unregisterNodeHttpHandlers(node *Node.Node) {
 func (app *App) OnStart(node *Node.Node) error {
 	app.node = node
 	app.started = true
+	app.mutex.Lock()
 	for _, node := range app.nodes {
 		app.registerNodeHttpHandlers(node)
 	}
+	app.mutex.Unlock()
 	_, filePath, _, _ := runtime.Caller(0)
 	app.node.AddHttpRoute("/", HTTP.SendDirectory(filePath[:len(filePath)-len("lifecycle.go")]+"frontend"))
 
 	if app.config.AddDashboardToDashboard {
+		app.mutex.Lock()
 		app.nodes[node.GetName()] = node
+		app.mutex.Unlock()
 	}
 	if app.config.GoroutineUpdateIntervalMs > 0 {
 		go app.goroutineUpdateRoutine()
@@ -80,12 +84,14 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeSpawnerCounterIntervalMs > 0 {
 		go app.nodeSpawnerCountersRoutine()
 	}
+	app.mutex.Lock()
 	for _, node := range app.nodes {
 		if Spawner.ImplementsSpawner(node.GetApplication()) {
 			go app.addNodeRoutine(node)
 			go app.removeNodeRoutine(node)
 		}
 	}
+	app.mutex.Unlock()
 	return nil
 }
 
@@ -115,7 +121,9 @@ func (app *App) addNodeRoutine(node *Node.Node) {
 			}
 			return
 		}
+		app.mutex.Lock()
 		app.nodes[spawnedNode.GetName()] = spawnedNode
+		app.mutex.Unlock()
 		app.registerNodeHttpHandlers(spawnedNode)
 		app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), Helpers.JsonMarshal(newNodeStatus(spawnedNode))))
 	}
@@ -131,13 +139,16 @@ func (app *App) removeNodeRoutine(node *Node.Node) {
 			return
 		}
 		app.unregisterNodeHttpHandlers(removedNode)
+		app.mutex.Lock()
 		delete(app.nodes, removedNode.GetName())
+		app.mutex.Unlock()
 		app.node.WebsocketBroadcast(Message.NewAsync("removeNode", app.node.GetName(), removedNode.GetName()))
 	}
 }
 
 func (app *App) nodeSpawnerCountersRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Spawner.ImplementsSpawner(node.GetApplication()) {
 				spawnerCountersJson := Helpers.JsonMarshal(newNodeSpawnerCounters(node))
@@ -147,12 +158,14 @@ func (app *App) nodeSpawnerCountersRoutine() {
 				}
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeSpawnerCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeHTTPCountersRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Node.ImplementsHTTPComponent(node.GetApplication()) {
 				httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(node))
@@ -162,12 +175,14 @@ func (app *App) nodeHTTPCountersRoutine() {
 				}
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeHTTPCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeResolverCountersRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Node.ImplementsResolverComponent(node.GetApplication()) {
 				resolverCountersJson := Helpers.JsonMarshal(newNodeResolverCounters(node))
@@ -177,12 +192,14 @@ func (app *App) nodeResolverCountersRoutine() {
 				}
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeResolverCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeBrokerCountersRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Node.ImplementsBrokerComponent(node.GetApplication()) {
 				brokerCountersJson := Helpers.JsonMarshal(newNodeBrokerCounters(node))
@@ -192,12 +209,14 @@ func (app *App) nodeBrokerCountersRoutine() {
 				}
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeBrokerCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeSystemgeCountersRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				systemgeCountersJson := Helpers.JsonMarshal(newNodeSystemgeCounters(node))
@@ -207,12 +226,14 @@ func (app *App) nodeSystemgeCountersRoutine() {
 				}
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeWebsocketCountersRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Node.ImplementsWebsocketComponent(node.GetApplication()) {
 				messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(node))
@@ -222,12 +243,14 @@ func (app *App) nodeWebsocketCountersRoutine() {
 				}
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeWebsocketCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeStatusRoutine() {
 	for app.started {
+		app.mutex.Lock()
 		for _, node := range app.nodes {
 			statusUpdateJson := Helpers.JsonMarshal(newNodeStatus(node))
 			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), statusUpdateJson))
@@ -235,6 +258,7 @@ func (app *App) nodeStatusRoutine() {
 				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
 			}
 		}
+		app.mutex.Unlock()
 		time.Sleep(time.Duration(app.config.NodeStatusIntervalMs) * time.Millisecond)
 	}
 }

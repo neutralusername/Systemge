@@ -1,6 +1,8 @@
 package Dashboard
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Node"
 )
@@ -8,6 +10,7 @@ import (
 type App struct {
 	nodes   map[string]*Node.Node
 	node    *Node.Node
+	mutex   sync.Mutex
 	config  *Config.Dashboard
 	started bool
 }
