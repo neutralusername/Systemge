@@ -359,7 +359,7 @@ export class root extends React.Component {
             commandsComponent,
             buttons,
             multiLineGraphs,
-            React.createElement(
+            Object.keys(this.state.heapUpdates).length > 0 ? React.createElement(
                 lineGraph, {
                     chartName: "heapChart",
                     dataLabel: "heap usage",
@@ -367,7 +367,7 @@ export class root extends React.Component {
                     height: "400px",
                     width: "1200px",
                 },
-            ),
+            ) : null,
             React.createElement(
                 "button", {
                     onClick: () => {
