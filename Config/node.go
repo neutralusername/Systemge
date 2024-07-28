@@ -47,3 +47,35 @@ type Websocket struct {
 type HTTP struct {
 	Server *TcpServer // *required*
 }
+
+type Broker struct {
+	Server       *TcpServer   // *required*
+	Endpoint     *TcpEndpoint // *required*
+	ConfigServer *TcpServer   // *required*
+
+	SyncTopics  []string
+	AsyncTopics []string
+
+	ResolverConfigEndpoint *TcpEndpoint // *required*
+
+	SyncResponseTimeoutMs uint64 // default: 0
+	TcpTimeoutMs          uint64 // default: 0 = block forever
+
+	IncomingMessageByteLimit uint64 // default: 0 = unlimited
+	MaxOriginSize            int    // default: 0 = unlimited
+	MaxPayloadSize           int    // default: 0 = unlimited
+	MaxTopicSize             int    // default: 0 = unlimited
+	MaxSyncKeySize           int    // default: 0 = unlimited
+}
+
+type Resolver struct {
+	Server       *TcpServer // *required*
+	ConfigServer *TcpServer // *required*
+
+	TcpTimeoutMs uint64 // default: 0 = block forever
+
+	IncomingMessageByteLimit uint64 // default: 0 = unlimited
+	MaxPayloadSize           int    // default: 0 = unlimited
+	MaxOriginSize            int    // default: 0 = unlimited
+	MaxTopicSize             int    // default: 0 = unlimited
+}
