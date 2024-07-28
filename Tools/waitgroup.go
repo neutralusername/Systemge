@@ -16,6 +16,7 @@ func NewWaitgroup() *Waitgroup {
 	}
 }
 
+// Wrap operation in func() in order to add it to the waitgroup
 func (myWaitgroup *Waitgroup) Add(function func()) {
 	myWaitgroup.waitGroup.Add(1)
 	go func() {
