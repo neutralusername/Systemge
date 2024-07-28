@@ -20,20 +20,20 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 		brokerConnection.receiveMutex.Unlock()
 		if err != nil {
 			close(brokerConnection.closeChannel)
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 			for _, topic := range systemge.cleanUpDisconnectedBrokerConnection(brokerConnection) {
 				go func(topic string) {
 					err := node.subscribeLoop(topic, systemge.application.GetSystemgeComponentConfig().MaxSubscribeAttempts)
 					if err != nil {
-						if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+						if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 							warningLogger.Log(Error.New("Failed to subscribe for topic \""+topic+"\"", err).Error())
 						}
 						if node.systemge == systemge {
 							err := node.stop(true)
 							if err != nil {
-								if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+								if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 									warningLogger.Log(Error.New("Failed to stop node due to failed subscription for topic \""+topic+"\"", err).Error())
 								}
 							}
@@ -46,7 +46,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 		systemge.bytesReceivedCounter.Add(bytesReceived)
 		message := Message.Deserialize(messageBytes)
 		if message == nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to deserialize message from broker \""+brokerConnection.endpoint.Address+"\" with "+string(messageBytes)+" bytes", nil).Error())
 			}
 			continue
@@ -57,7 +57,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 		if message.GetSyncResponseToken() != "" {
 			err := node.handleSyncResponse(message)
 			if err != nil {
-				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle sync response with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncResponseToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 				}
 			} else {
@@ -72,12 +72,12 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			systemge.incomingSyncRequestCounter.Add(1)
 			response, err := node.handleSyncMessage(message)
 			if err != nil {
-				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 				}
 				bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.NewResponse("error", node.GetName(), Error.New("failed handling message", err).Error()).Serialize())
 				if err != nil {
-					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response for failed sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
 				}
@@ -88,7 +88,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 				}
 				bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.NewResponse(message.GetTopic(), node.GetName(), response).Serialize())
 				if err != nil {
-					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send response for sync request with topic \""+message.GetTopic()+"\" and token \""+message.GetSyncRequestToken()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 					}
 				} else {
@@ -104,7 +104,7 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 		}
 		err = node.handleAsyncMessage(message)
 		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 		} else {

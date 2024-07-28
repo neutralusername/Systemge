@@ -18,7 +18,7 @@ func (node *Node) AsyncMessage(topic, origin, payload string) error {
 		}
 		bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.Serialize())
 		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send async message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
 			}
 			return Error.New("failed sending async message", err)

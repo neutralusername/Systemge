@@ -39,14 +39,14 @@ func handleSessionRequest(server *App, sessionRequest *oauth2SessionRequest) {
 	identity, keyValuePairs, err := server.config.TokenHandler(server.config.OAuth2Config, sessionRequest.token)
 	if err != nil {
 		sessionRequest.sessionChannel <- nil
-		if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
+		if warningLogger := server.node.GetInternalWarningError(); warningLogger != nil {
 			warningLogger.Log(Error.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\"", err).Error())
 		}
 		return
 	}
 	if identity == "" {
 		sessionRequest.sessionChannel <- nil
-		if warningLogger := server.node.GetWarningLogger(); warningLogger != nil {
+		if warningLogger := server.node.GetInternalWarningError(); warningLogger != nil {
 			warningLogger.Log(Error.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 		}
 		return

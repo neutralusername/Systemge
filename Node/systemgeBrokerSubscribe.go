@@ -29,7 +29,7 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 		}
 		brokerConnection, err := node.getBrokerConnectionForTopic(topic, false)
 		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to get broker connection for topic \""+topic+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", err).Error())
 			}
 			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)
@@ -45,7 +45,7 @@ func (node *Node) subscribeLoop(topic string, maxSubscribeAttempts uint64) error
 					infoLogger.Log(Error.New("Closed broker connection \""+brokerConnection.endpoint.Address+"\" due to no topics (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", nil).Error())
 				}
 			}
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\" from broker connection \""+brokerConnection.endpoint.Address+"\" (attempt "+Helpers.Uint64ToString(subscribeAttempts)+")", err).Error())
 			}
 			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().BrokerSubscribeDelayMs) * time.Millisecond)

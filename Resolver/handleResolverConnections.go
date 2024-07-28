@@ -12,7 +12,7 @@ func (resolver *Resolver) handleResolverConnections() {
 	for resolver.isStarted {
 		netConn, err := resolver.resolverTcpServer.GetListener().Accept()
 		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept resolution connection request", err).Error())
 			}
 			continue
@@ -25,26 +25,26 @@ func (resolver *Resolver) handleResolverConnections() {
 			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if resolver.resolverTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
 				}
 				return
 			}
 			if resolver.resolverTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.resolverTcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
 				}
 				return
 			}
 			err := resolver.handleResolutionRequest(netConn)
 			if err != nil {
-				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle resolution request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
 				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {

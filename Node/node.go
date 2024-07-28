@@ -66,7 +66,7 @@ func (node *Node) Start() error {
 		err := node.startSystemgeComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
-				node.GetWarningLogger().Log(Error.New("failed to stop node", err).Error())
+				node.GetInternalWarningError().Log(Error.New("failed to stop node", err).Error())
 			}
 			return Error.New("failed starting systemge component", err)
 		}
@@ -81,7 +81,7 @@ func (node *Node) Start() error {
 		err := node.startWebsocketComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
-				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+				node.GetInternalWarningError().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting websocket server", err)
 		}
@@ -96,7 +96,7 @@ func (node *Node) Start() error {
 		err := node.startHTTPComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
-				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+				node.GetInternalWarningError().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting http server", err)
 		}
@@ -111,7 +111,7 @@ func (node *Node) Start() error {
 		err := node.GetOnStartComponent().OnStart(node)
 		if err != nil {
 			if err := node.stop(false); err != nil {
-				node.GetWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
+				node.GetInternalWarningError().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed in OnStart", err)
 		}
@@ -212,12 +212,12 @@ func (node *Node) GetErrorLogger() *Tools.Logger {
 	return node.config.ErrorLogger
 }
 
-func (node *Node) GetWarningLogger() *Tools.Logger {
+func (node *Node) GetInternalWarningError() *Tools.Logger {
 	return node.config.InternalWarningLogger
 }
 
-func (node *Node) GetInternalWarningLogger() *Tools.Logger {
-	return node.config.InternalWarningLogger
+func (node *Node) GetWarningLogger() *Tools.Logger {
+	return node.config.WarningLogger
 }
 
 func (node *Node) GetInfoLogger() *Tools.Logger {

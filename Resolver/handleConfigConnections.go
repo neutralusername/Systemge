@@ -14,7 +14,7 @@ func (resolver *Resolver) handleConfigConnections() {
 	for resolver.isStarted {
 		netConn, err := resolver.configTcpServer.GetListener().Accept()
 		if err != nil {
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept config connection request", err).Error())
 			}
 			continue
@@ -27,26 +27,26 @@ func (resolver *Resolver) handleConfigConnections() {
 			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if resolver.configTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				return
 			}
 			if resolver.configTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.configTcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				return
 			}
 			err := resolver.handleConfigConnection(netConn)
 			if err != nil {
-				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle config request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
 				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
@@ -55,7 +55,7 @@ func (resolver *Resolver) handleConfigConnections() {
 			} else {
 				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("success", resolver.node.GetName(), "").Serialize(), resolver.config.TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {

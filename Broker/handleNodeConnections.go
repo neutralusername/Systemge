@@ -15,7 +15,7 @@ func (broker *Broker) handleNodeConnections() {
 	for broker.isStarted {
 		netConn, err := broker.brokerTcpServer.GetListener().Accept()
 		if err != nil {
-			if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
 			continue
@@ -27,14 +27,14 @@ func (broker *Broker) handleNodeConnections() {
 			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if broker.brokerTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				return
 			}
 			if broker.brokerTcpServer.GetWhitelist().ElementCount() > 0 && !broker.brokerTcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				return
@@ -51,7 +51,7 @@ func (broker *Broker) handleNodeConnection(netConn net.Conn) {
 	nodeConnection, err := broker.handleNodeConnectionRequest(netConn)
 	if err != nil {
 		netConn.Close()
-		if warningLogger := broker.node.GetWarningLogger(); warningLogger != nil {
+		if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
 			warningLogger.Log(Error.New("Failed to handle connection request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 		}
 		return

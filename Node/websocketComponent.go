@@ -1,12 +1,13 @@
 package Node
 
 import (
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/HTTP"
 	"net/http"
 	"sync"
 	"sync/atomic"
+
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/HTTP"
 
 	"github.com/gorilla/websocket"
 )
@@ -68,7 +69,7 @@ func (node *Node) startWebsocketComponent() error {
 	node.websocket.httpServer = HTTP.New(&Config.HTTP{
 		Server: node.websocket.application.GetWebsocketComponentConfig().Server,
 	}, map[string]http.HandlerFunc{
-		node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetWarningLogger()),
+		node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetInternalWarningError()),
 	})
 	node.websocket.onDisconnectWraper = func(websocketClient *WebsocketClient) {
 		websocket.application.OnDisconnectHandler(node, websocketClient)

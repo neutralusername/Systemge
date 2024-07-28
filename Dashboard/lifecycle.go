@@ -61,7 +61,7 @@ func (app *App) addNodeRoutine(node *Node.Node) {
 	spawner := node.GetApplication().(*Spawner.Spawner)
 	for spawnedNode := range spawner.GetAddNodeChannel() {
 		if spawnedNode == nil {
-			if warningLogger := app.node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := app.node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
 			}
 			return
@@ -76,7 +76,7 @@ func (app *App) removeNodeRoutine(node *Node.Node) {
 	spawner := node.GetApplication().(*Spawner.Spawner)
 	for removedNode := range spawner.GetRemoveNodeChannel() {
 		if removedNode == nil {
-			if warningLogger := app.node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := app.node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
 			}
 			return

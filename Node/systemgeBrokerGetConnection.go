@@ -79,7 +79,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 					for systemge == node.systemge {
 						err := systemge.topicResolutionLifetimeTimeout(node.GetName(), topic, brokerConnection)
 						if err != nil {
-							if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+							if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 								warningLogger.Log(err.Error())
 							}
 							systemge.mutex.Lock()

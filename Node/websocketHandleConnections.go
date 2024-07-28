@@ -44,7 +44,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		}
 		messageBytes, err := websocketClient.Receive()
 		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error())
 			}
 			return
@@ -53,7 +53,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		websocket.bytesReceivedCounter.Add(uint64(len(messageBytes)))
 		message := Message.Deserialize(messageBytes)
 		if message == nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to deserialize message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", nil).Error())
 			}
 			continue
@@ -69,7 +69,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		if time.Since(websocketClient.GetLastMessageTimestamp()) < time.Duration(websocket.application.GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
 			err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
-				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client", err).Error())
 				}
 			}
@@ -79,7 +79,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		if websocket.application.GetWebsocketComponentConfig().HandleClientMessagesSequentially {
 			err := node.handleWebsocketMessage(websocketClient, message)
 			if err != nil {
-				if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle message (sequentially)", err).Error())
 				}
 			} else {
@@ -91,7 +91,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			go func() {
 				err := node.handleWebsocketMessage(websocketClient, message)
 				if err != nil {
-					if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to handle message (concurrently)", err).Error())
 					}
 				} else {
@@ -111,7 +111,7 @@ func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, messa
 	if handler == nil {
 		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send error message to websocket client", err).Error())
 			}
 		}
@@ -121,7 +121,7 @@ func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, messa
 	if err != nil {
 		err := websocketClient.Send(Message.NewAsync("error", node.GetName(), Error.New("error in handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
 		if err != nil {
-			if warningLogger := node.GetWarningLogger(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send error message to websocket client", err).Error())
 			}
 		}
