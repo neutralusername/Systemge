@@ -48,6 +48,7 @@ func (node *Node) RemoveFromWebsocketGroup(groupId string, websocketIds ...strin
 		if len(node.websocket.groups[groupId]) == 0 {
 			delete(node.websocket.groups, groupId)
 		}
+		return nil
 	}
 	return Error.New("websocket component is not initialized", nil)
 }
