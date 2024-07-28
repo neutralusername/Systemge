@@ -223,6 +223,9 @@ export class root extends React.Component {
                     multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
                 }
             });
+            if (nodeName === "dashboard") {
+                return;
+            }
             nodeStatuses.push(React.createElement(
                 nodeStatus, {
                     node: this.state.nodes[nodeName],
