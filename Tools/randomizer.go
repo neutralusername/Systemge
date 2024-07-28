@@ -29,6 +29,8 @@ func NewRandomizer(seed int64) *Randomizer {
 	}
 }
 
+// Generates a random string of a given length and alphabet based on the randomizer seed.
+// Two calls to the same randomizer with the same parameters will usually not generate the same result.
 func (rand *Randomizer) GenerateRandomString(length int, validChars string) string {
 	str := ""
 	for i := 0; i < length; i++ {
@@ -39,6 +41,8 @@ func (rand *Randomizer) GenerateRandomString(length int, validChars string) stri
 	return str
 }
 
+// Generates a random number between min and max based on the randomizer seed.
+// Two calls to the same randomizer with the same parameters will usually not generate the same result.
 func (rand *Randomizer) GenerateRandomNumber(min, max int) int {
 	rand.mutex.Lock()
 	number := int(rand.source.Int63()%int64(max-min+1)) + min
@@ -46,7 +50,7 @@ func (rand *Randomizer) GenerateRandomNumber(min, max int) int {
 	return number
 }
 
-// Uses a combination of the randomizer seed and the seed provided.
+// Generates a random string of a given length and alphabet based on a combination of the randomizer seed and the seed provided.
 // Two calls to the same randomizer with the same parameters will always generate the same result.
 func (randomizer *Randomizer) GenerateRandomStringWithSeed(length int, validChars string, seed int) string {
 	str := ""
