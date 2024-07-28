@@ -243,6 +243,9 @@ export class root extends React.Component {
                     "button", {
                         onClick: () => {
                             Object.keys(this.state.nodes).forEach((nodeName) => {
+                                if (nodeName === "dashboard") {
+                                    return;
+                                }
                                 this.WS_CONNECTION.send(this.constructMessage("start", nodeName));
                             });
                         },
@@ -252,6 +255,9 @@ export class root extends React.Component {
                 React.createElement(
                     "button", {
                         onClick: () => {
+                            if (nodeName === "dashboard") {
+                                return;
+                            }
                             Object.keys(this.state.nodes).forEach((nodeName) => {
                                 this.WS_CONNECTION.send(this.constructMessage("stop", nodeName));
                             });
