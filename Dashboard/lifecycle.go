@@ -16,6 +16,9 @@ import (
 func (app *App) OnStart(node *Node.Node) error {
 	app.node = node
 	app.started = true
+	if app.config.AddDashboardToDashboard {
+		app.nodes[node.GetName()] = node
+	}
 	if app.config.NodeStatusIntervalMs > 0 {
 		go app.nodeStatusRoutine()
 	}
@@ -110,7 +113,7 @@ func (app *App) nodeHTTPCountersRoutine() {
 				}
 			}
 		}
-		if app.config.EnableDashboardCounters {
+		if app.config.AddDashboardToDashboard {
 			httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(app.node))
 			app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
 			if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
@@ -177,7 +180,7 @@ func (app *App) nodeWebsocketCountersRoutine() {
 				}
 			}
 		}
-		if app.config.EnableDashboardCounters {
+		if app.config.AddDashboardToDashboard {
 			messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(app.node))
 			app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
 			if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {

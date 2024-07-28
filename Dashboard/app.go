@@ -1,12 +1,13 @@
 package Dashboard
 
 import (
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/HTTP"
-	"github.com/neutralusername/Systemge/Node"
 	"net/http"
 	"runtime"
 	"strings"
+
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/HTTP"
+	"github.com/neutralusername/Systemge/Node"
 )
 
 type App struct {

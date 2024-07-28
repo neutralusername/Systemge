@@ -58,14 +58,14 @@ export class nodeStatus extends React.Component {
 						flexDirection: "row",
 					},
 				}, 
-				React.createElement(
+				this.props.node.name != "dashboard" ? React.createElement(
 					"button", {
 						onClick: () => {
 							this.props.node.status ? this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.node.name)) : this.props.WS_CONNECTION.send(this.props.constructMessage("start", this.props.node.name));
 						},
 					},
 					this.props.node.status ? "stop" : "start",
-				),
+				): null,
 				React.createElement(
 					"div", {
 						style: {
