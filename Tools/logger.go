@@ -1,8 +1,11 @@
 package Tools
 
 import (
-	"github.com/neutralusername/Systemge/Helpers"
 	"log"
+	"sync"
+
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 type Logger struct {
@@ -10,10 +13,12 @@ type Logger struct {
 	queue  *LoggerQueue
 }
 
-func NewLogger(prefix string, loggerQueue *LoggerQueue) *Logger {
+const defaultQueueBufferSize = 100
+
+func NewLogger(prefix string, path string) *Logger {
 	return &Logger{
 		prefix: prefix,
-		queue:  loggerQueue,
+		queue:  NewLoggerQueue(path, defaultQueueBufferSize),
 	}
 }
 
@@ -21,24 +26,57 @@ func (logger *Logger) Log(str string) {
 	logger.queue.queueLog(logger.prefix + str)
 }
 
+var loggerQueues = make(map[string]*LoggerQueue)
+var loggerQueueMutex = sync.Mutex{}
+
 type LoggerQueue struct {
 	logger *log.Logger
 	queue  chan string
 	stop   chan bool
+	closed bool
 }
 
 func NewLoggerQueue(path string, queueBuffer uint32) *LoggerQueue {
+	loggerQueueMutex.Lock()
+	defer loggerQueueMutex.Unlock()
+	if loggerQueue, ok := loggerQueues[path]; ok {
+		return loggerQueue
+	}
 	file := Helpers.OpenFileAppend(path)
 	loggerStruct := &LoggerQueue{
 		logger: log.New(file, "", log.Ldate|log.Ltime|log.Lmicroseconds),
 		queue:  make(chan string, queueBuffer),
 		stop:   make(chan bool),
 	}
+	loggerQueues[path] = loggerStruct
 	go loggerStruct.logRoutine()
 	return loggerStruct
 }
 
+func GetLoggerQueue(path string) *LoggerQueue {
+	loggerQueueMutex.Lock()
+	defer loggerQueueMutex.Unlock()
+	return loggerQueues[path]
+}
+
+func CloseLoggerQueue(path string) error {
+	loggerQueueMutex.Lock()
+	defer loggerQueueMutex.Unlock()
+	loggerQueue := loggerQueues[path]
+	if loggerQueue == nil {
+		return Error.New("Logger not found", nil)
+	}
+	close(loggerQueue.stop)
+	close(loggerQueue.queue)
+	delete(loggerQueues, path)
+	loggerQueue.closed = true
+	return nil
+}
+
 func (loggerQueue *LoggerQueue) queueLog(str string) {
+	if loggerQueue.closed {
+		return
+	}
 	loggerQueue.queue <- str
 }
 
@@ -51,10 +89,4 @@ func (loggerQueue *LoggerQueue) logRoutine() {
 			return
 		}
 	}
-}
-
-// Log calls after Close will cause a panic
-func (loggerQueue *LoggerQueue) Close() {
-	close(loggerQueue.stop)
-	close(loggerQueue.queue)
 }

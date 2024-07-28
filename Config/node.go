@@ -1,19 +1,23 @@
 package Config
 
-import (
-	"github.com/neutralusername/Systemge/Tools"
-)
+import "encoding/json"
 
 type Node struct {
 	Name string // *required*
 
-	Mailer                *Tools.Mailer // *optional*
-	InfoLogger            *Tools.Logger // *optional*
-	InternalInfoLogger    *Tools.Logger // *optional*
-	WarningLogger         *Tools.Logger // *optional*
-	InternalWarningLogger *Tools.Logger // *optional*
-	ErrorLogger           *Tools.Logger // *optional*
-	DebugLogger           *Tools.Logger // *optional*
+	Mailer                    *Mailer
+	InfoLoggerPath            string // *optional*
+	InternalInfoLoggerPath    string // *optional*
+	WarningLoggerPath         string // *optional*
+	InternalWarningLoggerPath string // *optional*
+	ErrorLoggerPath           string // *optional*
+	DebugLoggerPath           string // *optional*
 
 	RandomizerSeed int64 // default: 0
+}
+
+func UnmarshalNode(data string) *Node {
+	var node Node
+	json.Unmarshal([]byte(data), &node)
+	return &node
 }

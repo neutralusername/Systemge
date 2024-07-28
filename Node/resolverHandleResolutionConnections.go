@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
@@ -90,7 +91,7 @@ func (resolver *resolverComponent) handleResolutionRequest(nodeName string, info
 	if !ok {
 		return Error.New("unknown topic", nil)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync("resolution", nodeName, endpoint.Marshal()).Serialize(), resolver.application.GetResolverComponentConfig().TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync("resolution", nodeName, Helpers.JsonMarshal(endpoint)).Serialize(), resolver.application.GetResolverComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("failed to send resolution response", err)
 	}

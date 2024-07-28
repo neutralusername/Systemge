@@ -16,6 +16,14 @@ type Node struct {
 	isStarted   bool
 	mutex       sync.Mutex
 
+	mailer                *Tools.Mailer
+	infoLogger            *Tools.Logger
+	internalInfoLogger    *Tools.Logger
+	warningLogger         *Tools.Logger
+	internalWarningLogger *Tools.Logger
+	errorLogger           *Tools.Logger
+	debugLogger           *Tools.Logger
+
 	application Application
 
 	//resolver
@@ -41,6 +49,27 @@ func New(config *Config.Node, application Application) *Node {
 		application: application,
 
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
+	}
+	if config.Mailer != nil {
+		node.mailer = Tools.NewMailer(config.Mailer)
+	}
+	if config.InfoLoggerPath != "" {
+		node.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
+	}
+	if config.InternalInfoLoggerPath != "" {
+		node.internalInfoLogger = Tools.NewLogger("[InternalInfo: \""+config.Name+"\"] ", config.InternalInfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		node.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
+	}
+	if config.InternalWarningLoggerPath != "" {
+		node.internalWarningLogger = Tools.NewLogger("[InternalWarning: \""+config.Name+"\"] ", config.InternalWarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		node.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
+	}
+	if config.DebugLoggerPath != "" {
+		node.debugLogger = Tools.NewLogger("[Debug: \""+config.Name+"\"] ", config.DebugLoggerPath)
 	}
 	return node
 }
@@ -269,31 +298,31 @@ func (node *Node) GetApplication() Application {
 }
 
 func (node *Node) GetErrorLogger() *Tools.Logger {
-	return node.config.ErrorLogger
+	return node.errorLogger
 }
 
 func (node *Node) GetInternalWarningError() *Tools.Logger {
-	return node.config.InternalWarningLogger
+	return node.internalWarningLogger
 }
 
 func (node *Node) GetWarningLogger() *Tools.Logger {
-	return node.config.WarningLogger
+	return node.warningLogger
 }
 
 func (node *Node) GetInfoLogger() *Tools.Logger {
-	return node.config.InfoLogger
+	return node.infoLogger
 }
 
 func (node *Node) GetInternalInfoLogger() *Tools.Logger {
-	return node.config.InternalInfoLogger
+	return node.internalInfoLogger
 }
 
 func (node *Node) GetDebugLogger() *Tools.Logger {
-	return node.config.DebugLogger
+	return node.debugLogger
 }
 
 func (node *Node) GetMailer() *Tools.Mailer {
-	return node.config.Mailer
+	return node.mailer
 }
 
 func (node *Node) GetRandomizer() *Tools.Randomizer {

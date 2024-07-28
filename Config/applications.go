@@ -1,7 +1,7 @@
 package Config
 
 import (
-	"github.com/neutralusername/Systemge/Tools"
+	"encoding/json"
 
 	"golang.org/x/oauth2"
 )
@@ -20,14 +20,24 @@ type Oauth2 struct {
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync      bool               // default: false
-	PropagateSpawnedNodeChanges bool               // default: false (if true, changes need to be received through the corresponding channel)(automated by dashboard)
-	LoggerQueue                 *Tools.LoggerQueue // *optional*
-	Mailer                      *Tools.Mailer      // *optional*
-	LogInternals                bool               // default: false
+	IsSpawnedNodeTopicSync      bool   // default: false
+	PropagateSpawnedNodeChanges bool   // default: false (if true, changes need to be received through the corresponding channel)(automated by dashboard)
+	InfoLoggerPath              string // *optional*
+	InternalLoggerPath          string // *optional*
+	WarningLoggerPath           string // *optional*
+	InternalWarningLoggerPath   string // *optional*
+	ErrorLoggerPath             string // *optional*
+	DebugLoggerPath             string // *optional*
+	Mailer                      *Mailer
 
 	ResolverEndpoint     *TcpEndpoint // *required*
 	BrokerConfigEndpoint *TcpEndpoint // *required*
+}
+
+func UnmarshalSpawner(data string) *Spawner {
+	var spawner Spawner
+	json.Unmarshal([]byte(data), &spawner)
+	return &spawner
 }
 
 // Server applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
@@ -44,4 +54,10 @@ type Dashboard struct {
 	NodeBrokerCounterIntervalMs    uint64     // default: 0 = disabled
 	NodeResolverCounterIntervalMs  uint64     // default: 0 = disabled
 	NodeSpawnerCounterIntervalMs   uint64     // default: 0 = disabled
+}
+
+func UnmarshalDashboard(data string) *Dashboard {
+	var dashboard Dashboard
+	json.Unmarshal([]byte(data), &dashboard)
+	return &dashboard
 }

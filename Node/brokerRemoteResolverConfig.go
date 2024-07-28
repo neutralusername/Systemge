@@ -2,6 +2,7 @@ package Node
 
 import (
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
 )
@@ -15,7 +16,7 @@ func (broker *brokerComponent) addResolverTopicsRemotely(nodeName string, topics
 		return Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	payload := broker.application.GetBrokerComponentConfig().Endpoint.Marshal()
+	payload := Helpers.JsonMarshal(broker.application.GetBrokerComponentConfig().Endpoint)
 	for _, topic := range topics {
 		payload += "|" + topic
 	}

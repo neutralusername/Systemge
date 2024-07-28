@@ -1,6 +1,10 @@
 package Config
 
-import "github.com/gorilla/websocket"
+import (
+	"encoding/json"
+
+	"github.com/gorilla/websocket"
+)
 
 type Systemge struct {
 	HandleMessagesSequentially bool // default: false
@@ -12,6 +16,12 @@ type Systemge struct {
 	MaxSubscribeAttempts      uint64 // default: 0 = infinite
 
 	ResolverEndpoint *TcpEndpoint // *required*
+}
+
+func UnmarshalSystemge(data string) *Systemge {
+	var systemge Systemge
+	json.Unmarshal([]byte(data), &systemge)
+	return &systemge
 }
 
 type Websocket struct {
@@ -26,8 +36,20 @@ type Websocket struct {
 
 }
 
+func UnmarshalWebsocket(data string) *Websocket {
+	var websocket Websocket
+	json.Unmarshal([]byte(data), &websocket)
+	return &websocket
+}
+
 type HTTP struct {
 	Server *TcpServer // *required*
+}
+
+func UnmarshalHTTP(data string) *HTTP {
+	var http HTTP
+	json.Unmarshal([]byte(data), &http)
+	return &http
 }
 
 type Broker struct {
@@ -50,6 +72,12 @@ type Broker struct {
 	MaxSyncKeySize           int    // default: 0 = unlimited
 }
 
+func UnmarshalBroker(data string) *Broker {
+	var broker Broker
+	json.Unmarshal([]byte(data), &broker)
+	return &broker
+}
+
 type Resolver struct {
 	Server       *TcpServer // *required*
 	ConfigServer *TcpServer // *required*
@@ -60,4 +88,10 @@ type Resolver struct {
 	MaxPayloadSize           int    // default: 0 = unlimited
 	MaxOriginSize            int    // default: 0 = unlimited
 	MaxTopicSize             int    // default: 0 = unlimited
+}
+
+func UnmarshalResolver(data string) *Resolver {
+	var resolver Resolver
+	json.Unmarshal([]byte(data), &resolver)
+	return &resolver
 }

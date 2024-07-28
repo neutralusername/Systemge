@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/smtp"
 	"strings"
+
+	"github.com/neutralusername/Systemge/Config"
 )
 
 type Mailer struct {
@@ -20,15 +22,14 @@ type Mail struct {
 	Body    string
 }
 
-func NewMailer(smtpPort uint16, smtpHost, senderEmail, senderPassword string, recipientEmails ...string) *Mailer {
-	mailer := &Mailer{
-		smtpHost:       smtpHost,
-		smtpPort:       smtpPort,
-		senderEmail:    senderEmail,
-		senderPassword: senderPassword,
-		recipients:     recipientEmails,
+func NewMailer(config *Config.Mailer) *Mailer {
+	return &Mailer{
+		smtpHost:       config.SmtpHost,
+		smtpPort:       config.SmtpPort,
+		senderEmail:    config.SenderEmail,
+		senderPassword: config.SenderPassword,
+		recipients:     config.Recipients,
 	}
-	return mailer
 }
 
 func NewMail(cc []string, subject string, body string) *Mail {

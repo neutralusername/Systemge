@@ -13,16 +13,14 @@ func (spawner *Spawner) spawnNode(id string) error {
 		return Error.New("Node "+id+" already exists", nil)
 	}
 	node := &Config.Node{
-		Name:          id,
-		InfoLogger:    Tools.NewLogger("[Info \""+id+"\"]", spawner.spawnerConfig.LoggerQueue),
-		WarningLogger: Tools.NewLogger("[Warning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		ErrorLogger:   Tools.NewLogger("[Error \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		DebugLogger:   Tools.NewLogger("[Debug \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue),
-		Mailer:        spawner.spawnerConfig.Mailer,
-	}
-	if spawner.spawnerConfig.LogInternals {
-		node.InternalInfoLogger = Tools.NewLogger("[InternalInfo \""+id+"\"]", spawner.spawnerConfig.LoggerQueue)
-		node.InternalWarningLogger = Tools.NewLogger("[InternalWarning \""+id+"\"] ", spawner.spawnerConfig.LoggerQueue)
+		Name:                      id,
+		InfoLoggerPath:            spawner.spawnerConfig.InfoLoggerPath,
+		InternalInfoLoggerPath:    spawner.spawnerConfig.InternalLoggerPath,
+		WarningLoggerPath:         spawner.spawnerConfig.WarningLoggerPath,
+		InternalWarningLoggerPath: spawner.spawnerConfig.InternalWarningLoggerPath,
+		ErrorLoggerPath:           spawner.spawnerConfig.ErrorLoggerPath,
+		DebugLoggerPath:           spawner.spawnerConfig.DebugLoggerPath,
+		Mailer:                    spawner.spawnerConfig.Mailer,
 	}
 	newNode := Node.New(node, spawner.newApplicationFunc(id))
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {

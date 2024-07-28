@@ -11,28 +11,20 @@ type TcpServer struct {
 	Whitelist []string // *optional* (if empty, all IPs are allowed)
 }
 
+func UnmarshalTcpServer(data string) *TcpServer {
+	var tcpServer TcpServer
+	json.Unmarshal([]byte(data), &tcpServer)
+	return &tcpServer
+}
+
 type TcpEndpoint struct {
 	Address string // *required*
 	Domain  string // *optional*
 	TlsCert string // *optional*
 }
 
-func (tcpEndpoint TcpEndpoint) Marshal() string {
-	json, _ := json.Marshal(TcpEndpoint{
-		Address: tcpEndpoint.Address,
-		Domain:  tcpEndpoint.Domain,
-		TlsCert: tcpEndpoint.TlsCert,
-	})
-	return string(json)
-}
-
 func UnmarshalTcpEndpoint(data string) *TcpEndpoint {
-	var resolutionData TcpEndpoint
-	json.Unmarshal([]byte(data), &resolutionData)
-	endpoint := TcpEndpoint{
-		Address: resolutionData.Address,
-		Domain:  resolutionData.Domain,
-		TlsCert: resolutionData.TlsCert,
-	}
-	return &endpoint
+	var tcpEndpoint TcpEndpoint
+	json.Unmarshal([]byte(data), &tcpEndpoint)
+	return &tcpEndpoint
 }
