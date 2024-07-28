@@ -34,7 +34,5 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 			}
 		}
 	}
-	close(spawner.addNodeChannel)
-	close(spawner.removeNodeChannel)
 	return nil
 }
