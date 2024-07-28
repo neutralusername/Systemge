@@ -1,13 +1,14 @@
 package Dashboard
 
 import (
+	"net/http"
+	"runtime"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Node"
-	"net/http"
-	"runtime"
 
 	"github.com/gorilla/websocket"
 )
@@ -54,7 +55,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			return nil
 		},
 		"command": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			command := jsonUnmarshal(message.GetPayload())
+			command := unmarshalCommand(message.GetPayload())
 			if command == nil {
 				return Error.New("Invalid command", nil)
 			}
