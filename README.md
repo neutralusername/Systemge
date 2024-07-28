@@ -7,7 +7,7 @@
 - **Node Structure**:
   - Each Node must have an "Application," which is a pointer to any Go struct.
   - The Application acts as the state for your Node.
-  - Each Application can implement various predefined interfaces called "Components."
+  - Each Application can implement various predefined interfaces called "Components".
   - Each implemented Component provides automated functionality for the Node.
 
 - **Available Components**:
@@ -17,17 +17,19 @@
   - `Command-Component`
   - `OnStart-Component`
   - `OnStop-Component`
+  - `Broker-Component`
+  - `Resolver-Component`
 
 - **Communication**:
-  - Nodes do not communicate directly with each other.
-  - Nodes communicate through a "Broker."
-  - Brokers are a type of Node that receives "Messages" from regular Nodes, each message having a specific "Topic."
+  - Nodes do not communicate directly with each other, instead Nodes communicate through "Brokers".
+  - Brokers are Nodes which implement the Broker-Component.
+  - Brokers receive "Messages" from Nodes, each message having a specific "Topic".
   - Nodes connect to Brokers and can subscribe to any Topic the Broker handles.
   - Nodes receive copies of messages for Topics they are subscribed to.
 
 - **Configuration**:
-  - Nodes are not configured with direct Endpoints to Brokers.
-  - Nodes are configured with an Endpoint to a "Resolver," another specific type of Node.
+  - Nodes are not directly configured with Endpoints to Brokers.
+  - Instead Nodes are configured with a single Endpoint to a "Resolver", another Component that Nodes can implement.
   - Resolvers determine which Broker is responsible for which Topic at any given time.
   - There are various additional configurations that control how the system operates (e.g. access-control-lists, how long resolved topics are valid, etc.)
 
