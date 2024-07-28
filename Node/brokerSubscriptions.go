@@ -1,10 +1,10 @@
-package Broker
+package Node
 
 import "github.com/neutralusername/Systemge/Error"
 
-func (broker *Broker) addSubscription(nodeConnection *nodeConnection, topic string) error {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) addSubscription(nodeConnection *nodeConnection, topic string) error {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	if !broker.asyncTopics[topic] && !broker.syncTopics[topic] {
 		return Error.New("topic \""+topic+"\" does not exist", nil)
 	}
@@ -22,9 +22,9 @@ func (broker *Broker) addSubscription(nodeConnection *nodeConnection, topic stri
 	return nil
 }
 
-func (broker *Broker) removeSubscription(nodeConnection *nodeConnection, topic string) error {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) removeSubscription(nodeConnection *nodeConnection, topic string) error {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	if broker.nodeSubscriptions[topic] == nil {
 		return Error.New("topic \""+topic+"\" does not exist", nil)
 	}

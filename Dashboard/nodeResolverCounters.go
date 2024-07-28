@@ -2,7 +2,6 @@ package Dashboard
 
 import (
 	"github.com/neutralusername/Systemge/Node"
-	"github.com/neutralusername/Systemge/Resolver"
 )
 
 type NodeResolverCounters struct {
@@ -14,12 +13,11 @@ type NodeResolverCounters struct {
 }
 
 func newNodeResolverCounters(node *Node.Node) NodeResolverCounters {
-	resolver := node.GetApplication().(*Resolver.Resolver)
 	return NodeResolverCounters{
 		Name:               node.GetName(),
-		BytesReceived:      resolver.RetrieveBytesReceivedCounter(),
-		BytesSent:          resolver.RetrieveBytesSentCounter(),
-		ConfigRequests:     resolver.RetrieveConfigRequestCounter(),
-		ResolutionRequests: resolver.RetrieveResolutionRequestCounter(),
+		BytesReceived:      node.RetrieveResolverBytesReceivedCounter(),
+		BytesSent:          node.RetrieveResolverBytesSentCounter(),
+		ConfigRequests:     node.RetrieveResolverConfigRequestCounter(),
+		ResolutionRequests: node.RetrieveResolverResolutionRequestCounter(),
 	}
 }

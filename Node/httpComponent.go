@@ -41,11 +41,10 @@ func (node *Node) startHTTPComponent() error {
 }
 
 func (node *Node) stopHTTPComponent() error {
-	http := node.http
-	node.http = nil
-	err := http.server.Stop()
+	err := node.http.server.Stop()
 	if err != nil {
 		return Error.New("failed stopping http server", err)
 	}
+	node.http = nil
 	return nil
 }

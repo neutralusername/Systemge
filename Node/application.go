@@ -38,6 +38,16 @@ func ImplementsOnStopComponent(app Application) bool {
 	return ok
 }
 
+func ImplementsBrokerComponent(app Application) bool {
+	_, ok := app.(BrokerComponent)
+	return ok
+}
+
+func ImplementsResolverComponent(app Application) bool {
+	_, ok := app.(ResolverComponent)
+	return ok
+}
+
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type CommandComponent interface {
 	GetCommandHandlers() map[string]CommandHandler
@@ -51,6 +61,16 @@ type OnStartComponent interface {
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type OnStopComponent interface {
 	OnStop(*Node) error
+}
+
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
+type BrokerComponent interface {
+	GetBrokerComponentConfig() *Config.Broker
+}
+
+// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
+type ResolverComponent interface {
+	GetResolverComponentConfig() *Config.Resolver
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node

@@ -1,4 +1,4 @@
-package Resolver
+package Node
 
 import (
 	"net"
@@ -8,54 +8,69 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (resolver *Resolver) handleConfigConnections() {
-	for resolver.isStarted {
+func (node *Node) handleResolverConfigConnections() {
+	resolver_ := node.resolver
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handling resolver config connections", nil).Error())
+	}
+	defer func() {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped handling resolver config connections", nil).Error())
+		}
+	}()
+
+	for {
+		resolver := node.resolver
+		if resolver != resolver_ {
+			return
+		}
 		netConn, err := resolver.configTcpServer.GetListener().Accept()
 		if err != nil {
-			if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept config connection request", err).Error())
 			}
-			continue
+			return
 		}
 		go func() {
 			resolver.configRequestCounter.Add(1)
-			if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if resolver.configTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				return
 			}
 			if resolver.configTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.configTcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
 				return
 			}
-			err := resolver.handleConfigConnection(netConn)
+			err := resolver.handleConfigConnection(node.GetInternalInfoLogger(), netConn)
 			if err != nil {
-				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle config request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
-				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
+				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", node.GetName(), err.Error()).Serialize(), resolver.application.GetResolverComponentConfig().TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
 					resolver.bytesSentCounter.Add(bytesSent)
 				}
 			} else {
-				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("success", resolver.node.GetName(), "").Serialize(), resolver.config.TcpTimeoutMs)
+				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("success", node.GetName(), "").Serialize(), resolver.application.GetResolverComponentConfig().TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
@@ -67,8 +82,8 @@ func (resolver *Resolver) handleConfigConnections() {
 	}
 }
 
-func (resolver *Resolver) handleConfigConnection(netConn net.Conn) error {
-	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
+func (resolver *resolverComponent) handleConfigConnection(infoLogger *Tools.Logger, netConn net.Conn) error {
+	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.application.GetResolverComponentConfig().TcpTimeoutMs, resolver.application.GetResolverComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("Failed to receive connection request", err)
 	}
@@ -81,17 +96,17 @@ func (resolver *Resolver) handleConfigConnection(netConn net.Conn) error {
 	if message == nil || message.GetOrigin() == "" {
 		return Error.New("Invalid connection request", nil)
 	}
-	err = resolver.handleConfigRequest(message)
+	err = resolver.handleConfigRequest(message, infoLogger)
 	if err != nil {
 		return Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\"", err)
 	}
-	if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+	if infoLogger != nil {
 		infoLogger.Log(Error.New("Handled config request with topic \""+message.GetTopic()+"\" from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}
 	return nil
 }
 
-func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
+func (resolver *resolverComponent) handleConfigRequest(message *Message.Message, infoLogger *Tools.Logger) error {
 	segments := strings.Split(message.GetPayload(), "|")
 	switch message.GetTopic() {
 	case "addWhitelistResolver":
@@ -131,7 +146,7 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 			return Error.New("Invalid payload", nil)
 		}
 		brokerEndpoint := Config.UnmarshalTcpEndpoint(segments[0])
-		err := resolver.addTopics(*brokerEndpoint, segments[1:]...)
+		err := resolver.addTopics(infoLogger, brokerEndpoint, segments[1:]...)
 		if err != nil {
 			return Error.New("Failed to add topics", err)
 		}
@@ -139,7 +154,7 @@ func (resolver *Resolver) handleConfigRequest(message *Message.Message) error {
 		if len(segments) < 1 {
 			return Error.New("Invalid payload", nil)
 		}
-		err := resolver.removeTopics(segments...)
+		err := resolver.removeTopics(infoLogger, segments...)
 		if err != nil {
 			return Error.New("Failed to remove topics", err)
 		}

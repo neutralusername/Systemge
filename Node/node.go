@@ -18,6 +18,12 @@ type Node struct {
 
 	application Application
 
+	//resolver
+	resolver *resolverComponent
+
+	//broker
+	broker *brokerComponent
+
 	//systemge
 	systemge *systemgeComponent
 
@@ -59,6 +65,36 @@ func (node *Node) Start() error {
 	}
 	node.stopChannel = make(chan bool)
 	node.isStarted = true
+	if ImplementsResolverComponent(node.application) {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Starting resolver component", nil).Error())
+		}
+		err := node.startResolverComponent()
+		if err != nil {
+			if err := node.stop(false); err != nil {
+				node.GetInternalWarningError().Log(Error.New("failed to stop node", err).Error())
+			}
+			return Error.New("failed starting resolver component", err)
+		}
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Started resolver component", nil).Error())
+		}
+	}
+	if ImplementsBrokerComponent(node.application) {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Starting broker component", nil).Error())
+		}
+		err := node.startBrokerComponent()
+		if err != nil {
+			if err := node.stop(false); err != nil {
+				node.GetInternalWarningError().Log(Error.New("failed to stop node", err).Error())
+			}
+			return Error.New("failed starting broker component", err)
+		}
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Started broker component", nil).Error())
+		}
+	}
 	if ImplementsSystemgeComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
@@ -186,6 +222,30 @@ func (node *Node) stop(lock bool) error {
 		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
+		}
+	}
+	if node.broker != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopping broker component", nil).Error())
+		}
+		err := node.stopBrokerComponent()
+		if err != nil {
+			return Error.New("failed to stop node. Error stopping broker component", err)
+		}
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped broker component", nil).Error())
+		}
+	}
+	if node.resolver != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopping resolver component", nil).Error())
+		}
+		err := node.stopResolverComponent()
+		if err != nil {
+			return Error.New("failed to stop node. Error stopping resolver component", err)
+		}
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped resolver component", nil).Error())
 		}
 	}
 	node.isStarted = false

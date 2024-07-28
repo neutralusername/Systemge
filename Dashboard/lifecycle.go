@@ -5,11 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/neutralusername/Systemge/Broker"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Node"
-	"github.com/neutralusername/Systemge/Resolver"
 	"github.com/neutralusername/Systemge/Spawner"
 )
 
@@ -120,7 +118,7 @@ func (app *App) nodeHTTPCountersRoutine() {
 func (app *App) nodeResolverCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
-			if Resolver.ImplementsResolver(node.GetApplication()) {
+			if Node.ImplementsResolverComponent(node.GetApplication()) {
 				resolverCountersJson := Helpers.JsonMarshal(newNodeResolverCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeResolverCounters", app.node.GetName(), resolverCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
@@ -135,7 +133,7 @@ func (app *App) nodeResolverCountersRoutine() {
 func (app *App) nodeBrokerCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
-			if Broker.ImplementsBroker(node.GetApplication()) {
+			if Node.ImplementsBrokerComponent(node.GetApplication()) {
 				brokerCountersJson := Helpers.JsonMarshal(newNodeBrokerCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeBrokerCounters", app.node.GetName(), brokerCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {

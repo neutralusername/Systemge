@@ -1,4 +1,4 @@
-package Broker
+package Node
 
 import (
 	"net"
@@ -9,61 +9,71 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (broker *Broker) handleConfigConnections() {
-	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Handling config connections", nil).Error())
+func (node *Node) handleBrokerConfigConnections() {
+	broker_ := node.broker
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handling broker config connections", nil).Error())
 	}
-	for broker.isStarted {
+	defer func() {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped handling broker config connections", nil).Error())
+		}
+	}()
+	for {
+		broker := node.broker
+		if broker != broker_ {
+			return
+		}
 		netConn, err := broker.configTcpServer.GetListener().Accept()
 		if err != nil {
-			if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept connection request", err).Error())
 			}
-			continue
+			return
 		}
 		go func() {
 			broker.configRequestCounter.Add(1)
-			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if broker.configTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
 				}
 				return
 			}
 			if broker.configTcpServer.GetWhitelist().ElementCount() > 0 && !broker.configTcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
 				}
 				return
 			}
-			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Handling config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
-			err = broker.handleConfigConnection(netConn)
+			err = broker.handleConfigConnection(node.GetName(), netConn)
 			if err != nil {
-				if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle config request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
-				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("error", broker.node.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), broker.config.TcpTimeoutMs)
+				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("error", node.GetName(), Error.New("failed to handle config request", err).Error()).Serialize(), broker.application.GetBrokerComponentConfig().TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
 					broker.bytesSentCounter.Add(bytesSend)
 				}
 			} else {
-				if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Handled config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 				}
-				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("success", broker.node.GetName(), "").Serialize(), broker.config.TcpTimeoutMs)
+				bytesSend, err := Tcp.Send(netConn, Message.NewAsync("success", node.GetName(), "").Serialize(), broker.application.GetBrokerComponentConfig().TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := broker.node.GetInternalWarningError(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send success response to config connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
@@ -75,8 +85,8 @@ func (broker *Broker) handleConfigConnections() {
 	}
 }
 
-func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
-	messageBytes, bytesSent, err := Tcp.Receive(netConn, broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+func (broker *brokerComponent) handleConfigConnection(nodeName string, netConn net.Conn) error {
+	messageBytes, bytesSent, err := Tcp.Receive(netConn, broker.application.GetBrokerComponentConfig().TcpTimeoutMs, broker.application.GetBrokerComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("Failed to receive connection request", err)
 	}
@@ -89,14 +99,14 @@ func (broker *Broker) handleConfigConnection(netConn net.Conn) error {
 	if err != nil {
 		return Error.New("Invalid connection request message", err)
 	}
-	err = broker.handleConfigRequest(message)
+	err = broker.handleConfigRequest(nodeName, message)
 	if err != nil {
 		return Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\"", err)
 	}
 	return nil
 }
 
-func (broker *Broker) handleConfigRequest(message *Message.Message) error {
+func (broker *brokerComponent) handleConfigRequest(nodeName string, message *Message.Message) error {
 	payloadSegments := strings.Split(message.GetPayload(), "|")
 	if len(payloadSegments) == 0 {
 		return Error.New("No topics provided", nil)
@@ -136,25 +146,25 @@ func (broker *Broker) handleConfigRequest(message *Message.Message) error {
 		}
 	case "addSyncTopics":
 		broker.addSyncTopics(payloadSegments...)
-		err := broker.addResolverTopicsRemotely(payloadSegments...)
+		err := broker.addResolverTopicsRemotely(nodeName, payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to add topics remotely", err)
 		}
 	case "removeSyncTopics":
 		broker.removeSyncTopics(payloadSegments...)
-		err := broker.removeResolverTopicsRemotely(payloadSegments...)
+		err := broker.removeResolverTopicsRemotely(nodeName, payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to remove topics remotely", err)
 		}
 	case "addAsyncTopics":
 		broker.addAsyncTopics(payloadSegments...)
-		err := broker.addResolverTopicsRemotely(payloadSegments...)
+		err := broker.addResolverTopicsRemotely(nodeName, payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to add topics remotely", err)
 		}
 	case "removeAsyncTopics":
 		broker.removeAsyncTopics(payloadSegments...)
-		err := broker.removeResolverTopicsRemotely(payloadSegments...)
+		err := broker.removeResolverTopicsRemotely(nodeName, payloadSegments...)
 		if err != nil {
 			return Error.New("Failed to remove topics remotely", err)
 		}

@@ -1,11 +1,12 @@
-package Resolver
+package Node
 
 import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (resolver *Resolver) addTopics(tcpEndpoint Config.TcpEndpoint, topics ...string) error {
+func (resolver *resolverComponent) addTopics(infoLogger *Tools.Logger, tcpEndpoint *Config.TcpEndpoint, topics ...string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, topic := range topics {
@@ -14,15 +15,15 @@ func (resolver *Resolver) addTopics(tcpEndpoint Config.TcpEndpoint, topics ...st
 		}
 	}
 	for _, topic := range topics {
-		resolver.registeredTopics[topic] = tcpEndpoint
-		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+		resolver.registeredTopics[topic] = *tcpEndpoint
+		if infoLogger != nil {
 			infoLogger.Log(Error.New("Added topic \""+topic+"\" with endpoint \""+tcpEndpoint.Address+"\"", nil).Error())
 		}
 	}
 	return nil
 }
 
-func (resolver *Resolver) removeTopics(topics ...string) error {
+func (resolver *resolverComponent) removeTopics(infoLogger *Tools.Logger, topics ...string) error {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	for _, topic := range topics {
@@ -31,7 +32,7 @@ func (resolver *Resolver) removeTopics(topics ...string) error {
 		}
 	}
 	for _, topic := range topics {
-		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+		if infoLogger != nil {
 			infoLogger.Log(Error.New("Removed topic \""+topic+"\" with endpoint \""+resolver.registeredTopics[topic].Address+"\"", nil).Error())
 		}
 		delete(resolver.registeredTopics, topic)

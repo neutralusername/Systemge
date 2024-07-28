@@ -1,4 +1,4 @@
-package Broker
+package Node
 
 import (
 	"github.com/neutralusername/Systemge/Error"
@@ -6,20 +6,20 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (broker *Broker) addResolverTopicsRemotely(topics ...string) error {
+func (broker *brokerComponent) addResolverTopicsRemotely(nodeName string, topics ...string) error {
 	if len(topics) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	netConn, err := Tcp.NewEndpoint(broker.config.ResolverConfigEndpoint)
+	netConn, err := Tcp.NewEndpoint(broker.application.GetBrokerComponentConfig().ResolverConfigEndpoint)
 	if err != nil {
 		return Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	payload := broker.config.Endpoint.Marshal()
+	payload := broker.application.GetBrokerComponentConfig().Endpoint.Marshal()
 	for _, topic := range topics {
 		payload += "|" + topic
 	}
-	response, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("addTopics", broker.node.GetName(), payload).Serialize(), broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+	response, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("addTopics", nodeName, payload).Serialize(), broker.application.GetBrokerComponentConfig().TcpTimeoutMs, broker.application.GetBrokerComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed exchanging messages with resolver", err)
 	}
@@ -31,11 +31,11 @@ func (broker *Broker) addResolverTopicsRemotely(topics ...string) error {
 	return nil
 }
 
-func (broker *Broker) removeResolverTopicsRemotely(topics ...string) error {
+func (broker *brokerComponent) removeResolverTopicsRemotely(nodeName string, topics ...string) error {
 	if len(topics) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	netConn, err := Tcp.NewEndpoint(broker.config.ResolverConfigEndpoint)
+	netConn, err := Tcp.NewEndpoint(broker.application.GetBrokerComponentConfig().ResolverConfigEndpoint)
 	if err != nil {
 		return Error.New("failed dialing resolver", err)
 	}
@@ -45,7 +45,7 @@ func (broker *Broker) removeResolverTopicsRemotely(topics ...string) error {
 		payload += topic + "|"
 	}
 	payload = payload[:len(payload)-1]
-	response, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("removeTopics", broker.node.GetName(), payload).Serialize(), broker.config.TcpTimeoutMs, broker.config.IncomingMessageByteLimit)
+	response, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("removeTopics", nodeName, payload).Serialize(), broker.application.GetBrokerComponentConfig().TcpTimeoutMs, broker.application.GetBrokerComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed exchanging messages with resolver", err)
 	}

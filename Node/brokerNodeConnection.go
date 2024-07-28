@@ -1,4 +1,4 @@
-package Broker
+package Node
 
 import (
 	"net"
@@ -19,7 +19,7 @@ type nodeConnection struct {
 	receiveMutex sync.Mutex
 }
 
-func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConnection {
+func (broker *brokerComponent) newNodeConnection(name string, netConn net.Conn) *nodeConnection {
 	return &nodeConnection{
 		name:             name,
 		netConn:          netConn,
@@ -27,10 +27,10 @@ func (broker *Broker) newNodeConnection(name string, netConn net.Conn) *nodeConn
 	}
 }
 
-func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Message) error {
+func (broker *brokerComponent) send(nodeConnection *nodeConnection, message *Message.Message) error {
 	nodeConnection.sendMutex.Lock()
 	defer nodeConnection.sendMutex.Unlock()
-	bytesSent, err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(nodeConnection.netConn, message.Serialize(), broker.application.GetBrokerComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
@@ -39,10 +39,10 @@ func (broker *Broker) send(nodeConnection *nodeConnection, message *Message.Mess
 	return nil
 }
 
-func (broker *Broker) receive(nodeConnection *nodeConnection) (*Message.Message, error) {
+func (broker *brokerComponent) receive(nodeConnection *nodeConnection) (*Message.Message, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
-	messageBytes, bytesReceived, err := Tcp.Receive(nodeConnection.netConn, 0, broker.config.IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(nodeConnection.netConn, 0, broker.application.GetBrokerComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
 	}
@@ -55,13 +55,13 @@ func (broker *Broker) receive(nodeConnection *nodeConnection) (*Message.Message,
 	return message, nil
 }
 
-func (broker *Broker) removeNodeConnection(lock bool, nodeConnection *nodeConnection) {
+func (broker *brokerComponent) removeNodeConnection(lock bool, nodeConnection *nodeConnection) error {
 	if lock {
-		broker.operationMutex.Lock()
-		defer broker.operationMutex.Unlock()
+		broker.mutex.Lock()
+		defer broker.mutex.Unlock()
 	}
 	if nodeConnection.netConn == nil {
-		return
+		return Error.New("Node connection already removed", nil)
 	}
 	nodeConnection.netConn.Close()
 	nodeConnection.netConn = nil
@@ -69,14 +69,12 @@ func (broker *Broker) removeNodeConnection(lock bool, nodeConnection *nodeConnec
 		delete(broker.nodeSubscriptions[messageType], nodeConnection.name)
 	}
 	delete(broker.nodeConnections, nodeConnection.name)
-	if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Removed node connection \""+nodeConnection.name+"\"", nil).Error())
-	}
+	return nil
 }
 
-func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) addNodeConnection(nodeConnection *nodeConnection) error {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	if broker.nodeConnections[nodeConnection.name] != nil {
 		return Error.New("Node name already in use", nil)
 	}
@@ -84,9 +82,7 @@ func (broker *Broker) addNodeConnection(nodeConnection *nodeConnection) error {
 	return nil
 }
 
-func (broker *Broker) removeAllNodeConnections() {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) removeAllNodeConnections() {
 	for _, nodeConnection := range broker.nodeConnections {
 		broker.removeNodeConnection(false, nodeConnection)
 	}

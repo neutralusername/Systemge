@@ -1,26 +1,26 @@
-package Broker
+package Node
 
-func (broker *Broker) addAsyncTopics(topics ...string) {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) addAsyncTopics(topics ...string) {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	for _, topic := range topics {
 		broker.asyncTopics[topic] = true
 		broker.nodeSubscriptions[topic] = map[string]*nodeConnection{}
 	}
 }
 
-func (broker *Broker) addSyncTopics(topics ...string) {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) addSyncTopics(topics ...string) {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	for _, topic := range topics {
 		broker.syncTopics[topic] = true
 		broker.nodeSubscriptions[topic] = map[string]*nodeConnection{}
 	}
 }
 
-func (broker *Broker) removeAsyncTopics(topics ...string) {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) removeAsyncTopics(topics ...string) {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	for _, topic := range topics {
 		delete(broker.asyncTopics, topic)
 		for _, nodeConnection := range broker.nodeSubscriptions[topic] {
@@ -31,9 +31,9 @@ func (broker *Broker) removeAsyncTopics(topics ...string) {
 	}
 }
 
-func (broker *Broker) removeSyncTopics(topics ...string) {
-	broker.operationMutex.Lock()
-	defer broker.operationMutex.Unlock()
+func (broker *brokerComponent) removeSyncTopics(topics ...string) {
+	broker.mutex.Lock()
+	defer broker.mutex.Unlock()
 	for _, topic := range topics {
 		delete(broker.syncTopics, topic)
 		for _, nodeConnection := range broker.nodeSubscriptions[topic] {

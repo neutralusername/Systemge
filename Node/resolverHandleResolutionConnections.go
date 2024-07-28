@@ -1,4 +1,4 @@
-package Resolver
+package Node
 
 import (
 	"net"
@@ -6,45 +6,59 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (resolver *Resolver) handleResolverConnections() {
-	for resolver.isStarted {
+func (node *Node) handleResolverConnections() {
+	resolver_ := node.resolver
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Handling resolution connections", nil).Error())
+	}
+	defer func() {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped handling resolution connections", nil).Error())
+		}
+	}()
+	for {
+		resolver := node.resolver
+		if resolver != resolver_ {
+			return
+		}
 		netConn, err := resolver.resolverTcpServer.GetListener().Accept()
 		if err != nil {
-			if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to accept resolution connection request", err).Error())
 			}
-			continue
+			return
 		}
 		go func() {
 			resolver.resolutionRequestCounter.Add(1)
-			if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 			if resolver.resolverTcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
 				}
 				return
 			}
 			if resolver.resolverTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.resolverTcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
 				}
 				return
 			}
-			err := resolver.handleResolutionRequest(netConn)
+			err := resolver.handleResolutionRequest(node.GetName(), node.GetInternalInfoLogger(), netConn)
 			if err != nil {
-				if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle resolution request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
-				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", resolver.node.GetName(), err.Error()).Serialize(), resolver.config.TcpTimeoutMs)
+				bytesSent, err := Tcp.Send(netConn, Message.NewAsync("error", node.GetName(), err.Error()).Serialize(), resolver.application.GetResolverComponentConfig().TcpTimeoutMs)
 				if err != nil {
-					if warningLogger := resolver.node.GetInternalWarningError(); warningLogger != nil {
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send error response to resolver connection \""+netConn.RemoteAddr().String()+"\"", err).Error())
 					}
 				} else {
@@ -56,8 +70,8 @@ func (resolver *Resolver) handleResolverConnections() {
 	}
 }
 
-func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
-	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
+func (resolver *resolverComponent) handleResolutionRequest(nodeName string, infoLogger *Tools.Logger, netConn net.Conn) error {
+	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.application.GetResolverComponentConfig().TcpTimeoutMs, resolver.application.GetResolverComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed to receive resolution request", err)
 	}
@@ -76,32 +90,32 @@ func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
 	if !ok {
 		return Error.New("unknown topic", nil)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync("resolution", resolver.node.GetName(), endpoint.Marshal()).Serialize(), resolver.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync("resolution", nodeName, endpoint.Marshal()).Serialize(), resolver.application.GetResolverComponentConfig().TcpTimeoutMs)
 	if err != nil {
 		return Error.New("failed to send resolution response", err)
 	}
 	resolver.bytesSentCounter.Add(bytesSent)
-	if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+	if infoLogger != nil {
 		infoLogger.Log(Error.New("Resolved topic \""+message.GetPayload()+"\" to \""+endpoint.Address+"\" from resolver connection \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 	}
 	return nil
 }
 
-func (resolver *Resolver) validateMessage(message *Message.Message) error {
+func (resolver *resolverComponent) validateMessage(message *Message.Message) error {
 	if message.GetSyncRequestToken() != "" {
 		return Error.New("synchronous request token is not empty", nil)
 	}
 	if message.GetSyncResponseToken() != "" {
 		return Error.New("synchronous response token is not empty", nil)
 	}
-	if resolver.config.MaxOriginSize > 0 && len(message.GetOrigin()) > resolver.config.MaxOriginSize {
+	if resolver.application.GetResolverComponentConfig().MaxOriginSize > 0 && len(message.GetOrigin()) > resolver.application.GetResolverComponentConfig().MaxOriginSize {
 		return Error.New("origin size exceeds maximum origin size", nil)
 	}
-	if resolver.config.MaxPayloadSize > 0 && len(message.GetPayload()) > (resolver.config.MaxPayloadSize) {
+	if resolver.application.GetResolverComponentConfig().MaxPayloadSize > 0 && len(message.GetPayload()) > (resolver.application.GetResolverComponentConfig().MaxPayloadSize) {
 		return Error.New("payload size exceeds maximum payload size", nil)
 
 	}
-	if resolver.config.MaxTopicSize > 0 && len(message.GetTopic()) > resolver.config.MaxTopicSize {
+	if resolver.application.GetResolverComponentConfig().MaxTopicSize > 0 && len(message.GetTopic()) > resolver.application.GetResolverComponentConfig().MaxTopicSize {
 		return Error.New("topic size exceeds maximum topic size", nil)
 	}
 	return nil

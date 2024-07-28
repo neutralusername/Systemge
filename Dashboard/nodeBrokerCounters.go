@@ -1,7 +1,6 @@
 package Dashboard
 
 import (
-	"github.com/neutralusername/Systemge/Broker"
 	"github.com/neutralusername/Systemge/Node"
 )
 
@@ -15,13 +14,12 @@ type NodeBrokerCounters struct {
 }
 
 func newNodeBrokerCounters(node *Node.Node) NodeBrokerCounters {
-	broker := node.GetApplication().(*Broker.Broker)
 	return NodeBrokerCounters{
 		Name:             node.GetName(),
-		BytesReceived:    broker.RetrieveBytesReceivedCounter(),
-		BytesSent:        broker.RetrieveBytesSentCounter(),
-		IncomingMessages: broker.RetrieveIncomingMessageCounter(),
-		OutgoingMessages: broker.RetrieveOutgoingMessageCounter(),
-		ConfigRequests:   broker.RetrieveConfigRequestCounter(),
+		BytesReceived:    node.RetrieveBrokerBytesReceivedCounter(),
+		BytesSent:        node.RetrieveBrokerBytesSentCounter(),
+		IncomingMessages: node.RetrieveBrokerIncomingMessageCounter(),
+		OutgoingMessages: node.RetrieveBrokerOutgoingMessageCounter(),
+		ConfigRequests:   node.RetrieveBrokerConfigRequestCounter(),
 	}
 }
