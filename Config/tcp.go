@@ -3,12 +3,12 @@ package Config
 import "encoding/json"
 
 type TcpServer struct {
-	Port        uint16 // *required*
-	TlsCertPath string // *optional*
-	TlsKeyPath  string // *optional*
+	Port        uint16 `json:"port"`        // *required*
+	TlsCertPath string `json:"tlsCertPath"` // *optional*
+	TlsKeyPath  string `json:"tlsKeyPath"`  // *optional*
 
-	Blacklist []string // *optional*
-	Whitelist []string // *optional* (if empty, all IPs are allowed)
+	Blacklist []string `json:"blacklist"` // *optional* (if empty, all IPs are allowed)
+	Whitelist []string `json:"whitelist"` // *optional* (if empty, all IPs are allowed)
 }
 
 func UnmarshalTcpServer(data string) *TcpServer {
@@ -18,9 +18,9 @@ func UnmarshalTcpServer(data string) *TcpServer {
 }
 
 type TcpEndpoint struct {
-	Address string // *required*
-	Domain  string // *optional*
-	TlsCert string // *optional*
+	Address string `json:"address"` // *required*
+	Domain  string `json:"domain"`  // *optional*
+	TlsCert string `json:"tlsCert"` // *optional*
 }
 
 func UnmarshalTcpEndpoint(data string) *TcpEndpoint {

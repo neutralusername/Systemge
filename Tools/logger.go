@@ -39,6 +39,9 @@ type LoggerQueue struct {
 func NewLoggerQueue(path string, queueBuffer uint32) *LoggerQueue {
 	loggerQueueMutex.Lock()
 	defer loggerQueueMutex.Unlock()
+	if path == "" {
+		panic("Logger path cannot be empty")
+	}
 	if loggerQueue, ok := loggerQueues[path]; ok {
 		return loggerQueue
 	}
