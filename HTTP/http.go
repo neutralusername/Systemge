@@ -52,6 +52,7 @@ func (server *Server) GetBlacklist() *Tools.AccessControlList {
 
 func (server *Server) Start() error {
 	errorChannel := make(chan error)
+	ended := false
 	go func() {
 		if server.config.Server.TlsCertPath != "" && server.config.Server.TlsKeyPath != "" {
 			err := server.httpServer.ListenAndServeTLS(server.config.Server.TlsCertPath, server.config.Server.TlsKeyPath)
@@ -59,7 +60,9 @@ func (server *Server) Start() error {
 				if err != http.ErrServerClosed {
 					panic(err)
 				}
-				errorChannel <- err
+				if !ended {
+					errorChannel <- err
+				}
 			}
 		} else {
 			err := server.httpServer.ListenAndServe()
@@ -67,7 +70,9 @@ func (server *Server) Start() error {
 				if err != http.ErrServerClosed {
 					panic(err)
 				}
-				errorChannel <- err
+				if !ended {
+					errorChannel <- err
+				}
 			}
 		}
 	}()
@@ -77,6 +82,7 @@ func (server *Server) Start() error {
 		return Error.New("failed to start http server", err)
 	default:
 	}
+	ended = true
 	return nil
 }
 
