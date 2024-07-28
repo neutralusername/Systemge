@@ -28,12 +28,12 @@ func (spawner *Spawner) spawnNode(id string) error {
 	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
 		err := spawner.node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if err != nil {
-			return Error.New("Error adding sync topic \""+id+"\"", err)
+			return Error.New("Failed adding sync topic \""+id+"\"", err)
 		}
 	} else {
 		err := spawner.node.AddAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if err != nil {
-			return Error.New("Error adding async topic \""+id+"\"", err)
+			return Error.New("Failed adding async topic \""+id+"\"", err)
 		}
 	}
 	spawner.spawnedNodes[id] = newNode
@@ -52,9 +52,14 @@ func (spawner *Spawner) despawnNode(id string) error {
 		err := spawnedNode.Stop()
 		if err != nil {
 			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Error stopping node "+id, err).Error())
+				errorLogger.Log(Error.New("Failed stopping node "+id, err).Error())
 				if mailer := spawner.node.GetMailer(); mailer != nil {
-					mailer.Send(Tools.NewMail(nil, "error", Error.New("Error stopping node "+id, err).Error()))
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+id, err).Error()))
+					if err != nil {
+						if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+						}
+					}
 				}
 			}
 		}
@@ -63,14 +68,30 @@ func (spawner *Spawner) despawnNode(id string) error {
 		removeErr := spawner.node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Error removing sync topic \""+id+"\"", removeErr).Error())
+				errorLogger.Log(Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error())
+				if mailer := spawner.node.GetMailer(); mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error()))
+					if err != nil {
+						if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+						}
+					}
+				}
 			}
 		}
 	} else {
 		removeErr := spawner.node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Error removing async topic \""+id+"\"", removeErr).Error())
+				errorLogger.Log(Error.New("Failed removing async topic \""+id+"\"", removeErr).Error())
+				if mailer := spawner.node.GetMailer(); mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing async topic \""+id+"\"", removeErr).Error()))
+					if err != nil {
+						if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+						}
+					}
+				}
 			}
 		}
 	}
@@ -88,7 +109,7 @@ func (spawner *Spawner) stopNode(id string) error {
 	}
 	err := spawnedNode.Stop()
 	if err != nil {
-		return Error.New("Error stopping node "+id, err)
+		return Error.New("Failed stopping node "+id, err)
 	}
 	return nil
 }
@@ -100,7 +121,7 @@ func (spawner *Spawner) startNode(id string) error {
 	}
 	err := spawnedNode.Start()
 	if err != nil {
-		return Error.New("Error starting node", err)
+		return Error.New("Failed starting node", err)
 	}
 	return nil
 }

@@ -28,7 +28,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			err := spawner.spawnNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Error spawning node "+id, err)
+				return "", Error.New("Failed spawning node "+id, err)
 			}
 			return id, nil
 		},
@@ -38,7 +38,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			err := spawner.despawnNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Error despawning node "+id, err)
+				return "", Error.New("Failed despawning node "+id, err)
 			}
 			return id, nil
 		},
@@ -48,7 +48,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			err := spawner.stopNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Error ending node "+id, err)
+				return "", Error.New("Failed ending node "+id, err)
 			}
 			return id, nil
 		},
@@ -58,7 +58,7 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 			err := spawner.startNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Error starting node "+id, err)
+				return "", Error.New("Failed starting node "+id, err)
 			}
 			return id, nil
 		},
@@ -73,7 +73,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			err := spawner.spawnNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return Error.New("Error spawning node "+id, err)
+				return Error.New("Failed spawning node "+id, err)
 			}
 			return nil
 		},
@@ -83,7 +83,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			err := spawner.despawnNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return Error.New("Error despawning node "+id, err)
+				return Error.New("Failed despawning node "+id, err)
 			}
 			return nil
 		},
@@ -93,7 +93,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			err := spawner.stopNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return Error.New("Error ending node "+id, err)
+				return Error.New("Failed ending node "+id, err)
 			}
 			return nil
 		},
@@ -103,7 +103,7 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 			err := spawner.startNode(id)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return Error.New("Error starting node "+id, err)
+				return Error.New("Failed starting node "+id, err)
 			}
 			return nil
 		},

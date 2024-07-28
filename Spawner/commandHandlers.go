@@ -24,7 +24,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			defer spawner.mutex.Unlock()
 			err := spawner.spawnNode(args[0])
 			if err != nil {
-				return "", Error.New("Error spawning node "+args[0], err)
+				return "", Error.New("Failed spawning node "+args[0], err)
 			}
 			return "success", nil
 		},
@@ -36,7 +36,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			defer spawner.mutex.Unlock()
 			err := spawner.despawnNode(args[0])
 			if err != nil {
-				return "", Error.New("Error despawning node "+args[0], err)
+				return "", Error.New("Failed despawning node "+args[0], err)
 			}
 			return "success", nil
 		},
@@ -48,7 +48,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			defer spawner.mutex.Unlock()
 			err := spawner.startNode(args[0])
 			if err != nil {
-				return "", Error.New("Error starting node "+args[0], err)
+				return "", Error.New("Failed starting node "+args[0], err)
 			}
 			return "success", nil
 		},
@@ -60,7 +60,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			defer spawner.mutex.Unlock()
 			err := spawner.stopNode(args[0])
 			if err != nil {
-				return "", Error.New("Error ending node "+args[0], err)
+				return "", Error.New("Failed ending node "+args[0], err)
 			}
 			return "success", nil
 		},
