@@ -90,6 +90,7 @@ func (node *Node) stopWebsocketComponent() error {
 		return Error.New("failed stopping websocket handshake handler", err)
 	}
 	websocket.httpServer = nil
+	close(websocket.connChannel)
 	websocket.mutex.Lock()
 	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
 	for _, websocketClient := range websocket.clients {
