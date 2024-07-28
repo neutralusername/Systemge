@@ -87,7 +87,12 @@ func (broker *Broker) stop(node *Node.Node, lock bool) error {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Failed to remove resolver topics remotely", err).Error())
 				if mailer := node.GetMailer(); mailer != nil {
-					mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove resolver topics remotely", err).Error()))
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove resolver topics remotely", err).Error()))
+					if err != nil {
+						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+						}
+					}
 				}
 			}
 		} else {
