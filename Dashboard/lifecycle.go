@@ -106,7 +106,6 @@ func (app *App) nodeHTTPCountersRoutine() {
 	for app.started {
 		for _, node := range app.nodes {
 			if Node.ImplementsHTTPComponent(node.GetApplication()) {
-				println(node.GetName())
 				httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(node))
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
