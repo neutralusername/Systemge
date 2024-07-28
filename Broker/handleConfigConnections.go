@@ -21,8 +21,8 @@ func (broker *Broker) handleConfigConnections() {
 			}
 			continue
 		}
-		broker.configRequestCounter.Add(1)
 		go func() {
+			broker.configRequestCounter.Add(1)
 			if infoLogger := broker.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Accepted config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}

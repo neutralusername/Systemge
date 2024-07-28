@@ -17,26 +17,26 @@ func (resolver *Resolver) handleResolverConnections() {
 			}
 			continue
 		}
-		resolver.resolutionRequestCounter.Add(1)
-		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
-		if resolver.resolverTcpServer.GetBlacklist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
-			}
-			continue
-		}
-		if resolver.resolverTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.resolverTcpServer.GetWhitelist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
-			}
-			continue
-		}
 		go func() {
+			resolver.resolutionRequestCounter.Add(1)
+			if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Accepted resolution connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
+			if resolver.resolverTcpServer.GetBlacklist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
+				}
+				return
+			}
+			if resolver.resolverTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.resolverTcpServer.GetWhitelist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected resolution connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
+				}
+				return
+			}
 			err := resolver.handleResolutionRequest(netConn)
 			if err != nil {
 				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
@@ -51,12 +51,12 @@ func (resolver *Resolver) handleResolverConnections() {
 					resolver.bytesSentCounter.Add(bytesSent)
 				}
 			}
+			netConn.Close()
 		}()
 	}
 }
 
 func (resolver *Resolver) handleResolutionRequest(netConn net.Conn) error {
-	defer netConn.Close()
 	messageBytes, bytesReceived, err := Tcp.Receive(netConn, resolver.config.TcpTimeoutMs, resolver.config.IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed to receive resolution request", err)

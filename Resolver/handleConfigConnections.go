@@ -19,26 +19,26 @@ func (resolver *Resolver) handleConfigConnections() {
 			}
 			continue
 		}
-		resolver.configRequestCounter.Add(1)
-		if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-		}
-		ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
-		if resolver.configTcpServer.GetBlacklist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-			}
-			continue
-		}
-		if resolver.configTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.configTcpServer.GetWhitelist().Contains(ip) {
-			netConn.Close()
-			if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
-			}
-			continue
-		}
 		go func() {
+			resolver.configRequestCounter.Add(1)
+			if infoLogger := resolver.node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Accepted config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
+			if resolver.configTcpServer.GetBlacklist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				}
+				return
+			}
+			if resolver.configTcpServer.GetWhitelist().ElementCount() > 0 && !resolver.configTcpServer.GetWhitelist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected config connection request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+				}
+				return
+			}
 			err := resolver.handleConfigConnection(netConn)
 			if err != nil {
 				if warningLogger := resolver.node.GetWarningLogger(); warningLogger != nil {
