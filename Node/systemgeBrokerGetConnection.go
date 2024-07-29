@@ -14,15 +14,18 @@ func (systemge *systemgeComponent) resolutionSafetyMechanism(topic string) *brok
 		if !ok {
 			systemge.topicsCurrentlyBeingResolved[topic] = make(chan struct{})
 			systemge.topicResolutionMutex.Unlock()
+			defer func() {
+				systemge.topicResolutionMutex.Lock()
+				close(systemge.topicsCurrentlyBeingResolved[topic])
+				delete(systemge.topicsCurrentlyBeingResolved, topic)
+				systemge.topicResolutionMutex.Unlock()
+			}()
 			return nil
 		} else {
 			systemge.topicResolutionMutex.Unlock()
 			<-chanLock
 			systemge.topicResolutionMutex.Lock()
 			brokerConnection := systemge.topicResolutions[topic]
-			if brokerConnection == nil {
-				systemge.topicsCurrentlyBeingResolved[topic] = make(chan struct{})
-			}
 			systemge.topicResolutionMutex.Unlock()
 			return brokerConnection
 		}
@@ -44,12 +47,6 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 		}
 		return brokerConnection, nil
 	} else {
-		defer func() {
-			systemge.topicResolutionMutex.Lock()
-			close(systemge.topicsCurrentlyBeingResolved[topic])
-			delete(systemge.topicsCurrentlyBeingResolved, topic)
-			systemge.topicResolutionMutex.Unlock()
-		}()
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("No existing topic resolution found for topic \""+topic+"\". Resolving broker address", nil).Error())
 		}
