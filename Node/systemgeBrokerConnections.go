@@ -5,8 +5,8 @@ import (
 )
 
 func (systemge *systemgeComponent) addBrokerConnection(brokerConnection *brokerConnection) error {
-	systemge.mutex.Lock()
-	defer systemge.mutex.Unlock()
+	systemge.brokerConnectionsMutex.Lock()
+	defer systemge.brokerConnectionsMutex.Unlock()
 	if systemge.brokerConnections[brokerConnection.endpoint.Address] != nil {
 		return Error.New("broker connection already exists", nil)
 	}
@@ -15,7 +15,7 @@ func (systemge *systemgeComponent) addBrokerConnection(brokerConnection *brokerC
 }
 
 func (systemge *systemgeComponent) getBrokerConnection(brokerAddress string) *brokerConnection {
-	systemge.mutex.Lock()
-	defer systemge.mutex.Unlock()
+	systemge.brokerConnectionsMutex.Lock()
+	defer systemge.brokerConnectionsMutex.Unlock()
 	return systemge.brokerConnections[brokerAddress]
 }

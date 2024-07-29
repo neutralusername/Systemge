@@ -149,9 +149,9 @@ func (node *Node) handleSyncMessage(message *Message.Message) (string, error) {
 }
 
 func (node *Node) handleSyncResponse(message *Message.Message) error {
-	node.systemge.mutex.Lock()
+	node.systemge.messagesWaitingForResponseMutex.Lock()
 	responseChannel := node.systemge.messagesWaitingForResponse[message.GetSyncResponseToken()]
-	node.systemge.mutex.Unlock()
+	node.systemge.messagesWaitingForResponseMutex.Unlock()
 	if responseChannel == nil {
 		return Error.New("Unknown sync response token", nil)
 	}

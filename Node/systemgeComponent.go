@@ -9,14 +9,20 @@ import (
 )
 
 type systemgeComponent struct {
-	application                SystemgeComponent
-	mutex                      sync.Mutex
-	handleSequentiallyMutex    sync.Mutex
-	messagesWaitingForResponse map[string]chan *Message.Message // syncKey -> responseChannel
-	brokerConnections          map[string]*brokerConnection     // brokerAddress -> brokerConnection
-	topicResolutions           map[string]*brokerConnection     // topic -> brokerConnection
-	asyncMessageHandlerMutex   sync.Mutex
-	syncMessageHandlerMutex    sync.Mutex
+	application              SystemgeComponent
+	handleSequentiallyMutex  sync.Mutex
+	asyncMessageHandlerMutex sync.Mutex
+	syncMessageHandlerMutex  sync.Mutex
+
+	messagesWaitingForResponseMutex sync.Mutex
+	messagesWaitingForResponse      map[string]chan *Message.Message // syncKey -> responseChannel
+
+	brokerConnectionsMutex sync.Mutex
+	brokerConnections      map[string]*brokerConnection // brokerAddress -> brokerConnection
+
+	topicResolutionMutex         sync.Mutex
+	topicResolutions             map[string]*brokerConnection // topic -> brokerConnection
+	topicsCurrentlyBeingResolved map[string]chan struct{}     // topic -> "lock"
 
 	incomingAsyncMessageCounter atomic.Uint32
 	incomingSyncRequestCounter  atomic.Uint32
@@ -87,10 +93,11 @@ func (node *Node) RetrieveSystemgeOutgoingSyncResponseMessageCounter() uint32 {
 
 func (node *Node) startSystemgeComponent() error {
 	node.systemge = &systemgeComponent{
-		application:                node.application.(SystemgeComponent),
-		messagesWaitingForResponse: make(map[string]chan *Message.Message),
-		brokerConnections:          make(map[string]*brokerConnection),
-		topicResolutions:           make(map[string]*brokerConnection),
+		application:                  node.application.(SystemgeComponent),
+		messagesWaitingForResponse:   make(map[string]chan *Message.Message),
+		brokerConnections:            make(map[string]*brokerConnection),
+		topicResolutions:             make(map[string]*brokerConnection),
+		topicsCurrentlyBeingResolved: make(map[string]chan struct{}),
 	}
 	for topic := range node.systemge.application.GetAsyncMessageHandlers() {
 		err := node.subscribeLoop(topic, 1)
@@ -108,8 +115,8 @@ func (node *Node) startSystemgeComponent() error {
 }
 
 func (node *Node) stopSystemgeComponent() error {
-	node.systemge.mutex.Lock()
-	defer node.systemge.mutex.Unlock()
+	node.systemge.brokerConnectionsMutex.Lock()
+	defer node.systemge.brokerConnectionsMutex.Unlock()
 	for _, brokerConnection := range node.systemge.brokerConnections {
 		brokerConnection.closeNetConn(false)
 		delete(node.systemge.brokerConnections, brokerConnection.endpoint.Address)

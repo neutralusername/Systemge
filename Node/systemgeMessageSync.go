@@ -66,8 +66,8 @@ func (systemge *systemgeComponent) receiveSyncResponse(message *Message.Message,
 	}
 }
 func (systemge *systemgeComponent) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
-	systemge.mutex.Lock()
-	defer systemge.mutex.Unlock()
+	systemge.messagesWaitingForResponseMutex.Lock()
+	defer systemge.messagesWaitingForResponseMutex.Unlock()
 	if systemge.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
 		return nil, Error.New("syncRequestToken already exists", nil)
 	}
@@ -76,8 +76,8 @@ func (systemge *systemgeComponent) addMessageWaitingForResponse(message *Message
 	return responseChannel, nil
 }
 func (systemge *systemgeComponent) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
-	systemge.mutex.Lock()
-	defer systemge.mutex.Unlock()
+	systemge.messagesWaitingForResponseMutex.Lock()
+	defer systemge.messagesWaitingForResponseMutex.Unlock()
 	close(responseChannel)
 	delete(systemge.messagesWaitingForResponse, syncRequestToken)
 }

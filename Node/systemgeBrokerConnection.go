@@ -98,11 +98,11 @@ func (brokerConnection *brokerConnection) closeNetConn(lock bool) (closed bool) 
 }
 
 func (systemge *systemgeComponent) cleanUpDisconnectedBrokerConnection(brokerConnection *brokerConnection) (previouslySubscribedTopics []string) {
-	systemge.mutex.Lock()
+	systemge.brokerConnectionsMutex.Lock()
 	brokerConnection.mutex.Lock()
 	defer func() {
 		brokerConnection.mutex.Unlock()
-		systemge.mutex.Unlock()
+		systemge.brokerConnectionsMutex.Unlock()
 	}()
 	delete(systemge.brokerConnections, brokerConnection.endpoint.Address)
 	brokerConnection.topicResolutions = make(map[string]bool)

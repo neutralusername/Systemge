@@ -32,14 +32,14 @@ func (systemge *systemgeComponent) resolveBrokerForTopic(nodeName string, topic 
 }
 
 func (systemge *systemgeComponent) getTopicResolution(topic string) *brokerConnection {
-	systemge.mutex.Lock()
-	defer systemge.mutex.Unlock()
+	systemge.topicResolutionMutex.Lock()
+	defer systemge.topicResolutionMutex.Unlock()
 	return systemge.topicResolutions[topic]
 }
 
 func (systemge *systemgeComponent) addTopicResolution(topic string, brokerConnection *brokerConnection) error {
-	systemge.mutex.Lock()
-	defer systemge.mutex.Unlock()
+	systemge.topicResolutionMutex.Lock()
+	defer systemge.topicResolutionMutex.Unlock()
 	if systemge.topicResolutions[topic] != nil {
 		return Error.New("topic endpoint already exists", nil)
 	}

@@ -341,22 +341,22 @@ func handleBrokerRemoveConfigBlacklistCommand(node *Node, args []string) (string
 }
 
 func handleSystemgeTopicResolutionsCommand(node *Node, args []string) (string, error) {
-	node.systemge.mutex.Lock()
+	node.systemge.topicResolutionMutex.Lock()
 	returnString := ""
 	for topic, brokerConnection := range node.systemge.topicResolutions {
 		returnString += topic + ":" + brokerConnection.endpoint.Address + ";"
 	}
-	node.systemge.mutex.Unlock()
+	node.systemge.topicResolutionMutex.Unlock()
 	return returnString, nil
 }
 
 func handleSystemgeBrokerConnectionsCommand(node *Node, args []string) (string, error) {
-	node.systemge.mutex.Lock()
+	node.systemge.brokerConnectionsMutex.Lock()
 	returnString := ""
 	for address := range node.systemge.brokerConnections {
 		returnString += address + ";"
 	}
-	node.systemge.mutex.Unlock()
+	node.systemge.brokerConnectionsMutex.Unlock()
 	return returnString, nil
 }
 
