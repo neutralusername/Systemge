@@ -105,6 +105,9 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			systemge.handleSequentiallyMutex.Lock()
 		}
 		err = node.handleAsyncMessage(message)
+		if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {
+			systemge.handleSequentiallyMutex.Unlock()
+		}
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to handle message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", err).Error())
@@ -113,12 +116,6 @@ func (node *Node) handleBrokerConnectionMessages(brokerConnection *brokerConnect
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Handled message with topic \""+message.GetTopic()+"\" from broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
 			}
-			if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {
-				systemge.handleSequentiallyMutex.Unlock()
-			}
-		}
-		if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {
-			systemge.handleSequentiallyMutex.Unlock()
 		}
 	}
 }
