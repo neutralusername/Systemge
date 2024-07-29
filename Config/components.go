@@ -83,7 +83,7 @@ type Resolver struct {
 	ConfigServer *TcpServer `json:"configServer"` // *required*
 
 	TcpTimeoutMs     uint64                  `json:"tcpTimeoutMs"`     // default: 0 = block forever
-	TopicResolutions map[string]*TcpEndpoint `json:"topicResolutions"` // *optional* (resolves these topics with the provided endpoints) (can get updated/overwritten by brokers)
+	TopicResolutions map[string]*TcpEndpoint `json:"topicResolutions"` // *optional* (topic->endpoint) (resolves these topics with the provided endpoints) (can get updated/overwritten by brokers)
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited
