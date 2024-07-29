@@ -6,8 +6,7 @@ import (
 
 func (systemge *systemgeComponent) resolutionSafetyMechanism(topic string) (*brokerConnection, bool) {
 	systemge.topicResolutionMutex.Lock()
-	if systemge.topicResolutions[topic] != nil {
-		brokerConnection := systemge.topicResolutions[topic]
+	if brokerConnection := systemge.topicResolutions[topic]; brokerConnection != nil {
 		systemge.topicResolutionMutex.Unlock()
 		return brokerConnection, false
 	} else {
