@@ -31,12 +31,6 @@ func (systemge *systemgeComponent) resolveBrokerForTopic(nodeName string, topic 
 	return endpoint, nil
 }
 
-func (systemge *systemgeComponent) getTopicResolution(topic string) *brokerConnection {
-	systemge.topicResolutionMutex.Lock()
-	defer systemge.topicResolutionMutex.Unlock()
-	return systemge.topicResolutions[topic]
-}
-
 func (systemge *systemgeComponent) addTopicResolution(topic string, brokerConnection *brokerConnection) error {
 	systemge.topicResolutionMutex.Lock()
 	defer systemge.topicResolutionMutex.Unlock()
