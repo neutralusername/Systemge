@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (node *Node) handleBrokerConfigConnections() {
@@ -54,7 +55,7 @@ func (node *Node) handleBrokerConfigConnections() {
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log(Error.New("Handling config request from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
-			err = broker.handleConfigConnection(node.GetName(), netConn)
+			err = broker.handleConfigConnection(node.GetMailer(), node.GetErrorLogger(), node.GetName(), netConn)
 			if err != nil {
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle config request from \""+netConn.RemoteAddr().String()+"\"", err).Error())
@@ -85,7 +86,7 @@ func (node *Node) handleBrokerConfigConnections() {
 	}
 }
 
-func (broker *brokerComponent) handleConfigConnection(nodeName string, netConn net.Conn) error {
+func (broker *brokerComponent) handleConfigConnection(mailer *Tools.Mailer, errorLogger *Tools.Logger, nodeName string, netConn net.Conn) error {
 	messageBytes, bytesSent, err := Tcp.Receive(netConn, broker.application.GetBrokerComponentConfig().TcpTimeoutMs, broker.application.GetBrokerComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("Failed to receive connection request", err)
@@ -99,14 +100,14 @@ func (broker *brokerComponent) handleConfigConnection(nodeName string, netConn n
 	if err != nil {
 		return Error.New("Invalid connection request message", err)
 	}
-	err = broker.handleConfigRequest(nodeName, message)
+	err = broker.handleConfigRequest(mailer, errorLogger, nodeName, message)
 	if err != nil {
 		return Error.New("Failed to handle config request with topic \""+message.GetTopic()+"\"", err)
 	}
 	return nil
 }
 
-func (broker *brokerComponent) handleConfigRequest(nodeName string, message *Message.Message) error {
+func (broker *brokerComponent) handleConfigRequest(mailer *Tools.Mailer, errorLogger *Tools.Logger, nodeName string, message *Message.Message) error {
 	payloadSegments := strings.Split(message.GetPayload(), "|")
 	if len(payloadSegments) == 0 {
 		return Error.New("No topics provided", nil)
@@ -146,27 +147,75 @@ func (broker *brokerComponent) handleConfigRequest(nodeName string, message *Mes
 		}
 	case "addSyncTopics":
 		broker.addSyncTopics(payloadSegments...)
-		err := broker.addResolverTopicsRemotely(nodeName, payloadSegments...)
-		if err != nil {
-			return Error.New("Failed to add topics remotely", err)
+		for _, resolverConfigEndpoint := range broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+			err := broker.addResolverTopicsRemotely(resolverConfigEndpoint, nodeName, payloadSegments...)
+			if err != nil {
+				if errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error())
+				}
+				if mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+					if err != nil {
+						if errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to send mail", err).Error())
+						}
+					}
+				}
+			}
 		}
 	case "removeSyncTopics":
 		broker.removeSyncTopics(payloadSegments...)
-		err := broker.removeResolverTopicsRemotely(nodeName, payloadSegments...)
-		if err != nil {
-			return Error.New("Failed to remove topics remotely", err)
+		for _, resolverConfigEndpoint := range broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+			err := broker.removeResolverTopicsRemotely(resolverConfigEndpoint, nodeName, payloadSegments...)
+			if err != nil {
+				if errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error())
+				}
+				if mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+					if err != nil {
+						if errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to send mail", err).Error())
+						}
+					}
+				}
+			}
 		}
 	case "addAsyncTopics":
 		broker.addAsyncTopics(payloadSegments...)
-		err := broker.addResolverTopicsRemotely(nodeName, payloadSegments...)
-		if err != nil {
-			return Error.New("Failed to add topics remotely", err)
+		for _, resolverConfigEndpoint := range broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+			err := broker.addResolverTopicsRemotely(resolverConfigEndpoint, nodeName, payloadSegments...)
+			if err != nil {
+				if errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error())
+				}
+				if mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+					if err != nil {
+						if errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to send mail", err).Error())
+						}
+					}
+				}
+			}
 		}
 	case "removeAsyncTopics":
 		broker.removeAsyncTopics(payloadSegments...)
-		err := broker.removeResolverTopicsRemotely(nodeName, payloadSegments...)
-		if err != nil {
-			return Error.New("Failed to remove topics remotely", err)
+		for _, resolverConfigEndpoint := range broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+			err := broker.removeResolverTopicsRemotely(resolverConfigEndpoint, nodeName, payloadSegments...)
+			if err != nil {
+				if errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error())
+				}
+				if mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+					if err != nil {
+						if errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to send mail", err).Error())
+						}
+					}
+				}
+			}
 		}
 	default:
 		return Error.New("Unknown topic \""+message.GetTopic()+"\"", nil)

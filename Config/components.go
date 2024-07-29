@@ -15,7 +15,7 @@ type Systemge struct {
 	TcpTimeoutMs              uint64 `json:"tcpTimeoutMs"`              // default: 0 = block forever
 	MaxSubscribeAttempts      uint64 `json:"maxSubscribeAttempts"`      // default: 0 = infinite
 
-	ResolverEndpoint *TcpEndpoint `json:"resolverEndpoint"` // *required*
+	ResolverEndpoints []*TcpEndpoint `json:"resolverEndpoints"` // at least one *required*
 }
 
 func UnmarshalSystemge(data string) *Systemge {
@@ -60,7 +60,7 @@ type Broker struct {
 	SyncTopics  []string `json:"syncTopics"`  // *required*
 	AsyncTopics []string `json:"asyncTopics"` // *required*
 
-	ResolverConfigEndpoint *TcpEndpoint `json:"resolverConfigEndpoint"` // *required*
+	ResolverConfigEndpoints []*TcpEndpoint `json:"resolverConfigEndpoints"` // *optional*
 
 	SyncResponseTimeoutMs uint64 `json:"syncResponseTimeoutMs"` // default: 0
 	TcpTimeoutMs          uint64 `json:"tcpTimeoutMs"`          // default: 0 = block forever
@@ -82,7 +82,8 @@ type Resolver struct {
 	Server       *TcpServer `json:"server"`       // *required*
 	ConfigServer *TcpServer `json:"configServer"` // *required*
 
-	TcpTimeoutMs uint64 `json:"tcpTimeoutMs"` // default: 0 = block forever
+	TcpTimeoutMs     uint64                  `json:"tcpTimeoutMs"`     // default: 0 = block forever
+	TopicResolutions map[string]*TcpEndpoint `json:"topicResolutions"` // *optional*
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited

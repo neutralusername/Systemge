@@ -1,17 +1,18 @@
 package Node
 
 import (
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (broker *brokerComponent) addResolverTopicsRemotely(nodeName string, topics ...string) error {
+func (broker *brokerComponent) addResolverTopicsRemotely(resolverConfigEndpoint *Config.TcpEndpoint, nodeName string, topics ...string) error {
 	if len(topics) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	netConn, err := Tcp.NewEndpoint(broker.application.GetBrokerComponentConfig().ResolverConfigEndpoint)
+	netConn, err := Tcp.NewEndpoint(resolverConfigEndpoint)
 	if err != nil {
 		return Error.New("failed dialing resolver", err)
 	}
@@ -32,20 +33,19 @@ func (broker *brokerComponent) addResolverTopicsRemotely(nodeName string, topics
 	return nil
 }
 
-func (broker *brokerComponent) removeResolverTopicsRemotely(nodeName string, topics ...string) error {
+func (broker *brokerComponent) removeResolverTopicsRemotely(resolverConfigEndpoint *Config.TcpEndpoint, nodeName string, topics ...string) error {
 	if len(topics) == 0 {
 		return Error.New("No topics provided", nil)
 	}
-	netConn, err := Tcp.NewEndpoint(broker.application.GetBrokerComponentConfig().ResolverConfigEndpoint)
+	netConn, err := Tcp.NewEndpoint(resolverConfigEndpoint)
 	if err != nil {
 		return Error.New("failed dialing resolver", err)
 	}
 	defer netConn.Close()
-	payload := ""
+	payload := Helpers.JsonMarshal(broker.application.GetBrokerComponentConfig().Endpoint)
 	for _, topic := range topics {
-		payload += topic + "|"
+		payload += "|" + topic
 	}
-	payload = payload[:len(payload)-1]
 	response, bytesSent, bytesReceived, err := Tcp.Exchange(netConn, Message.NewAsync("removeTopics", nodeName, payload).Serialize(), broker.application.GetBrokerComponentConfig().TcpTimeoutMs, broker.application.GetBrokerComponentConfig().IncomingMessageByteLimit)
 	if err != nil {
 		return Error.New("failed exchanging messages with resolver", err)

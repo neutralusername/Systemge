@@ -9,8 +9,8 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (systemge *systemgeComponent) resolveBrokerForTopic(nodeName string, topic string) (*Config.TcpEndpoint, error) {
-	netConn, err := Tcp.NewEndpoint(systemge.application.GetSystemgeComponentConfig().ResolverEndpoint)
+func (systemge *systemgeComponent) resolveBrokerForTopic(resolverEndpoint *Config.TcpEndpoint, nodeName string, topic string) (*Config.TcpEndpoint, error) {
+	netConn, err := Tcp.NewEndpoint(resolverEndpoint)
 	if err != nil {
 		return nil, Error.New("failed dialing resolver", err)
 	}
@@ -50,11 +50,15 @@ func (systemge *systemgeComponent) topicResolutionLifetimeTimeout(nodeName strin
 	defer timer.Stop()
 	select {
 	case <-timer.C:
-		endpoint, err := systemge.resolveBrokerForTopic(nodeName, topic)
-		if err != nil || endpoint.Address != brokerConnection.endpoint.Address {
-			return Error.New("failed to re-resolve broker address for topic \""+topic+"\"", err)
+		for _, resolverEndpoint := range systemge.application.GetSystemgeComponentConfig().ResolverEndpoints {
+			endpoint, err := systemge.resolveBrokerForTopic(resolverEndpoint, nodeName, topic)
+			if err == nil {
+				if endpoint.Address == brokerConnection.endpoint.Address && endpoint.Domain == brokerConnection.endpoint.Domain && endpoint.TlsCert == brokerConnection.endpoint.TlsCert {
+					return nil
+				}
+			}
 		}
-		return nil
+		return Error.New("failed to re-resolve broker address for topic \""+topic+"\"", nil)
 	case <-brokerConnection.closeChannel:
 		return Error.New("broker connection closed", nil)
 	}

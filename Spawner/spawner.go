@@ -51,12 +51,12 @@ func (spawner *Spawner) despawnNode(id string) error {
 		if err != nil {
 			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Failed stopping node "+id, err).Error())
-				if mailer := spawner.node.GetMailer(); mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+id, err).Error()))
-					if err != nil {
-						if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
-						}
+			}
+			if mailer := spawner.node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+id, err).Error()))
+				if err != nil {
+					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed sending mail", err).Error())
 					}
 				}
 			}
@@ -67,12 +67,12 @@ func (spawner *Spawner) despawnNode(id string) error {
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error())
-				if mailer := spawner.node.GetMailer(); mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error()))
-					if err != nil {
-						if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
-						}
+			}
+			if mailer := spawner.node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error()))
+				if err != nil {
+					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed sending mail", err).Error())
 					}
 				}
 			}
@@ -82,12 +82,12 @@ func (spawner *Spawner) despawnNode(id string) error {
 		if removeErr != nil {
 			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Failed removing async topic \""+id+"\"", removeErr).Error())
-				if mailer := spawner.node.GetMailer(); mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing async topic \""+id+"\"", removeErr).Error()))
-					if err != nil {
-						if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
-						}
+			}
+			if mailer := spawner.node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing async topic \""+id+"\"", removeErr).Error()))
+				if err != nil {
+					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed sending mail", err).Error())
 					}
 				}
 			}

@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 )
 
@@ -57,9 +58,15 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("No existing topic resolution found for topic \""+topic+"\". Resolving broker address", nil).Error())
 	}
-	endpoint, err := systemge.resolveBrokerForTopic(node.GetName(), topic)
-	if err != nil {
-		return nil, Error.New("Failed resolving broker address for topic \""+topic+"\"", err)
+	var endpoint *Config.TcpEndpoint
+	for _, resolverEndpoint := range systemge.application.GetSystemgeComponentConfig().ResolverEndpoints {
+		endpoint, err = systemge.resolveBrokerForTopic(resolverEndpoint, node.GetName(), topic)
+		if err == nil {
+			break
+		}
+	}
+	if endpoint == nil {
+		return nil, Error.New("Failed resolving broker address for topic \""+topic+"\"", nil)
 	}
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Resolved broker address for topic \""+topic+"\". Getting existing broker connection for \""+endpoint.Address+"\"", nil).Error())

@@ -15,7 +15,7 @@ type resolverComponent struct {
 	resolverTcpServer *Tcp.Server
 	configTcpServer   *Tcp.Server
 
-	registeredTopics map[string]Config.TcpEndpoint // topic -> tcpEndpoint
+	registeredTopics map[string]*Config.TcpEndpoint // topic -> tcpEndpoint
 
 	mutex sync.Mutex
 
@@ -56,7 +56,10 @@ func (node *Node) RetrieveResolverBytesSentCounter() uint64 {
 func (node *Node) startResolverComponent() error {
 	node.resolver = &resolverComponent{
 		application:      node.application.(ResolverComponent),
-		registeredTopics: map[string]Config.TcpEndpoint{},
+		registeredTopics: map[string]*Config.TcpEndpoint{},
+	}
+	for topic, resolverConfigEndpoint := range node.resolver.application.GetResolverComponentConfig().TopicResolutions {
+		node.resolver.registeredTopics[topic] = resolverConfigEndpoint
 	}
 	listener, err := Tcp.NewServer(node.resolver.application.GetResolverComponentConfig().Server)
 	if err != nil {

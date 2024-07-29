@@ -19,12 +19,12 @@ func (spawner *Spawner) OnStop(node *Node.Node) error {
 		if err != nil {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Failed despawning spawned node with id \""+id+"\"", err).Error())
-				if mailer := node.GetMailer(); mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed despawning spawned node with id \""+id+"\"", err).Error()))
-					if err != nil {
-						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
-						}
+			}
+			if mailer := node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed despawning spawned node with id \""+id+"\"", err).Error()))
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed sending mail", err).Error())
 					}
 				}
 			}

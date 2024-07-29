@@ -146,18 +146,15 @@ func (resolver *resolverComponent) handleConfigRequest(message *Message.Message,
 			return Error.New("Invalid payload", nil)
 		}
 		brokerEndpoint := Config.UnmarshalTcpEndpoint(segments[0])
-		err := resolver.addTopics(infoLogger, brokerEndpoint, segments[1:]...)
-		if err != nil {
-			return Error.New("Failed to add topics", err)
-		}
+		resolver.addTopics(infoLogger, brokerEndpoint, segments[1:]...)
+
 	case "removeTopics":
-		if len(segments) < 1 {
+		if len(segments) < 2 {
 			return Error.New("Invalid payload", nil)
 		}
-		err := resolver.removeTopics(infoLogger, segments...)
-		if err != nil {
-			return Error.New("Failed to remove topics", err)
-		}
+		brokerEndpoint := Config.UnmarshalTcpEndpoint(segments[0])
+		resolver.removeTopics(infoLogger, brokerEndpoint, segments...)
+
 	}
 	return nil
 }

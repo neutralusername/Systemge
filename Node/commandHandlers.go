@@ -3,6 +3,7 @@ package Node
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 // returns a map of command handlers for the command-line interface
@@ -262,25 +263,85 @@ func handleBrokerConfigBlacklistCommand(node *Node, args []string) (string, erro
 
 func handleBrokerAddSyncTopicCommand(node *Node, args []string) (string, error) {
 	node.broker.addSyncTopics(args...)
-	node.broker.addResolverTopicsRemotely(node.GetName(), args...)
+	for _, resolverConfigEndpoint := range node.broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+		err := node.broker.addResolverTopicsRemotely(resolverConfigEndpoint, node.GetName(), args...)
+		if err != nil {
+			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error())
+			}
+			if mailer := node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to send mail", err).Error())
+					}
+				}
+			}
+		}
+	}
 	return "success", nil
 }
 
 func handleBrokerAddAsyncTopicCommand(node *Node, args []string) (string, error) {
 	node.broker.addAsyncTopics(args...)
-	node.broker.addResolverTopicsRemotely(node.GetName(), args...)
+	for _, resolverConfigEndpoint := range node.broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+		err := node.broker.addResolverTopicsRemotely(resolverConfigEndpoint, node.GetName(), args...)
+		if err != nil {
+			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error())
+			}
+			if mailer := node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to send mail", err).Error())
+					}
+				}
+			}
+		}
+	}
 	return "success", nil
 }
 
 func handleBrokerRemoveSyncTopicCommand(node *Node, args []string) (string, error) {
 	node.broker.removeSyncTopics(args...)
-	node.broker.removeResolverTopicsRemotely(node.GetName(), args...)
+	for _, resolverConfigEndpoint := range node.broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+		err := node.broker.removeResolverTopicsRemotely(resolverConfigEndpoint, node.GetName(), args...)
+		if err != nil {
+			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error())
+			}
+			if mailer := node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to send mail", err).Error())
+					}
+				}
+			}
+		}
+	}
 	return "success", nil
 }
 
 func handleBrokerRemoveAsyncTopicCommand(node *Node, args []string) (string, error) {
 	node.broker.removeAsyncTopics(args...)
-	node.broker.removeResolverTopicsRemotely(node.GetName(), args...)
+	for _, resolverConfigEndpoint := range node.broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
+		err := node.broker.removeResolverTopicsRemotely(resolverConfigEndpoint, node.GetName(), args...)
+		if err != nil {
+			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error())
+			}
+			if mailer := node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to remove topics remotely from \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to send mail", err).Error())
+					}
+				}
+			}
+		}
+	}
 	return "success", nil
 }
 
