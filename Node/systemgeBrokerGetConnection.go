@@ -19,8 +19,12 @@ func (systemge *systemgeComponent) resolutionSafetyMechanism(topic string) *brok
 			systemge.topicResolutionMutex.Unlock()
 			<-chanLock
 			systemge.topicResolutionMutex.Lock()
-			defer systemge.topicResolutionMutex.Unlock()
-			return systemge.topicResolutions[topic]
+			brokerConnection := systemge.topicResolutions[topic]
+			if brokerConnection == nil {
+				systemge.topicsCurrentlyBeingResolved[topic] = make(chan struct{})
+			}
+			systemge.topicResolutionMutex.Unlock()
+			return brokerConnection
 		}
 	}
 }
