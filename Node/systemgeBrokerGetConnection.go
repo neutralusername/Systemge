@@ -7,8 +7,9 @@ import (
 func (systemge *systemgeComponent) resolutionSafetyMechanism(topic string) (*brokerConnection, bool) {
 	systemge.topicResolutionMutex.Lock()
 	if systemge.topicResolutions[topic] != nil {
+		brokerConnection := systemge.topicResolutions[topic]
 		systemge.topicResolutionMutex.Unlock()
-		return systemge.topicResolutions[topic], false
+		return brokerConnection, false
 	} else {
 		chanLock, ok := systemge.topicsCurrentlyBeingResolved[topic]
 		if !ok {
