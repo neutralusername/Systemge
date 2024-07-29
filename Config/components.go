@@ -60,7 +60,7 @@ type Broker struct {
 	SyncTopics  []string `json:"syncTopics"`  // *required*
 	AsyncTopics []string `json:"asyncTopics"` // *required*
 
-	ResolverConfigEndpoints []*TcpEndpoint `json:"resolverConfigEndpoints"` // *optional* (propagates resolutions to these resolvers)
+	ResolverConfigEndpoints []*TcpEndpoint `json:"resolverConfigEndpoints"` // *optional* (propagates topics/endpoint to these resolvers)
 
 	SyncResponseTimeoutMs uint64 `json:"syncResponseTimeoutMs"` // default: 0
 	TcpTimeoutMs          uint64 `json:"tcpTimeoutMs"`          // default: 0 = block forever
@@ -83,7 +83,7 @@ type Resolver struct {
 	ConfigServer *TcpServer `json:"configServer"` // *required*
 
 	TcpTimeoutMs     uint64                  `json:"tcpTimeoutMs"`     // default: 0 = block forever
-	TopicResolutions map[string]*TcpEndpoint `json:"topicResolutions"` // *optional*
+	TopicResolutions map[string]*TcpEndpoint `json:"topicResolutions"` // *optional* (resolves these topics with the provided endpoints) (can get updated/overwritten by brokers)
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited
