@@ -15,7 +15,7 @@ type Systemge struct {
 	TcpTimeoutMs              uint64 `json:"tcpTimeoutMs"`              // default: 0 = block forever
 	MaxSubscribeAttempts      uint64 `json:"maxSubscribeAttempts"`      // default: 0 = infinite
 
-	ResolverEndpoints []*TcpEndpoint `json:"resolverEndpoints"` // at least one *required*
+	ResolverEndpoints []*TcpEndpoint `json:"resolverEndpoints"` // at least one *required* (node attempts to resolve topics with these resolvers in the provided order. stops on first successful resolution)
 }
 
 func UnmarshalSystemge(data string) *Systemge {
@@ -60,7 +60,7 @@ type Broker struct {
 	SyncTopics  []string `json:"syncTopics"`  // *required*
 	AsyncTopics []string `json:"asyncTopics"` // *required*
 
-	ResolverConfigEndpoints []*TcpEndpoint `json:"resolverConfigEndpoints"` // *optional*
+	ResolverConfigEndpoints []*TcpEndpoint `json:"resolverConfigEndpoints"` // *optional* (propagates resolutions to these resolvers)
 
 	SyncResponseTimeoutMs uint64 `json:"syncResponseTimeoutMs"` // default: 0
 	TcpTimeoutMs          uint64 `json:"tcpTimeoutMs"`          // default: 0 = block forever
