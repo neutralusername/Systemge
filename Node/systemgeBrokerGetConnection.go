@@ -4,30 +4,24 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 )
 
-func (systemge *systemgeComponent) resolutionSafetyMechanism(topic string) *brokerConnection {
+func (systemge *systemgeComponent) resolutionSafetyMechanism(topic string) (*brokerConnection, bool) {
 	systemge.topicResolutionMutex.Lock()
 	if systemge.topicResolutions[topic] != nil {
 		systemge.topicResolutionMutex.Unlock()
-		return systemge.topicResolutions[topic]
+		return systemge.topicResolutions[topic], false
 	} else {
 		chanLock, ok := systemge.topicsCurrentlyBeingResolved[topic]
 		if !ok {
 			systemge.topicsCurrentlyBeingResolved[topic] = make(chan struct{})
 			systemge.topicResolutionMutex.Unlock()
-			defer func() {
-				systemge.topicResolutionMutex.Lock()
-				close(systemge.topicsCurrentlyBeingResolved[topic])
-				delete(systemge.topicsCurrentlyBeingResolved, topic)
-				systemge.topicResolutionMutex.Unlock()
-			}()
-			return nil
+			return nil, true
 		} else {
 			systemge.topicResolutionMutex.Unlock()
 			<-chanLock
 			systemge.topicResolutionMutex.Lock()
 			brokerConnection := systemge.topicResolutions[topic]
 			systemge.topicResolutionMutex.Unlock()
-			return brokerConnection
+			return brokerConnection, false
 		}
 	}
 }
@@ -40,13 +34,21 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Getting topic resolution for topic \""+topic+"\"", nil).Error())
 	}
-	brokerConnection := systemge.resolutionSafetyMechanism(topic)
+	brokerConnection, def := systemge.resolutionSafetyMechanism(topic)
 	if brokerConnection != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Found existing topic resolution for topic \""+topic+"\"", nil).Error())
 		}
 		return brokerConnection, nil
 	} else {
+		if def {
+			defer func() {
+				systemge.topicResolutionMutex.Lock()
+				close(systemge.topicsCurrentlyBeingResolved[topic])
+				delete(systemge.topicsCurrentlyBeingResolved, topic)
+				systemge.topicResolutionMutex.Unlock()
+			}()
+		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("No existing topic resolution found for topic \""+topic+"\". Resolving broker address", nil).Error())
 		}
