@@ -27,8 +27,8 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 		}
 		messageBytes, err := systemge.receiveOutgoingConnection(outgoingConnection)
 		if err != nil {
-			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\" likely due to connection loss", err).Error())
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			systemge.outgoingConnectionMutex.Lock()
 			delete(systemge.outgoingConnections, outgoingConnection.name)

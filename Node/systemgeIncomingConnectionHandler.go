@@ -30,8 +30,8 @@ func (node *Node) handleIncomingConnections() {
 		}
 		netConn, err := systemge.tcpServer.GetListener().Accept()
 		if err != nil {
-			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed to accept incoming connection", err).Error())
+			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to accept incoming connection", err).Error())
 			}
 			continue
 		}
