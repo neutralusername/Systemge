@@ -23,7 +23,7 @@ type SyncResponse struct {
 	origin          string
 }
 
-func (syncResponse *SyncResponse) GetResponseMessage() *Message.Message {
+func (syncResponse *SyncResponse) GetMessage() *Message.Message {
 	return syncResponse.responseMessage
 }
 
