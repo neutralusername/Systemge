@@ -66,7 +66,7 @@ func (node *Node) getBrokerConnectionForTopic(topic string, addTopicResolution b
 		}
 	}
 	if endpoint == nil {
-		return nil, Error.New("Failed resolving broker address for topic \""+topic+"\"", nil)
+		return nil, Error.New("Failed resolving broker address for topic \""+topic+"\"", err)
 	}
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Resolved broker address for topic \""+topic+"\". Getting existing broker connection for \""+endpoint.Address+"\"", nil).Error())
