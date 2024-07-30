@@ -11,6 +11,7 @@ import (
 type SyncResponseChannel struct {
 	closeChannel   chan struct{}
 	channel        chan *SyncResponse
+	responseCount  uint64
 	requestMessage *Message.Message
 }
 
@@ -23,11 +24,20 @@ type SyncResponse struct {
 	origin          string
 }
 
-func newSyncResponseChannel(requestMessage *Message.Message) *SyncResponseChannel {
+func (syncResponseChannel *SyncResponseChannel) addResponse(syncResponse *SyncResponse) {
+	syncResponseChannel.responseCount++
+	syncResponseChannel.channel <- &SyncResponse{
+		responseMessage: syncResponse.responseMessage,
+		origin:          syncResponse.origin,
+	}
+}
+
+func newSyncResponseChannel(requestMessage *Message.Message, responseLimit uint64) *SyncResponseChannel {
 	return &SyncResponseChannel{
 		closeChannel:   make(chan struct{}),
-		channel:        make(chan *SyncResponse),
+		channel:        make(chan *SyncResponse, responseLimit),
 		requestMessage: requestMessage,
+		responseCount:  0,
 	}
 }
 
@@ -70,7 +80,8 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs
 func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, error) {
 	if systemge := node.systemge; systemge != nil {
 		message := Message.NewSync(topic, payload, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
-		responseChannel := newSyncResponseChannel(message)
+		responseChannel := newSyncResponseChannel(message, systemge.config.SyncResponseLimit)
+
 		systemge.syncRequestMutex.Lock()
 		systemge.syncRequestChannels[message.GetSyncTokenToken()] = responseChannel
 		systemge.syncRequestMutex.Unlock()

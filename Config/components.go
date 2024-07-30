@@ -10,6 +10,7 @@ type Systemge struct {
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
 
 	SyncRequestTimeoutMs            uint64 `json:"syncResponseTimeoutMs"`           // default: 0 = infinite which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
+	SyncResponseLimit               uint64 `json:"syncResponseLimit"`               // default: 0 == sync responses are disabled
 	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 = block forever
 	MaxConnectionAttempts           uint64 `json:"maxConnectionAttempts"`           // default: 0 = infinite
 	ConnectionAttemptDelayMs        uint64 `json:"connectionAttemptDelay"`          // default: 0

@@ -86,16 +86,20 @@ func (systemge *systemgeComponent) handleSyncResponse(outgoingConnectionName str
 	if syncResponseChannel == nil {
 		return Error.New("Received sync response for unknown token", nil)
 	}
+	if syncResponseChannel.responseCount >= systemge.config.SyncResponseLimit {
+		return Error.New("Received too many sync responses", nil)
+	}
 	if message.GetTopic() == Message.TOPIC_SUCCESS {
 		systemge.incomingSyncSuccessResponses.Add(1)
 	} else {
 		systemge.incomingSyncFailureResponses.Add(1)
 	}
+	syncResponseChannel.responseCount++
 	systemge.incomingSyncResponses.Add(1)
 	delete(systemge.syncRequestChannels, message.GetSyncTokenToken())
-	syncResponseChannel.channel <- &SyncResponse{
+	go syncResponseChannel.addResponse(&SyncResponse{
 		origin:          outgoingConnectionName,
 		responseMessage: message,
-	}
+	})
 	return nil
 }
