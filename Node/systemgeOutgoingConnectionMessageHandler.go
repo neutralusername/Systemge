@@ -30,6 +30,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
+			outgoingConnection.netConn.Close()
 			systemge.outgoingConnectionMutex.Lock()
 			delete(systemge.outgoingConnections, outgoingConnection.name)
 			for _, topic := range outgoingConnection.topics {
