@@ -100,7 +100,17 @@ func (node *Node) startBrokerComponent() error {
 		for _, resolverConfigEndpoint := range node.broker.application.GetBrokerComponentConfig().ResolverConfigEndpoints {
 			err = node.broker.addResolverTopicsRemotely(resolverConfigEndpoint, node.GetName(), topicsToAddToResolver...)
 			if err != nil {
-				return Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err)
+				if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error())
+				}
+				if mailer := node.GetMailer(); mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to add topics remotely to \""+resolverConfigEndpoint.Address+"\"", err).Error()))
+					if err != nil {
+						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+						}
+					}
+				}
 			} else {
 				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("Added topics remotely to \"" + resolverConfigEndpoint.Address + "\"")
