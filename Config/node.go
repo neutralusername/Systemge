@@ -11,9 +11,16 @@ type Node struct {
 	WarningLoggerPath         string  `json:"warningLoggerPath"`         // *optional*
 	InternalWarningLoggerPath string  `json:"internalWarningLoggerPath"` // *optional*
 	ErrorLoggerPath           string  `json:"errorLoggerPath"`           // *optional*
-	DebugLoggerPath           string  `json:"debugLoggerPath"`           // *optional*
+	DebugLoggerPath           string  `json:"debugLoggerPath"`           // *optional
 
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
+}
+
+type NewNode struct {
+	NodeConfig      *Node      `json:"node"`            // *required*
+	SystemgeConfig  *Systemge  `json:"systegmeConfig"`  // *optional*
+	HttpConfig      *HTTP      `json:"httpConfig"`      // *optional*
+	WebsocketConfig *Websocket `json:"websocketConfig"` // *optional*
 }
 
 func UnmarshalNode(data string) *Node {

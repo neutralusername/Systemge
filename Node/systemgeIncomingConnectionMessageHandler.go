@@ -50,7 +50,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			}
 			continue
 		}
-		if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {
+		if systemge.config.HandleMessagesSequentially {
 			systemge.handleSequentiallyMutex.Lock()
 		}
 		if message.GetSyncTokenToken() == "" {
@@ -89,7 +89,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 				}
 			}
 		}
-		if systemge.application.GetSystemgeComponentConfig().HandleMessagesSequentially {
+		if systemge.config.HandleMessagesSequentially {
 			systemge.handleSequentiallyMutex.Unlock()
 		}
 	}

@@ -56,7 +56,7 @@ func (node *Node) handleIncomingConnections() {
 
 func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, netConn net.Conn) (*incomingConnection, error) {
 	systemge.incomingConnectionAttempts.Add(1)
-	messageBytes, bytesReceived, err := Tcp.Receive(netConn, systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, systemge.application.GetSystemgeComponentConfig().IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)
@@ -77,14 +77,14 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+connection_nodeName_topic+"\"", nil)
 	}
 	incomingConnectionName := message.GetPayload()
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(connection_nodeName_topic, nodeName).Serialize(), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(connection_nodeName_topic, nodeName).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to send \""+connection_nodeName_topic+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
-	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(connection_responsibleTopics_topic, Helpers.JsonMarshal(systemge.responsibleTopics)).Serialize(), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs)
+	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(connection_responsibleTopics_topic, Helpers.JsonMarshal(systemge.responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to send \""+connection_responsibleTopics_topic+"\" message", err)

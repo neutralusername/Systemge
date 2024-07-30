@@ -11,9 +11,9 @@ func (spawner *Spawner) spawnNode(id string) error {
 	if ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
-	nodeConfig := *spawner.spawnerConfig.SpawnedNodeConfig
-	nodeConfig.Name = nodeConfig.Name + "-" + id
-	newNode := Node.New(&nodeConfig, spawner.newApplicationFunc(id))
+	newNodeConfig := spawner.spawnerConfig.SpawnedNodeConfig
+	newNodeConfig.NodeConfig.Name = newNodeConfig.NodeConfig.Name + "-" + id
+	newNode := Node.New(newNodeConfig, spawner.newApplicationFunc(id))
 	spawner.spawnedNodes[id] = newNode
 	if spawner.spawnerConfig.PropagateSpawnedNodeChanges {
 		spawner.addNodeChannel <- newNode

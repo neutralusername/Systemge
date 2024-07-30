@@ -1,9 +1,10 @@
 package Node
 
 import (
+	"net/http"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tools"
-	"net/http"
 )
 
 func (websocket *websocketComponent) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
@@ -14,7 +15,7 @@ func (websocket *websocketComponent) websocketUpgrade(logger *Tools.Logger) http
 			}
 			return
 		}
-		websocketConn, err := websocket.application.GetWebsocketComponentConfig().Upgrader.Upgrade(responseWriter, httpRequest, nil)
+		websocketConn, err := websocket.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if logger != nil {
 				logger.Log(Error.New("failed upgrading connection to websocket", err).Error())

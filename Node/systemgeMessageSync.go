@@ -83,7 +83,7 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 			}
 		}
 		go func() {
-			if syncRequestTimeoutMs := systemge.application.GetSystemgeComponentConfig().SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
+			if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
 				timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
 				select {
 				case <-timeout.C:

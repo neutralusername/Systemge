@@ -1,9 +1,10 @@
 package Node
 
 import (
-	"github.com/neutralusername/Systemge/Error"
 	"sync"
 	"time"
+
+	"github.com/neutralusername/Systemge/Error"
 
 	"github.com/gorilla/websocket"
 )
@@ -43,7 +44,7 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
-	websocketClient.watchdog = time.AfterFunc(time.Duration(websocket.application.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs)*time.Millisecond, func() {
+	websocketClient.watchdog = time.AfterFunc(time.Duration(websocket.config.ClientWatchdogTimeoutMs)*time.Millisecond, func() {
 		websocketClient.expired = true
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
@@ -71,7 +72,7 @@ func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
 		return Error.New("websocketClient is disconnected", nil)
 	}
 	websocketClient.expired = false
-	websocketClient.watchdog.Reset(time.Duration(node.websocket.application.GetWebsocketComponentConfig().ClientWatchdogTimeoutMs) * time.Millisecond)
+	websocketClient.watchdog.Reset(time.Duration(node.websocket.config.ClientWatchdogTimeoutMs) * time.Millisecond)
 	return nil
 }
 

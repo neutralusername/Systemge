@@ -31,11 +31,11 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 			}
 			return
 		}
-		if maxConnectionAttempts := systemge.application.GetSystemgeComponentConfig().MaxConnectionAttempts; maxConnectionAttempts > 0 && connectionAttempts >= maxConnectionAttempts {
+		if maxConnectionAttempts := systemge.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && connectionAttempts >= maxConnectionAttempts {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Max attempts reached to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 			}
-			if systemge.application.GetSystemgeComponentConfig().StopAfterOutgoingConnectionLoss {
+			if systemge.config.StopAfterOutgoingConnectionLoss {
 				if err := node.stop(true); err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to stop node", err).Error())
@@ -53,7 +53,7 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 				warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(connectionAttempts+1)+" to connect to endpoint \""+endpointConfig.Address+"\"", err).Error())
 			}
 			connectionAttempts++
-			time.Sleep(time.Duration(systemge.application.GetSystemgeComponentConfig().ConnectionAttemptDelayMs) * time.Millisecond)
+			time.Sleep(time.Duration(systemge.config.ConnectionAttemptDelayMs) * time.Millisecond)
 		} else {
 			systemge.outgoingConnectionAttemptsSuccessful.Add(1)
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -71,14 +71,14 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to endpoint \""+endpointConfig.Address+"\"", err)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(connection_nodeName_topic, nodeName).Serialize(), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(connection_nodeName_topic, nodeName).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to send \""+connection_nodeName_topic+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.outgoingConnectionAttemptBytesSent.Add(bytesSent)
-	messageBytes, byteCountReceived, err := Tcp.Receive(netConn, systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, systemge.application.GetSystemgeComponentConfig().IncomingMessageByteLimit)
+	messageBytes, byteCountReceived, err := Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)
@@ -99,7 +99,7 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+connection_nodeName_topic+"\"", nil)
 	}
 	endpointName := message.GetPayload()
-	messageBytes, byteCountReceived, err = Tcp.Receive(netConn, systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, systemge.application.GetSystemgeComponentConfig().IncomingMessageByteLimit)
+	messageBytes, byteCountReceived, err = Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_responsibleTopics_topic+"\" message", err)

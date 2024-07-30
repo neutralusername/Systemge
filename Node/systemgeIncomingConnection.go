@@ -40,7 +40,7 @@ func (systemge *systemgeComponent) sendIncomingConnection(incomingConnection *in
 	if message.GetSyncTokenToken() == "" {
 		return Error.New("Cannot send async message to incoming node connection", nil)
 	}
-	bytesSent, err := Tcp.Send(incomingConnection.netConn, message.Serialize(), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(incomingConnection.netConn, message.Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
@@ -54,7 +54,7 @@ func (systemge *systemgeComponent) sendIncomingConnection(incomingConnection *in
 func (systemge *systemgeComponent) receiveIncomingConnection(incomingConnection *incomingConnection) ([]byte, error) {
 	incomingConnection.receiveMutex.Lock()
 	defer incomingConnection.receiveMutex.Unlock()
-	messageBytes, bytesReceived, err := Tcp.Receive(incomingConnection.netConn, 0, systemge.application.GetSystemgeComponentConfig().IncomingMessageByteLimit)
+	messageBytes, bytesReceived, err := Tcp.Receive(incomingConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
 	}

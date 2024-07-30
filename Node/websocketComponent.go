@@ -13,6 +13,7 @@ import (
 )
 
 type websocketComponent struct {
+	config              *Config.Websocket
 	application         WebsocketComponent
 	mutex               sync.Mutex
 	httpServer          *HTTP.Server
@@ -58,18 +59,22 @@ func (node *Node) RetrieveWebsocketOutgoingMessageCounter() uint32 {
 }
 
 func (node *Node) startWebsocketComponent() error {
+	if node.newNodeConfig.WebsocketConfig == nil {
+		return Error.New("websocket config is missing", nil)
+	}
 	websocket := &websocketComponent{
 		application:  node.application.(WebsocketComponent),
 		connChannel:  make(chan *websocket.Conn),
 		clients:      make(map[string]*WebsocketClient),
 		groups:       make(map[string]map[string]*WebsocketClient),
 		clientGroups: make(map[string]map[string]bool),
+		config:       node.newNodeConfig.WebsocketConfig,
 	}
 	node.websocket = websocket
 	node.websocket.httpServer = HTTP.New(&Config.HTTP{
-		ServerConfig: node.websocket.application.GetWebsocketComponentConfig().ServerConfig,
+		ServerConfig: node.websocket.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
-		node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetInternalWarningError()),
+		node.websocket.config.Pattern: websocket.websocketUpgrade(node.GetInternalWarningError()),
 	})
 	node.websocket.onDisconnectWraper = func(websocketClient *WebsocketClient) {
 		websocket.application.OnDisconnectHandler(node, websocketClient)

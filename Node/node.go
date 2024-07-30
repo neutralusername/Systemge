@@ -9,8 +9,9 @@ import (
 )
 
 type Node struct {
-	config     *Config.Node
-	randomizer *Tools.Randomizer
+	config        *Config.Node
+	newNodeConfig *Config.NewNode
+	randomizer    *Tools.Randomizer
 
 	stopChannel chan bool
 	isStarted   bool
@@ -36,34 +37,40 @@ type Node struct {
 	http *httpComponent
 }
 
-func New(config *Config.Node, application Application) *Node {
+func New(config *Config.NewNode, application Application) *Node {
+	if config.NodeConfig == nil {
+		config.NodeConfig = &Config.Node{
+			Name:           "SystemgeNode",
+			RandomizerSeed: Tools.GetSystemTime(),
+		}
+	}
 	node := &Node{
-		config: config,
+		newNodeConfig: config,
+		config:        config.NodeConfig,
+		randomizer:    Tools.NewRandomizer(config.NodeConfig.RandomizerSeed),
 
 		application: application,
-
-		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 	}
-	if config.MailerConfig != nil {
-		node.mailer = Tools.NewMailer(config.MailerConfig)
+	if node.config.MailerConfig != nil {
+		node.mailer = Tools.NewMailer(node.config.MailerConfig)
 	}
-	if config.InfoLoggerPath != "" {
-		node.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
+	if node.config.InfoLoggerPath != "" {
+		node.infoLogger = Tools.NewLogger("[Info: \""+node.config.Name+"\"] ", node.config.InfoLoggerPath)
 	}
-	if config.InternalInfoLoggerPath != "" {
-		node.internalInfoLogger = Tools.NewLogger("[InternalInfo: \""+config.Name+"\"] ", config.InternalInfoLoggerPath)
+	if node.config.InternalInfoLoggerPath != "" {
+		node.internalInfoLogger = Tools.NewLogger("[InternalInfo: \""+node.config.Name+"\"] ", node.config.InternalInfoLoggerPath)
 	}
-	if config.WarningLoggerPath != "" {
-		node.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
+	if node.config.WarningLoggerPath != "" {
+		node.warningLogger = Tools.NewLogger("[Warning: \""+node.config.Name+"\"] ", node.config.WarningLoggerPath)
 	}
-	if config.InternalWarningLoggerPath != "" {
-		node.internalWarningLogger = Tools.NewLogger("[InternalWarning: \""+config.Name+"\"] ", config.InternalWarningLoggerPath)
+	if node.config.InternalWarningLoggerPath != "" {
+		node.internalWarningLogger = Tools.NewLogger("[InternalWarning: \""+node.config.Name+"\"] ", node.config.InternalWarningLoggerPath)
 	}
-	if config.ErrorLoggerPath != "" {
-		node.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
+	if node.config.ErrorLoggerPath != "" {
+		node.errorLogger = Tools.NewLogger("[Error: \""+node.config.Name+"\"] ", node.config.ErrorLoggerPath)
 	}
-	if config.DebugLoggerPath != "" {
-		node.debugLogger = Tools.NewLogger("[Debug: \""+config.Name+"\"] ", config.DebugLoggerPath)
+	if node.config.DebugLoggerPath != "" {
+		node.debugLogger = Tools.NewLogger("[Debug: \""+node.config.Name+"\"] ", node.config.DebugLoggerPath)
 	}
 	return node
 }

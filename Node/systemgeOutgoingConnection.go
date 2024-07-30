@@ -50,7 +50,7 @@ func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpo
 func (systemge *systemgeComponent) sendOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
 	outgoingConnection.sendMutex.Lock()
 	defer outgoingConnection.sendMutex.Unlock()
-	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
@@ -69,7 +69,7 @@ func (systemge *systemgeComponent) sendOutgoingConnection(outgoingConnection *ou
 func (systemge *systemgeComponent) receiveOutgoingConnection(nodeConnection *outgoingConnection) ([]byte, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
-	messageBytes, byteCountReceived, err := Tcp.Receive(nodeConnection.netConn, 0, systemge.application.GetSystemgeComponentConfig().IncomingMessageByteLimit)
+	messageBytes, byteCountReceived, err := Tcp.Receive(nodeConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
 	}

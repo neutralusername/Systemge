@@ -1,40 +1,13 @@
 package Dashboard
 
 import (
-	"net/http"
 	"runtime"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Node"
-
-	"github.com/gorilla/websocket"
 )
-
-func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
-	return &Config.Websocket{
-		Pattern: "/ws",
-		ServerConfig: &Config.TcpServer{
-			Port:        18251,
-			TlsCertPath: app.config.ServerConfig.TlsCertPath,
-			TlsKeyPath:  app.config.ServerConfig.TlsKeyPath,
-			Blacklist:   app.config.ServerConfig.Blacklist,
-			Whitelist:   app.config.ServerConfig.Whitelist,
-		},
-		HandleClientMessagesSequentially: true,
-		ClientMessageCooldownMs:          0,
-		ClientWatchdogTimeoutMs:          1000 * 60 * 5,
-		Upgrader: &websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
-	}
-}
 
 func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
 	return map[string]Node.WebsocketMessageHandler{

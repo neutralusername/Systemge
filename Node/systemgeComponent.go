@@ -4,6 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
@@ -14,6 +15,8 @@ type systemgeComponent struct {
 	handleSequentiallyMutex  sync.Mutex
 	asyncMessageHandlerMutex sync.Mutex
 	syncMessageHandlerMutex  sync.Mutex
+
+	config *Config.Systemge
 
 	tcpServer *Tcp.Server
 
@@ -83,6 +86,9 @@ const (
 )
 
 func (node *Node) startSystemgeComponent() error {
+	if node.newNodeConfig.SystemgeConfig == nil {
+		return Error.New("Systemge config missing", nil)
+	}
 	node.systemge = &systemgeComponent{
 		responsibleTopics:   []string{},
 		application:         node.application.(SystemgeComponent),
@@ -90,6 +96,7 @@ func (node *Node) startSystemgeComponent() error {
 		topicResolutions:    make(map[string]map[string]*outgoingConnection),
 		outgoingConnections: make(map[string]*outgoingConnection),
 		incomingConnections: make(map[string]*incomingConnection),
+		config:              node.newNodeConfig.SystemgeConfig,
 	}
 	for asyncTopic := range node.systemge.application.GetAsyncMessageHandlers() {
 		node.systemge.responsibleTopics = append(node.systemge.responsibleTopics, asyncTopic)
@@ -97,12 +104,12 @@ func (node *Node) startSystemgeComponent() error {
 	for syncTopic := range node.systemge.application.GetSyncMessageHandlers() {
 		node.systemge.responsibleTopics = append(node.systemge.responsibleTopics, syncTopic)
 	}
-	tcpServer, err := Tcp.NewServer(node.systemge.application.GetSystemgeComponentConfig().ServerConfig)
+	tcpServer, err := Tcp.NewServer(node.systemge.config.ServerConfig)
 	if err != nil {
 		return Error.New("Failed to create tcp server", err)
 	}
 	node.systemge.tcpServer = tcpServer
-	for _, endpointConfig := range node.systemge.application.GetSystemgeComponentConfig().EndpointConfigs {
+	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
 		go node.outgoingConnectionLoop(endpointConfig)
 	}
 	go node.handleIncomingConnections()
@@ -128,16 +135,16 @@ func (node *Node) stopSystemgeComponent() error {
 }
 
 func (systemge *systemgeComponent) validateMessage(message *Message.Message) error {
-	if maxSyncTokenSize := systemge.application.GetSystemgeComponentConfig().MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
+	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}
 	if len(message.GetTopic()) == 0 {
 		return Error.New("Message missing topic", nil)
 	}
-	if maxTopicSize := systemge.application.GetSystemgeComponentConfig().MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+	if maxTopicSize := systemge.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
 		return Error.New("Message topic exceeds maximum size", nil)
 	}
-	if maxPayloadSize := systemge.application.GetSystemgeComponentConfig().MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+	if maxPayloadSize := systemge.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
 		return Error.New("Message payload exceeds maximum size", nil)
 	}
 	return nil

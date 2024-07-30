@@ -66,7 +66,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			node.ResetWatchdog(websocketClient)
 			continue
 		}
-		if time.Since(websocketClient.GetLastMessageTimestamp()) < time.Duration(websocket.application.GetWebsocketComponentConfig().ClientMessageCooldownMs)*time.Millisecond {
+		if time.Since(websocketClient.GetLastMessageTimestamp()) < time.Duration(websocket.config.ClientMessageCooldownMs)*time.Millisecond {
 			err := websocketClient.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
@@ -76,7 +76,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			continue
 		}
 		websocketClient.SetLastMessageTimestamp(time.Now())
-		if websocket.application.GetWebsocketComponentConfig().HandleClientMessagesSequentially {
+		if websocket.config.HandleClientMessagesSequentially {
 			err := node.handleWebsocketMessage(websocketClient, message)
 			if err != nil {
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
