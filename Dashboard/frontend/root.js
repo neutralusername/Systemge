@@ -30,14 +30,6 @@ export class root extends React.Component {
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
         this.counterConfig = {
-            nodeResolverCounters: {
-                labels: ["configRequests", "resolutionRequests", "bytesSent", "bytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
-            },
-            nodeBrokerCounters: {
-                labels: ["incomingMessages", "outgoingMessages", "configRequests", "bytesSent", "bytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
-            },
             nodeWebsocketCounters: {
                 labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"],
@@ -116,8 +108,6 @@ export class root extends React.Component {
                 break;
             case "nodeSystemgeCounters":
             case "nodeWebsocketCounters":
-            case "nodeBrokerCounters":
-            case "nodeResolverCounters":
             case "nodeSpawnerCounters":
             case "nodeHttpCounters":
                 this.handleNodeCounters(message.topic, JSON.parse(message.payload));
