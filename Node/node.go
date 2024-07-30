@@ -38,6 +38,9 @@ type Node struct {
 }
 
 func New(config *Config.NewNode, application Application) *Node {
+	if config == nil {
+		config = &Config.NewNode{}
+	}
 	if config.NodeConfig == nil {
 		config.NodeConfig = &Config.Node{
 			Name:           "SystemgeNode",
