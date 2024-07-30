@@ -1,15 +1,15 @@
 package Tcp
 
 import (
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Message"
 	"net"
 	"time"
+
+	"github.com/neutralusername/Systemge/Error"
 )
 
 const ENDOFMESSAGE = "\x04"
 
-func Exchange(netConn net.Conn, messageBytes []byte, timeoutMs uint64, byteLimit uint64) (*Message.Message, uint64, uint64, error) {
+func Exchange(netConn net.Conn, messageBytes []byte, timeoutMs uint64, byteLimit uint64) ([]byte, uint64, uint64, error) {
 	bytesSent, err := Send(netConn, messageBytes, timeoutMs)
 	if err != nil {
 		return nil, 0, 0, Error.New("Error sending message", err)
@@ -18,11 +18,7 @@ func Exchange(netConn net.Conn, messageBytes []byte, timeoutMs uint64, byteLimit
 	if err != nil {
 		return nil, 0, 0, Error.New("Error receiving response", err)
 	}
-	responseMessage := Message.Deserialize(responseBytes)
-	if responseMessage == nil {
-		return nil, 0, 0, Error.New("Error deserializing response", nil)
-	}
-	return responseMessage, bytesSent, bytesReceived, nil
+	return responseBytes, bytesSent, bytesReceived, nil
 }
 
 func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {

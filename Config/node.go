@@ -5,7 +5,7 @@ import "encoding/json"
 type Node struct {
 	Name string // *required*
 
-	Mailer                    *Mailer `json:"mailer"`                    // *optional*
+	MailerConfig              *Mailer `json:"mailerConfig"`              // *optional*
 	InfoLoggerPath            string  `json:"infoLoggerPath"`            // *optional*
 	InternalInfoLoggerPath    string  `json:"internalInfoLoggerPath"`    // *optional*
 	WarningLoggerPath         string  `json:"warningLoggerPath"`         // *optional*

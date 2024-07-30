@@ -6,6 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tcp"
 )
 
 type systemgeComponent struct {
@@ -14,113 +15,129 @@ type systemgeComponent struct {
 	asyncMessageHandlerMutex sync.Mutex
 	syncMessageHandlerMutex  sync.Mutex
 
-	messagesWaitingForResponseMutex sync.Mutex
-	messagesWaitingForResponse      map[string]chan *Message.Message // syncKey -> responseChannel
+	tcpServer *Tcp.Server
 
-	brokerConnectionsMutex sync.Mutex
-	brokerConnections      map[string]*brokerConnection // brokerAddress -> brokerConnection
+	responsibleTopics []string
 
-	topicResolutionMutex         sync.Mutex
-	topicResolutions             map[string]*brokerConnection // topic -> brokerConnection
-	topicsCurrentlyBeingResolved map[string]chan struct{}     // topic -> "lock"
+	syncRequestMutex    sync.Mutex
+	syncRequestChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
-	incomingAsyncMessageCounter atomic.Uint32
-	incomingSyncRequestCounter  atomic.Uint32
-	incomingSyncResponseCounter atomic.Uint32
-	outgoingAsyncMessageCounter atomic.Uint32
-	outgoingSyncRequestCounter  atomic.Uint32
-	outgoingSyncResponseCounter atomic.Uint32
+	outgoingConnectionMutex sync.Mutex
+	topicResolutions        map[string]map[string]*outgoingConnection // topic -> [address -> nodeConnection]
+	outgoingConnections     map[string]*outgoingConnection            // address -> nodeConnection
 
-	bytesReceivedCounter atomic.Uint64
-	bytesSentCounter     atomic.Uint64
+	incomingConnectionsMutex sync.Mutex
+	incomingConnections      map[string]*incomingConnection // address -> nodeConnection
+
+	// outgoing connection metrics
+
+	outgoingConnectionAttempts             atomic.Uint32
+	outgoingConnectionAttemptsSuccessful   atomic.Uint32
+	outgoingConnectionAttemptsFailed       atomic.Uint32
+	outgoingConnectionAttemptBytesSent     atomic.Uint64
+	outgoingConnectionAttemptBytesReceived atomic.Uint64
+
+	invalidMessagesFromOutgoingConnections atomic.Uint32
+
+	incomingSyncResponses             atomic.Uint32
+	incomingSyncSuccessResponses      atomic.Uint32
+	incomingSyncFailureResponses      atomic.Uint32
+	incomingSyncResponseBytesReceived atomic.Uint64
+
+	outgoingAsyncMessages         atomic.Uint32
+	outgoingAsyncMessageBytesSent atomic.Uint64
+
+	outgoingSyncRequests         atomic.Uint32
+	outgoingSyncRequestBytesSent atomic.Uint64
+
+	// incoming connection metrics
+
+	incomingConnectionAttempts             atomic.Uint32
+	incomingConnectionAttemptsSuccessful   atomic.Uint32
+	incomingConnectionAttemptsFailed       atomic.Uint32
+	incomingConnectionAttemptBytesSent     atomic.Uint64
+	incomingConnectionAttemptBytesReceived atomic.Uint64
+
+	invalidMessagesFromIncomingConnections atomic.Uint32
+
+	incomingSyncRequests             atomic.Uint32
+	incomingSyncRequestBytesReceived atomic.Uint64
+
+	incomingAsyncMessages             atomic.Uint32
+	incomingAsyncMessageBytesReceived atomic.Uint64
+
+	outgoingSyncResponses         atomic.Uint32
+	outgoingSyncSuccessResponses  atomic.Uint32
+	outgoingSyncFailureResponses  atomic.Uint32
+	outgoingSyncResponseBytesSent atomic.Uint64
+
+	// general metrics
+
+	bytesReceived atomic.Uint64 // total bytes received
+	bytesSent     atomic.Uint64 // total bytes sent
 }
 
-func (node *Node) RetrieveSystemgeBytesReceivedCounter() uint64 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.bytesReceivedCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeBytesSentCounter() uint64 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.bytesSentCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeIncomingAsyncMessageCounter() uint32 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.incomingAsyncMessageCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeIncomingSyncRequestMessageCounter() uint32 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.incomingSyncRequestCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeIncomingSyncResponseMessageCounter() uint32 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.incomingSyncResponseCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeOutgoingAsyncMessageCounter() uint32 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingAsyncMessageCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeOutgoingSyncRequestMessageCounter() uint32 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingSyncRequestCounter.Swap(0)
-	}
-	return 0
-}
-
-func (node *Node) RetrieveSystemgeOutgoingSyncResponseMessageCounter() uint32 {
-	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingSyncResponseCounter.Swap(0)
-	}
-	return 0
-}
+const (
+	connection_nodeName_topic          = "nodeName"
+	connection_responsibleTopics_topic = "topics"
+)
 
 func (node *Node) startSystemgeComponent() error {
 	node.systemge = &systemgeComponent{
-		application:                  node.application.(SystemgeComponent),
-		messagesWaitingForResponse:   make(map[string]chan *Message.Message),
-		brokerConnections:            make(map[string]*brokerConnection),
-		topicResolutions:             make(map[string]*brokerConnection),
-		topicsCurrentlyBeingResolved: make(map[string]chan struct{}),
+		responsibleTopics:   []string{},
+		application:         node.application.(SystemgeComponent),
+		syncRequestChannels: make(map[string]*SyncResponseChannel),
+		topicResolutions:    make(map[string]map[string]*outgoingConnection),
+		outgoingConnections: make(map[string]*outgoingConnection),
+		incomingConnections: make(map[string]*incomingConnection),
 	}
-	for topic := range node.systemge.application.GetAsyncMessageHandlers() {
-		err := node.subscribeLoop(topic, 1)
-		if err != nil {
-			return Error.New("Failed to subscribe for topic \""+topic+"\"", err)
-		}
+	for asyncTopic := range node.systemge.application.GetAsyncMessageHandlers() {
+		node.systemge.responsibleTopics = append(node.systemge.responsibleTopics, asyncTopic)
 	}
-	for topic := range node.systemge.application.GetSyncMessageHandlers() {
-		err := node.subscribeLoop(topic, 1)
-		if err != nil {
-			return Error.New("Failed to subscribe for topic \""+topic+"\"", err)
-		}
+	for syncTopic := range node.systemge.application.GetSyncMessageHandlers() {
+		node.systemge.responsibleTopics = append(node.systemge.responsibleTopics, syncTopic)
 	}
+	tcpServer, err := Tcp.NewServer(node.systemge.application.GetSystemgeComponentConfig().ServerConfig)
+	if err != nil {
+		return Error.New("Failed to create tcp server", err)
+	}
+	node.systemge.tcpServer = tcpServer
+	for _, endpointConfig := range node.systemge.application.GetSystemgeComponentConfig().EndpointConfigs {
+		go node.outgoingConnectionLoop(endpointConfig)
+	}
+	go node.handleIncomingConnections()
 	return nil
 }
 
 func (node *Node) stopSystemgeComponent() error {
-	node.systemge.brokerConnectionsMutex.Lock()
-	defer node.systemge.brokerConnectionsMutex.Unlock()
-	for _, brokerConnection := range node.systemge.brokerConnections {
-		brokerConnection.closeNetConn(false)
-		delete(node.systemge.brokerConnections, brokerConnection.endpoint.Address)
-	}
+	systemge := node.systemge
 	node.systemge = nil
+	systemge.tcpServer.GetListener().Close()
+	node.systemge.outgoingConnectionMutex.Lock()
+	for _, brokerConnection := range node.systemge.outgoingConnections {
+		brokerConnection.netConn.Close()
+	}
+	node.systemge.outgoingConnectionMutex.Unlock()
+	node.systemge.incomingConnectionsMutex.Lock()
+	for _, incomingConnection := range node.systemge.incomingConnections {
+		incomingConnection.netConn.Close()
+	}
+	node.systemge.incomingConnectionsMutex.Unlock()
+	return nil
+}
+
+func (systemge *systemgeComponent) validateMessage(message *Message.Message) error {
+	if maxSyncTokenSize := systemge.application.GetSystemgeComponentConfig().MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
+		return Error.New("Message sync token exceeds maximum size", nil)
+	}
+	if len(message.GetTopic()) == 0 {
+		return Error.New("Message missing topic", nil)
+	}
+	if maxTopicSize := systemge.application.GetSystemgeComponentConfig().MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return Error.New("Message topic exceeds maximum size", nil)
+	}
+	if maxPayloadSize := systemge.application.GetSystemgeComponentConfig().MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return Error.New("Message payload exceeds maximum size", nil)
+	}
 	return nil
 }

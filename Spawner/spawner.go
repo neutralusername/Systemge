@@ -1,7 +1,6 @@
 package Spawner
 
 import (
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Node"
 	"github.com/neutralusername/Systemge/Tools"
@@ -12,28 +11,9 @@ func (spawner *Spawner) spawnNode(id string) error {
 	if ok {
 		return Error.New("Node "+id+" already exists", nil)
 	}
-	node := &Config.Node{
-		Name:                      id,
-		InfoLoggerPath:            spawner.spawnerConfig.InfoLoggerPath,
-		InternalInfoLoggerPath:    spawner.spawnerConfig.InternalLoggerPath,
-		WarningLoggerPath:         spawner.spawnerConfig.WarningLoggerPath,
-		InternalWarningLoggerPath: spawner.spawnerConfig.InternalWarningLoggerPath,
-		ErrorLoggerPath:           spawner.spawnerConfig.ErrorLoggerPath,
-		DebugLoggerPath:           spawner.spawnerConfig.DebugLoggerPath,
-		Mailer:                    spawner.spawnerConfig.Mailer,
-	}
-	newNode := Node.New(node, spawner.newApplicationFunc(id))
-	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
-		err := spawner.node.AddSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
-		if err != nil {
-			return Error.New("Failed adding sync topic \""+id+"\"", err)
-		}
-	} else {
-		err := spawner.node.AddAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
-		if err != nil {
-			return Error.New("Failed adding async topic \""+id+"\"", err)
-		}
-	}
+	nodeConfig := *spawner.spawnerConfig.SpawnedNodeConfig
+	nodeConfig.Name = nodeConfig.Name + "-" + id
+	newNode := Node.New(&nodeConfig, spawner.newApplicationFunc(id))
 	spawner.spawnedNodes[id] = newNode
 	if spawner.spawnerConfig.PropagateSpawnedNodeChanges {
 		spawner.addNodeChannel <- newNode
@@ -54,37 +34,6 @@ func (spawner *Spawner) despawnNode(id string) error {
 			}
 			if mailer := spawner.node.GetMailer(); mailer != nil {
 				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+id, err).Error()))
-				if err != nil {
-					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-						errorLogger.Log(Error.New("Failed sending mail", err).Error())
-					}
-				}
-			}
-		}
-	}
-	if spawner.spawnerConfig.IsSpawnedNodeTopicSync {
-		removeErr := spawner.node.RemoveSyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
-		if removeErr != nil {
-			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error())
-			}
-			if mailer := spawner.node.GetMailer(); mailer != nil {
-				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing sync topic \""+id+"\"", removeErr).Error()))
-				if err != nil {
-					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-						errorLogger.Log(Error.New("Failed sending mail", err).Error())
-					}
-				}
-			}
-		}
-	} else {
-		removeErr := spawner.node.RemoveAsyncTopicRemotely(spawner.spawnerConfig.BrokerConfigEndpoint, id)
-		if removeErr != nil {
-			if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed removing async topic \""+id+"\"", removeErr).Error())
-			}
-			if mailer := spawner.node.GetMailer(); mailer != nil {
-				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed removing async topic \""+id+"\"", removeErr).Error()))
 				if err != nil {
 					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed sending mail", err).Error())

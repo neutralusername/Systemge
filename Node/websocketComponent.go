@@ -67,7 +67,7 @@ func (node *Node) startWebsocketComponent() error {
 	}
 	node.websocket = websocket
 	node.websocket.httpServer = HTTP.New(&Config.HTTP{
-		Server: node.websocket.application.GetWebsocketComponentConfig().Server,
+		ServerConfig: node.websocket.application.GetWebsocketComponentConfig().ServerConfig,
 	}, map[string]http.HandlerFunc{
 		node.websocket.application.GetWebsocketComponentConfig().Pattern: websocket.websocketUpgrade(node.GetInternalWarningError()),
 	})

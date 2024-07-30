@@ -16,7 +16,7 @@ type oauth2SessionRequest struct {
 
 func (app *App) GetHTTPComponentConfig() *Config.HTTP {
 	return &Config.HTTP{
-		Server: app.config.Server,
+		ServerConfig: app.config.ServerConfig,
 	}
 }
 

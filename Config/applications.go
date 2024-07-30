@@ -7,7 +7,7 @@ import (
 )
 
 type Oauth2 struct {
-	Server                     *TcpServer                                                                  `json:"server"`                     // *required*
+	ServerConfig               *TcpServer                                                                  `json:"serverConfig"`               // *required*
 	AuthPath                   string                                                                      `json:"authPath"`                   // *required*
 	AuthCallbackPath           string                                                                      `json:"authCallbackPath"`           // *required*
 	OAuth2Config               *oauth2.Config                                                              `json:"oAuth2Config"`               // *required*
@@ -26,18 +26,9 @@ func UnmarshalOauth2(data string) *Oauth2 {
 }
 
 type Spawner struct {
-	IsSpawnedNodeTopicSync      bool    `json:"isSpawnedNodeTopicSync"`      // default: false
-	PropagateSpawnedNodeChanges bool    `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel)(automated by dashboard)
-	InfoLoggerPath              string  `json:"infoLoggerPath"`              // *optional*
-	InternalLoggerPath          string  `json:"internalLoggerPath"`          // *optional*
-	WarningLoggerPath           string  `json:"warningLoggerPath"`           // *optional*
-	InternalWarningLoggerPath   string  `json:"internalWarningLoggerPath"`   // *optional*
-	ErrorLoggerPath             string  `json:"errorLoggerPath"`             // *optional*
-	DebugLoggerPath             string  `json:"debugLoggerPath"`             // *optional*
-	Mailer                      *Mailer `json:"mailer"`                      // *optional*
+	PropagateSpawnedNodeChanges bool `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel) (automated by dashboard)
 
-	ResolverEndpoint     *TcpEndpoint `json:"resolverEndpoint"`     // *required*
-	BrokerConfigEndpoint *TcpEndpoint `json:"brokerConfigEndpoint"` // *required*
+	SpawnedNodeConfig *Node `json:"spawnedNodeConfig"` // *required* (the nodeId is attached to the node's name (e.g. "*nodeName*-*nodeId*"))
 }
 
 func UnmarshalSpawner(data string) *Spawner {
@@ -48,7 +39,7 @@ func UnmarshalSpawner(data string) *Spawner {
 
 // Server applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
-	Server                         *TcpServer `json:"server"`                         // *required*
+	ServerConfig                   *TcpServer `json:"serverConfig"`                   // *required*
 	AutoStart                      bool       `json:"autoStart"`                      // default: false
 	AddDashboardToDashboard        bool       `json:"addDashboardToDashboard"`        // default: false
 	HeapUpdateIntervalMs           uint64     `json:"heapUpdateIntervalMs"`           // default: 0 = disabled
@@ -57,8 +48,6 @@ type Dashboard struct {
 	NodeSystemgeCounterIntervalMs  uint64     `json:"nodeSystemgeCounterIntervalMs"`  // default: 0 = disabled
 	NodeHTTPCounterIntervalMs      uint64     `json:"nodeHTTPCounterIntervalMs"`      // default: 0 = disabled
 	NodeWebsocketCounterIntervalMs uint64     `json:"nodeWebsocketCounterIntervalMs"` // default: 0 = disabled
-	NodeBrokerCounterIntervalMs    uint64     `json:"nodeBrokerCounterIntervalMs"`    // default: 0 = disabled
-	NodeResolverCounterIntervalMs  uint64     `json:"nodeResolverCounterIntervalMs"`  // default: 0 = disabled
 	NodeSpawnerCounterIntervalMs   uint64     `json:"nodeSpawnerCounterIntervalMs"`   // default: 0 = disabled
 }
 

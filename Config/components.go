@@ -9,13 +9,19 @@ import (
 type Systemge struct {
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
 
-	BrokerSubscribeDelayMs    uint64 `json:"brokerSubscribeDelayMs"`    // default: 0 (delay after failed broker subscription attempt)
-	TopicResolutionLifetimeMs int64  `json:"topicResolutionLifetimeMs"` // default: <0 = infinite; 0 = resolve every time; >0 = resolve every n ms
-	SyncResponseTimeoutMs     uint64 `json:"syncResponseTimeoutMs"`     // default: 0 = sync messages are not supported
-	TcpTimeoutMs              uint64 `json:"tcpTimeoutMs"`              // default: 0 = block forever
-	MaxSubscribeAttempts      uint64 `json:"maxSubscribeAttempts"`      // default: 0 = infinite
+	SyncRequestTimeoutMs            uint64 `json:"syncResponseTimeoutMs"`           // default: 0 = infinite which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
+	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 = block forever
+	MaxConnectionAttempts           uint64 `json:"maxConnectionAttempts"`           // default: 0 = infinite
+	ConnectionAttemptDelayMs        uint64 `json:"connectionAttemptDelay"`          // default: 0
+	StopAfterOutgoingConnectionLoss bool   `json:"stopAfterOutgoingConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
 
-	ResolverEndpoints []*TcpEndpoint `json:"resolverEndpoints"` // at least one *required* (node attempts to resolve topics with these resolvers in the provided order. stops on first successful resolution)
+	ServerConfig    *TcpServer     `json:"serverConfig"`    // *optional*
+	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (nodes which shall receive systemge messages by this node) (on connection, they share which message topics they are interested in and only those are sent)
+
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
+	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited
+	MaxTopicSize             int    `json:"maxTopicSize"`             // default: 0 = unlimited
+	MaxSyncTokenSize         int    `json:"maxSyncKeySize"`           // default: 0 = unlimited
 }
 
 func UnmarshalSystemge(data string) *Systemge {
@@ -25,8 +31,8 @@ func UnmarshalSystemge(data string) *Systemge {
 }
 
 type Websocket struct {
-	Pattern string     `json:"pattern"` // *required*
-	Server  *TcpServer `json:"server"`  // *required*
+	Pattern      string     `json:"pattern"`      // *required*
+	ServerConfig *TcpServer `json:"serverConfig"` // *required*
 
 	HandleClientMessagesSequentially bool   `json:"handleClientMessagesSequentially"` // default: false
 	ClientMessageCooldownMs          uint64 `json:"clientMessageCooldownMs"`          // default: 0
@@ -43,56 +49,11 @@ func UnmarshalWebsocket(data string) *Websocket {
 }
 
 type HTTP struct {
-	Server *TcpServer `json:"server"` // *required*
+	ServerConfig *TcpServer `json:"serverConfig"` // *required*
 }
 
 func UnmarshalHTTP(data string) *HTTP {
 	var http HTTP
 	json.Unmarshal([]byte(data), &http)
 	return &http
-}
-
-type Broker struct {
-	Server       *TcpServer   `json:"server"`       // *required*
-	Endpoint     *TcpEndpoint `json:"endpoint"`     // *required*
-	ConfigServer *TcpServer   `json:"configServer"` // *required*
-
-	SyncTopics  []string `json:"syncTopics"`  // *required*
-	AsyncTopics []string `json:"asyncTopics"` // *required*
-
-	ResolverConfigEndpoints []*TcpEndpoint `json:"resolverConfigEndpoints"` // *optional* (propagates topics/endpoint to these resolvers)
-
-	SyncResponseTimeoutMs uint64 `json:"syncResponseTimeoutMs"` // default: 0
-	TcpTimeoutMs          uint64 `json:"tcpTimeoutMs"`          // default: 0 = block forever
-
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
-	MaxOriginSize            int    `json:"maxOriginSize"`            // default: 0 = unlimited
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: 0 = unlimited
-	MaxSyncKeySize           int    `json:"maxSyncKeySize"`           // default: 0 = unlimited
-}
-
-func UnmarshalBroker(data string) *Broker {
-	var broker Broker
-	json.Unmarshal([]byte(data), &broker)
-	return &broker
-}
-
-type Resolver struct {
-	Server       *TcpServer `json:"server"`       // *required*
-	ConfigServer *TcpServer `json:"configServer"` // *required*
-
-	TcpTimeoutMs     uint64                  `json:"tcpTimeoutMs"`     // default: 0 = block forever
-	TopicResolutions map[string]*TcpEndpoint `json:"topicResolutions"` // *optional* (topic->endpoint) (resolves these topics with the provided endpoints) (can get updated/overwritten by brokers)
-
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited
-	MaxOriginSize            int    `json:"maxOriginSize"`            // default: 0 = unlimited
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: 0 = unlimited
-}
-
-func UnmarshalResolver(data string) *Resolver {
-	var resolver Resolver
-	json.Unmarshal([]byte(data), &resolver)
-	return &resolver
 }

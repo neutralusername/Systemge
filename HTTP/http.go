@@ -22,11 +22,11 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 	server := &Server{
 		config: config,
 		httpServer: &http.Server{
-			Addr:    ":" + Helpers.IntToString(int(config.Server.Port)),
+			Addr:    ":" + Helpers.IntToString(int(config.ServerConfig.Port)),
 			Handler: mux,
 		},
-		blacklist: Tools.NewAccessControlList(config.Server.Blacklist),
-		whitelist: Tools.NewAccessControlList(config.Server.Whitelist),
+		blacklist: Tools.NewAccessControlList(config.ServerConfig.Blacklist),
+		whitelist: Tools.NewAccessControlList(config.ServerConfig.Whitelist),
 	}
 	for pattern, handler := range handlers {
 		mux.AddRoute(pattern, server.accessControllWrapper(handler))
@@ -54,8 +54,8 @@ func (server *Server) Start() error {
 	errorChannel := make(chan error)
 	ended := false
 	go func() {
-		if server.config.Server.TlsCertPath != "" && server.config.Server.TlsKeyPath != "" {
-			err := server.httpServer.ListenAndServeTLS(server.config.Server.TlsCertPath, server.config.Server.TlsKeyPath)
+		if server.config.ServerConfig.TlsCertPath != "" && server.config.ServerConfig.TlsKeyPath != "" {
+			err := server.httpServer.ListenAndServeTLS(server.config.ServerConfig.TlsCertPath, server.config.ServerConfig.TlsKeyPath)
 			if err != nil {
 				if err != http.ErrServerClosed {
 					panic(err)

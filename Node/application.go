@@ -10,28 +10,6 @@ import (
 type Application interface {
 }
 
-type BrokerApplication struct {
-	Config *Config.Broker
-}
-
-func (brokerApp *BrokerApplication) GetBrokerComponentConfig() *Config.Broker {
-	return brokerApp.Config
-}
-func NewBrokerApplication(config *Config.Broker) Application {
-	return &BrokerApplication{config}
-}
-
-type ResolverApplication struct {
-	Config *Config.Resolver
-}
-
-func (resolverApp *ResolverApplication) GetResolverComponentConfig() *Config.Resolver {
-	return resolverApp.Config
-}
-func NewResolverApplication(config *Config.Resolver) Application {
-	return &ResolverApplication{config}
-}
-
 func ImplementsSystemgeComponent(app Application) bool {
 	_, ok := app.(SystemgeComponent)
 	return ok
@@ -60,16 +38,6 @@ func ImplementsOnStopComponent(app Application) bool {
 	return ok
 }
 
-func ImplementsBrokerComponent(app Application) bool {
-	_, ok := app.(BrokerComponent)
-	return ok
-}
-
-func ImplementsResolverComponent(app Application) bool {
-	_, ok := app.(ResolverComponent)
-	return ok
-}
-
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type CommandComponent interface {
 	GetCommandHandlers() map[string]CommandHandler
@@ -83,16 +51,6 @@ type OnStartComponent interface {
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
 type OnStopComponent interface {
 	OnStop(*Node) error
-}
-
-// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type BrokerComponent interface {
-	GetBrokerComponentConfig() *Config.Broker
-}
-
-// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type ResolverComponent interface {
-	GetResolverComponentConfig() *Config.Resolver
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node

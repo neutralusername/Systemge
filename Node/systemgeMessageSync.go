@@ -8,76 +8,96 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-// resolves the broker address for the provided topic and sends the sync message to the broker responsible for the topic and waits for a response.
-func (node *Node) SyncMessage(topic, origin, payload string) (*Message.Message, error) {
-	if systemge := node.systemge; systemge != nil {
-		message := Message.NewSync(topic, origin, payload, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
-		if !node.IsStarted() {
-			return nil, Error.New("node not started", nil)
-		}
-		if message.GetSyncRequestToken() == "" {
-			return nil, Error.New("syncRequestToken not set", nil)
-		}
-		brokerConnection, err := node.getBrokerConnectionForTopic(message.GetTopic(), true)
-		if err != nil {
-			return nil, Error.New("failed getting broker connection", err)
-		}
-		responseChannel, err := systemge.addMessageWaitingForResponse(message)
-		if err != nil {
-			return nil, Error.New("failed to add message waiting for response", err)
-		}
-		bytesSent, err := brokerConnection.send(systemge.application.GetSystemgeComponentConfig().TcpTimeoutMs, message.Serialize())
-		if err != nil {
-			systemge.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
-			return nil, Error.New("failed sending sync request message", err)
-		}
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Sent sync request message with topic \""+message.GetTopic()+"\" to broker \""+brokerConnection.endpoint.Address+"\"", nil).Error())
-		}
-		systemge.bytesSentCounter.Add(bytesSent)
-		systemge.outgoingSyncRequestCounter.Add(1)
-		response, err := systemge.receiveSyncResponse(message, responseChannel)
-		if err != nil {
-			return nil, Error.New("failed receiving sync response", err)
-		}
-		systemge.incomingSyncResponseCounter.Add(1)
-		return response, nil
-	}
-	return nil, Error.New("systemge not initialized", nil)
+type SyncResponseChannel struct {
+	closeChannel   chan struct{}
+	channel        chan *SyncResponse
+	requestMessage *Message.Message
 }
 
-func (systemge *systemgeComponent) receiveSyncResponse(message *Message.Message, responseChannel chan *Message.Message) (*Message.Message, error) {
-	timeout := time.NewTimer(time.Duration(systemge.application.GetSystemgeComponentConfig().SyncResponseTimeoutMs) * time.Millisecond)
-	defer func() {
-		systemge.removeMessageWaitingForResponse(message.GetSyncRequestToken(), responseChannel)
-		timeout.Stop()
-	}()
+func (syncResponseChannel *SyncResponseChannel) Close() {
+	close(syncResponseChannel.closeChannel)
+}
+
+type SyncResponse struct {
+	responseMessage *Message.Message
+	origin          string
+}
+
+func (syncResponse *SyncResponse) GetResponseMessage() *Message.Message {
+	return syncResponse.responseMessage
+}
+
+func (syncResponse *SyncResponse) GetOrigin() string {
+	return syncResponse.origin
+}
+
+// blocks until response is received
+func (syncResponseChannel *SyncResponseChannel) ReceiveResponse() (*SyncResponse, error) {
+	syncResponse := <-syncResponseChannel.channel
+	if syncResponse == nil {
+		return nil, Error.New("Channel closed", nil)
+	}
+	return syncResponse, nil
+}
+
+func (syncResponseChannel *SyncResponseChannel) GetRequestMessage() *Message.Message {
+	return syncResponseChannel.requestMessage
+}
+
+// blocks until response is received or timeout is reached
+func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs uint64) (*SyncResponse, error) {
+	timeout := time.NewTimer(time.Duration(timeoutMs) * time.Millisecond)
 	select {
-	case response := <-responseChannel:
-		if response == nil {
-			return nil, Error.New("response channel closed", nil)
+	case syncResponse := <-syncResponseChannel.channel:
+		timeout.Stop()
+		if syncResponse == nil {
+			return nil, Error.New("Channel closed", nil)
 		}
-		if response.GetTopic() == "error" {
-			return nil, Error.New(response.GetPayload(), nil)
-		}
-		return response, nil
+		return syncResponse, nil
 	case <-timeout.C:
-		return nil, Error.New("timeout waiting for response", nil)
+		return nil, Error.New("Timeout", nil)
 	}
 }
-func (systemge *systemgeComponent) addMessageWaitingForResponse(message *Message.Message) (chan *Message.Message, error) {
-	systemge.messagesWaitingForResponseMutex.Lock()
-	defer systemge.messagesWaitingForResponseMutex.Unlock()
-	if systemge.messagesWaitingForResponse[message.GetSyncRequestToken()] != nil {
-		return nil, Error.New("syncRequestToken already exists", nil)
+
+func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, error) {
+	if systemge := node.systemge; systemge != nil {
+		message := Message.NewSync(topic, payload, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
+		responseChannel := &SyncResponseChannel{
+			channel:        make(chan *SyncResponse),
+			requestMessage: message,
+		}
+		systemge.syncRequestMutex.Lock()
+		systemge.syncRequestChannels[message.GetSyncTokenToken()] = responseChannel
+		systemge.syncRequestMutex.Unlock()
+		for _, outgoingConnection := range systemge.topicResolutions[topic] {
+			err := systemge.sendOutgoingConnection(outgoingConnection, message)
+			if err != nil {
+				if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to send sync message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+				}
+			}
+		}
+		go func() {
+			if syncRequestTimeoutMs := systemge.application.GetSystemgeComponentConfig().SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
+				timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
+				select {
+				case <-timeout.C:
+				case <-node.stopChannel:
+				case <-responseChannel.closeChannel:
+				}
+				timeout.Stop()
+			} else {
+				select {
+				case <-node.stopChannel:
+				case <-responseChannel.closeChannel:
+				}
+			}
+			systemge.syncRequestMutex.Lock()
+			close(responseChannel.channel)
+			delete(systemge.syncRequestChannels, message.GetSyncTokenToken())
+			systemge.syncRequestMutex.Unlock()
+		}()
+		return responseChannel, nil
 	}
-	responseChannel := make(chan *Message.Message)
-	systemge.messagesWaitingForResponse[message.GetSyncRequestToken()] = responseChannel
-	return responseChannel, nil
-}
-func (systemge *systemgeComponent) removeMessageWaitingForResponse(syncRequestToken string, responseChannel chan *Message.Message) {
-	systemge.messagesWaitingForResponseMutex.Lock()
-	defer systemge.messagesWaitingForResponseMutex.Unlock()
-	close(responseChannel)
-	delete(systemge.messagesWaitingForResponse, syncRequestToken)
+	return nil, Error.New("systemge not initialized", nil)
 }

@@ -3,12 +3,13 @@ package Tcp
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"net"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"net"
 )
 
-func NewEndpoint(config *Config.TcpEndpoint) (net.Conn, error) {
+func NewClient(config *Config.TcpEndpoint) (net.Conn, error) {
 	if config.TlsCert == "" {
 		return net.Dial("tcp", config.Address)
 	}

@@ -16,12 +16,12 @@ import (
 func (app *App) GetWebsocketComponentConfig() *Config.Websocket {
 	return &Config.Websocket{
 		Pattern: "/ws",
-		Server: &Config.TcpServer{
+		ServerConfig: &Config.TcpServer{
 			Port:        18251,
-			TlsCertPath: app.config.Server.TlsCertPath,
-			TlsKeyPath:  app.config.Server.TlsKeyPath,
-			Blacklist:   app.config.Server.Blacklist,
-			Whitelist:   app.config.Server.Whitelist,
+			TlsCertPath: app.config.ServerConfig.TlsCertPath,
+			TlsKeyPath:  app.config.ServerConfig.TlsKeyPath,
+			Blacklist:   app.config.ServerConfig.Blacklist,
+			Whitelist:   app.config.ServerConfig.Whitelist,
 		},
 		HandleClientMessagesSequentially: true,
 		ClientMessageCooldownMs:          0,
@@ -43,7 +43,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if err != nil {
 				return err
 			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: true})).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: true})).Serialize())
 			return nil
 		},
 		"stop": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
@@ -51,7 +51,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if err != nil {
 				return err
 			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: false})).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: false})).Serialize())
 			return nil
 		},
 		"command": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
@@ -63,7 +63,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if err != nil {
 				return err
 			}
-			websocketClient.Send(Message.NewAsync("responseMessage", node.GetName(), result).Serialize())
+			websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
 			return nil
 		},
 		"gc": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
@@ -82,8 +82,8 @@ func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.Websocke
 	defer app.mutex.Unlock()
 	for _, n := range app.nodes {
 		go func() {
-			websocketClient.Send(Message.NewAsync("nodeStatus", node.GetName(), Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
-			websocketClient.Send(Message.NewAsync("nodeCommands", node.GetName(), Helpers.JsonMarshal(newNodeCommands(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("nodeCommands", Helpers.JsonMarshal(newNodeCommands(n))).Serialize())
 		}()
 	}
 }

@@ -75,12 +75,6 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeWebsocketCounterIntervalMs > 0 {
 		go app.nodeWebsocketCountersRoutine()
 	}
-	if app.config.NodeBrokerCounterIntervalMs > 0 {
-		go app.nodeBrokerCountersRoutine()
-	}
-	if app.config.NodeResolverCounterIntervalMs > 0 {
-		go app.nodeResolverCountersRoutine()
-	}
 	if app.config.NodeSpawnerCounterIntervalMs > 0 {
 		go app.nodeSpawnerCountersRoutine()
 	}
@@ -104,7 +98,7 @@ func (app *App) OnStop(node *Node.Node) error {
 func (app *App) goroutineUpdateRoutine() {
 	for app.started {
 		goroutineCount := runtime.NumGoroutine()
-		app.node.WebsocketBroadcast(Message.NewAsync("goroutineCount", app.node.GetName(), strconv.Itoa(goroutineCount)))
+		app.node.WebsocketBroadcast(Message.NewAsync("goroutineCount", strconv.Itoa(goroutineCount)))
 		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log("goroutine update routine: \"" + strconv.Itoa(goroutineCount) + "\"")
 		}
@@ -125,7 +119,7 @@ func (app *App) addNodeRoutine(node *Node.Node) {
 		app.nodes[spawnedNode.GetName()] = spawnedNode
 		app.mutex.Unlock()
 		app.registerNodeHttpHandlers(spawnedNode)
-		app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), Helpers.JsonMarshal(newNodeStatus(spawnedNode))))
+		app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(newNodeStatus(spawnedNode))))
 	}
 }
 
@@ -142,7 +136,7 @@ func (app *App) removeNodeRoutine(node *Node.Node) {
 		app.mutex.Lock()
 		delete(app.nodes, removedNode.GetName())
 		app.mutex.Unlock()
-		app.node.WebsocketBroadcast(Message.NewAsync("removeNode", app.node.GetName(), removedNode.GetName()))
+		app.node.WebsocketBroadcast(Message.NewAsync("removeNode", removedNode.GetName()))
 	}
 }
 
@@ -152,7 +146,7 @@ func (app *App) nodeSpawnerCountersRoutine() {
 		for _, node := range app.nodes {
 			if Spawner.ImplementsSpawner(node.GetApplication()) {
 				spawnerCountersJson := Helpers.JsonMarshal(newNodeSpawnerCounters(node))
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeSpawnerCounters", app.node.GetName(), spawnerCountersJson))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSpawnerCounters", spawnerCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("spawner counter routine: \"" + spawnerCountersJson + "\"")
 				}
@@ -169,7 +163,7 @@ func (app *App) nodeHTTPCountersRoutine() {
 		for _, node := range app.nodes {
 			if Node.ImplementsHTTPComponent(node.GetApplication()) {
 				httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(node))
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", app.node.GetName(), httpCountersJson))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeHttpCounters", httpCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("http counter routine: \"" + httpCountersJson + "\"")
 				}
@@ -180,47 +174,13 @@ func (app *App) nodeHTTPCountersRoutine() {
 	}
 }
 
-func (app *App) nodeResolverCountersRoutine() {
-	for app.started {
-		app.mutex.Lock()
-		for _, node := range app.nodes {
-			if Node.ImplementsResolverComponent(node.GetApplication()) {
-				resolverCountersJson := Helpers.JsonMarshal(newNodeResolverCounters(node))
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeResolverCounters", app.node.GetName(), resolverCountersJson))
-				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
-					infoLogger.Log("resolver counter routine: \"" + resolverCountersJson + "\"")
-				}
-			}
-		}
-		app.mutex.Unlock()
-		time.Sleep(time.Duration(app.config.NodeResolverCounterIntervalMs) * time.Millisecond)
-	}
-}
-
-func (app *App) nodeBrokerCountersRoutine() {
-	for app.started {
-		app.mutex.Lock()
-		for _, node := range app.nodes {
-			if Node.ImplementsBrokerComponent(node.GetApplication()) {
-				brokerCountersJson := Helpers.JsonMarshal(newNodeBrokerCounters(node))
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeBrokerCounters", app.node.GetName(), brokerCountersJson))
-				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
-					infoLogger.Log("broker counter routine: \"" + brokerCountersJson + "\"")
-				}
-			}
-		}
-		app.mutex.Unlock()
-		time.Sleep(time.Duration(app.config.NodeBrokerCounterIntervalMs) * time.Millisecond)
-	}
-}
-
 func (app *App) nodeSystemgeCountersRoutine() {
 	for app.started {
 		app.mutex.Lock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				systemgeCountersJson := Helpers.JsonMarshal(newNodeSystemgeCounters(node))
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", app.node.GetName(), systemgeCountersJson))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", systemgeCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("systemge counter routine: \"" + systemgeCountersJson + "\"")
 				}
@@ -237,7 +197,7 @@ func (app *App) nodeWebsocketCountersRoutine() {
 		for _, node := range app.nodes {
 			if Node.ImplementsWebsocketComponent(node.GetApplication()) {
 				messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(node))
-				app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", app.node.GetName(), messageCounterJson))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeWebsocketCounters", messageCounterJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("websocket message counter routine: \"" + messageCounterJson + "\"")
 				}
@@ -253,7 +213,7 @@ func (app *App) nodeStatusRoutine() {
 		app.mutex.Lock()
 		for _, node := range app.nodes {
 			statusUpdateJson := Helpers.JsonMarshal(newNodeStatus(node))
-			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", app.node.GetName(), statusUpdateJson))
+			app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", statusUpdateJson))
 			if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
 			}
@@ -268,7 +228,7 @@ func (app *App) heapUpdateRoutine() {
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
 		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
-		app.node.WebsocketBroadcast(Message.NewAsync("heapStatus", app.node.GetName(), heapSize))
+		app.node.WebsocketBroadcast(Message.NewAsync("heapStatus", heapSize))
 		if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log("heap update routine: \"" + heapSize + "\"")
 		}
