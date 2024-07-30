@@ -23,6 +23,14 @@ type SyncResponse struct {
 	origin          string
 }
 
+func newSyncResponseChannel(requestMessage *Message.Message) *SyncResponseChannel {
+	return &SyncResponseChannel{
+		closeChannel:   make(chan struct{}),
+		channel:        make(chan *SyncResponse),
+		requestMessage: requestMessage,
+	}
+}
+
 func (syncResponse *SyncResponse) GetMessage() *Message.Message {
 	return syncResponse.responseMessage
 }
@@ -62,10 +70,7 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs
 func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, error) {
 	if systemge := node.systemge; systemge != nil {
 		message := Message.NewSync(topic, payload, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
-		responseChannel := &SyncResponseChannel{
-			channel:        make(chan *SyncResponse),
-			requestMessage: message,
-		}
+		responseChannel := newSyncResponseChannel(message)
 		systemge.syncRequestMutex.Lock()
 		systemge.syncRequestChannels[message.GetSyncTokenToken()] = responseChannel
 		systemge.syncRequestMutex.Unlock()
