@@ -113,6 +113,7 @@ func (node *Node) stopSystemgeComponent() error {
 	systemge := node.systemge
 	node.systemge = nil
 	systemge.tcpServer.GetListener().Close()
+	systemge.tcpServer = nil
 	systemge.outgoingConnectionMutex.Lock()
 	for _, brokerConnection := range systemge.outgoingConnections {
 		brokerConnection.netConn.Close()
