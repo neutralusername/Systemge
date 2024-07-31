@@ -145,6 +145,7 @@ export class root extends React.Component {
             case "nodeSystemgeCounters":
             case "nodeSystemgeIncomingSyncResponseCounters":
             case "nodeSystemgeIncomingSyncRequestCounters":
+            case "nodeSystemgeIncomingAsyncMessageCounters":
             case "nodeSystemgeInvalidMessageCounters":
             case "nodeSystemgeOutgoingSyncRequestCounters":
             case "nodeSystemgeOutgoingAsyncMessageCounters":
