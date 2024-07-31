@@ -47,6 +47,14 @@ func (node *Node) handleIncomingConnections() {
 					warningLogger.Log(Error.New("Failed to handle incoming connection from "+netConn.RemoteAddr().String(), err).Error())
 				}
 			} else {
+				err := systemge.addIncomingConnection(incomingConnection)
+				if err != nil {
+					systemge.incomingConnectionAttemptsFailed.Add(1)
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+						warningLogger.Log(Error.New("Failed to add incoming connection from "+netConn.RemoteAddr().String()+" with name \""+incomingConnection.name+"\"", err).Error())
+					}
+					return
+				}
 				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log(Error.New("Successfully handled incoming connection from "+netConn.RemoteAddr().String()+" with name \""+incomingConnection.name+"\"", nil).Error())
 				}
@@ -94,5 +102,5 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
-	return systemge.newIncomingConnection(netConn, incomingConnectionName)
+	return systemge.newIncomingConnection(netConn, incomingConnectionName), nil
 }

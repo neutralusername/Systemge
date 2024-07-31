@@ -18,19 +18,29 @@ type incomingConnection struct {
 	sendMutex    sync.Mutex
 }
 
-func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name string) (*incomingConnection, error) {
+func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
 	nodeConnection := &incomingConnection{
 		netConn: netConn,
 		name:    name,
 	}
+	return nodeConnection
+}
+
+func (systemge *systemgeComponent) removeIncomingConnection(incomingConnection *incomingConnection) {
+	systemge.incomingConnectionsMutex.Lock()
+	defer systemge.incomingConnectionsMutex.Unlock()
+	delete(systemge.incomingConnections, incomingConnection.name)
+}
+
+func (systemge *systemgeComponent) addIncomingConnection(incomingConnection *incomingConnection) error {
 	systemge.outgoingConnectionMutex.Lock()
 	defer systemge.outgoingConnectionMutex.Unlock()
-	if systemge.incomingConnections[name] != nil {
-		netConn.Close()
-		return nil, Error.New("Node connection already exists", nil)
+	if systemge.incomingConnections[incomingConnection.name] != nil {
+		incomingConnection.netConn.Close()
+		return Error.New("Node connection already exists", nil)
 	}
-	systemge.incomingConnections[name] = nodeConnection
-	return nodeConnection, nil
+	systemge.incomingConnections[incomingConnection.name] = incomingConnection
+	return nil
 }
 
 // sync responses are sent to incoming connections

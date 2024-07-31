@@ -30,9 +30,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 				warningLogger.Log(Error.New("Failed to receive message from incoming node connection \""+incomingConnection.name+"\" likely due to connection loss", err).Error())
 			}
 			incomingConnection.netConn.Close()
-			systemge.incomingConnectionsMutex.Lock()
-			delete(systemge.incomingConnections, incomingConnection.name)
-			systemge.incomingConnectionsMutex.Unlock()
+			systemge.removeIncomingConnection(incomingConnection)
 			return
 		}
 		message, err := Message.Deserialize(messageBytes)
