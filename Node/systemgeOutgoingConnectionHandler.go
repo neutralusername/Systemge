@@ -34,6 +34,13 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 	}
 	loopOngoing := true
 	systemge_.outgoingConnectionMutex.Lock()
+	if systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
+		if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+			warningLogger.Log(Error.New("Aborting connection attempts to endpoint \""+endpointConfig.Address+"\" because loop is already ongoing", nil).Error())
+		}
+		systemge_.outgoingConnectionMutex.Unlock()
+		return
+	}
 	systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &loopOngoing
 	systemge_.outgoingConnectionMutex.Unlock()
 	defer func() {
