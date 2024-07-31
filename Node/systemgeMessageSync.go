@@ -80,11 +80,12 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs
 func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, error) {
 	if systemge := node.systemge; systemge != nil {
 		message := Message.NewSync(topic, payload, node.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC))
-		responseChannel := newSyncResponseChannel(message, systemge.config.SyncResponseLimit)
 
+		responseChannel := newSyncResponseChannel(message, systemge.config.SyncResponseLimit)
 		systemge.syncRequestMutex.Lock()
 		systemge.syncRequestChannels[message.GetSyncTokenToken()] = responseChannel
 		systemge.syncRequestMutex.Unlock()
+		systemge.outgoingConnectionMutex.Lock()
 		for _, outgoingConnection := range systemge.topicResolutions[topic] {
 			go func() {
 				err := systemge.messageOutgoingConnection(outgoingConnection, message)
@@ -95,6 +96,7 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 				}
 			}()
 		}
+		systemge.outgoingConnectionMutex.Unlock()
 		go func() {
 			if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
 				timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
