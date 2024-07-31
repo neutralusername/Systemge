@@ -23,8 +23,8 @@ func UnmarshalNode(data string) *Node {
 }
 
 type NewNode struct {
-	NodeConfig      *Node      `json:"node"`            // *required*
-	SystemgeConfig  *Systemge  `json:"systegmeConfig"`  // *optional*
+	NodeConfig      *Node      `json:"nodeConfig"`      // *required*
+	SystemgeConfig  *Systemge  `json:"systemgeConfig"`  // *optional*
 	HttpConfig      *HTTP      `json:"httpConfig"`      // *optional*
 	WebsocketConfig *Websocket `json:"websocketConfig"` // *optional*
 }
