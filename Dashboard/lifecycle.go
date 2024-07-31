@@ -68,6 +68,14 @@ func (app *App) OnStart(node *Node.Node) error {
 	}
 	if app.config.NodeSystemgeCounterIntervalMs > 0 {
 		go app.nodeSystemgeCountersRoutine()
+		go app.newNodeSystemgeIncomingSyncResponseCountersRoutine()
+		go app.newNodeSystemgeIncomingSyncRequestCountersRoutine()
+		go app.newNodeSystemgeInvalidMessageCountersRoutine()
+		go app.newNodeSystemgeOutgoingSyncRequestCountersRoutine()
+		go app.newNodeSystemgeOutgoingAsyncMessageCountersRoutine()
+		go app.newNodeSystemgeIncomingConnectionAttemptsCountersRoutine()
+		go app.newNodeSystemgeOutgoingConnectionAttemptCountersRoutine()
+		go app.newNodeSystemgeOutgoingSyncResponsesCountersRoutine()
 	}
 	if app.config.NodeHTTPCounterIntervalMs > 0 {
 		go app.nodeHTTPCountersRoutine()
@@ -188,6 +196,142 @@ func (app *App) nodeSystemgeCountersRoutine() {
 				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeCounters", systemgeCountersJson))
 				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
 					infoLogger.Log("systemge counter routine: \"" + systemgeCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeIncomingSyncResponseCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				incomingSyncResponseCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingSyncResponseCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeIncomingSyncResponseCounters", incomingSyncResponseCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("incoming sync response counter routine: \"" + incomingSyncResponseCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeIncomingSyncRequestCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				incomingSyncRequestCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingSyncRequestCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeIncomingSyncRequestCounters", incomingSyncRequestCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("incoming sync request counter routine: \"" + incomingSyncRequestCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeInvalidMessageCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				invalidMessageCountersJson := Helpers.JsonMarshal(newNodeSystemgeInvalidMessageCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeInvalidMessageCounters", invalidMessageCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("invalid message counter routine: \"" + invalidMessageCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeOutgoingSyncRequestCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				outgoingSyncRequestCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingSyncRequestCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeOutgoingSyncRequestCounters", outgoingSyncRequestCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("outgoing sync request counter routine: \"" + outgoingSyncRequestCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeOutgoingAsyncMessageCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				outgoingAsyncMessageCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingAsyncMessageCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeOutgoingAsyncMessageCounters", outgoingAsyncMessageCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("outgoing async message counter routine: \"" + outgoingAsyncMessageCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeIncomingConnectionAttemptsCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				incomingConnectionAttemptsCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingConnectionAttemptsCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeIncomingConnectionAttemptsCounters", incomingConnectionAttemptsCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("incoming connection attempts counter routine: \"" + incomingConnectionAttemptsCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeOutgoingConnectionAttemptCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				outgoingConnectionAttemptCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingConnectionAttemptCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeOutgoingConnectionAttemptCounters", outgoingConnectionAttemptCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("outgoing connection attempt counter routine: \"" + outgoingConnectionAttemptCountersJson + "\"")
+				}
+			}
+		}
+		app.mutex.Unlock()
+		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *App) newNodeSystemgeOutgoingSyncResponsesCountersRoutine() {
+	for app.started {
+		app.mutex.Lock()
+		for _, node := range app.nodes {
+			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
+				outgoingSyncResponsesCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingSyncResponsesCounters(node))
+				app.node.WebsocketBroadcast(Message.NewAsync("nodeSystemgeOutgoingSyncResponsesCounters", outgoingSyncResponsesCountersJson))
+				if infoLogger := app.node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log("outgoing sync responses counter routine: \"" + outgoingSyncResponsesCountersJson + "\"")
 				}
 			}
 		}
