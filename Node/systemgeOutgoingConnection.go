@@ -19,6 +19,7 @@ type outgoingConnection struct {
 	receiveMutex   sync.Mutex
 	sendMutex      sync.Mutex
 	topics         []string
+	transient      bool
 }
 
 func newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) *outgoingConnection {
@@ -31,36 +32,21 @@ func newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name 
 	return outgoingConnection
 }
 
-func (systemge *systemgeComponent) removeOutgoingConnection(outgoingConnection *outgoingConnection) {
-	systemge.outgoingConnectionMutex.Lock()
-	defer systemge.outgoingConnectionMutex.Unlock()
-	delete(systemge.outgoingConnections, outgoingConnection.name)
-	for _, topic := range outgoingConnection.topics {
-		topicResolutions := systemge.topicResolutions[topic]
-		if topicResolutions != nil {
-			delete(topicResolutions, outgoingConnection.name)
-			if len(topicResolutions) == 0 {
-				delete(systemge.topicResolutions, topic)
-			}
-		}
-	}
-}
-
 func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingConnection) error {
 	systemge.outgoingConnectionMutex.Lock()
 	defer systemge.outgoingConnectionMutex.Unlock()
-	if systemge.outgoingConnections[outgoingConn.name] != nil {
+	if systemge.outgoingConnections[outgoingConn.endpointConfig.Address] != nil {
 		outgoingConn.netConn.Close()
 		return Error.New("Node connection already exists", nil)
 	}
-	systemge.outgoingConnections[outgoingConn.name] = outgoingConn
+	systemge.outgoingConnections[outgoingConn.endpointConfig.Address] = outgoingConn
 	for _, topic := range outgoingConn.topics {
 		topicResolutions := systemge.topicResolutions[topic]
 		if topicResolutions == nil {
 			topicResolutions = make(map[string]*outgoingConnection)
 			systemge.topicResolutions[topic] = topicResolutions
 		}
-		topicResolutions[outgoingConn.name] = outgoingConn
+		topicResolutions[outgoingConn.endpointConfig.Address] = outgoingConn
 	}
 	return nil
 }

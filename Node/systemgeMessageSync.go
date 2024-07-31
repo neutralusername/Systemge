@@ -85,9 +85,11 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 		systemge.syncRequestMutex.Lock()
 		systemge.syncRequestChannels[message.GetSyncTokenToken()] = responseChannel
 		systemge.syncRequestMutex.Unlock()
+
+		waitgroup := Tools.NewWaitgroup()
 		systemge.outgoingConnectionMutex.Lock()
 		for _, outgoingConnection := range systemge.topicResolutions[topic] {
-			go func() {
+			waitgroup.Add(func() {
 				err := systemge.messageOutgoingConnection(outgoingConnection, message)
 				if err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
@@ -98,7 +100,7 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 						infoLogger.Log("Sent sync request with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 					}
 				}
-			}()
+			})
 		}
 		systemge.outgoingConnectionMutex.Unlock()
 		go func() {
@@ -121,6 +123,7 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 			delete(systemge.syncRequestChannels, message.GetSyncTokenToken())
 			systemge.syncRequestMutex.Unlock()
 		}()
+		waitgroup.Execute()
 		return responseChannel, nil
 	}
 	return nil, Error.New("systemge not initialized", nil)

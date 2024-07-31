@@ -11,16 +11,19 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (node *Node) CancelOutgoingConnectionLoop(address string) error {
+func (node *Node) RemoveOutgoingConnection(address string) error {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
 		defer systemge.outgoingConnectionMutex.Unlock()
 		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
 			*systemge.currentlyInOutgoingConnectionLoop[address] = false
 			delete(systemge.currentlyInOutgoingConnectionLoop, address)
-			return nil
 		}
-		return Error.New("No outgoing connection loop to cancel", nil)
+		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
+			outgoingConnection.netConn.Close()
+			outgoingConnection.transient = true
+		}
+		return nil
 	}
 	return Error.New("Systemge is nil", nil)
 }
