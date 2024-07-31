@@ -17,7 +17,7 @@ func (node *Node) AsyncMessage(topic, payload string) error {
 						errorLogger.Log(Error.New("Failed to send async message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 					}
 				} else {
-					if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+					if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 						infoLogger.Log("Sent async message with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\"")
 					}
 				}

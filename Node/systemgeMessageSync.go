@@ -94,7 +94,7 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 						errorLogger.Log(Error.New("Failed to send sync message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 					}
 				} else {
-					if infoLogger := node.GetInfoLogger(); infoLogger != nil {
+					if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 						infoLogger.Log("Sent sync message with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\"")
 					}
 				}
