@@ -57,7 +57,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 		if len(message.GetSyncTokenToken()) == 0 {
 			systemge.invalidMessagesFromOutgoingConnections.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Received sync response from outgoing node connection", nil).Error())
+				warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
 			}
 			continue
 		}
@@ -87,7 +87,7 @@ func (systemge *systemgeComponent) handleSyncResponse(outgoingConnectionName str
 		return Error.New("Received sync response for unknown token", nil)
 	}
 	if syncResponseChannel.responseCount >= systemge.config.SyncResponseLimit {
-		return Error.New("Received too many sync responses", nil)
+		return Error.New("Sync response limit reached", nil)
 	}
 	if message.GetTopic() == Message.TOPIC_SUCCESS {
 		systemge.incomingSyncSuccessResponses.Add(1)
