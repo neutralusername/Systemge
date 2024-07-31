@@ -14,8 +14,10 @@ import (
 func (node *Node) CancelOutgoingConnectionLoop(address string) {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
-		*systemge.currentlyInOutgoingConnectionLoop[address] = false
-		delete(systemge.currentlyInOutgoingConnectionLoop, address)
+		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
+			*systemge.currentlyInOutgoingConnectionLoop[address] = false
+			delete(systemge.currentlyInOutgoingConnectionLoop, address)
+		}
 		systemge.outgoingConnectionMutex.Unlock()
 	}
 }
@@ -32,7 +34,6 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 		}
 		return
 	}
-	loopOngoing := true
 	systemge_.outgoingConnectionMutex.Lock()
 	if systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
 		if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
@@ -41,6 +42,7 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 		systemge_.outgoingConnectionMutex.Unlock()
 		return
 	}
+	loopOngoing := true
 	systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &loopOngoing
 	systemge_.outgoingConnectionMutex.Unlock()
 	defer func() {
