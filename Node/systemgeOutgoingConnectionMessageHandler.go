@@ -50,21 +50,21 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 		if err != nil {
 			systemge.invalidMessagesFromOutgoingConnections.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			continue
 		}
 		if len(message.GetSyncTokenToken()) == 0 {
 			systemge.invalidMessagesFromOutgoingConnections.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
+				warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\" (which goes against protocol)", nil).Error())
 			}
 			continue
 		}
 		if err := systemge.validateMessage(message); err != nil {
 			systemge.invalidMessagesFromOutgoingConnections.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to validate message", err).Error())
+				warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			continue
 		}
@@ -75,6 +75,10 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				warningLogger.Log(Error.New("Failed to handle sync response from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			continue
+		} else {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log("Handled sync response from outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
+			}
 		}
 	}
 }

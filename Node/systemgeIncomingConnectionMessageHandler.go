@@ -39,14 +39,14 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 		if err != nil {
 			systemge.invalidMessagesFromIncomingConnections.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 			}
 			continue
 		}
 		if err := systemge.validateMessage(message); err != nil {
 			systemge.invalidMessagesFromIncomingConnections.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to validate message", err).Error())
+				warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 			}
 			continue
 		}
@@ -60,7 +60,11 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			if err != nil {
 				systemge.invalidMessagesFromIncomingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle async message", err).Error())
+					warningLogger.Log(Error.New("Failed to handle async messag with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
+				}
+			} else {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Handled async message with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", nil).Error())
 				}
 			}
 		} else {
@@ -70,19 +74,22 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			if err != nil {
 				systemge.invalidMessagesFromIncomingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle sync request", err).Error())
+					warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
 				if err := systemge.messageIncomingConnection(incomingConnection, message.NewFailureResponse(responsePayload)); err != nil {
 					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send failure response to incoming node connection", err).Error())
+						warningLogger.Log(Error.New("Failed to send failure response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
 				} else {
 					systemge.outgoingSyncFailureResponses.Add(1)
 				}
 			} else {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\" with sync token \""+message.GetSyncTokenToken()+"\"", nil).Error())
+				}
 				if err := systemge.messageIncomingConnection(incomingConnection, message.NewSuccessResponse(responsePayload)); err != nil {
 					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send success response to incoming node connection", err).Error())
+						warningLogger.Log(Error.New("Failed to send success response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
 				} else {
 					systemge.outgoingSyncSuccessResponses.Add(1)

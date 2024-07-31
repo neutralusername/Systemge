@@ -44,9 +44,12 @@ func (node *Node) handleIncomingConnections() {
 			if err != nil {
 				systemge.incomingConnectionAttemptsFailed.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle incoming connection", err).Error())
+					warningLogger.Log(Error.New("Failed to handle incoming connection from "+netConn.RemoteAddr().String(), err).Error())
 				}
 			} else {
+				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+					infoLogger.Log(Error.New("Successfully handled incoming connection from "+netConn.RemoteAddr().String()+" with name \""+incomingConnection.name+"\"", nil).Error())
+				}
 				systemge.incomingConnectionAttemptsSuccessful.Add(1)
 				go node.handleIncomingConnectionMessages(incomingConnection)
 			}

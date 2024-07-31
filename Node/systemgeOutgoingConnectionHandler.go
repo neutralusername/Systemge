@@ -57,7 +57,7 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 		} else {
 			systemge.outgoingConnectionAttemptsSuccessful.Add(1)
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(connectionAttempts+1)+" to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
+				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(connectionAttempts+1)+" to connect to endpoint \""+endpointConfig.Address+"\" with name \""+nodeConnection.name+"\"", nil).Error())
 			}
 			go node.handleOutgoingConnectionMessages(nodeConnection)
 			return
