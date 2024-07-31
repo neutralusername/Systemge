@@ -91,11 +91,11 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 				err := systemge.messageOutgoingConnection(outgoingConnection, message)
 				if err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-						errorLogger.Log(Error.New("Failed to send sync message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+						errorLogger.Log(Error.New("Failed to send sync request with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 					}
 				} else {
 					if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-						infoLogger.Log("Sent sync message with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\"")
+						infoLogger.Log("Sent sync request with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\"")
 					}
 				}
 			}()
