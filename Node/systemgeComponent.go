@@ -25,12 +25,13 @@ type systemgeComponent struct {
 	syncRequestMutex    sync.Mutex
 	syncRequestChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
-	outgoingConnectionMutex sync.Mutex
-	topicResolutions        map[string]map[string]*outgoingConnection // topic -> [address -> nodeConnection]
-	outgoingConnections     map[string]*outgoingConnection            // address -> nodeConnection
+	outgoingConnectionMutex           sync.Mutex
+	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [nodeName -> nodeConnection]
+	outgoingConnections               map[string]*outgoingConnection            // nodeName -> nodeConnection
+	currentlyInOutgoingConnectionLoop map[string]bool                           // address -> bool
 
 	incomingConnectionsMutex sync.Mutex
-	incomingConnections      map[string]*incomingConnection // address -> nodeConnection
+	incomingConnections      map[string]*incomingConnection // nodeName -> nodeConnection
 
 	// outgoing connection metrics
 
@@ -90,13 +91,14 @@ func (node *Node) startSystemgeComponent() error {
 		return Error.New("Systemge config missing", nil)
 	}
 	systemge := &systemgeComponent{
-		responsibleTopics:   []string{},
-		application:         node.application.(SystemgeComponent),
-		syncRequestChannels: make(map[string]*SyncResponseChannel),
-		topicResolutions:    make(map[string]map[string]*outgoingConnection),
-		outgoingConnections: make(map[string]*outgoingConnection),
-		incomingConnections: make(map[string]*incomingConnection),
-		config:              node.newNodeConfig.SystemgeConfig,
+		responsibleTopics:                 []string{},
+		application:                       node.application.(SystemgeComponent),
+		syncRequestChannels:               make(map[string]*SyncResponseChannel),
+		topicResolutions:                  make(map[string]map[string]*outgoingConnection),
+		outgoingConnections:               make(map[string]*outgoingConnection),
+		incomingConnections:               make(map[string]*incomingConnection),
+		currentlyInOutgoingConnectionLoop: make(map[string]bool),
+		config:                            node.newNodeConfig.SystemgeConfig,
 	}
 	for asyncTopic := range systemge.application.GetAsyncMessageHandlers() {
 		systemge.responsibleTopics = append(systemge.responsibleTopics, asyncTopic)
