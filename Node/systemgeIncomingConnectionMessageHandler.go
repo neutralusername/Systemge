@@ -49,9 +49,6 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 				}
 				return
 			}
-			if systemge.config.HandleMessagesSequentially {
-				systemge.handleSequentiallyMutex.Lock()
-			}
 			if message.GetSyncTokenToken() == "" {
 				systemge.incomingAsyncMessageBytesReceived.Add(uint64(len(messageBytes)))
 				systemge.incomingAsyncMessages.Add(1)
@@ -95,9 +92,6 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 					}
 				}
 			}
-			if systemge.config.HandleMessagesSequentially {
-				systemge.handleSequentiallyMutex.Unlock()
-			}
 		}()
 	}
 }
@@ -109,7 +103,13 @@ func (systemge *systemgeComponent) handleSyncRequest(node *Node, message *Messag
 	if syncMessageHandler == nil {
 		return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
 	}
+	if systemge.config.HandleMessagesSequentially {
+		systemge.handleSequentiallyMutex.Lock()
+	}
 	responsePayload, err := syncMessageHandler(node, message)
+	if systemge.config.HandleMessagesSequentially {
+		systemge.handleSequentiallyMutex.Unlock()
+	}
 	if err != nil {
 		return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
 	}
@@ -123,7 +123,13 @@ func (systemge *systemgeComponent) handleAsyncMessage(node *Node, message *Messa
 	if asyncMessageHandler == nil {
 		return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
 	}
+	if systemge.config.HandleMessagesSequentially {
+		systemge.handleSequentiallyMutex.Lock()
+	}
 	err := asyncMessageHandler(node, message)
+	if systemge.config.HandleMessagesSequentially {
+		systemge.handleSequentiallyMutex.Unlock()
+	}
 	if err != nil {
 		return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
 	}
