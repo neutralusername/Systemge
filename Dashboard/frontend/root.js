@@ -43,8 +43,12 @@ export class root extends React.Component {
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
             },
             nodeSystemgeIncomingSyncRequestCounters: {
-                labels: ["incomingSyncRequests", "incomingSyncRequestBytesReceived", "incomingAsyncMessages", "incomingAsyncMessageBytesReceived"],
+                labels: ["incomingSyncRequests", "incomingSyncRequestBytesReceived",],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
+            },
+            nodeSystemgeIncomingAsyncMessageCounters: {
+                labels: ["incomingAsyncMessages", "incomingAsyncMessageBytesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
             nodeSystemgeInvalidMessageCounters: {
                 labels: ["invalidMessagesFromIncomingConnections", "invalidMessagesFromOutgoingConnections"],

@@ -25,9 +25,13 @@ type NodeSystemgeIncomingSyncResponseCounters struct {
 }
 
 type NodeSystemgeIncomingSyncRequestCounters struct {
+	Name                             string `json:"name"`
+	IncomingSyncRequests             uint32 `json:"incomingSyncRequests"`
+	IncomingSyncRequestBytesReceived uint64 `json:"incomingSyncRequestBytesReceived"`
+}
+
+type NOdeSystemgeIncomingAsyncMessageCounters struct {
 	Name                              string `json:"name"`
-	IncomingSyncRequests              uint32 `json:"incomingSyncRequests"`
-	IncomingSyncRequestBytesReceived  uint64 `json:"incomingSyncRequestBytesReceived"`
 	IncomingAsyncMessages             uint32 `json:"incomingAsyncMessages"`
 	IncomingAsyncMessageBytesReceived uint64 `json:"incomingAsyncMessageBytesReceived"`
 }
@@ -88,9 +92,15 @@ func newNodeSystemgeIncomingSyncResponseCounters(node *Node.Node) NodeSystemgeIn
 
 func newNodeSystemgeIncomingSyncRequestCounters(node *Node.Node) NodeSystemgeIncomingSyncRequestCounters {
 	return NodeSystemgeIncomingSyncRequestCounters{
+		Name:                             node.GetName(),
+		IncomingSyncRequests:             node.RetrieveIncomingSyncRequests(),
+		IncomingSyncRequestBytesReceived: node.RetrieveIncomingSyncRequestBytesReceived(),
+	}
+}
+
+func newNodeSystemgeIncomingAsyncMessageCounters(node *Node.Node) NOdeSystemgeIncomingAsyncMessageCounters {
+	return NOdeSystemgeIncomingAsyncMessageCounters{
 		Name:                              node.GetName(),
-		IncomingSyncRequests:              node.RetrieveIncomingSyncRequests(),
-		IncomingSyncRequestBytesReceived:  node.RetrieveIncomingSyncRequestBytesReceived(),
 		IncomingAsyncMessages:             node.RetrieveIncomingAsyncMessages(),
 		IncomingAsyncMessageBytesReceived: node.RetrieveIncomingAsyncMessageBytesReceived(),
 	}
