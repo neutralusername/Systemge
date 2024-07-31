@@ -68,14 +68,32 @@ func (app *App) OnStart(node *Node.Node) error {
 	}
 	if app.config.NodeSystemgeCounterIntervalMs > 0 {
 		go app.nodeSystemgeCountersRoutine()
-		go app.newNodeSystemgeIncomingSyncResponseCountersRoutine()
-		go app.newNodeSystemgeIncomingSyncRequestCountersRoutine()
-		go app.newNodeSystemgeIncomingAsyncMessageCountersRoutine()
+	}
+	if app.config.NodeSystemgeInvalidMessageCounterIntervalMs > 0 {
 		go app.newNodeSystemgeInvalidMessageCountersRoutine()
-		go app.newNodeSystemgeOutgoingSyncRequestCountersRoutine()
-		go app.newNodeSystemgeOutgoingAsyncMessageCountersRoutine()
+	}
+	if app.config.NodeSystemgeIncomingConnectionAttemptsCounterIntervalMs > 0 {
 		go app.newNodeSystemgeIncomingConnectionAttemptsCountersRoutine()
+	}
+	if app.config.NodeSystemgeIncomingSyncResponseCounterIntervalMs > 0 {
+		go app.newNodeSystemgeIncomingSyncResponseCountersRoutine()
+	}
+	if app.config.NodeSystemgeIncomingSyncRequestCounterIntervalMs > 0 {
+		go app.newNodeSystemgeIncomingSyncRequestCountersRoutine()
+	}
+	if app.config.NodeSystemgeIncomingAsyncMessageCounterIntervalMs > 0 {
+		go app.newNodeSystemgeIncomingAsyncMessageCountersRoutine()
+	}
+	if app.config.NodeSystemgeOutgoingConnectionAttemptCounterIntervalMs > 0 {
 		go app.newNodeSystemgeOutgoingConnectionAttemptCountersRoutine()
+	}
+	if app.config.NodeSystemgeOutgoingSyncRequestCounterIntervalMs > 0 {
+		go app.newNodeSystemgeOutgoingSyncRequestCountersRoutine()
+	}
+	if app.config.NodeSystemgeOutgoingAsyncMessageCounterIntervalMs > 0 {
+		go app.newNodeSystemgeOutgoingAsyncMessageCountersRoutine()
+	}
+	if app.config.NodeSystemgeOutgoingSyncResponsesCounterIntervalMs > 0 {
 		go app.newNodeSystemgeOutgoingSyncResponsesCountersRoutine()
 	}
 	if app.config.NodeHTTPCounterIntervalMs > 0 {

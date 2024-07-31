@@ -8,12 +8,39 @@ type NodeSystemgeCounters struct {
 	BytesSent     uint64 `json:"bytesSent"`
 }
 
+type NodeSystemgeInvalidMessageCounters struct {
+	Name                                   string `json:"name"`
+	InvalidMessagesFromIncomingConnections uint32 `json:"invalidMessagesFromIncomingConnections"`
+	InvalidMessagesFromOutgoingConnections uint32 `json:"invalidMessagesFromOutgoingConnections"`
+}
+
 type NodeSystemgeOutgoingSyncResponsesCounters struct {
 	Name                          string `json:"name"`
 	OutgoingSyncResponses         uint32 `json:"outgoingSyncResponses"`
 	OutgoingSyncSuccessResponses  uint32 `json:"outgoingSyncSuccessResponses"`
 	OutgoingSyncFailureResponses  uint32 `json:"outgoingSyncFailureResponses"`
 	OutgoingSyncResponseBytesSent uint64 `json:"outgoingSyncResponseBytesSent"`
+}
+
+type NodeSystemgeOutgoingSyncRequestCounters struct {
+	Name                         string `json:"name"`
+	OutgoingSyncRequests         uint32 `json:"outgoingSyncRequests"`
+	OutgoingSyncRequestBytesSent uint64 `json:"outgoingSyncRequestBytesSent"`
+}
+
+type NodeSystemgeOutgoingAsyncMessageCounters struct {
+	Name                          string `json:"name"`
+	OutgoingAsyncMessages         uint32 `json:"outgoingAsyncMessages"`
+	OutgoingAsyncMessageBytesSent uint64 `json:"outgoingAsyncMessageBytesSent"`
+}
+
+type NodeSystemgeOutgoingConnectionAttemptCounters struct {
+	Name                                  string `json:"name"`
+	OutoingConnectionAttempts             uint32 `json:"outgoingConnectionAttempts"`
+	OutoingConnectionAttemptsSuccessful   uint32 `json:"outgoingConnectionAttemptsSuccessful"`
+	OutoingConnectionAttemptsFailed       uint32 `json:"outgoingConnectionAttemptsFailed"`
+	OutoingConnectionAttemptBytesSent     uint64 `json:"outgoingConnectionAttemptBytesSent"`
+	OutoingConnectionAttemptBytesReceived uint64 `json:"outgoingConnectionAttemptBytesReceived"`
 }
 
 type NodeSystemgeIncomingSyncResponseCounters struct {
@@ -36,24 +63,6 @@ type NOdeSystemgeIncomingAsyncMessageCounters struct {
 	IncomingAsyncMessageBytesReceived uint64 `json:"incomingAsyncMessageBytesReceived"`
 }
 
-type NodeSystemgeInvalidMessageCounters struct {
-	Name                                   string `json:"name"`
-	InvalidMessagesFromIncomingConnections uint32 `json:"invalidMessagesFromIncomingConnections"`
-	InvalidMessagesFromOutgoingConnections uint32 `json:"invalidMessagesFromOutgoingConnections"`
-}
-
-type NodeSystemgeOutgoingSyncRequestCounters struct {
-	Name                         string `json:"name"`
-	OutgoingSyncRequests         uint32 `json:"outgoingSyncRequests"`
-	OutgoingSyncRequestBytesSent uint64 `json:"outgoingSyncRequestBytesSent"`
-}
-
-type NodeSystemgeOutgoingAsyncMessageCounters struct {
-	Name                          string `json:"name"`
-	OutgoingAsyncMessages         uint32 `json:"outgoingAsyncMessages"`
-	OutgoingAsyncMessageBytesSent uint64 `json:"outgoingAsyncMessageBytesSent"`
-}
-
 type NodeSystemgeIncomingConnectionAttemptsCounters struct {
 	Name                                   string `json:"name"`
 	IncomingConnectionAttempts             uint32 `json:"incomingConnectionAttempts"`
@@ -63,20 +72,30 @@ type NodeSystemgeIncomingConnectionAttemptsCounters struct {
 	IncomingConnectionAttemptBytesReceived uint64 `json:"incomingConnectionAttemptBytesReceived"`
 }
 
-type NodeSystemgeOutgoingConnectionAttemptCounters struct {
-	Name                                  string `json:"name"`
-	OutoingConnectionAttempts             uint32 `json:"outgoingConnectionAttempts"`
-	OutoingConnectionAttemptsSuccessful   uint32 `json:"outgoingConnectionAttemptsSuccessful"`
-	OutoingConnectionAttemptsFailed       uint32 `json:"outgoingConnectionAttemptsFailed"`
-	OutoingConnectionAttemptBytesSent     uint64 `json:"outgoingConnectionAttemptBytesSent"`
-	OutoingConnectionAttemptBytesReceived uint64 `json:"outgoingConnectionAttemptBytesReceived"`
-}
-
 func newNodeSystemgeCounters(node *Node.Node) NodeSystemgeCounters {
 	return NodeSystemgeCounters{
 		Name:          node.GetName(),
 		BytesReceived: node.RetrieveSystemgeBytesReceivedCounter(),
 		BytesSent:     node.RetrieveSystemgeBytesSentCounter(),
+	}
+}
+
+func newNodeSystemgeInvalidMessageCounters(node *Node.Node) NodeSystemgeInvalidMessageCounters {
+	return NodeSystemgeInvalidMessageCounters{
+		Name:                                   node.GetName(),
+		InvalidMessagesFromIncomingConnections: node.RetrieveInvalidMessagesFromIncomingConnections(),
+		InvalidMessagesFromOutgoingConnections: node.RetrieveInvalidMessagesFromOutgoingConnections(),
+	}
+}
+
+func newNodeSystemgeIncomingConnectionAttemptsCounters(node *Node.Node) NodeSystemgeIncomingConnectionAttemptsCounters {
+	return NodeSystemgeIncomingConnectionAttemptsCounters{
+		Name:                                   node.GetName(),
+		IncomingConnectionAttempts:             node.RetrieveIncomingConnectionAttempts(),
+		IncomingConnectionAttemptsSuccessful:   node.RetrieveIncomingConnectionAttemptsSuccessful(),
+		IncomingConnectionAttemptsFailed:       node.RetrieveIncomingConnectionAttemptsFailed(),
+		IncomingConnectionAttemptBytesSent:     node.RetrieveIncomingConnectionAttemptBytesSent(),
+		IncomingConnectionAttemptBytesReceived: node.RetrieveIncomingConnectionAttemptBytesReceived(),
 	}
 }
 
@@ -106,14 +125,6 @@ func newNodeSystemgeIncomingAsyncMessageCounters(node *Node.Node) NOdeSystemgeIn
 	}
 }
 
-func newNodeSystemgeInvalidMessageCounters(node *Node.Node) NodeSystemgeInvalidMessageCounters {
-	return NodeSystemgeInvalidMessageCounters{
-		Name:                                   node.GetName(),
-		InvalidMessagesFromIncomingConnections: node.RetrieveInvalidMessagesFromIncomingConnections(),
-		InvalidMessagesFromOutgoingConnections: node.RetrieveInvalidMessagesFromOutgoingConnections(),
-	}
-}
-
 func newNodeSystemgeOutgoingSyncRequestCounters(node *Node.Node) NodeSystemgeOutgoingSyncRequestCounters {
 	return NodeSystemgeOutgoingSyncRequestCounters{
 		Name:                         node.GetName(),
@@ -127,17 +138,6 @@ func newNodeSystemgeOutgoingAsyncMessageCounters(node *Node.Node) NodeSystemgeOu
 		Name:                          node.GetName(),
 		OutgoingAsyncMessages:         node.RetrieveOutgoingAsyncMessages(),
 		OutgoingAsyncMessageBytesSent: node.RetrieveOutgoingAsyncMessageBytesSent(),
-	}
-}
-
-func newNodeSystemgeIncomingConnectionAttemptsCounters(node *Node.Node) NodeSystemgeIncomingConnectionAttemptsCounters {
-	return NodeSystemgeIncomingConnectionAttemptsCounters{
-		Name:                                   node.GetName(),
-		IncomingConnectionAttempts:             node.RetrieveIncomingConnectionAttempts(),
-		IncomingConnectionAttemptsSuccessful:   node.RetrieveIncomingConnectionAttemptsSuccessful(),
-		IncomingConnectionAttemptsFailed:       node.RetrieveIncomingConnectionAttemptsFailed(),
-		IncomingConnectionAttemptBytesSent:     node.RetrieveIncomingConnectionAttemptBytesSent(),
-		IncomingConnectionAttemptBytesReceived: node.RetrieveIncomingConnectionAttemptBytesReceived(),
 	}
 }
 

@@ -38,6 +38,10 @@ export class root extends React.Component {
                 labels: ["bytesReceived", "bytesSent"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
+            nodeSystemgeInvalidMessageCounters: {
+                labels: ["invalidMessagesFromIncomingConnections", "invalidMessagesFromOutgoingConnections"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
+            },
             nodeSystemgeIncomingSyncResponseCounters: {
                 labels: ["incomingSyncResponses", "incomingSyncSuccessResponses", "incomingSyncFailureResponses", "incomingSyncResponseBytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
@@ -50,9 +54,9 @@ export class root extends React.Component {
                 labels: ["incomingAsyncMessages", "incomingAsyncMessageBytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
-            nodeSystemgeInvalidMessageCounters: {
-                labels: ["invalidMessagesFromIncomingConnections", "invalidMessagesFromOutgoingConnections"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
+            nodeSystemgeIncomingConnectionAttemptsCounters: {
+                labels: ["incomingConnectionAttempts", "incomingConnectionAttemptsSuccessful", "incomingConnectionAttemptsFailed", "incomingConnectionAttemptBytesSent", "incomingConnectionAttemptBytesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
             },
             nodeSystemgeOutgoingSyncRequestCounters: {
                 labels: ["outgoingSyncRequests", "outgoingSyncRequestBytesSent"],
@@ -65,10 +69,6 @@ export class root extends React.Component {
             nodeSystemgeOutgoingAsyncMessageCounters: {
                 labels: ["outgoingAsyncMessages", "outgoingAsyncMessageBytesSent"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeIncomingConnectionAttemptsCounters: {
-                labels: ["incomingConnectionAttempts", "incomingConnectionAttemptsSuccessful", "incomingConnectionAttemptsFailed", "incomingConnectionAttemptBytesSent", "incomingConnectionAttemptBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
             },
             nodeSystemgeOutgoingConnectionAttemptCounters: {
                 labels: ["outgoingConnectionAttempts", "outgoingConnectionAttemptsSuccessful", "outgoingConnectionAttemptsFailed", "outgoingConnectionAttemptBytesSent", "outgoingConnectionAttemptBytesReceived"],
@@ -143,13 +143,13 @@ export class root extends React.Component {
                 this.handleNodeCommands(JSON.parse(message.payload));
                 break;
             case "nodeSystemgeCounters":
+            case "nodeSystemgeInvalidMessageCounters":
             case "nodeSystemgeIncomingSyncResponseCounters":
             case "nodeSystemgeIncomingSyncRequestCounters":
+            case "nodeSystemgeIncomingConnectionAttemptsCounters":
             case "nodeSystemgeIncomingAsyncMessageCounters":
-            case "nodeSystemgeInvalidMessageCounters":
             case "nodeSystemgeOutgoingSyncRequestCounters":
             case "nodeSystemgeOutgoingAsyncMessageCounters":
-            case "nodeSystemgeIncomingConnectionAttemptsCounters":
             case "nodeSystemgeOutgoingConnectionAttemptCounters":
             case "nodeSystemgeOutgoingSyncResponsesCounters":
             case "nodeWebsocketCounters":
