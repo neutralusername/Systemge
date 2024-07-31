@@ -95,7 +95,7 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 					}
 				} else {
 					if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-						infoLogger.Log("Sent sync request with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\"")
+						infoLogger.Log("Sent sync request with topic \"" + topic + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 					}
 				}
 			}()
