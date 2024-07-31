@@ -85,6 +85,11 @@ func (app *App) OnStart(node *Node.Node) error {
 			go app.removeNodeRoutine(node)
 		}
 	}
+	if app.config.AutoStart {
+		for _, node := range app.nodes {
+			go node.Start()
+		}
+	}
 	app.mutex.Unlock()
 	return nil
 }

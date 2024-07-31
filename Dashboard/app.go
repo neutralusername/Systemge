@@ -23,12 +23,6 @@ func New(config *Config.Dashboard, nodes ...*Node.Node) *Node.Node {
 		config: config,
 	}
 	for _, node := range nodes {
-		if app.config.AutoStart {
-			err := node.Start()
-			if err != nil {
-				panic(err)
-			}
-		}
 		app.nodes[node.GetName()] = node
 	}
 	return Node.New(&Config.NewNode{
@@ -42,7 +36,7 @@ func New(config *Config.Dashboard, nodes ...*Node.Node) *Node.Node {
 				Blacklist:   app.config.ServerConfig.Blacklist,
 				Whitelist:   app.config.ServerConfig.Whitelist,
 			},
-			HandleClientMessagesSequentially: true,
+			HandleClientMessagesSequentially: false,
 			ClientMessageCooldownMs:          0,
 			ClientWatchdogTimeoutMs:          1000 * 60 * 5,
 			Upgrader: &websocket.Upgrader{

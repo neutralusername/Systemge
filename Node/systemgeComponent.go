@@ -86,6 +86,10 @@ const (
 	connection_responsibleTopics_topic = "topics"
 )
 
+func (node *Node) GetSystemgeEndpointConfig() *Config.TcpEndpoint {
+	return node.newNodeConfig.SystemgeConfig.Endpoint
+}
+
 func (node *Node) startSystemgeComponent() error {
 	if node.newNodeConfig.SystemgeConfig == nil {
 		return Error.New("Systemge config missing", nil)
@@ -112,10 +116,10 @@ func (node *Node) startSystemgeComponent() error {
 	}
 	systemge.tcpServer = tcpServer
 	node.systemge = systemge
-	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
-		go node.StartOutgoingConnectionLoop(endpointConfig)
-	}
 	go node.handleIncomingConnections()
+	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
+		node.StartOutgoingConnectionLoop(endpointConfig)
+	}
 	return nil
 }
 

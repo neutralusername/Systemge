@@ -109,7 +109,7 @@ func (systemge *systemgeComponent) handleSyncRequest(node *Node, message *Messag
 	}
 	responsePayload, err := syncMessageHandler(node, message)
 	if err != nil {
-		return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" failed returned error", err)
+		return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
 	}
 	return responsePayload, nil
 }
@@ -123,7 +123,7 @@ func (systemge *systemgeComponent) handleAsyncMessage(node *Node, message *Messa
 	}
 	err := asyncMessageHandler(node, message)
 	if err != nil {
-		return Error.New("Async message handler for topic \""+message.GetTopic()+"\" failed returned error", err)
+		return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
 	}
 	return nil
 }
