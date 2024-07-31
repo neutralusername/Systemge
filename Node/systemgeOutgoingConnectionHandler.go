@@ -14,12 +14,13 @@ import (
 func (node *Node) CancelOutgoingConnectionLoop(address string) {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
+		*systemge.currentlyInOutgoingConnectionLoop[address] = false
 		delete(systemge.currentlyInOutgoingConnectionLoop, address)
 		systemge.outgoingConnectionMutex.Unlock()
 	}
 }
 
-func (node *Node) OutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
+func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting connection attempts to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 	}
@@ -31,12 +32,13 @@ func (node *Node) OutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 		}
 		return
 	}
+	loopOngoing := true
 	systemge_.outgoingConnectionMutex.Lock()
-	systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = true
+	systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &loopOngoing
 	systemge_.outgoingConnectionMutex.Unlock()
 	defer func() {
 		systemge_.outgoingConnectionMutex.Lock()
-		systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = false
+		delete(systemge_.currentlyInOutgoingConnectionLoop, endpointConfig.Address)
 		systemge_.outgoingConnectionMutex.Unlock()
 	}()
 	for {
@@ -53,15 +55,12 @@ func (node *Node) OutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 			}
 			return
 		}
-		systemge.outgoingConnectionMutex.Lock()
-		if !systemge.currentlyInOutgoingConnectionLoop[endpointConfig.Address] {
-			systemge.outgoingConnectionMutex.Unlock()
+		if !loopOngoing {
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Abortinng connection attempts due to endpoint \""+endpointConfig.Address+"\" having been cancelled", nil).Error())
+				infoLogger.Log(Error.New("Aborting connection attempts to endpoint \""+endpointConfig.Address+"\" because loop was cancelled", nil).Error())
 			}
 			return
 		}
-		systemge.outgoingConnectionMutex.Unlock()
 		if maxConnectionAttempts := systemge.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && connectionAttempts >= maxConnectionAttempts {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Max attempts reached to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())

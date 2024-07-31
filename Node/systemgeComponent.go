@@ -28,7 +28,7 @@ type systemgeComponent struct {
 	outgoingConnectionMutex           sync.Mutex
 	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [nodeName -> nodeConnection]
 	outgoingConnections               map[string]*outgoingConnection            // nodeName -> nodeConnection
-	currentlyInOutgoingConnectionLoop map[string]bool                           // address -> bool
+	currentlyInOutgoingConnectionLoop map[string]*bool                          // address -> bool
 
 	incomingConnectionsMutex sync.Mutex
 	incomingConnections      map[string]*incomingConnection // nodeName -> nodeConnection
@@ -97,7 +97,7 @@ func (node *Node) startSystemgeComponent() error {
 		topicResolutions:                  make(map[string]map[string]*outgoingConnection),
 		outgoingConnections:               make(map[string]*outgoingConnection),
 		incomingConnections:               make(map[string]*incomingConnection),
-		currentlyInOutgoingConnectionLoop: make(map[string]bool),
+		currentlyInOutgoingConnectionLoop: make(map[string]*bool),
 		config:                            node.newNodeConfig.SystemgeConfig,
 	}
 	for asyncTopic := range systemge.application.GetAsyncMessageHandlers() {
@@ -113,7 +113,7 @@ func (node *Node) startSystemgeComponent() error {
 	systemge.tcpServer = tcpServer
 	node.systemge = systemge
 	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
-		go node.OutgoingConnectionLoop(endpointConfig)
+		go node.StartOutgoingConnectionLoop(endpointConfig)
 	}
 	go node.handleIncomingConnections()
 	return nil
