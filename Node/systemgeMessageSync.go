@@ -86,12 +86,14 @@ func (node *Node) SyncMessage(topic, payload string) (*SyncResponseChannel, erro
 		systemge.syncRequestChannels[message.GetSyncTokenToken()] = responseChannel
 		systemge.syncRequestMutex.Unlock()
 		for _, outgoingConnection := range systemge.topicResolutions[topic] {
-			err := systemge.sendOutgoingConnection(outgoingConnection, message)
-			if err != nil {
-				if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-					errorLogger.Log(Error.New("Failed to send sync message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+			go func() {
+				err := systemge.messageOutgoingConnection(outgoingConnection, message)
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to send sync message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+					}
 				}
-			}
+			}()
 		}
 		go func() {
 			if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {

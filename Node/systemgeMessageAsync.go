@@ -10,12 +10,14 @@ func (node *Node) AsyncMessage(topic, payload string) error {
 		message := Message.NewAsync(topic, payload)
 		systemge.outgoingConnectionMutex.Lock()
 		for _, outgoingConnection := range systemge.topicResolutions[topic] {
-			err := systemge.sendOutgoingConnection(outgoingConnection, message)
-			if err != nil {
-				if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-					errorLogger.Log(Error.New("Failed to send async message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+			go func() {
+				err := systemge.messageOutgoingConnection(outgoingConnection, message)
+				if err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to send async message with topic \""+topic+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+					}
 				}
-			}
+			}()
 		}
 		systemge.outgoingConnectionMutex.Unlock()
 		return nil

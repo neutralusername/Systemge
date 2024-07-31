@@ -34,7 +34,7 @@ func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name 
 }
 
 // sync responses are sent to incoming connections
-func (systemge *systemgeComponent) sendIncomingConnection(incomingConnection *incomingConnection, message *Message.Message) error {
+func (systemge *systemgeComponent) messageIncomingConnection(incomingConnection *incomingConnection, message *Message.Message) error {
 	incomingConnection.sendMutex.Lock()
 	defer incomingConnection.sendMutex.Unlock()
 	if message.GetSyncTokenToken() == "" {
@@ -51,7 +51,7 @@ func (systemge *systemgeComponent) sendIncomingConnection(incomingConnection *in
 }
 
 // async messages and sync requests are received from incoming connections
-func (systemge *systemgeComponent) receiveIncomingConnection(incomingConnection *incomingConnection) ([]byte, error) {
+func (systemge *systemgeComponent) receiveFromIncomingConnection(incomingConnection *incomingConnection) ([]byte, error) {
 	incomingConnection.receiveMutex.Lock()
 	defer incomingConnection.receiveMutex.Unlock()
 	messageBytes, bytesReceived, err := Tcp.Receive(incomingConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)

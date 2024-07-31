@@ -47,7 +47,7 @@ func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpo
 }
 
 // async messages and sync requests are sent to outgoing connections
-func (systemge *systemgeComponent) sendOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
+func (systemge *systemgeComponent) messageOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
 	outgoingConnection.sendMutex.Lock()
 	defer outgoingConnection.sendMutex.Unlock()
 	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), systemge.config.TcpTimeoutMs)
@@ -66,7 +66,7 @@ func (systemge *systemgeComponent) sendOutgoingConnection(outgoingConnection *ou
 }
 
 // sync responses are received by outgoing connections
-func (systemge *systemgeComponent) receiveOutgoingConnection(nodeConnection *outgoingConnection) ([]byte, error) {
+func (systemge *systemgeComponent) receiveFromOutgoingConnection(nodeConnection *outgoingConnection) ([]byte, error) {
 	nodeConnection.receiveMutex.Lock()
 	defer nodeConnection.receiveMutex.Unlock()
 	messageBytes, byteCountReceived, err := Tcp.Receive(nodeConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)

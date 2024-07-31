@@ -19,10 +19,10 @@ type Systemge struct {
 	ServerConfig    *TcpServer     `json:"serverConfig"`    // *optional*
 	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (nodes which shall receive systemge messages by this node) (on connection, they share which message topics they are interested in and only those are sent)
 
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: 0 = unlimited
-	MaxSyncTokenSize         int    `json:"maxSyncKeySize"`           // default: 0 = unlimited
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: <=0 = unlimited
+	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 = unlimited
+	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 = unlimited
+	MaxSyncTokenSize         int    `json:"maxSyncKeySize"`           // default: <=0 = unlimited
 }
 
 func UnmarshalSystemge(data string) *Systemge {

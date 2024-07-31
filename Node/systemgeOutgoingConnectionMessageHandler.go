@@ -25,7 +25,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			}
 			return
 		}
-		messageBytes, err := systemge.receiveOutgoingConnection(outgoingConnection)
+		messageBytes, err := systemge.receiveFromOutgoingConnection(outgoingConnection)
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())

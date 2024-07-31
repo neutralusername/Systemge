@@ -24,7 +24,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			}
 			return
 		}
-		messageBytes, err := systemge.receiveIncomingConnection(incomingConnection)
+		messageBytes, err := systemge.receiveFromIncomingConnection(incomingConnection)
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from incoming node connection \""+incomingConnection.name+"\" likely due to connection loss", err).Error())
@@ -72,7 +72,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle sync request", err).Error())
 				}
-				if err := systemge.sendIncomingConnection(incomingConnection, message.NewFailureResponse(responsePayload)); err != nil {
+				if err := systemge.messageIncomingConnection(incomingConnection, message.NewFailureResponse(responsePayload)); err != nil {
 					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send failure response to incoming node connection", err).Error())
 					}
@@ -80,7 +80,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 					systemge.outgoingSyncFailureResponses.Add(1)
 				}
 			} else {
-				if err := systemge.sendIncomingConnection(incomingConnection, message.NewSuccessResponse(responsePayload)); err != nil {
+				if err := systemge.messageIncomingConnection(incomingConnection, message.NewSuccessResponse(responsePayload)); err != nil {
 					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to send success response to incoming node connection", err).Error())
 					}
