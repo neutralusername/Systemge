@@ -89,7 +89,7 @@ func (node *Node) startSystemgeComponent() error {
 	if node.newNodeConfig.SystemgeConfig == nil {
 		return Error.New("Systemge config missing", nil)
 	}
-	node.systemge = &systemgeComponent{
+	systemge := &systemgeComponent{
 		responsibleTopics:   []string{},
 		application:         node.application.(SystemgeComponent),
 		syncRequestChannels: make(map[string]*SyncResponseChannel),
@@ -98,19 +98,20 @@ func (node *Node) startSystemgeComponent() error {
 		incomingConnections: make(map[string]*incomingConnection),
 		config:              node.newNodeConfig.SystemgeConfig,
 	}
-	for asyncTopic := range node.systemge.application.GetAsyncMessageHandlers() {
-		node.systemge.responsibleTopics = append(node.systemge.responsibleTopics, asyncTopic)
+	for asyncTopic := range systemge.application.GetAsyncMessageHandlers() {
+		systemge.responsibleTopics = append(systemge.responsibleTopics, asyncTopic)
 	}
-	for syncTopic := range node.systemge.application.GetSyncMessageHandlers() {
-		node.systemge.responsibleTopics = append(node.systemge.responsibleTopics, syncTopic)
+	for syncTopic := range systemge.application.GetSyncMessageHandlers() {
+		systemge.responsibleTopics = append(systemge.responsibleTopics, syncTopic)
 	}
-	tcpServer, err := Tcp.NewServer(node.systemge.config.ServerConfig)
+	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
 	if err != nil {
 		return Error.New("Failed to create tcp server", err)
 	}
-	node.systemge.tcpServer = tcpServer
+	systemge.tcpServer = tcpServer
+	node.systemge = systemge
 	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
-		go node.outgoingConnectionLoop(endpointConfig)
+		go node.OutgoingConnectionLoop(endpointConfig)
 	}
 	go node.handleIncomingConnections()
 	return nil

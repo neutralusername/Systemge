@@ -1,39 +1,34 @@
 package Spawner
 
 import (
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Node"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (spawner *Spawner) spawnNode(id string) error {
-	_, ok := spawner.spawnedNodes[id]
-	if ok {
-		return Error.New("Node "+id+" already exists", nil)
-	}
-	newNodeConfig := spawner.spawnerConfig.SpawnedNodeConfig
-	newNodeConfig.NodeConfig.Name = newNodeConfig.NodeConfig.Name + "-" + id
-	newNode := Node.New(newNodeConfig, spawner.newApplicationFunc(id))
-	spawner.spawnedNodes[id] = newNode
-	if spawner.spawnerConfig.PropagateSpawnedNodeChanges {
+func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
+	newNode := Node.New(spawnedNodeConfig, spawner.newApplicationFunc())
+	spawner.spawnedNodes[newNode.GetName()] = newNode
+	if spawner.config.PropagateSpawnedNodeChanges {
 		spawner.addNodeChannel <- newNode
 	}
 	return nil
 }
 
-func (spawner *Spawner) despawnNode(id string) error {
-	spawnedNode := spawner.spawnedNodes[id]
+func (spawner *Spawner) despawnNode(nodeName string) error {
+	spawnedNode := spawner.spawnedNodes[nodeName]
 	if spawnedNode == nil {
-		return Error.New("Node "+id+" does not exist", nil)
+		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
 	if spawnedNode.IsStarted() {
 		err := spawnedNode.Stop()
 		if err != nil {
 			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed stopping node "+id, err).Error())
+				errorLogger.Log(Error.New("Failed stopping node "+nodeName, err).Error())
 			}
 			if mailer := spawner.node.GetMailer(); mailer != nil {
-				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+id, err).Error()))
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+nodeName, err).Error()))
 				if err != nil {
 					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed sending mail", err).Error())
@@ -42,29 +37,29 @@ func (spawner *Spawner) despawnNode(id string) error {
 			}
 		}
 	}
-	delete(spawner.spawnedNodes, id)
-	if spawner.spawnerConfig.PropagateSpawnedNodeChanges {
+	delete(spawner.spawnedNodes, nodeName)
+	if spawner.config.PropagateSpawnedNodeChanges {
 		spawner.removeNodeChannel <- spawnedNode
 	}
 	return nil
 }
 
-func (spawner *Spawner) stopNode(id string) error {
-	spawnedNode := spawner.spawnedNodes[id]
+func (spawner *Spawner) stopNode(nodeName string) error {
+	spawnedNode := spawner.spawnedNodes[nodeName]
 	if spawnedNode == nil {
-		return Error.New("Node "+id+" does not exist", nil)
+		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
 	err := spawnedNode.Stop()
 	if err != nil {
-		return Error.New("Failed stopping node "+id, err)
+		return Error.New("Failed stopping node "+nodeName, err)
 	}
 	return nil
 }
 
-func (spawner *Spawner) startNode(id string) error {
-	spawnedNode := spawner.spawnedNodes[id]
+func (spawner *Spawner) startNode(nodeName string) error {
+	spawnedNode := spawner.spawnedNodes[nodeName]
 	if spawnedNode == nil {
-		return Error.New("Node "+id+" does not exist", nil)
+		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
 	err := spawnedNode.Start()
 	if err != nil {

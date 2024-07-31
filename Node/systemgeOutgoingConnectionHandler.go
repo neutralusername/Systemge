@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
+func (node *Node) OutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting connection attempts to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 	}

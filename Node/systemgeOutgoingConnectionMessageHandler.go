@@ -43,7 +43,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				}
 			}
 			systemge.outgoingConnectionMutex.Unlock()
-			go node.outgoingConnectionLoop(outgoingConnection.endpointConfig)
+			go node.OutgoingConnectionLoop(outgoingConnection.endpointConfig)
 			return
 		}
 		message, err := Message.Deserialize(messageBytes)

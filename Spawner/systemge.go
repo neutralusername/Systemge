@@ -16,51 +16,46 @@ const SPAWN_NODE_ASYNC = "spawnNodeAsync"
 const DESPAWN_NODE_SYNC = "despawnNodeSync"
 const DESPAWN_NODE_ASYNC = "despawnNodeAsync"
 
-func (spawner *Spawner) GetSystemgeComponentConfig() *Config.Systemge {
-	return spawner.systemgeConfig
-}
-
 func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHandler {
 	return map[string]Node.SyncMessageHandler{
 		SPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
-			id := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.spawnNode(id)
+			err := spawner.spawnNode(Config.UnmarshalNewNode(message.GetPayload()))
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Failed spawning node "+id, err)
+				return "", Error.New("Failed spawning node \""+message.GetPayload()+"\"", err)
 			}
-			return id, nil
+			return "", nil
 		},
 		DESPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
-			id := message.GetPayload()
+			nodeName := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.despawnNode(id)
+			err := spawner.despawnNode(nodeName)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Failed despawning node "+id, err)
+				return "", Error.New("Failed despawning node "+nodeName, err)
 			}
-			return id, nil
+			return nodeName, nil
 		},
 		STOP_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
-			id := message.GetPayload()
+			nodeName := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.stopNode(id)
+			err := spawner.stopNode(nodeName)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Failed ending node "+id, err)
+				return "", Error.New("Failed ending node "+nodeName, err)
 			}
-			return id, nil
+			return nodeName, nil
 		},
 		START_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
-			id := message.GetPayload()
+			nodeName := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.startNode(id)
+			err := spawner.startNode(nodeName)
 			spawner.mutex.Unlock()
 			if err != nil {
-				return "", Error.New("Failed starting node "+id, err)
+				return "", Error.New("Failed starting node "+nodeName, err)
 			}
-			return id, nil
+			return nodeName, nil
 		},
 	}
 }
@@ -68,12 +63,11 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHandler {
 	return map[string]Node.AsyncMessageHandler{
 		SPAWN_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
-			id := message.GetPayload()
 			spawner.mutex.Lock()
-			err := spawner.spawnNode(id)
+			err := spawner.spawnNode(Config.UnmarshalNewNode(message.GetPayload()))
 			spawner.mutex.Unlock()
 			if err != nil {
-				return Error.New("Failed spawning node "+id, err)
+				return Error.New("Failed spawning node \""+message.GetPayload()+"\"", err)
 			}
 			return nil
 		},

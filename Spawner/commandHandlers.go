@@ -1,6 +1,7 @@
 package Spawner
 
 import (
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Node"
 )
@@ -22,7 +23,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			}
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
-			err := spawner.spawnNode(args[0])
+			err := spawner.spawnNode(Config.UnmarshalNewNode(args[0]))
 			if err != nil {
 				return "", Error.New("Failed spawning node "+args[0], err)
 			}

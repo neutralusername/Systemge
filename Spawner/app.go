@@ -8,26 +8,28 @@ import (
 )
 
 type Spawner struct {
-	spawnerConfig      *Config.Spawner
-	systemgeConfig     *Config.Systemge
+	config             *Config.Spawner
 	spawnedNodes       map[string]*Node.Node
-	newApplicationFunc func(string) Node.Application
+	newApplicationFunc func() Node.Application
 	mutex              sync.Mutex
 	node               *Node.Node
 	addNodeChannel     chan *Node.Node
 	removeNodeChannel  chan *Node.Node
 }
 
-func New(spawnerConfig *Config.Spawner, systemgeConfig *Config.Systemge, newApplicationFunc func(string) Node.Application) *Spawner {
-	spawner := &Spawner{
-		spawnerConfig:      spawnerConfig,
-		systemgeConfig:     systemgeConfig,
+func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *Node.Node {
+	app := &Spawner{
+		config:             config,
 		spawnedNodes:       make(map[string]*Node.Node),
 		newApplicationFunc: newApplicationFunc,
 		addNodeChannel:     make(chan *Node.Node),
 		removeNodeChannel:  make(chan *Node.Node),
 	}
-	return spawner
+	node := Node.New(&Config.NewNode{
+		NodeConfig:     config.NodeConfig,
+		SystemgeConfig: config.SystemgeConfig,
+	}, app)
+	return node
 }
 
 func (spawner *Spawner) GetAddNodeChannel() chan *Node.Node {
