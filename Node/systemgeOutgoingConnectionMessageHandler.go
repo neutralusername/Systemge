@@ -31,18 +31,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			outgoingConnection.netConn.Close()
-			systemge.outgoingConnectionMutex.Lock()
-			delete(systemge.outgoingConnections, outgoingConnection.name)
-			for _, topic := range outgoingConnection.topics {
-				topicResolutions := systemge.topicResolutions[topic]
-				if topicResolutions != nil {
-					delete(topicResolutions, outgoingConnection.name)
-					if len(topicResolutions) == 0 {
-						delete(systemge.topicResolutions, topic)
-					}
-				}
-			}
-			systemge.outgoingConnectionMutex.Unlock()
+			systemge.removeOutgoingConnection(outgoingConnection)
 			go node.StartOutgoingConnectionLoop(outgoingConnection.endpointConfig)
 			return
 		}

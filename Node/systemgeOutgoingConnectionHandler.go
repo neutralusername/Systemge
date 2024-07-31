@@ -87,19 +87,26 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 			return
 		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(connectionAttempts+1)+" to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
+			infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 		}
 		if nodeConnection, err := systemge.connectionAttempt(node.GetName(), endpointConfig); err != nil {
 			systemge.outgoingConnectionAttemptsFailed.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(connectionAttempts+1)+" to connect to endpoint \""+endpointConfig.Address+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", err).Error())
 			}
 			connectionAttempts++
 			time.Sleep(time.Duration(systemge.config.ConnectionAttemptDelayMs) * time.Millisecond)
 		} else {
+			err := systemge.addOutgoingConnection(nodeConnection)
+			if err != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to add outgoing connection", err).Error())
+				}
+				return
+			}
 			systemge.outgoingConnectionAttemptsSuccessful.Add(1)
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(connectionAttempts+1)+" to connect to endpoint \""+endpointConfig.Address+"\" with name \""+nodeConnection.name+"\"", nil).Error())
+				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\" with name \""+nodeConnection.name+"\"", nil).Error())
 			}
 			go node.handleOutgoingConnectionMessages(nodeConnection)
 			return
@@ -163,5 +170,5 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	}
 	topics := []string{}
 	json.Unmarshal([]byte(message.GetPayload()), &topics)
-	return systemge.newOutgoingConnection(netConn, endpointConfig, endpointName, topics)
+	return newOutgoingConnection(netConn, endpointConfig, endpointName, topics), nil
 }

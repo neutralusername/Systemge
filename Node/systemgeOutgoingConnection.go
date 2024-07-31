@@ -21,29 +21,48 @@ type outgoingConnection struct {
 	topics         []string
 }
 
-func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) (*outgoingConnection, error) {
-	nodeConnection := &outgoingConnection{
+func newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) *outgoingConnection {
+	outgoingConnection := &outgoingConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
 		name:           name,
 		topics:         topics,
 	}
+	return outgoingConnection
+}
+
+func (systemge *systemgeComponent) removeOutgoingConnection(outgoingConnection *outgoingConnection) {
 	systemge.outgoingConnectionMutex.Lock()
 	defer systemge.outgoingConnectionMutex.Unlock()
-	if systemge.outgoingConnections[name] != nil {
-		netConn.Close()
-		return nil, Error.New("Node connection already exists", nil)
+	delete(systemge.outgoingConnections, outgoingConnection.name)
+	for _, topic := range outgoingConnection.topics {
+		topicResolutions := systemge.topicResolutions[topic]
+		if topicResolutions != nil {
+			delete(topicResolutions, outgoingConnection.name)
+			if len(topicResolutions) == 0 {
+				delete(systemge.topicResolutions, topic)
+			}
+		}
 	}
-	systemge.outgoingConnections[name] = nodeConnection
-	for _, topic := range topics {
+}
+
+func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingConnection) error {
+	systemge.outgoingConnectionMutex.Lock()
+	defer systemge.outgoingConnectionMutex.Unlock()
+	if systemge.outgoingConnections[outgoingConn.name] != nil {
+		outgoingConn.netConn.Close()
+		return Error.New("Node connection already exists", nil)
+	}
+	systemge.outgoingConnections[outgoingConn.name] = outgoingConn
+	for _, topic := range outgoingConn.topics {
 		topicResolutions := systemge.topicResolutions[topic]
 		if topicResolutions == nil {
 			topicResolutions = make(map[string]*outgoingConnection)
 			systemge.topicResolutions[topic] = topicResolutions
 		}
-		topicResolutions[name] = nodeConnection
+		topicResolutions[outgoingConn.name] = outgoingConn
 	}
-	return nodeConnection, nil
+	return nil
 }
 
 // async messages and sync requests are sent to outgoing connections
