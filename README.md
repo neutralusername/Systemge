@@ -31,6 +31,7 @@
 - **Structure**:
   - **Topic**: Describes the type of Message.
   - **Payload**: The content of the Message, which can be any string.
+  - **Origin**: The Node from which a Message originates. This is automatically assigned upon message reception.
 - **Synchronous Messages**:
   - Identified by a "Sync-Token", automatically assigned.
   - A single synchronous "Request" can receive "Responses" from multiple Nodes.
