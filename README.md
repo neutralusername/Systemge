@@ -104,4 +104,4 @@ Feel free to get in touch if you encounter issues, have questions, suggestions o
 
 ## Notes
 This new version of Systemge is a superset of previous versions that utilized "Resolvers" and "Brokers" to facilitate communication.  
-Similar functionalities may be replicated using Nodes with Systemge Component, if desired.
+Similar functionalities may be replicated using Nodes with Systemge-Component, if desired.
