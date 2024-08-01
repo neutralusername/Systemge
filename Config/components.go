@@ -7,7 +7,7 @@ import (
 )
 
 type Systemge struct {
-	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
+	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false (if true, the server will handle all incoming messages sequentially, which means only one message will be processed at a time) (if false, the server will handle messages concurrently)
 
 	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 = infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
 	SyncResponseLimit               uint64 `json:"syncResponseLimit"`               // default: 0 == sync responses are disabled
@@ -34,12 +34,12 @@ func UnmarshalSystemge(data string) *Systemge {
 }
 
 type Websocket struct {
-	Pattern      string     `json:"pattern"`      // *required*
-	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to)
+	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
 
-	HandleClientMessagesSequentially bool   `json:"handleClientMessagesSequentially"` // default: false
-	ClientMessageCooldownMs          uint64 `json:"clientMessageCooldownMs"`          // default: 0
-	ClientWatchdogTimeoutMs          uint64 `json:"clientWatchdogTimeoutMs"`          // default: 0
+	HandleClientMessagesSequentially bool   `json:"handleClientMessagesSequentially"` // default: false (if true, the server will handle messages from the same client sequentially)
+	ClientMessageCooldownMs          uint64 `json:"clientMessageCooldownMs"`          // default: 0 (if a client sends messages faster than this, the server will ignore)
+	ClientWatchdogTimeoutMs          uint64 `json:"clientWatchdogTimeoutMs"`          // default: 0 (if a client does not send a heartbeat message within this time, the server will disconnect the client)
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 
