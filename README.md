@@ -23,8 +23,13 @@
   - `OnDisconnectHandler()`
   
 - **Command-Component**
+  - `GetCommandHandlers()`
+
 - **OnStart-Component**
+  - `OnStart()`
+
 - **OnStop-Component**
+  - `OnStop()`
 
 ### Messages
 - **Structure**:
