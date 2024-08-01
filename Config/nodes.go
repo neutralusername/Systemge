@@ -6,40 +6,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Node struct {
-	Name string // *required*
-
-	MailerConfig              *Mailer `json:"mailerConfig"`              // *optional*
-	InfoLoggerPath            string  `json:"infoLoggerPath"`            // *optional*
-	InternalInfoLoggerPath    string  `json:"internalInfoLoggerPath"`    // *optional*
-	WarningLoggerPath         string  `json:"warningLoggerPath"`         // *optional*
-	InternalWarningLoggerPath string  `json:"internalWarningLoggerPath"` // *optional*
-	ErrorLoggerPath           string  `json:"errorLoggerPath"`           // *optional*
-	DebugLoggerPath           string  `json:"debugLoggerPath"`           // *optional
-
-	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
-}
-
-func UnmarshalNode(data string) *Node {
-	var node Node
-	json.Unmarshal([]byte(data), &node)
-	return &node
-}
-
-type NewNode struct {
-	NodeConfig      *Node      `json:"nodeConfig"`      // *required*
-	SystemgeConfig  *Systemge  `json:"systemgeConfig"`  // *optional*
-	HttpConfig      *HTTP      `json:"httpConfig"`      // *optional*
-	WebsocketConfig *Websocket `json:"websocketConfig"` // *optional*
-}
-
-func UnmarshalNewNode(data string) *NewNode {
-	var newNode NewNode
-	json.Unmarshal([]byte(data), &newNode)
-	return &newNode
-}
-
-// Server applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
+// ServerConfig applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
 	NodeConfig                                              *Node      `json:"nodeConfig"`                                              // *required*
 	ServerConfig                                            *TcpServer `json:"serverConfig"`                                            // *required*
@@ -70,8 +37,9 @@ func UnmarshalDashboard(data string) *Dashboard {
 }
 
 type Oauth2 struct {
-	ServerConfig               *TcpServer                                                                  `json:"serverConfig"`               // *required*
-	NodeConfig                 *Node                                                                       `json:"nodeConfig"`                 // *required*
+	NodeConfig   *Node      `json:"nodeConfig"`   // *required*
+	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+
 	AuthPath                   string                                                                      `json:"authPath"`                   // *required*
 	AuthCallbackPath           string                                                                      `json:"authCallbackPath"`           // *required*
 	OAuth2Config               *oauth2.Config                                                              `json:"oAuth2Config"`               // *required*
