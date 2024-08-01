@@ -88,3 +88,16 @@ func UnmarshalOauth2(data string) *Oauth2 {
 	json.Unmarshal([]byte(data), &oauth2)
 	return &oauth2
 }
+
+type Spawner struct {
+	NodeConfig     *Node     `json:"nodeConfig"`     // *required*
+	SystemgeConfig *Systemge `json:"systemgeConfig"` // *required*
+
+	PropagateSpawnedNodeChanges bool `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel) (automated by dashboard)
+}
+
+func UnmarshalSpawner(data string) *Spawner {
+	var spawner Spawner
+	json.Unmarshal([]byte(data), &spawner)
+	return &spawner
+}
