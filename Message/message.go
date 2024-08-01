@@ -8,7 +8,7 @@ type Message struct {
 	topic     string
 	syncToken string
 	payload   string
-	Origin    string
+	origin    string
 }
 
 type messageData struct {
@@ -33,7 +33,7 @@ func (message *Message) GetPayload() string {
 }
 
 func (message *Message) GetOrigin() string {
-	return message.Origin
+	return message.origin
 }
 
 func NewAsync(topic, payload string) *Message {
@@ -90,6 +90,6 @@ func Deserialize(bytes []byte, origin string) (*Message, error) {
 		topic:     messageData.Topic,
 		syncToken: messageData.SyncToken,
 		payload:   messageData.Payload,
-		Origin:    origin,
+		origin:    origin,
 	}, nil
 }
