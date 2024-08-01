@@ -20,11 +20,11 @@ func (node *Node) AddHttpRoute(path string, handler http.HandlerFunc) {
 	if node.http == nil {
 		return
 	}
-	handler = func(w http.ResponseWriter, r *http.Request) {
+	handlerWrapped := func(w http.ResponseWriter, r *http.Request) {
 		node.http.requestCounter.Add(1)
 		handler(w, r)
 	}
-	node.http.server.AddRoute(path, handler)
+	node.http.server.AddRoute(path, handlerWrapped)
 }
 
 func (node *Node) RemoveHttpRoute(path string) {
