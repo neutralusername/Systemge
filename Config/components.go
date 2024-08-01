@@ -20,7 +20,7 @@ type Systemge struct {
 	Endpoint        *TcpEndpoint   `json:"endpoint"`        // *optional* (endpoint of this node)
 	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (nodes which shall receive systemge messages by this node) (on connection, they share which message topics they are interested in and only those are sent)
 
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (if a connection attempts to send a message larger than this, it will be disconnected as soon as the limit is reached)
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 = unlimited (messages that exceed this limit will be skipped)
 	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 = unlimited (messages that exceed this limit will be skipped)
 	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 = unlimited (messages that exceed this limit will be skipped)
