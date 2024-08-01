@@ -70,3 +70,32 @@ The goal of Systemge is to automate the networking aspects of distributed comput
 
 ```sh
 go get github.com/neutralusername/Systemge
+```
+
+
+## Usage
+
+For information on how to use this library, check out the samples:
+- [Systemge-Sample-ConwaysGameOfLife](https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife)
+- [Systemge-Sample-PingPong](https://github.com/neutralusername/Systemge-Sample-PingPong)
+- [Systemge-Sample-Chat](https://github.com/neutralusername/Systemge-Sample-Chat)
+- [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
+- [Systemge-Sample-ChessServer](https://github.com/neutralusername/Systemge-Sample-ChessServer)
+- [Systemge-Sample-Oauth2](https://github.com/neutralusername/SystemgeSampleOauth2)
+
+## Contact
+
+Feel free to get in touch if you encounter issues, have questions, suggestions or are interested in acquisition  
+**Discord**: https://discord.gg/y4KYj25A8K  
+**Email**: stuck.fabian@gmail.com  
+
+![Screenshot from 2024-07-24 09-29-32](https://github.com/user-attachments/assets/ca0951cc-220f-4131-ac65-edbb718bf13c)
+
+![Screenshot from 2024-07-24 09-28-38](https://github.com/user-attachments/assets/548d891b-bc64-48eb-b97b-8022ca0c17d8)
+
+![Screenshot from 2024-07-24 09-29-43](https://github.com/user-attachments/assets/66fe338c-33d8-4794-93c1-ff89f779793e)
+
+
+
+![Diagram](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
+
