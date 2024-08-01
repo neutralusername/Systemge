@@ -10,7 +10,7 @@ import (
 
 type SyncResponseChannel struct {
 	closeChannel   chan struct{}
-	channel        chan *SyncResponse
+	channel        chan *Message.Message
 	responseCount  uint64
 	requestMessage *Message.Message
 }
@@ -19,38 +19,22 @@ func (syncResponseChannel *SyncResponseChannel) Close() {
 	close(syncResponseChannel.closeChannel)
 }
 
-type SyncResponse struct {
-	responseMessage *Message.Message
-	origin          string
-}
-
-func (syncResponseChannel *SyncResponseChannel) addResponse(syncResponse *SyncResponse) {
+func (syncResponseChannel *SyncResponseChannel) addResponse(syncResponse *Message.Message) {
 	syncResponseChannel.responseCount++
-	syncResponseChannel.channel <- &SyncResponse{
-		responseMessage: syncResponse.responseMessage,
-		origin:          syncResponse.origin,
-	}
+	syncResponseChannel.channel <- syncResponse
 }
 
 func newSyncResponseChannel(requestMessage *Message.Message, responseLimit uint64) *SyncResponseChannel {
 	return &SyncResponseChannel{
 		closeChannel:   make(chan struct{}),
-		channel:        make(chan *SyncResponse, responseLimit),
+		channel:        make(chan *Message.Message, responseLimit),
 		requestMessage: requestMessage,
 		responseCount:  0,
 	}
 }
 
-func (syncResponse *SyncResponse) GetMessage() *Message.Message {
-	return syncResponse.responseMessage
-}
-
-func (syncResponse *SyncResponse) GetOrigin() string {
-	return syncResponse.origin
-}
-
 // blocks until response is received
-func (syncResponseChannel *SyncResponseChannel) ReceiveResponse() (*SyncResponse, error) {
+func (syncResponseChannel *SyncResponseChannel) ReceiveResponse() (*Message.Message, error) {
 	syncResponse := <-syncResponseChannel.channel
 	if syncResponse == nil {
 		return nil, Error.New("Channel closed", nil)
@@ -63,7 +47,7 @@ func (syncResponseChannel *SyncResponseChannel) GetRequestMessage() *Message.Mes
 }
 
 // blocks until response is received or timeout is reached
-func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs uint64) (*SyncResponse, error) {
+func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs uint64) (*Message.Message, error) {
 	timeout := time.NewTimer(time.Duration(timeoutMs) * time.Millisecond)
 	select {
 	case syncResponse := <-syncResponseChannel.channel:

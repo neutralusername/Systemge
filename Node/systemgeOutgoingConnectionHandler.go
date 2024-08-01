@@ -137,7 +137,7 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	}
 	systemge.bytesReceived.Add(byteCountReceived)
 	systemge.outgoingConnectionAttemptBytesReceived.Add(byteCountReceived)
-	message, err := Message.Deserialize(messageBytes)
+	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to deserialize \""+connection_nodeName_topic+"\" message", err)
@@ -151,6 +151,14 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+connection_nodeName_topic+"\"", nil)
 	}
 	endpointName := message.GetPayload()
+	if endpointName == "" {
+		netConn.Close()
+		return nil, Error.New("Received empty payload in \""+connection_nodeName_topic+"\" message", nil)
+	}
+	if systemge.config.MaxNodeNameSize != 0 && len(endpointName) > int(systemge.config.MaxNodeNameSize) {
+		netConn.Close()
+		return nil, Error.New("Received node name \""+endpointName+"\" exceeds maximum size of "+Helpers.Uint64ToString(systemge.config.MaxNodeNameSize), nil)
+	}
 	messageBytes, byteCountReceived, err = Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
@@ -158,7 +166,7 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	}
 	systemge.bytesReceived.Add(byteCountReceived)
 	systemge.outgoingConnectionAttemptBytesReceived.Add(byteCountReceived)
-	message, err = Message.Deserialize(messageBytes)
+	message, err = Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to deserialize \""+connection_responsibleTopics_topic+"\" message", err)

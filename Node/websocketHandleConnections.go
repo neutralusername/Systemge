@@ -51,7 +51,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		}
 		websocket.incomingMessageCounter.Add(1)
 		websocket.bytesReceivedCounter.Add(uint64(len(messageBytes)))
-		message, err := Message.Deserialize(messageBytes)
+		message, err := Message.Deserialize(messageBytes, websocketClient.GetId())
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to deserialize message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error())

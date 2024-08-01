@@ -8,6 +8,7 @@ type Message struct {
 	topic     string
 	syncToken string
 	payload   string
+	Origin    string
 }
 
 type messageData struct {
@@ -29,6 +30,10 @@ func (message *Message) GetSyncTokenToken() string {
 
 func (message *Message) GetPayload() string {
 	return message.payload
+}
+
+func (message *Message) GetOrigin() string {
+	return message.Origin
 }
 
 func NewAsync(topic, payload string) *Message {
@@ -75,7 +80,7 @@ func (message *Message) Serialize() []byte {
 	return bytes
 }
 
-func Deserialize(bytes []byte) (*Message, error) {
+func Deserialize(bytes []byte, origin string) (*Message, error) {
 	var messageData messageData
 	err := json.Unmarshal(bytes, &messageData)
 	if err != nil {
@@ -85,5 +90,6 @@ func Deserialize(bytes []byte) (*Message, error) {
 		topic:     messageData.Topic,
 		syncToken: messageData.SyncToken,
 		payload:   messageData.Payload,
+		Origin:    origin,
 	}, nil
 }

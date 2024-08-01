@@ -24,6 +24,7 @@ type Systemge struct {
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 = unlimited
 	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 = unlimited
 	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 = unlimited
+	MaxNodeNameSize          uint64 `json:"maxNodeNameSize"`          // default: <=0 = unlimited
 }
 
 func UnmarshalSystemge(data string) *Systemge {

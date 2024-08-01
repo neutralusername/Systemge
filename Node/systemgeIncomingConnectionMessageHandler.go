@@ -34,7 +34,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			return
 		}
 		go func() {
-			message, err := Message.Deserialize(messageBytes)
+			message, err := Message.Deserialize(messageBytes, incomingConnection.name)
 			if err != nil {
 				systemge.invalidMessagesFromIncomingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {

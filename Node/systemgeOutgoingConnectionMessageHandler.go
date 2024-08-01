@@ -50,7 +50,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			return
 		}
 		go func() {
-			message, err := Message.Deserialize(messageBytes)
+			message, err := Message.Deserialize(messageBytes, outgoingConnection.name)
 			if err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
@@ -72,7 +72,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				}
 				return
 			}
-			err = systemge.handleSyncResponse(outgoingConnection.name, message)
+			err = systemge.handleSyncResponse(message)
 			if err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
@@ -88,7 +88,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 	}
 }
 
-func (systemge *systemgeComponent) handleSyncResponse(outgoingConnectionName string, message *Message.Message) error {
+func (systemge *systemgeComponent) handleSyncResponse(message *Message.Message) error {
 	systemge.syncRequestMutex.Lock()
 	defer systemge.syncRequestMutex.Unlock()
 	syncResponseChannel := systemge.syncRequestChannels[message.GetSyncTokenToken()]
@@ -106,9 +106,6 @@ func (systemge *systemgeComponent) handleSyncResponse(outgoingConnectionName str
 	syncResponseChannel.responseCount++
 	systemge.incomingSyncResponses.Add(1)
 	delete(systemge.syncRequestChannels, message.GetSyncTokenToken())
-	go syncResponseChannel.addResponse(&SyncResponse{
-		origin:          outgoingConnectionName,
-		responseMessage: message,
-	})
+	go syncResponseChannel.addResponse(message)
 	return nil
 }
