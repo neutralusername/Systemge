@@ -8,6 +8,7 @@
 - **Application**:
   - Each Node contains an "Application," a pointer to any Go struct acting as the Node's state.
   - The Application can implement various predefined interfaces called "Components," which provide automated functionality for the Node.
+  - Applications can incorporate any third-party packages, such as databases, within their Components.
 
 ### Available Components
 - **Systemge-Component**
