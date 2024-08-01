@@ -99,5 +99,3 @@ Feel free to get in touch if you encounter issues, have questions, suggestions o
 
 
 
-![Diagram](https://github.com/neutralusername/Systemge/assets/39095721/0a0d9b5e-d0b0-435f-a7f4-9a01bca3ba46)
-
