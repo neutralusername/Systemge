@@ -20,8 +20,6 @@ type systemgeComponent struct {
 
 	tcpServer *Tcp.Server
 
-	responsibleTopics []string
-
 	syncRequestMutex    sync.Mutex
 	syncRequestChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
@@ -95,7 +93,6 @@ func (node *Node) startSystemgeComponent() error {
 		return Error.New("Systemge config missing", nil)
 	}
 	systemge := &systemgeComponent{
-		responsibleTopics:                 []string{},
 		application:                       node.application.(SystemgeComponent),
 		syncRequestChannels:               make(map[string]*SyncResponseChannel),
 		topicResolutions:                  make(map[string]map[string]*outgoingConnection),
@@ -103,12 +100,6 @@ func (node *Node) startSystemgeComponent() error {
 		incomingConnections:               make(map[string]*incomingConnection),
 		currentlyInOutgoingConnectionLoop: make(map[string]*bool),
 		config:                            node.newNodeConfig.SystemgeConfig,
-	}
-	for asyncTopic := range systemge.application.GetAsyncMessageHandlers() {
-		systemge.responsibleTopics = append(systemge.responsibleTopics, asyncTopic)
-	}
-	for syncTopic := range systemge.application.GetSyncMessageHandlers() {
-		systemge.responsibleTopics = append(systemge.responsibleTopics, syncTopic)
 	}
 	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
 	if err != nil {

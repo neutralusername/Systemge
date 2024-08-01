@@ -103,7 +103,18 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
-	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(connection_responsibleTopics_topic, Helpers.JsonMarshal(systemge.responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
+	responsibleTopics := []string{}
+	systemge.syncMessageHandlerMutex.Lock()
+	for topic := range systemge.application.GetSyncMessageHandlers() {
+		responsibleTopics = append(responsibleTopics, topic)
+	}
+	systemge.syncMessageHandlerMutex.Unlock()
+	systemge.asyncMessageHandlerMutex.Lock()
+	for topic := range systemge.application.GetAsyncMessageHandlers() {
+		responsibleTopics = append(responsibleTopics, topic)
+	}
+	systemge.asyncMessageHandlerMutex.Unlock()
+	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(connection_responsibleTopics_topic, Helpers.JsonMarshal(responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to send \""+connection_responsibleTopics_topic+"\" message", err)
