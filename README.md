@@ -55,7 +55,7 @@
   - Nodes function as both Server and Client.
   - Nodes are configured with Endpoints of other Nodes to establish connections.
   - During connection, the Server notifies the Client of its interested Topics.
-  - Messages are shared from Client to Server, except for Responses to synchronous Requests.
+  - Messages are transmitted from Client to Server, except for responses to synchronous requests.
   - Runtime connections to other Nodes are supported.
 
 ### Dashboard
