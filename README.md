@@ -83,6 +83,7 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
 - [Systemge-Sample-ChessServer](https://github.com/neutralusername/Systemge-Sample-ChessServer)
 - [Systemge-Sample-Oauth2](https://github.com/neutralusername/SystemgeSampleOauth2)
+- [Systemge-Sample-OneNodePing](https://github.com/neutralusername/SystemgeSampleOneNodePing)
 
 ## Contact
 
