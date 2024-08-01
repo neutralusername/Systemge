@@ -84,7 +84,8 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-PingPong](https://github.com/neutralusername/Systemge-Sample-PingPong)
 - [Systemge-Sample-Chat](https://github.com/neutralusername/Systemge-Sample-Chat)
 - [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
-- [Systemge-Sample-ChessServer](https://github.com/neutralusername/Systemge-Sample-ChessServer)
+- [Systemge-Sample-ChessServerMap](https://github.com/neutralusername/SystemgeSampleChessServerMap)
+- [Systemge-Sample-ChessServerSpawner](https://github.com/neutralusername/Systemge-Sample-ChessServerSpawner)
 - [Systemge-Sample-Oauth2](https://github.com/neutralusername/SystemgeSampleOauth2)
 - [Systemge-Sample-OneNodePing](https://github.com/neutralusername/SystemgeSampleOneNodePing)
 
