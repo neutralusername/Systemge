@@ -36,6 +36,7 @@
   - A single synchronous "Request" can receive "Responses" from multiple Nodes.
 - **Message Handlers**:
   - Systemge-Components provide "Message Handler" functions for each Topic of interest.
+  - Further Network Communication within Message Handlers is supported.
 
 ### Configuration
 - Various configurations alter Node interactions:
