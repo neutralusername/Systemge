@@ -64,16 +64,16 @@ type systemgeComponent struct {
 
 	invalidMessagesFromIncomingConnections atomic.Uint32
 
-	incomingSyncRequests             atomic.Uint32
-	incomingSyncRequestBytesReceived atomic.Uint64
-
-	incomingAsyncMessages             atomic.Uint32
-	incomingAsyncMessageBytesReceived atomic.Uint64
-
 	outgoingSyncResponses         atomic.Uint32
 	outgoingSyncSuccessResponses  atomic.Uint32
 	outgoingSyncFailureResponses  atomic.Uint32
 	outgoingSyncResponseBytesSent atomic.Uint64
+
+	incomingAsyncMessages             atomic.Uint32
+	incomingAsyncMessageBytesReceived atomic.Uint64
+
+	incomingSyncRequests             atomic.Uint32
+	incomingSyncRequestBytesReceived atomic.Uint64
 
 	// general metrics
 
