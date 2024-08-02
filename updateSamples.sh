@@ -52,6 +52,15 @@ git add go.mod go.sum
 git commit -m "Update Systemge"
 git push
 
+cd ../SystemgeSampleChessServerMapOneNode/main
+export GOPROXY=direct
+go get -u github.com/neutralusername/Systemge
+cd ..
+go mod tidy
+git add go.mod go.sum
+git commit -m "Update Systemge"
+git push
+
 cd ../SystemgeSampleDiscordAuth/main
 export GOPROXY=direct
 go get -u github.com/neutralusername/Systemge
