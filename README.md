@@ -83,6 +83,7 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-ConwaysGameOfLife](https://github.com/neutralusername/Systemge-Sample-ConwaysGameOfLife)
 - [Systemge-Sample-Chat](https://github.com/neutralusername/Systemge-Sample-Chat)
 - [Systemge-Sample-Oauth2](https://github.com/neutralusername/SystemgeSampleOauth2)
+- [Systemge-Sample-ChessServerMapOneNode](https://github.com/neutralusername/SystemgeSampleChessServerMapOneNode)
 - [Systemge-Sample-ChessServerMap](https://github.com/neutralusername/SystemgeSampleChessServerMap)
 - [Systemge-Sample-ChessServerSpawner](https://github.com/neutralusername/Systemge-Sample-ChessServerSpawner)
 - [Systemge-Sample-OneNodePing](https://github.com/neutralusername/SystemgeSampleOneNodePing)
