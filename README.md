@@ -76,7 +76,6 @@ The goal of Systemge is to automate the networking aspects of distributed comput
 go get github.com/neutralusername/Systemge
 ```
 
-
 ## Usage
 
 For information on how to use this library, check out the samples:
@@ -89,10 +88,6 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-OneNodePing](https://github.com/neutralusername/SystemgeSampleOneNodePing)
 - [Systemge-Sample-PingPong](https://github.com/neutralusername/Systemge-Sample-PingPong)
 - [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
-
-
-
-
 
 ## Contact
 
