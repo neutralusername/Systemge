@@ -17,28 +17,29 @@ type httpComponent struct {
 }
 
 func (node *Node) AddHttpRoute(path string, handler http.HandlerFunc) {
-	if node.http == nil {
-		return
+	if httpComponent := node.http; httpComponent != nil {
+		httpComponent.server.AddRoute(path, httpComponent.counterWrapper(handler))
 	}
-	handlerWrapped := func(w http.ResponseWriter, r *http.Request) {
-		node.http.requestCounter.Add(1)
-		handler(w, r)
-	}
-	node.http.server.AddRoute(path, handlerWrapped)
 }
 
 func (node *Node) RemoveHttpRoute(path string) {
-	if node.http == nil {
-		return
+	if httpComponent := node.http; httpComponent != nil {
+		httpComponent.server.RemoveRoute(path)
 	}
-	node.http.server.RemoveRoute(path)
 }
 
 func (node *Node) GetHTTPRequestCounter() uint64 {
-	if node.http == nil {
-		return 0
+	if httpComponent := node.http; httpComponent != nil {
+		return httpComponent.requestCounter.Swap(0)
 	}
-	return node.http.requestCounter.Swap(0)
+	return 0
+}
+
+func (httpComponent *httpComponent) counterWrapper(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		httpComponent.requestCounter.Add(1)
+		handler(w, r)
+	}
 }
 
 func (node *Node) startHTTPComponent() error {
@@ -49,14 +50,11 @@ func (node *Node) startHTTPComponent() error {
 		application: node.application.(HTTPComponent),
 		config:      node.newNodeConfig.HttpConfig,
 	}
-	handlers := make(map[string]http.HandlerFunc)
+	counterWrappedHandlers := make(map[string]http.HandlerFunc)
 	for path, handler := range node.http.application.GetHTTPMessageHandlers() {
-		handlers[path] = func(w http.ResponseWriter, r *http.Request) {
-			node.http.requestCounter.Add(1)
-			handler(w, r)
-		}
+		counterWrappedHandlers[path] = node.http.counterWrapper(handler)
 	}
-	node.http.server = HTTP.New(node.http.config, handlers)
+	node.http.server = HTTP.New(node.http.config, counterWrappedHandlers)
 	err := node.http.server.Start()
 	if err != nil {
 		return Error.New("failed starting http server", err)
