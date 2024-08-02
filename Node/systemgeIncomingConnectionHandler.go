@@ -40,6 +40,29 @@ func (node *Node) handleIncomingConnections() {
 			infoLogger.Log(Error.New("Handling incoming connection from "+netConn.RemoteAddr().String(), nil).Error())
 		}
 		go func() {
+			address := netConn.RemoteAddr().String()
+			ip, _, err := net.SplitHostPort(address)
+			if err != nil {
+				netConn.Close()
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to split host and port from address \""+address+"\"", err).Error())
+				}
+				return
+			}
+			if systemge.tcpServer.GetBlacklist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
+				}
+				return
+			}
+			if systemge.tcpServer.GetWhitelist().ElementCount() > 0 && !systemge.tcpServer.GetWhitelist().Contains(ip) {
+				netConn.Close()
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
+				}
+				return
+			}
 			incomingConnection, err := systemge.handleIncomingConnection(node.GetName(), netConn)
 			if err != nil {
 				systemge.incomingConnectionAttemptsFailed.Add(1)
