@@ -52,14 +52,14 @@ func (node *Node) handleIncomingConnections() {
 			if systemge.tcpServer.GetBlacklist().Contains(ip) {
 				netConn.Close()
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
+					warningLogger.Log(Error.New("Rejected incoming connection from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
 				}
 				return
 			}
 			if systemge.tcpServer.GetWhitelist().ElementCount() > 0 && !systemge.tcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Rejected connection request from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
+					warningLogger.Log(Error.New("Rejected incoming connection from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
 				}
 				return
 			}
