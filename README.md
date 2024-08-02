@@ -101,7 +101,6 @@ Feel free to get in touch if you encounter issues, have questions, suggestions o
 
 ![Screenshot from 2024-07-24 09-29-43](https://github.com/user-attachments/assets/66fe338c-33d8-4794-93c1-ff89f779793e)
 
-
 ## Notes
 This new version of Systemge is functionally a superset of previous versions that utilized "Resolvers" and "Brokers" to facilitate communication.  
 Similar functionalities may be replicated using Nodes with Systemge-Component, if desired.
