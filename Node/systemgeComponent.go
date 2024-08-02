@@ -85,6 +85,9 @@ const (
 )
 
 func (node *Node) GetSystemgeEndpointConfig() *Config.TcpEndpoint {
+	if node.newNodeConfig.SystemgeConfig == nil {
+		return nil
+	}
 	return node.newNodeConfig.SystemgeConfig.Endpoint
 }
 
