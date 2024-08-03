@@ -24,7 +24,7 @@ func NewRateLimiter(config *Config.RateLimiter) *RateLimiter {
 		refillIntervalMs: config.RefillIntervalMs,
 		active:           true,
 	}
-	if config.RefillIntervalMs > 0 {
+	if config.RefillIntervalMs > 0 && config.RefillRate > 0 {
 		go rateLimiter.refillRoutine()
 	}
 	return rateLimiter
