@@ -40,7 +40,7 @@ func (httpComponent *httpComponent) httpRequestWrapper(handler func(w http.Respo
 	return func(w http.ResponseWriter, r *http.Request) {
 		httpComponent.requestCounter.Add(1)
 		if httpComponent.config.MaxBodyBytes > 0 {
-			r.Body = http.MaxBytesReader(w, r.Body, int64(httpComponent.config.MaxBodyBytes))
+			r.Body = http.MaxBytesReader(w, r.Body, httpComponent.config.MaxBodyBytes)
 		}
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
