@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"net"
 	"net/http"
 	"sync/atomic"
 
@@ -18,7 +19,7 @@ type httpComponent struct {
 
 func (node *Node) AddHttpRoute(path string, handler http.HandlerFunc) {
 	if httpComponent := node.http; httpComponent != nil {
-		httpComponent.server.AddRoute(path, httpComponent.counterWrapper(handler))
+		httpComponent.server.AddRoute(path, httpComponent.httpRequestWrapper(handler))
 	}
 }
 
@@ -35,9 +36,29 @@ func (node *Node) GetHTTPRequestCounter() uint64 {
 	return 0
 }
 
-func (httpComponent *httpComponent) counterWrapper(handler http.HandlerFunc) http.HandlerFunc {
+func (httpComponent *httpComponent) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		httpComponent.requestCounter.Add(1)
+		if httpComponent.config.MaxBodyBytes > 0 {
+			r.Body = http.MaxBytesReader(w, r.Body, int64(httpComponent.config.MaxBodyBytes))
+		}
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			HTTP.Send403(w, r)
+			return
+		}
+		if httpComponent.server.GetBlacklist() != nil {
+			if httpComponent.server.GetBlacklist().Contains(ip) {
+				HTTP.Send403(w, r)
+				return
+			}
+		}
+		if httpComponent.server.GetWhitelist() != nil && httpComponent.server.GetWhitelist().ElementCount() > 0 {
+			if !httpComponent.server.GetWhitelist().Contains(ip) {
+				HTTP.Send403(w, r)
+				return
+			}
+		}
 		handler(w, r)
 	}
 }
@@ -50,11 +71,11 @@ func (node *Node) startHTTPComponent() error {
 		application: node.application.(HTTPComponent),
 		config:      node.newNodeConfig.HttpConfig,
 	}
-	counterWrappedHandlers := make(map[string]http.HandlerFunc)
+	wrapperHandlers := make(map[string]http.HandlerFunc)
 	for path, handler := range node.http.application.GetHTTPMessageHandlers() {
-		counterWrappedHandlers[path] = node.http.counterWrapper(handler)
+		wrapperHandlers[path] = node.http.httpRequestWrapper(handler)
 	}
-	node.http.server = HTTP.New(node.http.config, counterWrappedHandlers)
+	node.http.server = HTTP.New(node.http.config, wrapperHandlers)
 	err := node.http.server.Start()
 	if err != nil {
 		return Error.New("failed starting http server", err)

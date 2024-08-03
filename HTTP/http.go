@@ -22,6 +22,10 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 	server := &Server{
 		config: config,
 		httpServer: &http.Server{
+			MaxHeaderBytes:    int(config.MaxHeaderBytes),
+			ReadHeaderTimeout: time.Duration(config.ReadHeaderTimeoutMs) * time.Millisecond,
+			WriteTimeout:      time.Duration(config.WriteTimeoutMs) * time.Millisecond,
+
 			Addr:    ":" + Helpers.IntToString(int(config.ServerConfig.Port)),
 			Handler: mux,
 		},
@@ -29,25 +33,25 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 		whitelist: Tools.NewAccessControlList(config.ServerConfig.Whitelist),
 	}
 	for pattern, handler := range handlers {
-		mux.AddRoute(pattern, server.accessControllWrapper(handler))
+		mux.AddRoute(pattern, handler)
 	}
 	return server
 }
 
 func (server *Server) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
-	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, server.accessControllWrapper(handlerFunc))
+	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, handlerFunc)
 }
 
 func (server *Server) RemoveRoute(pattern string) {
 	server.httpServer.Handler.(*CustomMux).RemoveRoute(pattern)
 }
 
-func (server *Server) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
 func (server *Server) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
+}
+
+func (server *Server) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
 }
 
 func (server *Server) Start() error {
