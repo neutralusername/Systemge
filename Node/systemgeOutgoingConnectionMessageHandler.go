@@ -101,25 +101,3 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 		}()
 	}
 }
-
-func (systemge *systemgeComponent) handleSyncResponse(message *Message.Message) error {
-	systemge.syncRequestMutex.Lock()
-	defer systemge.syncRequestMutex.Unlock()
-	syncResponseChannel := systemge.syncRequestChannels[message.GetSyncTokenToken()]
-	if syncResponseChannel == nil {
-		return Error.New("Received sync response for unknown token", nil)
-	}
-	if syncResponseChannel.responseCount >= systemge.config.SyncResponseLimit {
-		return Error.New("Sync response limit reached", nil)
-	}
-	if message.GetTopic() == Message.TOPIC_SUCCESS {
-		systemge.incomingSyncSuccessResponses.Add(1)
-	} else {
-		systemge.incomingSyncFailureResponses.Add(1)
-	}
-	syncResponseChannel.responseCount++
-	systemge.incomingSyncResponses.Add(1)
-	delete(systemge.syncRequestChannels, message.GetSyncTokenToken())
-	go syncResponseChannel.addResponse(message)
-	return nil
-}

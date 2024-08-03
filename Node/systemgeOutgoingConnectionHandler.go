@@ -11,23 +11,6 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (node *Node) RemoveOutgoingConnection(address string) error {
-	if systemge := node.systemge; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		defer systemge.outgoingConnectionMutex.Unlock()
-		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
-			*systemge.currentlyInOutgoingConnectionLoop[address] = false
-			delete(systemge.currentlyInOutgoingConnectionLoop, address)
-		}
-		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
-			outgoingConnection.netConn.Close()
-			outgoingConnection.transient = true
-		}
-		return nil
-	}
-	return Error.New("Systemge is nil", nil)
-}
-
 func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting connection attempts to endpoint \""+endpointConfig.Address+"\"", nil).Error())
