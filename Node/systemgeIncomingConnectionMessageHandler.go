@@ -30,10 +30,24 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 				warningLogger.Log(Error.New("Failed to receive message from incoming node connection \""+incomingConnection.name+"\" likely due to connection loss", err).Error())
 			}
 			incomingConnection.netConn.Close()
+			if incomingConnection.rateLimiterBytes != nil {
+				incomingConnection.rateLimiterBytes.Stop()
+			}
+			if incomingConnection.rateLimiterMsgs != nil {
+				incomingConnection.rateLimiterMsgs.Stop()
+			}
 			systemge.removeIncomingConnection(incomingConnection)
 			return
 		}
-		go func() {
+		go func(messageBytes []byte) {
+			if incomingConnection.rateLimiterBytes != nil && !incomingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+				systemge.incomingConnectionRateLimiterBytesExceeded.Add(1)
+				return
+			}
+			if incomingConnection.rateLimiterMsgs != nil && !incomingConnection.rateLimiterMsgs.Consume(1) {
+				systemge.incomingConnectionRateLimiterMsgsExceeded.Add(1)
+				return
+			}
 			message, err := Message.Deserialize(messageBytes, incomingConnection.name)
 			if err != nil {
 				systemge.invalidMessagesFromIncomingConnections.Add(1)
@@ -92,7 +106,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 					}
 				}
 			}
-		}()
+		}(messageBytes)
 	}
 }
 

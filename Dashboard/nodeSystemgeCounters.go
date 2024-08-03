@@ -9,9 +9,13 @@ type NodeSystemgeCounters struct {
 }
 
 type NodeSystemgeInvalidMessageCounters struct {
-	Name                                   string `json:"name"`
-	InvalidMessagesFromIncomingConnections uint32 `json:"invalidMessagesFromIncomingConnections"`
-	InvalidMessagesFromOutgoingConnections uint32 `json:"invalidMessagesFromOutgoingConnections"`
+	Name                                       string `json:"name"`
+	InvalidMessagesFromIncomingConnections     uint32 `json:"invalidMessagesFromIncomingConnections"`
+	InvalidMessagesFromOutgoingConnections     uint32 `json:"invalidMessagesFromOutgoingConnections"`
+	OutgoingCOnnectionRateLimiterBytesExceeded uint32 `json:"outgoingCOnnectionRateLimiterBytesExceeded"`
+	OutgoingConnectionRateLimiterMsgsExceeded  uint32 `json:"outgoingConnectionRateLimiterMsgsExceeded"`
+	IncomingConnectionRateLimiterBytesExceeded uint32 `json:"incomingConnectionRateLimiterBytesExceeded"`
+	IncomingConnectionRateLimiterMsgsExceeded  uint32 `json:"incomingConnectionRateLimiterMsgsExceeded"`
 }
 
 type NodeSystemgeOutgoingSyncResponsesCounters struct {
@@ -82,9 +86,13 @@ func newNodeSystemgeCounters(node *Node.Node) NodeSystemgeCounters {
 
 func newNodeSystemgeInvalidMessageCounters(node *Node.Node) NodeSystemgeInvalidMessageCounters {
 	return NodeSystemgeInvalidMessageCounters{
-		Name:                                   node.GetName(),
-		InvalidMessagesFromIncomingConnections: node.RetrieveInvalidMessagesFromIncomingConnections(),
-		InvalidMessagesFromOutgoingConnections: node.RetrieveInvalidMessagesFromOutgoingConnections(),
+		Name:                                       node.GetName(),
+		InvalidMessagesFromIncomingConnections:     node.RetrieveInvalidMessagesFromIncomingConnections(),
+		InvalidMessagesFromOutgoingConnections:     node.RetrieveInvalidMessagesFromOutgoingConnections(),
+		OutgoingCOnnectionRateLimiterBytesExceeded: node.RetrieveOutgoingConnectionRateLimiterBytesExceeded(),
+		OutgoingConnectionRateLimiterMsgsExceeded:  node.RetrieveOutgoingConnectionRateLimiterMsgsExceeded(),
+		IncomingConnectionRateLimiterBytesExceeded: node.RetrieveIncomingConnectionRateLimiterBytesExceeded(),
+		IncomingConnectionRateLimiterMsgsExceeded:  node.RetrieveIncomingConnectionRateLimiterMsgsExceeded(),
 	}
 }
 

@@ -1,8 +1,6 @@
 package Node
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 
@@ -51,6 +49,24 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		}
 		websocket.incomingMessageCounter.Add(1)
 		websocket.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+		if websocketClient.rateLimiterBytes != nil && !websocketClient.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+			err := websocketClient.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
+			if err != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client", err).Error())
+				}
+			}
+			continue
+		}
+		if websocketClient.rateLimiterMsgs != nil && !websocketClient.rateLimiterMsgs.Consume(1) {
+			err := websocketClient.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
+			if err != nil {
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client", err).Error())
+				}
+			}
+			continue
+		}
 		message, err := Message.Deserialize(messageBytes, websocketClient.GetId())
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
@@ -66,16 +82,6 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 			node.ResetWatchdog(websocketClient)
 			continue
 		}
-		if time.Since(websocketClient.GetLastMessageTimestamp()) < time.Duration(websocket.config.ClientMessageCooldownMs)*time.Millisecond {
-			err := websocketClient.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
-			if err != nil {
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client", err).Error())
-				}
-			}
-			continue
-		}
-		websocketClient.SetLastMessageTimestamp(time.Now())
 		if websocket.config.HandleClientMessagesSequentially {
 			err := node.handleWebsocketMessage(websocketClient, message)
 			if err != nil {

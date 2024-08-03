@@ -8,26 +8,35 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 // outgoing connection to other nodes
 // they are used to send async and sync requests and receive sync responses for their corresponding requests
 type outgoingConnection struct {
-	netConn        net.Conn
-	endpointConfig *Config.TcpEndpoint
-	name           string
-	receiveMutex   sync.Mutex
-	sendMutex      sync.Mutex
-	topics         []string
-	transient      bool
+	netConn          net.Conn
+	endpointConfig   *Config.TcpEndpoint
+	name             string
+	receiveMutex     sync.Mutex
+	sendMutex        sync.Mutex
+	topics           []string
+	transient        bool
+	rateLimiterBytes *Tools.RateLimiter
+	rateLimiterMsgs  *Tools.RateLimiter
 }
 
-func newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) *outgoingConnection {
+func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) *outgoingConnection {
 	outgoingConnection := &outgoingConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
 		name:           name,
 		topics:         topics,
+	}
+	if systemge.config.OutgoingConnectionRateLimiterBytes != nil {
+		outgoingConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.OutgoingConnectionRateLimiterBytes)
+	}
+	if systemge.config.OutgoingConnectionRateLimiterMsgs != nil {
+		outgoingConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.OutgoingConnectionRateLimiterMsgs)
 	}
 	return outgoingConnection
 }
@@ -71,14 +80,13 @@ func (systemge *systemgeComponent) messageOutgoingConnection(outgoingConnection 
 }
 
 // sync responses are received by outgoing connections
-func (systemge *systemgeComponent) receiveFromOutgoingConnection(nodeConnection *outgoingConnection) ([]byte, error) {
-	nodeConnection.receiveMutex.Lock()
-	defer nodeConnection.receiveMutex.Unlock()
-	messageBytes, byteCountReceived, err := Tcp.Receive(nodeConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)
+func (systemge *systemgeComponent) receiveFromOutgoingConnection(outgoingConnection *outgoingConnection) ([]byte, error) {
+	outgoingConnection.receiveMutex.Lock()
+	defer outgoingConnection.receiveMutex.Unlock()
+	messageBytes, byteCountReceived, err := Tcp.Receive(outgoingConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		return nil, Error.New("Failed to receive message", err)
 	}
 	systemge.bytesReceived.Add(byteCountReceived)
-	systemge.incomingSyncResponseBytesReceived.Add(byteCountReceived)
 	return messageBytes, nil
 }

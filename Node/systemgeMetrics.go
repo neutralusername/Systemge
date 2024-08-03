@@ -1,5 +1,33 @@
 package Node
 
+func (node *Node) RetrieveOutgoingConnectionRateLimiterBytesExceeded() uint32 {
+	if systemge := node.systemge; systemge != nil {
+		return systemge.outgoingConnectionRateLimiterBytesExceeded.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) RetrieveOutgoingConnectionRateLimiterMsgsExceeded() uint32 {
+	if systemge := node.systemge; systemge != nil {
+		return systemge.outgoingConnectionRateLimiterMsgsExceeded.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) RetrieveIncomingConnectionRateLimiterBytesExceeded() uint32 {
+	if systemge := node.systemge; systemge != nil {
+		return systemge.incomingConnectionRateLimiterBytesExceeded.Swap(0)
+	}
+	return 0
+}
+
+func (node *Node) RetrieveIncomingConnectionRateLimiterMsgsExceeded() uint32 {
+	if systemge := node.systemge; systemge != nil {
+		return systemge.incomingConnectionRateLimiterMsgsExceeded.Swap(0)
+	}
+	return 0
+}
+
 func (node *Node) RetrieveOutgoingConnectionAttempts() uint32 {
 	if systemge := node.systemge; systemge != nil {
 		return systemge.outgoingConnectionAttempts.Swap(0)

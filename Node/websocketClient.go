@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
 )
@@ -23,14 +24,11 @@ type WebsocketClient struct {
 	// if the timer is nil, the websocketClient is already disconnected.
 	watchdog *time.Timer
 
+	rateLimiterBytes *Tools.RateLimiter
+	rateLimiterMsgs  *Tools.RateLimiter
+
 	expired      bool
 	disconnected bool
-
-	// the timestamp of the previous message from the websocketClient.
-	// used to enforce messageCooldown.
-	// updated automatically after every message to the current time.
-	// can be set manually to a time in the future to block messages until that time.
-	lastMessageTimestamp time.Time
 }
 
 func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn *websocket.Conn) *WebsocketClient {
@@ -38,9 +36,14 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
-
-		lastMessageTimestamp: time.Now(),
 	}
+	if websocket.config.ClientRateLimiterBytes != nil {
+		websocketClient.rateLimiterBytes = Tools.NewRateLimiter(websocket.config.ClientRateLimiterBytes)
+	}
+	if websocket.config.ClientRateLimiterMsgs != nil {
+		websocketClient.rateLimiterMsgs = Tools.NewRateLimiter(websocket.config.ClientRateLimiterMsgs)
+	}
+	websocketClient.websocketConn.SetReadLimit(int64(websocket.config.IncomingMessageByteLimit))
 
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
@@ -54,6 +57,12 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 		websocketClient.watchdog.Stop()
 		websocketClient.watchdog = nil
 		websocketConn.Close()
+		if websocketClient.rateLimiterBytes != nil {
+			websocketClient.rateLimiterBytes.Stop()
+		}
+		if websocketClient.rateLimiterMsgs != nil {
+			websocketClient.rateLimiterMsgs.Stop()
+		}
 		websocket.onDisconnectWraper(websocketClient)
 		websocket.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
@@ -94,14 +103,6 @@ func (websocketClient *WebsocketClient) Disconnect() error {
 	websocketClient.watchdogMutex.Unlock()
 	<-websocketClient.stopChannel
 	return nil
-}
-
-func (websocketClient *WebsocketClient) GetLastMessageTimestamp() time.Time {
-	return websocketClient.lastMessageTimestamp
-}
-
-func (websocketClient *WebsocketClient) SetLastMessageTimestamp(lastMessageTimestamp time.Time) {
-	websocketClient.lastMessageTimestamp = lastMessageTimestamp
 }
 
 func (websocketClient *WebsocketClient) GetIp() string {

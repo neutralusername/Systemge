@@ -33,6 +33,9 @@ type systemgeComponent struct {
 
 	// outgoing connection metrics
 
+	outgoingConnectionRateLimiterMsgsExceeded  atomic.Uint32
+	outgoingConnectionRateLimiterBytesExceeded atomic.Uint32
+
 	outgoingConnectionAttempts             atomic.Uint32
 	outgoingConnectionAttemptsSuccessful   atomic.Uint32
 	outgoingConnectionAttemptsFailed       atomic.Uint32
@@ -53,6 +56,9 @@ type systemgeComponent struct {
 	outgoingSyncRequestBytesSent atomic.Uint64
 
 	// incoming connection metrics
+
+	incomingConnectionRateLimiterMsgsExceeded  atomic.Uint32
+	incomingConnectionRateLimiterBytesExceeded atomic.Uint32
 
 	incomingConnectionAttempts             atomic.Uint32
 	incomingConnectionAttemptsSuccessful   atomic.Uint32

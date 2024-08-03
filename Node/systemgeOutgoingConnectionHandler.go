@@ -181,5 +181,5 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	}
 	topics := []string{}
 	json.Unmarshal([]byte(message.GetPayload()), &topics)
-	return newOutgoingConnection(netConn, endpointConfig, endpointName, topics), nil
+	return systemge.newOutgoingConnection(netConn, endpointConfig, endpointName, topics), nil
 }

@@ -7,21 +7,30 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 // incoming connections from other nodes
 // they are used to receive async and sync requests and send sync responses for their corresponding requests
 type incomingConnection struct {
-	netConn      net.Conn
-	name         string
-	receiveMutex sync.Mutex
-	sendMutex    sync.Mutex
+	netConn          net.Conn
+	name             string
+	receiveMutex     sync.Mutex
+	sendMutex        sync.Mutex
+	rateLimiterBytes *Tools.RateLimiter
+	rateLimiterMsgs  *Tools.RateLimiter
 }
 
 func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
 	nodeConnection := &incomingConnection{
 		netConn: netConn,
 		name:    name,
+	}
+	if systemge.config.IncomingConnectionRateLimiterBytes != nil {
+		nodeConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterBytes)
+	}
+	if systemge.config.IncomingConnectionRateLimiterMsgs != nil {
+		nodeConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterMsgs)
 	}
 	return nodeConnection
 }

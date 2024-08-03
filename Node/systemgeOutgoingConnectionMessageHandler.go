@@ -31,7 +31,12 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			outgoingConnection.netConn.Close()
-
+			if outgoingConnection.rateLimiterBytes != nil {
+				outgoingConnection.rateLimiterBytes.Stop()
+			}
+			if outgoingConnection.rateLimiterMsgs != nil {
+				outgoingConnection.rateLimiterMsgs.Stop()
+			}
 			defer systemge.outgoingConnectionMutex.Unlock()
 			systemge.outgoingConnectionMutex.Lock()
 			defer delete(systemge.outgoingConnections, outgoingConnection.endpointConfig.Address)
@@ -50,6 +55,14 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			return
 		}
 		go func() {
+			if outgoingConnection.rateLimiterBytes != nil && !outgoingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+				systemge.outgoingConnectionRateLimiterBytesExceeded.Add(1)
+				return
+			}
+			if outgoingConnection.rateLimiterMsgs != nil && !outgoingConnection.rateLimiterMsgs.Consume(1) {
+				systemge.outgoingConnectionRateLimiterMsgsExceeded.Add(1)
+				return
+			}
 			message, err := Message.Deserialize(messageBytes, outgoingConnection.name)
 			if err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
@@ -65,6 +78,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				}
 				return
 			}
+			systemge.incomingSyncResponseBytesReceived.Add(uint64(len(messageBytes)))
 			if err := systemge.validateMessage(message); err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {

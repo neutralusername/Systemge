@@ -20,6 +20,12 @@ type Systemge struct {
 	Endpoint        *TcpEndpoint   `json:"endpoint"`        // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (endpoint to other node's servers) (on startup, this node will attempt to establish connection to these endpoints)
 
+	OutgoingConnectionRateLimiterBytes *RateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
+	OutgoingConnectionRateLimiterMsgs  *RateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
+
+	IncomingConnectionRateLimiterBytes *RateLimiter `json:"incomingConnectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
+	IncomingConnectionRateLimiterMsgs  *RateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
+
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 = unlimited (messages that exceed this limit will be skipped)
 	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 = unlimited (messages that exceed this limit will be skipped)
@@ -36,6 +42,11 @@ func UnmarshalSystemge(data string) *Systemge {
 type Websocket struct {
 	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to)
 	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
+
+	ClientRateLimiterBytes *RateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
+	ClientRateLimiterMsgs  *RateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
+
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 
 	HandleClientMessagesSequentially bool   `json:"handleClientMessagesSequentially"` // default: false (if true, the server will handle messages from the same client sequentially)
 	ClientMessageCooldownMs          uint64 `json:"clientMessageCooldownMs"`          // default: 0 (if a client sends messages faster than this, the server will ignore)

@@ -15,3 +15,10 @@ func UnmarshalMailer(data string) *Mailer {
 	json.Unmarshal([]byte(data), &mailer)
 	return &mailer
 }
+
+type RateLimiter struct {
+	InitialBucketSize uint64 `json:"initialBucketSize"` // default: 0
+	MaxBucketSize     uint64 `json:"maxBucketSize"`     // default: 0
+	RefillRate        uint64 `json:"refillRate"`        // default: 0
+	RefillIntervalMs  uint64 `json:"refillIntervalMs"`  // default: 0 == no refill
+}
