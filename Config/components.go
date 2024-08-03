@@ -43,8 +43,8 @@ type Websocket struct {
 	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to)
 	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
 
-	ClientRateLimiterBytes *RateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
-	ClientRateLimiterMsgs  *RateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
+	ClientRateLimiterBytes *RateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for websocket clients)
+	ClientRateLimiterMsgs  *RateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for websocket clients)
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 
