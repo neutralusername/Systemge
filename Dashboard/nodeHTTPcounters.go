@@ -9,7 +9,7 @@ type NodeHTTPCounters struct {
 
 func newHTTPCounters(node *Node.Node) *NodeHTTPCounters {
 	return &NodeHTTPCounters{
-		HTTPRequestCount: node.GetHTTPRequestCounter(),
+		HTTPRequestCount: node.RetrieveHTTPRequestCounter(),
 		Name:             node.GetName(),
 	}
 }
