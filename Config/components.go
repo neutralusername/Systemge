@@ -67,7 +67,7 @@ type HTTP struct {
 	MaxHeaderBytes      int        `json:"maxHeaderBytes"`      // default: 0 == 1 MB
 	ReadHeaderTimeoutMs int        `json:"readHeaderTimeoutMs"` // default: 0 (no timeout)
 	WriteTimeoutMs      int        `json:"writeTimeoutMs"`      // default: 0 (no timeout)
-	MaxBodyBytes        int64      `json:"maxBodyBytes"`        // default: 0 == 1 MB
+	MaxBodyBytes        int64      `json:"maxBodyBytes"`        // default: 0 (no limit)
 }
 
 func UnmarshalHTTP(data string) *HTTP {
