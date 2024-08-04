@@ -25,6 +25,23 @@ type outgoingConnection struct {
 	rateLimiterMsgs  *Tools.RateLimiter
 }
 
+func (node *Node) RemoveOutgoingConnection(address string) error {
+	if systemge := node.systemge; systemge != nil {
+		systemge.outgoingConnectionMutex.Lock()
+		defer systemge.outgoingConnectionMutex.Unlock()
+		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
+			*systemge.currentlyInOutgoingConnectionLoop[address] = false
+			delete(systemge.currentlyInOutgoingConnectionLoop, address)
+		}
+		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
+			outgoingConnection.netConn.Close()
+			outgoingConnection.transient = true
+		}
+		return nil
+	}
+	return Error.New("Systemge is nil", nil)
+}
+
 func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) *outgoingConnection {
 	outgoingConnection := &outgoingConnection{
 		netConn:        netConn,
