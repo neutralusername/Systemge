@@ -86,16 +86,24 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				}
 				return
 			}
-			err = systemge.handleSyncResponse(message)
-			if err != nil {
+			syncResponseChannel := systemge.getResponseChannel(message.GetSyncTokenToken())
+			if syncResponseChannel == nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle sync response from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to get sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
+					return
 				}
-				return
+			}
+			if err = syncResponseChannel.addResponse(message); err != nil {
+				systemge.invalidMessagesFromOutgoingConnections.Add(1)
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to add sync response to sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+				}
 			} else {
-				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-					infoLogger.Log("Handled sync response from outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
+				if message.GetTopic() == Message.TOPIC_SUCCESS {
+					systemge.incomingSyncSuccessResponses.Add(1)
+				} else {
+					systemge.incomingSyncFailureResponses.Add(1)
 				}
 			}
 		}()

@@ -20,8 +20,8 @@ type systemgeComponent struct {
 
 	tcpServer *Tcp.Server
 
-	syncRequestMutex    sync.Mutex
-	syncRequestChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
+	syncRequestMutex     sync.Mutex
+	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
 	outgoingConnectionMutex           sync.Mutex
 	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [address -> nodeConnection]
@@ -120,7 +120,7 @@ func (node *Node) startSystemgeComponent() error {
 	}
 	systemge := &systemgeComponent{
 		application:                       node.application.(SystemgeComponent),
-		syncRequestChannels:               make(map[string]*SyncResponseChannel),
+		syncResponseChannels:              make(map[string]*SyncResponseChannel),
 		topicResolutions:                  make(map[string]map[string]*outgoingConnection),
 		outgoingConnections:               make(map[string]*outgoingConnection),
 		incomingConnections:               make(map[string]*incomingConnection),
