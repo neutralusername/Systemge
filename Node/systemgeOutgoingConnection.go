@@ -55,7 +55,7 @@ func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingC
 			topicResolutions = make(map[string]*outgoingConnection)
 			systemge.topicResolutions[topic] = topicResolutions
 		}
-		topicResolutions[outgoingConn.endpointConfig.Address] = outgoingConn
+		topicResolutions[outgoingConn.name] = outgoingConn
 	}
 	return nil
 }

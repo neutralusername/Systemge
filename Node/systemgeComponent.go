@@ -24,7 +24,7 @@ type systemgeComponent struct {
 	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
 	outgoingConnectionMutex           sync.Mutex
-	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [address -> nodeConnection]
+	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [name -> nodeConnection]
 	outgoingConnections               map[string]*outgoingConnection            // address -> nodeConnection
 	currentlyInOutgoingConnectionLoop map[string]*bool                          // address -> bool
 

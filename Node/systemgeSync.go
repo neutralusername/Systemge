@@ -20,6 +20,10 @@ type SyncResponseChannel struct {
 	receiveMutex    sync.Mutex
 }
 
+func (syncResponseChannel *SyncResponseChannel) GetRequestMessage() *Message.Message {
+	return syncResponseChannel.requestMessage
+}
+
 func (systemge *systemgeComponent) responseChannelTimeout(stopChannel chan bool, responseChannel *SyncResponseChannel) {
 	if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
 		timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
@@ -102,21 +106,8 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponse() (*Message.Mess
 	if syncResponse == nil {
 		return nil, Error.New("Channel closed", nil)
 	}
-	syncResponseChannel.receivedCount++
-	if syncResponseChannel.receivedCount == cap(syncResponseChannel.responseChannel) {
-		syncResponseChannel.mutex.Lock()
-		defer syncResponseChannel.mutex.Unlock()
-		close(syncResponseChannel.responseChannel)
-		if !syncResponseChannel.closed {
-			syncResponseChannel.closed = true
-			close(syncResponseChannel.closeChannel)
-		}
-	}
+	syncResponseChannel.handleReception()
 	return syncResponse, nil
-}
-
-func (syncResponseChannel *SyncResponseChannel) GetRequestMessage() *Message.Message {
-	return syncResponseChannel.requestMessage
 }
 
 // blocks until response is received or timeout is reached
@@ -130,18 +121,22 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs
 		if syncResponse == nil {
 			return nil, Error.New("Channel closed", nil)
 		}
-		syncResponseChannel.receivedCount++
-		if syncResponseChannel.receivedCount == cap(syncResponseChannel.responseChannel) {
-			syncResponseChannel.mutex.Lock()
-			defer syncResponseChannel.mutex.Unlock()
-			close(syncResponseChannel.responseChannel)
-			if !syncResponseChannel.closed {
-				syncResponseChannel.closed = true
-				close(syncResponseChannel.closeChannel)
-			}
-		}
+		syncResponseChannel.handleReception()
 		return syncResponse, nil
 	case <-timeout.C:
 		return nil, Error.New("Timeout", nil)
+	}
+}
+
+func (syncResponseChannel *SyncResponseChannel) handleReception() {
+	syncResponseChannel.receivedCount++
+	if syncResponseChannel.receivedCount == cap(syncResponseChannel.responseChannel) {
+		syncResponseChannel.mutex.Lock()
+		defer syncResponseChannel.mutex.Unlock()
+		close(syncResponseChannel.responseChannel)
+		if !syncResponseChannel.closed {
+			syncResponseChannel.closed = true
+			close(syncResponseChannel.closeChannel)
+		}
 	}
 }

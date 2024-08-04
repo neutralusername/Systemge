@@ -43,7 +43,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			for _, topic := range outgoingConnection.topics {
 				topicResolutions := systemge.topicResolutions[topic]
 				if topicResolutions != nil {
-					delete(topicResolutions, outgoingConnection.endpointConfig.Address)
+					delete(topicResolutions, outgoingConnection.name)
 					if len(topicResolutions) == 0 {
 						delete(systemge.topicResolutions, topic)
 					}
