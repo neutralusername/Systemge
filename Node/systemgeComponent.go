@@ -121,7 +121,10 @@ func (node *Node) startSystemgeComponent() error {
 	node.systemge = systemge
 	go node.handleIncomingConnections()
 	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
-		node.StartOutgoingConnectionLoop(endpointConfig)
+		err := node.outgoingConnectionLoop(endpointConfig)
+		if err != nil {
+			return Error.New("Failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
+		}
 	}
 	return nil
 }

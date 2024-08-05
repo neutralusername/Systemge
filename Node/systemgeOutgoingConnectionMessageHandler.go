@@ -52,7 +52,14 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			if !outgoingConnection.transient {
 				b := true
 				systemge.currentlyInOutgoingConnectionLoop[outgoingConnection.endpointConfig.Address] = &b
-				go node.StartOutgoingConnectionLoop(outgoingConnection.endpointConfig)
+				go func() {
+					err := node.outgoingConnectionLoop(outgoingConnection.endpointConfig)
+					if err != nil {
+						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
+						}
+					}
+				}()
 			}
 			return
 		}
