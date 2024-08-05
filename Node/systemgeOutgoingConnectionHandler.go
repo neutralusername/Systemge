@@ -27,7 +27,7 @@ func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint) error {
 		systemge.outgoingConnectionMutex.Unlock()
 		return node.outgoingConnectionLoop(endpointConfig)
 	}
-	return Error.New("Systemge not initialized", nil)
+	return Error.New("Systemge is nil", nil)
 }
 
 func (node *Node) DisconnectFromNode(address string) error {
