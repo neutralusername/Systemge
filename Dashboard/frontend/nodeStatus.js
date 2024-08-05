@@ -25,13 +25,29 @@ export class nodeStatus extends React.Component {
 						flexDirection: "row",
 					},
 				}, 
-				this.props.node.name != "dashboard" ? React.createElement(
+				this.props.node.name !== "dashboard" && this.props.node.status === 0 ? React.createElement(	
 					"button", {
 						onClick: () => {
-							this.props.node.status ? this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.node.name)) : this.props.WS_CONNECTION.send(this.props.constructMessage("start", this.props.node.name));
+							this.props.WS_CONNECTION.send(this.props.constructMessage("start", this.props.node.name));
 						},
 					},
-					this.props.node.status ? "stop" : "start",
+					"start",
+				): null,
+				this.props.node.name !== "dashboard" && (this.props.node.status === 1 || this.props.node.status === 3) ? React.createElement(
+					"button", {
+						onClick: () => {
+							this.props.WS_CONNECTION.send(this.props.constructMessage("reset", this.props.node.name));
+						},
+					},
+					"reset",
+				): null,
+				this.props.node.name !== "dashboard" && this.props.node.status === 2 ? React.createElement(
+					"button", {
+						onClick: () => {
+							this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.node.name));
+						},
+					},
+					"stop",
 				): null,
 				React.createElement(
 					"div", {
@@ -54,7 +70,7 @@ export class nodeStatus extends React.Component {
 						this.props.node.name,
 					),
 				),
-				this.props.node.status ? "🟢" : "🔴",
+				this.props.node.status === 0 ? "🔴" : this.props.node.status === 1 ? "🟠" : this.props.node.status === 2 ? "🟢" : "⚫"
 			),
 		)		
 	}

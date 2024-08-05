@@ -14,7 +14,7 @@ type Node struct {
 	randomizer    *Tools.Randomizer
 
 	stopChannel chan bool
-	isStarted   bool
+	status      int
 	mutex       sync.Mutex
 
 	mailer                *Tools.Mailer
@@ -36,6 +36,13 @@ type Node struct {
 	//http
 	http *httpComponent
 }
+
+const (
+	STATUS_STOPPED   = 0
+	STATUS_PENDING   = 1
+	STATUS_STARTED   = 2
+	STATUS_CORRUPTED = 3
+)
 
 func New(config *Config.NewNode, application Application) *Node {
 	if config == nil {
@@ -79,7 +86,7 @@ func New(config *Config.NewNode, application Application) *Node {
 }
 
 func (node *Node) StartBlocking() error {
-	if node.isStarted {
+	if node.status != STATUS_STOPPED {
 		return Error.New("node already started", nil)
 	}
 	err := node.Start()
@@ -90,14 +97,14 @@ func (node *Node) StartBlocking() error {
 func (node *Node) Start() error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
-	if node.IsStarted() {
+	if node.status != STATUS_STOPPED {
 		return Error.New("node already started", nil)
 	}
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
 	node.stopChannel = make(chan bool)
-	node.isStarted = true
+	node.status = STATUS_PENDING
 	if ImplementsSystemgeComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
@@ -105,7 +112,9 @@ func (node *Node) Start() error {
 		err := node.startSystemgeComponent()
 		if err != nil {
 			if err := node.stop(false); err != nil {
-				node.GetInternalWarningError().Log(Error.New("failed to stop node", err).Error())
+				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					warningLogger.Log(Error.New("failed to stop node", err).Error())
+				}
 			}
 			return Error.New("failed starting systemge component", err)
 		}
@@ -161,6 +170,7 @@ func (node *Node) Start() error {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Started", nil).Error())
 	}
+	node.status = STATUS_STARTED
 	return nil
 }
 
@@ -173,18 +183,20 @@ func (node *Node) stop(lock bool) error {
 		node.mutex.Lock()
 		defer node.mutex.Unlock()
 	}
-	if !node.IsStarted() {
+	if node.status != STATUS_STARTED {
 		return Error.New("node not started", nil)
 	}
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopping", nil).Error())
 	}
+	node.status = STATUS_PENDING
 	if ImplementsOnStopComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Executing OnStop", nil).Error())
 		}
 		err := node.GetOnStopComponent().OnStop(node)
 		if err != nil {
+			node.status = STATUS_STARTED
 			return Error.New("failed to stop node. Error in OnStop", err)
 		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -197,6 +209,7 @@ func (node *Node) stop(lock bool) error {
 		}
 		err := node.stopWebsocketComponent()
 		if err != nil {
+			node.status = STATUS_CORRUPTED
 			return Error.New("failed to stop node. Error stopping websocket server", err)
 		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -209,6 +222,7 @@ func (node *Node) stop(lock bool) error {
 		}
 		err := node.stopHTTPComponent()
 		if err != nil {
+			node.status = STATUS_CORRUPTED
 			return Error.New("failed to stop node. Error stopping http server", err)
 		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -221,22 +235,50 @@ func (node *Node) stop(lock bool) error {
 		}
 		err := node.stopSystemgeComponent()
 		if err != nil {
+			node.status = STATUS_CORRUPTED
 			return Error.New("failed to stop node. Error stopping systemge component", err)
 		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
 		}
 	}
-	node.isStarted = false
 	close(node.stopChannel)
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopped", nil).Error())
 	}
+	node.status = STATUS_STOPPED
 	return nil
 }
 
-func (node *Node) IsStarted() bool {
-	return node.isStarted
+func (node *Node) Reset() error {
+	if node.status == STATUS_STOPPED {
+		return Error.New("node not started", nil)
+	}
+	if node.systemge != nil {
+		if listener := node.systemge.tcpServer.GetListener(); listener != nil {
+			listener.Close()
+		}
+	}
+	node.systemge = nil
+	if node.websocket != nil {
+		if server := node.websocket.httpServer; server != nil {
+			server.Stop()
+		}
+	}
+	node.websocket = nil
+	if node.http != nil {
+		if server := node.http.server; server != nil {
+			server.Stop()
+		}
+	}
+	node.http = nil
+	close(node.stopChannel)
+	node.status = STATUS_STOPPED
+	return nil
+}
+
+func (node *Node) GetStatus() int {
+	return node.status
 }
 
 func (node *Node) GetName() string {

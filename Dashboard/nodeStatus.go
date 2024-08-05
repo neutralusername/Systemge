@@ -6,12 +6,12 @@ import (
 
 type NodeStatus struct {
 	Name   string `json:"name"`
-	Status bool   `json:"status"`
+	Status int    `json:"status"`
 }
 
 func newNodeStatus(node *Node.Node) NodeStatus {
 	return NodeStatus{
 		Name:   node.GetName(),
-		Status: node.IsStarted(),
+		Status: node.GetStatus(),
 	}
 }

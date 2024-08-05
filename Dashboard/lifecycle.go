@@ -149,9 +149,9 @@ func (app *App) addNodeRoutine(node *Node.Node) {
 		}
 		app.mutex.Lock()
 		app.nodes[spawnedNode.GetName()] = spawnedNode
-		app.mutex.Unlock()
 		app.registerNodeHttpHandlers(spawnedNode)
 		app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(newNodeStatus(spawnedNode))))
+		app.mutex.Unlock()
 	}
 }
 
@@ -164,11 +164,11 @@ func (app *App) removeNodeRoutine(node *Node.Node) {
 			}
 			return
 		}
-		app.unregisterNodeHttpHandlers(removedNode)
 		app.mutex.Lock()
+		app.unregisterNodeHttpHandlers(removedNode)
 		delete(app.nodes, removedNode.GetName())
-		app.mutex.Unlock()
 		app.node.WebsocketBroadcast(Message.NewAsync("removeNode", removedNode.GetName()))
+		app.mutex.Unlock()
 	}
 }
 
