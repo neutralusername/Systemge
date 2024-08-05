@@ -110,6 +110,9 @@ func (node *Node) startSystemgeComponent() error {
 		currentlyInOutgoingConnectionLoop: make(map[string]*bool),
 		config:                            node.newNodeConfig.SystemgeConfig,
 	}
+	if systemge.config.TcpBufferBytes == 0 {
+		systemge.config.TcpBufferBytes = 1024 * 4
+	}
 	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
 	if err != nil {
 		return Error.New("Failed to create tcp server", err)

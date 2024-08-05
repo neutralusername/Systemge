@@ -90,13 +90,16 @@ func (node *Node) handleIncomingConnections() {
 
 func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, netConn net.Conn) (*incomingConnection, error) {
 	systemge.incomingConnectionAttempts.Add(1)
-	messageBytes, bytesReceived, err := Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
+	incomingConnection := incomingConnection{
+		netConn: netConn,
+	}
+	messageBytes, err := incomingConnection.assembleMessage(systemge.config.TcpBufferBytes)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)
 	}
-	systemge.bytesReceived.Add(bytesReceived)
-	systemge.incomingConnectionAttemptBytesReceived.Add(bytesReceived)
+	systemge.bytesReceived.Add(uint64(len(messageBytes)))
+	systemge.incomingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
@@ -144,5 +147,7 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
-	return systemge.newIncomingConnection(netConn, incomingConnectionName), nil
+	incomingConn := systemge.newIncomingConnection(netConn, incomingConnectionName)
+	incomingConn.tcpBuffer = incomingConnection.tcpBuffer
+	return &incomingConnection, nil
 }

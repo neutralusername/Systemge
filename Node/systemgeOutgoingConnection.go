@@ -17,12 +17,32 @@ type outgoingConnection struct {
 	netConn          net.Conn
 	endpointConfig   *Config.TcpEndpoint
 	name             string
-	receiveMutex     sync.Mutex
 	sendMutex        sync.Mutex
 	topics           []string
 	transient        bool
 	rateLimiterBytes *Tools.RateLimiter
 	rateLimiterMsgs  *Tools.RateLimiter
+	tcpBuffer        []byte
+}
+
+func (outgoingConnection *outgoingConnection) assembleMessage(bufferSize uint32) ([]byte, error) {
+	completedMsgBytes := []byte{}
+	for {
+		for i, b := range outgoingConnection.tcpBuffer {
+			if b == Tcp.ENDOFMESSAGE {
+				completedMsgBytes = append(completedMsgBytes, outgoingConnection.tcpBuffer[:i]...)
+				outgoingConnection.tcpBuffer = outgoingConnection.tcpBuffer[i+1:]
+				return completedMsgBytes, nil
+			}
+		}
+		completedMsgBytes = append(completedMsgBytes, outgoingConnection.tcpBuffer...)
+		outgoingConnection.tcpBuffer = nil
+		receivedMessageBytes, _, err := Tcp.Receive(outgoingConnection.netConn, 0, bufferSize)
+		if err != nil {
+			return nil, Error.New("Failed to refill tcp buffer", err)
+		}
+		outgoingConnection.tcpBuffer = append(outgoingConnection.tcpBuffer, receivedMessageBytes...)
+	}
 }
 
 func (node *Node) RemoveOutgoingConnection(address string) error {
@@ -94,16 +114,4 @@ func (systemge *systemgeComponent) messageOutgoingConnection(outgoingConnection 
 		systemge.outgoingAsyncMessages.Add(1)
 	}
 	return nil
-}
-
-// sync responses are received by outgoing connections
-func (systemge *systemgeComponent) receiveFromOutgoingConnection(outgoingConnection *outgoingConnection) ([]byte, error) {
-	outgoingConnection.receiveMutex.Lock()
-	defer outgoingConnection.receiveMutex.Unlock()
-	messageBytes, byteCountReceived, err := Tcp.Receive(outgoingConnection.netConn, 0, systemge.config.IncomingMessageByteLimit)
-	if err != nil {
-		return nil, Error.New("Failed to receive message", err)
-	}
-	systemge.bytesReceived.Add(byteCountReceived)
-	return messageBytes, nil
 }

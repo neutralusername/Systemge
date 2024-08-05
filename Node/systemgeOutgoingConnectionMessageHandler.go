@@ -25,7 +25,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			}
 			return
 		}
-		messageBytes, err := systemge.receiveFromOutgoingConnection(outgoingConnection)
+		messageBytes, err := outgoingConnection.assembleMessage(systemge.config.TcpBufferBytes)
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
@@ -54,7 +54,8 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			}
 			return
 		}
-		go func() {
+		go func(messageBytes []byte) {
+			systemge.bytesReceived.Add(uint64(len(messageBytes)))
 			if outgoingConnection.rateLimiterBytes != nil && !outgoingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 				systemge.outgoingConnectionRateLimiterBytesExceeded.Add(1)
 				return
@@ -106,6 +107,6 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 					systemge.incomingSyncFailureResponses.Add(1)
 				}
 			}
-		}()
+		}(messageBytes)
 	}
 }

@@ -113,13 +113,16 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.outgoingConnectionAttemptBytesSent.Add(bytesSent)
-	messageBytes, byteCountReceived, err := Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
+	outgoingConnection := outgoingConnection{
+		netConn: netConn,
+	}
+	messageBytes, err := outgoingConnection.assembleMessage(systemge.config.TcpBufferBytes)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)
 	}
-	systemge.bytesReceived.Add(byteCountReceived)
-	systemge.outgoingConnectionAttemptBytesReceived.Add(byteCountReceived)
+	systemge.bytesReceived.Add(uint64(len(messageBytes)))
+	systemge.outgoingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
@@ -142,13 +145,13 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 		netConn.Close()
 		return nil, Error.New("Received node name \""+endpointName+"\" exceeds maximum size of "+Helpers.Uint64ToString(systemge.config.MaxNodeNameSize), nil)
 	}
-	messageBytes, byteCountReceived, err = Tcp.Receive(netConn, systemge.config.TcpTimeoutMs, systemge.config.IncomingMessageByteLimit)
+	messageBytes, err = outgoingConnection.assembleMessage(systemge.config.TcpBufferBytes)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_responsibleTopics_topic+"\" message", err)
 	}
-	systemge.bytesReceived.Add(byteCountReceived)
-	systemge.outgoingConnectionAttemptBytesReceived.Add(byteCountReceived)
+	systemge.bytesReceived.Add(uint64(len(messageBytes)))
+	systemge.outgoingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err = Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
@@ -164,5 +167,7 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	}
 	topics := []string{}
 	json.Unmarshal([]byte(message.GetPayload()), &topics)
-	return systemge.newOutgoingConnection(netConn, endpointConfig, endpointName, topics), nil
+	outgoingConn := systemge.newOutgoingConnection(netConn, endpointConfig, endpointName, topics)
+	outgoingConn.tcpBuffer = outgoingConnection.tcpBuffer
+	return outgoingConn, nil
 }

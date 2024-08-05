@@ -24,7 +24,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			}
 			return
 		}
-		messageBytes, err := systemge.receiveFromIncomingConnection(incomingConnection)
+		messageBytes, err := incomingConnection.assembleMessage(systemge.config.TcpBufferBytes)
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from incoming node connection \""+incomingConnection.name+"\" likely due to connection loss", err).Error())
@@ -40,6 +40,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			return
 		}
 		go func(messageBytes []byte) {
+			systemge.bytesReceived.Add(uint64(len(messageBytes)))
 			if incomingConnection.rateLimiterBytes != nil && !incomingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 				systemge.incomingConnectionRateLimiterBytesExceeded.Add(1)
 				return
