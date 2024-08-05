@@ -60,11 +60,12 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 		systemge_.outgoingConnectionMutex.Unlock()
 		return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" already exists", nil)
 	}
-	loopOngoing := true
+	b := true
+	loopOngoing := &b
 	if systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
-		loopOngoing = *systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address]
+		loopOngoing = systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address]
 	} else {
-		systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &loopOngoing
+		systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = loopOngoing
 	}
 	defer func() {
 		systemge_.outgoingConnectionMutex.Lock()
@@ -80,7 +81,7 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 		if systemge != systemge_ {
 			return Error.New("Systemge has changed likely due to node restart", nil)
 		}
-		if !loopOngoing {
+		if !*loopOngoing {
 			return Error.New("Loop was cancelled", nil)
 		}
 		if maxConnectionAttempts := systemge.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && connectionAttempts >= maxConnectionAttempts {
