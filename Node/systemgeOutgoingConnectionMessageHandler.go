@@ -55,8 +55,8 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				go func() {
 					err := node.outgoingConnectionLoop(outgoingConnection.endpointConfig)
 					if err != nil {
-						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
-							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
+						if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+							warningLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
 						}
 					}
 				}()
