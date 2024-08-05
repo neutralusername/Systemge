@@ -24,21 +24,25 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 		return
 	}
 	systemge_.outgoingConnectionMutex.Lock()
-	if systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
+	if systemge_.outgoingConnections[endpointConfig.Address] != nil {
 		if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-			warningLogger.Log(Error.New("Aborting connection attempts to endpoint \""+endpointConfig.Address+"\" because loop is already ongoing", nil).Error())
+			warningLogger.Log(Error.New("Aborting connection attempts to endpoint \""+endpointConfig.Address+"\" because connection already exists", nil).Error())
 		}
 		systemge_.outgoingConnectionMutex.Unlock()
 		return
 	}
 	loopOngoing := true
-	systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &loopOngoing
-	systemge_.outgoingConnectionMutex.Unlock()
+	if systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
+		loopOngoing = *systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address]
+	} else {
+		systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &loopOngoing
+	}
 	defer func() {
 		systemge_.outgoingConnectionMutex.Lock()
 		delete(systemge_.currentlyInOutgoingConnectionLoop, endpointConfig.Address)
 		systemge_.outgoingConnectionMutex.Unlock()
 	}()
+	systemge_.outgoingConnectionMutex.Unlock()
 	for {
 		systemge := node.systemge
 		if systemge == nil {
@@ -75,7 +79,7 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 		}
-		if nodeConnection, err := systemge.connectionAttempt(node.GetName(), endpointConfig); err != nil {
+		if outgoingConnection, err := systemge.connectionAttempt(node.GetName(), endpointConfig); err != nil {
 			systemge.outgoingConnectionAttemptsFailed.Add(1)
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", err).Error())
@@ -83,8 +87,9 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 			connectionAttempts++
 			time.Sleep(time.Duration(systemge.config.ConnectionAttemptDelayMs) * time.Millisecond)
 		} else {
-			err := systemge.addOutgoingConnection(nodeConnection)
+			err := systemge.addOutgoingConnection(outgoingConnection)
 			if err != nil {
+				outgoingConnection.netConn.Close()
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to add outgoing connection", err).Error())
 				}
@@ -92,9 +97,9 @@ func (node *Node) StartOutgoingConnectionLoop(endpointConfig *Config.TcpEndpoint
 			}
 			systemge.outgoingConnectionAttemptsSuccessful.Add(1)
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\" with name \""+nodeConnection.name+"\"", nil).Error())
+				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\" with name \""+outgoingConnection.name+"\"", nil).Error())
 			}
-			go node.handleOutgoingConnectionMessages(nodeConnection)
+			go node.handleOutgoingConnectionMessages(outgoingConnection)
 			return
 		}
 	}

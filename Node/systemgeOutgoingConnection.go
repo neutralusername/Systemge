@@ -57,7 +57,6 @@ func (node *Node) RemoveOutgoingConnection(address string) error {
 		defer systemge.outgoingConnectionMutex.Unlock()
 		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
 			*systemge.currentlyInOutgoingConnectionLoop[address] = false
-			delete(systemge.currentlyInOutgoingConnectionLoop, address)
 		}
 		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
 			outgoingConnection.netConn.Close()
@@ -88,8 +87,10 @@ func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingC
 	systemge.outgoingConnectionMutex.Lock()
 	defer systemge.outgoingConnectionMutex.Unlock()
 	if systemge.outgoingConnections[outgoingConn.endpointConfig.Address] != nil {
-		outgoingConn.netConn.Close()
 		return Error.New("Node connection already exists", nil)
+	}
+	if !*systemge.currentlyInOutgoingConnectionLoop[outgoingConn.endpointConfig.Address] {
+		return Error.New("Connection loop cancelled", nil)
 	}
 	systemge.outgoingConnections[outgoingConn.endpointConfig.Address] = outgoingConn
 	for _, topic := range outgoingConn.topics {

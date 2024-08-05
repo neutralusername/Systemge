@@ -37,9 +37,9 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			if outgoingConnection.rateLimiterMsgs != nil {
 				outgoingConnection.rateLimiterMsgs.Stop()
 			}
-			defer systemge.outgoingConnectionMutex.Unlock()
 			systemge.outgoingConnectionMutex.Lock()
-			defer delete(systemge.outgoingConnections, outgoingConnection.endpointConfig.Address)
+			defer systemge.outgoingConnectionMutex.Unlock()
+			delete(systemge.outgoingConnections, outgoingConnection.endpointConfig.Address)
 			for _, topic := range outgoingConnection.topics {
 				topicResolutions := systemge.topicResolutions[topic]
 				if topicResolutions != nil {
@@ -50,6 +50,8 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				}
 			}
 			if !outgoingConnection.transient {
+				b := true
+				systemge.currentlyInOutgoingConnectionLoop[outgoingConnection.endpointConfig.Address] = &b
 				go node.StartOutgoingConnectionLoop(outgoingConnection.endpointConfig)
 			}
 			return

@@ -20,14 +20,13 @@ type Systemge struct {
 	Endpoint        *TcpEndpoint   `json:"endpoint"`        // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (endpoint to other node's servers) (on startup, this node will attempt to establish connection to these endpoints)
 
-	TcpBufferBytes uint32 `json:"tcpBufferBytes"` // default: 0 == default (4KB)
-
 	OutgoingConnectionRateLimiterBytes *RateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
 	OutgoingConnectionRateLimiterMsgs  *RateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
 
 	IncomingConnectionRateLimiterBytes *RateLimiter `json:"incomingConnectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
 	IncomingConnectionRateLimiterMsgs  *RateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
 
+	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 = unlimited (messages that exceed this limit will be skipped)
 	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 = unlimited (messages that exceed this limit will be skipped)
