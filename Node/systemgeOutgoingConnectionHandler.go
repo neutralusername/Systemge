@@ -60,12 +60,10 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 		systemge_.outgoingConnectionMutex.Unlock()
 		return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" already exists", nil)
 	}
-	b := true
-	loopOngoing := &b
-	if systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
-		loopOngoing = systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address]
-	} else {
-		systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = loopOngoing
+	loopOngoing := systemge_.currentlyInOutgoingConnectionLoop[endpointConfig.Address]
+	if loopOngoing == nil {
+		systemge_.outgoingConnectionMutex.Unlock()
+		return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" has been established incorrectly", nil)
 	}
 	defer func() {
 		systemge_.outgoingConnectionMutex.Lock()
