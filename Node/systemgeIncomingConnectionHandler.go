@@ -149,5 +149,5 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
 	incomingConn := systemge.newIncomingConnection(netConn, incomingConnectionName)
 	incomingConn.tcpBuffer = incomingConnection.tcpBuffer
-	return &incomingConnection, nil
+	return incomingConn, nil
 }
