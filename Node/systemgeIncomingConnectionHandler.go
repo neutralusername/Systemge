@@ -93,7 +93,7 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	incomingConnection := incomingConnection{
 		netConn: netConn,
 	}
-	messageBytes, err := incomingConnection.assembleMessage(systemge.config.TcpBufferBytes)
+	messageBytes, err := incomingConnection.receiveMessage(systemge.config.TcpBufferBytes)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)

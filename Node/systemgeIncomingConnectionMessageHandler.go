@@ -24,7 +24,7 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 			}
 			return
 		}
-		messageBytes, err := incomingConnection.assembleMessage(systemge.config.TcpBufferBytes)
+		messageBytes, err := incomingConnection.receiveMessage(systemge.config.TcpBufferBytes)
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from incoming node connection \""+incomingConnection.name+"\" likely due to connection loss", err).Error())

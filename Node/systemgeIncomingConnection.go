@@ -21,7 +21,7 @@ type incomingConnection struct {
 	tcpBuffer        []byte
 }
 
-func (incomingConnection *incomingConnection) assembleMessage(bufferSize uint32) ([]byte, error) {
+func (incomingConnection *incomingConnection) receiveMessage(bufferSize uint32) ([]byte, error) {
 	completedMsgBytes := []byte{}
 	for {
 		for i, b := range incomingConnection.tcpBuffer {
