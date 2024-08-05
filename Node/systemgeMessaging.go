@@ -40,11 +40,11 @@ func (systemge *systemgeComponent) createOutgoingMessageWaitgroup(errorLogger *T
 				err := systemge.messageOutgoingConnection(outgoingConnection, message)
 				if err != nil {
 					if errorLogger != nil {
-						errorLogger.Log(Error.New("Failed to send sync request with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+						errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 					}
 				} else {
 					if infoLogger != nil {
-						infoLogger.Log("Sent sync request with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
+						infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 					}
 				}
 			})
@@ -56,17 +56,17 @@ func (systemge *systemgeComponent) createOutgoingMessageWaitgroup(errorLogger *T
 					err := systemge.messageOutgoingConnection(outgoingConnection, message)
 					if err != nil {
 						if errorLogger != nil {
-							errorLogger.Log(Error.New("Failed to send sync request with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+							errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 						}
 					} else {
 						if infoLogger != nil {
-							infoLogger.Log("Sent sync request with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
+							infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 						}
 					}
 				})
 			} else {
 				if errorLogger != nil {
-					errorLogger.Log(Error.New("Failed to send sync request with topic \""+message.GetTopic()+"\". No outgoing node connection with name \""+receiverName+"\" found", nil).Error())
+					errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No outgoing node connection with name \""+receiverName+"\" found", nil).Error())
 				}
 			}
 		}
