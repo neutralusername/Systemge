@@ -25,13 +25,19 @@ type outgoingConnection struct {
 	tcpBuffer        []byte
 }
 
-func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32) ([]byte, error) {
+func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
 	completedMsgBytes := []byte{}
 	for {
+		if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
+			return nil, Error.New("Incoming message byte limit exceeded", nil)
+		}
 		for i, b := range outgoingConnection.tcpBuffer {
 			if b == Tcp.ENDOFMESSAGE {
 				completedMsgBytes = append(completedMsgBytes, outgoingConnection.tcpBuffer[:i]...)
 				outgoingConnection.tcpBuffer = outgoingConnection.tcpBuffer[i+1:]
+				if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
+					return nil, Error.New("Incoming message byte limit exceeded", nil)
+				}
 				return completedMsgBytes, nil
 			}
 		}

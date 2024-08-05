@@ -116,7 +116,7 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	outgoingConnection := outgoingConnection{
 		netConn: netConn,
 	}
-	messageBytes, err := outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes)
+	messageBytes, err := outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)
@@ -145,7 +145,7 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 		netConn.Close()
 		return nil, Error.New("Received node name \""+endpointName+"\" exceeds maximum size of "+Helpers.Uint64ToString(systemge.config.MaxNodeNameSize), nil)
 	}
-	messageBytes, err = outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes)
+	messageBytes, err = outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+connection_responsibleTopics_topic+"\" message", err)
