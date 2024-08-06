@@ -18,6 +18,8 @@ func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) e
 	}
 	return Error.New("systemge component not initialized", nil)
 }
+
+// Alternative call for AsyncMessage with a config struct instead of multiple arguments
 func (node *Node) AsyncMessage_(config *Config.Message) error {
 	return node.AsyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
@@ -35,6 +37,8 @@ func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*
 	}
 	return nil, Error.New("systemge not initialized", nil)
 }
+
+// Alternative call for SyncMessage with a config struct instead of multiple arguments
 func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, error) {
 	return node.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
