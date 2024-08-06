@@ -8,7 +8,7 @@ import (
 type CustomMux struct {
 	mux    *http.ServeMux
 	routes map[string]http.Handler
-	mutex  sync.Mutex
+	mutex  sync.RWMutex
 }
 
 func newCustomMux() *CustomMux {
@@ -41,5 +41,8 @@ func (c *CustomMux) RemoveRoute(pattern string) {
 }
 
 func (c *CustomMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	c.mux.ServeHTTP(w, r)
 }
