@@ -14,14 +14,15 @@ import (
 
 type websocketComponent struct {
 	config              *Config.Websocket
-	application         WebsocketComponent
 	mutex               sync.Mutex
 	httpServer          *HTTP.Server
 	connChannel         chan *websocket.Conn
 	clients             map[string]*WebsocketClient            // websocketId -> websocketClient
 	groups              map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
 	clientGroups        map[string]map[string]bool             // websocketId -> map[groupId]bool
-	onDisconnectWraper  func(websocketClient *WebsocketClient)
+	onDisconnectHandler func(websocketClient *WebsocketClient)
+	onConnectHandler    func(websocketClient *WebsocketClient)
+	messageHandlers     map[string]WebsocketMessageHandler
 	messageHandlerMutex sync.Mutex
 
 	incomingMessageCounter atomic.Uint32
@@ -32,12 +33,12 @@ type websocketComponent struct {
 
 func (node *Node) startWebsocketComponent() error {
 	websocketComponent := &websocketComponent{
-		application:  node.application.(WebsocketComponent),
-		connChannel:  make(chan *websocket.Conn),
-		clients:      make(map[string]*WebsocketClient),
-		groups:       make(map[string]map[string]*WebsocketClient),
-		clientGroups: make(map[string]map[string]bool),
-		config:       node.newNodeConfig.WebsocketConfig,
+		connChannel:     make(chan *websocket.Conn),
+		clients:         make(map[string]*WebsocketClient),
+		groups:          make(map[string]map[string]*WebsocketClient),
+		clientGroups:    make(map[string]map[string]bool),
+		messageHandlers: map[string]WebsocketMessageHandler{},
+		config:          node.newNodeConfig.WebsocketConfig,
 	}
 	if websocketComponent.config.Upgrader == nil {
 		websocketComponent.config.Upgrader = &websocket.Upgrader{
@@ -54,9 +55,13 @@ func (node *Node) startWebsocketComponent() error {
 	}, map[string]http.HandlerFunc{
 		node.websocket.config.Pattern: websocketComponent.websocketUpgrade(node.GetInternalWarningError()),
 	})
-	node.websocket.onDisconnectWraper = func(websocketClient *WebsocketClient) {
-		websocketComponent.application.OnDisconnectHandler(node, websocketClient)
+	node.websocket.onDisconnectHandler = func(websocketClient *WebsocketClient) {
+		node.application.(WebsocketComponent).OnDisconnectHandler(node, websocketClient)
 	}
+	node.websocket.onConnectHandler = func(websocketClient *WebsocketClient) {
+		node.application.(WebsocketComponent).OnConnectHandler(node, websocketClient)
+	}
+	node.websocket.messageHandlers = node.application.(WebsocketComponent).GetWebsocketMessageHandlers()
 	err := node.websocket.httpServer.Start()
 	if err != nil {
 		return Error.New("failed starting websocket handshake handler", err)

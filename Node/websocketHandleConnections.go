@@ -22,7 +22,7 @@ func (node *Node) handleWebsocketConn(websocketConn *websocket.Conn) {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("websocket client connected with id \""+websocketClient.GetId()+"\" and ip \""+websocketClient.GetIp()+"\"", nil).Error())
 	}
-	node.websocket.application.OnConnectHandler(node, websocketClient)
+	node.websocket.onConnectHandler(websocketClient)
 	node.handleMessages(websocketClient)
 	websocketClient.Disconnect()
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -112,7 +112,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 
 func (node *Node) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
 	node.websocket.messageHandlerMutex.Lock()
-	handler := node.websocket.application.GetWebsocketMessageHandlers()[message.GetTopic()]
+	handler := node.websocket.messageHandlers[message.GetTopic()]
 	node.websocket.messageHandlerMutex.Unlock()
 	if handler == nil {
 		err := websocketClient.Send(Message.NewAsync("error", Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())

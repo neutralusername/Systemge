@@ -11,18 +11,16 @@ import (
 
 type httpComponent struct {
 	config         *Config.HTTP
-	application    HTTPComponent
 	server         *HTTP.Server
 	requestCounter atomic.Uint64
 }
 
 func (node *Node) startHTTPComponent() error {
 	node.http = &httpComponent{
-		application: node.application.(HTTPComponent),
-		config:      node.newNodeConfig.HttpConfig,
+		config: node.newNodeConfig.HttpConfig,
 	}
 	wrapperHandlers := make(map[string]http.HandlerFunc)
-	for path, handler := range node.http.application.GetHTTPMessageHandlers() {
+	for path, handler := range node.application.(HTTPComponent).GetHTTPMessageHandlers() {
 		wrapperHandlers[path] = node.http.httpRequestWrapper(handler)
 	}
 	node.http.server = HTTP.New(node.http.config, wrapperHandlers)

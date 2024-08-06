@@ -63,7 +63,7 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 		if websocketClient.rateLimiterMsgs != nil {
 			websocketClient.rateLimiterMsgs.Stop()
 		}
-		websocket.onDisconnectWraper(websocketClient)
+		websocket.onDisconnectHandler(websocketClient)
 		websocket.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
 	})
