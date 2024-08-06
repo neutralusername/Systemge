@@ -17,16 +17,15 @@ const (
 )
 
 type systemgeComponent struct {
-	handleSequentiallyMutex  sync.Mutex
-	asyncMessageHandlerMutex sync.Mutex
-	syncMessageHandlerMutex  sync.Mutex
-
 	config *Config.Systemge
 
 	tcpServer *Tcp.Server
 
-	asyncMessageHandlers map[string]AsyncMessageHandler
-	syncMessageHandlers  map[string]SyncMessageHandler
+	asyncMessageHandlerMutex sync.Mutex
+	asyncMessageHandlers     map[string]AsyncMessageHandler
+
+	syncMessageHandlerMutex sync.Mutex
+	syncMessageHandlers     map[string]SyncMessageHandler
 
 	syncRequestMutex     sync.Mutex
 	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
@@ -38,6 +37,7 @@ type systemgeComponent struct {
 
 	incomingConnectionsMutex sync.Mutex
 	incomingConnections      map[string]*incomingConnection // name -> nodeConnection
+	handleSequentiallyMutex  sync.Mutex
 
 	// outgoing connection metrics
 

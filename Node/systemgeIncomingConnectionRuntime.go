@@ -5,6 +5,8 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
+// adds a sync topic and its handler to systemge
+// propagates the new topic of interest to all incoming connections
 func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 	if systemge := node.systemge; systemge != nil {
 
@@ -32,6 +34,8 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 	return Error.New("Systemge is nil", nil)
 }
 
+// adds an async topic and its handler to systemge
+// propagates the new topic of interest to all incoming connections
 func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error {
 	if systemge := node.systemge; systemge != nil {
 
@@ -59,6 +63,8 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 	return Error.New("Systemge is nil", nil)
 }
 
+// removes a sync topic and its handler from systemge
+// propagates the removal of the topic of interest to all incoming connections
 func (node *Node) RemoveSyncTopic(topic string) error {
 	if systemge := node.systemge; systemge != nil {
 
@@ -86,6 +92,8 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 	return Error.New("Systemge is nil", nil)
 }
 
+// removes an async topic and its handler from systemge
+// propagates the removal of the topic of interest to all incoming connections
 func (node *Node) RemoveAsyncTopic(topic string) error {
 	if systemge := node.systemge; systemge != nil {
 
