@@ -31,7 +31,7 @@ type websocketComponent struct {
 }
 
 func (node *Node) startWebsocketComponent() error {
-	websocket := &websocketComponent{
+	websocketComponent := &websocketComponent{
 		application:  node.application.(WebsocketComponent),
 		connChannel:  make(chan *websocket.Conn),
 		clients:      make(map[string]*WebsocketClient),
@@ -39,14 +39,23 @@ func (node *Node) startWebsocketComponent() error {
 		clientGroups: make(map[string]map[string]bool),
 		config:       node.newNodeConfig.WebsocketConfig,
 	}
-	node.websocket = websocket
+	if websocketComponent.config.Upgrader == nil {
+		websocketComponent.config.Upgrader = &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+	}
+	node.websocket = websocketComponent
 	node.websocket.httpServer = HTTP.New(&Config.HTTP{
 		ServerConfig: node.websocket.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
-		node.websocket.config.Pattern: websocket.websocketUpgrade(node.GetInternalWarningError()),
+		node.websocket.config.Pattern: websocketComponent.websocketUpgrade(node.GetInternalWarningError()),
 	})
 	node.websocket.onDisconnectWraper = func(websocketClient *WebsocketClient) {
-		websocket.application.OnDisconnectHandler(node, websocketClient)
+		websocketComponent.application.OnDisconnectHandler(node, websocketClient)
 	}
 	err := node.websocket.httpServer.Start()
 	if err != nil {

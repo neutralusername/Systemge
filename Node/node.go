@@ -80,7 +80,15 @@ func New(config *Config.NewNode, application Application) *Node {
 	if implementsSystemgeComponent && config.SystemgeConfig == nil {
 		panic("Application implements SystemgeComponent but SystemgeConfig is missing")
 	}
-
+	if implementsSystemgeComponent && config.SystemgeConfig.ServerConfig == nil {
+		panic("Application implements SystemgeComponent but SystemgeConfig.ServerConfig is missing")
+	}
+	if implementsWebsocketComponent && config.WebsocketConfig.ServerConfig == nil {
+		panic("Application implements WebsocketComponent but WebsocketConfig.ServerConfig is missing")
+	}
+	if implementsHTTPComponent && config.HttpConfig.ServerConfig == nil {
+		panic("Application implements HTTPComponent but HttpConfig.ServerConfig is missing")
+	}
 	node := &Node{
 		newNodeConfig: config,
 		config:        config.NodeConfig,
