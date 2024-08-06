@@ -12,6 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Node"
 	"github.com/neutralusername/Systemge/Spawner"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (app *App) registerNodeHttpHandlers(node *Node.Node) {
@@ -105,7 +106,7 @@ func (app *App) OnStart(node *Node.Node) error {
 	if app.config.NodeSpawnerCounterIntervalMs > 0 {
 		go app.nodeSpawnerCountersRoutine()
 	}
-	app.mutex.Lock()
+	app.mutex.RLock()
 	for _, node := range app.nodes {
 		if Spawner.ImplementsSpawner(node.GetApplication()) {
 			go app.addNodeRoutine(node)
@@ -114,10 +115,25 @@ func (app *App) OnStart(node *Node.Node) error {
 	}
 	if app.config.AutoStart {
 		for _, node := range app.nodes {
-			go node.Start()
+			go func() {
+				err := node.Start()
+				if err != nil {
+					if errorLogger := app.node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log("Error starting node \"" + node.GetName() + "\": " + err.Error())
+					}
+					if mailer := app.node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", "Error starting node \""+node.GetName()+"\": "+err.Error()))
+						if err != nil {
+							if errorLogger := app.node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log("Error sending mail: " + err.Error())
+							}
+						}
+					}
+				}
+			}()
 		}
 	}
-	app.mutex.Unlock()
+	app.mutex.RUnlock()
 	return nil
 }
 
@@ -174,7 +190,7 @@ func (app *App) removeNodeRoutine(node *Node.Node) {
 
 func (app *App) nodeSpawnerCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Spawner.ImplementsSpawner(node.GetApplication()) {
 				spawnerCountersJson := Helpers.JsonMarshal(newNodeSpawnerCounters(node))
@@ -184,14 +200,14 @@ func (app *App) nodeSpawnerCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSpawnerCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeHTTPCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsHTTPComponent(node.GetApplication()) {
 				httpCountersJson := Helpers.JsonMarshal(newHTTPCounters(node))
@@ -201,14 +217,14 @@ func (app *App) nodeHTTPCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeHTTPCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeSystemgeCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				systemgeCountersJson := Helpers.JsonMarshal(newNodeSystemgeCounters(node))
@@ -218,14 +234,14 @@ func (app *App) nodeSystemgeCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeIncomingSyncResponseCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				incomingSyncResponseCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingSyncResponseCounters(node))
@@ -235,14 +251,14 @@ func (app *App) newNodeSystemgeIncomingSyncResponseCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeIncomingSyncRequestCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				incomingSyncRequestCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingSyncRequestCounters(node))
@@ -252,14 +268,14 @@ func (app *App) newNodeSystemgeIncomingSyncRequestCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeIncomingAsyncMessageCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				incomingAsyncMessageCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingAsyncMessageCounters(node))
@@ -269,14 +285,14 @@ func (app *App) newNodeSystemgeIncomingAsyncMessageCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeInvalidMessageCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				invalidMessageCountersJson := Helpers.JsonMarshal(newNodeSystemgeInvalidMessageCounters(node))
@@ -286,14 +302,14 @@ func (app *App) newNodeSystemgeInvalidMessageCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeOutgoingSyncRequestCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				outgoingSyncRequestCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingSyncRequestCounters(node))
@@ -303,14 +319,14 @@ func (app *App) newNodeSystemgeOutgoingSyncRequestCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeOutgoingAsyncMessageCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				outgoingAsyncMessageCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingAsyncMessageCounters(node))
@@ -320,14 +336,14 @@ func (app *App) newNodeSystemgeOutgoingAsyncMessageCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeIncomingConnectionAttemptsCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				incomingConnectionAttemptsCountersJson := Helpers.JsonMarshal(newNodeSystemgeIncomingConnectionAttemptsCounters(node))
@@ -337,14 +353,14 @@ func (app *App) newNodeSystemgeIncomingConnectionAttemptsCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeOutgoingConnectionAttemptCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				outgoingConnectionAttemptCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingConnectionAttemptCounters(node))
@@ -354,14 +370,14 @@ func (app *App) newNodeSystemgeOutgoingConnectionAttemptCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) newNodeSystemgeOutgoingSyncResponsesCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsSystemgeComponent(node.GetApplication()) {
 				outgoingSyncResponsesCountersJson := Helpers.JsonMarshal(newNodeSystemgeOutgoingSyncResponsesCounters(node))
@@ -371,14 +387,14 @@ func (app *App) newNodeSystemgeOutgoingSyncResponsesCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeSystemgeCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeWebsocketCountersRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			if Node.ImplementsWebsocketComponent(node.GetApplication()) {
 				messageCounterJson := Helpers.JsonMarshal(newNodeWebsocketCounters(node))
@@ -388,14 +404,14 @@ func (app *App) nodeWebsocketCountersRoutine() {
 				}
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeWebsocketCounterIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *App) nodeStatusRoutine() {
 	for app.started {
-		app.mutex.Lock()
+		app.mutex.RLock()
 		for _, node := range app.nodes {
 			statusUpdateJson := Helpers.JsonMarshal(newNodeStatus(node))
 			go app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", statusUpdateJson))
@@ -403,7 +419,7 @@ func (app *App) nodeStatusRoutine() {
 				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
 			}
 		}
-		app.mutex.Unlock()
+		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.NodeStatusIntervalMs) * time.Millisecond)
 	}
 }

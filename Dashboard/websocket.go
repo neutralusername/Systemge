@@ -12,9 +12,9 @@ import (
 func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
 	return map[string]Node.WebsocketMessageHandler{
 		"start": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			app.mutex.Lock()
+			app.mutex.RLock()
 			n := app.nodes[message.GetPayload()]
-			app.mutex.Unlock()
+			app.mutex.RUnlock()
 			if n == nil {
 				return Error.New("Node not found", nil)
 			}
@@ -26,9 +26,9 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			return nil
 		},
 		"stop": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			app.mutex.Lock()
+			app.mutex.RLock()
 			n := app.nodes[message.GetPayload()]
-			app.mutex.Unlock()
+			app.mutex.RUnlock()
 			if n == nil {
 				return Error.New("Node not found", nil)
 			}
@@ -40,9 +40,9 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			return nil
 		},
 		"reset": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			app.mutex.Lock()
+			app.mutex.RLock()
 			n := app.nodes[message.GetPayload()]
-			app.mutex.Unlock()
+			app.mutex.RUnlock()
 			if n == nil {
 				return Error.New("Node not found", nil)
 			}
@@ -77,8 +77,8 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 }
 
 func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
-	app.mutex.Lock()
-	defer app.mutex.Unlock()
+	app.mutex.RLock()
+	defer app.mutex.RUnlock()
 	for _, n := range app.nodes {
 		go func() {
 			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(n))).Serialize())
@@ -91,9 +91,9 @@ func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.Webso
 }
 
 func (app *App) nodeCommand(command *Command) (string, error) {
-	app.mutex.Lock()
+	app.mutex.RLock()
 	n := app.nodes[command.Name]
-	app.mutex.Unlock()
+	app.mutex.RUnlock()
 	if n == nil {
 		return "", Error.New("Node not found", nil)
 	}

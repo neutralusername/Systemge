@@ -12,7 +12,7 @@ import (
 type App struct {
 	nodes   map[string]*Node.Node
 	node    *Node.Node
-	mutex   sync.Mutex
+	mutex   sync.RWMutex
 	config  *Config.Dashboard
 	started bool
 }
