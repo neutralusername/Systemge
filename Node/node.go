@@ -86,7 +86,6 @@ func New(config *Config.NewNode, application Application) *Node {
 	if implementsHTTPComponent && config.HttpConfig.ServerConfig == nil {
 		panic("Application implements HTTPComponent but HttpConfig.ServerConfig is missing")
 	}
-
 	node := &Node{
 		newNodeConfig: config,
 		config:        config.NodeConfig,

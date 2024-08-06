@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) error {
@@ -52,6 +53,14 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 				if err := node.stop(true); err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to stop node", err).Error())
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to stop node", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
 					}
 				}
 			}

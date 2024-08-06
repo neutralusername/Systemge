@@ -40,7 +40,7 @@ func (node *Node) handleMessages(websocketClient *WebsocketClient) {
 		if websocket != websocket_ {
 			return
 		}
-		messageBytes, err := websocketClient.Receive()
+		messageBytes, err := websocketClient.receive()
 		if err != nil {
 			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error())

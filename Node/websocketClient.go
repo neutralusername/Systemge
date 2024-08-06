@@ -70,7 +70,7 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 	return websocketClient
 }
 
-// Resets the watchdog timer to its initial value
+// Resets the watchdog timer to its initial value.
 func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
 	if websocket := node.websocket; websocket != nil {
 		if websocketClient == nil {
@@ -88,7 +88,7 @@ func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
 	return Error.New("websocket is nil", nil)
 }
 
-// Disconnects the websocketClient and blocks until the websocketClient is disconnected.
+// Disconnects the websocketClient and blocks until the websocketClients onDisconnectHandler has finished.
 func (websocketClient *WebsocketClient) Disconnect() error {
 	if websocketClient == nil {
 		return Error.New("websocketClient is nil", nil)
@@ -105,21 +105,24 @@ func (websocketClient *WebsocketClient) Disconnect() error {
 	return nil
 }
 
+// Returns the ip of the websocketClient.
 func (websocketClient *WebsocketClient) GetIp() string {
 	return websocketClient.websocketConn.RemoteAddr().String()
 }
 
+// Returns the id of the websocketClient.
 func (websocketClient *WebsocketClient) GetId() string {
 	return websocketClient.id
 }
 
+// Sends a message to the websocketClient.
 func (websocketClient *WebsocketClient) Send(messageBytes []byte) error {
 	websocketClient.sendMutex.Lock()
 	defer websocketClient.sendMutex.Unlock()
 	return websocketClient.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
-func (websocketClient *WebsocketClient) Receive() ([]byte, error) {
+func (websocketClient *WebsocketClient) receive() ([]byte, error) {
 	websocketClient.receiveMutex.Lock()
 	defer websocketClient.receiveMutex.Unlock()
 	_, messageBytes, err := websocketClient.websocketConn.ReadMessage()

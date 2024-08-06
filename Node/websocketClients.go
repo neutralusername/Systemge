@@ -32,6 +32,7 @@ func (websocket *websocketComponent) removeWebsocketClient(websocketClient *Webs
 	}
 }
 
+// WebsocketClientExists returns true if a websocket client with the given id exists.
 func (node *Node) WebsocketClientExists(websocketId string) bool {
 	if websocket := node.websocket; websocket != nil {
 		node.websocket.mutex.Lock()
@@ -42,6 +43,17 @@ func (node *Node) WebsocketClientExists(websocketId string) bool {
 	return false
 }
 
+// GetWebsocketClientGroupCount returns the number of groups a websocket client is in (0 if the client does not exist).
+func (node *Node) GetWebsocketClientGroupCount(websocketId string) int {
+	if websocket := node.websocket; websocket != nil {
+		node.websocket.mutex.Lock()
+		defer node.websocket.mutex.Unlock()
+		return len(node.websocket.clientGroups[websocketId])
+	}
+	return 0
+}
+
+// GetWebsocketClientCount returns the number of connected websocket clients.
 func (node *Node) GetWebsocketClientCount() int {
 	if websocket := node.websocket; websocket != nil {
 		node.websocket.mutex.Lock()
@@ -51,6 +63,7 @@ func (node *Node) GetWebsocketClientCount() int {
 	return 0
 }
 
+// GetWebsocketGroupCount returns the number of websocket groups.
 func (node *Node) GetWebsocketGroupCount() int {
 	if websocket := node.websocket; websocket != nil {
 		node.websocket.mutex.Lock()

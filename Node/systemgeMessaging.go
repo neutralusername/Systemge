@@ -13,7 +13,7 @@ import (
 // Blocking until all messages are sent
 func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) error {
 	if systemge := node.systemge; systemge != nil {
-		systemge.createOutgoingMessageWaitgroup(node.GetErrorLogger(), node.GetInternalInfoLogger(), Message.NewAsync(topic, payload), receiverNames...).Execute()
+		node.createOutgoingMessageWaitgroup(systemge, Message.NewAsync(topic, payload), receiverNames...).Execute()
 		return nil
 	}
 	return Error.New("systemge component not initialized", nil)
@@ -31,7 +31,7 @@ func (node *Node) AsyncMessage_(config *Config.Message) error {
 func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*SyncResponseChannel, error) {
 	if systemge := node.systemge; systemge != nil {
 		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload, systemge.config.SyncResponseLimit)
-		systemge.createOutgoingMessageWaitgroup(node.GetErrorLogger(), node.GetInternalInfoLogger(), responseChannel.GetRequestMessage(), receiverNames...).Execute()
+		node.createOutgoingMessageWaitgroup(systemge, responseChannel.GetRequestMessage(), receiverNames...).Execute()
 		go systemge.responseChannelTimeout(node.stopChannel, responseChannel)
 		return responseChannel, nil
 	}
@@ -43,7 +43,7 @@ func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, er
 	return node.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
 
-func (systemge *systemgeComponent) createOutgoingMessageWaitgroup(errorLogger *Tools.Logger, infoLogger *Tools.Logger, message *Message.Message, receiverNames ...string) *Tools.Waitgroup {
+func (node *Node) createOutgoingMessageWaitgroup(systemge *systemgeComponent, message *Message.Message, receiverNames ...string) *Tools.Waitgroup {
 	waitgroup := Tools.NewWaitgroup()
 	systemge.outgoingConnectionMutex.Lock()
 	defer systemge.outgoingConnectionMutex.Unlock()
@@ -52,11 +52,19 @@ func (systemge *systemgeComponent) createOutgoingMessageWaitgroup(errorLogger *T
 			waitgroup.Add(func() {
 				err := systemge.messageOutgoingConnection(outgoingConnection, message)
 				if err != nil {
-					if errorLogger != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
+					}
 				} else {
-					if infoLogger != nil {
+					if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 						infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 					}
 				}
@@ -68,18 +76,34 @@ func (systemge *systemgeComponent) createOutgoingMessageWaitgroup(errorLogger *T
 				waitgroup.Add(func() {
 					err := systemge.messageOutgoingConnection(outgoingConnection, message)
 					if err != nil {
-						if errorLogger != nil {
+						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 							errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 						}
+						if mailer := node.GetMailer(); mailer != nil {
+							err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error()))
+							if err != nil {
+								if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+									errorLogger.Log(Error.New("Failed sending mail", err).Error())
+								}
+							}
+						}
 					} else {
-						if infoLogger != nil {
+						if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 							infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 						}
 					}
 				})
 			} else {
-				if errorLogger != nil {
+				if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 					errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No outgoing node connection with name \""+receiverName+"\" found", nil).Error())
+				}
+				if mailer := node.GetMailer(); mailer != nil {
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No outgoing node connection with name \""+receiverName+"\" found", nil).Error()))
+					if err != nil {
+						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+						}
+					}
 				}
 			}
 		}

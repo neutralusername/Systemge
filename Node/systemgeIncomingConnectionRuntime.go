@@ -3,6 +3,7 @@ package Node
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (node *Node) GetIncomingConnectionsList() map[string]string { // map == name:address
@@ -52,6 +53,14 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
+					}
 				}
 			}()
 		}
@@ -80,6 +89,14 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
 					}
 				}
 			}()
@@ -110,6 +127,14 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
+					}
 				}
 			}()
 		}
@@ -138,6 +163,14 @@ func (node *Node) RemoveAsyncTopic(topic string) error {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
 					}
 				}
 			}()

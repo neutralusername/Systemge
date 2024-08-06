@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 )
 
+// Returns a slice of addresses of nodes that this node is connected to.
 func (node *Node) GetOutgoingConnectionsList() []string {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
@@ -20,6 +21,7 @@ func (node *Node) GetOutgoingConnectionsList() []string {
 	return nil
 }
 
+// Returns a slice of addresses of nodes that this node is currently trying to connect to.
 func (node *Node) GetOutgoingConnectionAttemptsList() []string {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
@@ -35,8 +37,8 @@ func (node *Node) GetOutgoingConnectionAttemptsList() []string {
 	return nil
 }
 
-// Adds another node as an outgoing connection
-// This connection is used to send async and sync requests and receive sync responses for their corresponding requests
+// Adds another node as an outgoing connection.
+// This connection is used to send async and sync requests and receive sync responses for their corresponding requests.
 func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint) error {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
@@ -56,7 +58,7 @@ func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint) error {
 	return Error.New("Systemge is nil", nil)
 }
 
-// Removes a node from the outgoing connections and aborts ongoing connection attempts
+// Removes a node from the outgoing connections and aborts ongoing connection attempts.
 func (node *Node) DisconnectFromNode(address string) error {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()

@@ -6,8 +6,8 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-// WebsocketBroadcast broadcasts a message to all connected websocket clients
-// Blocking until all messages are sent
+// WebsocketBroadcast broadcasts a message to all connected websocket clients.
+// Blocking until all messages are sent.
 func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -20,8 +20,16 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 			waitGroup.Add(func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
-					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-						warningLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to broadcast message with topic \""+message.GetTopic()+"\" to websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
 					}
 				}
 				websocket.outgoigMessageCounter.Add(1)
@@ -35,8 +43,8 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 	return Error.New("Websocket is not initialized", nil)
 }
 
-// WebsocketUnicast unicasts a message to a specific websocket client by id
-// Blocking until the message is sent
+// WebsocketUnicast unicasts a message to a specific websocket client by id.
+// Blocking until the message is sent.
 func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -49,8 +57,16 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 			waitGroup.Add(func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
-					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-						warningLogger.Log("Failed to unicast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log("Failed to unicast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to unicast message with topic \""+message.GetTopic()+"\" to websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
 					}
 				}
 				websocket.outgoigMessageCounter.Add(1)
@@ -64,8 +80,8 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 	return Error.New("Websocket is not initialized", nil)
 }
 
-// WebsocketMulticast multicasts a message to multiple websocket clients by id
-// Blocking until all messages are sent
+// WebsocketMulticast multicasts a message to multiple websocket clients by id.
+// Blocking until all messages are sent.
 func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -83,8 +99,16 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 				waitGroup.Add(func() {
 					err := websocketClient.Send(messageBytes)
 					if err != nil {
-						if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-							warningLogger.Log("Failed to multicast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							errorLogger.Log("Failed to multicast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+						}
+						if mailer := node.GetMailer(); mailer != nil {
+							err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to multicast message with topic \""+message.GetTopic()+"\" to websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error()))
+							if err != nil {
+								if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+									errorLogger.Log(Error.New("Failed sending mail", err).Error())
+								}
+							}
 						}
 					}
 					websocket.outgoigMessageCounter.Add(1)
@@ -99,8 +123,8 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 	return Error.New("Websocket is not initialized", nil)
 }
 
-// WebsocketGroupcast groupcasts a message to all websocket clients in a group
-// Blocking until all messages are sent
+// WebsocketGroupcast groupcasts a message to all websocket clients in a group.
+// Blocking until all messages are sent.
 func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -117,8 +141,16 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) e
 			waitGroup.Add(func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
-					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-						warningLogger.Log("Failed to groupcast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log("Failed to groupcast message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + websocketClient.GetId() + "\" with ip \"" + websocketClient.GetIp() + "\"")
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to groupcast message with topic \""+message.GetTopic()+"\" to websocketClient \""+websocketClient.GetId()+"\" with ip \""+websocketClient.GetIp()+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
 					}
 				}
 				websocket.outgoigMessageCounter.Add(1)

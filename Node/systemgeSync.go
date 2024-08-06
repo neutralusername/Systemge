@@ -20,10 +20,6 @@ type SyncResponseChannel struct {
 	receiveMutex    sync.Mutex
 }
 
-func (syncResponseChannel *SyncResponseChannel) GetRequestMessage() *Message.Message {
-	return syncResponseChannel.requestMessage
-}
-
 func (systemge *systemgeComponent) responseChannelTimeout(stopChannel chan bool, responseChannel *SyncResponseChannel) {
 	if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
 		timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
@@ -86,7 +82,12 @@ func (syncResponseChannel *SyncResponseChannel) addResponse(message *Message.Mes
 	return nil
 }
 
-// stops the reception of new responses
+// Returns the request message that initiated the sync response channel.
+func (syncResponseChannel *SyncResponseChannel) GetRequestMessage() *Message.Message {
+	return syncResponseChannel.requestMessage
+}
+
+// stops the reception of new responses.
 func (syncResponseChannel *SyncResponseChannel) Close() error {
 	syncResponseChannel.mutex.Lock()
 	defer syncResponseChannel.mutex.Unlock()
@@ -98,7 +99,7 @@ func (syncResponseChannel *SyncResponseChannel) Close() error {
 	return nil
 }
 
-// blocks until response is received
+// blocks until response is received.
 func (syncResponseChannel *SyncResponseChannel) ReceiveResponse() (*Message.Message, error) {
 	syncResponseChannel.receiveMutex.Lock()
 	defer syncResponseChannel.receiveMutex.Unlock()
@@ -110,7 +111,7 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponse() (*Message.Mess
 	return syncResponse, nil
 }
 
-// blocks until response is received or timeout is reached
+// blocks until response is received or timeout is reached.
 func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs uint64) (*Message.Message, error) {
 	syncResponseChannel.receiveMutex.Lock()
 	defer syncResponseChannel.receiveMutex.Unlock()

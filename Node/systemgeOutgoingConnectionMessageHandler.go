@@ -5,7 +5,6 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-// sync responses are received in this function
 func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting handling of messages from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
