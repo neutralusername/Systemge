@@ -50,10 +50,6 @@ func (systemge *systemgeComponent) addResponseChannel(randomizer *Tools.Randomiz
 		closeChannel:    make(chan struct{}),
 		responseChannel: make(chan *Message.Message, responseLimit),
 		requestMessage:  Message.NewSync(topic, payload, syncToken),
-		responseCount:   0,
-		receivedCount:   0,
-		closed:          false,
-		mutex:           sync.Mutex{},
 	}
 	return systemge.syncResponseChannels[syncToken]
 }
