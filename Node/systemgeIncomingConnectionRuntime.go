@@ -5,6 +5,33 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
+func (node *Node) GetIncomingConnectionsList() map[string]string { // map == name:address
+	if systemge := node.systemge; systemge != nil {
+		systemge.incomingConnectionsMutex.Lock()
+		defer systemge.incomingConnectionsMutex.Unlock()
+		connections := make(map[string]string, len(systemge.incomingConnections))
+		for name, incomingConnection := range systemge.incomingConnections {
+			connections[name] = incomingConnection.netConn.RemoteAddr().String()
+		}
+		return connections
+	}
+	return nil
+}
+
+func (node *Node) DisconnectIncomingConnection(name string) error {
+	if systemge := node.systemge; systemge != nil {
+		systemge.incomingConnectionsMutex.Lock()
+		if systemge.incomingConnections[name] == nil {
+			systemge.incomingConnectionsMutex.Unlock()
+			return Error.New("Connection to node \""+name+"\" does not exist", nil)
+		}
+		systemge.incomingConnections[name].netConn.Close()
+		systemge.incomingConnectionsMutex.Unlock()
+		return nil
+	}
+	return Error.New("Systemge is nil", nil)
+}
+
 // adds a sync topic and its handler to systemge
 // propagates the new topic of interest to all incoming connections
 func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {

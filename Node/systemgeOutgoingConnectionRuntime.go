@@ -5,6 +5,36 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 )
 
+func (node *Node) GetOutgoingConnectionsList() []string {
+	if systemge := node.systemge; systemge != nil {
+		systemge.outgoingConnectionMutex.Lock()
+		defer systemge.outgoingConnectionMutex.Unlock()
+		connections := make([]string, len(systemge.outgoingConnections))
+		i := 0
+		for address := range systemge.outgoingConnections {
+			connections[i] = address
+			i++
+		}
+		return connections
+	}
+	return nil
+}
+
+func (node *Node) GetOutgoingConnectionAttemptsList() []string {
+	if systemge := node.systemge; systemge != nil {
+		systemge.outgoingConnectionMutex.Lock()
+		defer systemge.outgoingConnectionMutex.Unlock()
+		attempts := make([]string, len(systemge.currentlyInOutgoingConnectionLoop))
+		i := 0
+		for address := range systemge.currentlyInOutgoingConnectionLoop {
+			attempts[i] = address
+			i++
+		}
+		return attempts
+	}
+	return nil
+}
+
 // Adds another node as an outgoing connection
 // This connection is used to send async and sync requests and receive sync responses for their corresponding requests
 func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint) error {
