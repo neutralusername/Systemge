@@ -11,12 +11,12 @@ import (
 type Node struct {
 	config        *Config.Node
 	newNodeConfig *Config.NewNode
-	randomizer    *Tools.Randomizer
 
 	stopChannel chan bool
 	status      int
 	mutex       sync.Mutex
 
+	randomizer            *Tools.Randomizer
 	mailer                *Tools.Mailer
 	infoLogger            *Tools.Logger
 	internalInfoLogger    *Tools.Logger
@@ -26,15 +26,9 @@ type Node struct {
 	debugLogger           *Tools.Logger
 
 	application Application
-
-	//systemge
-	systemge *systemgeComponent
-
-	//websocket
-	websocket *websocketComponent
-
-	//http
-	http *httpComponent
+	systemge    *systemgeComponent
+	websocket   *websocketComponent
+	http        *httpComponent
 }
 
 const (

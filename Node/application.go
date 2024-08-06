@@ -6,8 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-type Application interface {
-}
+type Application interface{}
 
 func ImplementsSystemgeComponent(app Application) bool {
 	_, ok := app.(SystemgeComponent)
