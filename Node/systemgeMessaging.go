@@ -9,7 +9,7 @@ import (
 // AsyncMessage sends an async message.
 // If receiverNames is empty, the message will be sent to all connected nodes that are interested in the topic.
 // If receiverNames are specified, the message will be sent to the nodes with the specified names.
-// Blocking until all requests are sent
+// Blocking until all messages are sent
 func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) error {
 	if systemge := node.systemge; systemge != nil {
 		systemge.createOutgoingMessageWaitgroup(node.GetErrorLogger(), node.GetInternalInfoLogger(), Message.NewAsync(topic, payload), receiverNames...).Execute()
