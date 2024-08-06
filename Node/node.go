@@ -265,8 +265,8 @@ func (node *Node) stop(lock bool) error {
 	return nil
 }
 
-// Can be used to abort a Node that is in the process of starting
-// Is potentially unsafe to use with race conditions. Use with caution, could lead to undefined behavior.
+// Can be used to abort a Node that is in the process of starting.
+// Is unsafe to use with potential race conditions. Use with caution, could lead to undefined behavior.
 func (node *Node) Reset() error {
 	if node.status == STATUS_STOPPED {
 		return Error.New("node not started", nil)
