@@ -100,9 +100,6 @@ type systemgeComponent struct {
 }
 
 func (node *Node) startSystemgeComponent() error {
-	if node.newNodeConfig.SystemgeConfig == nil {
-		return Error.New("Systemge config missing", nil)
-	}
 	systemge := &systemgeComponent{
 		syncResponseChannels:              make(map[string]*SyncResponseChannel),
 		topicResolutions:                  make(map[string]map[string]*outgoingConnection),

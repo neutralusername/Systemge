@@ -17,9 +17,6 @@ type httpComponent struct {
 }
 
 func (node *Node) startHTTPComponent() error {
-	if node.newNodeConfig.HttpConfig == nil {
-		return Error.New("http config is missing", nil)
-	}
 	node.http = &httpComponent{
 		application: node.application.(HTTPComponent),
 		config:      node.newNodeConfig.HttpConfig,

@@ -31,9 +31,6 @@ type websocketComponent struct {
 }
 
 func (node *Node) startWebsocketComponent() error {
-	if node.newNodeConfig.WebsocketConfig == nil {
-		return Error.New("websocket config is missing", nil)
-	}
 	websocket := &websocketComponent{
 		application:  node.application.(WebsocketComponent),
 		connChannel:  make(chan *websocket.Conn),
