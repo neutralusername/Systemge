@@ -46,13 +46,37 @@ const (
 
 func New(config *Config.NewNode, application Application) *Node {
 	if config == nil {
-		config = &Config.NewNode{}
+		panic("NewNodeConfig is required")
 	}
 	if config.NodeConfig == nil {
-		config.NodeConfig = &Config.Node{
-			Name:           "SystemgeNode",
-			RandomizerSeed: Tools.GetSystemTime(),
-		}
+		panic("NodeConfig is required")
+	}
+	if application == nil {
+		panic("Application is required")
+	}
+	if config.HttpConfig == nil && config.WebsocketConfig == nil && config.SystemgeConfig == nil {
+		panic("At least one of the following configurations is required: HttpConfig, WebsocketConfig, SystemgeConfig")
+	}
+	if !ImplementsHTTPComponent(application) && !ImplementsWebsocketComponent(application) && !ImplementsSystemgeComponent(application) {
+		panic("Application must implement at least one of the following interfaces: HTTPComponent, WebsocketComponent, SystemgeComponent")
+	}
+	if !ImplementsSystemgeComponent(application) && config.SystemgeConfig != nil {
+		panic("SystemgeConfig provided but application does not implement SystemgeComponent")
+	}
+	if !ImplementsWebsocketComponent(application) && config.WebsocketConfig != nil {
+		panic("WebsocketConfig provided but application does not implement WebsocketComponent")
+	}
+	if !ImplementsHTTPComponent(application) && config.HttpConfig != nil {
+		panic("HttpConfig provided but application does not implement HTTPComponent")
+	}
+	if ImplementsSystemgeComponent(application) && config.SystemgeConfig == nil {
+		panic("Application implements SystemgeComponent but SystemgeConfig is missing")
+	}
+	if ImplementsWebsocketComponent(application) && config.WebsocketConfig == nil {
+		panic("Application implements WebsocketComponent but WebsocketConfig is missing")
+	}
+	if ImplementsHTTPComponent(application) && config.HttpConfig == nil {
+		panic("Application implements HTTPComponent but HttpConfig is missing")
 	}
 	node := &Node{
 		newNodeConfig: config,

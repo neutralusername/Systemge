@@ -40,7 +40,8 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			systemge.outgoingConnectionMutex.Lock()
 			defer systemge.outgoingConnectionMutex.Unlock()
 			delete(systemge.outgoingConnections, outgoingConnection.endpointConfig.Address)
-			for _, topic := range outgoingConnection.topics {
+			outgoingConnection.topicsMutex.Lock()
+			for topic := range outgoingConnection.topics {
 				topicResolutions := systemge.topicResolutions[topic]
 				if topicResolutions != nil {
 					delete(topicResolutions, outgoingConnection.name)
@@ -49,6 +50,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 					}
 				}
 			}
+			outgoingConnection.topicsMutex.Unlock()
 			if !outgoingConnection.transient {
 				b := true
 				systemge.currentlyInOutgoingConnectionLoop[outgoingConnection.endpointConfig.Address] = &b
@@ -82,9 +84,21 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				return
 			}
 			if len(message.GetSyncTokenToken()) == 0 {
-				systemge.invalidMessagesFromOutgoingConnections.Add(1)
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\" (which goes against protocol)", nil).Error())
+				if message.GetTopic() == TOPIC_ADDTOPIC {
+					outgoingConnection.topicsMutex.Lock()
+					outgoingConnection.topics[message.GetPayload()] = true
+					outgoingConnection.topicsMutex.Unlock()
+					systemge.receivedAddTopic.Add(1)
+				} else if message.GetTopic() == TOPIC_REMOVETOPIC {
+					outgoingConnection.topicsMutex.Lock()
+					delete(outgoingConnection.topics, message.GetPayload())
+					outgoingConnection.topicsMutex.Unlock()
+					systemge.receivedRemoveTopic.Add(1)
+				} else {
+					systemge.invalidMessagesFromOutgoingConnections.Add(1)
+					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+						warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\" (which goes against protocol)", nil).Error())
+					}
 				}
 				return
 			}

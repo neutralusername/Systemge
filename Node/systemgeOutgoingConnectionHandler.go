@@ -11,41 +11,6 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint) error {
-	if systemge := node.systemge; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		if systemge.outgoingConnections[endpointConfig.Address] != nil {
-			systemge.outgoingConnectionMutex.Unlock()
-			return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" already exists", nil)
-		}
-		if systemge.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
-			systemge.outgoingConnectionMutex.Unlock()
-			return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" is already being established", nil)
-		}
-		b := true
-		systemge.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &b
-		systemge.outgoingConnectionMutex.Unlock()
-		return node.outgoingConnectionLoop(endpointConfig)
-	}
-	return Error.New("Systemge is nil", nil)
-}
-
-func (node *Node) DisconnectFromNode(address string) error {
-	if systemge := node.systemge; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		defer systemge.outgoingConnectionMutex.Unlock()
-		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
-			*systemge.currentlyInOutgoingConnectionLoop[address] = false
-		}
-		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
-			outgoingConnection.netConn.Close()
-			outgoingConnection.transient = true
-		}
-		return nil
-	}
-	return Error.New("Systemge is nil", nil)
-}
-
 func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) error {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting connection attempts to endpoint \""+endpointConfig.Address+"\"", nil).Error())
@@ -124,10 +89,10 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to endpoint \""+endpointConfig.Address+"\"", err)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(connection_nodeName_topic, nodeName).Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, nodeName).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to send \""+connection_nodeName_topic+"\" message", err)
+		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.outgoingConnectionAttemptBytesSent.Add(bytesSent)
@@ -137,27 +102,27 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	messageBytes, err := outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to receive \""+connection_nodeName_topic+"\" message", err)
+		return nil, Error.New("Failed to receive \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	systemge.outgoingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to deserialize \""+connection_nodeName_topic+"\" message", err)
+		return nil, Error.New("Failed to deserialize \""+TOPIC_NODENAME+"\" message", err)
 	}
 	if err := systemge.validateMessage(message); err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to validate \""+connection_nodeName_topic+"\" message", err)
+		return nil, Error.New("Failed to validate \""+TOPIC_NODENAME+"\" message", err)
 	}
-	if message.GetTopic() != connection_nodeName_topic {
+	if message.GetTopic() != TOPIC_NODENAME {
 		netConn.Close()
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+connection_nodeName_topic+"\"", nil)
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+TOPIC_NODENAME+"\"", nil)
 	}
 	endpointName := message.GetPayload()
 	if endpointName == "" {
 		netConn.Close()
-		return nil, Error.New("Received empty payload in \""+connection_nodeName_topic+"\" message", nil)
+		return nil, Error.New("Received empty payload in \""+TOPIC_NODENAME+"\" message", nil)
 	}
 	if systemge.config.MaxNodeNameSize != 0 && len(endpointName) > int(systemge.config.MaxNodeNameSize) {
 		netConn.Close()
@@ -166,26 +131,30 @@ func (systemge *systemgeComponent) connectionAttempt(nodeName string, endpointCo
 	messageBytes, err = outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to receive \""+connection_responsibleTopics_topic+"\" message", err)
+		return nil, Error.New("Failed to receive \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	systemge.outgoingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err = Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to deserialize \""+connection_responsibleTopics_topic+"\" message", err)
+		return nil, Error.New("Failed to deserialize \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	if err := systemge.validateMessage(message); err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to validate \""+connection_responsibleTopics_topic+"\" message", err)
+		return nil, Error.New("Failed to validate \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
-	if message.GetTopic() != connection_responsibleTopics_topic {
+	if message.GetTopic() != TOPIC_RESPONSIBLETOPICS {
 		netConn.Close()
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+connection_responsibleTopics_topic+"\"", nil)
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+TOPIC_RESPONSIBLETOPICS+"\"", nil)
 	}
 	topics := []string{}
 	json.Unmarshal([]byte(message.GetPayload()), &topics)
-	outgoingConn := systemge.newOutgoingConnection(netConn, endpointConfig, endpointName, topics)
+	topicMap := map[string]bool{}
+	for _, topic := range topics {
+		topicMap[topic] = true
+	}
+	outgoingConn := systemge.newOutgoingConnection(netConn, endpointConfig, endpointName, topicMap)
 	outgoingConn.tcpBuffer = outgoingConnection.tcpBuffer
 	return outgoingConn, nil
 }

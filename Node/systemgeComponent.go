@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	connection_nodeName_topic          = "nodeName"
-	connection_responsibleTopics_topic = "topics"
+	TOPIC_NODENAME          = "nodeName"
+	TOPIC_RESPONSIBLETOPICS = "topics"
+	TOPIC_ADDTOPIC          = "addTopic"
+	TOPIC_REMOVETOPIC       = "removeTopic"
 )
 
 type systemgeComponent struct {
-	application              SystemgeComponent
 	handleSequentiallyMutex  sync.Mutex
 	asyncMessageHandlerMutex sync.Mutex
 	syncMessageHandlerMutex  sync.Mutex
@@ -23,6 +24,9 @@ type systemgeComponent struct {
 	config *Config.Systemge
 
 	tcpServer *Tcp.Server
+
+	asyncMessageHandlers map[string]AsyncMessageHandler
+	syncMessageHandlers  map[string]SyncMessageHandler
 
 	syncRequestMutex     sync.Mutex
 	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
@@ -59,6 +63,9 @@ type systemgeComponent struct {
 	outgoingSyncRequests         atomic.Uint32
 	outgoingSyncRequestBytesSent atomic.Uint64
 
+	receivedAddTopic    atomic.Uint32
+	receivedRemoveTopic atomic.Uint32
+
 	// incoming connection metrics
 
 	incomingConnectionRateLimiterMsgsExceeded  atomic.Uint32
@@ -83,6 +90,9 @@ type systemgeComponent struct {
 	incomingSyncRequests             atomic.Uint32
 	incomingSyncRequestBytesReceived atomic.Uint64
 
+	sentAddTopic    atomic.Uint32
+	sentRemoveTopic atomic.Uint32
+
 	// general metrics
 
 	bytesReceived atomic.Uint64 // total bytes received
@@ -94,12 +104,13 @@ func (node *Node) startSystemgeComponent() error {
 		return Error.New("Systemge config missing", nil)
 	}
 	systemge := &systemgeComponent{
-		application:                       node.application.(SystemgeComponent),
 		syncResponseChannels:              make(map[string]*SyncResponseChannel),
 		topicResolutions:                  make(map[string]map[string]*outgoingConnection),
 		outgoingConnections:               make(map[string]*outgoingConnection),
 		incomingConnections:               make(map[string]*incomingConnection),
 		currentlyInOutgoingConnectionLoop: make(map[string]*bool),
+		asyncMessageHandlers:              node.application.(SystemgeComponent).GetAsyncMessageHandlers(),
+		syncMessageHandlers:               node.application.(SystemgeComponent).GetSyncMessageHandlers(),
 		config:                            node.newNodeConfig.SystemgeConfig,
 	}
 	if systemge.config.TcpBufferBytes == 0 {

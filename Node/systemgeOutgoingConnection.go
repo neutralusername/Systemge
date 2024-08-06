@@ -18,7 +18,8 @@ type outgoingConnection struct {
 	endpointConfig   *Config.TcpEndpoint
 	name             string
 	sendMutex        sync.Mutex
-	topics           []string
+	topics           map[string]bool
+	topicsMutex      sync.Mutex
 	transient        bool
 	rateLimiterBytes *Tools.RateLimiter
 	rateLimiterMsgs  *Tools.RateLimiter
@@ -51,7 +52,7 @@ func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, 
 	}
 }
 
-func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics []string) *outgoingConnection {
+func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
 	outgoingConnection := &outgoingConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
@@ -77,7 +78,7 @@ func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingC
 		return Error.New("Connection loop cancelled", nil)
 	}
 	systemge.outgoingConnections[outgoingConn.endpointConfig.Address] = outgoingConn
-	for _, topic := range outgoingConn.topics {
+	for topic := range outgoingConn.topics {
 		topicResolutions := systemge.topicResolutions[topic]
 		if topicResolutions == nil {
 			topicResolutions = make(map[string]*outgoingConnection)
