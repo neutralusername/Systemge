@@ -6,8 +6,12 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+)
+
+const (
+	connection_nodeName_topic          = "nodeName"
+	connection_responsibleTopics_topic = "topics"
 )
 
 type systemgeComponent struct {
@@ -85,18 +89,6 @@ type systemgeComponent struct {
 	bytesSent     atomic.Uint64 // total bytes sent
 }
 
-const (
-	connection_nodeName_topic          = "nodeName"
-	connection_responsibleTopics_topic = "topics"
-)
-
-func (node *Node) GetSystemgeEndpointConfig() *Config.TcpEndpoint {
-	if node.newNodeConfig.SystemgeConfig == nil {
-		return nil
-	}
-	return node.newNodeConfig.SystemgeConfig.Endpoint
-}
-
 func (node *Node) startSystemgeComponent() error {
 	if node.newNodeConfig.SystemgeConfig == nil {
 		return Error.New("Systemge config missing", nil)
@@ -144,21 +136,5 @@ func (node *Node) stopSystemgeComponent() error {
 		incomingConnection.netConn.Close()
 	}
 	systemge.incomingConnectionsMutex.Unlock()
-	return nil
-}
-
-func (systemge *systemgeComponent) validateMessage(message *Message.Message) error {
-	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
-		return Error.New("Message sync token exceeds maximum size", nil)
-	}
-	if len(message.GetTopic()) == 0 {
-		return Error.New("Message missing topic", nil)
-	}
-	if maxTopicSize := systemge.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return Error.New("Message topic exceeds maximum size", nil)
-	}
-	if maxPayloadSize := systemge.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return Error.New("Message payload exceeds maximum size", nil)
-	}
 	return nil
 }

@@ -1,7 +1,6 @@
 package Node
 
 import (
-	"net"
 	"net/http"
 	"sync/atomic"
 
@@ -15,57 +14,6 @@ type httpComponent struct {
 	application    HTTPComponent
 	server         *HTTP.Server
 	requestCounter atomic.Uint64
-}
-
-func (node *Node) AddHttpRoute(path string, handler http.HandlerFunc) {
-	if httpComponent := node.http; httpComponent != nil {
-		httpComponent.server.AddRoute(path, httpComponent.httpRequestWrapper(handler))
-	}
-}
-
-func (node *Node) RemoveHttpRoute(path string) {
-	if httpComponent := node.http; httpComponent != nil {
-		httpComponent.server.RemoveRoute(path)
-	}
-}
-
-func (node *Node) RetrieveHTTPRequestCounter() uint64 {
-	if httpComponent := node.http; httpComponent != nil {
-		return httpComponent.requestCounter.Swap(0)
-	}
-	return 0
-}
-func (node *Node) GetHTTPRequestCounter() uint64 {
-	if httpComponent := node.http; httpComponent != nil {
-		return httpComponent.requestCounter.Load()
-	}
-	return 0
-}
-
-func (httpComponent *httpComponent) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		httpComponent.requestCounter.Add(1)
-		r.Body = http.MaxBytesReader(w, r.Body, httpComponent.config.MaxBodyBytes)
-
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			HTTP.Send403(w, r)
-			return
-		}
-		if httpComponent.server.GetBlacklist() != nil {
-			if httpComponent.server.GetBlacklist().Contains(ip) {
-				HTTP.Send403(w, r)
-				return
-			}
-		}
-		if httpComponent.server.GetWhitelist() != nil && httpComponent.server.GetWhitelist().ElementCount() > 0 {
-			if !httpComponent.server.GetWhitelist().Contains(ip) {
-				HTTP.Send403(w, r)
-				return
-			}
-		}
-		handler(w, r)
-	}
 }
 
 func (node *Node) startHTTPComponent() error {
