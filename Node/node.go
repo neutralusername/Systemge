@@ -57,27 +57,31 @@ func New(config *Config.NewNode, application Application) *Node {
 	if config.HttpConfig == nil && config.WebsocketConfig == nil && config.SystemgeConfig == nil {
 		panic("At least one of the following configurations is required: HttpConfig, WebsocketConfig, SystemgeConfig")
 	}
-	if !ImplementsHTTPComponent(application) && !ImplementsWebsocketComponent(application) && !ImplementsSystemgeComponent(application) {
+	implementsHTTPComponent := ImplementsHTTPComponent(application)
+	implementsWebsocketComponent := ImplementsWebsocketComponent(application)
+	implementsSystemgeComponent := ImplementsSystemgeComponent(application)
+	if !implementsHTTPComponent && !implementsWebsocketComponent && !implementsSystemgeComponent {
 		panic("Application must implement at least one of the following interfaces: HTTPComponent, WebsocketComponent, SystemgeComponent")
 	}
-	if !ImplementsSystemgeComponent(application) && config.SystemgeConfig != nil {
-		panic("SystemgeConfig provided but application does not implement SystemgeComponent")
-	}
-	if !ImplementsWebsocketComponent(application) && config.WebsocketConfig != nil {
-		panic("WebsocketConfig provided but application does not implement WebsocketComponent")
-	}
-	if !ImplementsHTTPComponent(application) && config.HttpConfig != nil {
+	if !implementsHTTPComponent && config.HttpConfig != nil {
 		panic("HttpConfig provided but application does not implement HTTPComponent")
 	}
-	if ImplementsSystemgeComponent(application) && config.SystemgeConfig == nil {
-		panic("Application implements SystemgeComponent but SystemgeConfig is missing")
+	if !implementsWebsocketComponent && config.WebsocketConfig != nil {
+		panic("WebsocketConfig provided but application does not implement WebsocketComponent")
 	}
-	if ImplementsWebsocketComponent(application) && config.WebsocketConfig == nil {
-		panic("Application implements WebsocketComponent but WebsocketConfig is missing")
+	if !implementsSystemgeComponent && config.SystemgeConfig != nil {
+		panic("SystemgeConfig provided but application does not implement SystemgeComponent")
 	}
-	if ImplementsHTTPComponent(application) && config.HttpConfig == nil {
+	if implementsHTTPComponent && config.HttpConfig == nil {
 		panic("Application implements HTTPComponent but HttpConfig is missing")
 	}
+	if implementsWebsocketComponent && config.WebsocketConfig == nil {
+		panic("Application implements WebsocketComponent but WebsocketConfig is missing")
+	}
+	if implementsSystemgeComponent && config.SystemgeConfig == nil {
+		panic("Application implements SystemgeComponent but SystemgeConfig is missing")
+	}
+
 	node := &Node{
 		newNodeConfig: config,
 		config:        config.NodeConfig,
