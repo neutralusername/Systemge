@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
@@ -17,6 +18,9 @@ func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) e
 	}
 	return Error.New("systemge component not initialized", nil)
 }
+func (node *Node) AsyncMessage_(config *Config.Message) error {
+	return node.AsyncMessage(config.Topic, config.Payload, config.NodeNames...)
+}
 
 // SyncMessage sends a sync message.
 // If receiverNames is empty, the message will be sent to all connected nodes that are interested in the topic.
@@ -30,6 +34,9 @@ func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*
 		return responseChannel, nil
 	}
 	return nil, Error.New("systemge not initialized", nil)
+}
+func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, error) {
+	return node.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
 
 func (systemge *systemgeComponent) createOutgoingMessageWaitgroup(errorLogger *Tools.Logger, infoLogger *Tools.Logger, message *Message.Message, receiverNames ...string) *Tools.Waitgroup {
