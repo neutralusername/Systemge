@@ -1,7 +1,6 @@
 package Node
 
 import (
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 )
@@ -20,11 +19,4 @@ func (systemge *systemgeComponent) validateMessage(message *Message.Message) err
 		return Error.New("Message payload exceeds maximum size", nil)
 	}
 	return nil
-}
-
-func (node *Node) GetSystemgeEndpointConfig() *Config.TcpEndpoint {
-	if node.newNodeConfig.SystemgeConfig == nil {
-		return nil
-	}
-	return node.newNodeConfig.SystemgeConfig.Endpoint
 }

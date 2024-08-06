@@ -117,6 +117,7 @@ func New(config *Config.NewNode, application Application) *Node {
 	return node
 }
 
+// StartBlocking starts the node and blocks until the node is stopped.
 func (node *Node) StartBlocking() error {
 	if node.status != STATUS_STOPPED {
 		return Error.New("node already started", nil)
@@ -126,6 +127,8 @@ func (node *Node) StartBlocking() error {
 	return err
 }
 
+// Start starts the node.
+// Blocks until the node is fully started.
 func (node *Node) Start() error {
 	node.mutex.Lock()
 	defer node.mutex.Unlock()
@@ -206,6 +209,8 @@ func (node *Node) Start() error {
 	return nil
 }
 
+// Stop stops the node.
+// Blocks until the node is fully stopped.
 func (node *Node) Stop() error {
 	return node.stop(true)
 }
@@ -346,6 +351,13 @@ func (node *Node) GetRandomizer() *Tools.Randomizer {
 
 func (node *Node) SetRandomizer(randomizer *Tools.Randomizer) {
 	node.randomizer = randomizer
+}
+
+func (node *Node) GetSystemgeEndpointConfig() *Config.TcpEndpoint {
+	if node.newNodeConfig.SystemgeConfig == nil {
+		return nil
+	}
+	return node.newNodeConfig.SystemgeConfig.Endpoint
 }
 
 func (node *Node) GetCommandHandlerComponent() CommandComponent {

@@ -41,8 +41,5 @@ func (c *CustomMux) RemoveRoute(pattern string) {
 }
 
 func (c *CustomMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
 	c.mux.ServeHTTP(w, r)
 }
