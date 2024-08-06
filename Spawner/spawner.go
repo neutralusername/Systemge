@@ -36,6 +36,21 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 				}
 			}
 		}
+	} else if spawnedNode.GetStatus() == Node.STATUS_PENDING {
+		err := spawnedNode.Reset()
+		if err != nil {
+			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
+				errorLogger.Log(Error.New("Failed resetting node "+nodeName, err).Error())
+			}
+			if mailer := spawner.node.GetMailer(); mailer != nil {
+				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed resetting node "+nodeName, err).Error()))
+				if err != nil {
+					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed sending mail", err).Error())
+					}
+				}
+			}
+		}
 	}
 	delete(spawner.spawnedNodes, nodeName)
 	if spawner.config.PropagateSpawnedNodeChanges {
