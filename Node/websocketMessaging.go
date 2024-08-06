@@ -15,7 +15,7 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 		}
 		messageBytes := message.Serialize()
 		waitGroup := Tools.NewWaitgroup()
-		websocket.mutex.Lock()
+		websocket.mutex.RLock()
 		for _, websocketClient := range websocket.clients {
 			waitGroup.Add(func() {
 				err := websocketClient.Send(messageBytes)
@@ -36,7 +36,7 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 				websocket.bytesSentCounter.Add(uint64(len(messageBytes)))
 			})
 		}
-		websocket.mutex.Unlock()
+		websocket.mutex.RUnlock()
 		waitGroup.Execute()
 		return nil
 	}
@@ -52,7 +52,7 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 		}
 		messageBytes := message.Serialize()
 		waitGroup := Tools.NewWaitgroup()
-		websocket.mutex.Lock()
+		websocket.mutex.RLock()
 		if websocketClient, exists := websocket.clients[id]; exists {
 			waitGroup.Add(func() {
 				err := websocketClient.Send(messageBytes)
@@ -73,7 +73,7 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 				websocket.bytesSentCounter.Add(uint64(len(messageBytes)))
 			})
 		}
-		websocket.mutex.Unlock()
+		websocket.mutex.RUnlock()
 		waitGroup.Execute()
 		return nil
 	}
@@ -93,7 +93,7 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 		}
 		messageBytes := message.Serialize()
 		waitGroup := Tools.NewWaitgroup()
-		websocket.mutex.Lock()
+		websocket.mutex.RLock()
 		for _, id := range ids {
 			if websocketClient, exists := websocket.clients[id]; exists {
 				waitGroup.Add(func() {
@@ -116,7 +116,7 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 				})
 			}
 		}
-		websocket.mutex.Unlock()
+		websocket.mutex.RUnlock()
 		waitGroup.Execute()
 		return nil
 	}
@@ -132,9 +132,9 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) e
 		}
 		messageBytes := message.Serialize()
 		waitGroup := Tools.NewWaitgroup()
-		websocket.mutex.Lock()
+		websocket.mutex.RLock()
 		if websocket.groups[groupId] == nil {
-			websocket.mutex.Unlock()
+			websocket.mutex.RUnlock()
 			return Error.New("Group \""+groupId+"\" does not exist", nil)
 		}
 		for _, websocketClient := range websocket.groups[groupId] {
@@ -157,7 +157,7 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) e
 				websocket.bytesSentCounter.Add(uint64(len(messageBytes)))
 			})
 		}
-		websocket.mutex.Unlock()
+		websocket.mutex.RUnlock()
 		waitGroup.Execute()
 		return nil
 	}

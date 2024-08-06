@@ -63,8 +63,8 @@ func (systemge *systemgeComponent) removeResponseChannel(syncToken string) {
 	delete(systemge.syncResponseChannels, syncToken)
 }
 func (systemge *systemgeComponent) getResponseChannel(syncToken string) *SyncResponseChannel {
-	systemge.syncRequestMutex.Lock()
-	defer systemge.syncRequestMutex.Unlock()
+	systemge.syncRequestMutex.RLock()
+	defer systemge.syncRequestMutex.RUnlock()
 	return systemge.syncResponseChannels[syncToken]
 }
 

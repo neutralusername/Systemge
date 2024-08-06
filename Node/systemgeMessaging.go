@@ -45,8 +45,8 @@ func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, er
 
 func (node *Node) createOutgoingMessageWaitgroup(systemge *systemgeComponent, message *Message.Message, receiverNames ...string) *Tools.Waitgroup {
 	waitgroup := Tools.NewWaitgroup()
-	systemge.outgoingConnectionMutex.Lock()
-	defer systemge.outgoingConnectionMutex.Unlock()
+	systemge.outgoingConnectionMutex.RLock()
+	defer systemge.outgoingConnectionMutex.RUnlock()
 	if len(receiverNames) == 0 {
 		for _, outgoingConnection := range systemge.topicResolutions[message.GetTopic()] {
 			waitgroup.Add(func() {

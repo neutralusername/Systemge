@@ -8,8 +8,8 @@ import (
 
 func (node *Node) GetIncomingConnectionsList() map[string]string { // map == name:address
 	if systemge := node.systemge; systemge != nil {
-		systemge.incomingConnectionsMutex.Lock()
-		defer systemge.incomingConnectionsMutex.Unlock()
+		systemge.incomingConnectionMutex.RLock()
+		defer systemge.incomingConnectionMutex.RUnlock()
 		connections := make(map[string]string, len(systemge.incomingConnections))
 		for name, incomingConnection := range systemge.incomingConnections {
 			connections[name] = incomingConnection.netConn.RemoteAddr().String()
@@ -21,13 +21,12 @@ func (node *Node) GetIncomingConnectionsList() map[string]string { // map == nam
 
 func (node *Node) DisconnectIncomingConnection(name string) error {
 	if systemge := node.systemge; systemge != nil {
-		systemge.incomingConnectionsMutex.Lock()
+		systemge.incomingConnectionMutex.Lock()
+		defer systemge.incomingConnectionMutex.Unlock()
 		if systemge.incomingConnections[name] == nil {
-			systemge.incomingConnectionsMutex.Unlock()
 			return Error.New("Connection to node \""+name+"\" does not exist", nil)
 		}
 		systemge.incomingConnections[name].netConn.Close()
-		systemge.incomingConnectionsMutex.Unlock()
 		return nil
 	}
 	return Error.New("Systemge is nil", nil)
@@ -37,7 +36,6 @@ func (node *Node) DisconnectIncomingConnection(name string) error {
 // propagates the new topic of interest to all incoming connections
 func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 	if systemge := node.systemge; systemge != nil {
-
 		systemge.syncMessageHandlerMutex.Lock()
 		if systemge.syncMessageHandlers[topic] != nil {
 			systemge.syncMessageHandlerMutex.Unlock()
@@ -46,7 +44,8 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 		systemge.syncMessageHandlers[topic] = handler
 		systemge.syncMessageHandlerMutex.Unlock()
 		systemge.sentAddTopic.Add(1)
-		systemge.incomingConnectionsMutex.Lock()
+		systemge.incomingConnectionMutex.RLock()
+		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
@@ -64,7 +63,6 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 				}
 			}()
 		}
-		systemge.incomingConnectionsMutex.Unlock()
 		return nil
 	}
 	return Error.New("Systemge is nil", nil)
@@ -74,7 +72,6 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 // propagates the new topic of interest to all incoming connections
 func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error {
 	if systemge := node.systemge; systemge != nil {
-
 		systemge.asyncMessageHandlerMutex.Lock()
 		if systemge.asyncMessageHandlers[topic] != nil {
 			systemge.asyncMessageHandlerMutex.Unlock()
@@ -83,7 +80,8 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 		systemge.asyncMessageHandlers[topic] = handler
 		systemge.asyncMessageHandlerMutex.Unlock()
 		systemge.sentAddTopic.Add(1)
-		systemge.incomingConnectionsMutex.Lock()
+		systemge.incomingConnectionMutex.RLock()
+		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
@@ -101,7 +99,6 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 				}
 			}()
 		}
-		systemge.incomingConnectionsMutex.Unlock()
 		return nil
 	}
 	return Error.New("Systemge is nil", nil)
@@ -111,7 +108,6 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 // propagates the removal of the topic of interest to all incoming connections
 func (node *Node) RemoveSyncTopic(topic string) error {
 	if systemge := node.systemge; systemge != nil {
-
 		systemge.syncMessageHandlerMutex.Lock()
 		if systemge.syncMessageHandlers[topic] == nil {
 			systemge.syncMessageHandlerMutex.Unlock()
@@ -120,7 +116,8 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 		delete(systemge.syncMessageHandlers, topic)
 		systemge.syncMessageHandlerMutex.Unlock()
 		systemge.sentRemoveTopic.Add(1)
-		systemge.incomingConnectionsMutex.Lock()
+		systemge.incomingConnectionMutex.RLock()
+		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
@@ -138,7 +135,6 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 				}
 			}()
 		}
-		systemge.incomingConnectionsMutex.Unlock()
 		return nil
 	}
 	return Error.New("Systemge is nil", nil)
@@ -148,7 +144,6 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 // propagates the removal of the topic of interest to all incoming connections
 func (node *Node) RemoveAsyncTopic(topic string) error {
 	if systemge := node.systemge; systemge != nil {
-
 		systemge.asyncMessageHandlerMutex.Lock()
 		if systemge.asyncMessageHandlers[topic] == nil {
 			systemge.asyncMessageHandlerMutex.Unlock()
@@ -157,7 +152,8 @@ func (node *Node) RemoveAsyncTopic(topic string) error {
 		delete(systemge.asyncMessageHandlers, topic)
 		systemge.asyncMessageHandlerMutex.Unlock()
 		systemge.sentRemoveTopic.Add(1)
-		systemge.incomingConnectionsMutex.Lock()
+		systemge.incomingConnectionMutex.RLock()
+		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
@@ -175,7 +171,6 @@ func (node *Node) RemoveAsyncTopic(topic string) error {
 				}
 			}()
 		}
-		systemge.incomingConnectionsMutex.Unlock()
 		return nil
 	}
 	return Error.New("Systemge is nil", nil)

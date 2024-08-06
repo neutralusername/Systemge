@@ -112,9 +112,9 @@ func (node *Node) handleIncomingConnectionMessages(incomingConnection *incomingC
 }
 
 func (systemge *systemgeComponent) handleSyncRequest(node *Node, message *Message.Message) (string, error) {
-	systemge.syncMessageHandlerMutex.Lock()
+	systemge.syncMessageHandlerMutex.RLock()
 	syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]
-	systemge.syncMessageHandlerMutex.Unlock()
+	systemge.syncMessageHandlerMutex.RUnlock()
 	if syncMessageHandler == nil {
 		return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
 	}
@@ -132,9 +132,9 @@ func (systemge *systemgeComponent) handleSyncRequest(node *Node, message *Messag
 }
 
 func (systemge *systemgeComponent) handleAsyncMessage(node *Node, message *Message.Message) error {
-	systemge.asyncMessageHandlerMutex.Lock()
+	systemge.asyncMessageHandlerMutex.RLock()
 	asyncMessageHandler := systemge.asyncMessageHandlers[message.GetTopic()]
-	systemge.asyncMessageHandlerMutex.Unlock()
+	systemge.asyncMessageHandlerMutex.RUnlock()
 	if asyncMessageHandler == nil {
 		return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
 	}

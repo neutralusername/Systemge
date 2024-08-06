@@ -14,7 +14,7 @@ import (
 
 type websocketComponent struct {
 	config              *Config.Websocket
-	mutex               sync.Mutex
+	mutex               sync.RWMutex
 	httpServer          *HTTP.Server
 	connChannel         chan *websocket.Conn
 	clients             map[string]*WebsocketClient            // websocketId -> websocketClient

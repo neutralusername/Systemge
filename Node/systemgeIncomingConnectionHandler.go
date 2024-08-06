@@ -130,16 +130,16 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	systemge.bytesSent.Add(bytesSent)
 	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
 	responsibleTopics := []string{}
-	systemge.syncMessageHandlerMutex.Lock()
+	systemge.syncMessageHandlerMutex.RLock()
 	for topic := range systemge.syncMessageHandlers {
 		responsibleTopics = append(responsibleTopics, topic)
 	}
-	systemge.syncMessageHandlerMutex.Unlock()
-	systemge.asyncMessageHandlerMutex.Lock()
+	systemge.syncMessageHandlerMutex.RUnlock()
+	systemge.asyncMessageHandlerMutex.RLock()
 	for topic := range systemge.asyncMessageHandlers {
 		responsibleTopics = append(responsibleTopics, topic)
 	}
-	systemge.asyncMessageHandlerMutex.Unlock()
+	systemge.asyncMessageHandlerMutex.RUnlock()
 	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(TOPIC_RESPONSIBLETOPICS, Helpers.JsonMarshal(responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()

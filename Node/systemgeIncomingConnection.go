@@ -62,14 +62,14 @@ func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name 
 }
 
 func (systemge *systemgeComponent) removeIncomingConnection(incomingConnection *incomingConnection) {
-	systemge.incomingConnectionsMutex.Lock()
-	defer systemge.incomingConnectionsMutex.Unlock()
+	systemge.incomingConnectionMutex.Lock()
+	defer systemge.incomingConnectionMutex.Unlock()
 	delete(systemge.incomingConnections, incomingConnection.name)
 }
 
 func (systemge *systemgeComponent) addIncomingConnection(incomingConnection *incomingConnection) error {
-	systemge.outgoingConnectionMutex.Lock()
-	defer systemge.outgoingConnectionMutex.Unlock()
+	systemge.incomingConnectionMutex.Lock()
+	defer systemge.incomingConnectionMutex.Unlock()
 	if systemge.incomingConnections[incomingConnection.name] != nil {
 		incomingConnection.netConn.Close()
 		return Error.New("Node connection already exists", nil)

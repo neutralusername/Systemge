@@ -106,8 +106,8 @@ func (node *Node) RemoveFromWebsocketGroup(groupId string, websocketIds ...strin
 
 func (node *Node) GetWebsocketGroupClients(groupId string) []string {
 	if websocket := node.websocket; websocket != nil {
-		node.websocket.mutex.Lock()
-		defer node.websocket.mutex.Unlock()
+		node.websocket.mutex.RLock()
+		defer node.websocket.mutex.RUnlock()
 		if node.websocket.groups[groupId] == nil {
 			return nil
 		}
@@ -122,8 +122,8 @@ func (node *Node) GetWebsocketGroupClients(groupId string) []string {
 
 func (node *Node) GetWebsocketClientGroups(websocketId string) []string {
 	if websocket := node.websocket; websocket != nil {
-		node.websocket.mutex.Lock()
-		defer node.websocket.mutex.Unlock()
+		node.websocket.mutex.RLock()
+		defer node.websocket.mutex.RUnlock()
 		if node.websocket.clients[websocketId] == nil {
 			return nil
 		}
@@ -141,8 +141,8 @@ func (node *Node) GetWebsocketClientGroups(websocketId string) []string {
 
 func (node *Node) IsInWebsocketGroup(groupId string, websocketId string) bool {
 	if websocket := node.websocket; websocket != nil {
-		node.websocket.mutex.Lock()
-		defer node.websocket.mutex.Unlock()
+		node.websocket.mutex.RLock()
+		defer node.websocket.mutex.RUnlock()
 		if node.websocket.groups[groupId] == nil {
 			return false
 		}

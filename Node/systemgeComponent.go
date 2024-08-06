@@ -21,23 +21,23 @@ type systemgeComponent struct {
 
 	tcpServer *Tcp.Server
 
-	asyncMessageHandlerMutex sync.Mutex
+	asyncMessageHandlerMutex sync.RWMutex
 	asyncMessageHandlers     map[string]AsyncMessageHandler
 
-	syncMessageHandlerMutex sync.Mutex
+	syncMessageHandlerMutex sync.RWMutex
 	syncMessageHandlers     map[string]SyncMessageHandler
 
-	syncRequestMutex     sync.Mutex
+	syncRequestMutex     sync.RWMutex
 	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
-	outgoingConnectionMutex           sync.Mutex
+	outgoingConnectionMutex           sync.RWMutex
 	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [name -> nodeConnection]
 	outgoingConnections               map[string]*outgoingConnection            // address -> nodeConnection
 	currentlyInOutgoingConnectionLoop map[string]*bool                          // address -> bool
 
-	incomingConnectionsMutex sync.Mutex
-	incomingConnections      map[string]*incomingConnection // name -> nodeConnection
-	handleSequentiallyMutex  sync.Mutex
+	incomingConnectionMutex sync.RWMutex
+	incomingConnections     map[string]*incomingConnection // name -> nodeConnection
+	handleSequentiallyMutex sync.Mutex
 
 	// outgoing connection metrics
 
@@ -139,9 +139,9 @@ func (node *Node) stopSystemgeComponent() {
 		brokerConnection.netConn.Close()
 	}
 	systemge.outgoingConnectionMutex.Unlock()
-	systemge.incomingConnectionsMutex.Lock()
+	systemge.incomingConnectionMutex.Lock()
 	for _, incomingConnection := range systemge.incomingConnections {
 		incomingConnection.netConn.Close()
 	}
-	systemge.incomingConnectionsMutex.Unlock()
+	systemge.incomingConnectionMutex.Unlock()
 }

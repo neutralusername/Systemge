@@ -8,8 +8,8 @@ import (
 // Returns a slice of addresses of nodes that this node is connected to.
 func (node *Node) GetOutgoingConnectionsList() []string {
 	if systemge := node.systemge; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		defer systemge.outgoingConnectionMutex.Unlock()
+		systemge.outgoingConnectionMutex.RLock()
+		defer systemge.outgoingConnectionMutex.RUnlock()
 		connections := make([]string, len(systemge.outgoingConnections))
 		i := 0
 		for address := range systemge.outgoingConnections {
@@ -24,8 +24,8 @@ func (node *Node) GetOutgoingConnectionsList() []string {
 // Returns a slice of addresses of nodes that this node is currently trying to connect to.
 func (node *Node) GetOutgoingConnectionAttemptsList() []string {
 	if systemge := node.systemge; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		defer systemge.outgoingConnectionMutex.Unlock()
+		systemge.outgoingConnectionMutex.RLock()
+		defer systemge.outgoingConnectionMutex.RUnlock()
 		attempts := make([]string, len(systemge.currentlyInOutgoingConnectionLoop))
 		i := 0
 		for address := range systemge.currentlyInOutgoingConnectionLoop {
