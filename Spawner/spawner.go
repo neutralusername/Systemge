@@ -21,6 +21,7 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 	if spawnedNode == nil {
 		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
+	// race condition here
 	if spawnedNode.GetStatus() == Node.STATUS_STARTED {
 		err := spawnedNode.Stop()
 		if err != nil {
