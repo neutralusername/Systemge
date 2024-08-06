@@ -6,6 +6,8 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+// WebsocketBroadcast broadcasts a message to all connected websocket clients
+// Blocking until all messages are sent
 func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -33,6 +35,8 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 	return Error.New("Websocket is not initialized", nil)
 }
 
+// WebsocketUnicast unicasts a message to a specific websocket client by id
+// Blocking until the message is sent
 func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -60,6 +64,8 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 	return Error.New("Websocket is not initialized", nil)
 }
 
+// WebsocketMulticast multicasts a message to multiple websocket clients by id
+// Blocking until all messages are sent
 func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -93,6 +99,8 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 	return Error.New("Websocket is not initialized", nil)
 }
 
+// WebsocketGroupcast groupcasts a message to all websocket clients in a group
+// Blocking until all messages are sent
 func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) error {
 	if websocket := node.websocket; websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
