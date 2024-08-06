@@ -150,7 +150,7 @@ func (app *App) addNodeRoutine(node *Node.Node) {
 		app.mutex.Lock()
 		app.nodes[spawnedNode.GetName()] = spawnedNode
 		app.registerNodeHttpHandlers(spawnedNode)
-		app.node.WebsocketBroadcast(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(newNodeStatus(spawnedNode))))
+		app.node.WebsocketBroadcast(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(spawnedNode))))
 		app.mutex.Unlock()
 	}
 }

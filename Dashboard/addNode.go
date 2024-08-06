@@ -2,19 +2,21 @@ package Dashboard
 
 import "github.com/neutralusername/Systemge/Node"
 
-type NodeCommands struct {
+type AddNode struct {
 	Name     string   `json:"name"`
+	Status   int      `json:"status"`
 	Commands []string `json:"commands"`
 }
 
-func newNodeCommands(node *Node.Node) NodeCommands {
+func newAddNode(node *Node.Node) AddNode {
 	commands := []string{}
 	for command := range node.GetCommandHandlers() {
 		commands = append(commands, command)
 
 	}
-	return NodeCommands{
+	return AddNode{
 		Commands: commands,
 		Name:     node.GetName(),
+		Status:   node.GetStatus(),
 	}
 }

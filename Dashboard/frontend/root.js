@@ -131,6 +131,9 @@ export class root extends React.Component {
             case "goroutineCount":
                 this.handleGoroutineCount(message.payload);
                 break;
+            case "addNode":
+                this.handleAddNode(JSON.parse(message.payload));
+                break;
             case "removeNode":
                 let nodes = { ...this.state.nodes };
                 delete nodes[message.payload];
@@ -138,9 +141,6 @@ export class root extends React.Component {
                 break;
             case "nodeStatus":
                 this.handleNodeStatus(JSON.parse(message.payload));
-                break;
-            case "nodeCommands":
-                this.handleNodeCommands(JSON.parse(message.payload));
                 break;
             case "nodeSystemgeCounters":
             case "nodeSystemgeInvalidMessageCounters":
@@ -183,33 +183,39 @@ export class root extends React.Component {
         this.setState({ goroutineUpdates });
     }
 
-    handleNodeStatus(nodeStatus) {
+    handleAddNode(addNode) {
         this.setState({
             nodes: {
                 ...this.state.nodes,
-                [nodeStatus.name]: {
-                    ...this.state.nodes[nodeStatus.name],
-                    name: nodeStatus.name,
-                    status: nodeStatus.status,
+                [addNode.name]: {
+                    ...this.state.nodes[addNode.name],
+                    name: addNode.name,
+                    status: addNode.status,
+                    commands: addNode.commands,
                 },
             },
         });
     }
 
-    handleNodeCommands(nodeCommands) {
-        this.setState({
-            nodes: {
-                ...this.state.nodes,
-                [nodeCommands.name]: {
-                    ...this.state.nodes[nodeCommands.name],
-                    commands: nodeCommands.commands,
+    handleNodeStatus(nodeStatus) {
+        if (this.state.nodes[nodeStatus.name]) {
+            this.setState({
+                nodes: {
+                    ...this.state.nodes,
+                    [nodeStatus.name]: {
+                        ...this.state.nodes[nodeStatus.name],
+                        status: nodeStatus.status,
+                    },
                 },
-            },
-        });
+            });
+        }
     }
 
     handleNodeCounters(type, nodeCounters) {
-        let node = this.state.nodes[nodeCounters.name] || { name: nodeCounters.name };
+        let node = this.state.nodes[nodeCounters.name];
+        if (!node) {
+            return;
+        }
         let currentCounters = node[type] || {};
         if (Object.keys(currentCounters).length > 50) {
             delete currentCounters[Object.keys(currentCounters)[0]];

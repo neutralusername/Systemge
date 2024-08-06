@@ -81,8 +81,7 @@ func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.Websocke
 	defer app.mutex.Unlock()
 	for _, n := range app.nodes {
 		go func() {
-			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(newNodeStatus(n))).Serialize())
-			websocketClient.Send(Message.NewAsync("nodeCommands", Helpers.JsonMarshal(newNodeCommands(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(n))).Serialize())
 		}()
 	}
 }
