@@ -41,7 +41,7 @@ func UnmarshalSystemge(data string) *Systemge {
 }
 
 type Websocket struct {
-	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to)
+	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
 
 	ClientRateLimiterBytes *RateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for websocket clients)
