@@ -129,7 +129,7 @@ func (node *Node) startSystemgeComponent() error {
 	return nil
 }
 
-func (node *Node) stopSystemgeComponent() error {
+func (node *Node) stopSystemgeComponent() {
 	systemge := node.systemge
 	node.systemge = nil
 	systemge.tcpServer.GetListener().Close()
@@ -144,5 +144,4 @@ func (node *Node) stopSystemgeComponent() error {
 		incomingConnection.netConn.Close()
 	}
 	systemge.incomingConnectionsMutex.Unlock()
-	return nil
 }

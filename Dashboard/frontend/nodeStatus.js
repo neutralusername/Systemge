@@ -33,7 +33,7 @@ export class nodeStatus extends React.Component {
 					},
 					"start",
 				): null,
-				this.props.node.name !== "dashboard" && (this.props.node.status === 1 || this.props.node.status === 3) ? React.createElement(
+				this.props.node.name !== "dashboard" && this.props.node.status === 1 ? React.createElement(
 					"button", {
 						onClick: () => {
 							this.props.WS_CONNECTION.send(this.props.constructMessage("reset", this.props.node.name));

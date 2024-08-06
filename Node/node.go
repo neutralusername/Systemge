@@ -38,10 +38,9 @@ type Node struct {
 }
 
 const (
-	STATUS_STOPPED   = 0
-	STATUS_PENDING   = 1
-	STATUS_STARTED   = 2
-	STATUS_CORRUPTED = 3
+	STATUS_STOPPED = 0
+	STATUS_PENDING = 1
+	STATUS_STARTED = 2
 )
 
 func New(config *Config.NewNode, application Application) *Node {
@@ -235,11 +234,7 @@ func (node *Node) stop(lock bool) error {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping websocket component", nil).Error())
 		}
-		err := node.stopWebsocketComponent()
-		if err != nil {
-			node.status = STATUS_CORRUPTED
-			return Error.New("failed to stop node. Error stopping websocket server", err)
-		}
+		node.stopWebsocketComponent()
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped websocket component", nil).Error())
 		}
@@ -248,11 +243,7 @@ func (node *Node) stop(lock bool) error {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping http component", nil).Error())
 		}
-		err := node.stopHTTPComponent()
-		if err != nil {
-			node.status = STATUS_CORRUPTED
-			return Error.New("failed to stop node. Error stopping http server", err)
-		}
+		node.stopHTTPComponent()
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped http component", nil).Error())
 		}
@@ -261,11 +252,7 @@ func (node *Node) stop(lock bool) error {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping systemge component", nil).Error())
 		}
-		err := node.stopSystemgeComponent()
-		if err != nil {
-			node.status = STATUS_CORRUPTED
-			return Error.New("failed to stop node. Error stopping systemge component", err)
-		}
+		node.stopSystemgeComponent()
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
 		}

@@ -56,13 +56,10 @@ func (node *Node) startWebsocketComponent() error {
 	return nil
 }
 
-func (node *Node) stopWebsocketComponent() error {
+func (node *Node) stopWebsocketComponent() {
 	websocket := node.websocket
 	node.websocket = nil
-	err := websocket.httpServer.Stop()
-	if err != nil {
-		return Error.New("failed stopping websocket handshake handler", err)
-	}
+	websocket.httpServer.Stop()
 	websocket.httpServer = nil
 	close(websocket.connChannel)
 	websocket.mutex.Lock()
@@ -74,5 +71,4 @@ func (node *Node) stopWebsocketComponent() error {
 	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()
 	}
-	return nil
 }

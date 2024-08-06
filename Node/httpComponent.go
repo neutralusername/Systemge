@@ -33,11 +33,8 @@ func (node *Node) startHTTPComponent() error {
 	return nil
 }
 
-func (node *Node) stopHTTPComponent() error {
-	err := node.http.server.Stop()
-	if err != nil {
-		return Error.New("failed stopping http server", err)
-	}
+func (node *Node) stopHTTPComponent() {
+	http := node.http
 	node.http = nil
-	return nil
+	http.server.Stop()
 }
