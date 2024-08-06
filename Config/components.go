@@ -9,10 +9,10 @@ import (
 type Systemge struct {
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false (if true, the server will handle all incoming messages sequentially, which means only one message will be processed at a time) (if false, the server will handle messages concurrently)
 
-	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 = infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	SyncResponseLimit               int    `json:"syncResponseLimit"`               // default: 0 == sync responses are disabled
-	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 = block forever
-	MaxConnectionAttempts           uint64 `json:"maxConnectionAttempts"`           // default: 0 = infinite
+	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
+	SyncResponseLimit               int    `json:"syncResponseLimit"`               // default: <=0 == sync responses are disabled
+	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever
+	MaxConnectionAttempts           uint64 `json:"maxConnectionAttempts"`           // default: 0 == infinite
 	ConnectionAttemptDelayMs        uint64 `json:"connectionAttemptDelay"`          // default: 0 (delay after failed connection attempt)
 	StopAfterOutgoingConnectionLoss bool   `json:"stopAfterOutgoingConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
 
@@ -27,11 +27,11 @@ type Systemge struct {
 	IncomingConnectionRateLimiterMsgs  *RateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
 
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 = unlimited (messages that exceed this limit will be skipped)
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 = unlimited (messages that exceed this limit will be skipped)
-	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 = unlimited (messages that exceed this limit will be skipped)
-	MaxNodeNameSize          uint64 `json:"maxNodeNameSize"`          // default: <=0 = unlimited (connections that attempt to send a node name larger than this will be rejected)
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
+	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxNodeNameSize          uint64 `json:"maxNodeNameSize"`          // default: 0 == unlimited (connections that attempt to send a node name larger than this will be rejected)
 }
 
 func UnmarshalSystemge(data string) *Systemge {

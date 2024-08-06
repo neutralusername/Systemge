@@ -18,8 +18,8 @@ func UnmarshalTcpServer(data string) *TcpServer {
 }
 
 type TcpEndpoint struct {
-	Address string `json:"address"` // *required*
-	Domain  string `json:"domain"`  // *optional*
+	Address string `json:"address"` // *required* (e.g. "127.0.0.1:60009")
+	Domain  string `json:"domain"`  // *optional* (e.g. "example.com")
 	TlsCert string `json:"tlsCert"` // *optional* cert, NOT path!
 }
 
