@@ -1,11 +1,19 @@
 package Tools
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 type Waitgroup struct {
 	waitGroup   *sync.WaitGroup
+	count       atomic.Uint32
 	executeChan chan bool
 	abortChan   chan bool
+}
+
+func (myWaitgroup *Waitgroup) GetCount() int {
+	return int(myWaitgroup.count.Load())
 }
 
 func NewWaitgroup() *Waitgroup {
@@ -19,6 +27,7 @@ func NewWaitgroup() *Waitgroup {
 // Wrap operation in func() in order to add it to the waitgroup
 func (myWaitgroup *Waitgroup) Add(function func()) {
 	myWaitgroup.waitGroup.Add(1)
+	myWaitgroup.count.Add(1)
 	go func() {
 		defer myWaitgroup.waitGroup.Done()
 		select {

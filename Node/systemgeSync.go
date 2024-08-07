@@ -39,7 +39,7 @@ func (systemge *systemgeComponent) responseChannelTimeout(stopChannel chan bool,
 	systemge.removeResponseChannel(responseChannel.GetRequestMessage().GetSyncTokenToken())
 }
 
-func (systemge *systemgeComponent) addResponseChannel(randomizer *Tools.Randomizer, topic, payload string, responseLimit int) *SyncResponseChannel {
+func (systemge *systemgeComponent) addResponseChannel(randomizer *Tools.Randomizer, topic, payload string) *SyncResponseChannel {
 	systemge.syncRequestMutex.Lock()
 	defer systemge.syncRequestMutex.Unlock()
 	syncToken := randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
@@ -47,9 +47,8 @@ func (systemge *systemgeComponent) addResponseChannel(randomizer *Tools.Randomiz
 		syncToken = randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
 	}
 	systemge.syncResponseChannels[syncToken] = &SyncResponseChannel{
-		closeChannel:    make(chan struct{}),
-		responseChannel: make(chan *Message.Message, responseLimit),
-		requestMessage:  Message.NewSync(topic, payload, syncToken),
+		closeChannel:   make(chan struct{}),
+		requestMessage: Message.NewSync(topic, payload, syncToken),
 	}
 	return systemge.syncResponseChannels[syncToken]
 }
@@ -92,6 +91,9 @@ func (syncResponseChannel *SyncResponseChannel) Close() error {
 	}
 	syncResponseChannel.closed = true
 	close(syncResponseChannel.closeChannel)
+	if syncResponseChannel.receivedCount == syncResponseChannel.responseCount {
+		close(syncResponseChannel.responseChannel)
+	}
 	return nil
 }
 
@@ -127,7 +129,7 @@ func (syncResponseChannel *SyncResponseChannel) ReceiveResponseTimeout(timeoutMs
 
 func (syncResponseChannel *SyncResponseChannel) handleReception() {
 	syncResponseChannel.receivedCount++
-	if syncResponseChannel.receivedCount == cap(syncResponseChannel.responseChannel) {
+	if syncResponseChannel.receivedCount == cap(syncResponseChannel.responseChannel) || (syncResponseChannel.closed && syncResponseChannel.receivedCount == syncResponseChannel.responseCount) {
 		syncResponseChannel.mutex.Lock()
 		defer syncResponseChannel.mutex.Unlock()
 		close(syncResponseChannel.responseChannel)

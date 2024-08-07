@@ -9,7 +9,7 @@ import (
 
 type Spawner struct {
 	config             *Config.Spawner
-	spawnedNodes       map[string]*Node.Node
+	nodes              map[string]*Node.Node
 	newApplicationFunc func() Node.Application
 	mutex              sync.Mutex
 	node               *Node.Node
@@ -20,7 +20,7 @@ type Spawner struct {
 func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *Node.Node {
 	app := &Spawner{
 		config:             config,
-		spawnedNodes:       make(map[string]*Node.Node),
+		nodes:              make(map[string]*Node.Node),
 		newApplicationFunc: newApplicationFunc,
 		addNodeChannel:     make(chan *Node.Node),
 		removeNodeChannel:  make(chan *Node.Node),
@@ -48,5 +48,5 @@ func ImplementsSpawner(application Node.Application) bool {
 func (spawner *Spawner) GetSpawnedNodeCount() int {
 	spawner.mutex.Lock()
 	defer spawner.mutex.Unlock()
-	return len(spawner.spawnedNodes)
+	return len(spawner.nodes)
 }

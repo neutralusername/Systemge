@@ -30,8 +30,10 @@ func (node *Node) AsyncMessage_(config *Config.Message) error {
 // Blocking until all requests are sent
 func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*SyncResponseChannel, error) {
 	if systemge := node.systemge; systemge != nil {
-		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload, systemge.config.SyncResponseLimit)
-		node.createOutgoingMessageWaitgroup(systemge, responseChannel.GetRequestMessage(), receiverNames...).Execute()
+		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload)
+		waitgroup := node.createOutgoingMessageWaitgroup(systemge, responseChannel.GetRequestMessage(), receiverNames...)
+		responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetCount())
+		waitgroup.Execute()
 		go systemge.responseChannelTimeout(node.stopChannel, responseChannel)
 		return responseChannel, nil
 	}

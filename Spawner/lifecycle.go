@@ -14,7 +14,7 @@ func (spawner *Spawner) OnStart(node *Node.Node) error {
 func (spawner *Spawner) OnStop(node *Node.Node) error {
 	spawner.mutex.Lock()
 	defer spawner.mutex.Unlock()
-	for nodeName := range spawner.spawnedNodes {
+	for nodeName := range spawner.nodes {
 		err := spawner.despawnNode(nodeName)
 		if err != nil {
 			if errorLogger := node.GetErrorLogger(); errorLogger != nil {

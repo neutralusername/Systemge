@@ -8,7 +8,7 @@ import (
 
 func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
 	newNode := Node.New(spawnedNodeConfig, spawner.newApplicationFunc())
-	spawner.spawnedNodes[newNode.GetName()] = newNode
+	spawner.nodes[newNode.GetName()] = newNode
 	if spawner.config.PropagateSpawnedNodeChanges {
 		spawner.addNodeChannel <- newNode
 	}
@@ -16,12 +16,12 @@ func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
 }
 
 func (spawner *Spawner) despawnNode(nodeName string) error {
-	spawnedNode := spawner.spawnedNodes[nodeName]
+	spawnedNode := spawner.nodes[nodeName]
 	if spawnedNode == nil {
 		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
 	spawnedNode.Stop()
-	delete(spawner.spawnedNodes, nodeName)
+	delete(spawner.nodes, nodeName)
 	if spawner.config.PropagateSpawnedNodeChanges {
 		spawner.removeNodeChannel <- spawnedNode
 	}
@@ -29,7 +29,7 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 }
 
 func (spawner *Spawner) stopNode(nodeName string) error {
-	spawnedNode := spawner.spawnedNodes[nodeName]
+	spawnedNode := spawner.nodes[nodeName]
 	if spawnedNode == nil {
 		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
@@ -41,7 +41,7 @@ func (spawner *Spawner) stopNode(nodeName string) error {
 }
 
 func (spawner *Spawner) startNode(nodeName string) error {
-	spawnedNode := spawner.spawnedNodes[nodeName]
+	spawnedNode := spawner.nodes[nodeName]
 	if spawnedNode == nil {
 		return Error.New("Node "+nodeName+" does not exist", nil)
 	}

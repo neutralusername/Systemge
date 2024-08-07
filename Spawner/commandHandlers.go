@@ -12,7 +12,7 @@ func (spawner *Spawner) GetCommandHandlers() map[string]Node.CommandHandler {
 			spawner.mutex.Lock()
 			defer spawner.mutex.Unlock()
 			resultStr := ""
-			for _, spawnedNode := range spawner.spawnedNodes {
+			for _, spawnedNode := range spawner.nodes {
 				resultStr += spawnedNode.GetName() + ";"
 			}
 			return resultStr, nil
