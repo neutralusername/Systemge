@@ -22,7 +22,7 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
 	if err := spawnedNode.Stop(); err != nil {
-		if spawnedNode.GetStatus() != Node.STATUS_STOPPED {
+		if status := spawnedNode.GetStatus(); status != Node.STATUS_STOPPED && status != Node.STATUS_STOPPING {
 			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
 				errorLogger.Log(Error.New("Failed stopping node "+nodeName+" during despawn", err).Error())
 			}
