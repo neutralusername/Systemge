@@ -50,7 +50,7 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 		}
 		if maxConnectionAttempts := systemge.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && connectionAttempts >= maxConnectionAttempts {
 			if systemge.config.StopAfterOutgoingConnectionLoss {
-				if err := node.stop(true); err != nil {
+				if err := node.Stop(); err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to stop node", err).Error())
 					}

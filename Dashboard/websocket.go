@@ -46,10 +46,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			if n == nil {
 				return Error.New("Node not found", nil)
 			}
-			err := n.Reset()
-			if err != nil {
-				return Error.New("Failed to reset node \""+n.GetName()+"\": "+err.Error(), nil)
-			}
+			n.Reset()
 			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
 			return nil
 		},

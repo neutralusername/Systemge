@@ -21,13 +21,6 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 			}
 			return "success", nil
 		},
-		"reset": func(node *Node, args []string) (string, error) {
-			err := node.Reset()
-			if err != nil {
-				return "", Error.New("Failed to reset node \""+node.GetName()+"\": "+err.Error(), nil)
-			}
-			return "success", nil
-		},
 	}
 	if node.websocket != nil {
 		handlers["websocketClients"] = handleWebsocketClientsCommand

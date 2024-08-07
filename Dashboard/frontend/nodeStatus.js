@@ -33,15 +33,7 @@ export class nodeStatus extends React.Component {
 					},
 					"start",
 				): null,
-				this.props.node.name !== "dashboard" && this.props.node.status === 1 ? React.createElement(
-					"button", {
-						onClick: () => {
-							this.props.WS_CONNECTION.send(this.props.constructMessage("reset", this.props.node.name));
-						},
-					},
-					"reset",
-				): null,
-				this.props.node.name !== "dashboard" && this.props.node.status === 2 ? React.createElement(
+				this.props.node.name !== "dashboard" && (this.props.node.status === 1 || this.props.node.status === 2) ? React.createElement(
 					"button", {
 						onClick: () => {
 							this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.node.name));
@@ -70,7 +62,7 @@ export class nodeStatus extends React.Component {
 						this.props.node.name,
 					),
 				),
-				this.props.node.status === 0 ? "🔴" : this.props.node.status === 1 ? "🟠" : this.props.node.status === 2 ? "🟢" : "⚫"
+				this.props.node.status === 0 ? "🔴" : this.props.node.status === 1 ? "🟡" : this.props.node.status === 2 ? "🟢" : "🟠"
 			),
 		)		
 	}

@@ -32,9 +32,10 @@ type Node struct {
 }
 
 const (
-	STATUS_STOPPED = 0
-	STATUS_PENDING = 1
-	STATUS_STARTED = 2
+	STATUS_STOPPED  = 0
+	STATUS_STARTING = 1
+	STATUS_STARTED  = 2
+	STATUS_STOPPING = 3
 )
 
 func New(config *Config.NewNode, application Application) *Node {
@@ -131,22 +132,24 @@ func (node *Node) StartBlocking() error {
 // Blocks until the node is fully started.
 func (node *Node) Start() error {
 	node.mutex.Lock()
-	defer node.mutex.Unlock()
 	if node.status != STATUS_STOPPED {
-		return Error.New("node already started", nil)
+		node.mutex.Unlock()
+		return Error.New("node not stopped", nil)
 	}
+	node.status = STATUS_STARTING
+	node.mutex.Unlock()
+
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
 	node.stopChannel = make(chan bool)
-	node.status = STATUS_PENDING
 	if ImplementsSystemgeComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
 		}
 		err := node.startSystemgeComponent()
 		if err != nil {
-			if err := node.stop(false); err != nil {
+			if err := node.Stop(); err != nil {
 				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
 					warningLogger.Log(Error.New("failed to stop node", err).Error())
 				}
@@ -163,7 +166,7 @@ func (node *Node) Start() error {
 		}
 		err := node.startWebsocketComponent()
 		if err != nil {
-			if err := node.stop(false); err != nil {
+			if err := node.Stop(); err != nil {
 				node.GetInternalWarningError().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting websocket server", err)
@@ -178,7 +181,7 @@ func (node *Node) Start() error {
 		}
 		err := node.startHTTPComponent()
 		if err != nil {
-			if err := node.stop(false); err != nil {
+			if err := node.Stop(); err != nil {
 				node.GetInternalWarningError().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting http server", err)
@@ -193,7 +196,7 @@ func (node *Node) Start() error {
 		}
 		err := node.GetOnStartComponent().OnStart(node)
 		if err != nil {
-			if err := node.stop(false); err != nil {
+			if err := node.Stop(); err != nil {
 				node.GetInternalWarningError().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed in OnStart", err)
@@ -212,77 +215,81 @@ func (node *Node) Start() error {
 // Stop stops the node.
 // Blocks until the node is fully stopped.
 func (node *Node) Stop() error {
-	return node.stop(true)
-}
+	node.mutex.Lock()
+	if node.status == STATUS_STOPPED {
+		node.mutex.Unlock()
+		return Error.New("node already stopped", nil)
+	}
+	if node.status == STATUS_STOPPING {
+		node.mutex.Unlock()
+		return Error.New("node already stopping", nil)
+	}
+	status := node.status
+	node.status = STATUS_STOPPING
+	node.mutex.Unlock()
 
-func (node *Node) stop(lock bool) error {
-	if lock {
-		node.mutex.Lock()
-		defer node.mutex.Unlock()
-	}
-	if node.status != STATUS_STARTED {
-		return Error.New("node not started", nil)
-	}
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopping", nil).Error())
 	}
-	node.status = STATUS_PENDING
-	if ImplementsOnStopComponent(node.application) {
+	if status == STATUS_STARTED {
+		if ImplementsOnStopComponent(node.application) {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Executing OnStop", nil).Error())
+			}
+			err := node.GetOnStopComponent().OnStop(node)
+			if err != nil {
+				node.status = STATUS_STARTED
+				return Error.New("failed to stop node. Error in OnStop", err)
+			}
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("executed OnStop", nil).Error())
+			}
+		}
+		if node.websocket != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopping websocket component", nil).Error())
+			}
+			node.stopWebsocketComponent()
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopped websocket component", nil).Error())
+			}
+		}
+		if node.http != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopping http component", nil).Error())
+			}
+			node.stopHTTPComponent()
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopped http component", nil).Error())
+			}
+		}
+		if node.systemge != nil {
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopping systemge component", nil).Error())
+			}
+			node.stopSystemgeComponent()
+			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+				infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
+			}
+		}
+		close(node.stopChannel)
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Executing OnStop", nil).Error())
+			infoLogger.Log(Error.New("Stopped", nil).Error())
 		}
-		err := node.GetOnStopComponent().OnStop(node)
-		if err != nil {
-			node.status = STATUS_STARTED
-			return Error.New("failed to stop node. Error in OnStop", err)
-		}
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("executed OnStop", nil).Error())
-		}
+		node.status = STATUS_STOPPED
+		return nil
+	} else if status == STATUS_STARTING {
+		node.Reset()
+		return nil
 	}
-	if node.websocket != nil {
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Stopping websocket component", nil).Error())
-		}
-		node.stopWebsocketComponent()
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Stopped websocket component", nil).Error())
-		}
-	}
-	if node.http != nil {
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Stopping http component", nil).Error())
-		}
-		node.stopHTTPComponent()
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Stopped http component", nil).Error())
-		}
-	}
-	if node.systemge != nil {
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Stopping systemge component", nil).Error())
-		}
-		node.stopSystemgeComponent()
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
-		}
-	}
-	close(node.stopChannel)
-	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Stopped", nil).Error())
-	}
-	node.status = STATUS_STOPPED
-	return nil
+	return Error.New("node not started", nil)
 }
 
 // Can be used to abort a Node that is in the process of starting.
 // Stops the node without executing OnStop nor websockets onDisconnect.
 // Is unsafe to use with potential race conditions. Use with caution, could lead to undefined behavior.
 // (Is safe to use when the node is stuck in pending status due to ongoing connection attempts)
-func (node *Node) Reset() error {
-	if node.status == STATUS_STOPPED {
-		return Error.New("node not started", nil)
-	}
+func (node *Node) Reset() {
 	if node.systemge != nil {
 		if listener := node.systemge.tcpServer.GetListener(); listener != nil {
 			listener.Close()
@@ -303,7 +310,6 @@ func (node *Node) Reset() error {
 	node.http = nil
 	close(node.stopChannel)
 	node.status = STATUS_STOPPED
-	return nil
 }
 
 func (node *Node) GetStatus() int {
