@@ -109,8 +109,7 @@ func (app *App) OnStart(node *Node.Node) error {
 	app.mutex.RLock()
 	for _, node := range app.nodes {
 		if Spawner.ImplementsSpawner(node.GetApplication()) {
-			go app.addNodeRoutine(node)
-			go app.removeNodeRoutine(node)
+			go app.spawnerNodeChangeRoutine(node)
 		}
 	}
 	if app.config.AutoStart {
@@ -154,36 +153,27 @@ func (app *App) goroutineUpdateRoutine() {
 	}
 }
 
-func (app *App) addNodeRoutine(node *Node.Node) {
+func (app *App) spawnerNodeChangeRoutine(node *Node.Node) {
 	spawner := node.GetApplication().(*Spawner.Spawner)
-	for spawnedNode := range spawner.GetAddNodeChannel() {
-		if spawnedNode == nil {
+	for {
+		spawnerNodeChange := spawner.GetNextNodeChange()
+		if spawnerNodeChange == nil {
 			if warningLogger := app.node.GetInternalWarningError(); warningLogger != nil {
 				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
 			}
 			return
 		}
 		app.mutex.Lock()
-		app.nodes[spawnedNode.GetName()] = spawnedNode
-		app.registerNodeHttpHandlers(spawnedNode)
-		go app.node.WebsocketBroadcast(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(spawnedNode))))
-		app.mutex.Unlock()
-	}
-}
+		if spawnerNodeChange.Added {
+			app.nodes[spawnerNodeChange.Node.GetName()] = spawnerNodeChange.Node
+			app.registerNodeHttpHandlers(spawnerNodeChange.Node)
+			go app.node.WebsocketBroadcast(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(spawnerNodeChange.Node))))
 
-func (app *App) removeNodeRoutine(node *Node.Node) {
-	spawner := node.GetApplication().(*Spawner.Spawner)
-	for removedNode := range spawner.GetRemoveNodeChannel() {
-		if removedNode == nil {
-			if warningLogger := app.node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
-			}
-			return
+		} else {
+			app.unregisterNodeHttpHandlers(spawnerNodeChange.Node)
+			delete(app.nodes, spawnerNodeChange.Node.GetName())
+			go app.node.WebsocketBroadcast(Message.NewAsync("removeNode", spawnerNodeChange.Node.GetName()))
 		}
-		app.mutex.Lock()
-		app.unregisterNodeHttpHandlers(removedNode)
-		delete(app.nodes, removedNode.GetName())
-		go app.node.WebsocketBroadcast(Message.NewAsync("removeNode", removedNode.GetName()))
 		app.mutex.Unlock()
 	}
 }

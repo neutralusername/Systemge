@@ -13,8 +13,12 @@ type Spawner struct {
 	newApplicationFunc func() Node.Application
 	mutex              sync.Mutex
 	node               *Node.Node
-	addNodeChannel     chan *Node.Node
-	removeNodeChannel  chan *Node.Node
+	nodeChangeChannel  chan *SpawnerNodeChange
+}
+
+type SpawnerNodeChange struct {
+	Node  *Node.Node
+	Added bool
 }
 
 func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *Node.Node {
@@ -22,8 +26,7 @@ func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *No
 		config:             config,
 		nodes:              make(map[string]*Node.Node),
 		newApplicationFunc: newApplicationFunc,
-		addNodeChannel:     make(chan *Node.Node),
-		removeNodeChannel:  make(chan *Node.Node),
+		nodeChangeChannel:  make(chan *SpawnerNodeChange),
 	}
 	node := Node.New(&Config.NewNode{
 		NodeConfig:     config.NodeConfig,
@@ -32,12 +35,8 @@ func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *No
 	return node
 }
 
-func (spawner *Spawner) GetAddNodeChannel() chan *Node.Node {
-	return spawner.addNodeChannel
-}
-
-func (spawner *Spawner) GetRemoveNodeChannel() chan *Node.Node {
-	return spawner.removeNodeChannel
+func (spawner *Spawner) GetNextNodeChange() *SpawnerNodeChange {
+	return <-spawner.nodeChangeChannel
 }
 
 func ImplementsSpawner(application Node.Application) bool {
