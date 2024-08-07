@@ -18,7 +18,7 @@ type Server struct {
 }
 
 func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
-	mux := newCustomMux()
+	mux := NewCustomMux()
 	server := &Server{
 		config: config,
 		httpServer: &http.Server{

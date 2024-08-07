@@ -2,47 +2,57 @@ package HTTP
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 )
 
 type CustomMux struct {
-	mux    *http.ServeMux
 	routes map[string]http.Handler
 	mutex  sync.RWMutex
 }
 
-func newCustomMux() *CustomMux {
+func NewCustomMux() *CustomMux {
 	return &CustomMux{
-		mux:    http.NewServeMux(),
 		routes: make(map[string]http.Handler),
 	}
 }
 
-func (c *CustomMux) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
+func (c *CustomMux) AddRoute(pattern string, handler http.Handler) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	c.routes[pattern] = handlerFunc
-	c.mux.Handle(pattern, handlerFunc)
+	c.routes[pattern] = handler
 }
 
 func (c *CustomMux) RemoveRoute(pattern string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if _, ok := c.routes[pattern]; ok {
-		delete(c.routes, pattern)
-		newMux := http.NewServeMux()
-		for p, h := range c.routes {
-			newMux.Handle(p, h)
-		}
-		c.mux = newMux
-	}
+	delete(c.routes, pattern)
 }
 
 func (c *CustomMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	c.mux.ServeHTTP(w, r)
+	if handler, ok := c.matchRoute(r.URL.Path); ok {
+		handler.ServeHTTP(w, r)
+		return
+	}
+
+	http.NotFound(w, r)
+}
+
+func (c *CustomMux) matchRoute(path string) (http.Handler, bool) {
+	if handler, ok := c.routes[path]; ok {
+		return handler, true
+	}
+
+	for pattern, handler := range c.routes {
+		if strings.HasPrefix(path, pattern) {
+			return handler, true
+		}
+	}
+
+	return nil, false
 }

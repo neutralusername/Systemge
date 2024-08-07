@@ -10,12 +10,10 @@ func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
 	newNode := Node.New(spawnedNodeConfig, spawner.newApplicationFunc())
 	spawner.nodes[newNode.GetName()] = newNode
 	if spawner.config.PropagateSpawnedNodeChanges {
-		go func() {
-			spawner.nodeChangeChannel <- &SpawnerNodeChange{
-				Node:  newNode,
-				Added: true,
-			}
-		}()
+		spawner.nodeChangeChannel <- &SpawnerNodeChange{
+			Node:  newNode,
+			Added: true,
+		}
 	}
 	return nil
 }
@@ -28,12 +26,10 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 	spawnedNode.Stop()
 	delete(spawner.nodes, nodeName)
 	if spawner.config.PropagateSpawnedNodeChanges {
-		go func() {
-			spawner.nodeChangeChannel <- &SpawnerNodeChange{
-				Node:  spawnedNode,
-				Added: false,
-			}
-		}()
+		spawner.nodeChangeChannel <- &SpawnerNodeChange{
+			Node:  spawnedNode,
+			Added: false,
+		}
 	}
 	return nil
 }
