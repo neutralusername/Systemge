@@ -4,7 +4,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Node"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
@@ -21,21 +20,7 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 	if spawnedNode == nil {
 		return Error.New("Node "+nodeName+" does not exist", nil)
 	}
-	if err := spawnedNode.Stop(); err != nil {
-		if status := spawnedNode.GetStatus(); status != Node.STATUS_STOPPED && status != Node.STATUS_STOPPING {
-			if errorLogger := spawnedNode.GetErrorLogger(); errorLogger != nil {
-				errorLogger.Log(Error.New("Failed stopping node "+nodeName+" during despawn", err).Error())
-			}
-			if mailer := spawner.node.GetMailer(); mailer != nil {
-				err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed stopping node "+nodeName, err).Error()))
-				if err != nil {
-					if errorLogger := spawner.node.GetErrorLogger(); errorLogger != nil {
-						errorLogger.Log(Error.New("Failed sending mail", err).Error())
-					}
-				}
-			}
-		}
-	}
+	spawnedNode.Stop()
 	delete(spawner.spawnedNodes, nodeName)
 	if spawner.config.PropagateSpawnedNodeChanges {
 		spawner.removeNodeChannel <- spawnedNode
