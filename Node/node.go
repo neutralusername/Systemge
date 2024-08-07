@@ -278,7 +278,7 @@ func (node *Node) stop(lock bool) error {
 // Can be used to abort a Node that is in the process of starting.
 // Stops the node without executing OnStop nor websockets onDisconnect.
 // Is unsafe to use with potential race conditions. Use with caution, could lead to undefined behavior.
-// (Is safe to use when the node is stuck at pending status because of ongoing connection attempts)
+// (Is safe to use when the node is stuck in pending status due to ongoing connection attempts)
 func (node *Node) Reset() error {
 	if node.status == STATUS_STOPPED {
 		return Error.New("node not started", nil)
