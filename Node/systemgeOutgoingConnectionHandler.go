@@ -17,6 +17,9 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 		infoLogger.Log(Error.New("Starting connection attempts to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 	}
 	connectionAttempts := uint64(0)
+	// todo
+	// problem lies in this unlocked section and quick despawn/spawns
+	// theres also the potential issue that systemge could have changed between the function call and the systemge_ assisgnment.
 	systemge_ := node.systemge
 	if systemge_ == nil {
 		return Error.New("Systemge is nil", nil)
