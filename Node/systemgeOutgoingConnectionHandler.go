@@ -66,6 +66,9 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 			}
 			return Error.New("Max attempts reached to connect to endpoint \""+endpointConfig.Address+"\"", nil)
 		}
+		if connectionAttempts > 0 {
+			time.Sleep(time.Duration(systemge.config.ConnectionAttemptDelayMs) * time.Millisecond)
+		}
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 		}
@@ -75,7 +78,6 @@ func (node *Node) outgoingConnectionLoop(endpointConfig *Config.TcpEndpoint) err
 				warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(connectionAttempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", err).Error())
 			}
 			connectionAttempts++
-			time.Sleep(time.Duration(systemge.config.ConnectionAttemptDelayMs) * time.Millisecond)
 		} else {
 			err := systemge.addOutgoingConnection(outgoingConnection)
 			if err != nil {

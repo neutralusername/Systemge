@@ -27,38 +27,18 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 	return map[string]Node.SyncMessageHandler{
 		SPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
 			err := spawner.spawnNode(Config.UnmarshalNewNode(message.GetPayload()))
-			spawner.mutex.Unlock()
 			if err != nil {
 				return "", Error.New("Failed spawning node \""+message.GetPayload()+"\"", err)
 			}
 			return "", nil
 		},
-		DESPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
-			nodeName := message.GetPayload()
-			spawner.mutex.Lock()
-			err := spawner.despawnNode(nodeName)
-			spawner.mutex.Unlock()
-			if err != nil {
-				return "", Error.New("Failed despawning node "+nodeName, err)
-			}
-			return nodeName, nil
-		},
-		STOP_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
-			nodeName := message.GetPayload()
-			spawner.mutex.Lock()
-			err := spawner.stopNode(nodeName)
-			spawner.mutex.Unlock()
-			if err != nil {
-				return "", Error.New("Failed stopping node "+nodeName, err)
-			}
-			return nodeName, nil
-		},
 		START_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			nodeName := message.GetPayload()
 			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
 			err := spawner.startNode(nodeName)
-			spawner.mutex.Unlock()
 			if err != nil {
 				return "", Error.New("Failed starting node "+nodeName, err)
 			}
@@ -67,16 +47,14 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 		SPAWN_AND_START_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			newNodeConfig := Config.UnmarshalNewNode(message.GetPayload())
 			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
 			err := spawner.spawnNode(newNodeConfig)
 			if err != nil {
-				spawner.mutex.Unlock()
 				return "", Error.New("Failed spawning node \""+message.GetPayload()+"\"", err)
 			}
 			err = spawner.startNode(newNodeConfig.NodeConfig.Name)
-
 			if err != nil {
-				err = spawner.despawnNode(newNodeConfig.NodeConfig.Name)
-				if err != nil {
+				if err := spawner.despawnNode(newNodeConfig.NodeConfig.Name); err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
 						errorLogger.Log(Error.New("Failed despawning node "+newNodeConfig.NodeConfig.Name, err).Error())
 					}
@@ -89,11 +67,29 @@ func (spawner *Spawner) GetSyncMessageHandlers() map[string]Node.SyncMessageHand
 						}
 					}
 				}
-				spawner.mutex.Unlock()
 				return "", Error.New("Failed starting node "+newNodeConfig.NodeConfig.Name, err)
 			}
-			spawner.mutex.Unlock()
 			return "", nil
+		},
+		DESPAWN_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
+			nodeName := message.GetPayload()
+			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
+			err := spawner.despawnNode(nodeName)
+			if err != nil {
+				return "", Error.New("Failed despawning node "+nodeName, err)
+			}
+			return nodeName, nil
+		},
+		STOP_NODE_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
+			nodeName := message.GetPayload()
+			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
+			err := spawner.stopNode(nodeName)
+			if err != nil {
+				return "", Error.New("Failed stopping node "+nodeName, err)
+			}
+			return nodeName, nil
 		},
 		STOP_ALL_NODES_SYNC: func(node *Node.Node, message *Message.Message) (string, error) {
 			spawner.mutex.Lock()
@@ -129,38 +125,18 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 	return map[string]Node.AsyncMessageHandler{
 		SPAWN_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
 			err := spawner.spawnNode(Config.UnmarshalNewNode(message.GetPayload()))
-			spawner.mutex.Unlock()
 			if err != nil {
 				return Error.New("Failed spawning node \""+message.GetPayload()+"\"", err)
-			}
-			return nil
-		},
-		DESPAWN_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
-			id := message.GetPayload()
-			spawner.mutex.Lock()
-			err := spawner.despawnNode(id)
-			spawner.mutex.Unlock()
-			if err != nil {
-				return Error.New("Failed despawning node "+id, err)
-			}
-			return nil
-		},
-		STOP_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
-			id := message.GetPayload()
-			spawner.mutex.Lock()
-			err := spawner.stopNode(id)
-			spawner.mutex.Unlock()
-			if err != nil {
-				return Error.New("Failed stopping node "+id, err)
 			}
 			return nil
 		},
 		START_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			id := message.GetPayload()
 			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
 			err := spawner.startNode(id)
-			spawner.mutex.Unlock()
 			if err != nil {
 				return Error.New("Failed starting node "+id, err)
 			}
@@ -169,15 +145,47 @@ func (spawner *Spawner) GetAsyncMessageHandlers() map[string]Node.AsyncMessageHa
 		SPAWN_AND_START_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
 			newNodeConfig := Config.UnmarshalNewNode(message.GetPayload())
 			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
 			err := spawner.spawnNode(newNodeConfig)
 			if err != nil {
-				spawner.mutex.Unlock()
 				return Error.New("Failed spawning node \""+message.GetPayload()+"\"", err)
 			}
-			err = spawner.startNode(newNodeConfig.NodeConfig.Name)
-			spawner.mutex.Unlock()
-			if err != nil {
+
+			if err = spawner.startNode(newNodeConfig.NodeConfig.Name); err != nil {
+				if err := spawner.despawnNode(newNodeConfig.NodeConfig.Name); err != nil {
+					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log(Error.New("Failed despawning node "+newNodeConfig.NodeConfig.Name, err).Error())
+					}
+					if mailer := node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed despawning node "+newNodeConfig.NodeConfig.Name, err).Error()))
+						if err != nil {
+							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
+						}
+					}
+				}
 				return Error.New("Failed starting node "+newNodeConfig.NodeConfig.Name, err)
+			}
+			return nil
+		},
+		DESPAWN_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
+			id := message.GetPayload()
+			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
+			err := spawner.despawnNode(id)
+			if err != nil {
+				return Error.New("Failed despawning node "+id, err)
+			}
+			return nil
+		},
+		STOP_NODE_ASYNC: func(node *Node.Node, message *Message.Message) error {
+			id := message.GetPayload()
+			spawner.mutex.Lock()
+			defer spawner.mutex.Unlock()
+			err := spawner.stopNode(id)
+			if err != nil {
+				return Error.New("Failed stopping node "+id, err)
 			}
 			return nil
 		},
