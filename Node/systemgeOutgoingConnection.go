@@ -74,6 +74,9 @@ func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingC
 	if systemge.outgoingConnections[outgoingConn.endpointConfig.Address] != nil {
 		return Error.New("Node connection already exists", nil)
 	}
+	if systemge.currentlyInOutgoingConnectionLoop[outgoingConn.endpointConfig.Address] == nil {
+		return Error.New("This is an edge case i have not yet figured out but just occured to while testing spawners. wasn't able to replicate it yet", nil)
+	}
 	if !*systemge.currentlyInOutgoingConnectionLoop[outgoingConn.endpointConfig.Address] {
 		return Error.New("Connection loop cancelled", nil)
 	}
