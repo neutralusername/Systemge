@@ -33,6 +33,9 @@ func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*
 		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload)
 		waitgroup := node.createOutgoingMessageWaitgroup(systemge, responseChannel.GetRequestMessage(), receiverNames...)
 		responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetCount())
+		if cap(responseChannel.responseChannel) == 0 {
+			responseChannel.Close()
+		}
 		waitgroup.Execute()
 		go systemge.responseChannelTimeout(node.stopChannel, responseChannel)
 		return responseChannel, nil
