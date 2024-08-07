@@ -10,6 +10,7 @@ import (
 type Spawner struct {
 	config             *Config.Spawner
 	nodes              map[string]*Node.Node
+	spawnedNodesCount  int
 	newApplicationFunc func() Node.Application
 	mutex              sync.Mutex
 	node               *Node.Node
@@ -45,7 +46,5 @@ func ImplementsSpawner(application Node.Application) bool {
 }
 
 func (spawner *Spawner) GetSpawnedNodeCount() int {
-	spawner.mutex.Lock()
-	defer spawner.mutex.Unlock()
-	return len(spawner.nodes)
+	return spawner.spawnedNodesCount
 }

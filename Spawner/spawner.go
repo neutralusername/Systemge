@@ -15,6 +15,7 @@ func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
 			Added: true,
 		}
 	}
+	spawner.spawnedNodesCount++
 	return nil
 }
 
@@ -31,6 +32,7 @@ func (spawner *Spawner) despawnNode(nodeName string) error {
 			Added: false,
 		}
 	}
+	spawner.spawnedNodesCount--
 	return nil
 }
 
