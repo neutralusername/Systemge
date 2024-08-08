@@ -37,7 +37,6 @@ func New(config *Config.Dashboard, nodes ...*Node.Node) *Node.Node {
 				Whitelist:   app.config.ServerConfig.Whitelist,
 			},
 			HandleClientMessagesSequentially: false,
-			ClientMessageCooldownMs:          0,
 			ClientWatchdogTimeoutMs:          1000 * 60 * 5,
 			Upgrader: &websocket.Upgrader{
 				ReadBufferSize:  1024,

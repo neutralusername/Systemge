@@ -49,7 +49,6 @@ type Websocket struct {
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 
 	HandleClientMessagesSequentially bool   `json:"handleClientMessagesSequentially"` // default: false (if true, the server will handle messages from the same client sequentially)
-	ClientMessageCooldownMs          uint64 `json:"clientMessageCooldownMs"`          // default: 0 (if a client sends messages faster than this, the server will ignore)
 	ClientWatchdogTimeoutMs          uint64 `json:"clientWatchdogTimeoutMs"`          // default: 0 (if a client does not send a heartbeat message within this time, the server will disconnect the client)
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
