@@ -112,7 +112,7 @@ type systemgeComponent struct {
 	bytesSent     atomic.Uint64 // total bytes sent
 }
 
-func (node *Node) startSystemgeComponent() error {
+func (node *Node) startSystemgeComponent() (*systemgeComponent, error) {
 	systemge := &systemgeComponent{
 		syncResponseChannels:           make(map[string]*SyncResponseChannel),
 		topicResolutions:               make(map[string]map[string]*outgoingConnection),
@@ -120,7 +120,7 @@ func (node *Node) startSystemgeComponent() error {
 		incomingConnections:            make(map[string]*incomingConnection),
 		outgoingConnectionAttempts:     make(map[string]*outgoingConnectionAttempt),
 		infoLogger:                     node.GetInternalInfoLogger(),
-		warningLogger:                  node.GetInternalWarningError(),
+		warningLogger:                  node.GetInternalWarningLogger(),
 		errorLogger:                    node.GetErrorLogger(),
 		stopChannel:                    make(chan bool),
 		incomingConnectionsStopChannel: make(chan bool),
@@ -182,17 +182,17 @@ func (node *Node) startSystemgeComponent() error {
 	}
 	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
 	if err != nil {
-		return Error.New("Failed to create tcp server", err)
+		return nil, Error.New("Failed to create tcp server", err)
 	}
 	systemge.tcpServer = tcpServer
-	node.systemge = systemge
 	go systemge.handleIncomingConnections()
 	for _, endpointConfig := range systemge.config.EndpointConfigs {
 		if err := systemge.attemptOutgoingConnection(endpointConfig, false); err != nil {
-			return Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
+			tcpServer.GetListener().Close()
+			return nil, Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
-	return nil
+	return systemge, nil
 }
 
 // stopSystemgeComponent stops the systemge component.
@@ -204,22 +204,30 @@ func (node *Node) stopSystemgeComponent() {
 	systemge.tcpServer.GetListener().Close()
 	<-systemge.incomingConnectionsStopChannel
 
-	systemge.outgoingConnectionMutex.Lock()
+	waitgroup := Tools.NewWaitgroup()
 
+	systemge.outgoingConnectionMutex.Lock()
 	for _, outgoingConnectionAttempt := range systemge.outgoingConnectionAttempts {
-		<-outgoingConnectionAttempt.stopChannel
+		waitgroup.Add(func() {
+			<-outgoingConnectionAttempt.stopChannel
+		})
 	}
 	for _, outgoingConnection := range systemge.outgoingConnections {
-		outgoingConnection.netConn.Close()
-		<-outgoingConnection.stopChannel
+		waitgroup.Add(func() {
+			outgoingConnection.netConn.Close()
+			<-outgoingConnection.stopChannel
+		})
 	}
 	systemge.outgoingConnectionMutex.Unlock()
 
 	systemge.incomingConnectionMutex.Lock()
 	for _, incomingConnection := range systemge.incomingConnections {
-		incomingConnection.netConn.Close()
-		<-incomingConnection.stopChannel
+		waitgroup.Add(func() {
+			incomingConnection.netConn.Close()
+			<-incomingConnection.stopChannel
+		})
 	}
 	systemge.incomingConnectionMutex.Unlock()
 
+	waitgroup.Execute()
 }

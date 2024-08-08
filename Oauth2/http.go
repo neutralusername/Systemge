@@ -34,7 +34,7 @@ func (server *App) oauth2AuthCallback() http.HandlerFunc {
 		}
 		state := httpRequest.FormValue("state")
 		if state != server.config.Oauth2State {
-			if warningLogger := server.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := server.node.GetInternalWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed oauth2 state check for \""+state+"\" for client \""+httpRequest.RemoteAddr+"\"", nil).Error())
 			}
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)
@@ -43,7 +43,7 @@ func (server *App) oauth2AuthCallback() http.HandlerFunc {
 		code := httpRequest.FormValue("code")
 		token, err := server.config.OAuth2Config.Exchange(httpRequest.Context(), code)
 		if err != nil {
-			if warningLogger := server.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := server.node.GetInternalWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed exchanging code \""+code+"\" for token for client \""+httpRequest.RemoteAddr+"\"", err).Error())
 			}
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)
@@ -57,7 +57,7 @@ func (server *App) oauth2AuthCallback() http.HandlerFunc {
 		server.sessionRequestChannel <- Oauth2SessionRequest
 		session := <-sessionChannel
 		if session == nil {
-			if warningLogger := server.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := server.node.GetInternalWarningLogger(); warningLogger != nil {
 				warningLogger.Log(Error.New("Failed creating session for access token \""+token.AccessToken+"\" for client \""+httpRequest.RemoteAddr+"\"", nil).Error())
 			}
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)

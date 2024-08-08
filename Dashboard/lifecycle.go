@@ -158,7 +158,7 @@ func (app *App) spawnerNodeChangeRoutine(node *Node.Node) {
 	for {
 		spawnerNodeChange := spawner.GetNextNodeChange()
 		if spawnerNodeChange == nil {
-			if warningLogger := app.node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := app.node.GetInternalWarningLogger(); warningLogger != nil {
 				warningLogger.Log("Node channel closed for \"" + node.GetName() + "\"")
 			}
 			return

@@ -73,19 +73,23 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 // Resets the watchdog timer to its initial value.
 func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
 	if websocket := node.websocket; websocket != nil {
-		if websocketClient == nil {
-			return Error.New("websocketClient is nil", nil)
-		}
-		websocketClient.watchdogMutex.Lock()
-		defer websocketClient.watchdogMutex.Unlock()
-		if websocketClient.watchdog == nil || websocketClient.disconnected {
-			return Error.New("websocketClient is disconnected", nil)
-		}
-		websocketClient.expired = false
-		websocketClient.watchdog.Reset(time.Duration(websocket.config.ClientWatchdogTimeoutMs) * time.Millisecond)
-		return nil
+		return websocket.resetWatchdog(websocketClient)
 	}
 	return Error.New("websocket is nil", nil)
+}
+
+func (websocket *websocketComponent) resetWatchdog(websocketClient *WebsocketClient) error {
+	if websocketClient == nil {
+		return Error.New("websocketClient is nil", nil)
+	}
+	websocketClient.watchdogMutex.Lock()
+	defer websocketClient.watchdogMutex.Unlock()
+	if websocketClient.watchdog == nil || websocketClient.disconnected {
+		return Error.New("websocketClient is disconnected", nil)
+	}
+	websocketClient.expired = false
+	websocketClient.watchdog.Reset(time.Duration(websocket.config.ClientWatchdogTimeoutMs) * time.Millisecond)
+	return nil
 }
 
 // Disconnects the websocketClient and blocks until the websocketClients onDisconnectHandler has finished.
