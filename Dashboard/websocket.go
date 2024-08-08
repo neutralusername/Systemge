@@ -39,17 +39,6 @@ func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHa
 			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
 			return nil
 		},
-		"reset": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			app.mutex.RLock()
-			n := app.nodes[message.GetPayload()]
-			app.mutex.RUnlock()
-			if n == nil {
-				return Error.New("Node not found", nil)
-			}
-			n.Reset()
-			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
-			return nil
-		},
 		"command": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
 			command := unmarshalCommand(message.GetPayload())
 			if command == nil {

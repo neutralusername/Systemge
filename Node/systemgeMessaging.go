@@ -37,7 +37,7 @@ func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*
 			responseChannel.Close()
 		}
 		waitgroup.Execute()
-		go systemge.responseChannelTimeout(node.stopChannel, responseChannel)
+		go systemge.responseChannelTimeout(systemge.stopChannel, responseChannel)
 		return responseChannel, nil
 	}
 	return nil, Error.New("systemge not initialized", nil)

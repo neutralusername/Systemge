@@ -9,122 +9,101 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (node *Node) handleIncomingConnections() {
-	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+// handles incoming connections from other nodes one at a time until systemge is stopped
+func (systemge *systemgeComponent) handleIncomingConnections() {
+	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting incoming connection handler", nil).Error())
 	}
-	systemge_ := node.systemge
 	for {
-		systemge := node.systemge
-		if systemge == nil {
-			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Aborting incoming connection handler because systemge is nil likely due to node being stopped", nil).Error())
+		select {
+		case <-systemge.stopChannel:
+			if infoLogger := systemge.infoLogger; infoLogger != nil {
+				infoLogger.Log(Error.New("Stopping incoming connection handler for node-session-id \""+Helpers.GetPointerId(systemge.stopChannel)+"\"", nil).Error())
 			}
+			close(systemge.incomingConnectionsStopChannel)
 			return
-		}
-		if systemge != systemge_ {
-			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Aborting incoming connection handler because systemge has changed likely due to node restart", nil).Error())
-			}
-			return
-		}
-		netConn, err := systemge.tcpServer.GetListener().Accept()
-		if err != nil {
-			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to accept incoming connection", err).Error())
-			}
-			continue
-		}
-		systemge.incomingConnectionAttempts.Add(1)
-		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-			infoLogger.Log(Error.New("Handling incoming connection from "+netConn.RemoteAddr().String(), nil).Error())
-		}
-		go func() {
-			address := netConn.RemoteAddr().String()
-			ip, _, err := net.SplitHostPort(address)
+		default:
+			netConn, err := systemge.tcpServer.GetListener().Accept()
 			if err != nil {
-				netConn.Close()
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to split host and port from address \""+address+"\"", err).Error())
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to accept incoming connection", err).Error())
 				}
-				return
+				continue
 			}
-			if systemge.tcpServer.GetBlacklist().Contains(ip) {
-				netConn.Close()
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Rejected incoming connection from \""+netConn.RemoteAddr().String()+"\" due to blacklist", nil).Error())
+			systemge.incomingConnectionAttempts.Add(1)
+			if infoLogger := systemge.infoLogger; infoLogger != nil {
+				infoLogger.Log(Error.New("Handling incoming connection from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
+			}
+			if err := systemge.accessControlIncomingConnection(netConn); err != nil {
+				systemge.incomingConnectionAttemptsFailed.Add(1)
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
+					warningLogger.Log("Rejected incoming connection from \"" + netConn.RemoteAddr().String() + "\" due to access control: " + err.Error())
 				}
-				return
-			}
-			if systemge.tcpServer.GetWhitelist().ElementCount() > 0 && !systemge.tcpServer.GetWhitelist().Contains(ip) {
 				netConn.Close()
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Rejected incoming connection from \""+netConn.RemoteAddr().String()+"\" due to whitelist", nil).Error())
-				}
-				return
+				continue
 			}
-			incomingConnection, err := systemge.handleIncomingConnection(node.GetName(), netConn)
+			incomingConnection, err := systemge.handleIncomingConnectionHandshake(netConn)
 			if err != nil {
 				systemge.incomingConnectionAttemptsFailed.Add(1)
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle incoming connection from "+netConn.RemoteAddr().String(), err).Error())
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to handle incoming connection handshake from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
-			} else {
-				err := systemge.addIncomingConnection(incomingConnection)
-				if err != nil {
-					systemge.incomingConnectionAttemptsFailed.Add(1)
-					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to add incoming connection from "+netConn.RemoteAddr().String()+" with name \""+incomingConnection.name+"\"", err).Error())
-					}
-					return
-				}
-				if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-					infoLogger.Log(Error.New("Successfully handled incoming connection from "+netConn.RemoteAddr().String()+" with name \""+incomingConnection.name+"\"", nil).Error())
-				}
-				systemge.incomingConnectionAttemptsSuccessful.Add(1)
-				go node.handleIncomingConnectionMessages(incomingConnection)
+				netConn.Close()
+				continue
 			}
-		}()
+
+			systemge.incomingConnectionMutex.Lock()
+			if systemge.incomingConnections[incomingConnection.name] != nil {
+				systemge.incomingConnectionMutex.Unlock()
+				systemge.incomingConnectionAttemptsFailed.Add(1)
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to add incoming connection from \""+netConn.RemoteAddr().String()+"\" with name \""+incomingConnection.name+"\"", err).Error())
+				}
+				netConn.Close()
+				continue
+			}
+			systemge.incomingConnections[incomingConnection.name] = incomingConnection
+			systemge.incomingConnectionMutex.Unlock()
+
+			if infoLogger := systemge.infoLogger; infoLogger != nil {
+				infoLogger.Log(Error.New("Successfully handled incoming connection from \""+netConn.RemoteAddr().String()+"\" with name \""+incomingConnection.name+"\"", nil).Error())
+			}
+			systemge.incomingConnectionAttemptsSuccessful.Add(1)
+			go systemge.handleIncomingConnectionMessages(incomingConnection)
+		}
 	}
 }
 
-func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, netConn net.Conn) (*incomingConnection, error) {
+func (systemge *systemgeComponent) handleIncomingConnectionHandshake(netConn net.Conn) (*incomingConnection, error) {
 	systemge.incomingConnectionAttempts.Add(1)
 	incomingConnection := incomingConnection{
 		netConn: netConn,
 	}
 	messageBytes, err := incomingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
-		netConn.Close()
 		return nil, Error.New("Failed to receive \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	systemge.incomingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
-		netConn.Close()
 		return nil, Error.New("Failed to deserialize \""+TOPIC_NODENAME+"\" message", err)
 	}
 	if err := systemge.validateMessage(message); err != nil {
-		netConn.Close()
 		return nil, Error.New("Failed to validate \""+TOPIC_NODENAME+"\" message", err)
 	}
 	if message.GetTopic() != TOPIC_NODENAME {
-		netConn.Close()
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+TOPIC_NODENAME+"\"", nil)
 	}
 	incomingConnectionName := message.GetPayload()
 	if incomingConnectionName == "" {
-		netConn.Close()
 		return nil, Error.New("Received empty payload in \""+TOPIC_NODENAME+"\" message", nil)
 	}
 	if systemge.config.MaxNodeNameSize != 0 && len(incomingConnectionName) > int(systemge.config.MaxNodeNameSize) {
-		netConn.Close()
 		return nil, Error.New("Received node name \""+incomingConnectionName+"\" exceeds maximum size of "+Helpers.Uint64ToString(systemge.config.MaxNodeNameSize), nil)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, nodeName).Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, systemge.nodeName).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
-		netConn.Close()
 		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
@@ -142,7 +121,6 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	systemge.asyncMessageHandlerMutex.RUnlock()
 	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(TOPIC_RESPONSIBLETOPICS, Helpers.JsonMarshal(responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
-		netConn.Close()
 		return nil, Error.New("Failed to send \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
@@ -150,4 +128,19 @@ func (systemge *systemgeComponent) handleIncomingConnection(nodeName string, net
 	incomingConn := systemge.newIncomingConnection(netConn, incomingConnectionName)
 	incomingConn.tcpBuffer = incomingConnection.tcpBuffer
 	return incomingConn, nil
+}
+
+func (systemge *systemgeComponent) accessControlIncomingConnection(netConn net.Conn) error {
+	address := netConn.RemoteAddr().String()
+	ip, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return Error.New("Failed to split host and port from address", err)
+	}
+	if systemge.tcpServer.GetBlacklist().Contains(ip) {
+		return Error.New("Rejected incoming connection due to blacklist", nil)
+	}
+	if systemge.tcpServer.GetWhitelist().ElementCount() > 0 && !systemge.tcpServer.GetWhitelist().Contains(ip) {
+		return Error.New("Rejected incoming connection due to whitelist", nil)
+	}
+	return nil
 }

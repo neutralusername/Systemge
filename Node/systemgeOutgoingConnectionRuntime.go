@@ -26,9 +26,9 @@ func (node *Node) GetOutgoingConnectionAttemptsList() []string {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.RLock()
 		defer systemge.outgoingConnectionMutex.RUnlock()
-		attempts := make([]string, len(systemge.currentlyInOutgoingConnectionLoop))
+		attempts := make([]string, len(systemge.outgoingConnectionAttempts))
 		i := 0
-		for address := range systemge.currentlyInOutgoingConnectionLoop {
+		for address := range systemge.outgoingConnectionAttempts {
 			attempts[i] = address
 			i++
 		}
@@ -39,21 +39,9 @@ func (node *Node) GetOutgoingConnectionAttemptsList() []string {
 
 // Adds another node as an outgoing connection.
 // This connection is used to send async and sync requests and receive sync responses for their corresponding requests.
-func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint) error {
+func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint, transient bool) error {
 	if systemge := node.systemge; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		if systemge.outgoingConnections[endpointConfig.Address] != nil {
-			systemge.outgoingConnectionMutex.Unlock()
-			return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" already exists", nil)
-		}
-		if systemge.currentlyInOutgoingConnectionLoop[endpointConfig.Address] != nil {
-			systemge.outgoingConnectionMutex.Unlock()
-			return Error.New("Connection to endpoint \""+endpointConfig.Address+"\" is already being established", nil)
-		}
-		b := true
-		systemge.currentlyInOutgoingConnectionLoop[endpointConfig.Address] = &b
-		systemge.outgoingConnectionMutex.Unlock()
-		return node.outgoingConnectionLoop(endpointConfig)
+		return systemge.attemptOutgoingConnection(endpointConfig, transient)
 	}
 	return Error.New("Systemge is nil", nil)
 }
@@ -63,12 +51,12 @@ func (node *Node) DisconnectFromNode(address string) error {
 	if systemge := node.systemge; systemge != nil {
 		systemge.outgoingConnectionMutex.Lock()
 		defer systemge.outgoingConnectionMutex.Unlock()
-		if systemge.currentlyInOutgoingConnectionLoop[address] != nil {
-			*systemge.currentlyInOutgoingConnectionLoop[address] = false
+		if outgoingConnectionAttempt := systemge.outgoingConnectionAttempts[address]; outgoingConnectionAttempt != nil {
+			outgoingConnectionAttempt.isAborted = true
 		}
 		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
 			outgoingConnection.netConn.Close()
-			outgoingConnection.transient = true
+			outgoingConnection.isTransient = true
 		}
 		return nil
 	}

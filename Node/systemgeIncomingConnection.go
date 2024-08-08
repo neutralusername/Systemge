@@ -19,6 +19,23 @@ type incomingConnection struct {
 	rateLimiterBytes *Tools.RateLimiter
 	rateLimiterMsgs  *Tools.RateLimiter
 	tcpBuffer        []byte
+
+	stopChannel chan bool //closing of this channel indicates that the incoming connection has finished its ongoing tasks.
+}
+
+func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
+	nodeConnection := &incomingConnection{
+		netConn:     netConn,
+		name:        name,
+		stopChannel: make(chan bool),
+	}
+	if systemge.config.IncomingConnectionRateLimiterBytes != nil {
+		nodeConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterBytes)
+	}
+	if systemge.config.IncomingConnectionRateLimiterMsgs != nil {
+		nodeConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterMsgs)
+	}
+	return nodeConnection
 }
 
 func (incomingConnection *incomingConnection) receiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
@@ -45,37 +62,6 @@ func (incomingConnection *incomingConnection) receiveMessage(bufferSize uint32, 
 		}
 		incomingConnection.tcpBuffer = append(incomingConnection.tcpBuffer, receivedMessageBytes...)
 	}
-}
-
-func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
-	nodeConnection := &incomingConnection{
-		netConn: netConn,
-		name:    name,
-	}
-	if systemge.config.IncomingConnectionRateLimiterBytes != nil {
-		nodeConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterBytes)
-	}
-	if systemge.config.IncomingConnectionRateLimiterMsgs != nil {
-		nodeConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterMsgs)
-	}
-	return nodeConnection
-}
-
-func (systemge *systemgeComponent) removeIncomingConnection(incomingConnection *incomingConnection) {
-	systemge.incomingConnectionMutex.Lock()
-	defer systemge.incomingConnectionMutex.Unlock()
-	delete(systemge.incomingConnections, incomingConnection.name)
-}
-
-func (systemge *systemgeComponent) addIncomingConnection(incomingConnection *incomingConnection) error {
-	systemge.incomingConnectionMutex.Lock()
-	defer systemge.incomingConnectionMutex.Unlock()
-	if systemge.incomingConnections[incomingConnection.name] != nil {
-		incomingConnection.netConn.Close()
-		return Error.New("Node connection already exists", nil)
-	}
-	systemge.incomingConnections[incomingConnection.name] = incomingConnection
-	return nil
 }
 
 // sync responses are sent to incoming connections

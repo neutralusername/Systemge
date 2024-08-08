@@ -30,7 +30,7 @@ func (node *Node) RetrieveIncomingConnectionRateLimiterMsgsExceeded() uint32 {
 
 func (node *Node) RetrieveOutgoingConnectionAttempts() uint32 {
 	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingConnectionAttempts.Swap(0)
+		return systemge.outgoingConnectionAttemptsCount.Swap(0)
 	}
 	return 0
 }
@@ -240,7 +240,7 @@ func (node *Node) RetrieveSystemgeBytesSentCounter() uint64 {
 
 func (node *Node) GetOutgoingConnectionAttempts() uint32 {
 	if systemge := node.systemge; systemge != nil {
-		return systemge.outgoingConnectionAttempts.Load()
+		return systemge.outgoingConnectionAttemptsCount.Load()
 	}
 	return 0
 }

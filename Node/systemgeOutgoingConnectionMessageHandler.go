@@ -5,28 +5,14 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
-	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+func (systemge *systemgeComponent) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
+	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting handling of messages from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
 	}
-	systemge_ := node.systemge
 	for {
-		systemge := node.systemge
-		if systemge == nil {
-			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Aborting handling of messages from outgoing node connection \""+outgoingConnection.name+"\" because systemge is nil likely due to node being stopped", nil).Error())
-			}
-			return
-		}
-		if systemge != systemge_ {
-			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-				warningLogger.Log(Error.New("Aborting handling of messages from outgoing node connection \""+outgoingConnection.name+"\" because systemge has changed likely due to node restart", nil).Error())
-			}
-			return
-		}
 		messageBytes, err := outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 		if err != nil {
-			if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+			if warningLogger := systemge.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 			}
 			outgoingConnection.netConn.Close()
@@ -36,8 +22,8 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			if outgoingConnection.rateLimiterMsgs != nil {
 				outgoingConnection.rateLimiterMsgs.Stop()
 			}
+			close(outgoingConnection.stopChannel)
 			systemge.outgoingConnectionMutex.Lock()
-			defer systemge.outgoingConnectionMutex.Unlock()
 			delete(systemge.outgoingConnections, outgoingConnection.endpointConfig.Address)
 			outgoingConnection.topicsMutex.Lock()
 			for topic := range outgoingConnection.topics {
@@ -50,18 +36,20 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 				}
 			}
 			outgoingConnection.topicsMutex.Unlock()
-			if !outgoingConnection.transient {
-				b := true
-				systemge.currentlyInOutgoingConnectionLoop[outgoingConnection.endpointConfig.Address] = &b
+			if !outgoingConnection.isTransient {
 				go func() {
-					err := node.outgoingConnectionLoop(outgoingConnection.endpointConfig)
+					err := systemge.attemptOutgoingConnection(outgoingConnection.endpointConfig, false)
 					if err != nil {
-						if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
-							warningLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
+						if errorLogger := systemge.errorLogger; errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
+						}
+						if systemge.config.StopAfterOutgoingConnectionLoss {
+							systemge.stopNode()
 						}
 					}
 				}()
 			}
+			systemge.outgoingConnectionMutex.Unlock()
 			return
 		}
 		go func(messageBytes []byte) {
@@ -77,7 +65,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			message, err := Message.Deserialize(messageBytes, outgoingConnection.name)
 			if err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 				}
 				return
@@ -95,7 +83,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 					systemge.receivedRemoveTopic.Add(1)
 				} else {
 					systemge.invalidMessagesFromOutgoingConnections.Add(1)
-					if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+					if warningLogger := systemge.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\" (which goes against protocol)", nil).Error())
 					}
 				}
@@ -104,7 +92,7 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			systemge.incomingSyncResponseBytesReceived.Add(uint64(len(messageBytes)))
 			if err := systemge.validateMessage(message); err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 				}
 				return
@@ -112,14 +100,14 @@ func (node *Node) handleOutgoingConnectionMessages(outgoingConnection *outgoingC
 			syncResponseChannel := systemge.getResponseChannel(message.GetSyncTokenToken())
 			if syncResponseChannel == nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to get sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
 				}
 				return
 			}
 			if err = syncResponseChannel.addResponse(message); err != nil {
 				systemge.invalidMessagesFromOutgoingConnections.Add(1)
-				if warningLogger := node.GetInternalWarningError(); warningLogger != nil {
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to add sync response to sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 				}
 			} else {

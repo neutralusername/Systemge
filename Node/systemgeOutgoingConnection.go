@@ -14,16 +14,36 @@ import (
 // outgoing connection to other nodes
 // they are used to send async and sync requests and receive sync responses for their corresponding requests
 type outgoingConnection struct {
-	netConn          net.Conn
-	endpointConfig   *Config.TcpEndpoint
-	name             string
-	sendMutex        sync.Mutex
-	topics           map[string]bool
-	topicsMutex      sync.Mutex
-	transient        bool
+	netConn        net.Conn
+	endpointConfig *Config.TcpEndpoint
+	name           string
+	sendMutex      sync.Mutex
+	topics         map[string]bool
+	topicsMutex    sync.Mutex
+	isTransient    bool
+
 	rateLimiterBytes *Tools.RateLimiter
 	rateLimiterMsgs  *Tools.RateLimiter
 	tcpBuffer        []byte
+
+	stopChannel chan bool //closing of this channel indicates that the outgoing connection has finished its ongoing tasks.
+}
+
+func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
+	outgoingConnection := &outgoingConnection{
+		netConn:        netConn,
+		endpointConfig: endpoint,
+		name:           name,
+		topics:         topics,
+		stopChannel:    make(chan bool),
+	}
+	if systemge.config.OutgoingConnectionRateLimiterBytes != nil {
+		outgoingConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.OutgoingConnectionRateLimiterBytes)
+	}
+	if systemge.config.OutgoingConnectionRateLimiterMsgs != nil {
+		outgoingConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.OutgoingConnectionRateLimiterMsgs)
+	}
+	return outgoingConnection
 }
 
 func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
@@ -50,46 +70,6 @@ func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, 
 		}
 		outgoingConnection.tcpBuffer = append(outgoingConnection.tcpBuffer, receivedMessageBytes...)
 	}
-}
-
-func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
-	outgoingConnection := &outgoingConnection{
-		netConn:        netConn,
-		endpointConfig: endpoint,
-		name:           name,
-		topics:         topics,
-	}
-	if systemge.config.OutgoingConnectionRateLimiterBytes != nil {
-		outgoingConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.OutgoingConnectionRateLimiterBytes)
-	}
-	if systemge.config.OutgoingConnectionRateLimiterMsgs != nil {
-		outgoingConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.OutgoingConnectionRateLimiterMsgs)
-	}
-	return outgoingConnection
-}
-
-func (systemge *systemgeComponent) addOutgoingConnection(outgoingConn *outgoingConnection) error {
-	systemge.outgoingConnectionMutex.Lock()
-	defer systemge.outgoingConnectionMutex.Unlock()
-	if systemge.outgoingConnections[outgoingConn.endpointConfig.Address] != nil {
-		return Error.New("Node connection already exists", nil)
-	}
-	if systemge.currentlyInOutgoingConnectionLoop[outgoingConn.endpointConfig.Address] == nil {
-		return Error.New("shouldn't occur", nil)
-	}
-	if !*systemge.currentlyInOutgoingConnectionLoop[outgoingConn.endpointConfig.Address] {
-		return Error.New("Connection loop cancelled", nil)
-	}
-	systemge.outgoingConnections[outgoingConn.endpointConfig.Address] = outgoingConn
-	for topic := range outgoingConn.topics {
-		topicResolutions := systemge.topicResolutions[topic]
-		if topicResolutions == nil {
-			topicResolutions = make(map[string]*outgoingConnection)
-			systemge.topicResolutions[topic] = topicResolutions
-		}
-		topicResolutions[outgoingConn.name] = outgoingConn
-	}
-	return nil
 }
 
 // async messages and sync requests are sent to outgoing connections

@@ -6,7 +6,9 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 const (
@@ -21,19 +23,30 @@ type systemgeComponent struct {
 
 	tcpServer *Tcp.Server
 
+	infoLogger    *Tools.Logger
+	warningLogger *Tools.Logger
+	errorLogger   *Tools.Logger
+	nodeName      string
+
+	stopChannel                    chan bool //closing of this channel initiates the stop of the systemge component
+	incomingConnectionsStopChannel chan bool //closing of this channel indicates that the incoming connection handler has stopped
+	stopNode                       func()
+
 	asyncMessageHandlerMutex sync.RWMutex
+	handleAsyncMessage       func(message *Message.Message) error
 	asyncMessageHandlers     map[string]AsyncMessageHandler
 
 	syncMessageHandlerMutex sync.RWMutex
+	handleSyncRequest       func(message *Message.Message) (string, error)
 	syncMessageHandlers     map[string]SyncMessageHandler
 
 	syncRequestMutex     sync.RWMutex
 	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
 
-	outgoingConnectionMutex           sync.RWMutex
-	topicResolutions                  map[string]map[string]*outgoingConnection // topic -> [name -> nodeConnection]
-	outgoingConnections               map[string]*outgoingConnection            // address -> nodeConnection
-	currentlyInOutgoingConnectionLoop map[string]*bool                          // address -> bool
+	outgoingConnectionMutex    sync.RWMutex
+	topicResolutions           map[string]map[string]*outgoingConnection // topic -> [name -> nodeConnection]
+	outgoingConnections        map[string]*outgoingConnection            // address -> nodeConnection
+	outgoingConnectionAttempts map[string]*outgoingConnectionAttempt     // address -> bool
 
 	incomingConnectionMutex sync.RWMutex
 	incomingConnections     map[string]*incomingConnection // name -> nodeConnection
@@ -44,7 +57,7 @@ type systemgeComponent struct {
 	outgoingConnectionRateLimiterMsgsExceeded  atomic.Uint32
 	outgoingConnectionRateLimiterBytesExceeded atomic.Uint32
 
-	outgoingConnectionAttempts             atomic.Uint32
+	outgoingConnectionAttemptsCount        atomic.Uint32
 	outgoingConnectionAttemptsSuccessful   atomic.Uint32
 	outgoingConnectionAttemptsFailed       atomic.Uint32
 	outgoingConnectionAttemptBytesSent     atomic.Uint64
@@ -101,14 +114,68 @@ type systemgeComponent struct {
 
 func (node *Node) startSystemgeComponent() error {
 	systemge := &systemgeComponent{
-		syncResponseChannels:              make(map[string]*SyncResponseChannel),
-		topicResolutions:                  make(map[string]map[string]*outgoingConnection),
-		outgoingConnections:               make(map[string]*outgoingConnection),
-		incomingConnections:               make(map[string]*incomingConnection),
-		currentlyInOutgoingConnectionLoop: make(map[string]*bool),
-		asyncMessageHandlers:              node.application.(SystemgeComponent).GetAsyncMessageHandlers(),
-		syncMessageHandlers:               node.application.(SystemgeComponent).GetSyncMessageHandlers(),
-		config:                            node.newNodeConfig.SystemgeConfig,
+		syncResponseChannels:           make(map[string]*SyncResponseChannel),
+		topicResolutions:               make(map[string]map[string]*outgoingConnection),
+		outgoingConnections:            make(map[string]*outgoingConnection),
+		incomingConnections:            make(map[string]*incomingConnection),
+		outgoingConnectionAttempts:     make(map[string]*outgoingConnectionAttempt),
+		infoLogger:                     node.GetInternalInfoLogger(),
+		warningLogger:                  node.GetInternalWarningError(),
+		errorLogger:                    node.GetErrorLogger(),
+		stopChannel:                    make(chan bool),
+		incomingConnectionsStopChannel: make(chan bool),
+		nodeName:                       node.GetName(),
+		asyncMessageHandlers:           node.application.(SystemgeComponent).GetAsyncMessageHandlers(),
+		syncMessageHandlers:            node.application.(SystemgeComponent).GetSyncMessageHandlers(),
+		config:                         node.newNodeConfig.SystemgeConfig,
+	}
+	systemge.handleSyncRequest = func(message *Message.Message) (string, error) {
+		systemge.syncMessageHandlerMutex.RLock()
+		syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]
+		systemge.syncMessageHandlerMutex.RUnlock()
+		if syncMessageHandler == nil {
+			return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
+		}
+		if systemge.config.HandleMessagesSequentially {
+			systemge.handleSequentiallyMutex.Lock()
+		}
+		responsePayload, err := syncMessageHandler(node, message)
+		if systemge.config.HandleMessagesSequentially {
+			systemge.handleSequentiallyMutex.Unlock()
+		}
+		if err != nil {
+			return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
+		}
+		return responsePayload, nil
+	}
+	systemge.handleAsyncMessage = func(message *Message.Message) error {
+		systemge.asyncMessageHandlerMutex.RLock()
+		asyncMessageHandler := systemge.asyncMessageHandlers[message.GetTopic()]
+		systemge.asyncMessageHandlerMutex.RUnlock()
+		if asyncMessageHandler == nil {
+			return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
+		}
+		if systemge.config.HandleMessagesSequentially {
+			systemge.handleSequentiallyMutex.Lock()
+		}
+		err := asyncMessageHandler(node, message)
+		if systemge.config.HandleMessagesSequentially {
+			systemge.handleSequentiallyMutex.Unlock()
+		}
+		if err != nil {
+			return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
+		}
+		return nil
+	}
+	systemge.stopNode = func() {
+		if node.systemge == systemge {
+			err := node.Stop()
+			if err != nil {
+				if errorLogger := systemge.errorLogger; errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to stop node", err).Error())
+				}
+			}
+		}
 	}
 	if systemge.config.TcpBufferBytes == 0 {
 		systemge.config.TcpBufferBytes = 1024 * 4
@@ -119,29 +186,40 @@ func (node *Node) startSystemgeComponent() error {
 	}
 	systemge.tcpServer = tcpServer
 	node.systemge = systemge
-	go node.handleIncomingConnections()
-	for _, endpointConfig := range node.systemge.config.EndpointConfigs {
-		err := node.ConnectToNode(endpointConfig)
-		if err != nil {
-			return Error.New("Failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
+	go systemge.handleIncomingConnections()
+	for _, endpointConfig := range systemge.config.EndpointConfigs {
+		if err := systemge.attemptOutgoingConnection(endpointConfig, false); err != nil {
+			return Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
 	return nil
 }
 
+// stopSystemgeComponent stops the systemge component.
+// blocking until all goroutines associated with the systemge component have stopped.
 func (node *Node) stopSystemgeComponent() {
 	systemge := node.systemge
 	node.systemge = nil
+	close(systemge.stopChannel)
 	systemge.tcpServer.GetListener().Close()
-	systemge.tcpServer = nil
+	<-systemge.incomingConnectionsStopChannel
+
 	systemge.outgoingConnectionMutex.Lock()
-	for _, brokerConnection := range systemge.outgoingConnections {
-		brokerConnection.netConn.Close()
+
+	for _, outgoingConnectionAttempt := range systemge.outgoingConnectionAttempts {
+		<-outgoingConnectionAttempt.stopChannel
+	}
+	for _, outgoingConnection := range systemge.outgoingConnections {
+		outgoingConnection.netConn.Close()
+		<-outgoingConnection.stopChannel
 	}
 	systemge.outgoingConnectionMutex.Unlock()
+
 	systemge.incomingConnectionMutex.Lock()
 	for _, incomingConnection := range systemge.incomingConnections {
 		incomingConnection.netConn.Close()
+		<-incomingConnection.stopChannel
 	}
 	systemge.incomingConnectionMutex.Unlock()
+
 }
