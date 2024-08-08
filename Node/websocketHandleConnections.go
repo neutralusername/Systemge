@@ -8,11 +8,13 @@ import (
 )
 
 func (websocket *websocketComponent) handleWebsocketConnections() {
-	websocketConn := <-websocket.connChannel
-	if websocketConn == nil {
-		return
+	for {
+		websocketConn := <-websocket.connChannel
+		if websocketConn == nil {
+			return
+		}
+		go websocket.handleWebsocketConn(websocketConn)
 	}
-	go websocket.handleWebsocketConn(websocketConn)
 }
 
 func (websocket *websocketComponent) handleWebsocketConn(websocketConn *websocket.Conn) {
