@@ -86,6 +86,8 @@ func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Con
 				continue
 			}
 
+			// in the current version there is a potential deadlock caused by these locks. there are also various race conditions caused by stopping during startup.
+			// just as a heads up until the fixes are done, be careful when stopping nodes during startup. (it works most of the time, especially with some pauses in between)
 			systemge.outgoingConnectionMutex.Lock()
 			if outgoingConnectionAttempt.isAborted {
 				systemge.outgoingConnectionMutex.Unlock()
