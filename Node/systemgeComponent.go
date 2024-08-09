@@ -50,7 +50,7 @@ type systemgeComponent struct {
 
 	incomingConnectionMutex sync.RWMutex
 	incomingConnections     map[string]*incomingConnection // name -> nodeConnection
-	handleSequentiallyMutex sync.Mutex
+	handleSequentially      chan func()
 
 	// outgoing connection metrics
 
@@ -136,13 +136,7 @@ func (node *Node) startSystemgeComponent() error {
 		if syncMessageHandler == nil {
 			return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
 		}
-		if systemge.config.HandleMessagesSequentially {
-			systemge.handleSequentiallyMutex.Lock()
-		}
 		responsePayload, err := syncMessageHandler(node, message)
-		if systemge.config.HandleMessagesSequentially {
-			systemge.handleSequentiallyMutex.Unlock()
-		}
 		if err != nil {
 			return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
 		}
@@ -155,13 +149,7 @@ func (node *Node) startSystemgeComponent() error {
 		if asyncMessageHandler == nil {
 			return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
 		}
-		if systemge.config.HandleMessagesSequentially {
-			systemge.handleSequentiallyMutex.Lock()
-		}
 		err := asyncMessageHandler(node, message)
-		if systemge.config.HandleMessagesSequentially {
-			systemge.handleSequentiallyMutex.Unlock()
-		}
 		if err != nil {
 			return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
 		}
@@ -186,6 +174,36 @@ func (node *Node) startSystemgeComponent() error {
 	}
 	systemge.tcpServer = tcpServer
 	node.systemge = systemge
+	if systemge.config.ProcessAllMessagesSequentially {
+		systemge.handleSequentially = make(chan func(), systemge.config.ProcessAllMessagesSequentiallyChannelSize)
+		if systemge.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
+			go func() {
+				for {
+					select {
+					case f := <-systemge.handleSequentially:
+						f()
+					case <-systemge.stopChannel:
+						return
+					}
+				}
+			}()
+		} else {
+			go func() {
+				for {
+					select {
+					case f := <-systemge.handleSequentially:
+						if systemge.errorLogger != nil && len(systemge.handleSequentially) >= systemge.config.ProcessAllMessagesSequentiallyChannelSize-1 {
+							systemge.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
+						}
+						f()
+					case <-systemge.stopChannel:
+						return
+					}
+				}
+			}()
+		}
+
+	}
 	go systemge.handleIncomingConnections()
 	for _, endpointConfig := range systemge.config.EndpointConfigs {
 		if err := systemge.attemptOutgoingConnection(endpointConfig, false); err != nil {

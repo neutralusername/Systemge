@@ -5,19 +5,19 @@ import (
 	"sync/atomic"
 )
 
-type Waitgroup struct {
+type TaskGroup struct {
 	waitGroup   *sync.WaitGroup
 	count       atomic.Uint32
 	executeChan chan bool
 	abortChan   chan bool
 }
 
-func (myWaitgroup *Waitgroup) GetCount() int {
+func (myWaitgroup *TaskGroup) GetCount() int {
 	return int(myWaitgroup.count.Load())
 }
 
-func NewWaitgroup() *Waitgroup {
-	return &Waitgroup{
+func NewWaitgroup() *TaskGroup {
+	return &TaskGroup{
 		waitGroup:   &sync.WaitGroup{},
 		executeChan: make(chan bool),
 		abortChan:   make(chan bool),
@@ -25,7 +25,7 @@ func NewWaitgroup() *Waitgroup {
 }
 
 // Wrap operation in func() in order to add it to the waitgroup
-func (myWaitgroup *Waitgroup) Add(function func()) {
+func (myWaitgroup *TaskGroup) Add(function func()) {
 	myWaitgroup.waitGroup.Add(1)
 	myWaitgroup.count.Add(1)
 	go func() {
@@ -39,13 +39,13 @@ func (myWaitgroup *Waitgroup) Add(function func()) {
 	}()
 }
 
-func (myWaitgroup *Waitgroup) Execute() {
+func (myWaitgroup *TaskGroup) Execute() {
 	close(myWaitgroup.executeChan)
 	myWaitgroup.waitGroup.Wait()
 	close(myWaitgroup.abortChan)
 }
 
-func (myWaitgroup *Waitgroup) Abort() {
+func (myWaitgroup *TaskGroup) Abort() {
 	close(myWaitgroup.abortChan)
 	myWaitgroup.waitGroup.Wait()
 	close(myWaitgroup.executeChan)

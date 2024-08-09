@@ -13,7 +13,7 @@ import (
 // Blocking until all messages are sent
 func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) error {
 	if systemge := node.systemge; systemge != nil {
-		node.createOutgoingMessageWaitgroup(systemge, Message.NewAsync(topic, payload), receiverNames...).Execute()
+		node.createOutgoingMessageTaskGroup(systemge, Message.NewAsync(topic, payload), receiverNames...).Execute()
 		return nil
 	}
 	return Error.New("systemge component not initialized", nil)
@@ -31,7 +31,7 @@ func (node *Node) AsyncMessage_(config *Config.Message) error {
 func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*SyncResponseChannel, error) {
 	if systemge := node.systemge; systemge != nil {
 		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload)
-		waitgroup := node.createOutgoingMessageWaitgroup(systemge, responseChannel.GetRequestMessage(), receiverNames...)
+		waitgroup := node.createOutgoingMessageTaskGroup(systemge, responseChannel.GetRequestMessage(), receiverNames...)
 		responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetCount())
 		if cap(responseChannel.responseChannel) == 0 {
 			responseChannel.Close()
@@ -48,7 +48,7 @@ func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, er
 	return node.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
 
-func (node *Node) createOutgoingMessageWaitgroup(systemge *systemgeComponent, message *Message.Message, receiverNames ...string) *Tools.Waitgroup {
+func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeComponent, message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
 	waitgroup := Tools.NewWaitgroup()
 	systemge.outgoingConnectionMutex.RLock()
 	defer systemge.outgoingConnectionMutex.RUnlock()

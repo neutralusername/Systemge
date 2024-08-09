@@ -35,10 +35,14 @@ func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConn
 			return
 		}
 		wg.Add(1)
-		if systemge.config.ProcessMessagesSequentially {
-			systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
-		} else {
+		if systemge.config.ProcessAllMessagesSequentially {
+			systemge.handleSequentially <- func() {
+				systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
+			}
+		} else if !systemge.config.ProcessMessagesOfEachConnectionSequentially {
 			go systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
+		} else {
+			systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
 		}
 	}
 }
