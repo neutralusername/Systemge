@@ -16,8 +16,6 @@ type outgoingConnectionAttempt struct {
 	attempts       uint64
 
 	isAborted bool
-
-	stopChannel chan bool //closing of this channel indicates that the outgoing connection attempt has finished its ongoing tasks.
 }
 
 // repeatedly attempts to establish a connection to an endpoint until either:
@@ -43,14 +41,12 @@ func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Con
 	}
 	outgoingConnectionAttempt := &outgoingConnectionAttempt{
 		endpointConfig: endpointConfig,
-		stopChannel:    make(chan bool),
 	}
 	systemge.outgoingConnectionAttempts[endpointConfig.Address] = outgoingConnectionAttempt
 	systemge.outgoingConnectionMutex.Unlock()
 
 	defer func() {
 		outgoingConnectionAttempt.isAborted = true
-		close(outgoingConnectionAttempt.stopChannel)
 		systemge.outgoingConnectionMutex.Lock()
 		delete(systemge.outgoingConnectionAttempts, outgoingConnectionAttempt.endpointConfig.Address)
 		systemge.outgoingConnectionMutex.Unlock()

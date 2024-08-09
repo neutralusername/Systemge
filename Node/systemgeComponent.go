@@ -204,30 +204,20 @@ func (node *Node) stopSystemgeComponent() {
 	systemge.tcpServer.GetListener().Close()
 	<-systemge.incomingConnectionsStopChannel
 
-	waitgroup := Tools.NewWaitgroup()
-
 	systemge.outgoingConnectionMutex.Lock()
 	for _, outgoingConnectionAttempt := range systemge.outgoingConnectionAttempts {
-		waitgroup.Add(func() {
-			<-outgoingConnectionAttempt.stopChannel
-		})
+		outgoingConnectionAttempt.isAborted = true
 	}
 	for _, outgoingConnection := range systemge.outgoingConnections {
-		waitgroup.Add(func() {
-			outgoingConnection.netConn.Close()
-			<-outgoingConnection.stopChannel
-		})
+		outgoingConnection.netConn.Close()
+		<-outgoingConnection.stopChannel
 	}
 	systemge.outgoingConnectionMutex.Unlock()
 
 	systemge.incomingConnectionMutex.Lock()
 	for _, incomingConnection := range systemge.incomingConnections {
-		waitgroup.Add(func() {
-			incomingConnection.netConn.Close()
-			<-incomingConnection.stopChannel
-		})
+		incomingConnection.netConn.Close()
+		<-incomingConnection.stopChannel
 	}
 	systemge.incomingConnectionMutex.Unlock()
-
-	waitgroup.Execute()
 }
