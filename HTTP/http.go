@@ -61,21 +61,19 @@ func (server *Server) Start() error {
 		if server.config.ServerConfig.TlsCertPath != "" && server.config.ServerConfig.TlsKeyPath != "" {
 			err := server.httpServer.ListenAndServeTLS(server.config.ServerConfig.TlsCertPath, server.config.ServerConfig.TlsKeyPath)
 			if err != nil {
-				if err != http.ErrServerClosed {
-					panic(err)
-				}
 				if !ended {
 					errorChannel <- err
+				} else if http.ErrServerClosed != err {
+					panic(err)
 				}
 			}
 		} else {
 			err := server.httpServer.ListenAndServe()
 			if err != nil {
-				if err != http.ErrServerClosed {
-					panic(err)
-				}
 				if !ended {
 					errorChannel <- err
+				} else if http.ErrServerClosed != err {
+					panic(err)
 				}
 			}
 		}
