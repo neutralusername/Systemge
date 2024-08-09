@@ -7,7 +7,8 @@ import (
 )
 
 type Systemge struct {
-	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false (if true, the server will handle all incoming messages sequentially, which means only one message will be processed at a time) (if false, the server will handle messages concurrently)
+	HandleMessagesSequentially  bool `json:"handleMessagesSequentially"`  // default: false (if true, only one message handler can be active at a time)
+	ProcessMessagesSequentially bool `json:"receiveMessagesSequentially"` // default: false (if true, incoming messages from each individual incoming connection will be processed sequentially) (if >1 incoming connection, messages from different connections will be processed concurrently regardless of this setting)
 
 	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
 	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever

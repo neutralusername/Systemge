@@ -1,6 +1,8 @@
 package Node
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 )
@@ -11,12 +13,14 @@ func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConn
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting message handler for incoming node connection \""+incomingConnection.name+"\"", nil).Error())
 	}
+	wg := sync.WaitGroup{}
 	for {
 		messageBytes, err := incomingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 		if err != nil {
 			if warningLogger := systemge.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from incoming node connection \""+incomingConnection.name+"\" likely due to connection loss", err).Error())
 			}
+			wg.Wait()
 			incomingConnection.netConn.Close()
 			if incomingConnection.rateLimiterBytes != nil {
 				incomingConnection.rateLimiterBytes.Stop()
@@ -30,68 +34,78 @@ func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConn
 			systemge.incomingConnectionMutex.Unlock()
 			return
 		}
-		if err := systemge.checkRateLimits(incomingConnection, messageBytes); err != nil {
-			if warningLogger := systemge.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Rejected message from incoming node connection \""+incomingConnection.name+"\"", err).Error())
-			}
-			continue
+		wg.Add(1)
+		if systemge.config.ProcessMessagesSequentially {
+			systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
+		} else {
+			go systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
 		}
-		message, err := Message.Deserialize(messageBytes, incomingConnection.name)
+	}
+}
+
+func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *incomingConnection, messageBytes []byte, wg *sync.WaitGroup) {
+	defer wg.Done()
+	if err := systemge.checkRateLimits(incomingConnection, messageBytes); err != nil {
+		if warningLogger := systemge.warningLogger; warningLogger != nil {
+			warningLogger.Log(Error.New("Rejected message from incoming node connection \""+incomingConnection.name+"\"", err).Error())
+		}
+		return
+	}
+	message, err := Message.Deserialize(messageBytes, incomingConnection.name)
+	if err != nil {
+		systemge.invalidMessagesFromIncomingConnections.Add(1)
+		if warningLogger := systemge.warningLogger; warningLogger != nil {
+			warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
+		}
+		return
+	}
+	if err := systemge.validateMessage(message); err != nil {
+		systemge.invalidMessagesFromIncomingConnections.Add(1)
+		if warningLogger := systemge.warningLogger; warningLogger != nil {
+			warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
+		}
+		return
+	}
+	if message.GetSyncTokenToken() == "" {
+		systemge.incomingAsyncMessageBytesReceived.Add(uint64(len(messageBytes)))
+		systemge.incomingAsyncMessages.Add(1)
+		err := systemge.handleAsyncMessage(message)
 		if err != nil {
 			systemge.invalidMessagesFromIncomingConnections.Add(1)
 			if warningLogger := systemge.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
-			}
-			continue
-		}
-		if err := systemge.validateMessage(message); err != nil {
-			systemge.invalidMessagesFromIncomingConnections.Add(1)
-			if warningLogger := systemge.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
-			}
-			continue
-		}
-		if message.GetSyncTokenToken() == "" {
-			systemge.incomingAsyncMessageBytesReceived.Add(uint64(len(messageBytes)))
-			systemge.incomingAsyncMessages.Add(1)
-			err := systemge.handleAsyncMessage(message)
-			if err != nil {
-				systemge.invalidMessagesFromIncomingConnections.Add(1)
-				if warningLogger := systemge.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle async messag with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
-				}
-			} else {
-				if infoLogger := systemge.infoLogger; infoLogger != nil {
-					infoLogger.Log(Error.New("Handled async message with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", nil).Error())
-				}
+				warningLogger.Log(Error.New("Failed to handle async messag with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 			}
 		} else {
-			systemge.incomingSyncRequestBytesReceived.Add(uint64(len(messageBytes)))
-			systemge.incomingSyncRequests.Add(1)
-			responsePayload, err := systemge.handleSyncRequest(message)
-			if err != nil {
-				systemge.invalidMessagesFromIncomingConnections.Add(1)
+			if infoLogger := systemge.infoLogger; infoLogger != nil {
+				infoLogger.Log(Error.New("Handled async message with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", nil).Error())
+			}
+		}
+	} else {
+		systemge.incomingSyncRequestBytesReceived.Add(uint64(len(messageBytes)))
+		systemge.incomingSyncRequests.Add(1)
+		responsePayload, err := systemge.handleSyncRequest(message)
+		if err != nil {
+			systemge.invalidMessagesFromIncomingConnections.Add(1)
+			if warningLogger := systemge.warningLogger; warningLogger != nil {
+				warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
+			}
+			if err := systemge.messageIncomingConnection(incomingConnection, message.NewFailureResponse(responsePayload)); err != nil {
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
-				}
-				if err := systemge.messageIncomingConnection(incomingConnection, message.NewFailureResponse(responsePayload)); err != nil {
-					if warningLogger := systemge.warningLogger; warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send failure response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
-					}
-				} else {
-					systemge.outgoingSyncFailureResponses.Add(1)
+					warningLogger.Log(Error.New("Failed to send failure response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
 			} else {
-				if infoLogger := systemge.infoLogger; infoLogger != nil {
-					infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\" with sync token \""+message.GetSyncTokenToken()+"\"", nil).Error())
+				systemge.outgoingSyncFailureResponses.Add(1)
+			}
+		} else {
+			if infoLogger := systemge.infoLogger; infoLogger != nil {
+				infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\" with sync token \""+message.GetSyncTokenToken()+"\"", nil).Error())
+			}
+			if err := systemge.messageIncomingConnection(incomingConnection, message.NewSuccessResponse(responsePayload)); err != nil {
+				if warningLogger := systemge.warningLogger; warningLogger != nil {
+					warningLogger.Log(Error.New("Failed to send success response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
-				if err := systemge.messageIncomingConnection(incomingConnection, message.NewSuccessResponse(responsePayload)); err != nil {
-					if warningLogger := systemge.warningLogger; warningLogger != nil {
-						warningLogger.Log(Error.New("Failed to send success response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
-					}
-				} else {
-					systemge.outgoingSyncSuccessResponses.Add(1)
-				}
+			} else {
+				systemge.outgoingSyncSuccessResponses.Add(1)
 			}
 		}
 	}
