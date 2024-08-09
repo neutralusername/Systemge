@@ -36,7 +36,7 @@ func NormalizeAddress(address string) (string, error) {
 	if ip.To4() != nil {
 		normalizedIP = ip.String()
 	} else {
-		normalizedIP = "[" + ip.String() + "]"
+		normalizedIP = ip.String()
 	}
 	portNum, err := strconv.Atoi(port)
 	if err != nil {
