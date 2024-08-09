@@ -197,6 +197,7 @@ func (node *Node) startSystemgeComponent() error {
 						}
 						f()
 					case <-systemge.stopChannel:
+						//todo: only close this, after all messages have been processed
 						return
 					}
 				}
