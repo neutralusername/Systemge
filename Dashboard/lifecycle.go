@@ -52,7 +52,26 @@ func (app *App) OnStart(node *Node.Node) error {
 	app.mutex.Unlock()
 	_, filePath, _, _ := runtime.Caller(0)
 	app.node.AddHttpRoute("/", HTTP.SendDirectory(filePath[:len(filePath)-len("lifecycle.go")]+"frontend"))
-
+	if app.config.AutoStart {
+		for _, node := range app.nodes {
+			go func() {
+				err := node.Start()
+				if err != nil {
+					if errorLogger := app.node.GetErrorLogger(); errorLogger != nil {
+						errorLogger.Log("Error starting node \"" + node.GetName() + "\": " + err.Error())
+					}
+					if mailer := app.node.GetMailer(); mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", "Error starting node \""+node.GetName()+"\": "+err.Error()))
+						if err != nil {
+							if errorLogger := app.node.GetErrorLogger(); errorLogger != nil {
+								errorLogger.Log("Error sending mail: " + err.Error())
+							}
+						}
+					}
+				}
+			}()
+		}
+	}
 	if app.config.AddDashboardToDashboard {
 		app.mutex.Lock()
 		app.nodes[node.GetName()] = node
@@ -110,26 +129,6 @@ func (app *App) OnStart(node *Node.Node) error {
 	for _, node := range app.nodes {
 		if Spawner.ImplementsSpawner(node.GetApplication()) {
 			go app.spawnerNodeChangeRoutine(node)
-		}
-	}
-	if app.config.AutoStart {
-		for _, node := range app.nodes {
-			go func() {
-				err := node.Start()
-				if err != nil {
-					if errorLogger := app.node.GetErrorLogger(); errorLogger != nil {
-						errorLogger.Log("Error starting node \"" + node.GetName() + "\": " + err.Error())
-					}
-					if mailer := app.node.GetMailer(); mailer != nil {
-						err := mailer.Send(Tools.NewMail(nil, "error", "Error starting node \""+node.GetName()+"\": "+err.Error()))
-						if err != nil {
-							if errorLogger := app.node.GetErrorLogger(); errorLogger != nil {
-								errorLogger.Log("Error sending mail: " + err.Error())
-							}
-						}
-					}
-				}
-			}()
 		}
 	}
 	app.mutex.RUnlock()

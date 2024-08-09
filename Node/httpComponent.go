@@ -15,7 +15,7 @@ type httpComponent struct {
 	requestCounter atomic.Uint64
 }
 
-func (node *Node) startHTTPComponent() (*httpComponent, error) {
+func (node *Node) startHTTPComponent() error {
 	wrapperHandlers := make(map[string]http.HandlerFunc)
 	http := &httpComponent{
 		config: node.newNodeConfig.HttpConfig,
@@ -26,9 +26,10 @@ func (node *Node) startHTTPComponent() (*httpComponent, error) {
 	http.server = HTTP.New(http.config, wrapperHandlers)
 	err := http.server.Start()
 	if err != nil {
-		return nil, Error.New("failed starting http server", err)
+		return Error.New("failed starting http server", err)
 	}
-	return http, nil
+	node.http = http
+	return nil
 }
 
 func (node *Node) stopHTTPComponent() {

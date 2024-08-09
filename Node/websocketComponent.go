@@ -39,7 +39,7 @@ type websocketComponent struct {
 	bytesReceivedCounter   atomic.Uint64
 }
 
-func (node *Node) startWebsocketComponent() (*websocketComponent, error) {
+func (node *Node) startWebsocketComponent() error {
 	if node.newNodeConfig.WebsocketConfig.Upgrader == nil {
 		node.newNodeConfig.WebsocketConfig.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -101,10 +101,11 @@ func (node *Node) startWebsocketComponent() (*websocketComponent, error) {
 	websocket.messageHandlers = application.GetWebsocketMessageHandlers()
 	err := websocket.httpServer.Start()
 	if err != nil {
-		return nil, Error.New("failed starting websocket handshake handler", err)
+		return Error.New("failed starting websocket handshake handler", err)
 	}
+	node.websocket = websocket
 	go websocket.handleWebsocketConnections()
-	return websocket, nil
+	return nil
 }
 
 func (node *Node) stopWebsocketComponent() {

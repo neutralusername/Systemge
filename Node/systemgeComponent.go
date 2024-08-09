@@ -112,7 +112,7 @@ type systemgeComponent struct {
 	bytesSent     atomic.Uint64 // total bytes sent
 }
 
-func (node *Node) startSystemgeComponent() (*systemgeComponent, error) {
+func (node *Node) startSystemgeComponent() error {
 	systemge := &systemgeComponent{
 		syncResponseChannels:           make(map[string]*SyncResponseChannel),
 		topicResolutions:               make(map[string]map[string]*outgoingConnection),
@@ -182,17 +182,17 @@ func (node *Node) startSystemgeComponent() (*systemgeComponent, error) {
 	}
 	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
 	if err != nil {
-		return nil, Error.New("Failed to create tcp server", err)
+		return Error.New("Failed to create tcp server", err)
 	}
 	systemge.tcpServer = tcpServer
+	node.systemge = systemge
 	go systemge.handleIncomingConnections()
 	for _, endpointConfig := range systemge.config.EndpointConfigs {
 		if err := systemge.attemptOutgoingConnection(endpointConfig, false); err != nil {
-			tcpServer.GetListener().Close()
-			return nil, Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
+			return Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
-	return systemge, nil
+	return nil
 }
 
 // stopSystemgeComponent stops the systemge component.

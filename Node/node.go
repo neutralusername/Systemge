@@ -147,7 +147,7 @@ func (node *Node) Start() error {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
 		}
-		systemge, err := node.startSystemgeComponent()
+		err := node.startSystemgeComponent()
 		if err != nil {
 			if err := node.Stop(); err != nil {
 				if warningLogger := node.GetInternalWarningLogger(); warningLogger != nil {
@@ -156,7 +156,6 @@ func (node *Node) Start() error {
 			}
 			return Error.New("failed starting systemge component", err)
 		}
-		node.systemge = systemge
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Started systemge component", nil).Error())
 		}
@@ -165,14 +164,13 @@ func (node *Node) Start() error {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting websocket component", nil).Error())
 		}
-		websocket, err := node.startWebsocketComponent()
+		err := node.startWebsocketComponent()
 		if err != nil {
 			if err := node.Stop(); err != nil {
 				node.GetInternalWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting websocket server", err)
 		}
-		node.websocket = websocket
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Started websocket component", nil).Error())
 		}
@@ -181,14 +179,13 @@ func (node *Node) Start() error {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting http component", nil).Error())
 		}
-		http, err := node.startHTTPComponent()
+		err := node.startHTTPComponent()
 		if err != nil {
 			if err := node.Stop(); err != nil {
 				node.GetInternalWarningLogger().Log(Error.New("failed to stop node. Error in OnStart", err).Error())
 			}
 			return Error.New("failed starting http server", err)
 		}
-		node.http = http
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Started http component", nil).Error())
 		}
