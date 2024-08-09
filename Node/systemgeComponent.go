@@ -28,9 +28,10 @@ type systemgeComponent struct {
 	errorLogger   *Tools.Logger
 	nodeName      string
 
-	stopChannel                    chan bool //closing of this channel initiates the stop of the systemge component
-	incomingConnectionsStopChannel chan bool //closing of this channel indicates that the incoming connection handler has stopped
-	stopNode                       func()
+	stopChannel                          chan bool //closing of this channel initiates the stop of the systemge component
+	incomingConnectionsStopChannel       chan bool //closing of this channel indicates that the incoming connection handler has stopped
+	allIncomingConnectionsStoppedChannel chan bool //closing of this channel indicates that all incoming connections have stopped
+	stopNode                             func()
 
 	asyncMessageHandlerMutex sync.RWMutex
 	handleAsyncMessage       func(message *Message.Message) error
@@ -114,20 +115,21 @@ type systemgeComponent struct {
 
 func (node *Node) startSystemgeComponent() error {
 	systemge := &systemgeComponent{
-		syncResponseChannels:           make(map[string]*SyncResponseChannel),
-		topicResolutions:               make(map[string]map[string]*outgoingConnection),
-		outgoingConnections:            make(map[string]*outgoingConnection),
-		incomingConnections:            make(map[string]*incomingConnection),
-		outgoingConnectionAttempts:     make(map[string]*outgoingConnectionAttempt),
-		infoLogger:                     node.GetInternalInfoLogger(),
-		warningLogger:                  node.GetInternalWarningLogger(),
-		errorLogger:                    node.GetErrorLogger(),
-		stopChannel:                    make(chan bool),
-		incomingConnectionsStopChannel: make(chan bool),
-		nodeName:                       node.GetName(),
-		asyncMessageHandlers:           node.application.(SystemgeComponent).GetAsyncMessageHandlers(),
-		syncMessageHandlers:            node.application.(SystemgeComponent).GetSyncMessageHandlers(),
-		config:                         node.newNodeConfig.SystemgeConfig,
+		syncResponseChannels:                 make(map[string]*SyncResponseChannel),
+		topicResolutions:                     make(map[string]map[string]*outgoingConnection),
+		outgoingConnections:                  make(map[string]*outgoingConnection),
+		incomingConnections:                  make(map[string]*incomingConnection),
+		outgoingConnectionAttempts:           make(map[string]*outgoingConnectionAttempt),
+		infoLogger:                           node.GetInternalInfoLogger(),
+		warningLogger:                        node.GetInternalWarningLogger(),
+		errorLogger:                          node.GetErrorLogger(),
+		stopChannel:                          make(chan bool),
+		incomingConnectionsStopChannel:       make(chan bool),
+		allIncomingConnectionsStoppedChannel: make(chan bool),
+		nodeName:                             node.GetName(),
+		asyncMessageHandlers:                 node.application.(SystemgeComponent).GetAsyncMessageHandlers(),
+		syncMessageHandlers:                  node.application.(SystemgeComponent).GetSyncMessageHandlers(),
+		config:                               node.newNodeConfig.SystemgeConfig,
 	}
 	systemge.handleSyncRequest = func(message *Message.Message) (string, error) {
 		systemge.syncMessageHandlerMutex.RLock()
@@ -196,8 +198,7 @@ func (node *Node) startSystemgeComponent() error {
 							systemge.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
 						}
 						f()
-					case <-systemge.stopChannel:
-						//todo: only close this, after all messages have been processed
+					case <-systemge.allIncomingConnectionsStoppedChannel:
 						return
 					}
 				}
@@ -239,4 +240,5 @@ func (node *Node) stopSystemgeComponent() {
 		<-incomingConnection.stopChannel
 	}
 	systemge.incomingConnectionMutex.Unlock()
+	close(systemge.allIncomingConnectionsStoppedChannel)
 }
