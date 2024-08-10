@@ -17,7 +17,7 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 		waitGroup := Tools.NewTaskGroup()
 		websocket.mutex.RLock()
 		for _, websocketClient := range websocket.clients {
-			waitGroup.Add(func() {
+			waitGroup.AddTask(func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
@@ -37,7 +37,7 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 			})
 		}
 		websocket.mutex.RUnlock()
-		waitGroup.Execute()
+		waitGroup.ExecuteTasks()
 		return nil
 	}
 	return Error.New("Websocket is not initialized", nil)
@@ -54,7 +54,7 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 		waitGroup := Tools.NewTaskGroup()
 		websocket.mutex.RLock()
 		if websocketClient, exists := websocket.clients[id]; exists {
-			waitGroup.Add(func() {
+			waitGroup.AddTask(func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
@@ -74,7 +74,7 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 			})
 		}
 		websocket.mutex.RUnlock()
-		waitGroup.Execute()
+		waitGroup.ExecuteTasks()
 		return nil
 	}
 	return Error.New("Websocket is not initialized", nil)
@@ -96,7 +96,7 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 		websocket.mutex.RLock()
 		for _, id := range ids {
 			if websocketClient, exists := websocket.clients[id]; exists {
-				waitGroup.Add(func() {
+				waitGroup.AddTask(func() {
 					err := websocketClient.Send(messageBytes)
 					if err != nil {
 						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
@@ -117,7 +117,7 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 			}
 		}
 		websocket.mutex.RUnlock()
-		waitGroup.Execute()
+		waitGroup.ExecuteTasks()
 		return nil
 	}
 	return Error.New("Websocket is not initialized", nil)
@@ -138,7 +138,7 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) e
 			return Error.New("Group \""+groupId+"\" does not exist", nil)
 		}
 		for _, websocketClient := range websocket.groups[groupId] {
-			waitGroup.Add(func() {
+			waitGroup.AddTask(func() {
 				err := websocketClient.Send(messageBytes)
 				if err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
@@ -158,7 +158,7 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) e
 			})
 		}
 		websocket.mutex.RUnlock()
-		waitGroup.Execute()
+		waitGroup.ExecuteTasks()
 		return nil
 	}
 	return Error.New("Websocket is not initialized", nil)

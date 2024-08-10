@@ -13,7 +13,7 @@ import (
 // Blocking until all messages are sent
 func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) error {
 	if systemge := node.systemge; systemge != nil {
-		node.createOutgoingMessageTaskGroup(systemge, Message.NewAsync(topic, payload), receiverNames...).Execute()
+		node.createOutgoingMessageTaskGroup(systemge, Message.NewAsync(topic, payload), receiverNames...).ExecuteTasks()
 		return nil
 	}
 	return Error.New("systemge component not initialized", nil)
@@ -36,7 +36,7 @@ func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*
 		if cap(responseChannel.responseChannel) == 0 {
 			responseChannel.Close()
 		}
-		waitgroup.Execute()
+		waitgroup.ExecuteTasks()
 		go systemge.responseChannelTimeout(systemge.stopChannel, responseChannel)
 		return responseChannel, nil
 	}
@@ -54,7 +54,7 @@ func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeComponent, me
 	defer systemge.outgoingConnectionMutex.RUnlock()
 	if len(receiverNames) == 0 {
 		for _, outgoingConnection := range systemge.topicResolutions[message.GetTopic()] {
-			waitgroup.Add(func() {
+			waitgroup.AddTask(func() {
 				err := systemge.messageOutgoingConnection(outgoingConnection, message)
 				if err != nil {
 					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
@@ -78,7 +78,7 @@ func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeComponent, me
 	} else {
 		for _, receiverName := range receiverNames {
 			if outgoingConnection := systemge.topicResolutions[message.GetTopic()][receiverName]; outgoingConnection != nil {
-				waitgroup.Add(func() {
+				waitgroup.AddTask(func() {
 					err := systemge.messageOutgoingConnection(outgoingConnection, message)
 					if err != nil {
 						if errorLogger := node.GetErrorLogger(); errorLogger != nil {
