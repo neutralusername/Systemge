@@ -32,7 +32,7 @@ func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*
 	if systemge := node.systemge; systemge != nil {
 		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload)
 		waitgroup := node.createOutgoingMessageTaskGroup(systemge, responseChannel.GetRequestMessage(), receiverNames...)
-		responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetCount())
+		responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetTaskCount())
 		if cap(responseChannel.responseChannel) == 0 {
 			responseChannel.Close()
 		}
@@ -49,7 +49,7 @@ func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, er
 }
 
 func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeComponent, message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
-	waitgroup := Tools.NewWaitgroup()
+	waitgroup := Tools.NewTaskGroup()
 	systemge.outgoingConnectionMutex.RLock()
 	defer systemge.outgoingConnectionMutex.RUnlock()
 	if len(receiverNames) == 0 {

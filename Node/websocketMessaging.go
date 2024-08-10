@@ -14,7 +14,7 @@ func (node *Node) WebsocketBroadcast(message *Message.Message) error {
 			infoLogger.Log("Broadcasting message with topic \"" + message.GetTopic() + "\"")
 		}
 		messageBytes := message.Serialize()
-		waitGroup := Tools.NewWaitgroup()
+		waitGroup := Tools.NewTaskGroup()
 		websocket.mutex.RLock()
 		for _, websocketClient := range websocket.clients {
 			waitGroup.Add(func() {
@@ -51,7 +51,7 @@ func (node *Node) WebsocketUnicast(id string, message *Message.Message) error {
 			infoLogger.Log("Unicasting message with topic \"" + message.GetTopic() + "\" to websocketClient \"" + id + "\"")
 		}
 		messageBytes := message.Serialize()
-		waitGroup := Tools.NewWaitgroup()
+		waitGroup := Tools.NewTaskGroup()
 		websocket.mutex.RLock()
 		if websocketClient, exists := websocket.clients[id]; exists {
 			waitGroup.Add(func() {
@@ -92,7 +92,7 @@ func (node *Node) WebsocketMulticast(ids []string, message *Message.Message) err
 			infoLogger.Log("Multicasting message with topic \"" + message.GetTopic() + "\" to websocketClients \"" + idsString[:len(idsString)-2] + "\"")
 		}
 		messageBytes := message.Serialize()
-		waitGroup := Tools.NewWaitgroup()
+		waitGroup := Tools.NewTaskGroup()
 		websocket.mutex.RLock()
 		for _, id := range ids {
 			if websocketClient, exists := websocket.clients[id]; exists {
@@ -131,7 +131,7 @@ func (node *Node) WebsocketGroupcast(groupId string, message *Message.Message) e
 			infoLogger.Log("Groupcasting message with topic \"" + message.GetTopic() + "\" to group \"" + groupId + "\"")
 		}
 		messageBytes := message.Serialize()
-		waitGroup := Tools.NewWaitgroup()
+		waitGroup := Tools.NewTaskGroup()
 		websocket.mutex.RLock()
 		if websocket.groups[groupId] == nil {
 			websocket.mutex.RUnlock()

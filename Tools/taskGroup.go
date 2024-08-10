@@ -6,47 +6,43 @@ import (
 )
 
 type TaskGroup struct {
-	waitGroup   *sync.WaitGroup
-	count       atomic.Uint32
-	executeChan chan bool
-	abortChan   chan bool
+	waitGroup      *sync.WaitGroup
+	taskCount      atomic.Uint32
+	executeChannel chan bool
+	abortChannel   chan bool
 }
 
-func (myWaitgroup *TaskGroup) GetCount() int {
-	return int(myWaitgroup.count.Load())
+func (myWaitgroup *TaskGroup) GetTaskCount() int {
+	return int(myWaitgroup.taskCount.Load())
 }
 
-func NewWaitgroup() *TaskGroup {
+func NewTaskGroup() *TaskGroup {
 	return &TaskGroup{
-		waitGroup:   &sync.WaitGroup{},
-		executeChan: make(chan bool),
-		abortChan:   make(chan bool),
+		waitGroup:      &sync.WaitGroup{},
+		executeChannel: make(chan bool),
+		abortChannel:   make(chan bool),
 	}
 }
 
 // Wrap operation in func() in order to add it to the waitgroup
-func (myWaitgroup *TaskGroup) Add(function func()) {
-	myWaitgroup.waitGroup.Add(1)
-	myWaitgroup.count.Add(1)
+func (taskGroup *TaskGroup) Add(task func()) {
+	taskGroup.waitGroup.Add(1)
+	taskGroup.taskCount.Add(1)
 	go func() {
-		defer myWaitgroup.waitGroup.Done()
+		defer taskGroup.waitGroup.Done()
 		select {
-		case <-myWaitgroup.executeChan:
-			function()
-		case <-myWaitgroup.abortChan:
+		case <-taskGroup.executeChannel:
+			task()
+		case <-taskGroup.abortChannel:
 			return
 		}
 	}()
 }
 
-func (myWaitgroup *TaskGroup) Execute() {
-	close(myWaitgroup.executeChan)
-	myWaitgroup.waitGroup.Wait()
-	close(myWaitgroup.abortChan)
-}
-
-func (myWaitgroup *TaskGroup) Abort() {
-	close(myWaitgroup.abortChan)
-	myWaitgroup.waitGroup.Wait()
-	close(myWaitgroup.executeChan)
+// may only be executed once. Calling it a second time will result in a panic.
+// Executes all added tasks in parallel and waits for all to finish
+func (taskGroup *TaskGroup) Execute() {
+	close(taskGroup.executeChannel)
+	taskGroup.waitGroup.Wait()
+	close(taskGroup.abortChannel)
 }

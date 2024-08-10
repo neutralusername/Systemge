@@ -23,15 +23,16 @@ type systemgeComponent struct {
 
 	tcpServer *Tcp.Server
 
+	nodeName      string
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
-	nodeName      string
 
+	stopNode                             func()
 	stopChannel                          chan bool //closing of this channel initiates the stop of the systemge component
 	incomingConnectionsStopChannel       chan bool //closing of this channel indicates that the incoming connection handler has stopped
 	allIncomingConnectionsStoppedChannel chan bool //closing of this channel indicates that all incoming connections have stopped
-	stopNode                             func()
+	messageHandlerChannel                chan func()
 
 	asyncMessageHandlerMutex sync.RWMutex
 	handleAsyncMessage       func(message *Message.Message) error
@@ -51,7 +52,6 @@ type systemgeComponent struct {
 
 	incomingConnectionMutex sync.RWMutex
 	incomingConnections     map[string]*incomingConnection // name -> nodeConnection
-	handleSequentially      chan func()
 
 	// outgoing connection metrics
 
@@ -177,12 +177,12 @@ func (node *Node) startSystemgeComponent() error {
 		}
 	}
 	if systemge.config.ProcessAllMessagesSequentially {
-		systemge.handleSequentially = make(chan func(), systemge.config.ProcessAllMessagesSequentiallyChannelSize)
+		systemge.messageHandlerChannel = make(chan func(), systemge.config.ProcessAllMessagesSequentiallyChannelSize)
 		if systemge.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
 			go func() {
 				for {
 					select {
-					case f := <-systemge.handleSequentially:
+					case f := <-systemge.messageHandlerChannel:
 						f()
 					case <-systemge.stopChannel:
 						return
@@ -193,8 +193,8 @@ func (node *Node) startSystemgeComponent() error {
 			go func() {
 				for {
 					select {
-					case f := <-systemge.handleSequentially:
-						if systemge.errorLogger != nil && len(systemge.handleSequentially) >= systemge.config.ProcessAllMessagesSequentiallyChannelSize-1 {
+					case f := <-systemge.messageHandlerChannel:
+						if systemge.errorLogger != nil && len(systemge.messageHandlerChannel) >= systemge.config.ProcessAllMessagesSequentiallyChannelSize-1 {
 							systemge.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
 						}
 						f()

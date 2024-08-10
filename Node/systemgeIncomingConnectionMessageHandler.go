@@ -36,7 +36,7 @@ func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConn
 		}
 		wg.Add(1)
 		if systemge.config.ProcessAllMessagesSequentially {
-			systemge.handleSequentially <- func() {
+			systemge.messageHandlerChannel <- func() {
 				systemge.processIncomingMessage(incomingConnection, messageBytes, &wg)
 			}
 		} else if !systemge.config.ProcessMessagesOfEachConnectionSequentially {
