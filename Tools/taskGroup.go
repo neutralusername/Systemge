@@ -16,6 +16,8 @@ func (myWaitgroup *TaskGroup) GetTaskCount() int {
 	return int(myWaitgroup.taskCount.Load())
 }
 
+// Creates a new TaskGroup
+// After tasks have been added, either ExecuteTasks() or AbortTaskGroup() must be called or there will be a goroutine leak
 func NewTaskGroup() *TaskGroup {
 	return &TaskGroup{
 		waitGroup:      &sync.WaitGroup{},
