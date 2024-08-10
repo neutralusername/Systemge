@@ -12,6 +12,7 @@ type TaskGroup struct {
 	abortChannel   chan bool
 }
 
+// Returns the number of tasks that have been added to the TaskGroup
 func (myWaitgroup *TaskGroup) GetTaskCount() int {
 	return int(myWaitgroup.taskCount.Load())
 }
