@@ -43,7 +43,7 @@ func (taskGroup *TaskGroup) handleTaskExecution(task func()) {
 }
 
 // Executes all tasks that have been added to the TaskGroup concurrently and waits for them to finish.
-// May only be executed once. Calling it a second time will result in a panic.
+// May only be called once. Calling it a second time will result in a panic.
 func (taskGroup *TaskGroup) ExecuteTasks() {
 	close(taskGroup.executeChannel)
 	taskGroup.waitGroup.Wait()
@@ -51,7 +51,7 @@ func (taskGroup *TaskGroup) ExecuteTasks() {
 }
 
 // Aborts the execution of all tasks. May only be executed once.
-// Calling it a second time will result in a panic.
+// May only be called once. Calling it a second time will result in a panic.
 func (myWaitgroup *TaskGroup) AbortTaskGroup() {
 	close(myWaitgroup.abortChannel)
 	myWaitgroup.waitGroup.Wait()
