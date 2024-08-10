@@ -131,6 +131,15 @@ func (node *Node) startSystemgeComponent() error {
 		syncMessageHandlers:                  node.application.(SystemgeComponent).GetSyncMessageHandlers(),
 		config:                               node.newNodeConfig.SystemgeConfig,
 	}
+	if systemge.config.TcpBufferBytes == 0 {
+		systemge.config.TcpBufferBytes = 1024 * 4
+	}
+	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
+	if err != nil {
+		return Error.New("Failed to create tcp server", err)
+	}
+	systemge.tcpServer = tcpServer
+	node.systemge = systemge
 	systemge.handleSyncRequest = func(message *Message.Message) (string, error) {
 		systemge.syncMessageHandlerMutex.RLock()
 		syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]
@@ -167,15 +176,6 @@ func (node *Node) startSystemgeComponent() error {
 			}
 		}
 	}
-	if systemge.config.TcpBufferBytes == 0 {
-		systemge.config.TcpBufferBytes = 1024 * 4
-	}
-	tcpServer, err := Tcp.NewServer(systemge.config.ServerConfig)
-	if err != nil {
-		return Error.New("Failed to create tcp server", err)
-	}
-	systemge.tcpServer = tcpServer
-	node.systemge = systemge
 	if systemge.config.ProcessAllMessagesSequentially {
 		systemge.handleSequentially = make(chan func(), systemge.config.ProcessAllMessagesSequentiallyChannelSize)
 		if systemge.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
