@@ -137,7 +137,7 @@ func (systemge *systemgeComponent) accessControlIncomingConnection(netConn net.C
 		return Error.New("Failed to split host and port from address", err)
 	}
 	if systemge.config.IpRateLimiter != nil && !systemge.ipRateLimiter.RegisterConnectionAttempt(ip) {
-		return Error.New("Rejected incoming connection from \""+address+"\" due to rate limiting", nil)
+		return Error.New("Rejected incoming connection from \""+address+"\" due to ip rate limiting", nil)
 	}
 	if systemge.tcpServer.GetBlacklist().Contains(ip) {
 		return Error.New("Rejected incoming connection due to blacklist", nil)
