@@ -28,7 +28,7 @@ func NewIpRateLimiter(config *Config.IpRateLimiter) *IpRateLimiter {
 		config.AttemptTimeWindowMs = 1
 	}
 	if config.CleanupIntervalMs < 1 {
-		config.CleanupIntervalMs = 1
+		config.CleanupIntervalMs = 1000
 	}
 	rl := &IpRateLimiter{
 		connections:     make(map[string][]time.Time),

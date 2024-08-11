@@ -34,7 +34,7 @@ func UnmarshalRateLimiter(data string) *TokenBucketRateLimiter {
 type IpRateLimiter struct {
 	MaxAttempts         uint32 `json:"maxAttempts"`         // default: 1
 	AttemptTimeWindowMs uint32 `json:"attemptTimeWindowMs"` // default: 1
-	CleanupIntervalMs   uint32 `json:"cleanupIntervalMs"`   // default: 1
+	CleanupIntervalMs   uint32 `json:"cleanupIntervalMs"`   // default: 1000ms
 }
 
 func UnmarshalIpRateLimiter(data string) *IpRateLimiter {
