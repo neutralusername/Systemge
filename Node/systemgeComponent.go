@@ -28,6 +28,8 @@ type systemgeComponent struct {
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
 
+	ipRateLimiter *Tools.IpRateLimiter
+
 	stopNode                             func()
 	stopChannel                          chan bool //closing of this channel initiates the stop of the systemge component
 	incomingConnectionsStopChannel       chan bool //closing of this channel indicates that the incoming connection handler has stopped
@@ -176,6 +178,9 @@ func (node *Node) startSystemgeComponent() error {
 			}
 		}
 	}
+	if systemge.config.IpRateLimiter != nil {
+		systemge.ipRateLimiter = Tools.NewIpRateLimiter(systemge.config.IpRateLimiter)
+	}
 	if systemge.config.ProcessAllMessagesSequentially {
 		systemge.messageHandlerChannel = make(chan func(), systemge.config.ProcessAllMessagesSequentiallyChannelSize)
 		if systemge.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
@@ -221,6 +226,11 @@ func (node *Node) stopSystemgeComponent() {
 	systemge := node.systemge
 	node.systemge = nil
 	close(systemge.stopChannel)
+
+	if systemge.ipRateLimiter != nil {
+		systemge.ipRateLimiter.Stop()
+	}
+
 	systemge.tcpServer.GetListener().Close()
 	<-systemge.incomingConnectionsStopChannel
 

@@ -21,11 +21,13 @@ type Systemge struct {
 	Endpoint        *TcpEndpoint   `json:"endpoint"`        // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (endpoint to other node's servers) (on startup, this node will attempt to establish connection to these endpoints)
 
-	OutgoingConnectionRateLimiterBytes *RateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
-	OutgoingConnectionRateLimiterMsgs  *RateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
+	OutgoingConnectionRateLimiterBytes *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
+	OutgoingConnectionRateLimiterMsgs  *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
 
-	IncomingConnectionRateLimiterBytes *RateLimiter `json:"incomingConnectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
-	IncomingConnectionRateLimiterMsgs  *RateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
+	IncomingConnectionRateLimiterBytes *TokenBucketRateLimiter `json:"incomingConnectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
+	IncomingConnectionRateLimiterMsgs  *TokenBucketRateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
+
+	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
@@ -45,8 +47,8 @@ type Websocket struct {
 	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
 
-	ClientRateLimiterBytes *RateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for websocket clients)
-	ClientRateLimiterMsgs  *RateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for websocket clients)
+	ClientRateLimiterBytes *TokenBucketRateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for websocket clients)
+	ClientRateLimiterMsgs  *TokenBucketRateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for websocket clients)
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 

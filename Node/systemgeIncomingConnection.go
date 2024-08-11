@@ -16,8 +16,8 @@ type incomingConnection struct {
 	netConn          net.Conn
 	name             string
 	sendMutex        sync.Mutex
-	rateLimiterBytes *Tools.RateLimiter
-	rateLimiterMsgs  *Tools.RateLimiter
+	rateLimiterBytes *Tools.TokenBucketRateLimiter
+	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 	tcpBuffer        []byte
 
 	stopChannel chan bool //closing of this channel indicates that the incoming connection has finished its ongoing tasks.
@@ -30,10 +30,10 @@ func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name 
 		stopChannel: make(chan bool),
 	}
 	if systemge.config.IncomingConnectionRateLimiterBytes != nil {
-		nodeConnection.rateLimiterBytes = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterBytes)
+		nodeConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(systemge.config.IncomingConnectionRateLimiterBytes)
 	}
 	if systemge.config.IncomingConnectionRateLimiterMsgs != nil {
-		nodeConnection.rateLimiterMsgs = Tools.NewRateLimiter(systemge.config.IncomingConnectionRateLimiterMsgs)
+		nodeConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(systemge.config.IncomingConnectionRateLimiterMsgs)
 	}
 	return nodeConnection
 }
@@ -55,12 +55,11 @@ func (incomingConnection *incomingConnection) receiveMessage(bufferSize uint32, 
 			}
 		}
 		completedMsgBytes = append(completedMsgBytes, incomingConnection.tcpBuffer...)
-		incomingConnection.tcpBuffer = nil
 		receivedMessageBytes, _, err := Tcp.Receive(incomingConnection.netConn, 0, bufferSize)
 		if err != nil {
 			return nil, Error.New("Failed to refill tcp buffer", err)
 		}
-		incomingConnection.tcpBuffer = append(incomingConnection.tcpBuffer, receivedMessageBytes...)
+		incomingConnection.tcpBuffer = receivedMessageBytes
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 )
 
-type RateLimiter struct {
+type TokenBucketRateLimiter struct {
 	bucket           uint64
 	maxBucketSize    uint64
 	refillRate       uint64
@@ -16,8 +16,8 @@ type RateLimiter struct {
 	mutex            sync.Mutex
 }
 
-func NewRateLimiter(config *Config.RateLimiter) *RateLimiter {
-	rateLimiter := &RateLimiter{
+func NewTokenBucketRateLimiter(config *Config.TokenBucketRateLimiter) *TokenBucketRateLimiter {
+	rateLimiter := &TokenBucketRateLimiter{
 		bucket:           config.InitialBucketSize,
 		maxBucketSize:    config.MaxBucketSize,
 		refillRate:       config.RefillRate,
@@ -30,11 +30,11 @@ func NewRateLimiter(config *Config.RateLimiter) *RateLimiter {
 	return rateLimiter
 }
 
-func (rateLimiter *RateLimiter) Stop() {
+func (rateLimiter *TokenBucketRateLimiter) Stop() {
 	rateLimiter.active = false
 }
 
-func (rateLimiter *RateLimiter) refillRoutine() {
+func (rateLimiter *TokenBucketRateLimiter) refillRoutine() {
 	time.Sleep(time.Duration(rateLimiter.refillIntervalMs) * time.Millisecond)
 	for rateLimiter.active {
 		rateLimiter.mutex.Lock()
@@ -47,7 +47,7 @@ func (rateLimiter *RateLimiter) refillRoutine() {
 	}
 }
 
-func (rateLimiter *RateLimiter) Consume(amount uint64) bool {
+func (rateLimiter *TokenBucketRateLimiter) Consume(amount uint64) bool {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
 	if rateLimiter.bucket < amount {

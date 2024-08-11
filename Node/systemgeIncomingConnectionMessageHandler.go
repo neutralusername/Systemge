@@ -49,6 +49,7 @@ func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConn
 
 func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *incomingConnection, messageBytes []byte, wg *sync.WaitGroup) {
 	defer wg.Done()
+	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	if err := systemge.checkRateLimits(incomingConnection, messageBytes); err != nil {
 		if warningLogger := systemge.warningLogger; warningLogger != nil {
 			warningLogger.Log(Error.New("Rejected message from incoming node connection \""+incomingConnection.name+"\"", err).Error())
@@ -116,7 +117,6 @@ func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *in
 }
 
 func (systemge *systemgeComponent) checkRateLimits(incomingConnection *incomingConnection, messageBytes []byte) error {
-	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	if incomingConnection.rateLimiterBytes != nil && !incomingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		systemge.incomingConnectionRateLimiterBytesExceeded.Add(1)
 		return Error.New("Incoming connection rate limiter bytes exceeded", nil)

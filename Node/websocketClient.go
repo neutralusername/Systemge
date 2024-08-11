@@ -24,8 +24,8 @@ type WebsocketClient struct {
 	// if the timer is nil, the websocketClient is already disconnected.
 	watchdog *time.Timer
 
-	rateLimiterBytes *Tools.RateLimiter
-	rateLimiterMsgs  *Tools.RateLimiter
+	rateLimiterBytes *Tools.TokenBucketRateLimiter
+	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 
 	expired      bool
 	disconnected bool
@@ -38,10 +38,10 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 		stopChannel:   make(chan bool),
 	}
 	if websocket.config.ClientRateLimiterBytes != nil {
-		websocketClient.rateLimiterBytes = Tools.NewRateLimiter(websocket.config.ClientRateLimiterBytes)
+		websocketClient.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(websocket.config.ClientRateLimiterBytes)
 	}
 	if websocket.config.ClientRateLimiterMsgs != nil {
-		websocketClient.rateLimiterMsgs = Tools.NewRateLimiter(websocket.config.ClientRateLimiterMsgs)
+		websocketClient.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(websocket.config.ClientRateLimiterMsgs)
 	}
 	websocketClient.websocketConn.SetReadLimit(int64(websocket.config.IncomingMessageByteLimit))
 
