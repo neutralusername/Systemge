@@ -3,10 +3,11 @@ package Config
 import "encoding/json"
 
 type NewNode struct {
-	NodeConfig      *Node      `json:"nodeConfig"`      // *required*
-	SystemgeConfig  *Systemge  `json:"systemgeConfig"`  // *optional*
-	HttpConfig      *HTTP      `json:"httpConfig"`      // *optional*
-	WebsocketConfig *Websocket `json:"websocketConfig"` // *optional*
+	NodeConfig           *Node           `json:"nodeConfig"`           // *required*
+	SystemgeClientConfig *SystemgeClient `json:"systemgeClientConfig"` // *optional*
+	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *optional*
+	HttpConfig           *HTTP           `json:"httpConfig"`           // *optional*
+	WebsocketConfig      *Websocket      `json:"websocketConfig"`      // *optional*
 }
 
 func UnmarshalNewNode(data string) *NewNode {

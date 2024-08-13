@@ -23,7 +23,7 @@ type outgoingConnectionAttempt struct {
 // the maximum number of attempts is reached,
 // the attempt is aborted
 // or the systemge component is stopped
-func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Config.TcpEndpoint, transient bool) error {
+func (systemge *systemgeClientComponent) attemptOutgoingConnection(endpointConfig *Config.TcpEndpoint, transient bool) error {
 	address, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
 		return Error.New("Failed to normalize address \""+endpointConfig.Address+"\"", err)
@@ -74,7 +74,7 @@ func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Con
 			}
 			outgoingConn, err := systemge.handleOutgoingConnectionHandshake(outgoingConnectionAttempt)
 			if err != nil {
-				systemge.outgoingConnectionAttemptsFailed.Add(1)
+				systemge.connectionAttemptsFailed.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(outgoingConnectionAttempt.attempts)+" to connect to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", err).Error())
 				}
@@ -85,12 +85,12 @@ func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Con
 			systemge.outgoingConnectionMutex.Lock()
 			if outgoingConnectionAttempt.isAborted {
 				systemge.outgoingConnectionMutex.Unlock()
-				systemge.outgoingConnectionAttemptsFailed.Add(1)
+				systemge.connectionAttemptsFailed.Add(1)
 				return Error.New("Failed to find outgoing connection attempt for endpoint \""+outgoingConn.endpointConfig.Address+"\"", nil)
 			}
 			if systemge.outgoingConnections[outgoingConn.endpointConfig.Address] != nil {
 				systemge.outgoingConnectionMutex.Unlock()
-				systemge.outgoingConnectionAttemptsFailed.Add(1)
+				systemge.connectionAttemptsFailed.Add(1)
 				return Error.New("Outgoing connection with endpoint \""+outgoingConn.endpointConfig.Address+"\" already exists", nil)
 			}
 			systemge.outgoingConnections[outgoingConn.endpointConfig.Address] = outgoingConn
@@ -105,7 +105,7 @@ func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Con
 			outgoingConn.isTransient = transient
 			systemge.outgoingConnectionMutex.Unlock()
 
-			systemge.outgoingConnectionAttemptsSuccessful.Add(1)
+			systemge.connectionAttemptsSuccessful.Add(1)
 			if infoLogger := systemge.infoLogger; infoLogger != nil {
 				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(outgoingConnectionAttempt.attempts)+" to connect to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\" with name \""+outgoingConn.name+"\"", nil).Error())
 			}
@@ -115,8 +115,8 @@ func (systemge *systemgeComponent) attemptOutgoingConnection(endpointConfig *Con
 	}
 }
 
-func (systemge *systemgeComponent) handleOutgoingConnectionHandshake(outgoingConnectionAttempt *outgoingConnectionAttempt) (*outgoingConnection, error) {
-	systemge.outgoingConnectionAttemptsCount.Add(1)
+func (systemge *systemgeClientComponent) handleOutgoingConnectionHandshake(outgoingConnectionAttempt *outgoingConnectionAttempt) (*outgoingConnection, error) {
+	systemge.connectionAttempts.Add(1)
 	netConn, err := Tcp.NewClient(outgoingConnectionAttempt.endpointConfig)
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", err)
@@ -127,7 +127,7 @@ func (systemge *systemgeComponent) handleOutgoingConnectionHandshake(outgoingCon
 		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
-	systemge.outgoingConnectionAttemptBytesSent.Add(bytesSent)
+	systemge.connectionAttemptBytesSent.Add(bytesSent)
 	outgoingConnection := outgoingConnection{
 		netConn: netConn,
 	}
@@ -137,7 +137,7 @@ func (systemge *systemgeComponent) handleOutgoingConnectionHandshake(outgoingCon
 		return nil, Error.New("Failed to receive \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
-	systemge.outgoingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
+	systemge.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
@@ -166,7 +166,7 @@ func (systemge *systemgeComponent) handleOutgoingConnectionHandshake(outgoingCon
 		return nil, Error.New("Failed to receive \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
-	systemge.outgoingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
+	systemge.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err = Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()

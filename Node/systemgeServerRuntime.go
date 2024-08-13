@@ -7,7 +7,7 @@ import (
 )
 
 func (node *Node) GetIncomingConnectionsList() map[string]string { // map == name:address
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeServer; systemge != nil {
 		systemge.incomingConnectionMutex.RLock()
 		defer systemge.incomingConnectionMutex.RUnlock()
 		connections := make(map[string]string, len(systemge.incomingConnections))
@@ -20,7 +20,7 @@ func (node *Node) GetIncomingConnectionsList() map[string]string { // map == nam
 }
 
 func (node *Node) DisconnectIncomingConnection(name string) error {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeServer; systemge != nil {
 		systemge.incomingConnectionMutex.Lock()
 		defer systemge.incomingConnectionMutex.Unlock()
 		if systemge.incomingConnections[name] == nil {
@@ -35,7 +35,7 @@ func (node *Node) DisconnectIncomingConnection(name string) error {
 // adds a sync topic and its handler to systemge
 // propagates the new topic of interest to all incoming connections
 func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeServer; systemge != nil {
 		systemge.syncMessageHandlerMutex.Lock()
 		if systemge.syncMessageHandlers[topic] != nil {
 			systemge.syncMessageHandlerMutex.Unlock()
@@ -43,7 +43,7 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 		}
 		systemge.syncMessageHandlers[topic] = handler
 		systemge.syncMessageHandlerMutex.Unlock()
-		systemge.sentAddTopic.Add(1)
+		systemge.topicAddSent.Add(1)
 		systemge.incomingConnectionMutex.RLock()
 		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
@@ -71,7 +71,7 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 // adds an async topic and its handler to systemge
 // propagates the new topic of interest to all incoming connections
 func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeServer; systemge != nil {
 		systemge.asyncMessageHandlerMutex.Lock()
 		if systemge.asyncMessageHandlers[topic] != nil {
 			systemge.asyncMessageHandlerMutex.Unlock()
@@ -79,7 +79,7 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 		}
 		systemge.asyncMessageHandlers[topic] = handler
 		systemge.asyncMessageHandlerMutex.Unlock()
-		systemge.sentAddTopic.Add(1)
+		systemge.topicAddSent.Add(1)
 		systemge.incomingConnectionMutex.RLock()
 		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
@@ -107,7 +107,7 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 // removes a sync topic and its handler from systemge
 // propagates the removal of the topic of interest to all incoming connections
 func (node *Node) RemoveSyncTopic(topic string) error {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeServer; systemge != nil {
 		systemge.syncMessageHandlerMutex.Lock()
 		if systemge.syncMessageHandlers[topic] == nil {
 			systemge.syncMessageHandlerMutex.Unlock()
@@ -115,7 +115,7 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 		}
 		delete(systemge.syncMessageHandlers, topic)
 		systemge.syncMessageHandlerMutex.Unlock()
-		systemge.sentRemoveTopic.Add(1)
+		systemge.topicRemoveSent.Add(1)
 		systemge.incomingConnectionMutex.RLock()
 		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
@@ -143,7 +143,7 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 // removes an async topic and its handler from systemge
 // propagates the removal of the topic of interest to all incoming connections
 func (node *Node) RemoveAsyncTopic(topic string) error {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeServer; systemge != nil {
 		systemge.asyncMessageHandlerMutex.Lock()
 		if systemge.asyncMessageHandlers[topic] == nil {
 			systemge.asyncMessageHandlerMutex.Unlock()
@@ -151,7 +151,7 @@ func (node *Node) RemoveAsyncTopic(topic string) error {
 		}
 		delete(systemge.asyncMessageHandlers, topic)
 		systemge.asyncMessageHandlerMutex.Unlock()
-		systemge.sentRemoveTopic.Add(1)
+		systemge.topicRemoveSent.Add(1)
 		systemge.incomingConnectionMutex.RLock()
 		defer systemge.incomingConnectionMutex.RUnlock()
 		for _, incomingConnection := range systemge.incomingConnections {
@@ -174,4 +174,52 @@ func (node *Node) RemoveAsyncTopic(topic string) error {
 		return nil
 	}
 	return Error.New("Systemge is nil", nil)
+}
+
+// AddToSystemgeBlacklist adds an address to the systemge blacklist.
+func (node *Node) AddToSystemgeBlacklist(address string) error {
+	if systemge := node.systemgeServer; systemge != nil {
+		systemge.tcpServer.GetBlacklist().Add(address)
+	}
+	return Error.New("Systemge is nil", nil)
+}
+
+// RemoveFromSystemgeBlacklist removes an address from the systemge blacklist.
+func (node *Node) RemoveFromSystemgeBlacklist(address string) error {
+	if systemge := node.systemgeServer; systemge != nil {
+		systemge.tcpServer.GetBlacklist().Remove(address)
+	}
+	return Error.New("Systemge is nil", nil)
+}
+
+// GetSystemgeBlacklist returns a slice of addresses in the systemge blacklist.
+func (node *Node) GetSystemgeBlacklist() []string {
+	if systemge := node.systemgeServer; systemge != nil {
+		return systemge.tcpServer.GetBlacklist().GetElements()
+	}
+	return nil
+}
+
+// AddToSystemgeWhitelist adds an address to the systemge whitelist.
+func (node *Node) AddToSystemgeWhitelist(address string) error {
+	if systemge := node.systemgeServer; systemge != nil {
+		systemge.tcpServer.GetWhitelist().Add(address)
+	}
+	return Error.New("Systemge is nil", nil)
+}
+
+// RemoveFromSystemgeWhitelist removes an address from the systemge whitelist.
+func (node *Node) RemoveFromSystemgeWhitelist(address string) error {
+	if systemge := node.systemgeServer; systemge != nil {
+		systemge.tcpServer.GetWhitelist().Remove(address)
+	}
+	return Error.New("Systemge is nil", nil)
+}
+
+// GetSystemgeWhitelist returns a slice of addresses in the systemge whitelist.
+func (node *Node) GetSystemgeWhitelist() []string {
+	if systemge := node.systemgeServer; systemge != nil {
+		return systemge.tcpServer.GetWhitelist().GetElements()
+	}
+	return nil
 }

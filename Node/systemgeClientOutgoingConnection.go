@@ -29,7 +29,7 @@ type outgoingConnection struct {
 	stopChannel chan bool //closing of this channel indicates that the outgoing connection has finished its ongoing tasks.
 }
 
-func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
+func (systemge *systemgeClientComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
 	outgoingConnection := &outgoingConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
@@ -37,11 +37,11 @@ func (systemge *systemgeComponent) newOutgoingConnection(netConn net.Conn, endpo
 		topics:         topics,
 		stopChannel:    make(chan bool),
 	}
-	if systemge.config.OutgoingConnectionRateLimiterBytes != nil {
-		outgoingConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(systemge.config.OutgoingConnectionRateLimiterBytes)
+	if systemge.config.RateLimiterBytes != nil {
+		outgoingConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(systemge.config.RateLimiterBytes)
 	}
-	if systemge.config.OutgoingConnectionRateLimiterMsgs != nil {
-		outgoingConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(systemge.config.OutgoingConnectionRateLimiterMsgs)
+	if systemge.config.RateLimiterMessages != nil {
+		outgoingConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(systemge.config.RateLimiterMessages)
 	}
 	return outgoingConnection
 }
@@ -72,7 +72,7 @@ func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, 
 }
 
 // async messages and sync requests are sent to outgoing connections
-func (systemge *systemgeComponent) messageOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
+func (systemge *systemgeClientComponent) messageOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
 	outgoingConnection.sendMutex.Lock()
 	defer outgoingConnection.sendMutex.Unlock()
 	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), systemge.config.TcpTimeoutMs)
@@ -81,11 +81,11 @@ func (systemge *systemgeComponent) messageOutgoingConnection(outgoingConnection 
 	}
 	systemge.bytesSent.Add(bytesSent)
 	if message.GetSyncTokenToken() != "" {
-		systemge.outgoingSyncRequestBytesSent.Add(bytesSent)
-		systemge.outgoingSyncRequests.Add(1)
+		systemge.syncRequestBytesSent.Add(bytesSent)
+		systemge.syncRequestsSent.Add(1)
 	} else {
-		systemge.outgoingAsyncMessageBytesSent.Add(bytesSent)
-		systemge.outgoingAsyncMessages.Add(1)
+		systemge.asyncMessageBytesSent.Add(bytesSent)
+		systemge.asyncMessagesSent.Add(1)
 	}
 	return nil
 }

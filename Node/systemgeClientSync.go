@@ -20,7 +20,7 @@ type SyncResponseChannel struct {
 	receiveMutex    sync.Mutex
 }
 
-func (systemge *systemgeComponent) responseChannelTimeout(stopChannel chan bool, responseChannel *SyncResponseChannel) {
+func (systemge *systemgeClientComponent) responseChannelTimeout(stopChannel chan bool, responseChannel *SyncResponseChannel) {
 	if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
 		timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
 		select {
@@ -39,7 +39,7 @@ func (systemge *systemgeComponent) responseChannelTimeout(stopChannel chan bool,
 	systemge.removeResponseChannel(responseChannel.GetRequestMessage().GetSyncTokenToken())
 }
 
-func (systemge *systemgeComponent) addResponseChannel(randomizer *Tools.Randomizer, topic, payload string) *SyncResponseChannel {
+func (systemge *systemgeClientComponent) addResponseChannel(randomizer *Tools.Randomizer, topic, payload string) *SyncResponseChannel {
 	systemge.syncRequestMutex.Lock()
 	defer systemge.syncRequestMutex.Unlock()
 	syncToken := randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
@@ -52,12 +52,12 @@ func (systemge *systemgeComponent) addResponseChannel(randomizer *Tools.Randomiz
 	}
 	return systemge.syncResponseChannels[syncToken]
 }
-func (systemge *systemgeComponent) removeResponseChannel(syncToken string) {
+func (systemge *systemgeClientComponent) removeResponseChannel(syncToken string) {
 	systemge.syncRequestMutex.Lock()
 	defer systemge.syncRequestMutex.Unlock()
 	delete(systemge.syncResponseChannels, syncToken)
 }
-func (systemge *systemgeComponent) getResponseChannel(syncToken string) *SyncResponseChannel {
+func (systemge *systemgeClientComponent) getResponseChannel(syncToken string) *SyncResponseChannel {
 	systemge.syncRequestMutex.RLock()
 	defer systemge.syncRequestMutex.RUnlock()
 	return systemge.syncResponseChannels[syncToken]

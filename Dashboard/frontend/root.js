@@ -15,6 +15,7 @@ import {
     GetWebsocketConnection,
 } from "./wsConnection.js";
  
+
 export class root extends React.Component {
     constructor(props) {
         super(props);
@@ -34,45 +35,61 @@ export class root extends React.Component {
                 labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"],
             },
-            nodeSystemgeCounters: {
-                labels: ["bytesReceived", "bytesSent"],
+            nodeSystemgeClientCounters: {
+                labels: ["bytesSent", "bytesReceived", "invalidMessagesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
+            },
+            nodeSystemgeClientRateLimitCounters: {
+                labels: ["messageRateLimiterExceeded", "byteRateLimiterExceeded"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
-            nodeSystemgeInvalidMessageCounters: {
-                labels: ["invalidMessagesFromIncomingConnections", "invalidMessagesFromOutgoingConnections", "outgoingConnectionRateLimiterBytesExceeded", "outgoingConnectionRateLimiterMsgsExceeded", "incomingConnectionRateLimiterBytesExceeded", "incomingConnectionRateLimiterMsgsExceeded"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"],
-            },
-            nodeSystemgeIncomingSyncResponseCounters: {
-                labels: ["incomingSyncResponses", "incomingSyncSuccessResponses", "incomingSyncFailureResponses", "incomingSyncResponseBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
-            },
-            nodeSystemgeIncomingSyncRequestCounters: {
-                labels: ["incomingSyncRequests", "incomingSyncRequestBytesReceived",],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
-            },
-            nodeSystemgeIncomingAsyncMessageCounters: {
-                labels: ["incomingAsyncMessages", "incomingAsyncMessageBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeIncomingConnectionAttemptsCounters: {
-                labels: ["incomingConnectionAttempts", "incomingConnectionAttemptsSuccessful", "incomingConnectionAttemptsFailed", "incomingConnectionAttemptBytesSent", "incomingConnectionAttemptBytesReceived"],
+            nodeSystemgeClientConnectionCounters: {
+                labels: ["connectionAttempts", "connectionAttemptsSuccessful", "connectionAttemptsFailed", "connectionAttemptBytesSent", "connectionAttemptBytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
             },
-            nodeSystemgeOutgoingSyncRequestCounters: {
-                labels: ["outgoingSyncRequests", "outgoingSyncRequestBytesSent"],
+            nodeSystemgeClientSyncResponseCounters: {
+                labels: ["syncSuccessResponsesReceived", "syncFailureResponsesReceived", "syncResponseBytesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
+            },
+            nodeSystemgeClientAsyncMessageCounters: {
+                labels: ["asyncMessagesSent", "asyncMessageBytesSent"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
-            nodeSystemgeOutgoingSyncResponsesCounters: {
-                labels: ["outgoingSyncResponses", "outgoingSyncSuccessResponses", "outgoingSyncFailureResponses", "outgoingSyncResponseBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)"],
-            },
-            nodeSystemgeOutgoingAsyncMessageCounters: {
-                labels: ["outgoingAsyncMessages", "outgoingAsyncMessageBytesSent"],
+            nodeSystemgeClientSyncRequestCounters: {
+                labels: ["syncRequestsSent", "syncRequestBytesSent"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
-            nodeSystemgeOutgoingConnectionAttemptCounters: {
-                labels: ["outgoingConnectionAttempts", "outgoingConnectionAttemptsSuccessful", "outgoingConnectionAttemptsFailed", "outgoingConnectionAttemptBytesSent", "outgoingConnectionAttemptBytesReceived"],
+            nodeSystemgeClientTopicCounters: {
+                labels: ["topicAddReceived", "topicRemoveReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
+            },
+            nodeSystemgeServerCounters: {
+                labels: ["bytesReceived", "bytesSent", "invalidMessagesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
+            },
+            nodeSystemgeServerRateLimitCounters: {
+                labels: ["messageRateLimiterExceeded", "byteRateLimiterExceeded"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
+            },
+            nodeSystemgeServerConnectionCounters: {
+                labels: ["connectionAttempts", "connectionAttemptsSuccessful", "connectionAttemptsFailed", "connectionAttemptBytesSent", "connectionAttemptBytesReceived"],
                 colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
+            },
+            nodeSystemgeServerSyncResponseCounters: {
+                labels: ["syncSuccessResponsesSent", "syncFailureResponsesSent", "syncResponseBytesSent"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
+            },
+            nodeSystemgeServerAsyncMessageCounters: {
+                labels: ["asyncMessagesReceived", "asyncMessageBytesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
+            },
+            nodeSystemgeServerSyncRequestCounters: {
+                labels: ["syncRequestsReceived", "syncRequestBytesReceived"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
+            },
+            nodeSystemgeServerTopicCounters: {
+                labels: ["topicAddSent", "topicRemoveSent"],
+                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
             },
             nodeSpawnerCounters: {
                 labels: ["spawnedNodeCount"],
@@ -142,16 +159,20 @@ export class root extends React.Component {
             case "nodeStatus":
                 this.handleNodeStatus(JSON.parse(message.payload));
                 break;
-            case "nodeSystemgeCounters":
-            case "nodeSystemgeInvalidMessageCounters":
-            case "nodeSystemgeIncomingSyncResponseCounters":
-            case "nodeSystemgeIncomingSyncRequestCounters":
-            case "nodeSystemgeIncomingConnectionAttemptsCounters":
-            case "nodeSystemgeIncomingAsyncMessageCounters":
-            case "nodeSystemgeOutgoingSyncRequestCounters":
-            case "nodeSystemgeOutgoingAsyncMessageCounters":
-            case "nodeSystemgeOutgoingConnectionAttemptCounters":
-            case "nodeSystemgeOutgoingSyncResponsesCounters":
+            case "nodeSystemgeClientCounters":
+            case "nodeSystemgeClientRateLimitCounters":
+            case "nodeSystemgeClientConnectionCounters":
+            case "nodeSystemgeClientSyncResponseCounters":
+            case "nodeSystemgeClientAsyncMessageCounters":
+            case "nodeSystemgeClientSyncRequestCounters":
+            case "nodeSystemgeClientTopicCounters":
+            case "nodeSystemgeServerCounters":
+            case "nodeSystemgeServerRateLimitCounters":
+            case "nodeSystemgeServerConnectionCounters":
+            case "nodeSystemgeServerSyncResponseCounters":
+            case "nodeSystemgeServerAsyncMessageCounters":
+            case "nodeSystemgeServerSyncRequestCounters":
+            case "nodeSystemgeServerTopicCounters":
             case "nodeWebsocketCounters":
             case "nodeSpawnerCounters":
             case "nodeHttpCounters":

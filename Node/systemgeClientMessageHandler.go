@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (systemge *systemgeComponent) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
+func (systemge *systemgeClientComponent) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting handling of messages from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
 	}
@@ -55,16 +55,16 @@ func (systemge *systemgeComponent) handleOutgoingConnectionMessages(outgoingConn
 		go func(messageBytes []byte) {
 			systemge.bytesReceived.Add(uint64(len(messageBytes)))
 			if outgoingConnection.rateLimiterBytes != nil && !outgoingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-				systemge.outgoingConnectionRateLimiterBytesExceeded.Add(1)
+				systemge.byteRateLimiterExceeded.Add(1)
 				return
 			}
 			if outgoingConnection.rateLimiterMsgs != nil && !outgoingConnection.rateLimiterMsgs.Consume(1) {
-				systemge.outgoingConnectionRateLimiterMsgsExceeded.Add(1)
+				systemge.messageRateLimiterExceeded.Add(1)
 				return
 			}
 			message, err := Message.Deserialize(messageBytes, outgoingConnection.name)
 			if err != nil {
-				systemge.invalidMessagesFromOutgoingConnections.Add(1)
+				systemge.invalidMessagesReceived.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 				}
@@ -75,23 +75,23 @@ func (systemge *systemgeComponent) handleOutgoingConnectionMessages(outgoingConn
 					outgoingConnection.topicsMutex.Lock()
 					outgoingConnection.topics[message.GetPayload()] = true
 					outgoingConnection.topicsMutex.Unlock()
-					systemge.receivedAddTopic.Add(1)
+					systemge.topicAddReceived.Add(1)
 				} else if message.GetTopic() == TOPIC_REMOVETOPIC {
 					outgoingConnection.topicsMutex.Lock()
 					delete(outgoingConnection.topics, message.GetPayload())
 					outgoingConnection.topicsMutex.Unlock()
-					systemge.receivedRemoveTopic.Add(1)
+					systemge.topicRemoveReceived.Add(1)
 				} else {
-					systemge.invalidMessagesFromOutgoingConnections.Add(1)
+					systemge.invalidMessagesReceived.Add(1)
 					if warningLogger := systemge.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\" (which goes against protocol)", nil).Error())
 					}
 				}
 				return
 			}
-			systemge.incomingSyncResponseBytesReceived.Add(uint64(len(messageBytes)))
+			systemge.syncResponseBytesReceived.Add(uint64(len(messageBytes)))
 			if err := systemge.validateMessage(message); err != nil {
-				systemge.invalidMessagesFromOutgoingConnections.Add(1)
+				systemge.invalidMessagesReceived.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 				}
@@ -99,22 +99,22 @@ func (systemge *systemgeComponent) handleOutgoingConnectionMessages(outgoingConn
 			}
 			syncResponseChannel := systemge.getResponseChannel(message.GetSyncTokenToken())
 			if syncResponseChannel == nil {
-				systemge.invalidMessagesFromOutgoingConnections.Add(1)
+				systemge.invalidMessagesReceived.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to get sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
 				}
 				return
 			}
 			if err = syncResponseChannel.addResponse(message); err != nil {
-				systemge.invalidMessagesFromOutgoingConnections.Add(1)
+				systemge.invalidMessagesReceived.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to add sync response to sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
 				}
 			} else {
 				if message.GetTopic() == Message.TOPIC_SUCCESS {
-					systemge.incomingSyncSuccessResponses.Add(1)
+					systemge.syncSuccessResponsesReceived.Add(1)
 				} else {
-					systemge.incomingSyncFailureResponses.Add(1)
+					systemge.syncFailureResponsesReceived.Add(1)
 				}
 			}
 		}(messageBytes)

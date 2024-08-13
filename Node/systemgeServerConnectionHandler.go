@@ -10,7 +10,7 @@ import (
 )
 
 // handles incoming connections from other nodes one at a time until systemge is stopped
-func (systemge *systemgeComponent) handleIncomingConnections() {
+func (systemge *systemgeServerComponent) handleIncomingConnections() {
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting incoming connection handler", nil).Error())
 	}
@@ -30,12 +30,12 @@ func (systemge *systemgeComponent) handleIncomingConnections() {
 				}
 				continue
 			}
-			systemge.incomingConnectionAttempts.Add(1)
+			systemge.connectionAttempts.Add(1)
 			if infoLogger := systemge.infoLogger; infoLogger != nil {
 				infoLogger.Log(Error.New("Handling incoming connection from \""+netConn.RemoteAddr().String()+"\"", nil).Error())
 			}
 			if err := systemge.accessControlIncomingConnection(netConn); err != nil {
-				systemge.incomingConnectionAttemptsFailed.Add(1)
+				systemge.connectionAttemptsFailed.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log("Rejected incoming connection from \"" + netConn.RemoteAddr().String() + "\" due to access control: " + err.Error())
 				}
@@ -44,7 +44,7 @@ func (systemge *systemgeComponent) handleIncomingConnections() {
 			}
 			incomingConnection, err := systemge.handleIncomingConnectionHandshake(netConn)
 			if err != nil {
-				systemge.incomingConnectionAttemptsFailed.Add(1)
+				systemge.connectionAttemptsFailed.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle incoming connection handshake from \""+netConn.RemoteAddr().String()+"\"", err).Error())
 				}
@@ -55,7 +55,7 @@ func (systemge *systemgeComponent) handleIncomingConnections() {
 			systemge.incomingConnectionMutex.Lock()
 			if systemge.incomingConnections[incomingConnection.name] != nil {
 				systemge.incomingConnectionMutex.Unlock()
-				systemge.incomingConnectionAttemptsFailed.Add(1)
+				systemge.connectionAttemptsFailed.Add(1)
 				if warningLogger := systemge.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to add incoming connection from \""+netConn.RemoteAddr().String()+"\" with name \""+incomingConnection.name+"\"", err).Error())
 				}
@@ -68,14 +68,14 @@ func (systemge *systemgeComponent) handleIncomingConnections() {
 			if infoLogger := systemge.infoLogger; infoLogger != nil {
 				infoLogger.Log(Error.New("Successfully handled incoming connection from \""+netConn.RemoteAddr().String()+"\" with name \""+incomingConnection.name+"\"", nil).Error())
 			}
-			systemge.incomingConnectionAttemptsSuccessful.Add(1)
+			systemge.connectionAttemptsSuccessful.Add(1)
 			go systemge.handleIncomingConnectionMessages(incomingConnection)
 		}
 	}
 }
 
-func (systemge *systemgeComponent) handleIncomingConnectionHandshake(netConn net.Conn) (*incomingConnection, error) {
-	systemge.incomingConnectionAttempts.Add(1)
+func (systemge *systemgeServerComponent) handleIncomingConnectionHandshake(netConn net.Conn) (*incomingConnection, error) {
+	systemge.connectionAttempts.Add(1)
 	incomingConnection := incomingConnection{
 		netConn: netConn,
 	}
@@ -84,7 +84,7 @@ func (systemge *systemgeComponent) handleIncomingConnectionHandshake(netConn net
 		return nil, Error.New("Failed to receive \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
-	systemge.incomingConnectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
+	systemge.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		return nil, Error.New("Failed to deserialize \""+TOPIC_NODENAME+"\" message", err)
@@ -107,7 +107,7 @@ func (systemge *systemgeComponent) handleIncomingConnectionHandshake(netConn net
 		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
-	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
+	systemge.connectionAttemptBytesSent.Add(bytesSent)
 	responsibleTopics := []string{}
 	systemge.syncMessageHandlerMutex.RLock()
 	for topic := range systemge.syncMessageHandlers {
@@ -124,13 +124,13 @@ func (systemge *systemgeComponent) handleIncomingConnectionHandshake(netConn net
 		return nil, Error.New("Failed to send \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
-	systemge.incomingConnectionAttemptBytesSent.Add(bytesSent)
+	systemge.connectionAttemptBytesSent.Add(bytesSent)
 	incomingConn := systemge.newIncomingConnection(netConn, incomingConnectionName)
 	incomingConn.tcpBuffer = incomingConnection.tcpBuffer
 	return incomingConn, nil
 }
 
-func (systemge *systemgeComponent) accessControlIncomingConnection(netConn net.Conn) error {
+func (systemge *systemgeServerComponent) accessControlIncomingConnection(netConn net.Conn) error {
 	address := netConn.RemoteAddr().String()
 	ip, _, err := net.SplitHostPort(address)
 	if err != nil {

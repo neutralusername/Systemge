@@ -12,7 +12,7 @@ import (
 // If receiverNames are specified, the message will be sent to the nodes with the specified names.
 // Blocking until all messages are sent
 func (node *Node) AsyncMessage(topic, payload string, receiverNames ...string) error {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeClient; systemge != nil {
 		node.createOutgoingMessageTaskGroup(systemge, Message.NewAsync(topic, payload), receiverNames...).ExecuteTasks()
 		return nil
 	}
@@ -29,7 +29,7 @@ func (node *Node) AsyncMessage_(config *Config.Message) error {
 // If receiverNames are specified, the message will be sent to the nodes with the specified names.
 // Blocking until all requests are sent
 func (node *Node) SyncMessage(topic, payload string, receiverNames ...string) (*SyncResponseChannel, error) {
-	if systemge := node.systemge; systemge != nil {
+	if systemge := node.systemgeClient; systemge != nil {
 		responseChannel := systemge.addResponseChannel(node.randomizer, topic, payload)
 		waitgroup := node.createOutgoingMessageTaskGroup(systemge, responseChannel.GetRequestMessage(), receiverNames...)
 		responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetTaskCount())
@@ -48,7 +48,7 @@ func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, er
 	return node.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
 
-func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeComponent, message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
+func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeClientComponent, message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
 	waitgroup := Tools.NewTaskGroup()
 	systemge.outgoingConnectionMutex.RLock()
 	defer systemge.outgoingConnectionMutex.RUnlock()

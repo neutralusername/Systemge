@@ -41,7 +41,7 @@ func (node *Node) GetCommandHandlers() map[string]CommandHandler {
 		handlers["HttpRemoveBlacklist"] = handleHttpRemoveBlacklistCommand
 		handlers["HttpRemoveWhitelist"] = handleHttpRemoveWhitelistCommand
 	}
-	if node.systemge != nil {
+	if node.systemgeServer != nil {
 
 	}
 

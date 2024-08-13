@@ -8,8 +8,8 @@ import (
 
 type Application interface{}
 
-func ImplementsSystemgeComponent(app Application) bool {
-	_, ok := app.(SystemgeComponent)
+func ImplementsSystemgeServerComponent(app Application) bool {
+	_, ok := app.(SystemgeServerComponent)
 	return ok
 }
 func ImplementsHTTPComponent(app Application) bool {
@@ -53,7 +53,7 @@ type OnStopComponent interface {
 }
 
 // if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type SystemgeComponent interface {
+type SystemgeServerComponent interface {
 	GetAsyncMessageHandlers() map[string]AsyncMessageHandler
 	GetSyncMessageHandlers() map[string]SyncMessageHandler
 }

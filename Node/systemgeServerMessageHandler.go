@@ -9,7 +9,7 @@ import (
 
 // handles incoming messages from a incoming connection one at a time until the receive operation fails
 // either due to connection loss or closure of the listener due to systemge stop
-func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConnection *incomingConnection) {
+func (systemge *systemgeServerComponent) handleIncomingConnectionMessages(incomingConnection *incomingConnection) {
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting message handler for incoming node connection \""+incomingConnection.name+"\"", nil).Error())
 	}
@@ -47,7 +47,7 @@ func (systemge *systemgeComponent) handleIncomingConnectionMessages(incomingConn
 	}
 }
 
-func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *incomingConnection, messageBytes []byte, wg *sync.WaitGroup) {
+func (systemge *systemgeServerComponent) processIncomingMessage(incomingConnection *incomingConnection, messageBytes []byte, wg *sync.WaitGroup) {
 	defer wg.Done()
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	if err := systemge.checkRateLimits(incomingConnection, messageBytes); err != nil {
@@ -58,25 +58,25 @@ func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *in
 	}
 	message, err := Message.Deserialize(messageBytes, incomingConnection.name)
 	if err != nil {
-		systemge.invalidMessagesFromIncomingConnections.Add(1)
+		systemge.invalidMessagesReceived.Add(1)
 		if warningLogger := systemge.warningLogger; warningLogger != nil {
 			warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 		}
 		return
 	}
 	if err := systemge.validateMessage(message); err != nil {
-		systemge.invalidMessagesFromIncomingConnections.Add(1)
+		systemge.invalidMessagesReceived.Add(1)
 		if warningLogger := systemge.warningLogger; warningLogger != nil {
 			warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 		}
 		return
 	}
 	if message.GetSyncTokenToken() == "" {
-		systemge.incomingAsyncMessageBytesReceived.Add(uint64(len(messageBytes)))
-		systemge.incomingAsyncMessages.Add(1)
+		systemge.asyncMessageBytesReceived.Add(uint64(len(messageBytes)))
+		systemge.asyncMessagesReceived.Add(1)
 		err := systemge.handleAsyncMessage(message)
 		if err != nil {
-			systemge.invalidMessagesFromIncomingConnections.Add(1)
+			systemge.invalidMessagesReceived.Add(1)
 			if warningLogger := systemge.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to handle async messag with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 			}
@@ -86,11 +86,11 @@ func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *in
 			}
 		}
 	} else {
-		systemge.incomingSyncRequestBytesReceived.Add(uint64(len(messageBytes)))
-		systemge.incomingSyncRequests.Add(1)
+		systemge.syncRequestBytesReceived.Add(uint64(len(messageBytes)))
+		systemge.syncRequestsReceived.Add(1)
 		responsePayload, err := systemge.handleSyncRequest(message)
 		if err != nil {
-			systemge.invalidMessagesFromIncomingConnections.Add(1)
+			systemge.invalidMessagesReceived.Add(1)
 			if warningLogger := systemge.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" from incoming node connection \""+incomingConnection.name+"\"", err).Error())
 			}
@@ -99,7 +99,7 @@ func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *in
 					warningLogger.Log(Error.New("Failed to send failure response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
 			} else {
-				systemge.outgoingSyncFailureResponses.Add(1)
+				systemge.syncFailureResponsesSent.Add(1)
 			}
 		} else {
 			if infoLogger := systemge.infoLogger; infoLogger != nil {
@@ -110,19 +110,19 @@ func (systemge *systemgeComponent) processIncomingMessage(incomingConnection *in
 					warningLogger.Log(Error.New("Failed to send success response to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
 			} else {
-				systemge.outgoingSyncSuccessResponses.Add(1)
+				systemge.syncSuccessResponsesSent.Add(1)
 			}
 		}
 	}
 }
 
-func (systemge *systemgeComponent) checkRateLimits(incomingConnection *incomingConnection, messageBytes []byte) error {
+func (systemge *systemgeServerComponent) checkRateLimits(incomingConnection *incomingConnection, messageBytes []byte) error {
 	if incomingConnection.rateLimiterBytes != nil && !incomingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		systemge.incomingConnectionRateLimiterBytesExceeded.Add(1)
+		systemge.byteRateLimiterExceeded.Add(1)
 		return Error.New("Incoming connection rate limiter bytes exceeded", nil)
 	}
 	if incomingConnection.rateLimiterMsgs != nil && !incomingConnection.rateLimiterMsgs.Consume(1) {
-		systemge.incomingConnectionRateLimiterMsgsExceeded.Add(1)
+		systemge.messageRateLimiterExceeded.Add(1)
 		return Error.New("Incoming connection rate limiter messages exceeded", nil)
 	}
 	return nil

@@ -8,26 +8,33 @@ import (
 
 // ServerConfig applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
-	NodeConfig                                              *Node      `json:"nodeConfig"`                                              // *required*
-	ServerConfig                                            *TcpServer `json:"serverConfig"`                                            // *required*
-	AutoStart                                               bool       `json:"autoStart"`                                               // default: false
-	AddDashboardToDashboard                                 bool       `json:"addDashboardToDashboard"`                                 // default: false
-	HeapUpdateIntervalMs                                    uint64     `json:"heapUpdateIntervalMs"`                                    // default: 0 = disabled
-	GoroutineUpdateIntervalMs                               uint64     `json:"goroutineUpdateIntervalMs"`                               // default: 0 = disabled
-	NodeStatusIntervalMs                                    uint64     `json:"nodeStatusIntervalMs"`                                    // default: 0 = disabled
-	NodeSystemgeCounterIntervalMs                           uint64     `json:"nodeSystemgeCounterIntervalMs"`                           // default: 0 = disabled
-	NodeSystemgeInvalidMessageCounterIntervalMs             uint64     `json:"nodeSystemgeInvalidMessageCounterIntervalMs"`             // default: 0 = disabled
-	NodeSystemgeIncomingConnectionAttemptsCounterIntervalMs uint64     `json:"nodeSystemgeIncomingConnectionAttemptsCounterIntervalMs"` // default: 0 = disabled
-	NodeSystemgeIncomingSyncResponseCounterIntervalMs       uint64     `json:"nodeSystemgeIncomingSyncResponseCounterIntervalMs"`       // default: 0 = disabled
-	NodeSystemgeIncomingSyncRequestCounterIntervalMs        uint64     `json:"nodeSystemgeIncomingSyncRequestCounterIntervalMs"`        // default: 0 = disabled
-	NodeSystemgeIncomingAsyncMessageCounterIntervalMs       uint64     `json:"nodeSystemgeIncomingAsyncMessageCounterIntervalMs"`       // default: 0 = disabled
-	NodeSystemgeOutgoingConnectionAttemptCounterIntervalMs  uint64     `json:"nodeSystemgeOutgoingConnectionAttemptCounterIntervalMs"`  // default: 0 = disabled
-	NodeSystemgeOutgoingSyncRequestCounterIntervalMs        uint64     `json:"nodeSystemgeOutgoingSyncRequestCounterIntervalMs"`        // default: 0 = disabled
-	NodeSystemgeOutgoingAsyncMessageCounterIntervalMs       uint64     `json:"nodeSystemgeOutgoingAsyncMessageCounterIntervalMs"`       // default: 0 = disabled
-	NodeSystemgeOutgoingSyncResponsesCounterIntervalMs      uint64     `json:"nodeSystemgeOutgoingSyncResponsesCounterIntervalMs"`      // default: 0 = disabled
-	NodeHTTPCounterIntervalMs                               uint64     `json:"nodeHTTPCounterIntervalMs"`                               // default: 0 = disabled
-	NodeWebsocketCounterIntervalMs                          uint64     `json:"nodeWebsocketCounterIntervalMs"`                          // default: 0 = disabled
-	NodeSpawnerCounterIntervalMs                            uint64     `json:"nodeSpawnerCounterIntervalMs"`                            // default: 0 = disabled
+	NodeConfig                *Node      `json:"nodeConfig"`                // *required*
+	ServerConfig              *TcpServer `json:"serverConfig"`              // *required*
+	AutoStart                 bool       `json:"autoStart"`                 // default: false
+	AddDashboardToDashboard   bool       `json:"addDashboardToDashboard"`   // default: false
+	HeapUpdateIntervalMs      uint64     `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
+	GoroutineUpdateIntervalMs uint64     `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
+	NodeStatusIntervalMs      uint64     `json:"nodeStatusIntervalMs"`      // default: 0 = disabled
+
+	NodeSystemgeClientCounterIntervalMs             uint64 `json:"nodeSystemgeClientCounterIntervalMs"`             // default: 0 = disabled
+	NodeSystemgeClientRateLimitCounterIntervalMs    uint64 `json:"nodeSystemgeClientRateLimitCounterIntervalMs"`    // default: 0 = disabled
+	NodeSystemgeClientConnectionCounterIntervalMs   uint64 `json:"nodeSystemgeClientConnectionCounterIntervalMs"`   // default: 0 = disabled
+	NodeSystemgeClientSyncResponseCounterIntervalMs uint64 `json:"nodeSystemgeClientSyncResponseCounterIntervalMs"` // default: 0 = disabled
+	NodeSystemgeClientAsyncMessageCounterIntervalMs uint64 `json:"nodeSystemgeClientAsyncMessageCounterIntervalMs"` // default: 0 = disabled
+	NodeSystemgeClientSyncRequestCounterIntervalMs  uint64 `json:"nodeSystemgeClientSyncRequestCounterIntervalMs"`  // default: 0 = disabled
+	NodeSystemgeClientTopicCounterIntervalMs        uint64 `json:"nodeSystemgeClientTopicCounterIntervalMs"`        // default: 0 = disabled
+
+	NodeSystemgeServerCounterIntervalMs             uint64 `json:"nodeSystemgeServerCounterIntervalMs"`             // default: 0 = disabled
+	NodeSystemgeServerRateLimitCounterIntervalMs    uint64 `json:"nodeSystemgeServerRateLimitCounterIntervalMs"`    // default: 0 = disabled
+	NodeSystemgeServerConnectionCounterIntervalMs   uint64 `json:"nodeSystemgeServerConnectionCounterIntervalMs"`   // default: 0 = disabled
+	NodeSystemgeServerSyncResponseCounterIntervalMs uint64 `json:"nodeSystemgeServerSyncResponseCounterIntervalMs"` // default: 0 = disabled
+	NodeSystemgeServerAsyncMessageCounterIntervalMs uint64 `json:"nodeSystemgeServerAsyncMessageCounterIntervalMs"` // default: 0 = disabled
+	NodeSystemgeServerSyncRequestCounterIntervalMs  uint64 `json:"nodeSystemgeServerSyncRequestCounterIntervalMs"`  // default: 0 = disabled
+	NodeSystemgeServerTopicCounterIntervalMs        uint64 `json:"nodeSystemgeServerTopicCounterIntervalMs"`        // default: 0 = disabled
+
+	NodeHTTPCounterIntervalMs      uint64 `json:"nodeHTTPCounterIntervalMs"`      // default: 0 = disabled
+	NodeWebsocketCounterIntervalMs uint64 `json:"nodeWebsocketCounterIntervalMs"` // default: 0 = disabled
+	NodeSpawnerCounterIntervalMs   uint64 `json:"nodeSpawnerCounterIntervalMs"`   // default: 0 = disabled
 }
 
 func UnmarshalDashboard(data string) *Dashboard {
@@ -58,8 +65,8 @@ func UnmarshalOauth2(data string) *Oauth2 {
 }
 
 type Spawner struct {
-	NodeConfig     *Node     `json:"nodeConfig"`     // *required*
-	SystemgeConfig *Systemge `json:"systemgeConfig"` // *required*
+	NodeConfig     *Node           `json:"nodeConfig"`     // *required*
+	SystemgeConfig *SystemgeServer `json:"systemgeConfig"` // *required*
 
 	PropagateSpawnedNodeChanges bool `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel) (automated by dashboard)
 }

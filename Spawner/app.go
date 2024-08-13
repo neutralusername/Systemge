@@ -30,8 +30,8 @@ func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *No
 		nodeChangeChannel:  make(chan *SpawnerNodeChange),
 	}
 	node := Node.New(&Config.NewNode{
-		NodeConfig:     config.NodeConfig,
-		SystemgeConfig: config.SystemgeConfig,
+		NodeConfig:           config.NodeConfig,
+		SystemgeServerConfig: config.SystemgeConfig,
 	}, app)
 	return node
 }

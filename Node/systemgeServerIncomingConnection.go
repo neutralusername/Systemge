@@ -23,17 +23,17 @@ type incomingConnection struct {
 	stopChannel chan bool //closing of this channel indicates that the incoming connection has finished its ongoing tasks.
 }
 
-func (systemge *systemgeComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
+func (systemge *systemgeServerComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
 	nodeConnection := &incomingConnection{
 		netConn:     netConn,
 		name:        name,
 		stopChannel: make(chan bool),
 	}
-	if systemge.config.IncomingConnectionRateLimiterBytes != nil {
-		nodeConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(systemge.config.IncomingConnectionRateLimiterBytes)
+	if systemge.config.RateLimterBytes != nil {
+		nodeConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(systemge.config.RateLimterBytes)
 	}
-	if systemge.config.IncomingConnectionRateLimiterMsgs != nil {
-		nodeConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(systemge.config.IncomingConnectionRateLimiterMsgs)
+	if systemge.config.RateLimiterMessages != nil {
+		nodeConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(systemge.config.RateLimiterMessages)
 	}
 	return nodeConnection
 }
@@ -64,7 +64,7 @@ func (incomingConnection *incomingConnection) receiveMessage(bufferSize uint32, 
 }
 
 // sync responses are sent to incoming connections
-func (systemge *systemgeComponent) messageIncomingConnection(incomingConnection *incomingConnection, message *Message.Message) error {
+func (systemge *systemgeServerComponent) messageIncomingConnection(incomingConnection *incomingConnection, message *Message.Message) error {
 	incomingConnection.sendMutex.Lock()
 	defer incomingConnection.sendMutex.Unlock()
 	if message.GetSyncTokenToken() == "" {
@@ -75,7 +75,6 @@ func (systemge *systemgeComponent) messageIncomingConnection(incomingConnection 
 		return Error.New("Failed to send message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
-	systemge.outgoingSyncResponseBytesSent.Add(bytesSent)
-	systemge.outgoingSyncResponses.Add(1)
+	systemge.syncResponseBytesSent.Add(bytesSent)
 	return nil
 }

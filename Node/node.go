@@ -26,10 +26,11 @@ type Node struct {
 	errorLogger           *Tools.Logger
 	debugLogger           *Tools.Logger
 
-	application Application
-	systemge    *systemgeComponent
-	websocket   *websocketComponent
-	http        *httpComponent
+	application    Application
+	systemgeClient *systemgeClientComponent
+	systemgeServer *systemgeServerComponent
+	websocket      *websocketComponent
+	http           *httpComponent
 }
 
 const (
@@ -49,12 +50,12 @@ func New(config *Config.NewNode, application Application) *Node {
 	if application == nil {
 		panic("Application is required")
 	}
-	if config.HttpConfig == nil && config.WebsocketConfig == nil && config.SystemgeConfig == nil {
+	if config.HttpConfig == nil && config.WebsocketConfig == nil && config.SystemgeServerConfig == nil {
 		panic("At least one of the following configurations is required: HttpConfig, WebsocketConfig, SystemgeConfig")
 	}
 	implementsHTTPComponent := ImplementsHTTPComponent(application)
 	implementsWebsocketComponent := ImplementsWebsocketComponent(application)
-	implementsSystemgeComponent := ImplementsSystemgeComponent(application)
+	implementsSystemgeComponent := ImplementsSystemgeServerComponent(application)
 	if !implementsHTTPComponent && !implementsWebsocketComponent && !implementsSystemgeComponent {
 		panic("Application must implement at least one of the following interfaces: HTTPComponent, WebsocketComponent, SystemgeComponent")
 	}
@@ -64,7 +65,7 @@ func New(config *Config.NewNode, application Application) *Node {
 	if !implementsWebsocketComponent && config.WebsocketConfig != nil {
 		panic("WebsocketConfig provided but application does not implement WebsocketComponent")
 	}
-	if !implementsSystemgeComponent && config.SystemgeConfig != nil {
+	if !implementsSystemgeComponent && config.SystemgeServerConfig != nil {
 		panic("SystemgeConfig provided but application does not implement SystemgeComponent")
 	}
 	if implementsHTTPComponent && config.HttpConfig == nil {
@@ -73,10 +74,10 @@ func New(config *Config.NewNode, application Application) *Node {
 	if implementsWebsocketComponent && config.WebsocketConfig == nil {
 		panic("Application implements WebsocketComponent but WebsocketConfig is missing")
 	}
-	if implementsSystemgeComponent && config.SystemgeConfig == nil {
+	if implementsSystemgeComponent && config.SystemgeServerConfig == nil {
 		panic("Application implements SystemgeComponent but SystemgeConfig is missing")
 	}
-	if implementsSystemgeComponent && config.SystemgeConfig.ServerConfig == nil {
+	if implementsSystemgeComponent && config.SystemgeServerConfig.ServerConfig == nil {
 		panic("Application implements SystemgeComponent but SystemgeConfig.ServerConfig is missing")
 	}
 	if implementsWebsocketComponent && config.WebsocketConfig.ServerConfig == nil {
@@ -143,11 +144,15 @@ func (node *Node) Start() error {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
 	node.stopChannel = make(chan bool)
-	if ImplementsSystemgeComponent(node.application) {
+	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+		infoLogger.Log(Error.New("Starting systemge client component", nil).Error())
+	}
+
+	if ImplementsSystemgeServerComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting systemge component", nil).Error())
 		}
-		err := node.startSystemgeComponent()
+		err := node.startSystemgeServerComponent()
 		if err != nil {
 			if err := node.Stop(); err != nil {
 				if warningLogger := node.GetInternalWarningLogger(); warningLogger != nil {
@@ -160,6 +165,22 @@ func (node *Node) Start() error {
 			infoLogger.Log(Error.New("Started systemge component", nil).Error())
 		}
 	}
+
+	if node.newNodeConfig.SystemgeClientConfig != nil {
+		err := node.startSystemgeClientComponent()
+		if err != nil {
+			if err := node.Stop(); err != nil {
+				if warningLogger := node.GetInternalWarningLogger(); warningLogger != nil {
+					warningLogger.Log(Error.New("failed to stop node", err).Error())
+				}
+			}
+			return Error.New("failed starting systemge client component", err)
+		}
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Started systemge client component", nil).Error())
+		}
+	}
+
 	if ImplementsWebsocketComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting websocket component", nil).Error())
@@ -175,6 +196,7 @@ func (node *Node) Start() error {
 			infoLogger.Log(Error.New("Started websocket component", nil).Error())
 		}
 	}
+
 	if ImplementsHTTPComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Starting http component", nil).Error())
@@ -233,6 +255,7 @@ func (node *Node) Stop() error {
 	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 		infoLogger.Log(Error.New("Stopping", nil).Error())
 	}
+
 	if status == STATUS_STARTED {
 		if ImplementsOnStopComponent(node.application) {
 			if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -248,6 +271,7 @@ func (node *Node) Stop() error {
 			}
 		}
 	}
+
 	if node.websocket != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping websocket component", nil).Error())
@@ -257,6 +281,7 @@ func (node *Node) Stop() error {
 			infoLogger.Log(Error.New("Stopped websocket component", nil).Error())
 		}
 	}
+
 	if node.http != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping http component", nil).Error())
@@ -266,11 +291,22 @@ func (node *Node) Stop() error {
 			infoLogger.Log(Error.New("Stopped http component", nil).Error())
 		}
 	}
-	if node.systemge != nil {
+
+	if node.systemgeClient != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopping systemge client component", nil).Error())
+		}
+		node.stopSystemgeClientComponent()
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Stopped systemge client component", nil).Error())
+		}
+	}
+
+	if node.systemgeServer != nil {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopping systemge component", nil).Error())
 		}
-		node.stopSystemgeComponent()
+		node.stopSystemgeServerComponent()
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
 			infoLogger.Log(Error.New("Stopped systemge component", nil).Error())
 		}
@@ -332,10 +368,10 @@ func (node *Node) SetRandomizer(randomizer *Tools.Randomizer) {
 }
 
 func (node *Node) GetSystemgeEndpointConfig() *Config.TcpEndpoint {
-	if node.newNodeConfig.SystemgeConfig == nil {
+	if node.newNodeConfig.SystemgeServerConfig == nil {
 		return nil
 	}
-	return node.newNodeConfig.SystemgeConfig.Endpoint
+	return node.newNodeConfig.SystemgeServerConfig.Endpoint
 }
 
 func (node *Node) GetCommandHandlerComponent() CommandComponent {
