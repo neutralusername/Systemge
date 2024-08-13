@@ -31,7 +31,7 @@ func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *No
 	}
 	node := Node.New(&Config.NewNode{
 		NodeConfig:           config.NodeConfig,
-		SystemgeServerConfig: config.SystemgeConfig,
+		SystemgeServerConfig: config.SystemgeServerConfig,
 	}, app)
 	return node
 }

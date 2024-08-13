@@ -65,8 +65,8 @@ func UnmarshalOauth2(data string) *Oauth2 {
 }
 
 type Spawner struct {
-	NodeConfig     *Node           `json:"nodeConfig"`     // *required*
-	SystemgeConfig *SystemgeServer `json:"systemgeConfig"` // *required*
+	NodeConfig           *Node           `json:"nodeConfig"`     // *required*
+	SystemgeServerConfig *SystemgeServer `json:"systemgeConfig"` // *required*
 
 	PropagateSpawnedNodeChanges bool `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel) (automated by dashboard)
 }
