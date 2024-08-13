@@ -144,9 +144,6 @@ func (node *Node) Start() error {
 		infoLogger.Log(Error.New("Starting", nil).Error())
 	}
 	node.stopChannel = make(chan bool)
-	if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
-		infoLogger.Log(Error.New("Starting systemge client component", nil).Error())
-	}
 
 	if ImplementsSystemgeServerComponent(node.application) {
 		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
@@ -167,6 +164,9 @@ func (node *Node) Start() error {
 	}
 
 	if node.newNodeConfig.SystemgeClientConfig != nil {
+		if infoLogger := node.GetInternalInfoLogger(); infoLogger != nil {
+			infoLogger.Log(Error.New("Starting systemge client component", nil).Error())
+		}
 		err := node.startSystemgeClientComponent()
 		if err != nil {
 			if err := node.Stop(); err != nil {
