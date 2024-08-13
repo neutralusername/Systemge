@@ -50,7 +50,7 @@ func New(config *Config.NewNode, application Application) *Node {
 	if application == nil {
 		panic("Application is required")
 	}
-	if config.HttpConfig == nil && config.WebsocketConfig == nil && config.SystemgeServerConfig == nil {
+	if config.HttpConfig == nil && config.WebsocketConfig == nil && config.SystemgeServerConfig == nil && config.SystemgeClientConfig == nil {
 		panic("At least one of the following configurations is required: HttpConfig, WebsocketConfig, SystemgeConfig")
 	}
 	implementsHTTPComponent := ImplementsHTTPComponent(application)
