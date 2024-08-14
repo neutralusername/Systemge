@@ -7,7 +7,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/HTTP"
+	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 
@@ -19,7 +19,7 @@ type WebsocketMessageHandler func(*Client, *Message.Message) error
 type Server struct {
 	config              *Config.WebsocketServer
 	mutex               sync.RWMutex
-	httpServer          *HTTP.Server
+	httpServer          *HTTPServer.Server
 	connChannel         chan *websocket.Conn
 	clients             map[string]*Client            // websocketId -> websocketClient
 	groups              map[string]map[string]*Client // groupId -> map[websocketId]websocketClient
@@ -69,7 +69,7 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]WebsocketMes
 		mailer:              Tools.NewMailer(config.Mailer),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
-	server.httpServer = HTTP.New(&Config.HTTP{
+	server.httpServer = HTTPServer.New(&Config.HTTP{
 		ServerConfig: server.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
 		server.config.Pattern: server.websocketUpgrade(server.warningLogger),

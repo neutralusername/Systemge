@@ -1,4 +1,4 @@
-package HTTP
+package HTTPServer
 
 import (
 	"net"
@@ -70,22 +70,6 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 	return server
 }
 
-func (server *Server) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
-	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, handlerFunc)
-}
-
-func (server *Server) RemoveRoute(pattern string) {
-	server.httpServer.Handler.(*CustomMux).RemoveRoute(pattern)
-}
-
-func (server *Server) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *Server) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
 func (server *Server) Start() error {
 	errorChannel := make(chan error)
 	ended := false
@@ -134,4 +118,20 @@ func (server *Server) RetrieveHTTPRequestCounter() uint64 {
 
 func (server *Server) GetHTTPRequestCounter() uint64 {
 	return server.requestCounter.Load()
+}
+
+func (server *Server) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
+	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, handlerFunc)
+}
+
+func (server *Server) RemoveRoute(pattern string) {
+	server.httpServer.Handler.(*CustomMux).RemoveRoute(pattern)
+}
+
+func (server *Server) GetBlacklist() *Tools.AccessControlList {
+	return server.blacklist
+}
+
+func (server *Server) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
 }

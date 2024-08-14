@@ -5,7 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/HTTP"
+	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -20,7 +20,7 @@ type Server struct {
 	warningLogger *Tools.Logger
 
 	randomizer *Tools.Randomizer
-	httpServer *HTTP.Server
+	httpServer *HTTPServer.Server
 
 	mutex sync.Mutex
 }
@@ -42,7 +42,7 @@ func New(config *Config.Oauth2) *Server {
 
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 	}
-	server.httpServer = HTTP.New(&Config.HTTP{
+	server.httpServer = HTTPServer.New(&Config.HTTP{
 		ServerConfig: config.ServerConfig,
 	}, server.GetHTTPMessageHandlers())
 	return server
