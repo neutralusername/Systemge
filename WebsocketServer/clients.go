@@ -9,9 +9,9 @@ import (
 func (server *Server) addWebsocketConn(websocketConn *websocket.Conn) *Client {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	websocketId := Tools.RandomString(16, Tools.ALPHA_NUMERIC)
+	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	for _, exists := server.clients[websocketId]; exists; {
-		websocketId = Tools.RandomString(16, Tools.ALPHA_NUMERIC)
+		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	}
 	websocketClient := server.newWebsocketClient(websocketId, websocketConn)
 	server.clients[websocketId] = websocketClient

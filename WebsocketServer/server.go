@@ -35,6 +35,7 @@ type Server struct {
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
+	randomizer    *Tools.Randomizer
 
 	incomingMessageCounter atomic.Uint32
 	outgoigMessageCounter  atomic.Uint32
@@ -63,6 +64,7 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]WebsocketMes
 		infoLogger:      Tools.NewLogger("[Info: \"WebsocketServer\"] ", config.InfoLoggerPath),
 		warningLogger:   Tools.NewLogger("[Warning: \"WebsocketServer\" (internal)] ", config.WarningLoggerPath),
 		mailer:          Tools.NewMailer(config.Mailer),
+		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	server.handleMessage = func(websocketClient *Client, message *Message.Message) error {
 		server.messageHandlerMutex.Lock()
@@ -105,7 +107,7 @@ func (server *Server) Start() error {
 	return nil
 }
 
-func (server *Server) Stop() {
+func (server *Server) Stop() error {
 	server.httpServer.Stop()
 	server.httpServer = nil
 	close(server.connChannel)
@@ -118,6 +120,7 @@ func (server *Server) Stop() {
 	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()
 	}
+	return nil
 }
 
 func (server *Server) AddMessageHandler(topic string, handler WebsocketMessageHandler) {

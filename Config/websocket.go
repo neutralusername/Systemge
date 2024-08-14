@@ -11,6 +11,7 @@ type WebsocketServer struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	Mailer            *Mailer `json:"mailer"`            // *optional*
+	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
 	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
