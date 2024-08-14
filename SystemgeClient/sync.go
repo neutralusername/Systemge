@@ -20,8 +20,8 @@ type SyncResponseChannel struct {
 	receiveMutex    sync.Mutex
 }
 
-func (systemge *SystemgeClient) responseChannelTimeout(stopChannel chan bool, responseChannel *SyncResponseChannel) {
-	if syncRequestTimeoutMs := systemge.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
+func (client *SystemgeClient) responseChannelTimeout(stopChannel chan bool, responseChannel *SyncResponseChannel) {
+	if syncRequestTimeoutMs := client.config.SyncRequestTimeoutMs; syncRequestTimeoutMs > 0 {
 		timeout := time.NewTimer(time.Duration(syncRequestTimeoutMs) * time.Millisecond)
 		select {
 		case <-timeout.C:
@@ -36,31 +36,31 @@ func (systemge *SystemgeClient) responseChannelTimeout(stopChannel chan bool, re
 		}
 	}
 	responseChannel.Close()
-	systemge.removeResponseChannel(responseChannel.GetRequestMessage().GetSyncTokenToken())
+	client.removeResponseChannel(responseChannel.GetRequestMessage().GetSyncTokenToken())
 }
 
-func (systemge *SystemgeClient) addResponseChannel(randomizer *Tools.Randomizer, topic, payload string) *SyncResponseChannel {
-	systemge.syncRequestMutex.Lock()
-	defer systemge.syncRequestMutex.Unlock()
+func (client *SystemgeClient) addResponseChannel(randomizer *Tools.Randomizer, topic, payload string) *SyncResponseChannel {
+	client.syncRequestMutex.Lock()
+	defer client.syncRequestMutex.Unlock()
 	syncToken := randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
-	for _, ok := systemge.syncResponseChannels[syncToken]; ok; {
+	for _, ok := client.syncResponseChannels[syncToken]; ok; {
 		syncToken = randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
 	}
-	systemge.syncResponseChannels[syncToken] = &SyncResponseChannel{
+	client.syncResponseChannels[syncToken] = &SyncResponseChannel{
 		closeChannel:   make(chan struct{}),
 		requestMessage: Message.NewSync(topic, payload, syncToken),
 	}
-	return systemge.syncResponseChannels[syncToken]
+	return client.syncResponseChannels[syncToken]
 }
-func (systemge *SystemgeClient) removeResponseChannel(syncToken string) {
-	systemge.syncRequestMutex.Lock()
-	defer systemge.syncRequestMutex.Unlock()
-	delete(systemge.syncResponseChannels, syncToken)
+func (client *SystemgeClient) removeResponseChannel(syncToken string) {
+	client.syncRequestMutex.Lock()
+	defer client.syncRequestMutex.Unlock()
+	delete(client.syncResponseChannels, syncToken)
 }
-func (systemge *SystemgeClient) getResponseChannel(syncToken string) *SyncResponseChannel {
-	systemge.syncRequestMutex.RLock()
-	defer systemge.syncRequestMutex.RUnlock()
-	return systemge.syncResponseChannels[syncToken]
+func (client *SystemgeClient) getResponseChannel(syncToken string) *SyncResponseChannel {
+	client.syncRequestMutex.RLock()
+	defer client.syncRequestMutex.RUnlock()
+	return client.syncResponseChannels[syncToken]
 }
 
 func (syncResponseChannel *SyncResponseChannel) addResponse(message *Message.Message) error {

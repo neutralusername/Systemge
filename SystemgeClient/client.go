@@ -20,13 +20,13 @@ type SystemgeClient struct {
 
 	stopChannel chan bool //closing of this channel initiates the stop of the systemge component
 
-	syncRequestMutex     sync.RWMutex
-	syncResponseChannels map[string]*SyncResponseChannel // syncToken -> responseChannel
+	syncResponseChannels     map[string]*SyncResponseChannel         // syncToken -> responseChannel
+	topicResolutions         map[string]map[string]*serverConnection // topic -> [name -> nodeConnection]
+	serverConnections        map[string]*serverConnection            // address -> nodeConnection
+	serverConnectionAttempts map[string]*serverConnectionAttempt     // address -> bool
 
-	outgoingConnectionMutex    sync.RWMutex
-	topicResolutions           map[string]map[string]*outgoingConnection // topic -> [name -> nodeConnection]
-	outgoingConnections        map[string]*outgoingConnection            // address -> nodeConnection
-	outgoingConnectionAttempts map[string]*outgoingConnectionAttempt     // address -> bool
+	serverConnectionMutex sync.RWMutex
+	syncRequestMutex      sync.RWMutex
 
 	// metrics
 
@@ -69,11 +69,11 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 		mailer:        Tools.NewMailer(config.MailerConfig),
 		randomizer:    Tools.NewRandomizer(config.RandomizerSeed),
 
-		syncResponseChannels:       make(map[string]*SyncResponseChannel),
-		topicResolutions:           make(map[string]map[string]*outgoingConnection),
-		outgoingConnections:        make(map[string]*outgoingConnection),
-		outgoingConnectionAttempts: make(map[string]*outgoingConnectionAttempt),
-		stopChannel:                make(chan bool),
+		syncResponseChannels:     make(map[string]*SyncResponseChannel),
+		topicResolutions:         make(map[string]map[string]*serverConnection),
+		serverConnections:        make(map[string]*serverConnection),
+		serverConnectionAttempts: make(map[string]*serverConnectionAttempt),
+		stopChannel:              make(chan bool),
 	}
 }
 
@@ -89,15 +89,15 @@ func (client *SystemgeClient) Start() error {
 func (client *SystemgeClient) Stop() error {
 	close(client.stopChannel)
 
-	client.outgoingConnectionMutex.Lock()
-	for _, outgoingConnectionAttempt := range client.outgoingConnectionAttempts {
+	client.serverConnectionMutex.Lock()
+	for _, outgoingConnectionAttempt := range client.serverConnectionAttempts {
 		outgoingConnectionAttempt.isAborted = true
 	}
-	for _, outgoingConnection := range client.outgoingConnections {
+	for _, outgoingConnection := range client.serverConnections {
 		outgoingConnection.netConn.Close()
 		<-outgoingConnection.stopChannel
 	}
-	client.outgoingConnectionMutex.Unlock()
+	client.serverConnectionMutex.Unlock()
 	return nil
 }
 

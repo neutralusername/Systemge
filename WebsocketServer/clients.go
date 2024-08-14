@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (server *Server) addWebsocketConn(websocketConn *websocket.Conn) *Client {
+func (server *WebsocketServer) addWebsocketConn(websocketConn *websocket.Conn) *Client {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
@@ -19,7 +19,7 @@ func (server *Server) addWebsocketConn(websocketConn *websocket.Conn) *Client {
 	return websocketClient
 }
 
-func (server *Server) removeWebsocketClient(websocketClient *Client) {
+func (server *WebsocketServer) removeWebsocketClient(websocketClient *Client) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	delete(server.clients, websocketClient.GetId())
@@ -33,7 +33,7 @@ func (server *Server) removeWebsocketClient(websocketClient *Client) {
 }
 
 // WebsocketClientExists returns true if a websocket client with the given id exists.
-func (server *Server) WebsocketClientExists(websocketId string) bool {
+func (server *WebsocketServer) WebsocketClientExists(websocketId string) bool {
 	server.mutex.RLock()
 	defer server.mutex.RUnlock()
 	_, exists := server.clients[websocketId]
@@ -41,21 +41,21 @@ func (server *Server) WebsocketClientExists(websocketId string) bool {
 }
 
 // GetWebsocketClientGroupCount returns the number of groups a websocket client is in (0 if the client does not exist).
-func (server *Server) GetWebsocketClientGroupCount(websocketId string) int {
+func (server *WebsocketServer) GetWebsocketClientGroupCount(websocketId string) int {
 	server.mutex.RLock()
 	defer server.mutex.RUnlock()
 	return len(server.clientGroups[websocketId])
 }
 
 // GetWebsocketClientCount returns the number of connected websocket clients.
-func (websocket *Server) GetWebsocketClientCount() int {
+func (websocket *WebsocketServer) GetWebsocketClientCount() int {
 	websocket.mutex.RLock()
 	defer websocket.mutex.RUnlock()
 	return len(websocket.clients)
 }
 
 // GetWebsocketGroupCount returns the number of websocket groups.
-func (websocket *Server) GetWebsocketGroupCount() int {
+func (websocket *WebsocketServer) GetWebsocketGroupCount() int {
 	websocket.mutex.RLock()
 	defer websocket.mutex.RUnlock()
 	return len(websocket.groups)

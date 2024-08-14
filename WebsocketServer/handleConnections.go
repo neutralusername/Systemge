@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (server *Server) handleWebsocketConnections() {
+func (server *WebsocketServer) handleWebsocketConnections() {
 	for {
 		websocketConn := <-server.connChannel
 		if websocketConn == nil {
@@ -17,7 +17,7 @@ func (server *Server) handleWebsocketConnections() {
 	}
 }
 
-func (server *Server) handleWebsocketConn(websocketConn *websocket.Conn) {
+func (server *WebsocketServer) handleWebsocketConn(websocketConn *websocket.Conn) {
 	client := server.addWebsocketConn(websocketConn)
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("websocket client connected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
@@ -32,7 +32,7 @@ func (server *Server) handleWebsocketConn(websocketConn *websocket.Conn) {
 	}
 }
 
-func (server *Server) handleMessages(client *Client) {
+func (server *WebsocketServer) handleMessages(client *Client) {
 	for {
 		messageBytes, err := client.receive()
 		if err != nil {
@@ -104,7 +104,7 @@ func (server *Server) handleMessages(client *Client) {
 	}
 }
 
-func (server *Server) handleWebsocketMessage(websocketClient *Client, message *Message.Message) error {
+func (server *WebsocketServer) handleWebsocketMessage(websocketClient *Client, message *Message.Message) error {
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()

@@ -4,7 +4,7 @@ import "github.com/neutralusername/Systemge/Error"
 
 // AddClientToGroup adds websocket clients to a group.
 // Returns an error if either of the websocket clients does not exist or is already in the group.
-func (server *Server) AddClientToGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddClientToGroup(groupId string, websocketIds ...string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, websocketId := range websocketIds {
@@ -27,7 +27,7 @@ func (server *Server) AddClientToGroup(groupId string, websocketIds ...string) e
 
 // AddClientToGroup_ adds websocket clients to a group.
 // Proceeds even if either of the websocket clients does not exist or is already in the group.
-func (server *Server) AddClientToGroup_(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddClientToGroup_(groupId string, websocketIds ...string) error {
 	if websocket := server; websocket != nil {
 		server.mutex.Lock()
 		defer server.mutex.Unlock()
@@ -48,7 +48,7 @@ func (server *Server) AddClientToGroup_(groupId string, websocketIds ...string) 
 // RemoveClientFromGroup_ removes websocket clients from a group.
 // proceeds even if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *Server) RemoveClientFromGroup_(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveClientFromGroup_(groupId string, websocketIds ...string) error {
 	if websocket := server; websocket != nil {
 		server.mutex.Lock()
 		defer server.mutex.Unlock()
@@ -74,7 +74,7 @@ func (server *Server) RemoveClientFromGroup_(groupId string, websocketIds ...str
 // RemoveClientFromGroup removes websocket clients from a group.
 // Returns an error if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *Server) RemoveClientFromGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveClientFromGroup(groupId string, websocketIds ...string) error {
 	if websocket := server; websocket != nil {
 		server.mutex.Lock()
 		defer server.mutex.Unlock()
@@ -101,7 +101,7 @@ func (server *Server) RemoveClientFromGroup(groupId string, websocketIds ...stri
 	return Error.New("websocket component is not initialized", nil)
 }
 
-func (server *Server) GetGroupClients(groupId string) []string {
+func (server *WebsocketServer) GetGroupClients(groupId string) []string {
 	if websocket := server; websocket != nil {
 		server.mutex.RLock()
 		defer server.mutex.RUnlock()
@@ -117,7 +117,7 @@ func (server *Server) GetGroupClients(groupId string) []string {
 	return nil
 }
 
-func (server *Server) GetClientGroups(websocketId string) []string {
+func (server *WebsocketServer) GetClientGroups(websocketId string) []string {
 	server.mutex.RLock()
 	defer server.mutex.RUnlock()
 	if server.clients[websocketId] == nil {
@@ -133,7 +133,7 @@ func (server *Server) GetClientGroups(websocketId string) []string {
 	return groups
 }
 
-func (server *Server) IsInWebsocketGroup(groupId string, websocketId string) bool {
+func (server *WebsocketServer) IsInWebsocketGroup(groupId string, websocketId string) bool {
 	server.mutex.RLock()
 	defer server.mutex.RUnlock()
 	if server.groups[groupId] == nil {

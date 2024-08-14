@@ -24,7 +24,7 @@ type App struct {
 	config          *Config.Dashboard
 	started         bool
 	httpServer      *HTTP.Server
-	websocketServer *WebsocketServer.Server
+	websocketServer *WebsocketServer.WebsocketServer
 	infoLogger      *Tools.Logger
 	warningLogger   *Tools.Logger
 	errorLogger     *Tools.Logger

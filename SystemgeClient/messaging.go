@@ -17,8 +17,8 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, receiverNames 
 }
 
 // Alternative call for AsyncMessage with a config struct instead of multiple arguments
-func (node *SystemgeClient) AsyncMessage_(config *Config.Message) error {
-	return node.AsyncMessage(config.Topic, config.Payload, config.NodeNames...)
+func (client *SystemgeClient) AsyncMessage_(config *Config.Message) error {
+	return client.AsyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
 
 // SyncMessage sends a sync message.
@@ -44,8 +44,8 @@ func (client *SystemgeClient) SyncMessage_(config *Config.Message) (*SyncRespons
 
 func (client *SystemgeClient) createOutgoingMessageTaskGroup(message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
 	waitgroup := Tools.NewTaskGroup()
-	client.outgoingConnectionMutex.RLock()
-	defer client.outgoingConnectionMutex.RUnlock()
+	client.serverConnectionMutex.RLock()
+	defer client.serverConnectionMutex.RUnlock()
 	if len(receiverNames) == 0 {
 		for _, outgoingConnection := range client.topicResolutions[message.GetTopic()] {
 			waitgroup.AddTask(func() {

@@ -17,28 +17,26 @@ type SyncMessageHandler func(*Message.Message) (string, error)
 type SystemgeServer struct {
 	config *Config.SystemgeServer
 
-	tcpServer *Tcp.Server
-
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
-
 	ipRateLimiter *Tools.IpRateLimiter
+
+	tcpServer *Tcp.Server
+
+	asyncMessageHandlers map[string]AsyncMessageHandler
+	syncMessageHandlers  map[string]SyncMessageHandler
+	incomingConnections  map[string]*incomingConnection // name -> nodeConnection
 
 	stopChannel                          chan bool //closing of this channel initiates the stop of the systemge component
 	incomingConnectionsStopChannel       chan bool //closing of this channel indicates that the incoming connection handler has stopped
 	allIncomingConnectionsStoppedChannel chan bool //closing of this channel indicates that all incoming connections have stopped
 	messageHandlerChannel                chan func()
 
+	incomingConnectionMutex  sync.RWMutex
+	syncMessageHandlerMutex  sync.RWMutex
 	asyncMessageHandlerMutex sync.RWMutex
-	asyncMessageHandlers     map[string]AsyncMessageHandler
-
-	syncMessageHandlerMutex sync.RWMutex
-	syncMessageHandlers     map[string]SyncMessageHandler
-
-	incomingConnectionMutex sync.RWMutex
-	incomingConnections     map[string]*incomingConnection // name -> nodeConnection
 
 	// metrics
 	bytesReceived           atomic.Uint64

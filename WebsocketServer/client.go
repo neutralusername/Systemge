@@ -31,7 +31,7 @@ type Client struct {
 	disconnected bool
 }
 
-func (server *Server) newWebsocketClient(id string, websocketConn *websocket.Conn) *Client {
+func (server *WebsocketServer) newWebsocketClient(id string, websocketConn *websocket.Conn) *Client {
 	websocketClient := &Client{
 		id:            id,
 		websocketConn: websocketConn,
@@ -73,11 +73,11 @@ func (server *Server) newWebsocketClient(id string, websocketConn *websocket.Con
 }
 
 // Resets the watchdog timer to its initial value.
-func (server *Server) ResetWatchdog(websocketClient *Client) error {
+func (server *WebsocketServer) ResetWatchdog(websocketClient *Client) error {
 	return server.resetWatchdog(websocketClient)
 }
 
-func (server *Server) resetWatchdog(websocketClient *Client) error {
+func (server *WebsocketServer) resetWatchdog(websocketClient *Client) error {
 	if websocketClient == nil {
 		return Error.New("websocketClient is nil", nil)
 	}

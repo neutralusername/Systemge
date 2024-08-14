@@ -13,7 +13,7 @@ import (
 
 // outgoing connection to other nodes
 // they are used to send async and sync requests and receive sync responses for their corresponding requests
-type outgoingConnection struct {
+type serverConnection struct {
 	netConn        net.Conn
 	endpointConfig *Config.TcpEndpoint
 	name           string
@@ -29,63 +29,63 @@ type outgoingConnection struct {
 	stopChannel chan bool //closing of this channel indicates that the outgoing connection has finished its ongoing tasks.
 }
 
-func (systemge *SystemgeClient) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
-	outgoingConnection := &outgoingConnection{
+func (client *SystemgeClient) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *serverConnection {
+	serverConnection := &serverConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
 		name:           name,
 		topics:         topics,
 		stopChannel:    make(chan bool),
 	}
-	if systemge.config.RateLimiterBytes != nil {
-		outgoingConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(systemge.config.RateLimiterBytes)
+	if client.config.RateLimiterBytes != nil {
+		serverConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(client.config.RateLimiterBytes)
 	}
-	if systemge.config.RateLimiterMessages != nil {
-		outgoingConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(systemge.config.RateLimiterMessages)
+	if client.config.RateLimiterMessages != nil {
+		serverConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(client.config.RateLimiterMessages)
 	}
-	return outgoingConnection
+	return serverConnection
 }
 
-func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
+func (serverConnection *serverConnection) receiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
 	completedMsgBytes := []byte{}
 	for {
 		if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
 			return nil, Error.New("Incoming message byte limit exceeded", nil)
 		}
-		for i, b := range outgoingConnection.tcpBuffer {
+		for i, b := range serverConnection.tcpBuffer {
 			if b == Tcp.ENDOFMESSAGE {
-				completedMsgBytes = append(completedMsgBytes, outgoingConnection.tcpBuffer[:i]...)
-				outgoingConnection.tcpBuffer = outgoingConnection.tcpBuffer[i+1:]
+				completedMsgBytes = append(completedMsgBytes, serverConnection.tcpBuffer[:i]...)
+				serverConnection.tcpBuffer = serverConnection.tcpBuffer[i+1:]
 				if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
 					return nil, Error.New("Incoming message byte limit exceeded", nil)
 				}
 				return completedMsgBytes, nil
 			}
 		}
-		completedMsgBytes = append(completedMsgBytes, outgoingConnection.tcpBuffer...)
-		receivedMessageBytes, _, err := Tcp.Receive(outgoingConnection.netConn, 0, bufferSize)
+		completedMsgBytes = append(completedMsgBytes, serverConnection.tcpBuffer...)
+		receivedMessageBytes, _, err := Tcp.Receive(serverConnection.netConn, 0, bufferSize)
 		if err != nil {
 			return nil, Error.New("Failed to refill tcp buffer", err)
 		}
-		outgoingConnection.tcpBuffer = receivedMessageBytes
+		serverConnection.tcpBuffer = receivedMessageBytes
 	}
 }
 
 // async messages and sync requests are sent to outgoing connections
-func (systemge *SystemgeClient) messageOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
+func (client *SystemgeClient) messageOutgoingConnection(outgoingConnection *serverConnection, message *Message.Message) error {
 	outgoingConnection.sendMutex.Lock()
 	defer outgoingConnection.sendMutex.Unlock()
-	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), client.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
-	systemge.bytesSent.Add(bytesSent)
+	client.bytesSent.Add(bytesSent)
 	if message.GetSyncTokenToken() != "" {
-		systemge.syncRequestBytesSent.Add(bytesSent)
-		systemge.syncRequestsSent.Add(1)
+		client.syncRequestBytesSent.Add(bytesSent)
+		client.syncRequestsSent.Add(1)
 	} else {
-		systemge.asyncMessageBytesSent.Add(bytesSent)
-		systemge.asyncMessagesSent.Add(1)
+		client.asyncMessageBytesSent.Add(bytesSent)
+		client.asyncMessagesSent.Add(1)
 	}
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (websocketServer *Server) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
+func (websocketServer *WebsocketServer) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if websocketServer.httpServer == nil {
 			if logger != nil {

@@ -8,7 +8,7 @@ import (
 
 // Broadcast broadcasts a message to all connected websocket clients.
 // Blocking until all messages are sent.
-func (server *Server) Broadcast(message *Message.Message) error {
+func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("Broadcasting message with topic \"" + message.GetTopic() + "\"")
 	}
@@ -42,7 +42,7 @@ func (server *Server) Broadcast(message *Message.Message) error {
 
 // Unicast unicasts a message to a specific websocket client by id.
 // Blocking until the message is sent.
-func (server *Server) Unicast(id string, message *Message.Message) error {
+func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("Unicasting message with topic \"" + message.GetTopic() + "\" to client \"" + id + "\"")
 	}
@@ -76,7 +76,7 @@ func (server *Server) Unicast(id string, message *Message.Message) error {
 
 // Multicast multicasts a message to multiple websocket clients by id.
 // Blocking until all messages are sent.
-func (server *Server) Multicast(ids []string, message *Message.Message) error {
+func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		idsString := ""
 		for _, id := range ids {
@@ -116,7 +116,7 @@ func (server *Server) Multicast(ids []string, message *Message.Message) error {
 
 // Groupcast groupcasts a message to all websocket clients in a group.
 // Blocking until all messages are sent.
-func (server *Server) Groupcast(groupId string, message *Message.Message) error {
+func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("Groupcasting message with topic \"" + message.GetTopic() + "\" to group \"" + groupId + "\"")
 	}

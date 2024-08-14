@@ -6,11 +6,11 @@ import (
 
 // Returns a slice of addresses of nodes that this node is connected to.
 func (client *SystemgeClient) GetOutgoingConnectionsList() []string {
-	client.outgoingConnectionMutex.RLock()
-	defer client.outgoingConnectionMutex.RUnlock()
-	connections := make([]string, len(client.outgoingConnections))
+	client.serverConnectionMutex.RLock()
+	defer client.serverConnectionMutex.RUnlock()
+	connections := make([]string, len(client.serverConnections))
 	i := 0
-	for address := range client.outgoingConnections {
+	for address := range client.serverConnections {
 		connections[i] = address
 		i++
 	}
@@ -19,11 +19,11 @@ func (client *SystemgeClient) GetOutgoingConnectionsList() []string {
 
 // Returns a slice of addresses of nodes that this node is currently trying to connect to.
 func (client *SystemgeClient) GetOutgoingConnectionAttemptsList() []string {
-	client.outgoingConnectionMutex.RLock()
-	defer client.outgoingConnectionMutex.RUnlock()
-	attempts := make([]string, len(client.outgoingConnectionAttempts))
+	client.serverConnectionMutex.RLock()
+	defer client.serverConnectionMutex.RUnlock()
+	attempts := make([]string, len(client.serverConnectionAttempts))
 	i := 0
-	for address := range client.outgoingConnectionAttempts {
+	for address := range client.serverConnectionAttempts {
 		attempts[i] = address
 		i++
 	}
@@ -38,12 +38,12 @@ func (client *SystemgeClient) ConnectToNode(endpointConfig *Config.TcpEndpoint, 
 
 // Removes a node from the outgoing connections and aborts ongoing connection attempts.
 func (client *SystemgeClient) DisconnectFromNode(address string) error {
-	client.outgoingConnectionMutex.Lock()
-	defer client.outgoingConnectionMutex.Unlock()
-	if outgoingConnectionAttempt := client.outgoingConnectionAttempts[address]; outgoingConnectionAttempt != nil {
+	client.serverConnectionMutex.Lock()
+	defer client.serverConnectionMutex.Unlock()
+	if outgoingConnectionAttempt := client.serverConnectionAttempts[address]; outgoingConnectionAttempt != nil {
 		outgoingConnectionAttempt.isAborted = true
 	}
-	if outgoingConnection := client.outgoingConnections[address]; outgoingConnection != nil {
+	if outgoingConnection := client.serverConnections[address]; outgoingConnection != nil {
 		outgoingConnection.netConn.Close()
 		outgoingConnection.isTransient = true
 	}
