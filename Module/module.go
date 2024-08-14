@@ -3,6 +3,7 @@ package module
 type ServiceModule interface {
 	GetName() string
 	GetStatus() int
+	GetMetrics() map[string]interface{}
 	Start() error
 	Stop() error
 }
