@@ -11,7 +11,7 @@ import (
 
 func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.WebsocketMessageHandler {
 	return map[string]WebsocketServer.WebsocketMessageHandler{
-		"start": func(websocketClient *WebsocketServer.Client, message *Message.Message) error {
+		"start": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
 			n := app.nodes[message.GetPayload()]
 			app.mutex.RUnlock()
@@ -25,7 +25,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Websock
 			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
 			return nil
 		},
-		"stop": func(websocketClient *WebsocketServer.Client, message *Message.Message) error {
+		"stop": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
 			n := app.nodes[message.GetPayload()]
 			app.mutex.RUnlock()
@@ -39,7 +39,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Websock
 			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
 			return nil
 		},
-		"command": func(websocketClient *WebsocketServer.Client, message *Message.Message) error {
+		"command": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			command := unmarshalCommand(message.GetPayload())
 			if command == nil {
 				return Error.New("Invalid command", nil)
@@ -51,14 +51,14 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Websock
 			websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
 			return nil
 		},
-		"gc": func(websocketClient *WebsocketServer.Client, message *Message.Message) error {
+		"gc": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			runtime.GC()
 			return nil
 		},
 	}
 }
 
-func (app *App) OnConnectHandler(websocketClient *WebsocketServer.Client) {
+func (app *App) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
 	for _, n := range app.nodes {
@@ -68,7 +68,7 @@ func (app *App) OnConnectHandler(websocketClient *WebsocketServer.Client) {
 	}
 }
 
-func (app *App) OnDisconnectHandler(websocketClient *WebsocketServer.Client) {
+func (app *App) OnDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
 
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Client struct {
+type WebsocketClient struct {
 	id            string
 	websocketConn *websocket.Conn
 
@@ -31,8 +31,8 @@ type Client struct {
 	disconnected bool
 }
 
-func (server *WebsocketServer) newWebsocketClient(id string, websocketConn *websocket.Conn) *Client {
-	websocketClient := &Client{
+func (server *WebsocketServer) newWebsocketClient(id string, websocketConn *websocket.Conn) *WebsocketClient {
+	websocketClient := &WebsocketClient{
 		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
@@ -73,11 +73,11 @@ func (server *WebsocketServer) newWebsocketClient(id string, websocketConn *webs
 }
 
 // Resets the watchdog timer to its initial value.
-func (server *WebsocketServer) ResetWatchdog(websocketClient *Client) error {
+func (server *WebsocketServer) ResetWatchdog(websocketClient *WebsocketClient) error {
 	return server.resetWatchdog(websocketClient)
 }
 
-func (server *WebsocketServer) resetWatchdog(websocketClient *Client) error {
+func (server *WebsocketServer) resetWatchdog(websocketClient *WebsocketClient) error {
 	if websocketClient == nil {
 		return Error.New("websocketClient is nil", nil)
 	}
@@ -92,7 +92,7 @@ func (server *WebsocketServer) resetWatchdog(websocketClient *Client) error {
 }
 
 // Disconnects the websocketClient and blocks until the websocketClients onDisconnectHandler has finished.
-func (client *Client) Disconnect() error {
+func (client *WebsocketClient) Disconnect() error {
 	if client == nil {
 		return Error.New("websocketClient is nil", nil)
 	}
@@ -109,23 +109,23 @@ func (client *Client) Disconnect() error {
 }
 
 // Returns the ip of the websocketClient.
-func (client *Client) GetIp() string {
+func (client *WebsocketClient) GetIp() string {
 	return client.websocketConn.RemoteAddr().String()
 }
 
 // Returns the id of the websocketClient.
-func (client *Client) GetId() string {
+func (client *WebsocketClient) GetId() string {
 	return client.id
 }
 
 // Sends a message to the websocketClient.
-func (client *Client) Send(messageBytes []byte) error {
+func (client *WebsocketClient) Send(messageBytes []byte) error {
 	client.sendMutex.Lock()
 	defer client.sendMutex.Unlock()
 	return client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
-func (client *Client) receive() ([]byte, error) {
+func (client *WebsocketClient) receive() ([]byte, error) {
 	client.receiveMutex.Lock()
 	defer client.receiveMutex.Unlock()
 	_, messageBytes, err := client.websocketConn.ReadMessage()

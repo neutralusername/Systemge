@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (server *WebsocketServer) addWebsocketConn(websocketConn *websocket.Conn) *Client {
+func (server *WebsocketServer) addWebsocketConn(websocketConn *websocket.Conn) *WebsocketClient {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
@@ -19,7 +19,7 @@ func (server *WebsocketServer) addWebsocketConn(websocketConn *websocket.Conn) *
 	return websocketClient
 }
 
-func (server *WebsocketServer) removeWebsocketClient(websocketClient *Client) {
+func (server *WebsocketServer) removeWebsocketClient(websocketClient *WebsocketClient) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	delete(server.clients, websocketClient.GetId())

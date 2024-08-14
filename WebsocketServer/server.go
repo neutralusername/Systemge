@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WebsocketMessageHandler func(*Client, *Message.Message) error
+type WebsocketMessageHandler func(*WebsocketClient, *Message.Message) error
 
 type WebsocketServer struct {
 	config        *Config.WebsocketServer
@@ -24,15 +24,15 @@ type WebsocketServer struct {
 	mailer        *Tools.Mailer
 	randomizer    *Tools.Randomizer
 
-	onConnectHandler    func(websocketClient *Client)
-	onDisconnectHandler func(websocketClient *Client)
+	onConnectHandler    func(websocketClient *WebsocketClient)
+	onDisconnectHandler func(websocketClient *WebsocketClient)
 
 	httpServer *HTTPServer.Server
 
 	connChannel     chan *websocket.Conn
-	clients         map[string]*Client            // websocketId -> websocketClient
-	groups          map[string]map[string]*Client // groupId -> map[websocketId]websocketClient
-	clientGroups    map[string]map[string]bool    // websocketId -> map[groupId]bool
+	clients         map[string]*WebsocketClient            // websocketId -> websocketClient
+	groups          map[string]map[string]*WebsocketClient // groupId -> map[websocketId]websocketClient
+	clientGroups    map[string]map[string]bool             // websocketId -> map[groupId]bool
 	messageHandlers map[string]WebsocketMessageHandler
 
 	messageHandlerMutex sync.Mutex
@@ -46,7 +46,7 @@ type WebsocketServer struct {
 	bytesReceivedCounter   atomic.Uint64
 }
 
-func New(config *Config.WebsocketServer, messageHandlers map[string]WebsocketMessageHandler, onConnectHandler func(*Client), onDisconnectHandler func(*Client)) *WebsocketServer {
+func New(config *Config.WebsocketServer, messageHandlers map[string]WebsocketMessageHandler, onConnectHandler func(*WebsocketClient), onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
 	if config.Upgrader == nil {
 		config.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -58,8 +58,8 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]WebsocketMes
 	}
 	server := &WebsocketServer{
 		connChannel:         make(chan *websocket.Conn),
-		clients:             make(map[string]*Client),
-		groups:              make(map[string]map[string]*Client),
+		clients:             make(map[string]*WebsocketClient),
+		groups:              make(map[string]map[string]*WebsocketClient),
 		clientGroups:        make(map[string]map[string]bool),
 		messageHandlers:     messageHandlers,
 		onConnectHandler:    onConnectHandler,
@@ -93,7 +93,7 @@ func (server *WebsocketServer) Stop() error {
 	server.httpServer = nil
 	close(server.connChannel)
 	server.mutex.Lock()
-	websocketClientsToDisconnect := make([]*Client, 0)
+	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
 	for _, websocketClient := range server.clients {
 		websocketClientsToDisconnect = append(websocketClientsToDisconnect, websocketClient)
 	}

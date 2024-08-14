@@ -32,7 +32,7 @@ func (server *WebsocketServer) handleWebsocketConn(websocketConn *websocket.Conn
 	}
 }
 
-func (server *WebsocketServer) handleMessages(client *Client) {
+func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 	for {
 		messageBytes, err := client.receive()
 		if err != nil {
@@ -104,7 +104,7 @@ func (server *WebsocketServer) handleMessages(client *Client) {
 	}
 }
 
-func (server *WebsocketServer) handleWebsocketMessage(websocketClient *Client, message *Message.Message) error {
+func (server *WebsocketServer) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()

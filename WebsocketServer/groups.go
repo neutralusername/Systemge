@@ -16,7 +16,7 @@ func (server *WebsocketServer) AddClientToGroup(groupId string, websocketIds ...
 		}
 	}
 	if server.groups[groupId] == nil {
-		server.groups[groupId] = make(map[string]*Client)
+		server.groups[groupId] = make(map[string]*WebsocketClient)
 	}
 	for _, websocketId := range websocketIds {
 		server.groups[groupId][websocketId] = server.clients[websocketId]
@@ -32,7 +32,7 @@ func (server *WebsocketServer) AddClientToGroup_(groupId string, websocketIds ..
 		server.mutex.Lock()
 		defer server.mutex.Unlock()
 		if server.groups[groupId] == nil {
-			server.groups[groupId] = make(map[string]*Client)
+			server.groups[groupId] = make(map[string]*WebsocketClient)
 		}
 		for _, websocketId := range websocketIds {
 			if server.clients[websocketId] != nil {
