@@ -28,7 +28,7 @@ type WebsocketServer struct {
 	mailer        *Tools.Mailer
 	randomizer    *Tools.Randomizer
 
-	onConnectHandler    func(*WebsocketClient)
+	onConnectHandler    func(*WebsocketClient) error
 	onDisconnectHandler func(*WebsocketClient)
 
 	httpServer *HTTPServer.HTTPServer
@@ -50,7 +50,7 @@ type WebsocketServer struct {
 	bytesReceivedCounter   atomic.Uint64
 }
 
-func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandler, onConnectHandler func(*WebsocketClient), onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
+func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandler, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
 	if config.Upgrader == nil {
 		config.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  1024,

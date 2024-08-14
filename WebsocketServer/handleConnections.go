@@ -29,11 +29,15 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 	server.clientGroups[websocketId] = make(map[string]bool)
 	server.mutex.Unlock()
 
+	defer client.Disconnect()
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("client connected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
 	}
 	if server.onConnectHandler != nil {
-		server.onConnectHandler(client)
+		err := server.onConnectHandler(client)
+		if err != nil {
+			return
+		}
 	}
 	server.handleMessages(client)
 	client.Disconnect()
