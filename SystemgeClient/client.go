@@ -6,7 +6,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -29,7 +28,7 @@ type SystemgeClient struct {
 	outgoingConnections        map[string]*outgoingConnection            // address -> nodeConnection
 	outgoingConnectionAttempts map[string]*outgoingConnectionAttempt     // address -> bool
 
-	// outgoing connection metrics
+	// metrics
 
 	bytesReceived           atomic.Uint64
 	bytesSent               atomic.Uint64
@@ -102,18 +101,6 @@ func (client *SystemgeClient) Stop() error {
 	return nil
 }
 
-func (systemge *SystemgeClient) validateMessage(message *Message.Message) error {
-	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
-		return Error.New("Message sync token exceeds maximum size", nil)
-	}
-	if len(message.GetTopic()) == 0 {
-		return Error.New("Message missing topic", nil)
-	}
-	if maxTopicSize := systemge.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return Error.New("Message topic exceeds maximum size", nil)
-	}
-	if maxPayloadSize := systemge.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return Error.New("Message payload exceeds maximum size", nil)
-	}
-	return nil
+func (client *SystemgeClient) GetName() string {
+	return client.config.Name
 }

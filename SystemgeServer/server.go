@@ -40,7 +40,7 @@ type SystemgeServer struct {
 	incomingConnectionMutex sync.RWMutex
 	incomingConnections     map[string]*incomingConnection // name -> nodeConnection
 
-	// incoming connection metrics
+	// metrics
 	bytesReceived           atomic.Uint64
 	bytesSent               atomic.Uint64
 	invalidMessagesReceived atomic.Uint32
