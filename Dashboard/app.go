@@ -35,7 +35,7 @@ type App struct {
 	mailer        *Tools.Mailer
 }
 
-func New(dashboardConfig *Config.Dashboard, services []Module.ServiceModule, applications []Module.ApplicationModule) *App {
+func New(dashboardConfig *Config.Dashboard) *App {
 	app := &App{
 		services:     make(map[string]Module.ServiceModule),
 		applications: make(map[string]Module.ApplicationModule),
