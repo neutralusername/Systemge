@@ -73,13 +73,14 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 		topicResolutions:         make(map[string]map[string]*serverConnection),
 		serverConnections:        make(map[string]*serverConnection),
 		serverConnectionAttempts: make(map[string]*serverConnectionAttempt),
-		stopChannel:              make(chan bool),
 	}
 }
 
 func (client *SystemgeClient) Start() error {
+	client.stopChannel = make(chan bool)
 	for _, endpointConfig := range client.config.EndpointConfigs {
 		if err := client.attemptServerConnection(endpointConfig, false); err != nil {
+			client.Stop()
 			return Error.New("failed to establish server connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
