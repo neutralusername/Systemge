@@ -4,6 +4,7 @@ type ServiceModule interface {
 	GetName() string
 	GetStatus() int
 	GetMetrics() map[string]interface{}
+	GetCommandHandlers() map[string]func() (string, error)
 	Start() error
 	Stop() error
 }
