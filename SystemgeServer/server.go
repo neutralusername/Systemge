@@ -27,14 +27,14 @@ type SystemgeServer struct {
 
 	asyncMessageHandlers map[string]AsyncMessageHandler
 	syncMessageHandlers  map[string]SyncMessageHandler
-	incomingConnections  map[string]*incomingConnection // name -> nodeConnection
+	clientConnections    map[string]*clientConnection // name -> nodeConnection
 
 	stopChannel                          chan bool //closing of this channel initiates the stop of the systemge component
 	incomingConnectionsStopChannel       chan bool //closing of this channel indicates that the incoming connection handler has stopped
 	allIncomingConnectionsStoppedChannel chan bool //closing of this channel indicates that all incoming connections have stopped
 	messageHandlerChannel                chan func()
 
-	incomingConnectionMutex  sync.RWMutex
+	clientConnectionMutex    sync.RWMutex
 	syncMessageHandlerMutex  sync.RWMutex
 	asyncMessageHandlerMutex sync.RWMutex
 
@@ -73,38 +73,38 @@ func New(config *Config.SystemgeServer, asyncMessageHanlders map[string]AsyncMes
 		warningLogger:        Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
 		errorLogger:          Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
 		mailer:               Tools.NewMailer(config.MailerConfig),
-		incomingConnections:  make(map[string]*incomingConnection),
+		clientConnections:    make(map[string]*clientConnection),
 		asyncMessageHandlers: asyncMessageHanlders,
 		syncMessageHandlers:  syncMessageHandlers,
 	}
 }
 
-func (systemgeServer *SystemgeServer) Start() error {
-	if systemgeServer.config.TcpBufferBytes == 0 {
-		systemgeServer.config.TcpBufferBytes = 1024 * 4
+func (server *SystemgeServer) Start() error {
+	if server.config.TcpBufferBytes == 0 {
+		server.config.TcpBufferBytes = 1024 * 4
 	}
-	tcpServer, err := Tcp.NewServer(systemgeServer.config.ServerConfig)
+	tcpServer, err := Tcp.NewServer(server.config.ServerConfig)
 	if err != nil {
 		return Error.New("Failed to create tcp server", err)
 	}
-	if systemgeServer.config.IpRateLimiter != nil {
-		systemgeServer.ipRateLimiter = Tools.NewIpRateLimiter(systemgeServer.config.IpRateLimiter)
+	if server.config.IpRateLimiter != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
 
-	systemgeServer.tcpServer = tcpServer
-	systemgeServer.stopChannel = make(chan bool)
-	systemgeServer.incomingConnectionsStopChannel = make(chan bool)
-	systemgeServer.allIncomingConnectionsStoppedChannel = make(chan bool)
+	server.tcpServer = tcpServer
+	server.stopChannel = make(chan bool)
+	server.incomingConnectionsStopChannel = make(chan bool)
+	server.allIncomingConnectionsStoppedChannel = make(chan bool)
 
-	if systemgeServer.config.ProcessAllMessagesSequentially {
-		systemgeServer.messageHandlerChannel = make(chan func(), systemgeServer.config.ProcessAllMessagesSequentiallyChannelSize)
-		if systemgeServer.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
+	if server.config.ProcessAllMessagesSequentially {
+		server.messageHandlerChannel = make(chan func(), server.config.ProcessAllMessagesSequentiallyChannelSize)
+		if server.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
 			go func() {
 				for {
 					select {
-					case f := <-systemgeServer.messageHandlerChannel:
+					case f := <-server.messageHandlerChannel:
 						f()
-					case <-systemgeServer.stopChannel:
+					case <-server.stopChannel:
 						return
 					}
 				}
@@ -113,12 +113,12 @@ func (systemgeServer *SystemgeServer) Start() error {
 			go func() {
 				for {
 					select {
-					case f := <-systemgeServer.messageHandlerChannel:
-						if systemgeServer.errorLogger != nil && len(systemgeServer.messageHandlerChannel) >= systemgeServer.config.ProcessAllMessagesSequentiallyChannelSize-1 {
-							systemgeServer.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
+					case f := <-server.messageHandlerChannel:
+						if server.errorLogger != nil && len(server.messageHandlerChannel) >= server.config.ProcessAllMessagesSequentiallyChannelSize-1 {
+							server.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
 						}
 						f()
-					case <-systemgeServer.allIncomingConnectionsStoppedChannel:
+					case <-server.allIncomingConnectionsStoppedChannel:
 						return
 					}
 				}
@@ -126,32 +126,32 @@ func (systemgeServer *SystemgeServer) Start() error {
 		}
 
 	}
-	go systemgeServer.handleIncomingConnections()
+	go server.handleIncomingConnections()
 	return nil
 }
 
 // stopSystemgeServerComponent stops the systemge component.
 // blocking until all goroutines associated with the systemge component have stopped.
-func (systemge *SystemgeServer) Stop() error {
-	close(systemge.stopChannel)
+func (server *SystemgeServer) Stop() error {
+	close(server.stopChannel)
 
-	if systemge.ipRateLimiter != nil {
-		systemge.ipRateLimiter.Stop()
+	if server.ipRateLimiter != nil {
+		server.ipRateLimiter.Stop()
 	}
 
-	systemge.tcpServer.GetListener().Close()
-	<-systemge.incomingConnectionsStopChannel
+	server.tcpServer.GetListener().Close()
+	<-server.incomingConnectionsStopChannel
 
-	systemge.incomingConnectionMutex.Lock()
-	for _, incomingConnection := range systemge.incomingConnections {
+	server.clientConnectionMutex.Lock()
+	for _, incomingConnection := range server.clientConnections {
 		incomingConnection.netConn.Close()
 		<-incomingConnection.stopChannel
 	}
-	systemge.incomingConnectionMutex.Unlock()
-	close(systemge.allIncomingConnectionsStoppedChannel)
+	server.clientConnectionMutex.Unlock()
+	close(server.allIncomingConnectionsStoppedChannel)
 	return nil
 }
 
-func (systemge *SystemgeServer) GetName() string {
-	return systemge.config.Name
+func (server *SystemgeServer) GetName() string {
+	return server.config.Name
 }

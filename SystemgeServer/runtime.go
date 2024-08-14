@@ -7,22 +7,22 @@ import (
 )
 
 func (server *SystemgeServer) GetIncomingConnectionsList() map[string]string { // map == name:address
-	server.incomingConnectionMutex.RLock()
-	defer server.incomingConnectionMutex.RUnlock()
-	connections := make(map[string]string, len(server.incomingConnections))
-	for name, incomingConnection := range server.incomingConnections {
+	server.clientConnectionMutex.RLock()
+	defer server.clientConnectionMutex.RUnlock()
+	connections := make(map[string]string, len(server.clientConnections))
+	for name, incomingConnection := range server.clientConnections {
 		connections[name] = incomingConnection.netConn.RemoteAddr().String()
 	}
 	return connections
 }
 
 func (server *SystemgeServer) DisconnectIncomingConnection(name string) error {
-	server.incomingConnectionMutex.Lock()
-	defer server.incomingConnectionMutex.Unlock()
-	if server.incomingConnections[name] == nil {
+	server.clientConnectionMutex.Lock()
+	defer server.clientConnectionMutex.Unlock()
+	if server.clientConnections[name] == nil {
 		return Error.New("Connection to node \""+name+"\" does not exist", nil)
 	}
-	server.incomingConnections[name].netConn.Close()
+	server.clientConnections[name].netConn.Close()
 	return nil
 }
 
@@ -37,9 +37,9 @@ func (server *SystemgeServer) AddSyncTopic(topic string, handler SyncMessageHand
 	server.syncMessageHandlers[topic] = handler
 	server.syncMessageHandlerMutex.Unlock()
 	server.topicAddSent.Add(1)
-	server.incomingConnectionMutex.RLock()
-	defer server.incomingConnectionMutex.RUnlock()
-	for _, incomingConnection := range server.incomingConnections {
+	server.clientConnectionMutex.RLock()
+	defer server.clientConnectionMutex.RUnlock()
+	for _, incomingConnection := range server.clientConnections {
 		go func() {
 			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_ADDTOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
@@ -70,9 +70,9 @@ func (server *SystemgeServer) AddAsyncTopic(topic string, handler AsyncMessageHa
 	server.asyncMessageHandlers[topic] = handler
 	server.asyncMessageHandlerMutex.Unlock()
 	server.topicAddSent.Add(1)
-	server.incomingConnectionMutex.RLock()
-	defer server.incomingConnectionMutex.RUnlock()
-	for _, incomingConnection := range server.incomingConnections {
+	server.clientConnectionMutex.RLock()
+	defer server.clientConnectionMutex.RUnlock()
+	for _, incomingConnection := range server.clientConnections {
 		go func() {
 			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_ADDTOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
@@ -103,9 +103,9 @@ func (server *SystemgeServer) RemoveSyncTopic(topic string) error {
 	delete(server.syncMessageHandlers, topic)
 	server.syncMessageHandlerMutex.Unlock()
 	server.topicRemoveSent.Add(1)
-	server.incomingConnectionMutex.RLock()
-	defer server.incomingConnectionMutex.RUnlock()
-	for _, incomingConnection := range server.incomingConnections {
+	server.clientConnectionMutex.RLock()
+	defer server.clientConnectionMutex.RUnlock()
+	for _, incomingConnection := range server.clientConnections {
 		go func() {
 			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_REMOVETOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
@@ -136,9 +136,9 @@ func (server *SystemgeServer) RemoveAsyncTopic(topic string) error {
 	delete(server.asyncMessageHandlers, topic)
 	server.asyncMessageHandlerMutex.Unlock()
 	server.topicRemoveSent.Add(1)
-	server.incomingConnectionMutex.RLock()
-	defer server.incomingConnectionMutex.RUnlock()
-	for _, incomingConnection := range server.incomingConnections {
+	server.clientConnectionMutex.RLock()
+	defer server.clientConnectionMutex.RUnlock()
+	for _, incomingConnection := range server.clientConnections {
 		go func() {
 			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_REMOVETOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {

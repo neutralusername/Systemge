@@ -9,7 +9,7 @@ import (
 
 // handles incoming messages from a incoming connection one at a time until the receive operation fails
 // either due to connection loss or closure of the listener due to systemge stop
-func (systemge *SystemgeServer) handleIncomingConnectionMessages(incomingConnection *incomingConnection) {
+func (systemge *SystemgeServer) handleIncomingConnectionMessages(incomingConnection *clientConnection) {
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting message handler for incoming node connection \""+incomingConnection.name+"\"", nil).Error())
 	}
@@ -29,9 +29,9 @@ func (systemge *SystemgeServer) handleIncomingConnectionMessages(incomingConnect
 				incomingConnection.rateLimiterMsgs.Stop()
 			}
 			close(incomingConnection.stopChannel)
-			systemge.incomingConnectionMutex.Lock()
-			delete(systemge.incomingConnections, incomingConnection.name)
-			systemge.incomingConnectionMutex.Unlock()
+			systemge.clientConnectionMutex.Lock()
+			delete(systemge.clientConnections, incomingConnection.name)
+			systemge.clientConnectionMutex.Unlock()
 			return
 		}
 		wg.Add(1)
@@ -47,7 +47,7 @@ func (systemge *SystemgeServer) handleIncomingConnectionMessages(incomingConnect
 	}
 }
 
-func (systemge *SystemgeServer) processIncomingMessage(incomingConnection *incomingConnection, messageBytes []byte, wg *sync.WaitGroup) {
+func (systemge *SystemgeServer) processIncomingMessage(incomingConnection *clientConnection, messageBytes []byte, wg *sync.WaitGroup) {
 	defer wg.Done()
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	if err := systemge.checkRateLimits(incomingConnection, messageBytes); err != nil {
@@ -116,7 +116,7 @@ func (systemge *SystemgeServer) processIncomingMessage(incomingConnection *incom
 	}
 }
 
-func (systemge *SystemgeServer) checkRateLimits(incomingConnection *incomingConnection, messageBytes []byte) error {
+func (systemge *SystemgeServer) checkRateLimits(incomingConnection *clientConnection, messageBytes []byte) error {
 	if incomingConnection.rateLimiterBytes != nil && !incomingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		systemge.byteRateLimiterExceeded.Add(1)
 		return Error.New("Incoming connection rate limiter bytes exceeded", nil)
