@@ -1,4 +1,4 @@
-package Node
+package SystemgeServer
 
 import (
 	"net"
@@ -10,8 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-// incoming connections from other nodes
-// they are used to receive async and sync requests and send sync responses for their corresponding requests
+// clientConnections are used to receive async and sync requests and send sync responses for their corresponding requests
 type clientConnection struct {
 	netConn          net.Conn
 	name             string
@@ -20,36 +19,36 @@ type clientConnection struct {
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 	tcpBuffer        []byte
 
-	stopChannel chan bool //closing of this channel indicates that the incoming connection has finished its ongoing tasks.
+	stopChannel chan bool //closing of this channel indicates that the client connection has finished its ongoing tasks.
 }
 
 func (server *SystemgeServer) newClientConnection(netConn net.Conn, name string) *clientConnection {
-	nodeConnection := &clientConnection{
+	clientConnection := &clientConnection{
 		netConn:     netConn,
 		name:        name,
 		stopChannel: make(chan bool),
 	}
 	if server.config.RateLimterBytes != nil {
-		nodeConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.RateLimterBytes)
+		clientConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.RateLimterBytes)
 	}
 	if server.config.RateLimiterMessages != nil {
-		nodeConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
+		clientConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
 	}
-	return nodeConnection
+	return clientConnection
 }
 
-func (clientConnection *clientConnection) receiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
+func (clientConnection *clientConnection) receiveMessage(bufferSize uint32, clientMessageByteLimit uint64) ([]byte, error) {
 	completedMsgBytes := []byte{}
 	for {
-		if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
-			return nil, Error.New("Incoming message byte limit exceeded", nil)
+		if clientMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > clientMessageByteLimit {
+			return nil, Error.New("client message byte limit exceeded", nil)
 		}
 		for i, b := range clientConnection.tcpBuffer {
 			if b == Tcp.ENDOFMESSAGE {
 				completedMsgBytes = append(completedMsgBytes, clientConnection.tcpBuffer[:i]...)
 				clientConnection.tcpBuffer = clientConnection.tcpBuffer[i+1:]
-				if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
-					return nil, Error.New("Incoming message byte limit exceeded", nil)
+				if clientMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > clientMessageByteLimit {
+					return nil, Error.New("client message byte limit exceeded", nil)
 				}
 				return completedMsgBytes, nil
 			}
@@ -63,12 +62,12 @@ func (clientConnection *clientConnection) receiveMessage(bufferSize uint32, inco
 	}
 }
 
-// sync responses are sent to incoming connections
-func (server *SystemgeServer) messageIncomingConnection(clientConnection *clientConnection, message *Message.Message) error {
+// sync responses are sent to client connections
+func (server *SystemgeServer) messageClientConnection(clientConnection *clientConnection, message *Message.Message) error {
 	clientConnection.sendMutex.Lock()
 	defer clientConnection.sendMutex.Unlock()
 	if message.GetSyncTokenToken() == "" {
-		return Error.New("Cannot send async message to incoming node connection", nil)
+		return Error.New("Cannot send async message to client connection", nil)
 	}
 	bytesSent, err := Tcp.Send(clientConnection.netConn, message.Serialize(), server.config.TcpTimeoutMs)
 	if err != nil {

@@ -1,4 +1,4 @@
-package Node
+package SystemgeServer
 
 import (
 	"sync"
@@ -27,12 +27,12 @@ type SystemgeServer struct {
 
 	asyncMessageHandlers map[string]AsyncMessageHandler
 	syncMessageHandlers  map[string]SyncMessageHandler
-	clientConnections    map[string]*clientConnection // name -> nodeConnection
+	clientConnections    map[string]*clientConnection // name -> clientConnection
 
-	stopChannel                          chan bool //closing of this channel initiates the stop of the systemge component
-	incomingConnectionsStopChannel       chan bool //closing of this channel indicates that the incoming connection handler has stopped
-	allIncomingConnectionsStoppedChannel chan bool //closing of this channel indicates that all incoming connections have stopped
-	messageHandlerChannel                chan func()
+	stopChannel                            chan bool //closing of this channel initiates the stop of the systemge component
+	clientConnectionStopChannelStopChannel chan bool //closing of this channel indicates that the client connection handler has stopped
+	allClientConnectionsStoppedChannel     chan bool //closing of this channel indicates that all client connections have stopped
+	messageHandlerChannel                  chan func()
 
 	clientConnectionMutex    sync.RWMutex
 	syncMessageHandlerMutex  sync.RWMutex
@@ -93,8 +93,8 @@ func (server *SystemgeServer) Start() error {
 
 	server.tcpServer = tcpServer
 	server.stopChannel = make(chan bool)
-	server.incomingConnectionsStopChannel = make(chan bool)
-	server.allIncomingConnectionsStoppedChannel = make(chan bool)
+	server.clientConnectionStopChannelStopChannel = make(chan bool)
+	server.allClientConnectionsStoppedChannel = make(chan bool)
 
 	if server.config.ProcessAllMessagesSequentially {
 		server.messageHandlerChannel = make(chan func(), server.config.ProcessAllMessagesSequentiallyChannelSize)
@@ -118,7 +118,7 @@ func (server *SystemgeServer) Start() error {
 							server.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
 						}
 						f()
-					case <-server.allIncomingConnectionsStoppedChannel:
+					case <-server.allClientConnectionsStoppedChannel:
 						return
 					}
 				}
@@ -126,7 +126,7 @@ func (server *SystemgeServer) Start() error {
 		}
 
 	}
-	go server.handleIncomingConnections()
+	go server.handleClientConnections()
 	return nil
 }
 
@@ -140,15 +140,15 @@ func (server *SystemgeServer) Stop() error {
 	}
 
 	server.tcpServer.GetListener().Close()
-	<-server.incomingConnectionsStopChannel
+	<-server.clientConnectionStopChannelStopChannel
 
 	server.clientConnectionMutex.Lock()
-	for _, incomingConnection := range server.clientConnections {
-		incomingConnection.netConn.Close()
-		<-incomingConnection.stopChannel
+	for _, clientConnection := range server.clientConnections {
+		clientConnection.netConn.Close()
+		<-clientConnection.stopChannel
 	}
 	server.clientConnectionMutex.Unlock()
-	close(server.allIncomingConnectionsStoppedChannel)
+	close(server.allClientConnectionsStoppedChannel)
 	return nil
 }
 

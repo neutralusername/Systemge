@@ -13,11 +13,11 @@ type SystemgeClient struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
-	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever
-	MaxConnectionAttempts           uint64 `json:"maxConnectionAttempts"`           // default: 0 == infinite
-	ConnectionAttemptDelayMs        uint64 `json:"connectionAttemptDelay"`          // default: 0 (delay after failed connection attempt)
-	StopAfterOutgoingConnectionLoss bool   `json:"stopAfterOutgoingConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
+	SyncRequestTimeoutMs          uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
+	TcpTimeoutMs                  uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever
+	MaxConnectionAttempts         uint64 `json:"maxConnectionAttempts"`           // default: 0 == infinite
+	ConnectionAttemptDelayMs      uint64 `json:"connectionAttemptDelay"`          // default: 0 (delay after failed connection attempt)
+	StopAfterServerConnectionLoss bool   `json:"stopAfterOutgoingConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
 
 	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (endpoint to other node's servers) (on startup, this node will attempt to establish connection to these endpoints)
 
@@ -29,7 +29,7 @@ type SystemgeClient struct {
 	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxNodeNameSize          uint64 `json:"maxNodeNameSize"`          // default: 0 == unlimited (connections that attempt to send a node name larger than this will be rejected)
+	MaxServerNameLength      uint64 `json:"maxServerNameLength"`      // default: 0 == unlimited (connections that attempt to send a node name larger than this will be rejected)
 }
 
 func UnmarshalSystemgeClient(data string) *SystemgeClient {
@@ -59,12 +59,12 @@ type SystemgeServer struct {
 
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
-	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxNodeNameSize          uint64 `json:"maxNodeNameSize"`          // default: 0 == unlimited (connections that attempt to send a node name larger than this will be rejected)
+	TcpBufferBytes         uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
+	ClientMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
+	MaxPayloadSize         int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxTopicSize           int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxSyncTokenSize       int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxClientNameLength    uint64 `json:"maxClientNameLength"`      // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 func UnmarshalSystemgeServer(data string) *SystemgeServer {

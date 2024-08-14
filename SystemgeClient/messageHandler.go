@@ -1,49 +1,49 @@
-package Node
+package SystemgeClient
 
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (client *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnection *serverConnection) {
+func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *serverConnection) {
 	if infoLogger := client.infoLogger; infoLogger != nil {
-		infoLogger.Log(Error.New("Starting handling of messages from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
+		infoLogger.Log(Error.New("Starting handling of messages from server connection \""+serverConnection.name+"\"", nil).Error())
 	}
 	for {
-		messageBytes, err := outgoingConnection.receiveMessage(client.config.TcpBufferBytes, client.config.IncomingMessageByteLimit)
+		messageBytes, err := serverConnection.receiveMessage(client.config.TcpBufferBytes, client.config.IncomingMessageByteLimit)
 		if err != nil {
 			if warningLogger := client.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to receive message from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to receive message from server connection \""+serverConnection.name+"\"", err).Error())
 			}
-			outgoingConnection.netConn.Close()
-			if outgoingConnection.rateLimiterBytes != nil {
-				outgoingConnection.rateLimiterBytes.Stop()
+			serverConnection.netConn.Close()
+			if serverConnection.rateLimiterBytes != nil {
+				serverConnection.rateLimiterBytes.Stop()
 			}
-			if outgoingConnection.rateLimiterMsgs != nil {
-				outgoingConnection.rateLimiterMsgs.Stop()
+			if serverConnection.rateLimiterMsgs != nil {
+				serverConnection.rateLimiterMsgs.Stop()
 			}
-			close(outgoingConnection.stopChannel)
+			close(serverConnection.stopChannel)
 			client.serverConnectionMutex.Lock()
-			delete(client.serverConnections, outgoingConnection.endpointConfig.Address)
-			outgoingConnection.topicsMutex.Lock()
-			for topic := range outgoingConnection.topics {
+			delete(client.serverConnections, serverConnection.endpointConfig.Address)
+			serverConnection.topicsMutex.Lock()
+			for topic := range serverConnection.topics {
 				topicResolutions := client.topicResolutions[topic]
 				if topicResolutions != nil {
-					delete(topicResolutions, outgoingConnection.name)
+					delete(topicResolutions, serverConnection.name)
 					if len(topicResolutions) == 0 {
 						delete(client.topicResolutions, topic)
 					}
 				}
 			}
-			outgoingConnection.topicsMutex.Unlock()
-			if !outgoingConnection.isTransient {
+			serverConnection.topicsMutex.Unlock()
+			if !serverConnection.isTransient {
 				go func() {
-					err := client.attemptOutgoingConnection(outgoingConnection.endpointConfig, false)
+					err := client.attemptServerConnection(serverConnection.endpointConfig, false)
 					if err != nil {
 						if errorLogger := client.errorLogger; errorLogger != nil {
-							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
+							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+serverConnection.endpointConfig.Address+"\"", err).Error())
 						}
-						if client.config.StopAfterOutgoingConnectionLoss {
+						if client.config.StopAfterServerConnectionLoss {
 							client.Stop()
 						}
 					}
@@ -54,37 +54,37 @@ func (client *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnectio
 		}
 		go func(messageBytes []byte) {
 			client.bytesReceived.Add(uint64(len(messageBytes)))
-			if outgoingConnection.rateLimiterBytes != nil && !outgoingConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+			if serverConnection.rateLimiterBytes != nil && !serverConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 				client.byteRateLimiterExceeded.Add(1)
 				return
 			}
-			if outgoingConnection.rateLimiterMsgs != nil && !outgoingConnection.rateLimiterMsgs.Consume(1) {
+			if serverConnection.rateLimiterMsgs != nil && !serverConnection.rateLimiterMsgs.Consume(1) {
 				client.messageRateLimiterExceeded.Add(1)
 				return
 			}
-			message, err := Message.Deserialize(messageBytes, outgoingConnection.name)
+			message, err := Message.Deserialize(messageBytes, serverConnection.name)
 			if err != nil {
 				client.invalidMessagesReceived.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from server connection \""+serverConnection.name+"\"", err).Error())
 				}
 				return
 			}
 			if len(message.GetSyncTokenToken()) == 0 {
 				if message.GetTopic() == Message.TOPIC_ADDTOPIC {
-					outgoingConnection.topicsMutex.Lock()
-					outgoingConnection.topics[message.GetPayload()] = true
-					outgoingConnection.topicsMutex.Unlock()
+					serverConnection.topicsMutex.Lock()
+					serverConnection.topics[message.GetPayload()] = true
+					serverConnection.topicsMutex.Unlock()
 					client.topicAddReceived.Add(1)
 				} else if message.GetTopic() == Message.TOPIC_REMOVETOPIC {
-					outgoingConnection.topicsMutex.Lock()
-					delete(outgoingConnection.topics, message.GetPayload())
-					outgoingConnection.topicsMutex.Unlock()
+					serverConnection.topicsMutex.Lock()
+					delete(serverConnection.topics, message.GetPayload())
+					serverConnection.topicsMutex.Unlock()
 					client.topicRemoveReceived.Add(1)
 				} else {
 					client.invalidMessagesReceived.Add(1)
 					if warningLogger := client.warningLogger; warningLogger != nil {
-						warningLogger.Log(Error.New("Received async message from outgoing node connection \""+outgoingConnection.name+"\" (which goes against protocol)", nil).Error())
+						warningLogger.Log(Error.New("Received async message from server connection \""+serverConnection.name+"\" (which goes against protocol)", nil).Error())
 					}
 				}
 				return
@@ -93,7 +93,7 @@ func (client *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnectio
 			if err := client.validateMessage(message); err != nil {
 				client.invalidMessagesReceived.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from server connection \""+serverConnection.name+"\"", err).Error())
 				}
 				return
 			}
@@ -101,14 +101,14 @@ func (client *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnectio
 			if syncResponseChannel == nil {
 				client.invalidMessagesReceived.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to get sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
+					warningLogger.Log(Error.New("Failed to get sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from server connection \""+serverConnection.name+"\"", nil).Error())
 				}
 				return
 			}
 			if err = syncResponseChannel.addResponse(message); err != nil {
 				client.invalidMessagesReceived.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to add sync response to sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to add sync response to sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from server connection \""+serverConnection.name+"\"", err).Error())
 				}
 			} else {
 				if message.GetTopic() == Message.TOPIC_SUCCESS {

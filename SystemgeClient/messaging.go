@@ -1,4 +1,4 @@
-package Node
+package SystemgeClient
 
 import (
 	"github.com/neutralusername/Systemge/Config"
@@ -8,26 +8,26 @@ import (
 )
 
 // AsyncMessage sends an async message.
-// If receiverNames is empty, the message will be sent to all connected nodes that are interested in the topic.
-// If receiverNames are specified, the message will be sent to the nodes with the specified names.
+// If receiverNames is empty, the message will be sent to all connected servers that are interested in the topic.
+// If receiverNames are specified, the message will be sent to the servers with the specified names.
 // Blocking until all messages are sent
 func (client *SystemgeClient) AsyncMessage(topic, payload string, receiverNames ...string) error {
-	client.createOutgoingMessageTaskGroup(Message.NewAsync(topic, payload), receiverNames...).ExecuteTasks()
+	client.createMessageTaskGroup(Message.NewAsync(topic, payload), receiverNames...).ExecuteTasks()
 	return nil
 }
 
 // Alternative call for AsyncMessage with a config struct instead of multiple arguments
 func (client *SystemgeClient) AsyncMessage_(config *Config.Message) error {
-	return client.AsyncMessage(config.Topic, config.Payload, config.NodeNames...)
+	return client.AsyncMessage(config.Topic, config.Payload, config.Receivernames...)
 }
 
 // SyncMessage sends a sync message.
-// If receiverNames is empty, the message will be sent to all connected nodes that are interested in the topic.
-// If receiverNames are specified, the message will be sent to the nodes with the specified names.
+// If receiverNames is empty, the message will be sent to all connected servers that are interested in the topic.
+// If receiverNames are specified, the message will be sent to the servers with the specified names.
 // Blocking until all requests are sent
 func (client *SystemgeClient) SyncMessage(topic, payload string, receiverNames ...string) (*SyncResponseChannel, error) {
 	responseChannel := client.addResponseChannel(client.randomizer, topic, payload)
-	waitgroup := client.createOutgoingMessageTaskGroup(responseChannel.GetRequestMessage(), receiverNames...)
+	waitgroup := client.createMessageTaskGroup(responseChannel.GetRequestMessage(), receiverNames...)
 	responseChannel.responseChannel = make(chan *Message.Message, waitgroup.GetTaskCount())
 	if cap(responseChannel.responseChannel) == 0 {
 		responseChannel.Close()
@@ -39,23 +39,23 @@ func (client *SystemgeClient) SyncMessage(topic, payload string, receiverNames .
 
 // Alternative call for SyncMessage with a config struct instead of multiple arguments
 func (client *SystemgeClient) SyncMessage_(config *Config.Message) (*SyncResponseChannel, error) {
-	return client.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
+	return client.SyncMessage(config.Topic, config.Payload, config.Receivernames...)
 }
 
-func (client *SystemgeClient) createOutgoingMessageTaskGroup(message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
+func (client *SystemgeClient) createMessageTaskGroup(message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
 	waitgroup := Tools.NewTaskGroup()
 	client.serverConnectionMutex.RLock()
 	defer client.serverConnectionMutex.RUnlock()
 	if len(receiverNames) == 0 {
-		for _, outgoingConnection := range client.topicResolutions[message.GetTopic()] {
+		for _, serverConnection := range client.topicResolutions[message.GetTopic()] {
 			waitgroup.AddTask(func() {
-				err := client.messageOutgoingConnection(outgoingConnection, message)
+				err := client.messageServerConnection(serverConnection, message)
 				if err != nil {
 					if errorLogger := client.errorLogger; errorLogger != nil {
-						errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+						errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to server connection \""+serverConnection.name+"\"", err).Error())
 					}
 					if mailer := client.mailer; mailer != nil {
-						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error()))
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to server connection \""+serverConnection.name+"\"", err).Error()))
 						if err != nil {
 							if errorLogger := client.errorLogger; errorLogger != nil {
 								errorLogger.Log(Error.New("Failed sending mail", err).Error())
@@ -64,22 +64,22 @@ func (client *SystemgeClient) createOutgoingMessageTaskGroup(message *Message.Me
 					}
 				} else {
 					if infoLogger := client.infoLogger; infoLogger != nil {
-						infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
+						infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to server connection \"" + serverConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 					}
 				}
 			})
 		}
 	} else {
 		for _, receiverName := range receiverNames {
-			if outgoingConnection := client.topicResolutions[message.GetTopic()][receiverName]; outgoingConnection != nil {
+			if serverConnection := client.topicResolutions[message.GetTopic()][receiverName]; serverConnection != nil {
 				waitgroup.AddTask(func() {
-					err := client.messageOutgoingConnection(outgoingConnection, message)
+					err := client.messageServerConnection(serverConnection, message)
 					if err != nil {
 						if errorLogger := client.errorLogger; errorLogger != nil {
-							errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error())
+							errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to server connection \""+serverConnection.name+"\"", err).Error())
 						}
 						if mailer := client.mailer; mailer != nil {
-							err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to outgoing node connection \""+outgoingConnection.name+"\"", err).Error()))
+							err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\" to server connection \""+serverConnection.name+"\"", err).Error()))
 							if err != nil {
 								if errorLogger := client.errorLogger; errorLogger != nil {
 									errorLogger.Log(Error.New("Failed sending mail", err).Error())
@@ -88,16 +88,16 @@ func (client *SystemgeClient) createOutgoingMessageTaskGroup(message *Message.Me
 						}
 					} else {
 						if infoLogger := client.infoLogger; infoLogger != nil {
-							infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to outgoing node connection \"" + outgoingConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
+							infoLogger.Log("Sent message with topic \"" + message.GetTopic() + "\" to server connection \"" + serverConnection.name + "\" with sync token \"" + message.GetSyncTokenToken() + "\"")
 						}
 					}
 				})
 			} else {
 				if errorLogger := client.errorLogger; errorLogger != nil {
-					errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No outgoing node connection with name \""+receiverName+"\" found", nil).Error())
+					errorLogger.Log(Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No server connection with name \""+receiverName+"\" found", nil).Error())
 				}
 				if mailer := client.mailer; mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No outgoing node connection with name \""+receiverName+"\" found", nil).Error()))
+					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send message with topic \""+message.GetTopic()+"\". No server connection with name \""+receiverName+"\" found", nil).Error()))
 					if err != nil {
 						if errorLogger := client.errorLogger; errorLogger != nil {
 							errorLogger.Log(Error.New("Failed sending mail", err).Error())

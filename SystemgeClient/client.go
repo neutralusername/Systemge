@@ -1,4 +1,4 @@
-package Node
+package SystemgeClient
 
 import (
 	"sync"
@@ -21,8 +21,8 @@ type SystemgeClient struct {
 	stopChannel chan bool //closing of this channel initiates the stop of the systemge component
 
 	syncResponseChannels     map[string]*SyncResponseChannel         // syncToken -> responseChannel
-	topicResolutions         map[string]map[string]*serverConnection // topic -> [name -> nodeConnection]
-	serverConnections        map[string]*serverConnection            // address -> nodeConnection
+	topicResolutions         map[string]map[string]*serverConnection // topic -> [name -> serverConnection]
+	serverConnections        map[string]*serverConnection            // address -> serverConnection
 	serverConnectionAttempts map[string]*serverConnectionAttempt     // address -> bool
 
 	serverConnectionMutex sync.RWMutex
@@ -79,8 +79,8 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 
 func (client *SystemgeClient) Start() error {
 	for _, endpointConfig := range client.config.EndpointConfigs {
-		if err := client.attemptOutgoingConnection(endpointConfig, false); err != nil {
-			return Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
+		if err := client.attemptServerConnection(endpointConfig, false); err != nil {
+			return Error.New("failed to establish server connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
 	return nil
@@ -90,12 +90,12 @@ func (client *SystemgeClient) Stop() error {
 	close(client.stopChannel)
 
 	client.serverConnectionMutex.Lock()
-	for _, outgoingConnectionAttempt := range client.serverConnectionAttempts {
-		outgoingConnectionAttempt.isAborted = true
+	for _, serverConnectionAttempt := range client.serverConnectionAttempts {
+		serverConnectionAttempt.isAborted = true
 	}
-	for _, outgoingConnection := range client.serverConnections {
-		outgoingConnection.netConn.Close()
-		<-outgoingConnection.stopChannel
+	for _, serverConnection := range client.serverConnections {
+		serverConnection.netConn.Close()
+		<-serverConnection.stopChannel
 	}
 	client.serverConnectionMutex.Unlock()
 	return nil

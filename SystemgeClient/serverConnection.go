@@ -1,4 +1,4 @@
-package Node
+package SystemgeClient
 
 import (
 	"net"
@@ -11,8 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-// outgoing connection to other nodes
-// they are used to send async and sync requests and receive sync responses for their corresponding requests
+// serverConnections are used to propagate async and sync requests and receive sync responses for their corresponding requests
 type serverConnection struct {
 	netConn        net.Conn
 	endpointConfig *Config.TcpEndpoint
@@ -26,10 +25,10 @@ type serverConnection struct {
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 	tcpBuffer        []byte
 
-	stopChannel chan bool //closing of this channel indicates that the outgoing connection has finished its ongoing tasks.
+	stopChannel chan bool //closing of this channel indicates that the server connection has finished its ongoing tasks.
 }
 
-func (client *SystemgeClient) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *serverConnection {
+func (client *SystemgeClient) newServerConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *serverConnection {
 	serverConnection := &serverConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
@@ -71,11 +70,11 @@ func (serverConnection *serverConnection) receiveMessage(bufferSize uint32, inco
 	}
 }
 
-// async messages and sync requests are sent to outgoing connections
-func (client *SystemgeClient) messageOutgoingConnection(outgoingConnection *serverConnection, message *Message.Message) error {
-	outgoingConnection.sendMutex.Lock()
-	defer outgoingConnection.sendMutex.Unlock()
-	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), client.config.TcpTimeoutMs)
+// async messages and sync requests are sent to server connections
+func (client *SystemgeClient) messageServerConnection(serverConnection *serverConnection, message *Message.Message) error {
+	serverConnection.sendMutex.Lock()
+	defer serverConnection.sendMutex.Unlock()
+	bytesSent, err := Tcp.Send(serverConnection.netConn, message.Serialize(), client.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}

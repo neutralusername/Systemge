@@ -1,4 +1,4 @@
-package Node
+package SystemgeClient
 
 func (client *SystemgeClient) RetrieveSystemgeClientMessageRateLimiterExceeded() uint32 {
 	return client.messageRateLimiterExceeded.Swap(0)

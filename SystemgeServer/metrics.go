@@ -1,4 +1,4 @@
-package Node
+package SystemgeServer
 
 func (server *SystemgeServer) RetrieveSystemgeServerMessageRateLimiterExceeded() uint32 {
 	return server.messageRateLimiterExceeded.Swap(0)

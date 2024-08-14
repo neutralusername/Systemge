@@ -1,4 +1,4 @@
-package Node
+package SystemgeClient
 
 import (
 	"sync"

@@ -1,11 +1,11 @@
-package Node
+package SystemgeClient
 
 import (
 	"github.com/neutralusername/Systemge/Config"
 )
 
-// Returns a slice of addresses of nodes that this node is connected to.
-func (client *SystemgeClient) GetOutgoingConnectionsList() []string {
+// Returns a slice of addresses of servers that this client is connected to.
+func (client *SystemgeClient) GetServerConnectionsList() []string {
 	client.serverConnectionMutex.RLock()
 	defer client.serverConnectionMutex.RUnlock()
 	connections := make([]string, len(client.serverConnections))
@@ -17,8 +17,8 @@ func (client *SystemgeClient) GetOutgoingConnectionsList() []string {
 	return connections
 }
 
-// Returns a slice of addresses of nodes that this node is currently trying to connect to.
-func (client *SystemgeClient) GetOutgoingConnectionAttemptsList() []string {
+// Returns a slice of addresses of servers that this client is attempting to connect to.
+func (client *SystemgeClient) GetServerConnectionAttemptsList() []string {
 	client.serverConnectionMutex.RLock()
 	defer client.serverConnectionMutex.RUnlock()
 	attempts := make([]string, len(client.serverConnectionAttempts))
@@ -30,22 +30,22 @@ func (client *SystemgeClient) GetOutgoingConnectionAttemptsList() []string {
 	return attempts
 }
 
-// Adds another node as an outgoing connection.
+// Connects to a Systemge Server
 // This connection is used to send async and sync requests and receive sync responses for their corresponding requests.
-func (client *SystemgeClient) ConnectToNode(endpointConfig *Config.TcpEndpoint, transient bool) error {
-	return client.attemptOutgoingConnection(endpointConfig, transient)
+func (client *SystemgeClient) ConnectToServer(endpointConfig *Config.TcpEndpoint, transient bool) error {
+	return client.attemptServerConnection(endpointConfig, transient)
 }
 
-// Removes a node from the outgoing connections and aborts ongoing connection attempts.
-func (client *SystemgeClient) DisconnectFromNode(address string) error {
+// Closes the connection to a Systemge Server
+func (client *SystemgeClient) DisconnectFromServer(address string) error {
 	client.serverConnectionMutex.Lock()
 	defer client.serverConnectionMutex.Unlock()
-	if outgoingConnectionAttempt := client.serverConnectionAttempts[address]; outgoingConnectionAttempt != nil {
-		outgoingConnectionAttempt.isAborted = true
+	if serverConnectionAttempt := client.serverConnectionAttempts[address]; serverConnectionAttempt != nil {
+		serverConnectionAttempt.isAborted = true
 	}
-	if outgoingConnection := client.serverConnections[address]; outgoingConnection != nil {
-		outgoingConnection.netConn.Close()
-		outgoingConnection.isTransient = true
+	if serverConnection := client.serverConnections[address]; serverConnection != nil {
+		serverConnection.netConn.Close()
+		serverConnection.isTransient = true
 	}
 	return nil
 }

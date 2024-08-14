@@ -1,4 +1,4 @@
-package Node
+package SystemgeClient
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ type serverConnectionAttempt struct {
 // the maximum number of attempts is reached,
 // the attempt is aborted
 // or the systemge component is stopped
-func (client *SystemgeClient) attemptOutgoingConnection(endpointConfig *Config.TcpEndpoint, transient bool) error {
+func (client *SystemgeClient) attemptServerConnection(endpointConfig *Config.TcpEndpoint, transient bool) error {
 	address, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
 		return Error.New("Failed to normalize address \""+endpointConfig.Address+"\"", err)
@@ -33,22 +33,22 @@ func (client *SystemgeClient) attemptOutgoingConnection(endpointConfig *Config.T
 	client.serverConnectionMutex.Lock()
 	if client.serverConnections[endpointConfig.Address] != nil {
 		client.serverConnectionMutex.Unlock()
-		return Error.New("Outgoing connection with endpoint \""+endpointConfig.Address+"\" already exists", nil)
+		return Error.New("server connection with endpoint \""+endpointConfig.Address+"\" already exists", nil)
 	}
 	if client.serverConnectionAttempts[endpointConfig.Address] != nil {
 		client.serverConnectionMutex.Unlock()
-		return Error.New("Outgoing connection attempt to endpoint \""+endpointConfig.Address+"\" already exists", nil)
+		return Error.New("server connection attempt to endpoint \""+endpointConfig.Address+"\" already exists", nil)
 	}
-	outgoingConnectionAttempt := &serverConnectionAttempt{
+	serverConnectionAttempt := &serverConnectionAttempt{
 		endpointConfig: endpointConfig,
 	}
-	client.serverConnectionAttempts[endpointConfig.Address] = outgoingConnectionAttempt
+	client.serverConnectionAttempts[endpointConfig.Address] = serverConnectionAttempt
 	client.serverConnectionMutex.Unlock()
 
 	defer func() {
-		outgoingConnectionAttempt.isAborted = true
+		serverConnectionAttempt.isAborted = true
 		client.serverConnectionMutex.Lock()
-		delete(client.serverConnectionAttempts, outgoingConnectionAttempt.endpointConfig.Address)
+		delete(client.serverConnectionAttempts, serverConnectionAttempt.endpointConfig.Address)
 		client.serverConnectionMutex.Unlock()
 	}()
 
@@ -58,109 +58,109 @@ func (client *SystemgeClient) attemptOutgoingConnection(endpointConfig *Config.T
 	for {
 		select {
 		case <-client.stopChannel:
-			return Error.New("Outgoing connection attempt to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\" was stopped because systemge was stopped", nil)
+			return Error.New("server connection attempt to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\" was stopped because systemge was stopped", nil)
 		default:
-			if maxConnectionAttempts := client.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && outgoingConnectionAttempt.attempts >= maxConnectionAttempts {
-				return Error.New("Max attempts reached to connect to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", nil)
+			if maxConnectionAttempts := client.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && serverConnectionAttempt.attempts >= maxConnectionAttempts {
+				return Error.New("Max attempts reached to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", nil)
 			}
-			if outgoingConnectionAttempt.isAborted {
-				return Error.New("Outgoing connection attempt to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\" was aborted", nil)
+			if serverConnectionAttempt.isAborted {
+				return Error.New("server connection attempt to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\" was aborted", nil)
 			}
-			if outgoingConnectionAttempt.attempts > 0 {
+			if serverConnectionAttempt.attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
 			if infoLogger := client.infoLogger; infoLogger != nil {
-				infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(outgoingConnectionAttempt.attempts)+" to connect to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", nil).Error())
+				infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(serverConnectionAttempt.attempts)+" to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", nil).Error())
 			}
-			outgoingConn, err := client.handleOutgoingConnectionHandshake(outgoingConnectionAttempt)
+			serverConnnection, err := client.handleServerConnectionHandshake(serverConnectionAttempt)
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(outgoingConnectionAttempt.attempts)+" to connect to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(serverConnectionAttempt.attempts)+" to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", err).Error())
 				}
-				outgoingConnectionAttempt.attempts++
+				serverConnectionAttempt.attempts++
 				continue
 			}
 
 			client.serverConnectionMutex.Lock()
-			if outgoingConnectionAttempt.isAborted {
+			if serverConnectionAttempt.isAborted {
 				client.serverConnectionMutex.Unlock()
 				client.connectionAttemptsFailed.Add(1)
-				return Error.New("Failed to find outgoing connection attempt for endpoint \""+outgoingConn.endpointConfig.Address+"\"", nil)
+				return Error.New("Failed to find server connection attempt for endpoint \""+serverConnnection.endpointConfig.Address+"\"", nil)
 			}
-			if client.serverConnections[outgoingConn.endpointConfig.Address] != nil {
+			if client.serverConnections[serverConnnection.endpointConfig.Address] != nil {
 				client.serverConnectionMutex.Unlock()
 				client.connectionAttemptsFailed.Add(1)
-				return Error.New("Outgoing connection with endpoint \""+outgoingConn.endpointConfig.Address+"\" already exists", nil)
+				return Error.New("server connection with endpoint \""+serverConnnection.endpointConfig.Address+"\" already exists", nil)
 			}
-			client.serverConnections[outgoingConn.endpointConfig.Address] = outgoingConn
-			for topic := range outgoingConn.topics {
+			client.serverConnections[serverConnnection.endpointConfig.Address] = serverConnnection
+			for topic := range serverConnnection.topics {
 				topicResolutions := client.topicResolutions[topic]
 				if topicResolutions == nil {
 					topicResolutions = make(map[string]*serverConnection)
 					client.topicResolutions[topic] = topicResolutions
 				}
-				topicResolutions[outgoingConn.name] = outgoingConn
+				topicResolutions[serverConnnection.name] = serverConnnection
 			}
-			outgoingConn.isTransient = transient
+			serverConnnection.isTransient = transient
 			client.serverConnectionMutex.Unlock()
 
 			client.connectionAttemptsSuccessful.Add(1)
 			if infoLogger := client.infoLogger; infoLogger != nil {
-				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(outgoingConnectionAttempt.attempts)+" to connect to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\" with name \""+outgoingConn.name+"\"", nil).Error())
+				infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(serverConnectionAttempt.attempts)+" to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\" with name \""+serverConnnection.name+"\"", nil).Error())
 			}
-			go client.handleOutgoingConnectionMessages(outgoingConn)
+			go client.handleServerConnectionMessages(serverConnnection)
 			return nil
 		}
 	}
 }
 
-func (client *SystemgeClient) handleOutgoingConnectionHandshake(outgoingConnectionAttempt *serverConnectionAttempt) (*serverConnection, error) {
+func (client *SystemgeClient) handleServerConnectionHandshake(serverConnectionAttempt *serverConnectionAttempt) (*serverConnection, error) {
 	client.connectionAttempts.Add(1)
-	netConn, err := Tcp.NewClient(outgoingConnectionAttempt.endpointConfig)
+	netConn, err := Tcp.NewClient(serverConnectionAttempt.endpointConfig)
 	if err != nil {
-		return nil, Error.New("Failed to establish connection to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", err)
+		return nil, Error.New("Failed to establish connection to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", err)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NODENAME, client.config.Name).Serialize(), client.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, client.config.Name).Serialize(), client.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to send \""+Message.TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
 	client.bytesSent.Add(bytesSent)
 	client.connectionAttemptBytesSent.Add(bytesSent)
-	outgoingConnection := serverConnection{
+	serverConnection := &serverConnection{
 		netConn: netConn,
 	}
-	messageBytes, err := outgoingConnection.receiveMessage(client.config.TcpBufferBytes, client.config.IncomingMessageByteLimit)
+	messageBytes, err := serverConnection.receiveMessage(client.config.TcpBufferBytes, client.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to receive \""+Message.TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
 	}
 	client.bytesReceived.Add(uint64(len(messageBytes)))
 	client.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
 	}
 	if err := client.validateMessage(message); err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to validate \""+Message.TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to validate \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	if message.GetTopic() != Message.TOPIC_NODENAME {
+	if message.GetTopic() != Message.TOPIC_NAME {
 		netConn.Close()
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NODENAME+"\"", nil)
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
 	}
 	endpointName := message.GetPayload()
 	if endpointName == "" {
 		netConn.Close()
-		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NODENAME+"\" message", nil)
+		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	if client.config.MaxNodeNameSize != 0 && len(endpointName) > int(client.config.MaxNodeNameSize) {
+	if client.config.MaxServerNameLength != 0 && len(endpointName) > int(client.config.MaxServerNameLength) {
 		netConn.Close()
-		return nil, Error.New("Received node name \""+endpointName+"\" exceeds maximum size of "+Helpers.Uint64ToString(client.config.MaxNodeNameSize), nil)
+		return nil, Error.New("Received server name \""+endpointName+"\" exceeds maximum size of "+Helpers.Uint64ToString(client.config.MaxServerNameLength), nil)
 	}
-	messageBytes, err = outgoingConnection.receiveMessage(client.config.TcpBufferBytes, client.config.IncomingMessageByteLimit)
+	messageBytes, err = serverConnection.receiveMessage(client.config.TcpBufferBytes, client.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_RESPONSIBLETOPICS+"\" message", err)
@@ -186,7 +186,8 @@ func (client *SystemgeClient) handleOutgoingConnectionHandshake(outgoingConnecti
 	for _, topic := range topics {
 		topicMap[topic] = true
 	}
-	outgoingConn := client.newOutgoingConnection(netConn, outgoingConnectionAttempt.endpointConfig, endpointName, topicMap)
-	outgoingConn.tcpBuffer = outgoingConnection.tcpBuffer
-	return outgoingConn, nil
+	tcpBuffer := serverConnection.tcpBuffer
+	serverConnection = client.newServerConnection(netConn, serverConnectionAttempt.endpointConfig, endpointName, topicMap)
+	serverConnection.tcpBuffer = tcpBuffer
+	return serverConnection, nil
 }
