@@ -8,13 +8,17 @@ import (
 
 // ServerConfig applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
-	NodeConfig                *Node      `json:"nodeConfig"`                // *required*
-	ServerConfig              *TcpServer `json:"serverConfig"`              // *required*
-	AutoStart                 bool       `json:"autoStart"`                 // default: false
-	AddDashboardToDashboard   bool       `json:"addDashboardToDashboard"`   // default: false
-	HeapUpdateIntervalMs      uint64     `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
-	GoroutineUpdateIntervalMs uint64     `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
-	NodeStatusIntervalMs      uint64     `json:"nodeStatusIntervalMs"`      // default: 0 = disabled
+	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+
+	InfoLoggerPath    string  `json:"internalInfoLoggerPath"`    // *required*
+	WarningLoggerPath string  `json:"internalWarningLoggerPath"` // *required*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`           // *required*
+	Mailer            *Mailer `json:"mailer"`                    // *required*
+
+	AutoStart                 bool   `json:"autoStart"`                 // default: false
+	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
+	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
+	NodeStatusIntervalMs      uint64 `json:"nodeStatusIntervalMs"`      // default: 0 = disabled
 
 	NodeSystemgeClientCounterIntervalMs             uint64 `json:"nodeSystemgeClientCounterIntervalMs"`             // default: 0 = disabled
 	NodeSystemgeClientRateLimitCounterIntervalMs    uint64 `json:"nodeSystemgeClientRateLimitCounterIntervalMs"`    // default: 0 = disabled
@@ -44,8 +48,12 @@ func UnmarshalDashboard(data string) *Dashboard {
 }
 
 type Oauth2 struct {
-	NodeConfig   *Node      `json:"nodeConfig"`   // *required*
 	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+
+	InfoLoggerPath    string `json:"internalInfoLoggerPath"`    // *required*
+	WarningLoggerPath string `json:"internalWarningLoggerPath"` // *required*
+
+	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
 	AuthPath                   string                                                                      `json:"authPath"`                   // *required*
 	AuthCallbackPath           string                                                                      `json:"authCallbackPath"`           // *required*
@@ -65,8 +73,8 @@ func UnmarshalOauth2(data string) *Oauth2 {
 }
 
 type Spawner struct {
-	NodeConfig           *Node           `json:"nodeConfig"`     // *required*
-	SystemgeServerConfig *SystemgeServer `json:"systemgeConfig"` // *required*
+	ErrorLoggerPath string  `json:"errorLoggerPath"` // *required*
+	Mailer          *Mailer `json:"mailer"`          // *required*
 
 	PropagateSpawnedNodeChanges bool `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel) (automated by dashboard)
 }

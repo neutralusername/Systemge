@@ -16,6 +16,9 @@ type Logger struct {
 const defaultQueueBufferSize = 100
 
 func NewLogger(prefix string, path string) *Logger {
+	if path == "" {
+		return nil
+	}
 	return &Logger{
 		prefix: prefix,
 		queue:  NewLoggerQueue(path, defaultQueueBufferSize),

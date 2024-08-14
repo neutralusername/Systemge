@@ -1,4 +1,4 @@
-package Node
+package WebsocketServer
 
 import (
 	"net/http"
@@ -7,21 +7,21 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (websocket *websocketComponent) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
+func (websocketServer *Server) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		if websocket.httpServer == nil {
+		if websocketServer.httpServer == nil {
 			if logger != nil {
 				logger.Log(Error.New("websocket component not started", nil).Error())
 			}
 			return
 		}
-		websocketConn, err := websocket.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
+		websocketConn, err := websocketServer.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if logger != nil {
 				logger.Log(Error.New("failed upgrading connection to websocket", err).Error())
 			}
 			return
 		}
-		websocket.connChannel <- websocketConn
+		websocketServer.connChannel <- websocketConn
 	}
 }

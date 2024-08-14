@@ -1,4 +1,4 @@
-package Node
+package WebsocketServer
 
 import (
 	"sync"
@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WebsocketClient struct {
+type Client struct {
 	id            string
 	websocketConn *websocket.Conn
 
@@ -31,23 +31,23 @@ type WebsocketClient struct {
 	disconnected bool
 }
 
-func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn *websocket.Conn) *WebsocketClient {
-	websocketClient := &WebsocketClient{
+func (server *Server) newWebsocketClient(id string, websocketConn *websocket.Conn) *Client {
+	websocketClient := &Client{
 		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
 	}
-	if websocket.config.ClientRateLimiterBytes != nil {
-		websocketClient.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(websocket.config.ClientRateLimiterBytes)
+	if server.config.ClientRateLimiterBytes != nil {
+		websocketClient.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.ClientRateLimiterBytes)
 	}
-	if websocket.config.ClientRateLimiterMsgs != nil {
-		websocketClient.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(websocket.config.ClientRateLimiterMsgs)
+	if server.config.ClientRateLimiterMessages != nil {
+		websocketClient.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.ClientRateLimiterMessages)
 	}
-	websocketClient.websocketConn.SetReadLimit(int64(websocket.config.IncomingMessageByteLimit))
+	websocketClient.websocketConn.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
 
 	websocketClient.watchdogMutex.Lock()
 	defer websocketClient.watchdogMutex.Unlock()
-	websocketClient.watchdog = time.AfterFunc(time.Duration(websocket.config.ClientWatchdogTimeoutMs)*time.Millisecond, func() {
+	websocketClient.watchdog = time.AfterFunc(time.Duration(server.config.ClientWatchdogTimeoutMs)*time.Millisecond, func() {
 		websocketClient.expired = true
 		websocketClient.watchdogMutex.Lock()
 		defer websocketClient.watchdogMutex.Unlock()
@@ -63,22 +63,21 @@ func (websocket *websocketComponent) newWebsocketClient(id string, websocketConn
 		if websocketClient.rateLimiterMsgs != nil {
 			websocketClient.rateLimiterMsgs.Stop()
 		}
-		websocket.onDisconnectHandler(websocketClient)
-		websocket.removeWebsocketClient(websocketClient)
+		if server.onDisconnectHandler != nil {
+			server.onDisconnectHandler(websocketClient)
+		}
+		server.removeWebsocketClient(websocketClient)
 		close(websocketClient.stopChannel)
 	})
 	return websocketClient
 }
 
 // Resets the watchdog timer to its initial value.
-func (node *Node) ResetWatchdog(websocketClient *WebsocketClient) error {
-	if websocket := node.websocket; websocket != nil {
-		return websocket.resetWatchdog(websocketClient)
-	}
-	return Error.New("websocket is nil", nil)
+func (server *Server) ResetWatchdog(websocketClient *Client) error {
+	return server.resetWatchdog(websocketClient)
 }
 
-func (websocket *websocketComponent) resetWatchdog(websocketClient *WebsocketClient) error {
+func (server *Server) resetWatchdog(websocketClient *Client) error {
 	if websocketClient == nil {
 		return Error.New("websocketClient is nil", nil)
 	}
@@ -88,48 +87,48 @@ func (websocket *websocketComponent) resetWatchdog(websocketClient *WebsocketCli
 		return Error.New("websocketClient is disconnected", nil)
 	}
 	websocketClient.expired = false
-	websocketClient.watchdog.Reset(time.Duration(websocket.config.ClientWatchdogTimeoutMs) * time.Millisecond)
+	websocketClient.watchdog.Reset(time.Duration(server.config.ClientWatchdogTimeoutMs) * time.Millisecond)
 	return nil
 }
 
 // Disconnects the websocketClient and blocks until the websocketClients onDisconnectHandler has finished.
-func (websocketClient *WebsocketClient) Disconnect() error {
-	if websocketClient == nil {
+func (client *Client) Disconnect() error {
+	if client == nil {
 		return Error.New("websocketClient is nil", nil)
 	}
-	websocketClient.watchdogMutex.Lock()
-	if websocketClient.watchdog == nil || websocketClient.disconnected {
-		websocketClient.watchdogMutex.Unlock()
+	client.watchdogMutex.Lock()
+	if client.watchdog == nil || client.disconnected {
+		client.watchdogMutex.Unlock()
 		return Error.New("websocketClient is already disconnected", nil)
 	}
-	websocketClient.disconnected = true
-	websocketClient.watchdog.Reset(0)
-	websocketClient.watchdogMutex.Unlock()
-	<-websocketClient.stopChannel
+	client.disconnected = true
+	client.watchdog.Reset(0)
+	client.watchdogMutex.Unlock()
+	<-client.stopChannel
 	return nil
 }
 
 // Returns the ip of the websocketClient.
-func (websocketClient *WebsocketClient) GetIp() string {
-	return websocketClient.websocketConn.RemoteAddr().String()
+func (client *Client) GetIp() string {
+	return client.websocketConn.RemoteAddr().String()
 }
 
 // Returns the id of the websocketClient.
-func (websocketClient *WebsocketClient) GetId() string {
-	return websocketClient.id
+func (client *Client) GetId() string {
+	return client.id
 }
 
 // Sends a message to the websocketClient.
-func (websocketClient *WebsocketClient) Send(messageBytes []byte) error {
-	websocketClient.sendMutex.Lock()
-	defer websocketClient.sendMutex.Unlock()
-	return websocketClient.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
+func (client *Client) Send(messageBytes []byte) error {
+	client.sendMutex.Lock()
+	defer client.sendMutex.Unlock()
+	return client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
-func (websocketClient *WebsocketClient) receive() ([]byte, error) {
-	websocketClient.receiveMutex.Lock()
-	defer websocketClient.receiveMutex.Unlock()
-	_, messageBytes, err := websocketClient.websocketConn.ReadMessage()
+func (client *Client) receive() ([]byte, error) {
+	client.receiveMutex.Lock()
+	defer client.receiveMutex.Unlock()
+	_, messageBytes, err := client.websocketConn.ReadMessage()
 	if err != nil {
 		return nil, Error.New("failed to receive message", err)
 	}

@@ -49,13 +49,13 @@ func (node *Node) AddSyncTopic(topic string, handler SyncMessageHandler) error {
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
-					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+					if errorLogger := node.errorLogger; errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
-					if mailer := node.GetMailer(); mailer != nil {
+					if mailer := node.mailer; mailer != nil {
 						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
 						if err != nil {
-							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							if errorLogger := node.errorLogger; errorLogger != nil {
 								errorLogger.Log(Error.New("Failed sending mail", err).Error())
 							}
 						}
@@ -85,13 +85,13 @@ func (node *Node) AddAsyncTopic(topic string, handler AsyncMessageHandler) error
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
-					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+					if errorLogger := node.errorLogger; errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
-					if mailer := node.GetMailer(); mailer != nil {
+					if mailer := node.mailer; mailer != nil {
 						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
 						if err != nil {
-							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							if errorLogger := node.errorLogger; errorLogger != nil {
 								errorLogger.Log(Error.New("Failed sending mail", err).Error())
 							}
 						}
@@ -121,13 +121,13 @@ func (node *Node) RemoveSyncTopic(topic string) error {
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
-					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+					if errorLogger := node.errorLogger; errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
-					if mailer := node.GetMailer(); mailer != nil {
+					if mailer := node.mailer; mailer != nil {
 						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
 						if err != nil {
-							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							if errorLogger := node.errorLogger; errorLogger != nil {
 								errorLogger.Log(Error.New("Failed sending mail", err).Error())
 							}
 						}
@@ -157,13 +157,13 @@ func (node *Node) RemoveAsyncTopic(topic string) error {
 		for _, incomingConnection := range systemge.incomingConnections {
 			go func() {
 				if err := systemge.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
-					if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+					if errorLogger := node.errorLogger; errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 					}
-					if mailer := node.GetMailer(); mailer != nil {
+					if mailer := node.mailer; mailer != nil {
 						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error()))
 						if err != nil {
-							if errorLogger := node.GetErrorLogger(); errorLogger != nil {
+							if errorLogger := node.errorLogger; errorLogger != nil {
 								errorLogger.Log(Error.New("Failed sending mail", err).Error())
 							}
 						}

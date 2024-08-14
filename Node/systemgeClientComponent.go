@@ -60,11 +60,11 @@ type systemgeClientComponent struct {
 
 func (node *Node) startSystemgeClientComponent() error {
 	systemgeClient := &systemgeClientComponent{
-		config:                     node.newNodeConfig.SystemgeClientConfig,
+		config:                     node.config.SystemgeClientConfig,
 		nodeName:                   node.GetName(),
-		infoLogger:                 node.GetInternalInfoLogger(),
-		warningLogger:              node.GetInternalWarningLogger(),
-		errorLogger:                node.GetErrorLogger(),
+		infoLogger:                 node.infoLogger,
+		warningLogger:              node.warningLogger,
+		errorLogger:                node.errorLogger,
 		syncResponseChannels:       make(map[string]*SyncResponseChannel),
 		topicResolutions:           make(map[string]map[string]*outgoingConnection),
 		outgoingConnections:        make(map[string]*outgoingConnection),

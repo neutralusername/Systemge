@@ -3,10 +3,9 @@ package Config
 import "encoding/json"
 
 type TcpServer struct {
-	Port          uint16 `json:"port"`          // *required*
-	TlsCertPath   string `json:"tlsCertPath"`   // *optional* cert path!
-	TlsKeyPath    string `json:"tlsKeyPath"`    // *optional*
-	PublicAddress string `json:"publicAddress"` // *optional* (e.g. "example.com" or "127.0.0.1:60009") (the address, that other nodes will use to connect to this node)
+	Port        uint16 `json:"port"`        // *required*
+	TlsCertPath string `json:"tlsCertPath"` // *optional* cert path!
+	TlsKeyPath  string `json:"tlsKeyPath"`  // *optional*
 
 	Blacklist []string `json:"blacklist"` // *optional* (if empty, all IPs are allowed)
 	Whitelist []string `json:"whitelist"` // *optional* (if empty, all IPs are allowed)

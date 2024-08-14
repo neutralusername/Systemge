@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Node"
 )
 
-func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.NewNode) error {
+func (spawner *Spawner) spawnNode(spawnedNodeConfig *Config.Node) error {
 	newNode := Node.New(spawnedNodeConfig, spawner.newApplicationFunc())
 	spawner.nodes[newNode.GetName()] = newNode
 	if spawner.config.PropagateSpawnedNodeChanges {

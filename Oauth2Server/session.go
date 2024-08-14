@@ -1,4 +1,4 @@
-package Oauth2
+package Oauth2Server
 
 import (
 	"time"
@@ -33,7 +33,7 @@ func (session *session) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
-func (server *App) Expire(session *session) {
+func (server *Server) Expire(session *session) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	if session.watchdog == nil {

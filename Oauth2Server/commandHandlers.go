@@ -1,16 +1,16 @@
-package Oauth2
+package Oauth2Server
 
 import (
 	"github.com/neutralusername/Systemge/Node"
 )
 
-func (server *App) GetCommandHandlers() map[string]Node.CommandHandler {
+func (server *Server) GetCommandHandlers() map[string]Node.CommandHandler {
 	return map[string]Node.CommandHandler{
 		"oauth2Sessions": server.handleSessionsCommand,
 	}
 }
 
-func (server *App) handleSessionsCommand(node *Node.Node, args []string) (string, error) {
+func (server *Server) handleSessionsCommand(node *Node.Node, args []string) (string, error) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	returnString := ""

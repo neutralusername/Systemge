@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Spawner struct {
@@ -13,8 +14,8 @@ type Spawner struct {
 	spawnedNodesCount  int
 	newApplicationFunc func() Node.Application
 	mutex              sync.Mutex
-	node               *Node.Node
 	nodeChangeChannel  chan *SpawnerNodeChange
+	errorLogger        *Tools.Logger
 }
 
 type SpawnerNodeChange struct {
@@ -22,18 +23,15 @@ type SpawnerNodeChange struct {
 	Added bool
 }
 
-func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *Node.Node {
+func New(config *Config.Spawner, newApplicationFunc func() Node.Application) *Spawner {
 	app := &Spawner{
 		config:             config,
 		nodes:              make(map[string]*Node.Node),
 		newApplicationFunc: newApplicationFunc,
 		nodeChangeChannel:  make(chan *SpawnerNodeChange),
+		errorLogger:        Tools.NewLogger("[Error: \"Spawner\"]", config.ErrorLoggerPath),
 	}
-	node := Node.New(&Config.NewNode{
-		NodeConfig:           config.NodeConfig,
-		SystemgeServerConfig: config.SystemgeServerConfig,
-	}, app)
-	return node
+	return app
 }
 
 func (spawner *Spawner) GetNextNodeChange() *SpawnerNodeChange {

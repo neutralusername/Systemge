@@ -1,8 +1,6 @@
 package Node
 
 import (
-	"net/http"
-
 	"github.com/neutralusername/Systemge/Message"
 )
 
@@ -10,14 +8,6 @@ type Application interface{}
 
 func ImplementsSystemgeServerComponent(app Application) bool {
 	_, ok := app.(SystemgeServerComponent)
-	return ok
-}
-func ImplementsHTTPComponent(app Application) bool {
-	_, ok := app.(HTTPComponent)
-	return ok
-}
-func ImplementsWebsocketComponent(app Application) bool {
-	_, ok := app.(WebsocketComponent)
 	return ok
 }
 
@@ -59,16 +49,3 @@ type SystemgeServerComponent interface {
 }
 type AsyncMessageHandler func(*Node, *Message.Message) error
 type SyncMessageHandler func(*Node, *Message.Message) (string, error)
-
-// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type HTTPComponent interface {
-	GetHTTPMessageHandlers() map[string]http.HandlerFunc
-}
-
-// if a struct embeds this interface and does not implement its methods, it will cause a runtime panic if passed to a node
-type WebsocketComponent interface {
-	GetWebsocketMessageHandlers() map[string]WebsocketMessageHandler
-	OnConnectHandler(*Node, *WebsocketClient)
-	OnDisconnectHandler(*Node, *WebsocketClient)
-}
-type WebsocketMessageHandler func(*Node, *WebsocketClient, *Message.Message) error

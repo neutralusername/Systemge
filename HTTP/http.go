@@ -1,7 +1,9 @@
 package HTTP
 
 import (
+	"net"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
@@ -11,16 +13,45 @@ import (
 )
 
 type Server struct {
-	config     *Config.HTTP
-	httpServer *http.Server
-	blacklist  *Tools.AccessControlList
-	whitelist  *Tools.AccessControlList
+	config         *Config.HTTP
+	httpServer     *http.Server
+	blacklist      *Tools.AccessControlList
+	whitelist      *Tools.AccessControlList
+	handlers       map[string]http.HandlerFunc
+	requestCounter atomic.Uint64
+}
+
+func (server *Server) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		server.requestCounter.Add(1)
+		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
+
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			Send403(w, r)
+			return
+		}
+		if server.GetBlacklist() != nil {
+			if server.GetBlacklist().Contains(ip) {
+				Send403(w, r)
+				return
+			}
+		}
+		if server.GetWhitelist() != nil && server.GetWhitelist().ElementCount() > 0 {
+			if !server.GetWhitelist().Contains(ip) {
+				Send403(w, r)
+				return
+			}
+		}
+		handler(w, r)
+	}
 }
 
 func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 	mux := NewCustomMux()
 	server := &Server{
-		config: config,
+		config:   config,
+		handlers: handlers,
 		httpServer: &http.Server{
 			MaxHeaderBytes:    int(config.MaxHeaderBytes),
 			ReadHeaderTimeout: time.Duration(config.ReadHeaderTimeoutMs) * time.Millisecond,
@@ -33,7 +64,8 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 		whitelist: Tools.NewAccessControlList(config.ServerConfig.Whitelist),
 	}
 	for pattern, handler := range handlers {
-		mux.AddRoute(pattern, handler)
+		handlers[pattern] = server.httpRequestWrapper(handler)
+		mux.AddRoute(pattern, handlers[pattern])
 	}
 	return server
 }
@@ -94,4 +126,12 @@ func (server *Server) Stop() error {
 		return Error.New("failed stopping http server", err)
 	}
 	return nil
+}
+
+func (server *Server) RetrieveHTTPRequestCounter() uint64 {
+	return server.requestCounter.Swap(0)
+}
+
+func (server *Server) GetHTTPRequestCounter() uint64 {
+	return server.requestCounter.Load()
 }

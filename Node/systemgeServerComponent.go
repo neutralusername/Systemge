@@ -77,16 +77,16 @@ type systemgeServerComponent struct {
 func (node *Node) startSystemgeServerComponent() error {
 	systemgeServer := &systemgeServerComponent{
 		incomingConnections:                  make(map[string]*incomingConnection),
-		infoLogger:                           node.GetInternalInfoLogger(),
-		warningLogger:                        node.GetInternalWarningLogger(),
-		errorLogger:                          node.GetErrorLogger(),
+		infoLogger:                           node.infoLogger,
+		warningLogger:                        node.warningLogger,
+		errorLogger:                          node.errorLogger,
 		stopChannel:                          make(chan bool),
 		incomingConnectionsStopChannel:       make(chan bool),
 		allIncomingConnectionsStoppedChannel: make(chan bool),
 		nodeName:                             node.GetName(),
 		asyncMessageHandlers:                 node.application.(SystemgeServerComponent).GetAsyncMessageHandlers(),
 		syncMessageHandlers:                  node.application.(SystemgeServerComponent).GetSyncMessageHandlers(),
-		config:                               node.newNodeConfig.SystemgeServerConfig,
+		config:                               node.config.SystemgeServerConfig,
 	}
 	if systemgeServer.config.TcpBufferBytes == 0 {
 		systemgeServer.config.TcpBufferBytes = 1024 * 4
