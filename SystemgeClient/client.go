@@ -87,11 +87,11 @@ func (client *SystemgeClient) Start() error {
 	defer client.startMutex.Unlock()
 
 	client.statusMutex.Lock()
-	if client.status != Status.STATUS_STOPPED {
+	if client.status != Status.STOPPED {
 		client.statusMutex.Unlock()
 		return Error.New("SystemgeClient is not in stopped state", nil)
 	}
-	client.status = Status.STATUS_STARTING
+	client.status = Status.STARTING
 	client.statusMutex.Unlock()
 
 	client.stopChannel = make(chan bool)
@@ -102,11 +102,11 @@ func (client *SystemgeClient) Start() error {
 		}
 	}
 	client.statusMutex.Lock()
-	if client.status != Status.STATUS_STARTING {
+	if client.status != Status.STARTING {
 		client.statusMutex.Unlock()
 		return Error.New("SystemgeClient stopped during startup", nil)
 	}
-	client.status = Status.STATUS_STARTED
+	client.status = Status.STARTED
 	client.statusMutex.Unlock()
 
 	return nil
@@ -117,11 +117,11 @@ func (client *SystemgeClient) Stop() error {
 	defer client.stopMutex.Unlock()
 
 	client.statusMutex.Lock()
-	if client.status == Status.STATUS_STOPPED {
+	if client.status == Status.STOPPED {
 		client.statusMutex.Unlock()
 		return Error.New("SystemgeClient is already in stopped state", nil)
 	}
-	client.status = Status.STATUS_STOPPING
+	client.status = Status.STOPPING
 	client.statusMutex.Unlock()
 
 	close(client.stopChannel)
@@ -137,7 +137,7 @@ func (client *SystemgeClient) Stop() error {
 	client.serverConnectionMutex.Unlock()
 
 	client.statusMutex.Lock()
-	client.status = Status.STATUS_STOPPED
+	client.status = Status.STOPPED
 	client.statusMutex.Unlock()
 	return nil
 }

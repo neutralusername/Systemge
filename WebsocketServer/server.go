@@ -80,10 +80,10 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 func (server *WebsocketServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STATUS_STOPPED {
+	if server.status != Status.STOPPED {
 		return Error.New("WebsocketServer is not in stopped state", nil)
 	}
-	server.status = Status.STATUS_STARTING
+	server.status = Status.STARTING
 
 	server.httpServer = HTTPServer.New(&Config.HTTPServer{
 		ServerConfig: server.config.ServerConfig,
@@ -93,23 +93,23 @@ func (server *WebsocketServer) Start() error {
 	err := server.httpServer.Start()
 	if err != nil {
 		server.httpServer = nil
-		server.status = Status.STATUS_STOPPED
+		server.status = Status.STOPPED
 		return Error.New("failed starting websocket handshake handler", err)
 	}
 	server.connectionChannel = make(chan *websocket.Conn)
 	go server.handleWebsocketConnections()
 
-	server.status = Status.STATUS_STARTED
+	server.status = Status.STARTED
 	return nil
 }
 
 func (server *WebsocketServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STATUS_STARTED {
+	if server.status != Status.STARTED {
 		return Error.New("WebsocketServer is not in started state", nil)
 	}
-	server.status = Status.STATUS_STOPPING
+	server.status = Status.STOPPING
 
 	server.httpServer.Stop()
 	server.httpServer = nil
@@ -126,7 +126,7 @@ func (server *WebsocketServer) Stop() error {
 		websocketClient.Disconnect()
 	}
 
-	server.status = Status.STATUS_STOPPED
+	server.status = Status.STOPPED
 	return nil
 }
 

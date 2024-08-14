@@ -1,8 +1,8 @@
 package Status
 
 const (
-	STATUS_STOPPED  = 0
-	STATUS_STARTING = 1
-	STATUS_STARTED  = 2
-	STATUS_STOPPING = 3
+	STOPPED  = 0
+	STARTING = 1
+	STARTED  = 2
+	STOPPING = 3
 )

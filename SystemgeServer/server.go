@@ -86,17 +86,17 @@ func New(config *Config.SystemgeServer, asyncMessageHanlders map[string]AsyncMes
 func (server *SystemgeServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STATUS_STOPPED {
+	if server.status != Status.STOPPED {
 		return Error.New("SystemgeServer is not in stopped state", nil)
 	}
-	server.status = Status.STATUS_STARTING
+	server.status = Status.STARTING
 
 	if server.config.TcpBufferBytes == 0 {
 		server.config.TcpBufferBytes = 1024 * 4
 	}
 	tcpServer, err := Tcp.NewServer(server.config.ServerConfig)
 	if err != nil {
-		server.status = Status.STATUS_STOPPED
+		server.status = Status.STOPPED
 		return Error.New("Failed to create tcp server", err)
 	}
 	if server.config.IpRateLimiter != nil {
@@ -139,7 +139,7 @@ func (server *SystemgeServer) Start() error {
 
 	}
 	go server.handleClientConnections()
-	server.status = Status.STATUS_STARTED
+	server.status = Status.STARTED
 	return nil
 }
 
@@ -148,10 +148,10 @@ func (server *SystemgeServer) Start() error {
 func (server *SystemgeServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STATUS_STARTED {
+	if server.status != Status.STARTED {
 		return Error.New("SystemgeServer is not in started state", nil)
 	}
-	server.status = Status.STATUS_STOPPING
+	server.status = Status.STOPPING
 
 	close(server.stopChannel)
 	if server.ipRateLimiter != nil {
@@ -169,7 +169,7 @@ func (server *SystemgeServer) Stop() error {
 	server.clientConnectionMutex.Unlock()
 	close(server.allClientConnectionsStoppedChannel)
 
-	server.status = Status.STATUS_STOPPED
+	server.status = Status.STOPPED
 	return nil
 }
 
