@@ -41,7 +41,7 @@ func (server *SystemgeServer) AddSyncTopic(topic string, handler SyncMessageHand
 	defer server.incomingConnectionMutex.RUnlock()
 	for _, incomingConnection := range server.incomingConnections {
 		go func() {
-			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
+			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_ADDTOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
 					errorLogger.Log(Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
@@ -74,7 +74,7 @@ func (server *SystemgeServer) AddAsyncTopic(topic string, handler AsyncMessageHa
 	defer server.incomingConnectionMutex.RUnlock()
 	for _, incomingConnection := range server.incomingConnections {
 		go func() {
-			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_ADDTOPIC, topic)); err != nil {
+			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_ADDTOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
 					errorLogger.Log(Error.New("Failed to send add topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
@@ -107,7 +107,7 @@ func (server *SystemgeServer) RemoveSyncTopic(topic string) error {
 	defer server.incomingConnectionMutex.RUnlock()
 	for _, incomingConnection := range server.incomingConnections {
 		go func() {
-			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
+			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_REMOVETOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
 					errorLogger.Log(Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}
@@ -140,7 +140,7 @@ func (server *SystemgeServer) RemoveAsyncTopic(topic string) error {
 	defer server.incomingConnectionMutex.RUnlock()
 	for _, incomingConnection := range server.incomingConnections {
 		go func() {
-			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(TOPIC_REMOVETOPIC, topic)); err != nil {
+			if err := server.messageIncomingConnection(incomingConnection, Message.NewAsync(Message.TOPIC_REMOVETOPIC, topic)); err != nil {
 				if errorLogger := server.errorLogger; errorLogger != nil {
 					errorLogger.Log(Error.New("Failed to send remove topic message to incoming node connection \""+incomingConnection.name+"\"", err).Error())
 				}

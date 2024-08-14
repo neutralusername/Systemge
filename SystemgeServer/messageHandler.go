@@ -127,3 +127,31 @@ func (systemge *SystemgeServer) checkRateLimits(incomingConnection *incomingConn
 	}
 	return nil
 }
+
+func (systemge *SystemgeServer) handleSyncRequest(message *Message.Message) (string, error) {
+	systemge.syncMessageHandlerMutex.RLock()
+	syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]
+	systemge.syncMessageHandlerMutex.RUnlock()
+	if syncMessageHandler == nil {
+		return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
+	}
+	responsePayload, err := syncMessageHandler(message)
+	if err != nil {
+		return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
+	}
+	return responsePayload, nil
+}
+
+func (systemge *SystemgeServer) handleAsyncMessage(message *Message.Message) error {
+	systemge.asyncMessageHandlerMutex.RLock()
+	asyncMessageHandler := systemge.asyncMessageHandlers[message.GetTopic()]
+	systemge.asyncMessageHandlerMutex.RUnlock()
+	if asyncMessageHandler == nil {
+		return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
+	}
+	err := asyncMessageHandler(message)
+	if err != nil {
+		return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
+	}
+	return nil
+}

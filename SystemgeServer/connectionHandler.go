@@ -81,30 +81,30 @@ func (systemge *SystemgeServer) handleIncomingConnectionHandshake(netConn net.Co
 	}
 	messageBytes, err := incomingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
-		return nil, Error.New("Failed to receive \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to receive \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	systemge.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
-		return nil, Error.New("Failed to deserialize \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
 	if err := systemge.validateMessage(message); err != nil {
-		return nil, Error.New("Failed to validate \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to validate \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
-	if message.GetTopic() != TOPIC_NODENAME {
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+TOPIC_NODENAME+"\"", nil)
+	if message.GetTopic() != Message.TOPIC_NODENAME {
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NODENAME+"\"", nil)
 	}
 	incomingConnectionName := message.GetPayload()
 	if incomingConnectionName == "" {
-		return nil, Error.New("Received empty payload in \""+TOPIC_NODENAME+"\" message", nil)
+		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NODENAME+"\" message", nil)
 	}
 	if systemge.config.MaxNodeNameSize != 0 && len(incomingConnectionName) > int(systemge.config.MaxNodeNameSize) {
 		return nil, Error.New("Received node name \""+incomingConnectionName+"\" exceeds maximum size of "+Helpers.Uint64ToString(systemge.config.MaxNodeNameSize), nil)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, systemge.config.Name).Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NODENAME, systemge.config.Name).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
-		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to send \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.connectionAttemptBytesSent.Add(bytesSent)
@@ -119,9 +119,9 @@ func (systemge *SystemgeServer) handleIncomingConnectionHandshake(netConn net.Co
 		responsibleTopics = append(responsibleTopics, topic)
 	}
 	systemge.asyncMessageHandlerMutex.RUnlock()
-	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(TOPIC_RESPONSIBLETOPICS, Helpers.JsonMarshal(responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_RESPONSIBLETOPICS, Helpers.JsonMarshal(responsibleTopics)).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
-		return nil, Error.New("Failed to send \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
+		return nil, Error.New("Failed to send \""+Message.TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.connectionAttemptBytesSent.Add(bytesSent)
@@ -144,6 +144,22 @@ func (systemge *SystemgeServer) accessControlIncomingConnection(netConn net.Conn
 	}
 	if systemge.tcpServer.GetWhitelist().ElementCount() > 0 && !systemge.tcpServer.GetWhitelist().Contains(ip) {
 		return Error.New("Rejected incoming connection due to whitelist", nil)
+	}
+	return nil
+}
+
+func (systemge *SystemgeServer) validateMessage(message *Message.Message) error {
+	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
+		return Error.New("Message sync token exceeds maximum size", nil)
+	}
+	if len(message.GetTopic()) == 0 {
+		return Error.New("Message missing topic", nil)
+	}
+	if maxTopicSize := systemge.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return Error.New("Message topic exceeds maximum size", nil)
+	}
+	if maxPayloadSize := systemge.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return Error.New("Message payload exceeds maximum size", nil)
 	}
 	return nil
 }

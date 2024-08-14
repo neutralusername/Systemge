@@ -11,13 +11,6 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-const (
-	TOPIC_NODENAME          = "nodeName"
-	TOPIC_RESPONSIBLETOPICS = "topics"
-	TOPIC_ADDTOPIC          = "addTopic"
-	TOPIC_REMOVETOPIC       = "removeTopic"
-)
-
 type AsyncMessageHandler func(*Message.Message) error
 type SyncMessageHandler func(*Message.Message) (string, error)
 
@@ -88,34 +81,6 @@ func New(config *Config.SystemgeServer, asyncMessageHanlders map[string]AsyncMes
 	}
 }
 
-func (systemge *SystemgeServer) handleSyncRequest(message *Message.Message) (string, error) {
-	systemge.syncMessageHandlerMutex.RLock()
-	syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]
-	systemge.syncMessageHandlerMutex.RUnlock()
-	if syncMessageHandler == nil {
-		return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
-	}
-	responsePayload, err := syncMessageHandler(message)
-	if err != nil {
-		return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
-	}
-	return responsePayload, nil
-}
-
-func (systemge *SystemgeServer) handleAsyncMessage(message *Message.Message) error {
-	systemge.asyncMessageHandlerMutex.RLock()
-	asyncMessageHandler := systemge.asyncMessageHandlers[message.GetTopic()]
-	systemge.asyncMessageHandlerMutex.RUnlock()
-	if asyncMessageHandler == nil {
-		return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
-	}
-	err := asyncMessageHandler(message)
-	if err != nil {
-		return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
-	}
-	return nil
-}
-
 func (systemgeServer *SystemgeServer) Start() error {
 	if systemgeServer.config.TcpBufferBytes == 0 {
 		systemgeServer.config.TcpBufferBytes = 1024 * 4
@@ -169,7 +134,7 @@ func (systemgeServer *SystemgeServer) Start() error {
 
 // stopSystemgeServerComponent stops the systemge component.
 // blocking until all goroutines associated with the systemge component have stopped.
-func (systemge *SystemgeServer) stopSystemgeServerComponent() {
+func (systemge *SystemgeServer) Stop() error {
 	close(systemge.stopChannel)
 
 	if systemge.ipRateLimiter != nil {
@@ -186,20 +151,9 @@ func (systemge *SystemgeServer) stopSystemgeServerComponent() {
 	}
 	systemge.incomingConnectionMutex.Unlock()
 	close(systemge.allIncomingConnectionsStoppedChannel)
+	return nil
 }
 
-func (systemge *SystemgeServer) validateMessage(message *Message.Message) error {
-	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
-		return Error.New("Message sync token exceeds maximum size", nil)
-	}
-	if len(message.GetTopic()) == 0 {
-		return Error.New("Message missing topic", nil)
-	}
-	if maxTopicSize := systemge.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return Error.New("Message topic exceeds maximum size", nil)
-	}
-	if maxPayloadSize := systemge.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return Error.New("Message payload exceeds maximum size", nil)
-	}
-	return nil
+func (systemge *SystemgeServer) GetName() string {
+	return systemge.config.Name
 }
