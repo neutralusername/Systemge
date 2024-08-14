@@ -2,27 +2,14 @@ package Config
 
 import "encoding/json"
 
-type Node struct {
-	Name string // *required*
-
-	SystemgeClientConfig *SystemgeClient `json:"systemgeClientConfig"` // *optional*
-	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *optional*
+type SystemgeClient struct {
+	Name string `json:"name"` // *required*
 
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
-}
-
-func UnmarshalNode(data string) *Node {
-	var node Node
-	json.Unmarshal([]byte(data), &node)
-	return &node
-}
-
-type SystemgeClient struct {
 	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
 	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever
 	MaxConnectionAttempts           uint64 `json:"maxConnectionAttempts"`           // default: 0 == infinite
@@ -49,6 +36,13 @@ func UnmarshalSystemgeClient(data string) *SystemgeClient {
 }
 
 type SystemgeServer struct {
+	Name string `json:"name"` // *required*
+
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+
 	TcpTimeoutMs                                uint64 `json:"tcpTimeoutMs"`                                // default: 0 == block forever
 	ProcessMessagesOfEachConnectionSequentially bool   `json:"processMessagesOfEachConnectionSequentially"` // default: false (if true, the server will handle messages from the same incoming connection sequentially) (if >1 incomming connection, multiple message handlers may run concurrently)
 	ProcessAllMessagesSequentially              bool   `json:"processAllMessagesSequentially"`              // default: false (overrides ProcessMessagesOfEachConnectionSequentially) (guarantees, that only one message handler runs at a time)

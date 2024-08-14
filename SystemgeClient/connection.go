@@ -29,7 +29,7 @@ type outgoingConnection struct {
 	stopChannel chan bool //closing of this channel indicates that the outgoing connection has finished its ongoing tasks.
 }
 
-func (systemge *systemgeClientComponent) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
+func (systemge *SystemgeClient) newOutgoingConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *outgoingConnection {
 	outgoingConnection := &outgoingConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
@@ -72,7 +72,7 @@ func (outgoingConnection *outgoingConnection) receiveMessage(bufferSize uint32, 
 }
 
 // async messages and sync requests are sent to outgoing connections
-func (systemge *systemgeClientComponent) messageOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
+func (systemge *SystemgeClient) messageOutgoingConnection(outgoingConnection *outgoingConnection, message *Message.Message) error {
 	outgoingConnection.sendMutex.Lock()
 	defer outgoingConnection.sendMutex.Unlock()
 	bytesSent, err := Tcp.Send(outgoingConnection.netConn, message.Serialize(), systemge.config.TcpTimeoutMs)

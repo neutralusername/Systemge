@@ -48,7 +48,7 @@ func (node *Node) SyncMessage_(config *Config.Message) (*SyncResponseChannel, er
 	return node.SyncMessage(config.Topic, config.Payload, config.NodeNames...)
 }
 
-func (node *Node) createOutgoingMessageTaskGroup(systemge *systemgeClientComponent, message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
+func (node *Node) createOutgoingMessageTaskGroup(systemge *SystemgeClient, message *Message.Message, receiverNames ...string) *Tools.TaskGroup {
 	waitgroup := Tools.NewTaskGroup()
 	systemge.outgoingConnectionMutex.RLock()
 	defer systemge.outgoingConnectionMutex.RUnlock()

@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (systemge *systemgeClientComponent) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
+func (systemge *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnection *outgoingConnection) {
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting handling of messages from outgoing node connection \""+outgoingConnection.name+"\"", nil).Error())
 	}

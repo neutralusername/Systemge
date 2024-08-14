@@ -23,7 +23,7 @@ type outgoingConnectionAttempt struct {
 // the maximum number of attempts is reached,
 // the attempt is aborted
 // or the systemge component is stopped
-func (systemge *systemgeClientComponent) attemptOutgoingConnection(endpointConfig *Config.TcpEndpoint, transient bool) error {
+func (systemge *SystemgeClient) attemptOutgoingConnection(endpointConfig *Config.TcpEndpoint, transient bool) error {
 	address, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
 		return Error.New("Failed to normalize address \""+endpointConfig.Address+"\"", err)
@@ -115,7 +115,7 @@ func (systemge *systemgeClientComponent) attemptOutgoingConnection(endpointConfi
 	}
 }
 
-func (systemge *systemgeClientComponent) handleOutgoingConnectionHandshake(outgoingConnectionAttempt *outgoingConnectionAttempt) (*outgoingConnection, error) {
+func (systemge *SystemgeClient) handleOutgoingConnectionHandshake(outgoingConnectionAttempt *outgoingConnectionAttempt) (*outgoingConnection, error) {
 	systemge.connectionAttempts.Add(1)
 	netConn, err := Tcp.NewClient(outgoingConnectionAttempt.endpointConfig)
 	if err != nil {

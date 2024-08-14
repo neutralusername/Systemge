@@ -10,15 +10,15 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type systemgeClientComponent struct {
+type SystemgeClient struct {
 	config *Config.SystemgeClient
 
 	nodeName      string
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
+	mailer        *Tools.Mailer
 
-	stopNode    func()
 	stopChannel chan bool //closing of this channel initiates the stop of the systemge component
 
 	syncRequestMutex     sync.RWMutex
@@ -58,55 +58,49 @@ type systemgeClientComponent struct {
 	topicRemoveReceived atomic.Uint32
 }
 
-func (node *Node) startSystemgeClientComponent() error {
-	systemgeClient := &systemgeClientComponent{
-		config:                     node.config.SystemgeClientConfig,
-		nodeName:                   node.GetName(),
-		infoLogger:                 node.infoLogger,
-		warningLogger:              node.warningLogger,
-		errorLogger:                node.errorLogger,
+func New(config *Config.SystemgeClient) *SystemgeClient {
+	if config == nil {
+		panic("SystemgeClient config is nil")
+	}
+	return &SystemgeClient{
+		config:                     config,
+		nodeName:                   config.Name,
+		infoLogger:                 Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
+		warningLogger:              Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
+		errorLogger:                Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
+		mailer:                     Tools.NewMailer(config.MailerConfig),
 		syncResponseChannels:       make(map[string]*SyncResponseChannel),
 		topicResolutions:           make(map[string]map[string]*outgoingConnection),
 		outgoingConnections:        make(map[string]*outgoingConnection),
 		outgoingConnectionAttempts: make(map[string]*outgoingConnectionAttempt),
 		stopChannel:                make(chan bool),
 	}
-	systemgeClient.stopNode = func() {
-		if node.systemgeClient == systemgeClient {
-			err := node.Stop()
-			if err != nil {
-				if errorLogger := systemgeClient.errorLogger; errorLogger != nil {
-					errorLogger.Log(Error.New("Failed to stop node", err).Error())
-				}
-			}
-		}
-	}
-	node.systemgeClient = systemgeClient
-	for _, endpointConfig := range systemgeClient.config.EndpointConfigs {
-		if err := systemgeClient.attemptOutgoingConnection(endpointConfig, false); err != nil {
+}
+
+func (client *SystemgeClient) Start() error {
+	for _, endpointConfig := range client.config.EndpointConfigs {
+		if err := client.attemptOutgoingConnection(endpointConfig, false); err != nil {
 			return Error.New("failed to establish outgoing connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
 	return nil
 }
 
-func (node *Node) stopSystemgeClientComponent() {
-	systemge := node.systemgeClient
-	node.systemgeClient = nil
-	close(systemge.stopChannel)
+func (client *SystemgeClient) Stop() {
+	close(client.stopChannel)
 
-	systemge.outgoingConnectionMutex.Lock()
-	for _, outgoingConnectionAttempt := range systemge.outgoingConnectionAttempts {
+	client.outgoingConnectionMutex.Lock()
+	for _, outgoingConnectionAttempt := range client.outgoingConnectionAttempts {
 		outgoingConnectionAttempt.isAborted = true
 	}
-	for _, outgoingConnection := range systemge.outgoingConnections {
+	for _, outgoingConnection := range client.outgoingConnections {
 		outgoingConnection.netConn.Close()
 		<-outgoingConnection.stopChannel
 	}
-	systemge.outgoingConnectionMutex.Unlock()
+	client.outgoingConnectionMutex.Unlock()
 }
 
-func (systemge *systemgeClientComponent) validateMessage(message *Message.Message) error {
+func (systemge *SystemgeClient) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}
