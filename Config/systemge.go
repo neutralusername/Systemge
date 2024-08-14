@@ -1,6 +1,8 @@
 package Config
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type SystemgeClient struct {
 	Name string `json:"name"` // *required*
