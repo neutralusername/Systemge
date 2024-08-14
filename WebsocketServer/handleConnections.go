@@ -83,7 +83,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
 		}
 		if message.GetTopic() == "heartbeat" {
-			server.resetWatchdog(client)
+			server.ResetWatchdog(client)
 			continue
 		}
 		if server.config.HandleClientMessagesSequentially {

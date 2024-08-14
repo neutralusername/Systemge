@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type Server struct {
+type HTTPServer struct {
 	config         *Config.HTTP
 	httpServer     *http.Server
 	blacklist      *Tools.AccessControlList
@@ -21,7 +21,7 @@ type Server struct {
 	requestCounter atomic.Uint64
 }
 
-func (server *Server) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+func (server *HTTPServer) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		server.requestCounter.Add(1)
 		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
@@ -47,9 +47,9 @@ func (server *Server) httpRequestWrapper(handler func(w http.ResponseWriter, r *
 	}
 }
 
-func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
+func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *HTTPServer {
 	mux := NewCustomMux()
-	server := &Server{
+	server := &HTTPServer{
 		config:   config,
 		handlers: handlers,
 		httpServer: &http.Server{
@@ -70,7 +70,7 @@ func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *Server {
 	return server
 }
 
-func (server *Server) Start() error {
+func (server *HTTPServer) Start() error {
 	errorChannel := make(chan error)
 	ended := false
 	go func() {
@@ -104,7 +104,7 @@ func (server *Server) Start() error {
 	return nil
 }
 
-func (server *Server) Stop() error {
+func (server *HTTPServer) Stop() error {
 	err := server.httpServer.Close()
 	if err != nil {
 		return Error.New("failed stopping http server", err)
@@ -112,26 +112,26 @@ func (server *Server) Stop() error {
 	return nil
 }
 
-func (server *Server) RetrieveHTTPRequestCounter() uint64 {
+func (server *HTTPServer) RetrieveHTTPRequestCounter() uint64 {
 	return server.requestCounter.Swap(0)
 }
 
-func (server *Server) GetHTTPRequestCounter() uint64 {
+func (server *HTTPServer) GetHTTPRequestCounter() uint64 {
 	return server.requestCounter.Load()
 }
 
-func (server *Server) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
+func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
 	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, handlerFunc)
 }
 
-func (server *Server) RemoveRoute(pattern string) {
+func (server *HTTPServer) RemoveRoute(pattern string) {
 	server.httpServer.Handler.(*CustomMux).RemoveRoute(pattern)
 }
 
-func (server *Server) GetBlacklist() *Tools.AccessControlList {
+func (server *HTTPServer) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *Server) GetWhitelist() *Tools.AccessControlList {
+func (server *HTTPServer) GetWhitelist() *Tools.AccessControlList {
 	return server.whitelist
 }

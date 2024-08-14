@@ -20,7 +20,7 @@ type Server struct {
 	warningLogger *Tools.Logger
 
 	randomizer *Tools.Randomizer
-	httpServer *HTTPServer.Server
+	httpServer *HTTPServer.HTTPServer
 
 	mutex sync.Mutex
 }

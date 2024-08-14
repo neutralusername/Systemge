@@ -74,10 +74,6 @@ func (server *WebsocketServer) newClient(id string, websocketConnection *websock
 
 // Resets the watchdog timer to its initial value.
 func (server *WebsocketServer) ResetWatchdog(client *WebsocketClient) error {
-	return server.resetWatchdog(client)
-}
-
-func (server *WebsocketServer) resetWatchdog(client *WebsocketClient) error {
 	if client == nil {
 		return Error.New("client is nil", nil)
 	}

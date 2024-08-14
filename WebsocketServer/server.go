@@ -27,7 +27,7 @@ type WebsocketServer struct {
 	onConnectHandler    func(*WebsocketClient)
 	onDisconnectHandler func(*WebsocketClient)
 
-	httpServer *HTTPServer.Server
+	httpServer *HTTPServer.HTTPServer
 
 	connectionChannel chan *websocket.Conn
 	clients           map[string]*WebsocketClient            // websocketId -> client
