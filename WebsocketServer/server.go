@@ -70,15 +70,15 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 		mailer:              Tools.NewMailer(config.Mailer),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
+	return server
+}
+
+func (server *WebsocketServer) Start() error {
 	server.httpServer = HTTPServer.New(&Config.HTTP{
 		ServerConfig: server.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
 		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(server.warningLogger),
 	})
-	return server
-}
-
-func (server *WebsocketServer) Start() error {
 	err := server.httpServer.Start()
 	if err != nil {
 		return Error.New("failed starting websocket handshake handler", err)
