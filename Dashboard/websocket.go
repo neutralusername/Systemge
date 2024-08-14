@@ -58,7 +58,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Message
 	}
 }
 
-func (app *App) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
+func (app *App) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
 	for _, n := range app.nodes {
@@ -66,6 +66,7 @@ func (app *App) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClien
 			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(n))).Serialize())
 		}()
 	}
+	return nil
 }
 
 func (app *App) OnDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {

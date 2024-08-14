@@ -1,4 +1,4 @@
-package module
+package Module
 
 type ServiceModule interface {
 	GetName() string

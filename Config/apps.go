@@ -15,30 +15,12 @@ type Dashboard struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`           // *required*
 	Mailer            *Mailer `json:"mailer"`                    // *required*
 
-	AutoStart                 bool   `json:"autoStart"`                 // default: false
+	AutoStart bool `json:"autoStart"` // default: false
+
 	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
 	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
 	NodeStatusIntervalMs      uint64 `json:"nodeStatusIntervalMs"`      // default: 0 = disabled
-
-	NodeSystemgeClientCounterIntervalMs             uint64 `json:"nodeSystemgeClientCounterIntervalMs"`             // default: 0 = disabled
-	NodeSystemgeClientRateLimitCounterIntervalMs    uint64 `json:"nodeSystemgeClientRateLimitCounterIntervalMs"`    // default: 0 = disabled
-	NodeSystemgeClientConnectionCounterIntervalMs   uint64 `json:"nodeSystemgeClientConnectionCounterIntervalMs"`   // default: 0 = disabled
-	NodeSystemgeClientSyncResponseCounterIntervalMs uint64 `json:"nodeSystemgeClientSyncResponseCounterIntervalMs"` // default: 0 = disabled
-	NodeSystemgeClientAsyncMessageCounterIntervalMs uint64 `json:"nodeSystemgeClientAsyncMessageCounterIntervalMs"` // default: 0 = disabled
-	NodeSystemgeClientSyncRequestCounterIntervalMs  uint64 `json:"nodeSystemgeClientSyncRequestCounterIntervalMs"`  // default: 0 = disabled
-	NodeSystemgeClientTopicCounterIntervalMs        uint64 `json:"nodeSystemgeClientTopicCounterIntervalMs"`        // default: 0 = disabled
-
-	NodeSystemgeServerCounterIntervalMs             uint64 `json:"nodeSystemgeServerCounterIntervalMs"`             // default: 0 = disabled
-	NodeSystemgeServerRateLimitCounterIntervalMs    uint64 `json:"nodeSystemgeServerRateLimitCounterIntervalMs"`    // default: 0 = disabled
-	NodeSystemgeServerConnectionCounterIntervalMs   uint64 `json:"nodeSystemgeServerConnectionCounterIntervalMs"`   // default: 0 = disabled
-	NodeSystemgeServerSyncResponseCounterIntervalMs uint64 `json:"nodeSystemgeServerSyncResponseCounterIntervalMs"` // default: 0 = disabled
-	NodeSystemgeServerAsyncMessageCounterIntervalMs uint64 `json:"nodeSystemgeServerAsyncMessageCounterIntervalMs"` // default: 0 = disabled
-	NodeSystemgeServerSyncRequestCounterIntervalMs  uint64 `json:"nodeSystemgeServerSyncRequestCounterIntervalMs"`  // default: 0 = disabled
-	NodeSystemgeServerTopicCounterIntervalMs        uint64 `json:"nodeSystemgeServerTopicCounterIntervalMs"`        // default: 0 = disabled
-
-	NodeHTTPCounterIntervalMs      uint64 `json:"nodeHTTPCounterIntervalMs"`      // default: 0 = disabled
-	NodeWebsocketCounterIntervalMs uint64 `json:"nodeWebsocketCounterIntervalMs"` // default: 0 = disabled
-	NodeSpawnerCounterIntervalMs   uint64 `json:"nodeSpawnerCounterIntervalMs"`   // default: 0 = disabled
+	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`   // default: 0 = disabled
 }
 
 func UnmarshalDashboard(data string) *Dashboard {
@@ -70,17 +52,4 @@ func UnmarshalOauth2(data string) *Oauth2 {
 	var oauth2 Oauth2
 	json.Unmarshal([]byte(data), &oauth2)
 	return &oauth2
-}
-
-type Spawner struct {
-	ErrorLoggerPath string  `json:"errorLoggerPath"` // *required*
-	Mailer          *Mailer `json:"mailer"`          // *required*
-
-	PropagateSpawnedNodeChanges bool `json:"propagateSpawnedNodeChanges"` // default: false (if true, changes need to be received through the corresponding channel) (automated by dashboard)
-}
-
-func UnmarshalSpawner(data string) *Spawner {
-	var spawner Spawner
-	json.Unmarshal([]byte(data), &spawner)
-	return &spawner
 }
