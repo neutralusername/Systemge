@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-// Broadcast broadcasts a message to all connected websocket clients.
+// Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
@@ -40,7 +40,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	return nil
 }
 
-// Unicast unicasts a message to a specific websocket client by id.
+// Unicast unicasts a message to a specific client by id.
 // Blocking until the message is sent.
 func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
@@ -74,7 +74,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	return nil
 }
 
-// Multicast multicasts a message to multiple websocket clients by id.
+// Multicast multicasts a message to multiple clients by id.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
@@ -114,7 +114,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	return nil
 }
 
-// Groupcast groupcasts a message to all websocket clients in a group.
+// Groupcast groupcasts a message to all clients in a group.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) error {
 	if infoLogger := server.infoLogger; infoLogger != nil {

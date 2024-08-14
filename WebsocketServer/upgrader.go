@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (server *WebsocketServer) websocketUpgrade(logger *Tools.Logger) http.HandlerFunc {
+func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler(logger *Tools.Logger) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if server.httpServer == nil {
 			if logger != nil {
@@ -15,13 +15,13 @@ func (server *WebsocketServer) websocketUpgrade(logger *Tools.Logger) http.Handl
 			}
 			return
 		}
-		websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
+		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if logger != nil {
 				logger.Log(Error.New("failed upgrading connection to websocket", err).Error())
 			}
 			return
 		}
-		server.connChannel <- websocketConn
+		server.connectionChannel <- websocketConnection
 	}
 }

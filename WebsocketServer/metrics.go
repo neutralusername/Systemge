@@ -1,29 +1,29 @@
 package WebsocketServer
 
-func (server *WebsocketServer) RetrieveWebsocketBytesSentCounter() uint64 {
+func (server *WebsocketServer) RetrieveBytesSentCounter() uint64 {
 	return server.bytesSentCounter.Swap(0)
 }
-func (server *WebsocketServer) GetWebsocketBytesSentCounter() uint64 {
+func (server *WebsocketServer) GetBytesSentCounter() uint64 {
 	return server.bytesSentCounter.Load()
 }
 
-func (server *WebsocketServer) RetrieveWebsocketBytesReceivedCounter() uint64 {
+func (server *WebsocketServer) RetrieveBytesReceivedCounter() uint64 {
 	return server.bytesReceivedCounter.Swap(0)
 }
-func (server *WebsocketServer) GetWebsocketBytesReceivedCounter() uint64 {
+func (server *WebsocketServer) GetBytesReceivedCounter() uint64 {
 	return server.bytesReceivedCounter.Load()
 }
 
-func (server *WebsocketServer) RetrieveWebsocketIncomingMessageCounter() uint32 {
+func (server *WebsocketServer) RetrieveIncomingMessageCounter() uint32 {
 	return server.incomingMessageCounter.Swap(0)
 }
-func (server *WebsocketServer) GetWebsocketIncomingMessageCounter() uint32 {
+func (server *WebsocketServer) GetIncomingMessageCounter() uint32 {
 	return server.incomingMessageCounter.Load()
 }
 
-func (server *WebsocketServer) RetrieveWebsocketOutgoingMessageCounter() uint32 {
+func (server *WebsocketServer) RetrieveOutgoingMessageCounter() uint32 {
 	return server.outgoigMessageCounter.Swap(0)
 }
-func (server *WebsocketServer) GetWebsocketOutgoingMessageCounter() uint32 {
+func (server *WebsocketServer) GetOutgoingMessageCounter() uint32 {
 	return server.outgoigMessageCounter.Load()
 }

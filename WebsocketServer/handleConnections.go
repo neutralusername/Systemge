@@ -3,24 +3,34 @@ package WebsocketServer
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
 )
 
 func (server *WebsocketServer) handleWebsocketConnections() {
 	for {
-		websocketConn := <-server.connChannel
-		if websocketConn == nil {
+		websocketConnection := <-server.connectionChannel
+		if websocketConnection == nil {
 			return
 		}
-		go server.handleWebsocketConn(websocketConn)
+		go server.handleWebsocketConnection(websocketConnection)
 	}
 }
 
-func (server *WebsocketServer) handleWebsocketConn(websocketConn *websocket.Conn) {
-	client := server.addWebsocketConn(websocketConn)
+func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *websocket.Conn) {
+	server.mutex.Lock()
+	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+	for _, exists := server.clients[websocketId]; exists; {
+		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+	}
+	client := server.newClient(websocketId, websocketConnection)
+	server.clients[websocketId] = client
+	server.clientGroups[websocketId] = make(map[string]bool)
+	server.mutex.Unlock()
+
 	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log(Error.New("websocket client connected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
+		infoLogger.Log(Error.New("client connected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
 	}
 	if server.onConnectHandler != nil {
 		server.onConnectHandler(client)
@@ -28,7 +38,7 @@ func (server *WebsocketServer) handleWebsocketConn(websocketConn *websocket.Conn
 	server.handleMessages(client)
 	client.Disconnect()
 	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log(Error.New("websocket client disconnected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
+		infoLogger.Log(Error.New("client disconnected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
 	}
 }
 
@@ -37,7 +47,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		messageBytes, err := client.receive()
 		if err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to receive message from websocketClient \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to receive message from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error())
 			}
 			return
 		}
@@ -47,7 +57,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			err := client.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				if warningLogger := server.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client", err).Error())
+					warningLogger.Log(Error.New("Failed to send rate limit error message to client", err).Error())
 				}
 			}
 			continue
@@ -56,7 +66,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			err := client.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				if warningLogger := server.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to send rate limit error message to websocket client", err).Error())
+					warningLogger.Log(Error.New("Failed to send rate limit error message to client", err).Error())
 				}
 			}
 			continue
@@ -64,20 +74,20 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		message, err := Message.Deserialize(messageBytes, client.GetId())
 		if err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to deserialize message from websocketClient \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error())
+				warningLogger.Log(Error.New("Failed to deserialize message from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error())
 			}
 			continue
 		}
 		message = Message.NewAsync(message.GetTopic(), message.GetPayload())
 		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from websocketClient \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
+			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
 		}
 		if message.GetTopic() == "heartbeat" {
 			server.resetWatchdog(client)
 			continue
 		}
 		if server.config.HandleClientMessagesSequentially {
-			err := server.handleWebsocketMessage(client, message)
+			err := server.handleClientMessage(client, message)
 			if err != nil {
 				if warningLogger := server.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to handle message (sequentially)", err).Error())
@@ -89,7 +99,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			}
 		} else {
 			go func() {
-				err := server.handleWebsocketMessage(client, message)
+				err := server.handleClientMessage(client, message)
 				if err != nil {
 					if warningLogger := server.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("Failed to handle message (concurrently)", err).Error())
@@ -104,25 +114,25 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 	}
 }
 
-func (server *WebsocketServer) handleWebsocketMessage(websocketClient *WebsocketClient, message *Message.Message) error {
+func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, message *Message.Message) error {
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()
 	if handler == nil {
-		err := websocketClient.Send(Message.NewAsync("error", Error.New("no handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", nil).Error()).Serialize())
+		err := client.Send(Message.NewAsync("error", Error.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error message to websocket client", err).Error())
+				warningLogger.Log(Error.New("Failed to send error message to client", err).Error())
 			}
 		}
 		return Error.New("no handler for topic \""+message.GetTopic()+"\"", nil)
 	}
-	err := handler(websocketClient, message)
+	err := handler(client, message)
 	if err != nil {
-		err := websocketClient.Send(Message.NewAsync("error", Error.New("error in handler for topic \""+message.GetTopic()+"\" from websocketClient \""+websocketClient.GetId()+"\"", err).Error()).Serialize())
+		err := client.Send(Message.NewAsync("error", Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize())
 		if err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to send error message to websocket client", err).Error())
+				warningLogger.Log(Error.New("Failed to send error message to client", err).Error())
 			}
 		}
 	}

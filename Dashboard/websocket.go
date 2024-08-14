@@ -9,8 +9,8 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.WebsocketMessageHandler {
-	return map[string]WebsocketServer.WebsocketMessageHandler{
+func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.MessageHandler {
+	return map[string]WebsocketServer.MessageHandler{
 		"start": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
 			n := app.nodes[message.GetPayload()]
