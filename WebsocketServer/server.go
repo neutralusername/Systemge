@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
@@ -17,6 +18,9 @@ import (
 type MessageHandler func(*WebsocketClient, *Message.Message) error
 
 type WebsocketServer struct {
+	status      int
+	statusMutex sync.Mutex
+
 	config        *Config.WebsocketServer
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
@@ -74,6 +78,13 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 }
 
 func (server *WebsocketServer) Start() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STATUS_STOPPED {
+		return Error.New("WebsocketServer is not in stopped state", nil)
+	}
+	server.status = Status.STATUS_STARTING
+
 	server.httpServer = HTTPServer.New(&Config.HTTPServer{
 		ServerConfig: server.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
@@ -81,31 +92,50 @@ func (server *WebsocketServer) Start() error {
 	})
 	err := server.httpServer.Start()
 	if err != nil {
+		server.httpServer = nil
+		server.status = Status.STATUS_STOPPED
 		return Error.New("failed starting websocket handshake handler", err)
 	}
 	server.connectionChannel = make(chan *websocket.Conn)
-	server.handleWebsocketConnections()
+	go server.handleWebsocketConnections()
+
+	server.status = Status.STATUS_STARTED
 	return nil
 }
 
 func (server *WebsocketServer) Stop() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STATUS_STARTED {
+		return Error.New("WebsocketServer is not in started state", nil)
+	}
+	server.status = Status.STATUS_STOPPING
+
 	server.httpServer.Stop()
 	server.httpServer = nil
 	close(server.connectionChannel)
+
 	server.mutex.Lock()
 	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
 	for _, websocketClient := range server.clients {
 		websocketClientsToDisconnect = append(websocketClientsToDisconnect, websocketClient)
 	}
 	server.mutex.Unlock()
+
 	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()
 	}
+
+	server.status = Status.STATUS_STOPPED
 	return nil
 }
 
 func (server *WebsocketServer) GetName() string {
 	return server.config.Name
+}
+
+func (server *WebsocketServer) GetStatus() int {
+	return server.status
 }
 
 func (server *WebsocketServer) AddMessageHandler(topic string, handler MessageHandler) {

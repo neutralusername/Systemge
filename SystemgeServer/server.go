@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -15,6 +16,9 @@ type AsyncMessageHandler func(*Message.Message) error
 type SyncMessageHandler func(*Message.Message) (string, error)
 
 type SystemgeServer struct {
+	status      int
+	statusMutex sync.Mutex
+
 	config *Config.SystemgeServer
 
 	infoLogger    *Tools.Logger
@@ -80,11 +84,19 @@ func New(config *Config.SystemgeServer, asyncMessageHanlders map[string]AsyncMes
 }
 
 func (server *SystemgeServer) Start() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STATUS_STOPPED {
+		return Error.New("SystemgeServer is not in stopped state", nil)
+	}
+	server.status = Status.STATUS_STARTING
+
 	if server.config.TcpBufferBytes == 0 {
 		server.config.TcpBufferBytes = 1024 * 4
 	}
 	tcpServer, err := Tcp.NewServer(server.config.ServerConfig)
 	if err != nil {
+		server.status = Status.STATUS_STOPPED
 		return Error.New("Failed to create tcp server", err)
 	}
 	if server.config.IpRateLimiter != nil {
@@ -127,14 +139,21 @@ func (server *SystemgeServer) Start() error {
 
 	}
 	go server.handleClientConnections()
+	server.status = Status.STATUS_STARTED
 	return nil
 }
 
 // stopSystemgeServerComponent stops the systemge component.
 // blocking until all goroutines associated with the systemge component have stopped.
 func (server *SystemgeServer) Stop() error {
-	close(server.stopChannel)
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STATUS_STARTED {
+		return Error.New("SystemgeServer is not in started state", nil)
+	}
+	server.status = Status.STATUS_STOPPING
 
+	close(server.stopChannel)
 	if server.ipRateLimiter != nil {
 		server.ipRateLimiter.Stop()
 	}
@@ -149,9 +168,15 @@ func (server *SystemgeServer) Stop() error {
 	}
 	server.clientConnectionMutex.Unlock()
 	close(server.allClientConnectionsStoppedChannel)
+
+	server.status = Status.STATUS_STOPPED
 	return nil
 }
 
 func (server *SystemgeServer) GetName() string {
 	return server.config.Name
+}
+
+func (server *SystemgeServer) GetStatus() int {
+	return server.status
 }

@@ -6,10 +6,16 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeClient struct {
+	status      int
+	startMutex  sync.Mutex
+	stopMutex   sync.Mutex
+	statusMutex sync.Mutex
+
 	config *Config.SystemgeClient
 
 	infoLogger    *Tools.Logger
@@ -77,6 +83,17 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 }
 
 func (client *SystemgeClient) Start() error {
+	client.startMutex.Lock()
+	defer client.startMutex.Unlock()
+
+	client.statusMutex.Lock()
+	if client.status != Status.STATUS_STOPPED {
+		client.statusMutex.Unlock()
+		return Error.New("SystemgeClient is not in stopped state", nil)
+	}
+	client.status = Status.STATUS_STARTING
+	client.statusMutex.Unlock()
+
 	client.stopChannel = make(chan bool)
 	for _, endpointConfig := range client.config.EndpointConfigs {
 		if err := client.attemptServerConnection(endpointConfig, false); err != nil {
@@ -84,10 +101,29 @@ func (client *SystemgeClient) Start() error {
 			return Error.New("failed to establish server connection to endpoint \""+endpointConfig.Address+"\"", err)
 		}
 	}
+	client.statusMutex.Lock()
+	if client.status != Status.STATUS_STARTING {
+		client.statusMutex.Unlock()
+		return Error.New("SystemgeClient stopped during startup", nil)
+	}
+	client.status = Status.STATUS_STARTED
+	client.statusMutex.Unlock()
+
 	return nil
 }
 
 func (client *SystemgeClient) Stop() error {
+	client.stopMutex.Lock()
+	defer client.stopMutex.Unlock()
+
+	client.statusMutex.Lock()
+	if client.status == Status.STATUS_STOPPED {
+		client.statusMutex.Unlock()
+		return Error.New("SystemgeClient is already in stopped state", nil)
+	}
+	client.status = Status.STATUS_STOPPING
+	client.statusMutex.Unlock()
+
 	close(client.stopChannel)
 
 	client.serverConnectionMutex.Lock()
@@ -99,9 +135,17 @@ func (client *SystemgeClient) Stop() error {
 		<-serverConnection.stopChannel
 	}
 	client.serverConnectionMutex.Unlock()
+
+	client.statusMutex.Lock()
+	client.status = Status.STATUS_STOPPED
+	client.statusMutex.Unlock()
 	return nil
 }
 
 func (client *SystemgeClient) GetName() string {
 	return client.config.Name
+}
+
+func (client *SystemgeClient) GetStatus() int {
+	return client.status
 }
