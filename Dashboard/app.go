@@ -14,6 +14,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Module"
 	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
@@ -26,6 +27,7 @@ type App struct {
 	mutex        sync.RWMutex
 	config       *Config.Dashboard
 
+	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
