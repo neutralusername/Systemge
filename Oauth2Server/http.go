@@ -14,8 +14,8 @@ type oauth2SessionRequest struct {
 	sessionChannel chan<- *session
 }
 
-func (app *Server) GetHTTPComponentConfig() *Config.HTTP {
-	return &Config.HTTP{
+func (app *Server) GetHTTPComponentConfig() *Config.HTTPServer {
+	return &Config.HTTPServer{
 		ServerConfig: app.config.ServerConfig,
 	}
 }

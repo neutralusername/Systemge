@@ -1,7 +1,6 @@
 package HTTPServer
 
 import (
-	"net"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -13,7 +12,7 @@ import (
 )
 
 type HTTPServer struct {
-	config         *Config.HTTP
+	config         *Config.HTTPServer
 	httpServer     *http.Server
 	blacklist      *Tools.AccessControlList
 	whitelist      *Tools.AccessControlList
@@ -21,33 +20,7 @@ type HTTPServer struct {
 	requestCounter atomic.Uint64
 }
 
-func (server *HTTPServer) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		server.requestCounter.Add(1)
-		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
-
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			Send403(w, r)
-			return
-		}
-		if server.GetBlacklist() != nil {
-			if server.GetBlacklist().Contains(ip) {
-				Send403(w, r)
-				return
-			}
-		}
-		if server.GetWhitelist() != nil && server.GetWhitelist().ElementCount() > 0 {
-			if !server.GetWhitelist().Contains(ip) {
-				Send403(w, r)
-				return
-			}
-		}
-		handler(w, r)
-	}
-}
-
-func New(config *Config.HTTP, handlers map[string]http.HandlerFunc) *HTTPServer {
+func New(config *Config.HTTPServer, handlers map[string]http.HandlerFunc) *HTTPServer {
 	mux := NewCustomMux()
 	server := &HTTPServer{
 		config:   config,

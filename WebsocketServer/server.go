@@ -74,10 +74,10 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 }
 
 func (server *WebsocketServer) Start() error {
-	server.httpServer = HTTPServer.New(&Config.HTTP{
+	server.httpServer = HTTPServer.New(&Config.HTTPServer{
 		ServerConfig: server.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
-		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(server.warningLogger),
+		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 	})
 	err := server.httpServer.Start()
 	if err != nil {

@@ -42,7 +42,7 @@ func New(dashboardConfig *Config.Dashboard, nodes ...*Node.Node) *App {
 		errorLogger:     Tools.NewLogger("[Error: \"Dashboard\"]", dashboardConfig.ErrorLoggerPath),
 		mailer:          Tools.NewMailer(dashboardConfig.Mailer),
 	}
-	app.httpServer = HTTP.New(&Config.HTTP{
+	app.httpServer = HTTP.New(&Config.HTTPServer{
 		ServerConfig: dashboardConfig.ServerConfig,
 	}, nil)
 	app.websocketServer = WebsocketServer.New(&Config.WebsocketServer{
