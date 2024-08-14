@@ -121,10 +121,10 @@ func (systemge *SystemgeClient) handleOutgoingConnectionHandshake(outgoingConnec
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to endpoint \""+outgoingConnectionAttempt.endpointConfig.Address+"\"", err)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, systemge.nodeName).Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NODENAME, systemge.config.Name).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to send \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesSent.Add(bytesSent)
 	systemge.connectionAttemptBytesSent.Add(bytesSent)
@@ -134,27 +134,27 @@ func (systemge *SystemgeClient) handleOutgoingConnectionHandshake(outgoingConnec
 	messageBytes, err := outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to receive \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to receive \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	systemge.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to deserialize \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
 	if err := systemge.validateMessage(message); err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to validate \""+TOPIC_NODENAME+"\" message", err)
+		return nil, Error.New("Failed to validate \""+Message.TOPIC_NODENAME+"\" message", err)
 	}
-	if message.GetTopic() != TOPIC_NODENAME {
+	if message.GetTopic() != Message.TOPIC_NODENAME {
 		netConn.Close()
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+TOPIC_NODENAME+"\"", nil)
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NODENAME+"\"", nil)
 	}
 	endpointName := message.GetPayload()
 	if endpointName == "" {
 		netConn.Close()
-		return nil, Error.New("Received empty payload in \""+TOPIC_NODENAME+"\" message", nil)
+		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NODENAME+"\" message", nil)
 	}
 	if systemge.config.MaxNodeNameSize != 0 && len(endpointName) > int(systemge.config.MaxNodeNameSize) {
 		netConn.Close()
@@ -163,22 +163,22 @@ func (systemge *SystemgeClient) handleOutgoingConnectionHandshake(outgoingConnec
 	messageBytes, err = outgoingConnection.receiveMessage(systemge.config.TcpBufferBytes, systemge.config.IncomingMessageByteLimit)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to receive \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
+		return nil, Error.New("Failed to receive \""+Message.TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	systemge.bytesReceived.Add(uint64(len(messageBytes)))
 	systemge.connectionAttemptBytesReceived.Add(uint64(len(messageBytes)))
 	message, err = Message.Deserialize(messageBytes, "")
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to deserialize \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
+		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
 	if err := systemge.validateMessage(message); err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to validate \""+TOPIC_RESPONSIBLETOPICS+"\" message", err)
+		return nil, Error.New("Failed to validate \""+Message.TOPIC_RESPONSIBLETOPICS+"\" message", err)
 	}
-	if message.GetTopic() != TOPIC_RESPONSIBLETOPICS {
+	if message.GetTopic() != Message.TOPIC_RESPONSIBLETOPICS {
 		netConn.Close()
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+TOPIC_RESPONSIBLETOPICS+"\"", nil)
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_RESPONSIBLETOPICS+"\"", nil)
 	}
 	topics := []string{}
 	json.Unmarshal([]byte(message.GetPayload()), &topics)

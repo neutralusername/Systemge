@@ -44,7 +44,7 @@ func (systemge *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnect
 							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+outgoingConnection.endpointConfig.Address+"\"", err).Error())
 						}
 						if systemge.config.StopAfterOutgoingConnectionLoss {
-							systemge.stopNode()
+							systemge.Stop()
 						}
 					}
 				}()
@@ -71,12 +71,12 @@ func (systemge *SystemgeClient) handleOutgoingConnectionMessages(outgoingConnect
 				return
 			}
 			if len(message.GetSyncTokenToken()) == 0 {
-				if message.GetTopic() == TOPIC_ADDTOPIC {
+				if message.GetTopic() == Message.TOPIC_ADDTOPIC {
 					outgoingConnection.topicsMutex.Lock()
 					outgoingConnection.topics[message.GetPayload()] = true
 					outgoingConnection.topicsMutex.Unlock()
 					systemge.topicAddReceived.Add(1)
-				} else if message.GetTopic() == TOPIC_REMOVETOPIC {
+				} else if message.GetTopic() == Message.TOPIC_REMOVETOPIC {
 					outgoingConnection.topicsMutex.Lock()
 					delete(outgoingConnection.topics, message.GetPayload())
 					outgoingConnection.topicsMutex.Unlock()

@@ -18,15 +18,18 @@ const (
 	TOPIC_REMOVETOPIC       = "removeTopic"
 )
 
-type systemgeServerComponent struct {
+type AsyncMessageHandler func(*Message.Message) error
+type SyncMessageHandler func(*Message.Message) (string, error)
+
+type SystemgeServer struct {
 	config *Config.SystemgeServer
 
 	tcpServer *Tcp.Server
 
-	nodeName      string
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
+	mailer        *Tools.Mailer
 
 	ipRateLimiter *Tools.IpRateLimiter
 
@@ -36,11 +39,9 @@ type systemgeServerComponent struct {
 	messageHandlerChannel                chan func()
 
 	asyncMessageHandlerMutex sync.RWMutex
-	handleAsyncMessage       func(message *Message.Message) error
 	asyncMessageHandlers     map[string]AsyncMessageHandler
 
 	syncMessageHandlerMutex sync.RWMutex
-	handleSyncRequest       func(message *Message.Message) (string, error)
 	syncMessageHandlers     map[string]SyncMessageHandler
 
 	incomingConnectionMutex sync.RWMutex
@@ -74,20 +75,48 @@ type systemgeServerComponent struct {
 	topicRemoveSent atomic.Uint32
 }
 
-func (node *Node) startSystemgeServerComponent() error {
-	systemgeServer := &systemgeServerComponent{
-		incomingConnections:                  make(map[string]*incomingConnection),
-		infoLogger:                           node.infoLogger,
-		warningLogger:                        node.warningLogger,
-		errorLogger:                          node.errorLogger,
-		stopChannel:                          make(chan bool),
-		incomingConnectionsStopChannel:       make(chan bool),
-		allIncomingConnectionsStoppedChannel: make(chan bool),
-		nodeName:                             node.GetName(),
-		asyncMessageHandlers:                 node.application.(SystemgeServerComponent).GetAsyncMessageHandlers(),
-		syncMessageHandlers:                  node.application.(SystemgeServerComponent).GetSyncMessageHandlers(),
-		config:                               node.config.SystemgeServerConfig,
+func New(config *Config.SystemgeServer, asyncMessageHanlders map[string]AsyncMessageHandler, syncMessageHandlers map[string]SyncMessageHandler) *SystemgeServer {
+	return &SystemgeServer{
+		config:               config,
+		infoLogger:           Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
+		warningLogger:        Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
+		errorLogger:          Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
+		mailer:               Tools.NewMailer(config.MailerConfig),
+		incomingConnections:  make(map[string]*incomingConnection),
+		asyncMessageHandlers: asyncMessageHanlders,
+		syncMessageHandlers:  syncMessageHandlers,
 	}
+}
+
+func (systemge *SystemgeServer) handleSyncRequest(message *Message.Message) (string, error) {
+	systemge.syncMessageHandlerMutex.RLock()
+	syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]
+	systemge.syncMessageHandlerMutex.RUnlock()
+	if syncMessageHandler == nil {
+		return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
+	}
+	responsePayload, err := syncMessageHandler(message)
+	if err != nil {
+		return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
+	}
+	return responsePayload, nil
+}
+
+func (systemge *SystemgeServer) handleAsyncMessage(message *Message.Message) error {
+	systemge.asyncMessageHandlerMutex.RLock()
+	asyncMessageHandler := systemge.asyncMessageHandlers[message.GetTopic()]
+	systemge.asyncMessageHandlerMutex.RUnlock()
+	if asyncMessageHandler == nil {
+		return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
+	}
+	err := asyncMessageHandler(message)
+	if err != nil {
+		return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
+	}
+	return nil
+}
+
+func (systemgeServer *SystemgeServer) Start() error {
 	if systemgeServer.config.TcpBufferBytes == 0 {
 		systemgeServer.config.TcpBufferBytes = 1024 * 4
 	}
@@ -95,38 +124,15 @@ func (node *Node) startSystemgeServerComponent() error {
 	if err != nil {
 		return Error.New("Failed to create tcp server", err)
 	}
-	systemgeServer.tcpServer = tcpServer
-	node.systemgeServer = systemgeServer
-	systemgeServer.handleSyncRequest = func(message *Message.Message) (string, error) {
-		systemgeServer.syncMessageHandlerMutex.RLock()
-		syncMessageHandler := systemgeServer.syncMessageHandlers[message.GetTopic()]
-		systemgeServer.syncMessageHandlerMutex.RUnlock()
-		if syncMessageHandler == nil {
-			return "Not responsible for topic \"" + message.GetTopic() + "\"", Error.New("Received sync request with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
-		}
-		responsePayload, err := syncMessageHandler(node, message)
-		if err != nil {
-			return err.Error(), Error.New("Sync message handler for topic \""+message.GetTopic()+"\" returned error", err)
-		}
-		return responsePayload, nil
-	}
-	systemgeServer.handleAsyncMessage = func(message *Message.Message) error {
-		systemgeServer.asyncMessageHandlerMutex.RLock()
-		asyncMessageHandler := systemgeServer.asyncMessageHandlers[message.GetTopic()]
-		systemgeServer.asyncMessageHandlerMutex.RUnlock()
-		if asyncMessageHandler == nil {
-			return Error.New("Received async message with topic \""+message.GetTopic()+"\" for which no handler is registered", nil)
-		}
-		err := asyncMessageHandler(node, message)
-		if err != nil {
-			return Error.New("Async message handler for topic \""+message.GetTopic()+"\" returned error", err)
-		}
-		return nil
-	}
-
 	if systemgeServer.config.IpRateLimiter != nil {
 		systemgeServer.ipRateLimiter = Tools.NewIpRateLimiter(systemgeServer.config.IpRateLimiter)
 	}
+
+	systemgeServer.tcpServer = tcpServer
+	systemgeServer.stopChannel = make(chan bool)
+	systemgeServer.incomingConnectionsStopChannel = make(chan bool)
+	systemgeServer.allIncomingConnectionsStoppedChannel = make(chan bool)
+
 	if systemgeServer.config.ProcessAllMessagesSequentially {
 		systemgeServer.messageHandlerChannel = make(chan func(), systemgeServer.config.ProcessAllMessagesSequentiallyChannelSize)
 		if systemgeServer.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
@@ -163,9 +169,7 @@ func (node *Node) startSystemgeServerComponent() error {
 
 // stopSystemgeServerComponent stops the systemge component.
 // blocking until all goroutines associated with the systemge component have stopped.
-func (node *Node) stopSystemgeServerComponent() {
-	systemge := node.systemgeServer
-	node.systemgeServer = nil
+func (systemge *SystemgeServer) stopSystemgeServerComponent() {
 	close(systemge.stopChannel)
 
 	if systemge.ipRateLimiter != nil {
@@ -184,7 +188,7 @@ func (node *Node) stopSystemgeServerComponent() {
 	close(systemge.allIncomingConnectionsStoppedChannel)
 }
 
-func (systemge *systemgeServerComponent) validateMessage(message *Message.Message) error {
+func (systemge *SystemgeServer) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := systemge.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}

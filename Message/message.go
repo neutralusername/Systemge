@@ -19,6 +19,10 @@ type messageData struct {
 
 const TOPIC_SUCCESS = "success"
 const TOPIC_FAILURE = "failure"
+const TOPIC_NODENAME = "nodeName"
+const TOPIC_RESPONSIBLETOPICS = "topics"
+const TOPIC_ADDTOPIC = "addTopic"
+const TOPIC_REMOVETOPIC = "removeTopic"
 
 func (message *Message) GetTopic() string {
 	return message.topic

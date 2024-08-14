@@ -2,63 +2,50 @@ package Node
 
 import (
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
 )
 
 // Returns a slice of addresses of nodes that this node is connected to.
-func (node *Node) GetOutgoingConnectionsList() []string {
-	if systemge := node.systemgeClient; systemge != nil {
-		systemge.outgoingConnectionMutex.RLock()
-		defer systemge.outgoingConnectionMutex.RUnlock()
-		connections := make([]string, len(systemge.outgoingConnections))
-		i := 0
-		for address := range systemge.outgoingConnections {
-			connections[i] = address
-			i++
-		}
-		return connections
+func (client *SystemgeClient) GetOutgoingConnectionsList() []string {
+	client.outgoingConnectionMutex.RLock()
+	defer client.outgoingConnectionMutex.RUnlock()
+	connections := make([]string, len(client.outgoingConnections))
+	i := 0
+	for address := range client.outgoingConnections {
+		connections[i] = address
+		i++
 	}
-	return nil
+	return connections
 }
 
 // Returns a slice of addresses of nodes that this node is currently trying to connect to.
-func (node *Node) GetOutgoingConnectionAttemptsList() []string {
-	if systemge := node.systemgeClient; systemge != nil {
-		systemge.outgoingConnectionMutex.RLock()
-		defer systemge.outgoingConnectionMutex.RUnlock()
-		attempts := make([]string, len(systemge.outgoingConnectionAttempts))
-		i := 0
-		for address := range systemge.outgoingConnectionAttempts {
-			attempts[i] = address
-			i++
-		}
-		return attempts
+func (client *SystemgeClient) GetOutgoingConnectionAttemptsList() []string {
+	client.outgoingConnectionMutex.RLock()
+	defer client.outgoingConnectionMutex.RUnlock()
+	attempts := make([]string, len(client.outgoingConnectionAttempts))
+	i := 0
+	for address := range client.outgoingConnectionAttempts {
+		attempts[i] = address
+		i++
 	}
-	return nil
+	return attempts
 }
 
 // Adds another node as an outgoing connection.
 // This connection is used to send async and sync requests and receive sync responses for their corresponding requests.
-func (node *Node) ConnectToNode(endpointConfig *Config.TcpEndpoint, transient bool) error {
-	if systemge := node.systemgeClient; systemge != nil {
-		return systemge.attemptOutgoingConnection(endpointConfig, transient)
-	}
-	return Error.New("Systemge is nil", nil)
+func (client *SystemgeClient) ConnectToNode(endpointConfig *Config.TcpEndpoint, transient bool) error {
+	return client.attemptOutgoingConnection(endpointConfig, transient)
 }
 
 // Removes a node from the outgoing connections and aborts ongoing connection attempts.
-func (node *Node) DisconnectFromNode(address string) error {
-	if systemge := node.systemgeClient; systemge != nil {
-		systemge.outgoingConnectionMutex.Lock()
-		defer systemge.outgoingConnectionMutex.Unlock()
-		if outgoingConnectionAttempt := systemge.outgoingConnectionAttempts[address]; outgoingConnectionAttempt != nil {
-			outgoingConnectionAttempt.isAborted = true
-		}
-		if outgoingConnection := systemge.outgoingConnections[address]; outgoingConnection != nil {
-			outgoingConnection.netConn.Close()
-			outgoingConnection.isTransient = true
-		}
-		return nil
+func (client *SystemgeClient) DisconnectFromNode(address string) error {
+	client.outgoingConnectionMutex.Lock()
+	defer client.outgoingConnectionMutex.Unlock()
+	if outgoingConnectionAttempt := client.outgoingConnectionAttempts[address]; outgoingConnectionAttempt != nil {
+		outgoingConnectionAttempt.isAborted = true
 	}
-	return Error.New("Systemge is nil", nil)
+	if outgoingConnection := client.outgoingConnections[address]; outgoingConnection != nil {
+		outgoingConnection.netConn.Close()
+		outgoingConnection.isTransient = true
+	}
+	return nil
 }

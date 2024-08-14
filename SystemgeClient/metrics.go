@@ -1,134 +1,77 @@
 package Node
 
-func (node *Node) RetrieveSystemgeClientMessageRateLimiterExceeded() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.messageRateLimiterExceeded.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientMessageRateLimiterExceeded() uint32 {
+	return client.messageRateLimiterExceeded.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientByteRateLimiterExceeded() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.byteRateLimiterExceeded.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientByteRateLimiterExceeded() uint32 {
+	return client.byteRateLimiterExceeded.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientConnectionAttempts() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.connectionAttempts.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientConnectionAttempts() uint32 {
+	return client.connectionAttempts.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientConnectionAttemptsSuccessful() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.connectionAttemptsSuccessful.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientConnectionAttemptsSuccessful() uint32 {
+	return client.connectionAttemptsSuccessful.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientConnectionAttemptsFailed() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.connectionAttemptsFailed.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientConnectionAttemptsFailed() uint32 {
+	return client.connectionAttemptsFailed.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientConnectionAttemptBytesSent() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.connectionAttemptBytesSent.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientConnectionAttemptBytesSent() uint64 {
+	return client.connectionAttemptBytesSent.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientConnectionAttemptBytesReceived() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.connectionAttemptBytesReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientConnectionAttemptBytesReceived() uint64 {
+	return client.connectionAttemptBytesReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientInvalidMessagesReceived() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.invalidMessagesReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientInvalidMessagesReceived() uint32 {
+	return client.invalidMessagesReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientSyncSuccessResponsesReceived() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.syncSuccessResponsesReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientSyncSuccessResponsesReceived() uint32 {
+	return client.syncSuccessResponsesReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientSyncFailureResponsesReceived() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.syncFailureResponsesReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientSyncFailureResponsesReceived() uint32 {
+	return client.syncFailureResponsesReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientSyncResponseBytesReceived() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.syncResponseBytesReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientSyncResponseBytesReceived() uint64 {
+	return client.syncResponseBytesReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientAsyncMessagesSent() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.asyncMessagesSent.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientAsyncMessagesSent() uint32 {
+	return client.asyncMessagesSent.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientAsyncMessageBytesSent() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.asyncMessageBytesSent.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientAsyncMessageBytesSent() uint64 {
+	return client.asyncMessageBytesSent.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientSyncRequestsSent() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.syncRequestsSent.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientSyncRequestsSent() uint32 {
+	return client.syncRequestsSent.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientSyncRequestBytesSent() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.syncRequestBytesSent.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientSyncRequestBytesSent() uint64 {
+	return client.syncRequestBytesSent.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientTopicAddReceived() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.topicAddReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientTopicAddReceived() uint32 {
+	return client.topicAddReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientTopicRemoveReceived() uint32 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.topicRemoveReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientTopicRemoveReceived() uint32 {
+	return client.topicRemoveReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientBytesReceived() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.bytesReceived.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientBytesReceived() uint64 {
+	return client.bytesReceived.Swap(0)
 }
 
-func (node *Node) RetrieveSystemgeClientBytesSent() uint64 {
-	if systemgeClient := node.systemgeClient; systemgeClient != nil {
-		return systemgeClient.bytesSent.Swap(0)
-	}
-	return 0
+func (client *SystemgeClient) RetrieveSystemgeClientBytesSent() uint64 {
+	return client.bytesSent.Swap(0)
 }

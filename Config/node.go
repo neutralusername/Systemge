@@ -9,6 +9,7 @@ type SystemgeClient struct {
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
 	SyncRequestTimeoutMs            uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
 	TcpTimeoutMs                    uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever

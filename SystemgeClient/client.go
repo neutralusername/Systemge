@@ -13,11 +13,11 @@ import (
 type SystemgeClient struct {
 	config *Config.SystemgeClient
 
-	nodeName      string
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
+	randomizer    *Tools.Randomizer
 
 	stopChannel chan bool //closing of this channel initiates the stop of the systemge component
 
@@ -63,12 +63,13 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 		panic("SystemgeClient config is nil")
 	}
 	return &SystemgeClient{
-		config:                     config,
-		nodeName:                   config.Name,
-		infoLogger:                 Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
-		warningLogger:              Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
-		errorLogger:                Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
-		mailer:                     Tools.NewMailer(config.MailerConfig),
+		config:        config,
+		infoLogger:    Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
+		warningLogger: Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
+		errorLogger:   Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
+		mailer:        Tools.NewMailer(config.MailerConfig),
+		randomizer:    Tools.NewRandomizer(config.RandomizerSeed),
+
 		syncResponseChannels:       make(map[string]*SyncResponseChannel),
 		topicResolutions:           make(map[string]map[string]*outgoingConnection),
 		outgoingConnections:        make(map[string]*outgoingConnection),
@@ -86,7 +87,7 @@ func (client *SystemgeClient) Start() error {
 	return nil
 }
 
-func (client *SystemgeClient) Stop() {
+func (client *SystemgeClient) Stop() error {
 	close(client.stopChannel)
 
 	client.outgoingConnectionMutex.Lock()
@@ -98,6 +99,7 @@ func (client *SystemgeClient) Stop() {
 		<-outgoingConnection.stopChannel
 	}
 	client.outgoingConnectionMutex.Unlock()
+	return nil
 }
 
 func (systemge *SystemgeClient) validateMessage(message *Message.Message) error {

@@ -23,7 +23,7 @@ type incomingConnection struct {
 	stopChannel chan bool //closing of this channel indicates that the incoming connection has finished its ongoing tasks.
 }
 
-func (systemge *systemgeServerComponent) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
+func (systemge *SystemgeServer) newIncomingConnection(netConn net.Conn, name string) *incomingConnection {
 	nodeConnection := &incomingConnection{
 		netConn:     netConn,
 		name:        name,
@@ -64,7 +64,7 @@ func (incomingConnection *incomingConnection) receiveMessage(bufferSize uint32, 
 }
 
 // sync responses are sent to incoming connections
-func (systemge *systemgeServerComponent) messageIncomingConnection(incomingConnection *incomingConnection, message *Message.Message) error {
+func (systemge *SystemgeServer) messageIncomingConnection(incomingConnection *incomingConnection, message *Message.Message) error {
 	incomingConnection.sendMutex.Lock()
 	defer incomingConnection.sendMutex.Unlock()
 	if message.GetSyncTokenToken() == "" {

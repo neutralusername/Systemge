@@ -10,7 +10,7 @@ import (
 )
 
 // handles incoming connections from other nodes one at a time until systemge is stopped
-func (systemge *systemgeServerComponent) handleIncomingConnections() {
+func (systemge *SystemgeServer) handleIncomingConnections() {
 	if infoLogger := systemge.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting incoming connection handler", nil).Error())
 	}
@@ -74,7 +74,7 @@ func (systemge *systemgeServerComponent) handleIncomingConnections() {
 	}
 }
 
-func (systemge *systemgeServerComponent) handleIncomingConnectionHandshake(netConn net.Conn) (*incomingConnection, error) {
+func (systemge *SystemgeServer) handleIncomingConnectionHandshake(netConn net.Conn) (*incomingConnection, error) {
 	systemge.connectionAttempts.Add(1)
 	incomingConnection := incomingConnection{
 		netConn: netConn,
@@ -102,7 +102,7 @@ func (systemge *systemgeServerComponent) handleIncomingConnectionHandshake(netCo
 	if systemge.config.MaxNodeNameSize != 0 && len(incomingConnectionName) > int(systemge.config.MaxNodeNameSize) {
 		return nil, Error.New("Received node name \""+incomingConnectionName+"\" exceeds maximum size of "+Helpers.Uint64ToString(systemge.config.MaxNodeNameSize), nil)
 	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, systemge.nodeName).Serialize(), systemge.config.TcpTimeoutMs)
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(TOPIC_NODENAME, systemge.config.Name).Serialize(), systemge.config.TcpTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+TOPIC_NODENAME+"\" message", err)
 	}
@@ -130,7 +130,7 @@ func (systemge *systemgeServerComponent) handleIncomingConnectionHandshake(netCo
 	return incomingConn, nil
 }
 
-func (systemge *systemgeServerComponent) accessControlIncomingConnection(netConn net.Conn) error {
+func (systemge *SystemgeServer) accessControlIncomingConnection(netConn net.Conn) error {
 	address := netConn.RemoteAddr().String()
 	ip, _, err := net.SplitHostPort(address)
 	if err != nil {
