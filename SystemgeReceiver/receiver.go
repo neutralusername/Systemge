@@ -32,8 +32,7 @@ type SystemgeReceiver struct {
 	waitGroup      sync.WaitGroup
 
 	// metrics
-	messageId        uint32
-	messagesReceived atomic.Uint32
+	messageId uint32
 
 	asyncMessagesReceived   atomic.Uint32
 	syncRequestsReceived    atomic.Uint32
