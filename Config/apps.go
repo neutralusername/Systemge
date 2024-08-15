@@ -6,7 +6,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// ServerConfig applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
 	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
 	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*

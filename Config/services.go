@@ -9,6 +9,8 @@ import (
 type SystemgeClient struct {
 	Name string `json:"name"` // *required*
 
+	EndpointConfig *TcpEndpoint `json:"endpointConfig"` // *required*
+
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
@@ -20,8 +22,6 @@ type SystemgeClient struct {
 	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
 	ConnectionAttemptDelayMs   uint64 `json:"connectionAttemptDelay"`     // default: 0 (delay after failed connection attempt)
 	RestartAfterConnectionLoss bool   `json:"restartAfterConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
-
-	EndpointConfig *TcpEndpoint `json:"endpointConfig"` // *required*
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
@@ -43,6 +43,9 @@ func UnmarshalSystemgeClient(data string) *SystemgeClient {
 type SystemgeServer struct {
 	Name string `json:"name"` // *required*
 
+	ServerConfig *TcpServer   `json:"serverConfig"` // *required* (the configuration of this node's server)
+	Endpoint     *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
+
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
@@ -52,9 +55,6 @@ type SystemgeServer struct {
 	ProcessMessagesOfEachConnectionSequentially bool   `json:"processMessagesOfEachConnectionSequentially"` // default: false (if true, the server will handle messages from the same incoming connection sequentially) (if >1 incomming connection, multiple message handlers may run concurrently)
 	ProcessAllMessagesSequentially              bool   `json:"processAllMessagesSequentially"`              // default: false (overrides ProcessMessagesOfEachConnectionSequentially) (guarantees, that only one message handler runs at a time)
 	ProcessAllMessagesSequentiallyChannelSize   int    `json:"processAllMessagesSequentiallyChannelSize"`   // default: 0 == no guarantee on order of arrival (if >0, the order of arrival is guaranteed as long as the channel is never full (does NOT guarantee that messages arrive in the same chronological order as they were sent (technically not possible with multiple incoming connections and without a global clock)))
-
-	ServerConfig *TcpServer   `json:"serverConfig"` // *required* (the configuration of this node's server)
-	Endpoint     *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 
 	RateLimterBytes     *TokenBucketRateLimiter `json:"incomingConnectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
@@ -76,14 +76,14 @@ func UnmarshalSystemgeServer(data string) *SystemgeServer {
 }
 
 type HTTPServer struct {
-	Name              string       `json:"name"`              // *required*
-	DashboardEndpoint *TcpEndpoint `json:"dashboardEndpoint"` // *optional* (endpoint to the dashboard server)
+	Name string `json:"name"` // *required*
 
-	ServerConfig        *TcpServer `json:"serverConfig"`        // *required*
-	MaxHeaderBytes      int        `json:"maxHeaderBytes"`      // default: <=0 == 1 MB (whichever value you choose, golangs http package will add 4096 bytes on top of it....)
-	ReadHeaderTimeoutMs int        `json:"readHeaderTimeoutMs"` // default: 0 (no timeout)
-	WriteTimeoutMs      int        `json:"writeTimeoutMs"`      // default: 0 (no timeout)
-	MaxBodyBytes        int64      `json:"maxBodyBytes"`        // default: 0 (no limit)
+	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+
+	MaxHeaderBytes      int   `json:"maxHeaderBytes"`      // default: <=0 == 1 MB (whichever value you choose, golangs http package will add 4096 bytes on top of it....)
+	ReadHeaderTimeoutMs int   `json:"readHeaderTimeoutMs"` // default: 0 (no timeout)
+	WriteTimeoutMs      int   `json:"writeTimeoutMs"`      // default: 0 (no timeout)
+	MaxBodyBytes        int64 `json:"maxBodyBytes"`        // default: 0 (no limit)
 }
 
 func UnmarshalHTTP(data string) *HTTPServer {
@@ -95,14 +95,14 @@ func UnmarshalHTTP(data string) *HTTPServer {
 type WebsocketServer struct {
 	Name string `json:"name"` // *required*
 
+	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
+	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
+
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailer"`            // *optional*
 	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
-
-	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
-	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
 
 	ClientRateLimiterBytes    *TokenBucketRateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for clients)
 	ClientRateLimiterMessages *TokenBucketRateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for clients)
@@ -113,7 +113,6 @@ type WebsocketServer struct {
 	ClientWatchdogTimeoutMs          uint64 `json:"clientWatchdogTimeoutMs"`          // default: 0 (if a client does not send a heartbeat message within this time, the server will disconnect the client)
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
-
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
