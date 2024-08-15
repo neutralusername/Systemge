@@ -20,15 +20,8 @@ type SystemgeReceiver struct {
 }
 
 type SystemgeListener struct {
-	Name string `json:"name"` // *required*
-
 	ListenerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
 	Endpoint       *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
-
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 

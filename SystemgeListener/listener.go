@@ -13,10 +13,6 @@ type SystemgeListener struct {
 
 	tcpListener *Tcp.Listener
 
-	errorLogger   *Tools.Logger
-	warningLogger *Tools.Logger
-	infoLogger    *Tools.Logger
-	mailer        *Tools.Mailer
 	ipRateLimiter *Tools.IpRateLimiter
 
 	connectionId uint32
@@ -43,18 +39,6 @@ func New(config *Config.SystemgeListener) *SystemgeListener {
 	}
 	if config.IpRateLimiter != nil {
 		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
-	}
-	if config.InfoLoggerPath != "" {
-		listener.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
-	}
-	if config.WarningLoggerPath != "" {
-		listener.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		listener.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
-	}
-	if config.MailerConfig != nil {
-		listener.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 	return listener
 }

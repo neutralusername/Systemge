@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (listener *SystemgeListener) AcceptConnection(config *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) AcceptConnection(name string, config *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -21,9 +21,6 @@ func (listener *SystemgeListener) AcceptConnection(config *Config.SystemgeConnec
 		return nil, Error.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
 	}
 	ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
-	if infoLogger := listener.infoLogger; infoLogger != nil {
-		infoLogger.Log("Accepted connection #" + Helpers.Uint32ToString(connectionId) + " from " + ip)
-	}
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
@@ -39,20 +36,17 @@ func (listener *SystemgeListener) AcceptConnection(config *Config.SystemgeConnec
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
-	connection, err := listener.handshake(config, netConn)
+	connection, err := listener.handshake(config, name, netConn)
 	if err != nil {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to handshake failure", err)
 	}
 	listener.acceptedConnections.Add(1)
-	if infoLogger := listener.infoLogger; infoLogger != nil {
-		infoLogger.Log("Accepted connection #" + Helpers.Uint32ToString(connectionId) + " from " + ip + " as \"" + connection.GetName() + "\"")
-	}
 	return connection, nil
 }
 
-func (listener *SystemgeListener) handshake(config *Config.SystemgeConnection, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) handshake(config *Config.SystemgeConnection, name string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
@@ -71,7 +65,7 @@ func (listener *SystemgeListener) handshake(config *Config.SystemgeConnection, n
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
 	clientConnectionName := message.GetPayload()
-	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.config.Name).Serialize(), config.TcpSendTimeoutMs)
+	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, name).Serialize(), config.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
