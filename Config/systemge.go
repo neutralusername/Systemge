@@ -36,8 +36,6 @@ type SystemgeServer struct {
 }
 
 type SystemgeConnection struct {
-	Name string `json:"name"` // *required*
-
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
 	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeout"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak

@@ -32,6 +32,7 @@ type SystemgeServer struct {
 	connectionId uint32
 
 	// metrics
+
 	connectionAttempts  atomic.Uint32
 	failedConnections   atomic.Uint32
 	rejectedConnections atomic.Uint32
@@ -79,10 +80,29 @@ func (listener *SystemgeServer) Start() error {
 		return err
 	}
 	listener.tcpListener = tcpListener
+	listener.status = Status.STARTED
+	if infoLogger := listener.infoLogger; infoLogger != nil {
+		infoLogger.Log("Listener started")
+	}
 	return nil
 }
 
-func (listener *SystemgeServer) AcceptConnection() (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeServer) Stop() error {
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
+	if listener.status != Status.STARTED {
+		return Error.New("listener is not started", nil)
+	}
+	listener.status = Status.PENDING
+	listener.tcpListener.GetListener().Close()
+	listener.status = Status.STOPPED
+	if listener.infoLogger != nil {
+		listener.infoLogger.Log("Stopping listener")
+	}
+	return nil
+}
+
+func (listener *SystemgeServer) AcceptConnection(config *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -110,7 +130,7 @@ func (listener *SystemgeServer) AcceptConnection() (*SystemgeConnection.Systemge
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
-	connection, err := listener.handshake(netConn)
+	connection, err := listener.handshake(config, netConn)
 	if err != nil {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
@@ -123,12 +143,8 @@ func (listener *SystemgeServer) AcceptConnection() (*SystemgeConnection.Systemge
 	return connection, nil
 }
 
-func (listener *SystemgeServer) handshake(netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
-	listener.connectionAttempts.Add(1)
-	clientConnection := &clientConnection{
-		netConn: netConn,
-	}
-	messageBytes, err := clientConnection.receiveMessage(listener.config.TcpBufferBytes, listener.config.ClientMessageByteLimit)
+func (listener *SystemgeServer) handshake(config *Config.SystemgeConnection, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
+	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
 	}
@@ -136,28 +152,19 @@ func (listener *SystemgeServer) handshake(netConn net.Conn) (*SystemgeConnection
 	if err != nil {
 		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	if err := listener.validateMessage(message); err != nil {
-		return nil, Error.New("Failed to validate \""+Message.TOPIC_NAME+"\" message", err)
-	}
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
 	}
-	clientConnectionName := message.GetPayload()
-	if clientConnectionName == "" {
+	if len(message.GetPayload()) > int(listener.config.MaxClientNameLength) {
+		return nil, Error.New("Received client name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.Uint64ToString(listener.config.MaxClientNameLength), nil)
+	}
+	if message.GetPayload() == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	if listener.config.MaxClientNameLength != 0 && len(clientConnectionName) > int(listener.config.MaxClientNameLength) {
-		return nil, Error.New("Received client name \""+clientConnectionName+"\" exceeds maximum size of "+Helpers.Uint64ToString(listener.config.MaxClientNameLength), nil)
-	}
-	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.config.Name).Serialize(), listener.config.TcpTimeoutMs)
+	clientConnectionName := message.GetPayload()
+	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.config.Name).Serialize(), config.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	listener.bytesSent.Add(bytesSent)
-	listener.connectionAttemptBytesSent.Add(bytesSent)
-
-	tcpBuffer := clientConnection.tcpBuffer
-	clientConnection = listener.newClientConnection(netConn, clientConnectionName)
-	clientConnection.tcpBuffer = tcpBuffer
-	return clientConnection, nil
+	return SystemgeConnection.New(config, netConn, clientConnectionName), nil
 }
