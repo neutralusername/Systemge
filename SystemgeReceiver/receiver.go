@@ -31,8 +31,9 @@ type SystemgeReceiver struct {
 	messageChannel chan func()
 	waitGroup      sync.WaitGroup
 
-	// metrics
 	messageId uint32
+
+	// metrics
 
 	asyncMessagesReceived   atomic.Uint32
 	syncRequestsReceived    atomic.Uint32
