@@ -29,7 +29,6 @@ type SystemgeReceiver struct {
 	mailer        *Tools.Mailer
 
 	messageChannel chan func()
-	running        bool
 	waitGroup      sync.WaitGroup
 
 	// metrics
@@ -50,7 +49,6 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 	if connection == nil {
 		panic("connection is nil")
 	}
-
 	receiver := &SystemgeReceiver{
 		config:         config,
 		connection:     connection,
@@ -83,7 +81,6 @@ func (receiver *SystemgeReceiver) Start() error {
 	if receiver.status != Status.STOPPED {
 		return Error.New("receiver already started", nil)
 	}
-	receiver.running = true
 	receiver.messageChannel = make(chan func())
 	receiver.status = Status.STARTED
 	if receiver.config.ProcessSequentially {
@@ -101,7 +98,6 @@ func (receiver *SystemgeReceiver) Stop() error {
 	if receiver.status != Status.STARTED {
 		return Error.New("receiver already stopped", nil)
 	}
-	receiver.running = false
 	close(receiver.messageChannel)
 	receiver.waitGroup.Wait()
 	receiver.status = Status.STOPPED

@@ -25,7 +25,8 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 }
 
 func (receiver *SystemgeReceiver) receiveLoop() {
-	for receiver.running {
+	messageChannel := receiver.messageChannel
+	for receiver.messageChannel == messageChannel {
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
 			if receiver.errorLogger != nil {

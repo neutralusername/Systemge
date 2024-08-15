@@ -31,6 +31,10 @@ type SystemgeListener struct {
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+
+	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
+
+	MaxClientNameLength uint64 `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 type SystemgeConnection struct {
@@ -64,8 +68,6 @@ type SystemgeServer struct {
 
 	RateLimterBytes     *TokenBucketRateLimiter `json:"incomingConnectionRateLimiterBytes"` // *optional* (rate limiter for incoming connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"incomingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for incoming connections)
-
-	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
 	TcpBufferBytes         uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	ClientMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)

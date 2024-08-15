@@ -31,6 +31,13 @@ type SystemgeConnection struct {
 	// metrics
 	bytesSent     atomic.Uint64
 	bytesReceived atomic.Uint64
+
+	asyncMessagesSent atomic.Uint32
+	syncRequestsSent  atomic.Uint32
+
+	syncSuccessResponsesReceived atomic.Uint32
+	syncFailureResponsesReceived atomic.Uint32
+	noSyncResponseReceived       atomic.Uint32
 }
 
 func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
