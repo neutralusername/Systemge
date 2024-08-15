@@ -92,6 +92,7 @@ func (client *SystemgeClient) Start() error {
 
 	serverConnection, err := client.attemptServerConnection(client.config.EndpointConfig)
 	if err != nil {
+		client.status = Status.STOPPED
 		return Error.New("failed to establish server connection to endpoint \""+client.config.EndpointConfig.Address+"\"", err)
 	}
 
