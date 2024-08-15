@@ -1,20 +1,14 @@
 package SystemgeListener
 
 import (
-	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeListener struct {
-	status      int
-	statusMutex sync.Mutex
-
 	config *Config.SystemgeListener
 
 	tcpListener *Tcp.Listener
@@ -39,8 +33,13 @@ func New(config *Config.SystemgeListener) *SystemgeListener {
 	if config == nil {
 		panic("config is nil")
 	}
+	tcpListener, err := Tcp.NewListener(config.ListenerConfig)
+	if err != nil {
+		panic(err)
+	}
 	listener := &SystemgeListener{
-		config: config,
+		config:      config,
+		tcpListener: tcpListener,
 	}
 	if config.IpRateLimiter != nil {
 		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
@@ -60,40 +59,6 @@ func New(config *Config.SystemgeListener) *SystemgeListener {
 	return listener
 }
 
-func (listener *SystemgeListener) Start() error {
-	listener.statusMutex.Lock()
-	defer listener.statusMutex.Unlock()
-	if listener.status != Status.STOPPED {
-		return Error.New("listener is not stopped", nil)
-	}
-	listener.status = Status.PENDING
-	if listener.infoLogger != nil {
-		listener.infoLogger.Log("Starting listener")
-	}
-	tcpListener, err := Tcp.NewListener(listener.config.ListenerConfig)
-	if err != nil {
-		listener.status = Status.STOPPED
-		return err
-	}
-	listener.tcpListener = tcpListener
-	listener.status = Status.STARTED
-	if infoLogger := listener.infoLogger; infoLogger != nil {
-		infoLogger.Log("Listener started")
-	}
-	return nil
-}
-
-func (listener *SystemgeListener) Stop() error {
-	listener.statusMutex.Lock()
-	defer listener.statusMutex.Unlock()
-	if listener.status != Status.STARTED {
-		return Error.New("listener is not started", nil)
-	}
-	listener.status = Status.PENDING
+func (listener *SystemgeListener) Close() {
 	listener.tcpListener.GetListener().Close()
-	listener.status = Status.STOPPED
-	if listener.infoLogger != nil {
-		listener.infoLogger.Log("Stopping listener")
-	}
-	return nil
 }
