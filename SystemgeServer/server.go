@@ -1,182 +1,170 @@
 package SystemgeServer
 
 import (
+	"net"
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
-
-type AsyncMessageHandler func(*Message.Message) error
-type SyncMessageHandler func(*Message.Message) (string, error)
 
 type SystemgeServer struct {
 	status      int
 	statusMutex sync.Mutex
 
-	config *Config.SystemgeServer
+	config *Config.SystemgeListener
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
+	tcpListener *Tcp.Listener
+
 	errorLogger   *Tools.Logger
+	warningLogger *Tools.Logger
+	infoLogger    *Tools.Logger
 	mailer        *Tools.Mailer
 	ipRateLimiter *Tools.IpRateLimiter
 
-	tcpServer *Tcp.Listener
+	clients      map[string]*SystemgeConnection.SystemgeConnection
+	clientsMutex sync.Mutex
 
-	asyncMessageHandlers map[string]AsyncMessageHandler
-	syncMessageHandlers  map[string]SyncMessageHandler
-	clientConnections    map[string]*clientConnection // name -> clientConnection
-
-	stopChannel                            chan bool //closing of this channel initiates the stop of the systemge component
-	clientConnectionStopChannelStopChannel chan bool //closing of this channel indicates that the client connection handler has stopped
-	allClientConnectionsStoppedChannel     chan bool //closing of this channel indicates that all client connections have stopped
-	messageHandlerChannel                  chan func()
-
-	clientConnectionMutex    sync.RWMutex
-	syncMessageHandlerMutex  sync.RWMutex
-	asyncMessageHandlerMutex sync.RWMutex
+	connectionId uint32
 
 	// metrics
-	bytesReceived           atomic.Uint64
-	bytesSent               atomic.Uint64
-	invalidMessagesReceived atomic.Uint32
-
-	messageRateLimiterExceeded atomic.Uint32
-	byteRateLimiterExceeded    atomic.Uint32
-
-	connectionAttempts             atomic.Uint32
-	connectionAttemptsSuccessful   atomic.Uint32
-	connectionAttemptsFailed       atomic.Uint32
-	connectionAttemptBytesSent     atomic.Uint64
-	connectionAttemptBytesReceived atomic.Uint64
-
-	syncSuccessResponsesSent atomic.Uint32
-	syncFailureResponsesSent atomic.Uint32
-	syncResponseBytesSent    atomic.Uint64
-
-	asyncMessagesReceived     atomic.Uint32
-	asyncMessageBytesReceived atomic.Uint64
-
-	syncRequestsReceived     atomic.Uint32
-	syncRequestBytesReceived atomic.Uint64
-
-	topicAddSent    atomic.Uint32
-	topicRemoveSent atomic.Uint32
+	connectionAttempts  atomic.Uint32
+	failedConnections   atomic.Uint32
+	rejectedConnections atomic.Uint32
+	acceptedConnections atomic.Uint32
 }
 
-func New(config *Config.SystemgeServer, asyncMessageHanlders map[string]AsyncMessageHandler, syncMessageHandlers map[string]SyncMessageHandler) *SystemgeServer {
-	return &SystemgeServer{
-		config:               config,
-		infoLogger:           Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
-		warningLogger:        Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
-		errorLogger:          Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
-		mailer:               Tools.NewMailer(config.MailerConfig),
-		clientConnections:    make(map[string]*clientConnection),
-		asyncMessageHandlers: asyncMessageHanlders,
-		syncMessageHandlers:  syncMessageHandlers,
+func New(config *Config.SystemgeListener) *SystemgeServer {
+	if config == nil {
+		panic("config is nil")
 	}
+	listener := &SystemgeServer{
+		config:  config,
+		clients: make(map[string]*SystemgeConnection.SystemgeConnection),
+	}
+	if config.IpRateLimiter != nil {
+		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
+	}
+	if config.InfoLoggerPath != "" {
+		listener.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		listener.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		listener.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
+	}
+	if config.MailerConfig != nil {
+		listener.mailer = Tools.NewMailer(config.MailerConfig)
+	}
+	return listener
 }
 
-func (server *SystemgeServer) Start() error {
-	server.statusMutex.Lock()
-	defer server.statusMutex.Unlock()
-	if server.status != Status.STOPPED {
-		return Error.New("SystemgeServer is not in stopped state", nil)
+func (listener *SystemgeServer) Start() error {
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
+	if listener.status != Status.STOPPED {
+		return Error.New("listener is not stopped", nil)
 	}
-	server.status = Status.PENDING
-
-	if server.config.TcpBufferBytes == 0 {
-		server.config.TcpBufferBytes = 1024 * 4
+	listener.status = Status.PENDING
+	if listener.infoLogger != nil {
+		listener.infoLogger.Log("Starting listener")
 	}
-	tcpServer, err := Tcp.NewListener(server.config.ServerConfig)
+	tcpListener, err := Tcp.NewListener(listener.config.ListenerConfig)
 	if err != nil {
-		server.status = Status.STOPPED
-		return Error.New("Failed to create tcp server", err)
+		listener.status = Status.STOPPED
+		return err
 	}
-	if server.config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
-	}
-
-	server.tcpServer = tcpServer
-	server.stopChannel = make(chan bool)
-	server.clientConnectionStopChannelStopChannel = make(chan bool)
-	server.allClientConnectionsStoppedChannel = make(chan bool)
-
-	if server.config.ProcessAllMessagesSequentially {
-		server.messageHandlerChannel = make(chan func(), server.config.ProcessAllMessagesSequentiallyChannelSize)
-		if server.config.ProcessAllMessagesSequentiallyChannelSize == 0 {
-			go func() {
-				for {
-					select {
-					case f := <-server.messageHandlerChannel:
-						f()
-					case <-server.stopChannel:
-						return
-					}
-				}
-			}()
-		} else {
-			go func() {
-				for {
-					select {
-					case f := <-server.messageHandlerChannel:
-						if server.errorLogger != nil && len(server.messageHandlerChannel) >= server.config.ProcessAllMessagesSequentiallyChannelSize-1 {
-							server.errorLogger.Log("ProcessAllMessagesSequentiallyChannelSize reached (increase ProcessAllMessagesSequentiallyChannelSize otherwise message order of arrival is not guaranteed)")
-						}
-						f()
-					case <-server.allClientConnectionsStoppedChannel:
-						return
-					}
-				}
-			}()
-		}
-
-	}
-	go server.handleClientConnections()
-	server.status = Status.STARTED
+	listener.tcpListener = tcpListener
 	return nil
 }
 
-// stopSystemgeServerComponent stops the systemge component.
-// blocking until all goroutines associated with the systemge component have stopped.
-func (server *SystemgeServer) Stop() error {
-	server.statusMutex.Lock()
-	defer server.statusMutex.Unlock()
-	if server.status != Status.STARTED {
-		return Error.New("SystemgeServer is not in started state", nil)
+func (listener *SystemgeServer) AcceptConnection() error {
+	netConn, err := listener.tcpListener.GetListener().Accept()
+	listener.connectionId++
+	connectionId := listener.connectionId
+	listener.connectionAttempts.Add(1)
+	if err != nil {
+		listener.failedConnections.Add(1)
+		return Error.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
 	}
-	server.status = Status.PENDING
-
-	close(server.stopChannel)
-	if server.ipRateLimiter != nil {
-		server.ipRateLimiter.Stop()
+	ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
+	if infoLogger := listener.infoLogger; infoLogger != nil {
+		infoLogger.Log("Accepted connection #" + Helpers.Uint32ToString(connectionId) + " from " + ip)
 	}
-
-	server.tcpServer.GetListener().Close()
-	<-server.clientConnectionStopChannelStopChannel
-
-	server.clientConnectionMutex.Lock()
-	for _, clientConnection := range server.clientConnections {
-		clientConnection.netConn.Close()
-		<-clientConnection.stopChannel
+	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
+		listener.rejectedConnections.Add(1)
+		netConn.Close()
+		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to rate limiting", nil)
 	}
-	server.clientConnectionMutex.Unlock()
-	close(server.allClientConnectionsStoppedChannel)
-
-	server.status = Status.STOPPED
+	if listener.tcpListener.GetBlacklist().Contains(ip) {
+		listener.rejectedConnections.Add(1)
+		netConn.Close()
+		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to blacklist", nil)
+	}
+	if listener.tcpListener.GetWhitelist().ElementCount() > 0 && !listener.tcpListener.GetWhitelist().Contains(ip) {
+		listener.rejectedConnections.Add(1)
+		netConn.Close()
+		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
+	}
+	connection, err := listener.handshake(netConn)
+	if err != nil {
+		listener.rejectedConnections.Add(1)
+		netConn.Close()
+		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to handshake failure", err)
+	}
+	listener.acceptedConnections.Add(1)
+	if infoLogger := listener.infoLogger; infoLogger != nil {
+		infoLogger.Log("Accepted connection #" + Helpers.Uint32ToString(connectionId) + " from " + ip + " as \"" + connection.GetName() + "\"")
+	}
+	listener.clientsMutex.Lock()
+	listener.clients[connection.GetName()] = connection
+	listener.clientsMutex.Unlock()
 	return nil
 }
 
-func (server *SystemgeServer) GetName() string {
-	return server.config.Name
-}
+func (listener *SystemgeServer) handshake(netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
+	listener.connectionAttempts.Add(1)
+	clientConnection := &clientConnection{
+		netConn: netConn,
+	}
+	messageBytes, err := clientConnection.receiveMessage(listener.config.TcpBufferBytes, listener.config.ClientMessageByteLimit)
+	if err != nil {
+		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	message, err := Message.Deserialize(messageBytes, "")
+	if err != nil {
+		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	if err := listener.validateMessage(message); err != nil {
+		return nil, Error.New("Failed to validate \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	if message.GetTopic() != Message.TOPIC_NAME {
+		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
+	}
+	clientConnectionName := message.GetPayload()
+	if clientConnectionName == "" {
+		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
+	}
+	if listener.config.MaxClientNameLength != 0 && len(clientConnectionName) > int(listener.config.MaxClientNameLength) {
+		return nil, Error.New("Received client name \""+clientConnectionName+"\" exceeds maximum size of "+Helpers.Uint64ToString(listener.config.MaxClientNameLength), nil)
+	}
+	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.config.Name).Serialize(), listener.config.TcpTimeoutMs)
+	if err != nil {
+		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	listener.bytesSent.Add(bytesSent)
+	listener.connectionAttemptBytesSent.Add(bytesSent)
 
-func (server *SystemgeServer) GetStatus() int {
-	return server.status
+	tcpBuffer := clientConnection.tcpBuffer
+	clientConnection = listener.newClientConnection(netConn, clientConnectionName)
+	clientConnection.tcpBuffer = tcpBuffer
+	return clientConnection, nil
 }
