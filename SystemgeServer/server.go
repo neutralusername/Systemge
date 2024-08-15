@@ -19,7 +19,7 @@ type SystemgeServer struct {
 	status      int
 	statusMutex sync.Mutex
 
-	config *Config.SystemgeListener
+	config *Config.SystemgeServer
 
 	tcpListener *Tcp.Listener
 
@@ -41,7 +41,7 @@ type SystemgeServer struct {
 	acceptedConnections atomic.Uint32
 }
 
-func New(config *Config.SystemgeListener) *SystemgeServer {
+func New(config *Config.SystemgeServer) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}

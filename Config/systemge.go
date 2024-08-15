@@ -1,9 +1,5 @@
 package Config
 
-import (
-	"encoding/json"
-)
-
 type SystemgeReceiver struct {
 	Name string `json:"name"` // *required*
 
@@ -23,7 +19,7 @@ type SystemgeReceiver struct {
 	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 }
 
-type SystemgeListener struct {
+type SystemgeServer struct {
 	Name string `json:"name"` // *required*
 
 	ListenerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
@@ -52,7 +48,7 @@ type SystemgeConnection struct {
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 }
 
-type SystemgeServer struct {
+/* type SystemgeServer struct {
 	Name string `json:"name"` // *required*
 
 	ServerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
@@ -104,3 +100,4 @@ func UnmarshalSystemgeClient(data string) *SystemgeConnection {
 	json.Unmarshal([]byte(data), &systemge)
 	return &systemge
 }
+*/
