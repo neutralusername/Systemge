@@ -21,10 +21,10 @@ import (
 type App struct {
 	started bool
 
-	serviceModules map[string]Module.ServiceModule
-	modules        map[string]Module.Module
-	mutex          sync.RWMutex
-	config         *Config.Dashboard
+	services map[string]Module.ServiceModule
+	modules  map[string]Module.Module
+	mutex    sync.RWMutex
+	config   *Config.Dashboard
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
@@ -59,10 +59,10 @@ func New(config *Config.Dashboard) *App {
 		panic("config.SystemgeServerConfig.ServerConfig is nil")
 	}
 	app := &App{
-		serviceModules: make(map[string]Module.ServiceModule),
-		modules:        make(map[string]Module.Module),
-		mutex:          sync.RWMutex{},
-		config:         config,
+		services: make(map[string]Module.ServiceModule),
+		modules:  make(map[string]Module.Module),
+		mutex:    sync.RWMutex{},
+		config:   config,
 
 		infoLogger:    Tools.NewLogger("[Info: \"Dashboard\"]", config.InfoLoggerPath),
 		warningLogger: Tools.NewLogger("[Warning: \"Dashboard\"]", config.WarningLoggerPath),
@@ -76,7 +76,12 @@ func New(config *Config.Dashboard) *App {
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
 	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, map[string]SystemgeServer.AsyncMessageHandler{}, map[string]SystemgeServer.SyncMessageHandler{})
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, map[string]SystemgeServer.AsyncMessageHandler{}, map[string]SystemgeServer.SyncMessageHandler{
+		Message.TOPIC_REGISTER_MODULE:    app.RegisterModuleHandler,
+		Message.TOPIC_UNREGISTER_MODULE:  app.UnregisterModuleHandler,
+		Message.TOPIC_REGISTER_SERVICE:   app.RegisterServiceHandler,
+		Message.TOPIC_UNREGISTER_SERVICE: app.UnregisterServiceHandler,
+	})
 	return app
 }
 
@@ -150,7 +155,7 @@ func (app *App) unregisterNodeHttpHandlers(module Module.Module) {
 func (app *App) serviceStatusUpdateRoutine() {
 	for app.started {
 		app.mutex.RLock()
-		for _, node := range app.serviceModules {
+		for _, node := range app.services {
 			statusUpdateJson := Helpers.JsonMarshal(newServiceStatus(node))
 			go app.websocketServer.Broadcast(Message.NewAsync("nodeStatus", statusUpdateJson))
 			if infoLogger := app.infoLogger; infoLogger != nil {

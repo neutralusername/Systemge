@@ -13,7 +13,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Message
 	return map[string]WebsocketServer.MessageHandler{
 		"start": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
-			n := app.serviceModules[message.GetPayload()]
+			n := app.services[message.GetPayload()]
 			app.mutex.RUnlock()
 			if n == nil {
 				return Error.New("Node not found", nil)
@@ -27,7 +27,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Message
 		},
 		"stop": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
-			n := app.serviceModules[message.GetPayload()]
+			n := app.services[message.GetPayload()]
 			app.mutex.RUnlock()
 			if n == nil {
 				return Error.New("Node not found", nil)
