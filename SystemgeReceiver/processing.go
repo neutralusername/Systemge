@@ -45,7 +45,9 @@ func (receiver *SystemgeReceiver) receiveLoop(messageChannel chan func()) {
 			receiver.waitGroup.Done()
 			continue
 		}
-		messageId := receiver.messagesReceived.Add(1)
+		receiver.messagesReceived.Add(1)
+		receiver.messageId++
+		messageId := receiver.messageId
 		if infoLogger := receiver.infoLogger; infoLogger != nil {
 			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
 		}
