@@ -15,12 +15,10 @@ type Dashboard struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`           // *required*
 	Mailer            *Mailer `json:"mailer"`                    // *required*
 
-	AutoStart bool `json:"autoStart"` // default: false
-
-	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
-	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
-	NodeStatusIntervalMs      uint64 `json:"nodeStatusIntervalMs"`      // default: 0 = disabled
-	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`   // default: 0 = disabled
+	HeapUpdateIntervalMs          uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
+	GoroutineUpdateIntervalMs     uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
+	ServiceStatusUpdateIntervalMs uint64 `json:"serviceStatusUpdateIntervalMs"` // default: 0 = disabled
+	MetricsUpdateIntervalMs       uint64 `json:"metricsUpdateIntervalMs"`       // default: 0 = disabled
 }
 
 func UnmarshalDashboard(data string) *Dashboard {

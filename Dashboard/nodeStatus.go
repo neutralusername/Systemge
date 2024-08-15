@@ -1,17 +1,15 @@
 package Dashboard
 
-import (
-	"github.com/neutralusername/Systemge/Node"
-)
+import "github.com/neutralusername/Systemge/Module"
 
 type NodeStatus struct {
 	Name   string `json:"name"`
 	Status int    `json:"status"`
 }
 
-func newNodeStatus(node *Node.Node) NodeStatus {
+func newServiceStatus(serviceModule Module.ServiceModule) NodeStatus {
 	return NodeStatus{
-		Name:   node.GetName(),
-		Status: node.GetStatus(),
+		Name:   serviceModule.GetName(),
+		Status: serviceModule.GetStatus(),
 	}
 }
