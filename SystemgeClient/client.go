@@ -94,6 +94,7 @@ func (client *SystemgeClient) Start() error {
 	if err != nil {
 		return Error.New("failed to establish server connection to endpoint \""+client.config.EndpointConfig.Address+"\"", err)
 	}
+
 	client.statusMutex.Lock()
 	if client.status != Status.PENDING {
 		client.statusMutex.Unlock()

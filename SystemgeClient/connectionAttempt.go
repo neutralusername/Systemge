@@ -10,13 +10,6 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-type serverConnectionAttempt struct {
-	endpointConfig *Config.TcpEndpoint
-	attempts       uint64
-
-	isAborted bool
-}
-
 // repeatedly attempts to establish a connection to an endpoint until either:
 // the connection is established,
 // the maximum number of attempts is reached,
@@ -29,41 +22,35 @@ func (client *SystemgeClient) attemptServerConnection(endpointConfig *Config.Tcp
 	}
 	endpointConfig.Address = address
 
-	serverConnectionAttempt := &serverConnectionAttempt{
-		endpointConfig: endpointConfig,
-	}
-
+	attempts := uint64(0)
 	if infoLogger := client.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("Starting connection attempts to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 	}
 	for {
 		select {
 		case <-client.stopChannel:
-			return nil, Error.New("server connection attempt to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\" was stopped because systemge was stopped", nil)
+			return nil, Error.New("server connection attempt to endpoint \""+endpointConfig.Address+"\" was stopped because systemge was stopped", nil)
 		default:
-			if maxConnectionAttempts := client.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && serverConnectionAttempt.attempts >= maxConnectionAttempts {
-				return nil, Error.New("Max attempts reached to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", nil)
+			if maxConnectionAttempts := client.config.MaxConnectionAttempts; maxConnectionAttempts > 0 && attempts >= maxConnectionAttempts {
+				return nil, Error.New("Max attempts reached to connect to endpoint \""+endpointConfig.Address+"\"", nil)
 			}
-			if serverConnectionAttempt.isAborted {
-				return nil, Error.New("server connection attempt to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\" was aborted", nil)
-			}
-			if serverConnectionAttempt.attempts > 0 {
+			if attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
 			if infoLogger := client.infoLogger; infoLogger != nil {
-				infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(serverConnectionAttempt.attempts)+" to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", nil).Error())
+				infoLogger.Log(Error.New("Attempt #"+Helpers.Uint64ToString(attempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", nil).Error())
 			}
-			if serverConnnection, err := client.handleServerConnectionHandshake(serverConnectionAttempt); err != nil {
+			if serverConnnection, err := client.handleServerConnectionHandshake(endpointConfig); err != nil {
 				client.connectionAttemptsFailed.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(serverConnectionAttempt.attempts)+" to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed attempt #"+Helpers.Uint64ToString(attempts)+" to connect to endpoint \""+endpointConfig.Address+"\"", err).Error())
 				}
-				serverConnectionAttempt.attempts++
+				attempts++
 				continue
 			} else {
 				client.connectionAttemptsSuccessful.Add(1)
 				if infoLogger := client.infoLogger; infoLogger != nil {
-					infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(serverConnectionAttempt.attempts)+" to connect to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\" with name \""+serverConnnection.name+"\"", nil).Error())
+					infoLogger.Log(Error.New("Succeded attempt #"+Helpers.Uint64ToString(attempts)+" to connect to endpoint \""+endpointConfig.Address+"\" with name \""+serverConnnection.name+"\"", nil).Error())
 				}
 				return serverConnnection, nil
 			}
@@ -71,11 +58,11 @@ func (client *SystemgeClient) attemptServerConnection(endpointConfig *Config.Tcp
 	}
 }
 
-func (client *SystemgeClient) handleServerConnectionHandshake(serverConnectionAttempt *serverConnectionAttempt) (*serverConnection, error) {
+func (client *SystemgeClient) handleServerConnectionHandshake(endpointConfig *Config.TcpEndpoint) (*serverConnection, error) {
 	client.connectionAttempts.Add(1)
-	netConn, err := Tcp.NewClient(serverConnectionAttempt.endpointConfig)
+	netConn, err := Tcp.NewClient(endpointConfig)
 	if err != nil {
-		return nil, Error.New("Failed to establish connection to endpoint \""+serverConnectionAttempt.endpointConfig.Address+"\"", err)
+		return nil, Error.New("Failed to establish connection to endpoint \""+endpointConfig.Address+"\"", err)
 	}
 	bytesSent, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, client.config.Name).Serialize(), client.config.TcpTimeoutMs)
 	if err != nil {
@@ -117,7 +104,7 @@ func (client *SystemgeClient) handleServerConnectionHandshake(serverConnectionAt
 		return nil, Error.New("Received server name \""+endpointName+"\" exceeds maximum size of "+Helpers.Uint64ToString(client.config.MaxServerNameLength), nil)
 	}
 	tcpBuffer := serverConnection.tcpBuffer
-	serverConnection = client.newServerConnection(netConn, serverConnectionAttempt.endpointConfig, endpointName)
+	serverConnection = client.newServerConnection(netConn, endpointConfig, endpointName)
 	serverConnection.tcpBuffer = tcpBuffer
 	return serverConnection, nil
 }
