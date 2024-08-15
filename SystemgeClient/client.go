@@ -100,9 +100,9 @@ func (client *SystemgeClient) Start() error {
 		return Error.New("SystemgeClient stopped during startup", nil)
 	}
 	client.status = Status.STARTED
-	client.statusMutex.Unlock()
 	client.stopChannel = make(chan bool)
 	go client.handleServerConnectionMessages(serverConnection)
+	client.statusMutex.Unlock()
 	return nil
 }
 
