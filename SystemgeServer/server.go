@@ -29,9 +29,6 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 	ipRateLimiter *Tools.IpRateLimiter
 
-	clients      map[string]*SystemgeConnection.SystemgeConnection
-	clientsMutex sync.Mutex
-
 	connectionId uint32
 
 	// metrics
@@ -46,8 +43,7 @@ func New(config *Config.SystemgeServer) *SystemgeServer {
 		panic("config is nil")
 	}
 	listener := &SystemgeServer{
-		config:  config,
-		clients: make(map[string]*SystemgeConnection.SystemgeConnection),
+		config: config,
 	}
 	if config.IpRateLimiter != nil {
 		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
@@ -86,14 +82,14 @@ func (listener *SystemgeServer) Start() error {
 	return nil
 }
 
-func (listener *SystemgeServer) AcceptConnection() error {
+func (listener *SystemgeServer) AcceptConnection() (*SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
 	listener.connectionAttempts.Add(1)
 	if err != nil {
 		listener.failedConnections.Add(1)
-		return Error.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
+		return nil, Error.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
 	}
 	ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 	if infoLogger := listener.infoLogger; infoLogger != nil {
@@ -102,32 +98,29 @@ func (listener *SystemgeServer) AcceptConnection() error {
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
-		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to rate limiting", nil)
+		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to rate limiting", nil)
 	}
 	if listener.tcpListener.GetBlacklist().Contains(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
-		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to blacklist", nil)
+		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to blacklist", nil)
 	}
 	if listener.tcpListener.GetWhitelist().ElementCount() > 0 && !listener.tcpListener.GetWhitelist().Contains(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
-		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
+		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
 	connection, err := listener.handshake(netConn)
 	if err != nil {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
-		return Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to handshake failure", err)
+		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to handshake failure", err)
 	}
 	listener.acceptedConnections.Add(1)
 	if infoLogger := listener.infoLogger; infoLogger != nil {
 		infoLogger.Log("Accepted connection #" + Helpers.Uint32ToString(connectionId) + " from " + ip + " as \"" + connection.GetName() + "\"")
 	}
-	listener.clientsMutex.Lock()
-	listener.clients[connection.GetName()] = connection
-	listener.clientsMutex.Unlock()
-	return nil
+	return connection, nil
 }
 
 func (listener *SystemgeServer) handshake(netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
