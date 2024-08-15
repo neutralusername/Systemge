@@ -15,8 +15,6 @@ type SystemgeClient struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
-	DashboardEndpoint *TcpEndpoint `json:"dashboardEndpoint"` // *optional* (endpoint to the dashboard server)
-
 	SyncRequestTimeoutMs       uint64 `json:"syncRequestTimeout"`         // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
 	TcpTimeoutMs               uint64 `json:"tcpTimeoutMs"`               // default: 0 == block forever
 	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
@@ -49,8 +47,6 @@ type SystemgeServer struct {
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-
-	DashboardEndpoint *TcpEndpoint `json:"dashboardEndpoint"` // *optional* (endpoint to the dashboard server)
 
 	TcpTimeoutMs                                uint64 `json:"tcpTimeoutMs"`                                // default: 0 == block forever
 	ProcessMessagesOfEachConnectionSequentially bool   `json:"processMessagesOfEachConnectionSequentially"` // default: false (if true, the server will handle messages from the same incoming connection sequentially) (if >1 incomming connection, multiple message handlers may run concurrently)
@@ -99,12 +95,10 @@ func UnmarshalHTTP(data string) *HTTPServer {
 type WebsocketServer struct {
 	Name string `json:"name"` // *required*
 
-	DashboardEndpoint *TcpEndpoint `json:"dashboardEndpoint"` // *optional* (endpoint to the dashboard server)
-
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-	Mailer            *Mailer `json:"mailer"`            // *optional*
+	MailerConfig      *Mailer `json:"mailer"`            // *optional*
 	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
 	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")

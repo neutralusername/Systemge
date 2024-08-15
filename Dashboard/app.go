@@ -36,62 +36,68 @@ type App struct {
 	mailer        *Tools.Mailer
 }
 
-func New(dashboardConfig *Config.Dashboard) *App {
+func New(config *Config.Dashboard) *App {
+	if config == nil {
+		panic("config is nil")
+	}
+	if config.HTTPServerConfig == nil {
+		panic("config.HTTPServerConfig is nil")
+	}
+	if config.HTTPServerConfig.ServerConfig == nil {
+		panic("config.HTTPServerConfig.ServerConfig is nil")
+	}
+	if config.WebsocketServerConfig == nil {
+		panic("config.WebsocketServerConfig is nil")
+	}
+	if config.WebsocketServerConfig.ServerConfig == nil {
+		panic("config.WebsocketServerConfig.ServerConfig is nil")
+	}
+	if config.SystemgeServerConfig == nil {
+		panic("config.SystemgeServerConfig is nil")
+	}
+	if config.SystemgeServerConfig.ServerConfig == nil {
+		panic("config.SystemgeServerConfig.ServerConfig is nil")
+	}
 	app := &App{
 		serviceModules: make(map[string]Module.ServiceModule),
 		modules:        make(map[string]Module.Module),
 		mutex:          sync.RWMutex{},
-		config:         dashboardConfig,
+		config:         config,
 
-		httpServer:      nil,
-		websocketServer: nil,
-
-		infoLogger:    Tools.NewLogger("[Info: \"Dashboard\"]", dashboardConfig.InfoLoggerPath),
-		warningLogger: Tools.NewLogger("[Warning: \"Dashboard\"]", dashboardConfig.WarningLoggerPath),
-		errorLogger:   Tools.NewLogger("[Error: \"Dashboard\"]", dashboardConfig.ErrorLoggerPath),
-		mailer:        Tools.NewMailer(dashboardConfig.Mailer),
+		infoLogger:    Tools.NewLogger("[Info: \"Dashboard\"]", config.InfoLoggerPath),
+		warningLogger: Tools.NewLogger("[Warning: \"Dashboard\"]", config.WarningLoggerPath),
+		errorLogger:   Tools.NewLogger("[Error: \"Dashboard\"]", config.ErrorLoggerPath),
+		mailer:        Tools.NewMailer(config.MailerConfig),
 	}
-	app.httpServer = HTTPServer.New(&Config.HTTPServer{
-		ServerConfig: dashboardConfig.ServerConfig,
-	}, nil)
+	app.httpServer = HTTPServer.New(config.HTTPServerConfig, nil)
+	_, callerPath, _, _ := runtime.Caller(0)
+	frontendPath := callerPath[:len(callerPath)-len("app.go")] + "frontend/"
+	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.ServerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
+	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
-	app.websocketServer = WebsocketServer.New(&Config.WebsocketServer{
-		InfoLoggerPath:    dashboardConfig.InfoLoggerPath,
-		WarningLoggerPath: dashboardConfig.WarningLoggerPath,
-		ErrorLoggerPath:   dashboardConfig.ErrorLoggerPath,
-		Mailer:            dashboardConfig.Mailer,
-		Pattern:           "/ws",
-		ServerConfig: &Config.TcpServer{
-			Port:        18251,
-			TlsCertPath: dashboardConfig.ServerConfig.TlsCertPath,
-			TlsKeyPath:  dashboardConfig.ServerConfig.TlsKeyPath,
-			Blacklist:   dashboardConfig.ServerConfig.Blacklist,
-			Whitelist:   dashboardConfig.ServerConfig.Whitelist,
-		},
-		ClientWatchdogTimeoutMs: 90000,
-	}, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
-
-	app.systemgeServer = SystemgeServer.New(&Config.SystemgeServer{}, map[string]SystemgeServer.AsyncMessageHandler{}, map[string]SystemgeServer.SyncMessageHandler{})
+	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, map[string]SystemgeServer.AsyncMessageHandler{}, map[string]SystemgeServer.SyncMessageHandler{})
 	return app
 }
 
-func (app *App) Start() {
-	go func() {
-		err := app.httpServer.Start()
-		if err != nil {
-			panic(err)
-		}
-	}()
-	go func() {
-		err := app.websocketServer.Start()
-		if err != nil {
-			panic(err)
-		}
-	}()
+func (app *App) Start() error {
+	err := app.httpServer.Start()
+	if err != nil {
+		return err
+	}
+	err = app.websocketServer.Start()
+	if err != nil {
+		app.httpServer.Stop()
+		return err
+	}
+	err = app.systemgeServer.Start()
+	if err != nil {
+		app.httpServer.Stop()
+		app.websocketServer.Stop()
+		return err
+	}
 
 	app.started = true
-	_, filePath, _, _ := runtime.Caller(0)
-	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(filePath[:len(filePath)-len("lifecycle.go")]+"frontend"))
 
 	if app.config.GoroutineUpdateIntervalMs > 0 {
 		go app.goroutineUpdateRoutine()
@@ -103,12 +109,15 @@ func (app *App) Start() {
 		go app.heapUpdateRoutine()
 	}
 
+	return nil
 }
 
-func (app *App) Stop() {
+func (app *App) Stop() error {
 	app.started = false
 	app.httpServer.Stop()
 	app.websocketServer.Stop()
+	app.systemgeServer.Stop()
+	return nil
 }
 
 func (app *App) registerModuleHttpHandlers(module Module.Module) {

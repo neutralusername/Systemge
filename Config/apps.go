@@ -8,12 +8,14 @@ import (
 
 // ServerConfig applies to both http and websocket besides the fact that websocket is hardcoded to port 18251
 type Dashboard struct {
-	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
+	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
+	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
 
 	InfoLoggerPath    string  `json:"internalInfoLoggerPath"`    // *required*
 	WarningLoggerPath string  `json:"internalWarningLoggerPath"` // *required*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`           // *required*
-	Mailer            *Mailer `json:"mailer"`                    // *required*
+	MailerConfig      *Mailer `json:"mailer"`                    // *required*
 
 	HeapUpdateIntervalMs          uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
 	GoroutineUpdateIntervalMs     uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled

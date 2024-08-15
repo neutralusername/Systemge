@@ -1,4 +1,8 @@
 import { commands } from "./commands.js";
+import {
+    WS_PATTERN, 
+    WS_PORT 
+} from "./configs.js";
 import { 
     lineGraph 
 } from "./lineGraph.js";
@@ -26,7 +30,7 @@ export class root extends React.Component {
             heapUpdates: {},
             goroutineUpdates: {},
         };
-        this.WS_CONNECTION = GetWebsocketConnection();
+        this.WS_CONNECTION = GetWebsocketConnection(WS_PORT, WS_PATTERN);
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);

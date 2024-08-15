@@ -71,7 +71,7 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 		errorLogger:         Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
 		infoLogger:          Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
 		warningLogger:       Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
-		mailer:              Tools.NewMailer(config.Mailer),
+		mailer:              Tools.NewMailer(config.MailerConfig),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	return server

@@ -69,3 +69,15 @@ func CreateDirectory(path string) {
 		panic(fmt.Sprintf("error creating directory : %s", err))
 	}
 }
+
+func CreateFile(filePath string, content string) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		panic(fmt.Sprintf("error creating file : %s", err))
+	}
+	defer file.Close()
+	_, err = file.WriteString(content)
+	if err != nil {
+		panic(fmt.Sprintf("error writing to file : %s", err))
+	}
+}
