@@ -27,7 +27,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 	ipRateLimiter *Tools.IpRateLimiter
 
-	tcpServer *Tcp.Server
+	tcpServer *Tcp.Listener
 
 	asyncMessageHandlers map[string]AsyncMessageHandler
 	syncMessageHandlers  map[string]SyncMessageHandler

@@ -10,20 +10,20 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type Server struct {
+type Listener struct {
 	config    *Config.TcpServer
 	listener  net.Listener
 	blacklist *Tools.AccessControlList
 	whitelist *Tools.AccessControlList
 }
 
-func NewServer(config *Config.TcpServer) (*Server, error) {
+func NewServer(config *Config.TcpServer) (*Listener, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {
 			return nil, Error.New("Failed to listen on port: ", err)
 		}
-		server := &Server{
+		server := &Listener{
 			config:    config,
 			listener:  listener,
 			blacklist: Tools.NewAccessControlList(config.Blacklist),
@@ -42,7 +42,7 @@ func NewServer(config *Config.TcpServer) (*Server, error) {
 	if err != nil {
 		return nil, Error.New("Failed to listen on port: ", err)
 	}
-	server := &Server{
+	server := &Listener{
 		config:    config,
 		listener:  listener,
 		blacklist: Tools.NewAccessControlList(config.Blacklist),
@@ -51,14 +51,14 @@ func NewServer(config *Config.TcpServer) (*Server, error) {
 	return server, nil
 }
 
-func (server *Server) GetWhitelist() *Tools.AccessControlList {
+func (server *Listener) GetWhitelist() *Tools.AccessControlList {
 	return server.whitelist
 }
 
-func (server *Server) GetBlacklist() *Tools.AccessControlList {
+func (server *Listener) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *Server) GetListener() net.Listener {
+func (server *Listener) GetListener() net.Listener {
 	return server.listener
 }

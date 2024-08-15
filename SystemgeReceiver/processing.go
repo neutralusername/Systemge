@@ -24,8 +24,7 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 	}
 }
 
-func (receiver *SystemgeReceiver) receiveLoop() {
-	messageChannel := receiver.messageChannel
+func (receiver *SystemgeReceiver) receiveLoop(messageChannel chan func()) {
 	for receiver.messageChannel == messageChannel {
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
@@ -64,6 +63,7 @@ func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConne
 		receiver.asyncMessagesReceived.Add(1)
 		err := receiver.messageHandler.HandleAsyncMessage(message)
 		if err != nil {
+			receiver.invalidMessagesReceived.Add(1)
 			return Error.New("failed to handle async message", err)
 		}
 	} else if message.IsResponse() {

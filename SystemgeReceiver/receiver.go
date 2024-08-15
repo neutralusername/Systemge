@@ -88,7 +88,7 @@ func (receiver *SystemgeReceiver) Start() error {
 	} else {
 		go receiver.processingLoopConcurrently()
 	}
-	go receiver.receiveLoop()
+	go receiver.receiveLoop(receiver.messageChannel)
 	return nil
 }
 

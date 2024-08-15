@@ -16,7 +16,7 @@ type SystemgeListener struct {
 
 	config *Config.SystemgeListener
 
-	tcpServer *Tcp.Server
+	tcpServer *Tcp.Listener
 
 	errorLogger   *Tools.Logger
 	warningLogger *Tools.Logger
@@ -25,14 +25,33 @@ type SystemgeListener struct {
 
 	clients map[string]*SystemgeConnection.SystemgeConnection
 
-	stopChannel                            chan bool //closing of this channel initiates the stop of the systemge component
-	clientConnectionStopChannelStopChannel chan bool //closing of this channel indicates that the client connection handler has stopped
-	allClientConnectionsStoppedChannel     chan bool //closing of this channel indicates that all client connections have stopped
-
 	mutex sync.Mutex
 
 	// metrics
 	connectionAttempts  atomic.Uint32
 	rejectedConnections atomic.Uint32
 	acceptedConnections atomic.Uint32
+}
+
+func New(config *Config.SystemgeListener) *SystemgeListener {
+	if config == nil {
+		panic("config is nil")
+	}
+	listener := &SystemgeListener{
+		config:  config,
+		clients: make(map[string]*SystemgeConnection.SystemgeConnection),
+	}
+	if config.InfoLoggerPath != "" {
+		listener.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		listener.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		listener.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
+	}
+	if config.MailerConfig != nil {
+		listener.mailer = Tools.NewMailer(config.MailerConfig)
+	}
+	return listener
 }
