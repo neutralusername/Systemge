@@ -36,18 +36,19 @@ func (receiver *SystemgeReceiver) receiveLoop(messageChannel chan func()) {
 		receiver.infoLogger.Log("Receiving messages")
 	}
 	for receiver.messageChannel == messageChannel {
+		receiver.waitGroup.Add(1)
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
 			if receiver.errorLogger != nil {
 				receiver.errorLogger.Log(Error.New("failed to receive message", err).Error())
 			}
+			receiver.waitGroup.Done()
 			continue
 		}
 		messageId := receiver.messagesReceived.Add(1)
 		if infoLogger := receiver.infoLogger; infoLogger != nil {
 			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
 		}
-		receiver.waitGroup.Add(1)
 		receiver.messageChannel <- func() {
 			err := receiver.processMessage(receiver.connection, messageBytes, messageId)
 			if err != nil {
