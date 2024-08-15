@@ -23,9 +23,8 @@ type SystemgeListener struct {
 	ListenerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
 	Endpoint       *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 
-	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
-
-	MaxClientNameLength uint64 `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
+	IpRateLimiter       *IpRateLimiter `json:"ipRateLimiter"`       // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
+	MaxClientNameLength uint64         `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 type SystemgeConnection struct {

@@ -9,10 +9,8 @@ import (
 )
 
 type SystemgeListener struct {
-	config *Config.SystemgeListener
-
-	tcpListener *Tcp.Listener
-
+	config        *Config.SystemgeListener
+	tcpListener   *Tcp.Listener
 	ipRateLimiter *Tools.IpRateLimiter
 
 	connectionId uint32

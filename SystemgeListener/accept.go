@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (listener *SystemgeListener) AcceptConnection(name string, config *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -36,7 +36,7 @@ func (listener *SystemgeListener) AcceptConnection(name string, config *Config.S
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
-	connection, err := listener.handshake(config, name, netConn)
+	connection, err := listener.handshake(connectionConfig, serverName, netConn)
 	if err != nil {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
@@ -46,8 +46,8 @@ func (listener *SystemgeListener) AcceptConnection(name string, config *Config.S
 	return connection, nil
 }
 
-func (listener *SystemgeListener) handshake(config *Config.SystemgeConnection, name string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
-	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
+func (listener *SystemgeListener) handshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
+	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
 	}
@@ -65,9 +65,9 @@ func (listener *SystemgeListener) handshake(config *Config.SystemgeConnection, n
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
 	clientConnectionName := message.GetPayload()
-	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, name).Serialize(), config.TcpSendTimeoutMs)
+	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return SystemgeConnection.New(config, netConn, clientConnectionName), nil
+	return SystemgeConnection.New(connectionConfig, netConn, clientConnectionName), nil
 }

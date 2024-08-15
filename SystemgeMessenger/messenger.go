@@ -1,4 +1,4 @@
-package SystemgeConnection
+package SystemgeMessenger
 
 import (
 	"time"
@@ -7,6 +7,9 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
+
+type SystemgeMessenger struct {
+}
 
 func (client *SystemgeConnection) AsyncMessage(topic, payload string) error {
 	err := client.SendMessage(Message.NewAsync(topic, payload).Serialize())
