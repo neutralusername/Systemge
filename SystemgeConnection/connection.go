@@ -6,14 +6,12 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeConnection struct {
-	name       string
-	config     *Config.SystemgeConnection
-	netConn    net.Conn
-	randomizer *Tools.Randomizer
+	name    string
+	config  *Config.SystemgeConnection
+	netConn net.Conn
 
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
@@ -27,10 +25,9 @@ type SystemgeConnection struct {
 
 func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
 	connection := &SystemgeConnection{
-		name:       name,
-		config:     config,
-		netConn:    netConn,
-		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
+		name:    name,
+		config:  config,
+		netConn: netConn,
 	}
 	return connection
 }

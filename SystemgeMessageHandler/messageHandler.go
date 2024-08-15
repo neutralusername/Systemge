@@ -2,6 +2,7 @@ package SystemgeMessageHandler
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
@@ -13,6 +14,10 @@ type SystemgeMessageHandler struct {
 	syncMutex            sync.Mutex
 	asyncMutex           sync.Mutex
 	sequentialMutex      sync.RWMutex
+
+	// metrics
+	asyncMessagesHandled atomic.Uint64
+	syncRequestsHandled  atomic.Uint64
 }
 
 func NewMessageHandler(asyncMessageHandlers map[string]func(*Message.Message), syncMessageHandlers map[string]func(*Message.Message) (string, error)) *SystemgeMessageHandler {
@@ -31,6 +36,7 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessage(message *Messag
 	if !exists {
 		return Error.New("No handler for async message", nil)
 	}
+	messageHandler.asyncMessagesHandled.Add(1)
 	handler(message)
 	return nil
 }
@@ -44,6 +50,7 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequest(message *Message
 	if !exists {
 		return "", Error.New("No handler for sync message", nil)
 	}
+	messageHandler.syncRequestsHandled.Add(1)
 	return handler(message)
 }
 
@@ -54,6 +61,7 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessageSequentially(mes
 	if !exists {
 		return Error.New("No handler for async message", nil)
 	}
+	messageHandler.asyncMessagesHandled.Add(1)
 	handler(message)
 	return nil
 }
@@ -65,5 +73,6 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequestSequentially(mess
 	if !exists {
 		return "", Error.New("No handler for sync message", nil)
 	}
+	messageHandler.syncRequestsHandled.Add(1)
 	return handler(message)
 }

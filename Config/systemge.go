@@ -30,12 +30,15 @@ type SystemgeListener struct {
 type SystemgeConnection struct {
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
-	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeout"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	TcpReceiveTimeoutMs  uint64 `json:"tcpReceiveTimeout"`  // default: 0 == block forever
-	TcpSendTimeoutMs     uint64 `json:"tcpSendTimeout"`     // default: 0 == block forever
+	TcpReceiveTimeoutMs uint64 `json:"tcpReceiveTimeout"` // default: 0 == block forever
+	TcpSendTimeoutMs    uint64 `json:"tcpSendTimeout"`    // default: 0 == block forever
 
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
+}
+
+type SystemgeMessenger struct {
+	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeout"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
 }
 
 /* type SystemgeServer struct {
