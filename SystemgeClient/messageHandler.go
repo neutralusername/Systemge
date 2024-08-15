@@ -3,6 +3,7 @@ package SystemgeClient
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 )
 
 func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *serverConnection) {
@@ -15,15 +16,17 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 			if warningLogger := client.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from server connection \""+serverConnection.name+"\"", err).Error())
 			}
-			if err := client.Stop(); err != nil {
-				if errorLogger := client.errorLogger; errorLogger != nil {
-					errorLogger.Log(Error.New("Failed to stop SystemgeClient", err).Error())
-				}
-			}
-			if client.config.RestartAfterConnectionLoss {
-				if err := client.Start(); err != nil {
+			if client.GetStatus() != Status.STARTED {
+				if err := client.Stop(); err != nil {
 					if errorLogger := client.errorLogger; errorLogger != nil {
-						errorLogger.Log(Error.New("Failed to restart SystemgeClient after connection loss", err).Error())
+						errorLogger.Log(Error.New("Failed to stop SystemgeClient", err).Error())
+					}
+				}
+				if client.config.RestartAfterConnectionLoss {
+					if err := client.Start(); err != nil {
+						if errorLogger := client.errorLogger; errorLogger != nil {
+							errorLogger.Log(Error.New("Failed to restart SystemgeClient after connection loss", err).Error())
+						}
 					}
 				}
 			}

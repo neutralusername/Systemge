@@ -25,13 +25,10 @@ type SystemgeClient struct {
 	mailer        *Tools.Mailer
 	randomizer    *Tools.Randomizer
 
-	stopChannel chan bool
-
+	stopChannel          chan bool
 	syncResponseChannels map[string]chan *Message.Message
-
-	serverConnection *serverConnection
-
-	mutex sync.RWMutex
+	serverConnection     *serverConnection
+	mutex                sync.RWMutex
 
 	// metrics
 

@@ -10,11 +10,6 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-// repeatedly attempts to establish a connection to an endpoint until either:
-// the connection is established,
-// the maximum number of attempts is reached,
-// the attempt is aborted
-// or the systemge component is stopped
 func (client *SystemgeClient) attemptServerConnection(endpointConfig *Config.TcpEndpoint) (*serverConnection, error) {
 	address, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
