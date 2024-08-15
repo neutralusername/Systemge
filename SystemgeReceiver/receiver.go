@@ -42,7 +42,6 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 		config:         config,
 		connection:     connection,
 		messageHandler: messageHandler,
-		messageChannel: make(chan func()),
 	}
 	if config.RateLimiterBytes != nil {
 		receiver.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
@@ -55,18 +54,24 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 
 func (receiver *SystemgeReceiver) Start() {
 	receiver.running = true
+	receiver.messageChannel = make(chan func())
 	go receiver.receiveLoop()
 	go receiver.processingLoop()
 }
 
 func (receiver *SystemgeReceiver) Stop() {
 	receiver.running = false
+	close(receiver.messageChannel)
+	receiver.waitGroup.Wait()
 }
 
 func (receiver *SystemgeReceiver) processingLoop() {
 	for {
 		select {
 		case process := <-receiver.messageChannel:
+			if process != nil {
+				return
+			}
 			process()
 		}
 	}
