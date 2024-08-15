@@ -2,7 +2,9 @@ package SystemgeReceiver
 
 import (
 	"sync"
+	"sync/atomic"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -11,125 +13,149 @@ import (
 )
 
 type SystemgeReceiver struct {
+	config         *Config.SystemgeReceiver
 	connection     *SystemgeConnection.SystemgeConnection
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
-	logger         *Tools.Logger
+
+	rateLimiterBytes    *Tools.TokenBucketRateLimiter
+	rateLimiterMessages *Tools.TokenBucketRateLimiter
+
+	errorLogger    *Tools.Logger
+	warningLogger  *Tools.Logger
 	messageChannel chan func()
 	running        bool
 	waitGroup      sync.WaitGroup
+
+	// metrics
+
+	asyncMessagesReceived   atomic.Uint32
+	syncRequestsReceived    atomic.Uint32
+	invalidMessagesReceived atomic.Uint32
+	syncResponsesReceived   atomic.Uint32
+
+	messageRateLimiterExceeded atomic.Uint32
+	byteRateLimiterExceeded    atomic.Uint32
 }
 
-func New(connection *SystemgeConnection.SystemgeConnection, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler, logger *Tools.Logger) *SystemgeReceiver {
+func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.SystemgeConnection, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeReceiver {
 	receiver := &SystemgeReceiver{
+		config:         config,
 		connection:     connection,
 		messageHandler: messageHandler,
 		messageChannel: make(chan func()),
-		logger:         logger,
+	}
+	if config.RateLimiterBytes != nil {
+		receiver.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
+	}
+	if config.RateLimiterMessages != nil {
+		receiver.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
 	return receiver
 }
 
 func (receiver *SystemgeReceiver) Start() {
 	receiver.running = true
-	go receiver.loop()
+	go receiver.receiveLoop()
+	go receiver.processingLoop()
 }
 
 func (receiver *SystemgeReceiver) Stop() {
 	receiver.running = false
 }
 
-func (receiver *SystemgeReceiver) loop() {
+func (receiver *SystemgeReceiver) processingLoop() {
+	for {
+		select {
+		case process := <-receiver.messageChannel:
+			process()
+		}
+	}
+}
+
+func (receiver *SystemgeReceiver) receiveLoop() {
 	for receiver.running {
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
-			if receiver.logger != nil {
-				receiver.logger.Log(Error.New("Error receiving message", err).Error())
+			if receiver.errorLogger != nil {
+				receiver.errorLogger.Log(Error.New("failed to receive message", err).Error())
 			}
 			continue
 		}
 		receiver.waitGroup.Add(1)
 		receiver.messageChannel <- func() {
-			receiver.processMessage(receiver.connection, messageBytes)
+			err := receiver.processMessage(receiver.connection, messageBytes)
+			if err != nil {
+				if receiver.warningLogger != nil {
+					receiver.warningLogger.Log(Error.New("failed to process message", err).Error())
+				}
+			}
 		}
 	}
 }
 
-func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte) {
+func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte) error {
 	defer receiver.waitGroup.Done()
 	if err := receiver.checkRateLimits(clientConnection, messageBytes); err != nil {
-		if warningLogger := receiver.warningLogger; warningLogger != nil {
-			warningLogger.Log(Error.New("Rejected message from client connection \""+clientConnection.name+"\"", err).Error())
-		}
-		return
+		return Error.New("rejected message due to rate limits", err)
 	}
-	message, err := Message.Deserialize(messageBytes, clientConnection.name)
+	message, err := Message.Deserialize(messageBytes, clientConnection.GetName())
 	if err != nil {
 		receiver.invalidMessagesReceived.Add(1)
-		if warningLogger := receiver.warningLogger; warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to deserialize message \""+string(messageBytes)+"\" from client connection \""+clientConnection.name+"\"", err).Error())
-		}
-		return
+		return Error.New("failed to deserialize message", err)
 	}
 	if err := receiver.validateMessage(message); err != nil {
 		receiver.invalidMessagesReceived.Add(1)
-		if warningLogger := receiver.warningLogger; warningLogger != nil {
-			warningLogger.Log(Error.New("Failed to validate message \""+string(messageBytes)+"\" from client connection \""+clientConnection.name+"\"", err).Error())
-		}
-		return
+		return Error.New("failed to validate message", err)
 	}
 	if message.GetSyncTokenToken() == "" {
-		receiver.asyncMessageBytesReceived.Add(uint64(len(messageBytes)))
 		receiver.asyncMessagesReceived.Add(1)
-		err := receiver.handleAsyncMessage(message)
-		if err != nil {
+		receiver.messageHandler.HandleAsyncMessage(message)
+	} else if message.IsResponse() {
+		if err := receiver.connection.AddSyncResponse(message); err != nil {
 			receiver.invalidMessagesReceived.Add(1)
-			if warningLogger := receiver.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to handle async messag with topic \""+message.GetTopic()+"\" from client connection \""+clientConnection.name+"\"", err).Error())
-			}
+			return Error.New("failed to add sync response message", err)
 		} else {
-			if infoLogger := receiver.infoLogger; infoLogger != nil {
-				infoLogger.Log(Error.New("Handled async message with topic \""+message.GetTopic()+"\" from client connection \""+clientConnection.name+"\"", nil).Error())
-			}
+			receiver.syncResponsesReceived.Add(1)
 		}
 	} else {
-		receiver.syncRequestBytesReceived.Add(uint64(len(messageBytes)))
 		receiver.syncRequestsReceived.Add(1)
-		responsePayload, err := receiver.handleSyncRequest(message)
-		if err != nil {
-			receiver.invalidMessagesReceived.Add(1)
-			if warningLogger := receiver.warningLogger; warningLogger != nil {
-				warningLogger.Log(Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" from client connection \""+clientConnection.name+"\"", err).Error())
-			}
-			if err := receiver.messageClientConnection(clientConnection, message.NewFailureResponse(responsePayload)); err != nil {
-				if warningLogger := receiver.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to send failure response to client connection \""+clientConnection.name+"\"", err).Error())
-				}
-			} else {
-				receiver.syncFailureResponsesSent.Add(1)
+		if responsePayload, err := receiver.messageHandler.HandleSyncRequest(message); err != nil {
+			if err := receiver.connection.SendMessage(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
+				return Error.New("failed to send failure response", err)
 			}
 		} else {
-			if infoLogger := receiver.infoLogger; infoLogger != nil {
-				infoLogger.Log(Error.New("Handled sync request with topic \""+message.GetTopic()+"\" from client connection \""+clientConnection.name+"\" with sync token \""+message.GetSyncTokenToken()+"\"", nil).Error())
-			}
-			if err := receiver.messageClientConnection(clientConnection, message.NewSuccessResponse(responsePayload)); err != nil {
-				if warningLogger := receiver.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to send success response to clientclient connection \""+clientConnection.name+"\"", err).Error())
-				}
-			} else {
-				receiver.syncSuccessResponsesSent.Add(1)
+			if err := receiver.connection.SendMessage(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
+				return Error.New("failed to send success response", err)
 			}
 		}
 	}
+	return nil
 }
 
-func (systemge *SystemgeReceiver) checkRateLimits(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte) error {
-	if clientConnection.rateLimiterBytes != nil && !clientConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		systemge.byteRateLimiterExceeded.Add(1)
+func (receiver *SystemgeReceiver) checkRateLimits(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte) error {
+	if receiver.rateLimiterBytes != nil && !receiver.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+		receiver.byteRateLimiterExceeded.Add(1)
 		return Error.New("client connection rate limiter bytes exceeded", nil)
 	}
-	if clientConnection.rateLimiterMsgs != nil && !clientConnection.rateLimiterMsgs.Consume(1) {
-		systemge.messageRateLimiterExceeded.Add(1)
+	if receiver.rateLimiterMessages != nil && !receiver.rateLimiterMessages.Consume(1) {
+		receiver.messageRateLimiterExceeded.Add(1)
 		return Error.New("client connection rate limiter messages exceeded", nil)
+	}
+	return nil
+}
+
+func (receiver *SystemgeReceiver) validateMessage(message *Message.Message) error {
+	if maxSyncTokenSize := receiver.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
+		return Error.New("Message sync token exceeds maximum size", nil)
+	}
+	if len(message.GetTopic()) == 0 {
+		return Error.New("Message missing topic", nil)
+	}
+	if maxTopicSize := receiver.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return Error.New("Message topic exceeds maximum size", nil)
+	}
+	if maxPayloadSize := receiver.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return Error.New("Message payload exceeds maximum size", nil)
 	}
 	return nil
 }

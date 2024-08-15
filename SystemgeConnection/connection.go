@@ -13,6 +13,7 @@ import (
 )
 
 type SystemgeConnection struct {
+	name       string
 	config     *Config.SystemgeConnection
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
@@ -32,14 +33,19 @@ type SystemgeConnection struct {
 	bytesReceived atomic.Uint64
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn) *SystemgeConnection {
+func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
 	connection := &SystemgeConnection{
+		name:        name,
 		config:      config,
 		netConn:     netConn,
 		randomizer:  Tools.NewRandomizer(config.RandomizerSeed),
 		stopChannel: make(chan bool),
 	}
 	return connection
+}
+
+func (connection *SystemgeConnection) GetName() string {
+	return connection.name
 }
 
 func (connection *SystemgeConnection) ReceiveMessage() ([]byte, error) {

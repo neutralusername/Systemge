@@ -62,7 +62,7 @@ func (client *SystemgeConnection) removeResponseChannel(syncToken string) {
 	}
 }
 
-func (client *SystemgeConnection) addSyncResponse(message *Message.Message) error {
+func (client *SystemgeConnection) AddSyncResponse(message *Message.Message) error {
 	client.syncMutex.Lock()
 	defer client.syncMutex.Unlock()
 	if responseChannel, ok := client.syncResponseChannels[message.GetSyncTokenToken()]; ok {

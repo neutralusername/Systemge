@@ -2,7 +2,7 @@ package SystemgeMessageHandler
 
 import "github.com/neutralusername/Systemge/Message"
 
-func (messageHandler *SystemgeMessageHandler) AddAsyncMessageHandler(topic string, handler func(*Message.Message) error) {
+func (messageHandler *SystemgeMessageHandler) AddAsyncMessageHandler(topic string, handler func(*Message.Message)) {
 	messageHandler.asyncMutex.Lock()
 	messageHandler.asyncMessageHandlers[topic] = handler
 	messageHandler.asyncMutex.Unlock()

@@ -8,14 +8,14 @@ import (
 )
 
 type SystemgeMessageHandler struct {
-	asyncMessageHandlers map[string]func(*Message.Message) error
+	asyncMessageHandlers map[string]func(*Message.Message)
 	syncMessageHandlers  map[string]func(*Message.Message) (string, error)
 	syncMutex            sync.Mutex
 	asyncMutex           sync.Mutex
 	sequentialMutex      sync.RWMutex
 }
 
-func NewMessageHandler(asyncMessageHandlers map[string]func(*Message.Message) error, syncMessageHandlers map[string]func(*Message.Message) (string, error)) *SystemgeMessageHandler {
+func NewMessageHandler(asyncMessageHandlers map[string]func(*Message.Message), syncMessageHandlers map[string]func(*Message.Message) (string, error)) *SystemgeMessageHandler {
 	return &SystemgeMessageHandler{
 		asyncMessageHandlers: asyncMessageHandlers,
 		syncMessageHandlers:  syncMessageHandlers,
@@ -31,10 +31,11 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessage(message *Messag
 	if !exists {
 		return Error.New("No handler for async message", nil)
 	}
-	return handler(message)
+	handler(message)
+	return nil
 }
 
-func (messageHandler *SystemgeMessageHandler) HandleSyncMessage(message *Message.Message) (string, error) {
+func (messageHandler *SystemgeMessageHandler) HandleSyncRequest(message *Message.Message) (string, error) {
 	messageHandler.sequentialMutex.RLock()
 	defer messageHandler.sequentialMutex.RUnlock()
 	messageHandler.syncMutex.Lock()
@@ -53,10 +54,11 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessageSequentially(mes
 	if !exists {
 		return Error.New("No handler for async message", nil)
 	}
-	return handler(message)
+	handler(message)
+	return nil
 }
 
-func (messageHandler *SystemgeMessageHandler) HandleSyncMessageSequentially(message *Message.Message) (string, error) {
+func (messageHandler *SystemgeMessageHandler) HandleSyncRequestSequentially(message *Message.Message) (string, error) {
 	messageHandler.sequentialMutex.Lock()
 	defer messageHandler.sequentialMutex.Unlock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
