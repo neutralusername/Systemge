@@ -48,21 +48,9 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 				return
 			}
 			if len(message.GetSyncTokenToken()) == 0 {
-				if message.GetTopic() == Message.TOPIC_ADDTOPIC {
-					client.mutex.Lock()
-					client.serverTopics[message.GetPayload()] = true
-					client.mutex.Unlock()
-					client.topicAddReceived.Add(1)
-				} else if message.GetTopic() == Message.TOPIC_REMOVETOPIC {
-					client.mutex.Lock()
-					delete(client.serverTopics, message.GetPayload())
-					client.mutex.Unlock()
-					client.topicRemoveReceived.Add(1)
-				} else {
-					client.invalidMessagesReceived.Add(1)
-					if warningLogger := client.warningLogger; warningLogger != nil {
-						warningLogger.Log(Error.New("Received async message from server connection \""+serverConnection.name+"\" (which goes against protocol)", nil).Error())
-					}
+				client.invalidMessagesReceived.Add(1)
+				if warningLogger := client.warningLogger; warningLogger != nil {
+					warningLogger.Log(Error.New("Received async message from server connection \""+serverConnection.name+"\" (which goes against protocol)", nil).Error())
 				}
 				return
 			}

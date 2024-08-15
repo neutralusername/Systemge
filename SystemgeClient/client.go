@@ -28,7 +28,6 @@ type SystemgeClient struct {
 	stopChannel chan bool
 
 	syncResponseChannels map[string]chan *Message.Message
-	serverTopics         map[string]bool
 
 	serverConnection *serverConnection
 
@@ -76,7 +75,6 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 		randomizer:    Tools.NewRandomizer(config.RandomizerSeed),
 
 		syncResponseChannels: make(map[string]chan *Message.Message),
-		serverTopics:         make(map[string]bool),
 	}
 }
 
@@ -92,7 +90,8 @@ func (client *SystemgeClient) Start() error {
 	client.status = Status.PENDING
 	client.statusMutex.Unlock()
 
-	if err := client.attemptServerConnection(client.config.EndpointConfig); err != nil {
+	serverConnection, err := client.attemptServerConnection(client.config.EndpointConfig)
+	if err != nil {
 		return Error.New("failed to establish server connection to endpoint \""+client.config.EndpointConfig.Address+"\"", err)
 	}
 	client.statusMutex.Lock()
@@ -103,6 +102,7 @@ func (client *SystemgeClient) Start() error {
 	client.status = Status.STARTED
 	client.statusMutex.Unlock()
 	client.stopChannel = make(chan bool)
+	go client.handleServerConnectionMessages(serverConnection)
 	return nil
 }
 

@@ -20,7 +20,6 @@ type messageData struct {
 const TOPIC_SUCCESS = "success"
 const TOPIC_FAILURE = "failure"
 const TOPIC_NAME = "name"
-const TOPIC_RESPONSIBLETOPICS = "topics"
 const TOPIC_ADDTOPIC = "addTopic"
 const TOPIC_REMOVETOPIC = "removeTopic"
 

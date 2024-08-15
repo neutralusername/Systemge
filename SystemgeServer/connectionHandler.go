@@ -108,23 +108,7 @@ func (server *SystemgeServer) handleClientConnectionHandshake(netConn net.Conn) 
 	}
 	server.bytesSent.Add(bytesSent)
 	server.connectionAttemptBytesSent.Add(bytesSent)
-	responsibleTopics := []string{}
-	server.syncMessageHandlerMutex.RLock()
-	for topic := range server.syncMessageHandlers {
-		responsibleTopics = append(responsibleTopics, topic)
-	}
-	server.syncMessageHandlerMutex.RUnlock()
-	server.asyncMessageHandlerMutex.RLock()
-	for topic := range server.asyncMessageHandlers {
-		responsibleTopics = append(responsibleTopics, topic)
-	}
-	server.asyncMessageHandlerMutex.RUnlock()
-	bytesSent, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_RESPONSIBLETOPICS, Helpers.JsonMarshal(responsibleTopics)).Serialize(), server.config.TcpTimeoutMs)
-	if err != nil {
-		return nil, Error.New("Failed to send \""+Message.TOPIC_RESPONSIBLETOPICS+"\" message", err)
-	}
-	server.bytesSent.Add(bytesSent)
-	server.connectionAttemptBytesSent.Add(bytesSent)
+
 	tcpBuffer := clientConnection.tcpBuffer
 	clientConnection = server.newClientConnection(netConn, clientConnectionName)
 	clientConnection.tcpBuffer = tcpBuffer
