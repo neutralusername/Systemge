@@ -5,6 +5,8 @@ import (
 )
 
 type SystemgeReceiver struct {
+	Name string `json:"name"` // *required*
+
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*

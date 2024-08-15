@@ -49,6 +49,9 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 	if connection == nil {
 		panic("connection is nil")
 	}
+	if messageHandler == nil {
+		panic("messageHandler is nil")
+	}
 	receiver := &SystemgeReceiver{
 		config:         config,
 		connection:     connection,
@@ -61,13 +64,13 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 		receiver.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
 	if config.InfoLoggerPath != "" {
-		receiver.infoLogger = Tools.NewLogger("[Info: \""+connection.GetName()+"\"] ", config.InfoLoggerPath)
+		receiver.infoLogger = Tools.NewLogger("[Info: \""+receiver.GetName()+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		receiver.warningLogger = Tools.NewLogger("[Warning: \""+connection.GetName()+"\"] ", config.WarningLoggerPath)
+		receiver.warningLogger = Tools.NewLogger("[Warning: \""+receiver.GetName()+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		receiver.errorLogger = Tools.NewLogger("[Error: \""+connection.GetName()+"\"] ", config.ErrorLoggerPath)
+		receiver.errorLogger = Tools.NewLogger("[Error: \""+receiver.GetName()+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
 		receiver.mailer = Tools.NewMailer(config.MailerConfig)
@@ -102,4 +105,12 @@ func (receiver *SystemgeReceiver) Stop() error {
 	receiver.waitGroup.Wait()
 	receiver.status = Status.STOPPED
 	return nil
+}
+
+func (receiver *SystemgeReceiver) GetStatus() int {
+	return receiver.status
+}
+
+func (receiver *SystemgeReceiver) GetName() string {
+	return receiver.config.Name
 }
