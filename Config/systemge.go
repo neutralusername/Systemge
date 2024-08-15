@@ -5,7 +5,13 @@ import (
 )
 
 type SystemgeReceiver struct {
-	Name string `json:"name"` // *required*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+
+	ProcessSequentially bool `json:"processSequentially"` // default: false (if true, the receiver will handle messages sequentially)
+	ProcessChannelSize  int  `json:"processChannelSize"`  // default: 0 == no guarantee on order of arrival (if >0, the order of arrival is guaranteed as long as the channel is never full)
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
@@ -15,21 +21,21 @@ type SystemgeReceiver struct {
 	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 }
 
-type SystemgeClient struct {
+type SystemgeListener struct {
 	Name string `json:"name"` // *required*
 
-	EndpointConfig    *TcpEndpoint `json:"endpointConfig"`    // *required*
-	MailerConfig      *Mailer      `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string       `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string       `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string       `json:"errorLoggerPath"`   // *optional*
+	ServerConfig *TcpServer   `json:"serverConfig"` // *required* (the configuration of this node's server)
+	Endpoint     *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 
-	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
-	ConnectionAttemptDelayMs   uint64 `json:"connectionAttemptDelay"`     // default: 0 (delay after failed connection attempt)
-	RestartAfterConnectionLoss bool   `json:"restartAfterConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 }
 
 type SystemgeConnection struct {
+	Name string `json:"name"` // *required*
+
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
 	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeout"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
@@ -38,12 +44,6 @@ type SystemgeConnection struct {
 
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-}
-
-func UnmarshalSystemgeClient(data string) *SystemgeConnection {
-	var systemge SystemgeConnection
-	json.Unmarshal([]byte(data), &systemge)
-	return &systemge
 }
 
 type SystemgeServer struct {
@@ -77,6 +77,26 @@ type SystemgeServer struct {
 
 func UnmarshalSystemgeServer(data string) *SystemgeServer {
 	var systemge SystemgeServer
+	json.Unmarshal([]byte(data), &systemge)
+	return &systemge
+}
+
+type SystemgeClient struct {
+	Name string `json:"name"` // *required*
+
+	EndpointConfig    *TcpEndpoint `json:"endpointConfig"`    // *required*
+	MailerConfig      *Mailer      `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string       `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string       `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string       `json:"errorLoggerPath"`   // *optional*
+
+	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
+	ConnectionAttemptDelayMs   uint64 `json:"connectionAttemptDelay"`     // default: 0 (delay after failed connection attempt)
+	RestartAfterConnectionLoss bool   `json:"restartAfterConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
+}
+
+func UnmarshalSystemgeClient(data string) *SystemgeConnection {
+	var systemge SystemgeConnection
 	json.Unmarshal([]byte(data), &systemge)
 	return &systemge
 }
