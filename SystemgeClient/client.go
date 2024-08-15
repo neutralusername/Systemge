@@ -121,6 +121,7 @@ func (client *SystemgeClient) Stop() error {
 	close(client.stopChannel)
 	client.serverConnection.netConn.Close()
 	<-client.serverConnection.stopChannel
+	client.serverConnection = nil
 
 	client.statusMutex.Lock()
 	client.status = Status.STOPPED
