@@ -25,7 +25,7 @@ type SystemgeClient struct {
 	mailer        *Tools.Mailer
 	randomizer    *Tools.Randomizer
 
-	stopChannel chan bool //closing of this channel initiates the stop of the systemge component
+	stopChannel chan bool
 
 	syncResponseChannels map[string]chan *Message.Message
 	serverTopics         map[string]bool
@@ -92,9 +92,7 @@ func (client *SystemgeClient) Start() error {
 	client.status = Status.PENDING
 	client.statusMutex.Unlock()
 
-	client.stopChannel = make(chan bool)
 	if err := client.attemptServerConnection(client.config.EndpointConfig); err != nil {
-		client.Stop()
 		return Error.New("failed to establish server connection to endpoint \""+client.config.EndpointConfig.Address+"\"", err)
 	}
 	client.statusMutex.Lock()
@@ -104,7 +102,7 @@ func (client *SystemgeClient) Start() error {
 	}
 	client.status = Status.STARTED
 	client.statusMutex.Unlock()
-
+	client.stopChannel = make(chan bool)
 	return nil
 }
 
