@@ -26,7 +26,7 @@ type App struct {
 	mutex    sync.RWMutex
 	config   *Config.Dashboard
 
-	systemgeServer  *SystemgeServer.SystemgeServer
+	systemgeServer  *SystemgeServer.SystemgeListener
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 

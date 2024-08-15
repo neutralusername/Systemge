@@ -7,9 +7,9 @@ import (
 )
 
 type Dashboard struct {
-	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
-	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
+	HTTPServerConfig      *HTTPServer       `json:"httpServerConfig"`      // *required*
+	WebsocketServerConfig *WebsocketServer  `json:"websocketServerConfig"` // *required*
+	SystemgeServerConfig  *SystemgeListener `json:"systemgeServerConfig"`  // *required*
 
 	InfoLoggerPath    string  `json:"internalInfoLoggerPath"`    // *required*
 	WarningLoggerPath string  `json:"internalWarningLoggerPath"` // *required*

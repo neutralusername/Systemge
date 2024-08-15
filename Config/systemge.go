@@ -19,7 +19,7 @@ type SystemgeReceiver struct {
 	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 }
 
-type SystemgeServer struct {
+type SystemgeListener struct {
 	Name string `json:"name"` // *required*
 
 	ListenerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
