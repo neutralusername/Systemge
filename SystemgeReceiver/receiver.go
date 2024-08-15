@@ -32,6 +32,7 @@ type SystemgeReceiver struct {
 	waitGroup      sync.WaitGroup
 
 	// metrics
+	messagesReceived atomic.Uint32
 
 	asyncMessagesReceived   atomic.Uint32
 	syncRequestsReceived    atomic.Uint32
@@ -84,6 +85,9 @@ func (receiver *SystemgeReceiver) Start() error {
 	if receiver.status != Status.STOPPED {
 		return Error.New("receiver already started", nil)
 	}
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Starting receiver")
+	}
 	receiver.messageChannel = make(chan func())
 	receiver.status = Status.STARTED
 	if receiver.config.ProcessSequentially {
@@ -92,6 +96,9 @@ func (receiver *SystemgeReceiver) Start() error {
 		go receiver.processingLoopConcurrently()
 	}
 	go receiver.receiveLoop(receiver.messageChannel)
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Receiver started")
+	}
 	return nil
 }
 
@@ -101,9 +108,15 @@ func (receiver *SystemgeReceiver) Stop() error {
 	if receiver.status != Status.STARTED {
 		return Error.New("receiver already stopped", nil)
 	}
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Stopping receiver")
+	}
 	close(receiver.messageChannel)
 	receiver.waitGroup.Wait()
 	receiver.status = Status.STOPPED
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Receiver stopped")
+	}
 	return nil
 }
 

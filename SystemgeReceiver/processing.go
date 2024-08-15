@@ -2,11 +2,15 @@ package SystemgeReceiver
 
 import (
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 func (receiver *SystemgeReceiver) processingLoopSequentially() {
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Processing messages sequentially")
+	}
 	for process := range receiver.messageChannel {
 		if process == nil {
 			return
@@ -16,6 +20,9 @@ func (receiver *SystemgeReceiver) processingLoopSequentially() {
 }
 
 func (receiver *SystemgeReceiver) processingLoopConcurrently() {
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Processing messages concurrently")
+	}
 	for process := range receiver.messageChannel {
 		if process == nil {
 			return
@@ -25,6 +32,9 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 }
 
 func (receiver *SystemgeReceiver) receiveLoop(messageChannel chan func()) {
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Receiving messages")
+	}
 	for receiver.messageChannel == messageChannel {
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
@@ -33,19 +43,26 @@ func (receiver *SystemgeReceiver) receiveLoop(messageChannel chan func()) {
 			}
 			continue
 		}
+		messageId := receiver.messagesReceived.Add(1)
+		if infoLogger := receiver.infoLogger; infoLogger != nil {
+			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
+		}
 		receiver.waitGroup.Add(1)
 		receiver.messageChannel <- func() {
-			err := receiver.processMessage(receiver.connection, messageBytes)
+			err := receiver.processMessage(receiver.connection, messageBytes, messageId)
 			if err != nil {
 				if receiver.warningLogger != nil {
-					receiver.warningLogger.Log(Error.New("failed to process message", err).Error())
+					receiver.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint32ToString(messageId), err).Error())
 				}
 			}
 		}
 	}
 }
 
-func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte) error {
+func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) error {
+	if infoLogger := receiver.infoLogger; infoLogger != nil {
+		infoLogger.Log("Processing message #" + Helpers.Uint32ToString(messageId))
+	}
 	defer receiver.waitGroup.Done()
 	if err := receiver.checkRateLimits(clientConnection, messageBytes); err != nil {
 		return Error.New("rejected message due to rate limits", err)
@@ -84,6 +101,9 @@ func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConne
 				return Error.New("failed to send success response", err)
 			}
 		}
+	}
+	if infoLogger := receiver.infoLogger; infoLogger != nil {
+		infoLogger.Log("Processed message #" + Helpers.Uint32ToString(messageId))
 	}
 	return nil
 }
