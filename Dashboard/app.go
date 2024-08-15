@@ -76,7 +76,9 @@ func New(config *Config.Dashboard) *App {
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
 	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, map[string]SystemgeServer.AsyncMessageHandler{}, map[string]SystemgeServer.SyncMessageHandler{
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, map[string]SystemgeServer.AsyncMessageHandler{
+		Message.TOPIC_SERVICE_STATUS: app.ServiceStatusHandler,
+	}, map[string]SystemgeServer.SyncMessageHandler{
 		Message.TOPIC_REGISTER_MODULE:    app.RegisterModuleHandler,
 		Message.TOPIC_UNREGISTER_MODULE:  app.UnregisterModuleHandler,
 		Message.TOPIC_REGISTER_SERVICE:   app.RegisterServiceHandler,

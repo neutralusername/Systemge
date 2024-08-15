@@ -17,7 +17,7 @@ type SystemgeClient struct {
 	stopMutex   sync.Mutex
 	statusMutex sync.Mutex
 
-	config *Config.SystemgeClient
+	config *Config.SystemgeConnection
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
@@ -59,7 +59,7 @@ type SystemgeClient struct {
 	topicRemoveReceived atomic.Uint32
 }
 
-func New(config *Config.SystemgeClient) *SystemgeClient {
+func New(config *Config.SystemgeConnection) *SystemgeClient {
 	if config == nil {
 		panic("SystemgeClient config is nil")
 	}
