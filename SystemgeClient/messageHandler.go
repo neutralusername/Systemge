@@ -16,7 +16,7 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 			if warningLogger := client.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from server connection \""+serverConnection.name+"\"", err).Error())
 			}
-			if client.GetStatus() != Status.STARTED {
+			if client.GetStatus() == Status.STARTED {
 				if err := client.Stop(); err != nil {
 					if errorLogger := client.errorLogger; errorLogger != nil {
 						errorLogger.Log(Error.New("Failed to stop SystemgeClient", err).Error())
