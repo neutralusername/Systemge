@@ -6,6 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -26,13 +27,12 @@ type SystemgeClient struct {
 
 	stopChannel chan bool //closing of this channel initiates the stop of the systemge component
 
-	syncResponseChannels     map[string]*SyncResponseChannel         // syncToken -> responseChannel
-	topicResolutions         map[string]map[string]*serverConnection // topic -> [name -> serverConnection]
-	serverConnections        map[string]*serverConnection            // address -> serverConnection
-	serverConnectionAttempts map[string]*serverConnectionAttempt     // address -> bool
+	syncResponseChannels map[string]chan *Message.Message
+	serverTopics         map[string]bool
 
-	serverConnectionMutex sync.RWMutex
-	syncRequestMutex      sync.RWMutex
+	serverConnection *serverConnection
+
+	mutex sync.RWMutex
 
 	// metrics
 
@@ -75,10 +75,8 @@ func New(config *Config.SystemgeClient) *SystemgeClient {
 		mailer:        Tools.NewMailer(config.MailerConfig),
 		randomizer:    Tools.NewRandomizer(config.RandomizerSeed),
 
-		syncResponseChannels:     make(map[string]*SyncResponseChannel),
-		topicResolutions:         make(map[string]map[string]*serverConnection),
-		serverConnections:        make(map[string]*serverConnection),
-		serverConnectionAttempts: make(map[string]*serverConnectionAttempt),
+		syncResponseChannels: make(map[string]chan *Message.Message),
+		serverTopics:         make(map[string]bool),
 	}
 }
 
@@ -91,18 +89,16 @@ func (client *SystemgeClient) Start() error {
 		client.statusMutex.Unlock()
 		return Error.New("SystemgeClient is not in stopped state", nil)
 	}
-	client.status = Status.STARTING
+	client.status = Status.PENDING
 	client.statusMutex.Unlock()
 
 	client.stopChannel = make(chan bool)
-	for _, endpointConfig := range client.config.EndpointConfigs {
-		if err := client.attemptServerConnection(endpointConfig, false); err != nil {
-			client.Stop()
-			return Error.New("failed to establish server connection to endpoint \""+endpointConfig.Address+"\"", err)
-		}
+	if err := client.attemptServerConnection(client.config.EndpointConfig); err != nil {
+		client.Stop()
+		return Error.New("failed to establish server connection to endpoint \""+client.config.EndpointConfig.Address+"\"", err)
 	}
 	client.statusMutex.Lock()
-	if client.status != Status.STARTING {
+	if client.status != Status.PENDING {
 		client.statusMutex.Unlock()
 		return Error.New("SystemgeClient stopped during startup", nil)
 	}
@@ -121,20 +117,12 @@ func (client *SystemgeClient) Stop() error {
 		client.statusMutex.Unlock()
 		return Error.New("SystemgeClient is already in stopped state", nil)
 	}
-	client.status = Status.STOPPING
+	client.status = Status.PENDING
 	client.statusMutex.Unlock()
 
 	close(client.stopChannel)
-
-	client.serverConnectionMutex.Lock()
-	for _, serverConnectionAttempt := range client.serverConnectionAttempts {
-		serverConnectionAttempt.isAborted = true
-	}
-	for _, serverConnection := range client.serverConnections {
-		serverConnection.netConn.Close()
-		<-serverConnection.stopChannel
-	}
-	client.serverConnectionMutex.Unlock()
+	client.serverConnection.netConn.Close()
+	<-client.serverConnection.stopChannel
 
 	client.statusMutex.Lock()
 	client.status = Status.STOPPED

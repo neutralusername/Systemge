@@ -15,41 +15,18 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 			if warningLogger := client.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to receive message from server connection \""+serverConnection.name+"\"", err).Error())
 			}
-			serverConnection.netConn.Close()
-			if serverConnection.rateLimiterBytes != nil {
-				serverConnection.rateLimiterBytes.Stop()
+			if err := client.Stop(); err != nil {
+				if errorLogger := client.errorLogger; errorLogger != nil {
+					errorLogger.Log(Error.New("Failed to stop SystemgeClient", err).Error())
+				}
 			}
-			if serverConnection.rateLimiterMsgs != nil {
-				serverConnection.rateLimiterMsgs.Stop()
-			}
-			close(serverConnection.stopChannel)
-			client.serverConnectionMutex.Lock()
-			delete(client.serverConnections, serverConnection.endpointConfig.Address)
-			serverConnection.topicsMutex.Lock()
-			for topic := range serverConnection.topics {
-				topicResolutions := client.topicResolutions[topic]
-				if topicResolutions != nil {
-					delete(topicResolutions, serverConnection.name)
-					if len(topicResolutions) == 0 {
-						delete(client.topicResolutions, topic)
+			if client.config.RestartAfterConnectionLoss {
+				if err := client.Start(); err != nil {
+					if errorLogger := client.errorLogger; errorLogger != nil {
+						errorLogger.Log(Error.New("Failed to restart SystemgeClient after connection loss", err).Error())
 					}
 				}
 			}
-			serverConnection.topicsMutex.Unlock()
-			if !serverConnection.isTransient {
-				go func() {
-					err := client.attemptServerConnection(serverConnection.endpointConfig, false)
-					if err != nil {
-						if errorLogger := client.errorLogger; errorLogger != nil {
-							errorLogger.Log(Error.New("Failed to reconnect to endpoint \""+serverConnection.endpointConfig.Address+"\"", err).Error())
-						}
-						if client.config.StopAfterServerConnectionLoss {
-							client.Stop()
-						}
-					}
-				}()
-			}
-			client.serverConnectionMutex.Unlock()
 			return
 		}
 		go func(messageBytes []byte) {
@@ -72,14 +49,14 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 			}
 			if len(message.GetSyncTokenToken()) == 0 {
 				if message.GetTopic() == Message.TOPIC_ADDTOPIC {
-					serverConnection.topicsMutex.Lock()
-					serverConnection.topics[message.GetPayload()] = true
-					serverConnection.topicsMutex.Unlock()
+					client.mutex.Lock()
+					client.serverTopics[message.GetPayload()] = true
+					client.mutex.Unlock()
 					client.topicAddReceived.Add(1)
 				} else if message.GetTopic() == Message.TOPIC_REMOVETOPIC {
-					serverConnection.topicsMutex.Lock()
-					delete(serverConnection.topics, message.GetPayload())
-					serverConnection.topicsMutex.Unlock()
+					client.mutex.Lock()
+					delete(client.serverTopics, message.GetPayload())
+					client.mutex.Unlock()
 					client.topicRemoveReceived.Add(1)
 				} else {
 					client.invalidMessagesReceived.Add(1)
@@ -89,7 +66,6 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 				}
 				return
 			}
-			client.syncResponseBytesReceived.Add(uint64(len(messageBytes)))
 			if err := client.validateMessage(message); err != nil {
 				client.invalidMessagesReceived.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
@@ -97,20 +73,13 @@ func (client *SystemgeClient) handleServerConnectionMessages(serverConnection *s
 				}
 				return
 			}
-			syncResponseChannel := client.getResponseChannel(message.GetSyncTokenToken())
-			if syncResponseChannel == nil {
+			if err := client.addSyncResponse(message); err != nil {
 				client.invalidMessagesReceived.Add(1)
 				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to get sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from server connection \""+serverConnection.name+"\"", nil).Error())
-				}
-				return
-			}
-			if err = syncResponseChannel.addResponse(message); err != nil {
-				client.invalidMessagesReceived.Add(1)
-				if warningLogger := client.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("Failed to add sync response to sync response channel for sync token \""+message.GetSyncTokenToken()+"\" from server connection \""+serverConnection.name+"\"", err).Error())
+					warningLogger.Log(Error.New("Failed to add sync response message \""+string(messageBytes)+"\" from server connection \""+serverConnection.name+"\"", err).Error())
 				}
 			} else {
+				client.syncResponseBytesReceived.Add(uint64(len(messageBytes)))
 				if message.GetTopic() == Message.TOPIC_SUCCESS {
 					client.syncSuccessResponsesReceived.Add(1)
 				} else {

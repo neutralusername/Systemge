@@ -23,7 +23,7 @@ type App struct {
 	started bool
 
 	services     map[string]Module.ServiceModule
-	applications map[string]Module.ApplicationModule
+	applications map[string]Module.Module
 	mutex        sync.RWMutex
 	config       *Config.Dashboard
 

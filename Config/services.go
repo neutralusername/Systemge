@@ -17,13 +17,13 @@ type SystemgeClient struct {
 
 	DashboardEndpoint *TcpEndpoint `json:"dashboardEndpoint"` // *optional* (endpoint to the dashboard server)
 
-	SyncRequestTimeoutMs          uint64 `json:"syncRequestTimeout"`              // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	TcpTimeoutMs                  uint64 `json:"tcpTimeoutMs"`                    // default: 0 == block forever
-	MaxConnectionAttempts         uint64 `json:"maxConnectionAttempts"`           // default: 0 == infinite
-	ConnectionAttemptDelayMs      uint64 `json:"connectionAttemptDelay"`          // default: 0 (delay after failed connection attempt)
-	StopAfterServerConnectionLoss bool   `json:"stopAfterOutgoingConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
+	SyncRequestTimeoutMs       uint64 `json:"syncRequestTimeout"`         // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
+	TcpTimeoutMs               uint64 `json:"tcpTimeoutMs"`               // default: 0 == block forever
+	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
+	ConnectionAttemptDelayMs   uint64 `json:"connectionAttemptDelay"`     // default: 0 (delay after failed connection attempt)
+	RestartAfterConnectionLoss bool   `json:"restartAfterConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
 
-	EndpointConfigs []*TcpEndpoint `json:"endpointConfigs"` // *required* (endpoint to other node's servers) (on startup, this node will attempt to establish connection to these endpoints)
+	EndpointConfig *TcpEndpoint `json:"endpointConfig"` // *required*
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)

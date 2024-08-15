@@ -89,7 +89,7 @@ func (server *SystemgeServer) Start() error {
 	if server.status != Status.STOPPED {
 		return Error.New("SystemgeServer is not in stopped state", nil)
 	}
-	server.status = Status.STARTING
+	server.status = Status.PENDING
 
 	if server.config.TcpBufferBytes == 0 {
 		server.config.TcpBufferBytes = 1024 * 4
@@ -151,7 +151,7 @@ func (server *SystemgeServer) Stop() error {
 	if server.status != Status.STARTED {
 		return Error.New("SystemgeServer is not in started state", nil)
 	}
-	server.status = Status.STOPPING
+	server.status = Status.PENDING
 
 	close(server.stopChannel)
 	if server.ipRateLimiter != nil {

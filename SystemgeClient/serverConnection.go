@@ -17,9 +17,6 @@ type serverConnection struct {
 	endpointConfig *Config.TcpEndpoint
 	name           string
 	sendMutex      sync.Mutex
-	topics         map[string]bool
-	topicsMutex    sync.Mutex
-	isTransient    bool
 
 	rateLimiterBytes *Tools.TokenBucketRateLimiter
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
@@ -28,12 +25,11 @@ type serverConnection struct {
 	stopChannel chan bool //closing of this channel indicates that the server connection has finished its ongoing tasks.
 }
 
-func (client *SystemgeClient) newServerConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string, topics map[string]bool) *serverConnection {
+func (client *SystemgeClient) newServerConnection(netConn net.Conn, endpoint *Config.TcpEndpoint, name string) *serverConnection {
 	serverConnection := &serverConnection{
 		netConn:        netConn,
 		endpointConfig: endpoint,
 		name:           name,
-		topics:         topics,
 		stopChannel:    make(chan bool),
 	}
 	if client.config.RateLimiterBytes != nil {
@@ -71,10 +67,10 @@ func (serverConnection *serverConnection) receiveMessage(bufferSize uint32, inco
 }
 
 // async messages and sync requests are sent to server connections
-func (client *SystemgeClient) messageServerConnection(serverConnection *serverConnection, message *Message.Message) error {
-	serverConnection.sendMutex.Lock()
-	defer serverConnection.sendMutex.Unlock()
-	bytesSent, err := Tcp.Send(serverConnection.netConn, message.Serialize(), client.config.TcpTimeoutMs)
+func (client *SystemgeClient) sendMessage(message *Message.Message) error {
+	client.serverConnection.sendMutex.Lock()
+	defer client.serverConnection.sendMutex.Unlock()
+	bytesSent, err := Tcp.Send(client.serverConnection.netConn, message.Serialize(), client.config.TcpTimeoutMs)
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}

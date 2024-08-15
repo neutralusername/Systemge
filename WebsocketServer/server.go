@@ -83,7 +83,7 @@ func (server *WebsocketServer) Start() error {
 	if server.status != Status.STOPPED {
 		return Error.New("WebsocketServer is not in stopped state", nil)
 	}
-	server.status = Status.STARTING
+	server.status = Status.PENDING
 
 	server.httpServer = HTTPServer.New(&Config.HTTPServer{
 		ServerConfig: server.config.ServerConfig,
@@ -109,7 +109,7 @@ func (server *WebsocketServer) Stop() error {
 	if server.status != Status.STARTED {
 		return Error.New("WebsocketServer is not in started state", nil)
 	}
-	server.status = Status.STOPPING
+	server.status = Status.PENDING
 
 	server.httpServer.Stop()
 	server.httpServer = nil
