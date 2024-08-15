@@ -98,6 +98,7 @@ func (client *SystemgeClient) Start() error {
 	client.statusMutex.Lock()
 	if client.status != Status.PENDING {
 		client.statusMutex.Unlock()
+		serverConnection.netConn.Close()
 		return Error.New("SystemgeClient stopped during startup", nil)
 	}
 	client.status = Status.STARTED
