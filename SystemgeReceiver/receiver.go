@@ -7,12 +7,16 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeReceiver struct {
+	status      int
+	statusMutex sync.Mutex
+
 	config         *Config.SystemgeReceiver
 	connection     *SystemgeConnection.SystemgeConnection
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
@@ -52,17 +56,31 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 	return receiver
 }
 
-func (receiver *SystemgeReceiver) Start() {
+func (receiver *SystemgeReceiver) Start() error {
+	receiver.statusMutex.Lock()
+	defer receiver.statusMutex.Unlock()
+	if receiver.status != Status.STOPPED {
+		return Error.New("receiver already started", nil)
+	}
 	receiver.running = true
 	receiver.messageChannel = make(chan func())
 	go receiver.receiveLoop()
 	go receiver.processingLoop()
+	receiver.status = Status.STARTED
+	return nil
 }
 
-func (receiver *SystemgeReceiver) Stop() {
+func (receiver *SystemgeReceiver) Stop() error {
+	receiver.statusMutex.Lock()
+	defer receiver.statusMutex.Unlock()
+	if receiver.status != Status.STARTED {
+		return Error.New("receiver already stopped", nil)
+	}
 	receiver.running = false
 	close(receiver.messageChannel)
 	receiver.waitGroup.Wait()
+	receiver.status = Status.STOPPED
+	return nil
 }
 
 func (receiver *SystemgeReceiver) processingLoop() {
