@@ -4,33 +4,40 @@ import (
 	"encoding/json"
 )
 
-type SystemgeConnection struct {
+type SystemgeReceiver struct {
 	Name string `json:"name"` // *required*
-
-	EndpointConfig *TcpEndpoint `json:"endpointConfig"` // *required*
-
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
-
-	SyncRequestTimeoutMs       uint64 `json:"syncRequestTimeout"`         // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	TcpReceiveTimeoutMs        uint64 `json:"tcpReceiveTimeout"`          // default: 0 == block forever
-	TcpSendTimeoutMs           uint64 `json:"tcpSendTimeout"`             // default: 0 == block forever
-	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
-	ConnectionAttemptDelayMs   uint64 `json:"connectionAttemptDelay"`     // default: 0 (delay after failed connection attempt)
-	RestartAfterConnectionLoss bool   `json:"restartAfterConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)
 
+	MaxPayloadSize   int `json:"maxPayloadSize"`   // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxTopicSize     int `json:"maxTopicSize"`     // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+}
+
+type SystemgeClient struct {
+	Name string `json:"name"` // *required*
+
+	EndpointConfig    *TcpEndpoint `json:"endpointConfig"`    // *required*
+	MailerConfig      *Mailer      `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string       `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string       `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string       `json:"errorLoggerPath"`   // *optional*
+
+	MaxConnectionAttempts      uint64 `json:"maxConnectionAttempts"`      // default: 0 == infinite
+	ConnectionAttemptDelayMs   uint64 `json:"connectionAttemptDelay"`     // default: 0 (delay after failed connection attempt)
+	RestartAfterConnectionLoss bool   `json:"restartAfterConnectionLoss"` // default: false (relevant if maxConnectionAttempts is set)
+}
+
+type SystemgeConnection struct {
+	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
+
+	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeout"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
+	TcpReceiveTimeoutMs  uint64 `json:"tcpReceiveTimeout"`  // default: 0 == block forever
+	TcpSendTimeoutMs     uint64 `json:"tcpSendTimeout"`     // default: 0 == block forever
+
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxServerNameLength      uint64 `json:"maxServerNameLength"`      // default: 0 == unlimited (connections that attempt to send a node name larger than this will be rejected)
 }
 
 func UnmarshalSystemgeClient(data string) *SystemgeConnection {

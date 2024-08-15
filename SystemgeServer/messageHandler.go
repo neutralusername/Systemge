@@ -116,18 +116,6 @@ func (systemge *SystemgeServer) processClientMessage(clientConnection *clientCon
 	}
 }
 
-func (systemge *SystemgeServer) checkRateLimits(clientConnection *clientConnection, messageBytes []byte) error {
-	if clientConnection.rateLimiterBytes != nil && !clientConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		systemge.byteRateLimiterExceeded.Add(1)
-		return Error.New("client connection rate limiter bytes exceeded", nil)
-	}
-	if clientConnection.rateLimiterMsgs != nil && !clientConnection.rateLimiterMsgs.Consume(1) {
-		systemge.messageRateLimiterExceeded.Add(1)
-		return Error.New("client connection rate limiter messages exceeded", nil)
-	}
-	return nil
-}
-
 func (systemge *SystemgeServer) handleSyncRequest(message *Message.Message) (string, error) {
 	systemge.syncMessageHandlerMutex.RLock()
 	syncMessageHandler := systemge.syncMessageHandlers[message.GetTopic()]

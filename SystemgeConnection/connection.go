@@ -20,9 +20,7 @@ type SystemgeConnection struct {
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
 
-	rateLimiterBytes *Tools.TokenBucketRateLimiter
-	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
-	tcpBuffer        []byte
+	tcpBuffer []byte
 
 	syncResponseChannels map[string]chan *Message.Message
 	syncMutex            sync.Mutex
@@ -41,36 +39,30 @@ func New(config *Config.SystemgeConnection, netConn net.Conn) *SystemgeConnectio
 		randomizer:  Tools.NewRandomizer(config.RandomizerSeed),
 		stopChannel: make(chan bool),
 	}
-	if config.RateLimiterBytes != nil {
-		connection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
-	}
-	if config.RateLimiterMessages != nil {
-		connection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
-	}
 	return connection
 }
 
-func (connection *SystemgeConnection) ReceiveMessage(bufferSize uint32, incomingMessageByteLimit uint64) ([]byte, error) {
+func (connection *SystemgeConnection) ReceiveMessage() ([]byte, error) {
 	connection.receiveMutex.Lock()
 	defer connection.receiveMutex.Unlock()
 
 	completedMsgBytes := []byte{}
 	for {
-		if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
+		if connection.config.IncomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > connection.config.IncomingMessageByteLimit {
 			return nil, Error.New("Incoming message byte limit exceeded", nil)
 		}
 		for i, b := range connection.tcpBuffer {
 			if b == Tcp.ENDOFMESSAGE {
 				completedMsgBytes = append(completedMsgBytes, connection.tcpBuffer[:i]...)
 				connection.tcpBuffer = connection.tcpBuffer[i+1:]
-				if incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > incomingMessageByteLimit {
+				if connection.config.IncomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > connection.config.IncomingMessageByteLimit {
 					return nil, Error.New("Incoming message byte limit exceeded", nil)
 				}
 				return completedMsgBytes, nil
 			}
 		}
 		completedMsgBytes = append(completedMsgBytes, connection.tcpBuffer...)
-		receivedMessageBytes, _, err := Tcp.Receive(connection.netConn, connection.config.TcpReceiveTimeoutMs, bufferSize)
+		receivedMessageBytes, _, err := Tcp.Receive(connection.netConn, connection.config.TcpReceiveTimeoutMs, connection.config.TcpBufferBytes)
 		if err != nil {
 			return nil, Error.New("Failed to refill tcp buffer", err)
 		}
