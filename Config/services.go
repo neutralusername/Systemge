@@ -9,7 +9,7 @@ import (
 type HTTPServer struct {
 	Name string `json:"name"` // *required*
 
-	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+	ServerConfig *TcpListener `json:"serverConfig"` // *required*
 
 	MaxHeaderBytes      int   `json:"maxHeaderBytes"`      // default: <=0 == 1 MB (whichever value you choose, golangs http package will add 4096 bytes on top of it....)
 	ReadHeaderTimeoutMs int   `json:"readHeaderTimeoutMs"` // default: 0 (no timeout)
@@ -26,8 +26,8 @@ func UnmarshalHTTP(data string) *HTTPServer {
 type WebsocketServer struct {
 	Name string `json:"name"` // *required*
 
-	ServerConfig *TcpServer `json:"serverConfig"` // *required* (the configuration of the underlying http server)
-	Pattern      string     `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
+	ServerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of the underlying http server)
+	Pattern      string       `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*

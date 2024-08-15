@@ -26,8 +26,8 @@ type SystemgeReceiver struct {
 type SystemgeListener struct {
 	Name string `json:"name"` // *required*
 
-	ServerConfig *TcpServer   `json:"serverConfig"` // *required* (the configuration of this node's server)
-	Endpoint     *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
+	ListenerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
+	Endpoint       *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
@@ -55,7 +55,7 @@ type SystemgeConnection struct {
 type SystemgeServer struct {
 	Name string `json:"name"` // *required*
 
-	ServerConfig *TcpServer   `json:"serverConfig"` // *required* (the configuration of this node's server)
+	ServerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of this node's server)
 	Endpoint     *TcpEndpoint `json:"endpoint"`     // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
 
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*

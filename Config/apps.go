@@ -29,7 +29,7 @@ func UnmarshalDashboard(data string) *Dashboard {
 }
 
 type Oauth2 struct {
-	ServerConfig *TcpServer `json:"serverConfig"` // *required*
+	ServerConfig *TcpListener `json:"serverConfig"` // *required*
 
 	InfoLoggerPath    string `json:"internalInfoLoggerPath"`    // *required*
 	WarningLoggerPath string `json:"internalWarningLoggerPath"` // *required*

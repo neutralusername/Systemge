@@ -94,7 +94,7 @@ func (server *SystemgeServer) Start() error {
 	if server.config.TcpBufferBytes == 0 {
 		server.config.TcpBufferBytes = 1024 * 4
 	}
-	tcpServer, err := Tcp.NewServer(server.config.ServerConfig)
+	tcpServer, err := Tcp.NewListener(server.config.ServerConfig)
 	if err != nil {
 		server.status = Status.STOPPED
 		return Error.New("Failed to create tcp server", err)

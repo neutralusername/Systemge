@@ -31,7 +31,7 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 	}
 }
 
-func (receiver *SystemgeReceiver) receiveLoop(messageChannel chan func()) {
+func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiving messages")
 	}

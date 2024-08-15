@@ -11,13 +11,13 @@ import (
 )
 
 type Listener struct {
-	config    *Config.TcpServer
+	config    *Config.TcpListener
 	listener  net.Listener
 	blacklist *Tools.AccessControlList
 	whitelist *Tools.AccessControlList
 }
 
-func NewServer(config *Config.TcpServer) (*Listener, error) {
+func NewListener(config *Config.TcpListener) (*Listener, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {

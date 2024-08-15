@@ -86,20 +86,21 @@ func (receiver *SystemgeReceiver) Start() error {
 	if receiver.status != Status.STOPPED {
 		return Error.New("receiver already started", nil)
 	}
+	receiver.status = Status.PENDING
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Starting receiver")
 	}
 	receiver.messageChannel = make(chan func())
-	receiver.status = Status.STARTED
 	if receiver.config.ProcessSequentially {
 		go receiver.processingLoopSequentially()
 	} else {
 		go receiver.processingLoopConcurrently()
 	}
-	go receiver.receiveLoop(receiver.messageChannel)
+	go receiver.receive(receiver.messageChannel)
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver started")
 	}
+	receiver.status = Status.STARTED
 	return nil
 }
 
@@ -109,15 +110,16 @@ func (receiver *SystemgeReceiver) Stop() error {
 	if receiver.status != Status.STARTED {
 		return Error.New("receiver already stopped", nil)
 	}
+	receiver.status = Status.PENDING
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Stopping receiver")
 	}
 	close(receiver.messageChannel)
 	receiver.waitGroup.Wait()
-	receiver.status = Status.STOPPED
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver stopped")
 	}
+	receiver.status = Status.STOPPED
 	return nil
 }
 
