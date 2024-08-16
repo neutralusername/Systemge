@@ -64,10 +64,9 @@ func (listener *SystemgeListener) handshake(connectionConfig *Config.SystemgeCon
 	if message.GetPayload() == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	clientConnectionName := message.GetPayload()
 	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return SystemgeConnection.New(connectionConfig, netConn, clientConnectionName), nil
+	return SystemgeConnection.New(connectionConfig, netConn, message.GetPayload()), nil
 }

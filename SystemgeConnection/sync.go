@@ -34,7 +34,6 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 	taskGroup := Tools.NewTaskGroup()
 	for _, connection := range connections {
 		func(connection *SystemgeConnection) {
-
 			taskGroup.AddTask(func() {
 				synctoken, responseChannel := connection.initResponseChannel()
 				err := connection.SendMessage(Message.NewSync(topic, payload, synctoken).Serialize())
