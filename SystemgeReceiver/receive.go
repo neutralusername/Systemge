@@ -7,11 +7,11 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
+func (receiver *SystemgeReceiver) receive(stopChannel chan bool) {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Started receiving messages")
 	}
-	for receiver.processingChannel == messageChannel {
+	for receiver.stopChannel == stopChannel {
 		receiver.waitGroup.Add(1)
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {

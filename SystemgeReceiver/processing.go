@@ -47,7 +47,7 @@ func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConne
 		infoLogger.Log("Processing message #" + Helpers.Uint32ToString(messageId))
 	}
 	defer receiver.waitGroup.Done()
-	if err := receiver.checkRateLimits(clientConnection, messageBytes); err != nil {
+	if err := receiver.checkRateLimits(messageBytes); err != nil {
 		return Error.New("rejected message due to rate limits", err)
 	}
 	message, err := Message.Deserialize(messageBytes, clientConnection.GetName())
@@ -91,14 +91,14 @@ func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConne
 	return nil
 }
 
-func (receiver *SystemgeReceiver) checkRateLimits(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte) error {
+func (receiver *SystemgeReceiver) checkRateLimits(messageBytes []byte) error {
 	if receiver.rateLimiterBytes != nil && !receiver.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		receiver.byteRateLimiterExceeded.Add(1)
-		return Error.New("client connection rate limiter bytes exceeded", nil)
+		return Error.New("receiver rate limiter bytes exceeded", nil)
 	}
 	if receiver.rateLimiterMessages != nil && !receiver.rateLimiterMessages.Consume(1) {
 		receiver.messageRateLimiterExceeded.Add(1)
-		return Error.New("client connection rate limiter messages exceeded", nil)
+		return Error.New("receiver rate limiter messages exceeded", nil)
 	}
 	return nil
 }

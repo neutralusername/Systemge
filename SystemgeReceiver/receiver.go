@@ -99,7 +99,7 @@ func (receiver *SystemgeReceiver) Start() error {
 	} else {
 		go receiver.processingLoopConcurrently()
 	}
-	go receiver.receive(receiver.processingChannel)
+	go receiver.receive(receiver.stopChannel)
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver started")
 	}
@@ -129,7 +129,10 @@ func (receiver *SystemgeReceiver) Stop() error {
 	receiver.processingChannel = nil
 	receiver.waitGroup.Wait()
 	close(processingChannel)
-	close(receiver.stopChannel)
+	stopChannel := receiver.stopChannel
+	receiver.stopChannel = nil
+	close(stopChannel)
+
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver stopped")
 	}
