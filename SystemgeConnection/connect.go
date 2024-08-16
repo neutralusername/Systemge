@@ -13,7 +13,7 @@ import (
 func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string) (*SystemgeConnection, error) {
 	netConn, err := Tcp.NewClient(endpointConfig)
 	if err != nil {
-		return nil, err
+		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
 	}
 	return clientHandshake(config, clientName, netConn)
 }

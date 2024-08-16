@@ -36,7 +36,7 @@ func (listener *SystemgeListener) AcceptConnection(serverName string, connection
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
-	connection, err := listener.handshake(connectionConfig, serverName, netConn)
+	connection, err := listener.serverHandshake(connectionConfig, serverName, netConn)
 	if err != nil {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
@@ -46,7 +46,7 @@ func (listener *SystemgeListener) AcceptConnection(serverName string, connection
 	return connection, nil
 }
 
-func (listener *SystemgeListener) handshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
