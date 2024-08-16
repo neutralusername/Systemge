@@ -8,8 +8,11 @@ type SystemgeClient struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
+	EndpointConfig   *TcpEndpoint        `json:"endpointConfig"`   // *optional*
 	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
 	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
+
+	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
 
 	Reconnect               bool   `json:"reconnect"`               // default: false (if true, the client will attempt to reconnect if the connection is lost)
 	ReconnectAttemptDelayMs uint64 `json:"reconnectAttemptDelayMs"` // default: 1000 (the delay between reconnection attempts in milliseconds)
