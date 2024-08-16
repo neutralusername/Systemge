@@ -52,7 +52,21 @@ type WebsocketServer struct {
 	bytesReceivedCounter   atomic.Uint64
 }
 
+// onConnectHandler, onDisconnectHandler may be nil
 func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandler, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
+	if config == nil {
+		panic("config is nil")
+	}
+	if config.ServerConfig == nil {
+		panic("config.ServerConfig is nil")
+	}
+	if config.Pattern == "" {
+		panic("config.Pattern is empty")
+	}
+	if messageHandlers == nil {
+		panic("messageHandlers is nil")
+	}
+
 	if config.Upgrader == nil {
 		config.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -100,9 +114,9 @@ func (server *WebsocketServer) Start() error {
 	if err != nil {
 		server.ipRateLimiter.Stop()
 		server.ipRateLimiter = nil
-		server.status = Status.STOPPED
 		close(server.connectionChannel)
 		server.connectionChannel = nil
+		server.status = Status.STOPPED
 		return Error.New("failed starting websocket handshake handler", err)
 	}
 	server.httpServer = httpServer
