@@ -31,38 +31,6 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 	}
 }
 
-func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
-	if receiver.infoLogger != nil {
-		receiver.infoLogger.Log("Receiving messages")
-	}
-	for receiver.messageChannel == messageChannel {
-		receiver.waitGroup.Add(1)
-		messageBytes, err := receiver.connection.ReceiveMessage()
-		if err != nil {
-			if receiver.errorLogger != nil {
-				receiver.errorLogger.Log(Error.New("failed to receive message", err).Error())
-			}
-			receiver.waitGroup.Done()
-			continue
-		}
-		receiver.messageId++
-		messageId := receiver.messageId
-		if infoLogger := receiver.infoLogger; infoLogger != nil {
-			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
-		}
-		receiver.messageChannel <- func() {
-			func(connection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) {
-				err := receiver.processMessage(connection, messageBytes, messageId)
-				if err != nil {
-					if receiver.warningLogger != nil {
-						receiver.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint32ToString(messageId), err).Error())
-					}
-				}
-			}(receiver.connection, messageBytes, messageId)
-		}
-	}
-}
-
 func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) error {
 	if infoLogger := receiver.infoLogger; infoLogger != nil {
 		infoLogger.Log("Processing message #" + Helpers.Uint32ToString(messageId))
