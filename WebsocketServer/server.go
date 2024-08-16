@@ -95,15 +95,17 @@ func (server *WebsocketServer) Start() error {
 	if server.config.IpRateLimiter != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
+	server.connectionChannel = make(chan *websocket.Conn)
 	err := httpServer.Start()
 	if err != nil {
 		server.ipRateLimiter.Stop()
 		server.ipRateLimiter = nil
 		server.status = Status.STOPPED
+		close(server.connectionChannel)
+		server.connectionChannel = nil
 		return Error.New("failed starting websocket handshake handler", err)
 	}
 	server.httpServer = httpServer
-	server.connectionChannel = make(chan *websocket.Conn)
 	go server.handleWebsocketConnections()
 
 	server.status = Status.STARTED
