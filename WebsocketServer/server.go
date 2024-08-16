@@ -94,7 +94,6 @@ func (server *WebsocketServer) Start() error {
 	})
 	err := httpServer.Start()
 	if err != nil {
-		server.httpServer = nil
 		server.status = Status.STOPPED
 		return Error.New("failed starting websocket handshake handler", err)
 	}
