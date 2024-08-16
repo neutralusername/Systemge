@@ -98,6 +98,9 @@ func (server *WebsocketServer) Start() error {
 	if server.status != Status.STOPPED {
 		return Error.New("WebsocketServer is not in stopped state", nil)
 	}
+	if server.infoLogger != nil {
+		server.infoLogger.Log("Starting WebsocketServer")
+	}
 	server.status = Status.PENDING
 
 	httpServer := HTTPServer.New(&Config.HTTPServer{
@@ -121,6 +124,9 @@ func (server *WebsocketServer) Start() error {
 	server.httpServer = httpServer
 	go server.handleWebsocketConnections()
 
+	if server.infoLogger != nil {
+		server.infoLogger.Log("WebsocketServer started")
+	}
 	server.status = Status.STARTED
 	return nil
 }
@@ -130,6 +136,9 @@ func (server *WebsocketServer) Stop() error {
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STARTED {
 		return Error.New("WebsocketServer is not in started state", nil)
+	}
+	if server.infoLogger != nil {
+		server.infoLogger.Log("Stopping WebsocketServer")
 	}
 	server.status = Status.PENDING
 
@@ -152,6 +161,9 @@ func (server *WebsocketServer) Stop() error {
 		websocketClient.Disconnect()
 	}
 
+	if server.infoLogger != nil {
+		server.infoLogger.Log("WebsocketServer stopped")
+	}
 	server.status = Status.STOPPED
 	return nil
 }

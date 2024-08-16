@@ -137,6 +137,18 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 	}
 }
 
+func (connection *SystemgeConnection) AddSyncResponse(message *Message.Message) error {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	if responseChannel, ok := connection.syncResponseChannels[message.GetSyncTokenToken()]; ok {
+		responseChannel <- message
+		close(responseChannel)
+		delete(connection.syncResponseChannels, message.GetSyncTokenToken())
+		return nil
+	}
+	return Error.New("No response channel found", nil)
+}
+
 func (connection *SystemgeConnection) initResponseChannel() (string, chan *Message.Message) {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
@@ -155,16 +167,4 @@ func (connection *SystemgeConnection) removeResponseChannel(syncToken string) {
 		close(responseChannel)
 		delete(connection.syncResponseChannels, syncToken)
 	}
-}
-
-func (connection *SystemgeConnection) AddSyncResponse(message *Message.Message) error {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	if responseChannel, ok := connection.syncResponseChannels[message.GetSyncTokenToken()]; ok {
-		responseChannel <- message
-		close(responseChannel)
-		delete(connection.syncResponseChannels, message.GetSyncTokenToken())
-		return nil
-	}
-	return Error.New("No response channel found", nil)
 }

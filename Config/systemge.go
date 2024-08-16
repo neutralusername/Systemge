@@ -23,8 +23,8 @@ type SystemgeReceiver struct {
 	ProcessSequentially   bool `json:"processSequentially"`   // default: false (if true, the receiver will handle messages sequentially)
 	ProcessingChannelSize int  `json:"processingChannelSize"` // default: 0 == no guarantee on order of arrival (irrelevant if ProcessSequentially is false) (if >0, the order of arrival is guaranteed as long as the channel is never full)
 
-	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional* (rate limiter for outgoing connections)
-	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional* (rate limiter for outgoing connections)
+	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional*
+	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*
 
 	MaxPayloadSize   int `json:"maxPayloadSize"`   // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 	MaxTopicSize     int `json:"maxTopicSize"`     // default: <=0 == unlimited (messages that exceed this limit will be skipped)
@@ -32,8 +32,8 @@ type SystemgeReceiver struct {
 }
 
 type SystemgeListener struct {
-	ListenerConfig *TcpListener `json:"listenerConfig"` // *required* (the configuration of this node's server)
-	EndpointConfig *TcpEndpoint `json:"endpointConfig"` // *optional* (the configuration of this node's endpoint) (can be shared with other nodes to let them connect during runtime)
+	ListenerConfig *TcpListener `json:"listenerConfig"` // *required*
+	EndpointConfig *TcpEndpoint `json:"endpointConfig"` // *optional*
 
 	IpRateLimiter       *IpRateLimiter `json:"ipRateLimiter"`       // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 	MaxClientNameLength uint64         `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)

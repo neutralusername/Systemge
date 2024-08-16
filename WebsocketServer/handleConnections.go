@@ -9,9 +9,15 @@ import (
 )
 
 func (server *WebsocketServer) handleWebsocketConnections() {
+	if server.infoLogger != nil {
+		server.infoLogger.Log(Error.New("Starting to handle websocket connections", nil).Error())
+	}
 	for {
 		websocketConnection := <-server.connectionChannel
 		if websocketConnection == nil {
+			if server.infoLogger != nil {
+				server.infoLogger.Log(Error.New("Stopping to handle websocket connections", nil).Error())
+			}
 			return
 		}
 		go server.handleWebsocketConnection(websocketConnection)
