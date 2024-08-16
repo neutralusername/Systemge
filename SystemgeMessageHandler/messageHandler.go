@@ -15,16 +15,27 @@ type SystemgeMessageHandler struct {
 	asyncMutex           sync.Mutex
 	sequentialMutex      sync.RWMutex
 
+	unknwonAsyncTopicHandler func(*Message.Message)
+	unknwonSyncTopicHandler  func(*Message.Message) (string, error)
+
 	// metrics
 	asyncMessagesHandled atomic.Uint64
 	syncRequestsHandled  atomic.Uint64
 }
 
+// pass a handler with an empty string as the key to handle messages with unknown topics
 func NewMessageHandler(asyncMessageHandlers map[string]func(*Message.Message), syncMessageHandlers map[string]func(*Message.Message) (string, error)) *SystemgeMessageHandler {
-	return &SystemgeMessageHandler{
+	systemgeMessageHandlers := &SystemgeMessageHandler{
 		asyncMessageHandlers: asyncMessageHandlers,
 		syncMessageHandlers:  syncMessageHandlers,
 	}
+	if handler, exists := asyncMessageHandlers[""]; exists {
+		systemgeMessageHandlers.unknwonAsyncTopicHandler = handler
+	}
+	if handler, exists := syncMessageHandlers[""]; exists {
+		systemgeMessageHandlers.unknwonSyncTopicHandler = handler
+	}
+	return systemgeMessageHandlers
 }
 
 func (messageHandler *SystemgeMessageHandler) HandleAsyncMessage(message *Message.Message) error {
@@ -34,7 +45,13 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessage(message *Messag
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	messageHandler.asyncMutex.Unlock()
 	if !exists {
-		return Error.New("No handler for async message", nil)
+		if messageHandler.unknwonAsyncTopicHandler != nil {
+			messageHandler.asyncMessagesHandled.Add(1)
+			messageHandler.unknwonAsyncTopicHandler(message)
+			return nil
+		} else {
+			return Error.New("No handler for async message", nil)
+		}
 	}
 	messageHandler.asyncMessagesHandled.Add(1)
 	handler(message)
@@ -48,6 +65,10 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequest(message *Message
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.Unlock()
 	if !exists {
+		if messageHandler.unknwonSyncTopicHandler != nil {
+			messageHandler.syncRequestsHandled.Add(1)
+			return messageHandler.unknwonSyncTopicHandler(message)
+		}
 		return "", Error.New("No handler for sync message", nil)
 	}
 	messageHandler.syncRequestsHandled.Add(1)
@@ -59,6 +80,11 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessageSequentially(mes
 	defer messageHandler.sequentialMutex.Unlock()
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	if !exists {
+		if messageHandler.unknwonAsyncTopicHandler != nil {
+			messageHandler.asyncMessagesHandled.Add(1)
+			messageHandler.unknwonAsyncTopicHandler(message)
+			return nil
+		}
 		return Error.New("No handler for async message", nil)
 	}
 	messageHandler.asyncMessagesHandled.Add(1)
@@ -71,6 +97,10 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequestSequentially(mess
 	defer messageHandler.sequentialMutex.Unlock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	if !exists {
+		if messageHandler.unknwonSyncTopicHandler != nil {
+			messageHandler.syncRequestsHandled.Add(1)
+			return messageHandler.unknwonSyncTopicHandler(message)
+		}
 		return "", Error.New("No handler for sync message", nil)
 	}
 	messageHandler.syncRequestsHandled.Add(1)
