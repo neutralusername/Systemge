@@ -65,6 +65,10 @@ func (client *SystemgeClient) GetName() string {
 	return client.config.Name
 }
 
+func (client *SystemgeClient) GetStatus() int {
+	return client.status
+}
+
 func (client *SystemgeClient) Start() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
