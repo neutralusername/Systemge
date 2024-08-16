@@ -27,6 +27,7 @@ type SystemgeServer struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
+	ListenerConfig   *SystemgeListener   `json:"listenerConfig"`   // *required*
 	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
 	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
 }

@@ -36,7 +36,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, listener *SystemgeListener.SystemgeListener, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
+func New(config *Config.SystemgeServer, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -46,15 +46,17 @@ func New(config *Config.SystemgeServer, listener *SystemgeListener.SystemgeListe
 	if config.ReceiverConfig == nil {
 		panic("config.ReceiverConfig is nil")
 	}
-	if listener == nil {
+	if config.ListenerConfig == nil {
 		panic("listener is nil")
+	}
+	if config.ListenerConfig.ListenerConfig == nil {
+		panic("listener.ListenerConfig is nil")
 	}
 	if messageHandler == nil {
 		panic("messageHandler is nil")
 	}
 	server := &SystemgeServer{
 		config:         config,
-		listener:       listener,
 		messageHandler: messageHandler,
 		clients:        make(map[string]*Client),
 	}
@@ -83,8 +85,13 @@ func (server *SystemgeServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
+	listener, err := SystemgeListener.New(server.config.ListenerConfig)
+	if err != nil {
+		server.status = Status.STOPPED
+		return Error.New("failed to create listener", err)
+	}
+	server.listener = listener
 	server.handlerStopChannel = make(chan bool)
-
 	go server.handleConnections(server.handlerStopChannel)
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
@@ -107,6 +114,8 @@ func (server *SystemgeServer) Stop() error {
 	handlerStopChannel := server.handlerStopChannel
 	server.handlerStopChannel = nil
 	<-handlerStopChannel
+	server.listener.Close()
+	server.listener = nil
 
 	server.clientsMutex.Lock()
 	for _, client := range server.clients {

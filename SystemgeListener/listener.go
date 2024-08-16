@@ -4,6 +4,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -23,13 +24,16 @@ type SystemgeListener struct {
 	acceptedConnections atomic.Uint32
 }
 
-func New(config *Config.SystemgeListener) *SystemgeListener {
+func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
 	if config == nil {
-		panic("config is nil")
+		return nil, Error.New("config is nil", nil)
+	}
+	if config.ListenerConfig == nil {
+		return nil, Error.New("listener is nil", nil)
 	}
 	tcpListener, err := Tcp.NewListener(config.ListenerConfig)
 	if err != nil {
-		panic(err)
+		return nil, Error.New("failed to create listener", err)
 	}
 	listener := &SystemgeListener{
 		config:      config,
@@ -38,7 +42,7 @@ func New(config *Config.SystemgeListener) *SystemgeListener {
 	if config.IpRateLimiter != nil {
 		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
 	}
-	return listener
+	return listener, nil
 }
 
 func (listener *SystemgeListener) Close() {
