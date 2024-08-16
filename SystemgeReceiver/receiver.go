@@ -114,11 +114,11 @@ func (receiver *SystemgeReceiver) Stop() error {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Stopping receiver")
 	}
-	if receiver.config.RateLimiterBytes != nil {
+	if receiver.rateLimiterBytes != nil {
 		receiver.rateLimiterBytes.Stop()
 		receiver.rateLimiterBytes = nil
 	}
-	if receiver.config.RateLimiterMessages != nil {
+	if receiver.rateLimiterMessages != nil {
 		receiver.rateLimiterMessages.Stop()
 		receiver.rateLimiterMessages = nil
 	}
