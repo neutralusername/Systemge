@@ -76,9 +76,6 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 		mailer:              Tools.NewMailer(config.MailerConfig),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
-	if config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
-	}
 	return server
 }
 
@@ -95,6 +92,9 @@ func (server *WebsocketServer) Start() error {
 	}, map[string]http.HandlerFunc{
 		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 	})
+	if server.config.IpRateLimiter != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
+	}
 	err := server.httpServer.Start()
 	if err != nil {
 		server.httpServer = nil
@@ -119,6 +119,10 @@ func (server *WebsocketServer) Stop() error {
 	server.httpServer.Stop()
 	server.httpServer = nil
 	close(server.connectionChannel)
+	if server.ipRateLimiter != nil {
+		server.ipRateLimiter.Stop()
+		server.ipRateLimiter = nil
+	}
 
 	server.mutex.Lock()
 	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
