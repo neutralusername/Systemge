@@ -4,10 +4,19 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
+	"github.com/neutralusername/Systemge/SystemgeReceiver"
 	"github.com/neutralusername/Systemge/Tools"
 )
+
+type Client struct {
+	connection *SystemgeConnection.SystemgeConnection
+	receiver   *SystemgeReceiver.SystemgeReceiver
+}
 
 type SystemgeServer struct {
 	status      int
@@ -16,6 +25,10 @@ type SystemgeServer struct {
 	config         *Config.SystemgeServer
 	listener       *SystemgeListener.SystemgeListener
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
+
+	clients            map[string]*Client
+	clientsMutex       sync.Mutex
+	handlerStopChannel chan bool
 
 	errorLogger   *Tools.Logger
 	warningLogger *Tools.Logger
@@ -30,6 +43,9 @@ func New(config *Config.SystemgeServer, listener *SystemgeListener.SystemgeListe
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
+	if config.ReceiverConfig == nil {
+		panic("config.ReceiverConfig is nil")
+	}
 	if listener == nil {
 		panic("listener is nil")
 	}
@@ -40,6 +56,7 @@ func New(config *Config.SystemgeServer, listener *SystemgeListener.SystemgeListe
 		config:         config,
 		listener:       listener,
 		messageHandler: messageHandler,
+		clients:        make(map[string]*Client),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
@@ -57,11 +74,45 @@ func New(config *Config.SystemgeServer, listener *SystemgeListener.SystemgeListe
 }
 
 func (server *SystemgeServer) Start() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STOPPED {
+		return Error.New("server is already started", nil)
+	}
+	server.status = Status.PENDING
+	if server.infoLogger != nil {
+		server.infoLogger.Log("starting server")
+	}
+	server.handlerStopChannel = make(chan bool)
 
+	go server.handleConnections(server.handlerStopChannel)
+
+	server.status = Status.STARTED
+	return nil
 }
 
 func (server *SystemgeServer) Stop() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STARTED {
+		return Error.New("server is already stopped", nil)
+	}
+	server.status = Status.PENDING
+	if server.infoLogger != nil {
+		server.infoLogger.Log("stopping server")
+	}
+	handlerStopChannel := server.handlerStopChannel
+	server.handlerStopChannel = nil
+	<-handlerStopChannel
 
+	server.clientsMutex.Lock()
+	for _, client := range server.clients {
+		client.receiver.Stop()
+		client.connection.Close()
+	}
+	server.clientsMutex.Unlock()
+	server.status = Status.STOPPED
+	return nil
 }
 
 func (server *SystemgeServer) GetName() string {
@@ -72,4 +123,31 @@ func (server *SystemgeServer) GetStatus() int {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	return server.status
+}
+
+func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
+	for server.handlerStopChannel == stopChannel {
+		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
+		if err != nil {
+			if server.errorLogger != nil {
+				server.errorLogger.Log("error accepting connection: " + err.Error())
+			}
+			continue
+		}
+		receiver := SystemgeReceiver.New(server.config.ReceiverConfig, connection, server.messageHandler)
+		if err := receiver.Start(); err != nil {
+			connection.Close()
+			if server.errorLogger != nil {
+				server.errorLogger.Log("error starting receiver: " + err.Error())
+			}
+			continue
+		}
+		server.clientsMutex.Lock()
+		server.clients[connection.GetName()] = &Client{
+			connection: connection,
+			receiver:   receiver,
+		}
+		server.clientsMutex.Unlock()
+	}
+	close(stopChannel)
 }

@@ -9,6 +9,7 @@ type SystemgeServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
 	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
+	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
 }
 
 type SystemgeReceiver struct {
