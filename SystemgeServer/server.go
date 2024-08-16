@@ -27,6 +27,9 @@ func New(config *Config.SystemgeServer, listener *SystemgeListener.SystemgeListe
 	if config == nil {
 		panic("config is nil")
 	}
+	if config.ConnectionConfig == nil {
+		panic("config.ConnectionConfig is nil")
+	}
 	if listener == nil {
 		panic("listener is nil")
 	}
