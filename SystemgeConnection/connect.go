@@ -15,7 +15,8 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
 	}
-	return clientHandshake(config, clientName, netConn)
+	connection, err := clientHandshake(config, clientName, netConn)
+	return connection, Error.New("Failed to handshake with "+endpointConfig.Address, err)
 }
 
 func clientHandshake(config *Config.SystemgeConnection, clientName string, netConn net.Conn) (*SystemgeConnection, error) {
