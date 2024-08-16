@@ -9,10 +9,13 @@ import (
 
 func (receiver *SystemgeReceiver) processingLoopSequentially() {
 	if receiver.infoLogger != nil {
-		receiver.infoLogger.Log("Processing messages sequentially")
+		receiver.infoLogger.Log("Starting processing messages sequentially")
 	}
 	for process := range receiver.processingChannel {
 		if process == nil {
+			if receiver.infoLogger != nil {
+				receiver.infoLogger.Log("Stopping processing messages sequentially")
+			}
 			return
 		}
 		if len(receiver.processingChannel) >= cap(receiver.processingChannel)-1 {
@@ -26,10 +29,13 @@ func (receiver *SystemgeReceiver) processingLoopSequentially() {
 
 func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 	if receiver.infoLogger != nil {
-		receiver.infoLogger.Log("Processing messages concurrently")
+		receiver.infoLogger.Log("Starting processing messages concurrently")
 	}
 	for process := range receiver.processingChannel {
 		if process == nil {
+			if receiver.infoLogger != nil {
+				receiver.infoLogger.Log("Stopping processing messages concurrently")
+			}
 			return
 		}
 		go process()

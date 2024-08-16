@@ -8,7 +8,7 @@ import (
 
 func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 	if receiver.infoLogger != nil {
-		receiver.infoLogger.Log("Receiving messages")
+		receiver.infoLogger.Log("Started receiving messages")
 	}
 	for receiver.processingChannel == messageChannel {
 		receiver.waitGroup.Add(1)
@@ -35,5 +35,9 @@ func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 				}
 			}
 		}(receiver.connection, messageBytes, messageId)
+	}
+
+	if receiver.infoLogger != nil {
+		receiver.infoLogger.Log("Stopped receiving messages")
 	}
 }

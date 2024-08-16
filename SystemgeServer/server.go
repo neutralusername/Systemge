@@ -87,6 +87,9 @@ func (server *SystemgeServer) Start() error {
 
 	go server.handleConnections(server.handlerStopChannel)
 
+	if infoLogger := server.infoLogger; infoLogger != nil {
+		infoLogger.Log("server started")
+	}
 	server.status = Status.STARTED
 	return nil
 }
@@ -111,6 +114,10 @@ func (server *SystemgeServer) Stop() error {
 		client.connection.Close()
 	}
 	server.clientsMutex.Unlock()
+
+	if infoLogger := server.infoLogger; infoLogger != nil {
+		infoLogger.Log("server stopped")
+	}
 	server.status = Status.STOPPED
 	return nil
 }
@@ -124,6 +131,10 @@ func (server *SystemgeServer) GetStatus() int {
 }
 
 func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
+	if server.infoLogger != nil {
+		server.infoLogger.Log("connection handler started")
+	}
+
 	for server.handlerStopChannel == stopChannel {
 		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
 		if err != nil {
@@ -131,6 +142,9 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 				server.errorLogger.Log("error accepting connection: " + err.Error())
 			}
 			continue
+		}
+		if server.infoLogger != nil {
+			server.infoLogger.Log("connection accepted: " + connection.GetName())
 		}
 		receiver := SystemgeReceiver.New(server.config.ReceiverConfig, connection, server.messageHandler)
 		if err := receiver.Start(); err != nil {
@@ -146,6 +160,13 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			receiver:   receiver,
 		}
 		server.clientsMutex.Unlock()
+		if server.infoLogger != nil {
+			server.infoLogger.Log("receiver started: " + connection.GetName())
+		}
 	}
 	close(stopChannel)
+
+	if server.infoLogger != nil {
+		server.infoLogger.Log("connection handler stopped")
+	}
 }
