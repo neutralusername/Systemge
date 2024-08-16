@@ -12,16 +12,17 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 	taskGroup := Tools.NewTaskGroup()
 	errors := make(map[string]error)
 	for _, connection := range connections {
-		taskGroup.AddTask(func() {
-			func(connection *SystemgeConnection) {
+		func(connection *SystemgeConnection) {
+			taskGroup.AddTask(func() {
 				err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
 				if err != nil {
 					errors[connection.GetName()] = err
 					return
 				}
 				connection.asyncMessagesSent.Add(1)
-			}(connection)
-		})
+			})
+		}(connection)
+
 	}
 	taskGroup.ExecuteTasks()
 	return errors
@@ -32,8 +33,9 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 	errors := make(map[string]error)
 	taskGroup := Tools.NewTaskGroup()
 	for _, connection := range connections {
-		taskGroup.AddTask(func() {
-			func(connection *SystemgeConnection) {
+		func(connection *SystemgeConnection) {
+
+			taskGroup.AddTask(func() {
 				synctoken, responseChannel := connection.initResponseChannel()
 				err := connection.SendMessage(Message.NewSync(topic, payload, synctoken).Serialize())
 				if err != nil {
@@ -76,8 +78,8 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 						errors[connection.GetName()] = Error.New("SystemgeClient stopped before receiving response", nil)
 					}
 				}
-			}(connection)
-		})
+			})
+		}(connection)
 	}
 	taskGroup.ExecuteTasks()
 	return responses, nil
