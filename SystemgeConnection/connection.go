@@ -49,6 +49,11 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *Syst
 	return connection
 }
 
+func (connection *SystemgeConnection) Close() {
+	connection.netConn.Close()
+	close(connection.stopChannel)
+}
+
 func (connection *SystemgeConnection) GetName() string {
 	return connection.name
 }
