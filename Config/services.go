@@ -35,6 +35,8 @@ type WebsocketServer struct {
 	MailerConfig      *Mailer `json:"mailer"`            // *optional*
 	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
+	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
+
 	ClientRateLimiterBytes    *TokenBucketRateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for clients)
 	ClientRateLimiterMessages *TokenBucketRateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for clients)
 

@@ -31,6 +31,8 @@ type WebsocketServer struct {
 	onConnectHandler    func(*WebsocketClient) error
 	onDisconnectHandler func(*WebsocketClient)
 
+	ipRateLimiter *Tools.IpRateLimiter
+
 	httpServer *HTTPServer.HTTPServer
 
 	connectionChannel chan *websocket.Conn
@@ -73,6 +75,9 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 		warningLogger:       Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
 		mailer:              Tools.NewMailer(config.MailerConfig),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
+	}
+	if config.IpRateLimiter != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
 	}
 	return server
 }
