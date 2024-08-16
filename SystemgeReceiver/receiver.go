@@ -122,11 +122,13 @@ func (receiver *SystemgeReceiver) Stop() error {
 		receiver.rateLimiterMessages.Stop()
 		receiver.rateLimiterMessages = nil
 	}
-	close(receiver.messageChannel)
+	messageChannel := receiver.messageChannel
+	receiver.messageChannel = nil
 	receiver.waitGroup.Wait()
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver stopped")
 	}
+	close(messageChannel)
 	receiver.status = Status.STOPPED
 	return nil
 }
