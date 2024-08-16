@@ -8,6 +8,16 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection) error {
+	for _, connection := range connections {
+		err := connection.AsyncMessage(topic, payload)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error {
 	err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
 	if err != nil {
@@ -17,57 +27,55 @@ func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error 
 	return nil
 }
 
-func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (map[string]chan *Message.Message, error) {
-	responseChannels := make(map[string]chan *Message.Message)
+func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (map[string]*Message.Message, error) {
+	responses := make(map[string]*Message.Message)
+	taskGroup := Tools.NewTaskGroup()
 	for _, connection := range connections {
-		synctoken, responseChannel := connection.initResponseChannel()
-		err := connection.SendMessage(Message.NewSync(topic, payload, synctoken).Serialize())
-		if err != nil {
-			connection.removeResponseChannel(synctoken)
-			continue
-		}
-		connection.syncRequestsSent.Add(1)
-		otherResponseChannel := make(chan *Message.Message, 1)
-		responseChannels[connection.GetName()] = otherResponseChannel
-		go func(connection *SystemgeConnection, responseChannel chan *Message.Message, multiResponseChannel chan *Message.Message) {
-			if connection.config.SyncRequestTimeoutMs > 0 {
-				timeout := time.NewTimer(time.Duration(connection.config.SyncRequestTimeoutMs) * time.Millisecond)
-				select {
-				case responseMessage := <-responseChannel:
-					if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
-						connection.syncSuccessResponsesReceived.Add(1)
-					} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
-						connection.syncFailureResponsesReceived.Add(1)
-					}
-					multiResponseChannel <- responseMessage
-				case <-connection.stopChannel:
-					connection.noSyncResponseReceived.Add(1)
+		taskGroup.AddTask(func() {
+			func(connection *SystemgeConnection) {
+				synctoken, responseChannel := connection.initResponseChannel()
+				err := connection.SendMessage(Message.NewSync(topic, payload, synctoken).Serialize())
+				if err != nil {
 					connection.removeResponseChannel(synctoken)
-					close(multiResponseChannel)
-				case <-timeout.C:
-					connection.noSyncResponseReceived.Add(1)
-					connection.removeResponseChannel(synctoken)
-					close(multiResponseChannel)
+					return
 				}
-			} else {
-				select {
-				case responseMessage := <-responseChannel:
-					if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
-						connection.syncSuccessResponsesReceived.Add(1)
-					} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
-						connection.syncFailureResponsesReceived.Add(1)
+				connection.syncRequestsSent.Add(1)
+				if connection.config.SyncRequestTimeoutMs > 0 {
+					timeout := time.NewTimer(time.Duration(connection.config.SyncRequestTimeoutMs) * time.Millisecond)
+					select {
+					case responseMessage := <-responseChannel:
+						if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
+							connection.syncSuccessResponsesReceived.Add(1)
+						} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
+							connection.syncFailureResponsesReceived.Add(1)
+						}
+						responses[connection.GetName()] = responseMessage
+					case <-connection.stopChannel:
+						connection.noSyncResponseReceived.Add(1)
+						connection.removeResponseChannel(synctoken)
+					case <-timeout.C:
+						connection.noSyncResponseReceived.Add(1)
+						connection.removeResponseChannel(synctoken)
 					}
-					multiResponseChannel <- responseMessage
-				case <-connection.stopChannel:
-					connection.noSyncResponseReceived.Add(1)
-					connection.removeResponseChannel(synctoken)
-					close(multiResponseChannel)
+				} else {
+					select {
+					case responseMessage := <-responseChannel:
+						if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
+							connection.syncSuccessResponsesReceived.Add(1)
+						} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
+							connection.syncFailureResponsesReceived.Add(1)
+						}
+						responses[connection.GetName()] = responseMessage
+					case <-connection.stopChannel:
+						connection.noSyncResponseReceived.Add(1)
+						connection.removeResponseChannel(synctoken)
+					}
 				}
-			}
-		}(connection, responseChannel, otherResponseChannel)
-
+			}(connection)
+		})
 	}
-	return responseChannels, nil
+	taskGroup.ExecuteTasks()
+	return responses, nil
 }
 
 func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Message.Message, error) {
