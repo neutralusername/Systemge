@@ -59,12 +59,6 @@ func New(config *Config.SystemgeReceiver, connection *SystemgeConnection.Systemg
 		connection:     connection,
 		messageHandler: messageHandler,
 	}
-	if config.RateLimiterBytes != nil {
-		receiver.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
-	}
-	if config.RateLimiterMessages != nil {
-		receiver.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
-	}
 	if config.InfoLoggerPath != "" {
 		receiver.infoLogger = Tools.NewLogger("[Info: \""+receiver.GetName()+"\"] ", config.InfoLoggerPath)
 	}
@@ -90,6 +84,12 @@ func (receiver *SystemgeReceiver) Start() error {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Starting receiver")
 	}
+	if receiver.config.RateLimiterBytes != nil {
+		receiver.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(receiver.config.RateLimiterBytes)
+	}
+	if receiver.config.RateLimiterMessages != nil {
+		receiver.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(receiver.config.RateLimiterMessages)
+	}
 	receiver.messageChannel = make(chan func())
 	if receiver.config.ProcessSequentially {
 		go receiver.processingLoopSequentially()
@@ -113,6 +113,14 @@ func (receiver *SystemgeReceiver) Stop() error {
 	receiver.status = Status.PENDING
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Stopping receiver")
+	}
+	if receiver.config.RateLimiterBytes != nil {
+		receiver.rateLimiterBytes.Stop()
+		receiver.rateLimiterBytes = nil
+	}
+	if receiver.config.RateLimiterMessages != nil {
+		receiver.rateLimiterMessages.Stop()
+		receiver.rateLimiterMessages = nil
 	}
 	close(receiver.messageChannel)
 	receiver.waitGroup.Wait()
