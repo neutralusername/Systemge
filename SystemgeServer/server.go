@@ -120,8 +120,6 @@ func (server *SystemgeServer) GetName() string {
 }
 
 func (server *SystemgeServer) GetStatus() int {
-	server.statusMutex.Lock()
-	defer server.statusMutex.Unlock()
 	return server.status
 }
 
