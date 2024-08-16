@@ -10,19 +10,19 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string) (*SystemgeConnection, error) {
+func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*SystemgeConnection, error) {
 	netConn, err := Tcp.NewClient(endpointConfig)
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
 	}
-	connection, err := clientHandshake(config, clientName, netConn)
+	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn)
 	if err != nil {
 		return nil, Error.New("Failed to handshake with "+endpointConfig.Address, err)
 	}
 	return connection, nil
 }
 
-func clientHandshake(config *Config.SystemgeConnection, clientName string, netConn net.Conn) (*SystemgeConnection, error) {
+func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
 	_, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, clientName).Serialize(), config.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
@@ -38,8 +38,8 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, netCo
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
 	}
-	if len(message.GetPayload()) > int(config.MaxServerNameLength) {
-		return nil, Error.New("Received server name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.Uint64ToString(config.MaxServerNameLength), nil)
+	if len(message.GetPayload()) > maxServerNameLength {
+		return nil, Error.New("Received server name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.IntToString(maxServerNameLength), nil)
 	}
 	if len(message.GetPayload()) == 0 {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
