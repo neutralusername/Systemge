@@ -40,7 +40,6 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 		}
 	}
 	server.handleMessages(client)
-	client.Disconnect()
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("client disconnected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
 	}
