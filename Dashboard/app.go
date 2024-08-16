@@ -49,7 +49,7 @@ func New(config *Config.Dashboard) *App {
 	if config.WebsocketServerConfig == nil {
 		panic("config.WebsocketServerConfig is nil")
 	}
-	if config.WebsocketServerConfig.ServerConfig == nil {
+	if config.WebsocketServerConfig.ListenerConfig == nil {
 		panic("config.WebsocketServerConfig.ServerConfig is nil")
 	}
 	if config.SystemgeServerConfig == nil {
@@ -72,7 +72,7 @@ func New(config *Config.Dashboard) *App {
 	app.httpServer = HTTPServer.New(config.HTTPServerConfig, nil)
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("app.go")] + "frontend/"
-	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.ServerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
+	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.ListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
 	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)

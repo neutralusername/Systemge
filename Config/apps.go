@@ -11,10 +11,10 @@ type Dashboard struct {
 	WebsocketServerConfig *WebsocketServer  `json:"websocketServerConfig"` // *required*
 	SystemgeServerConfig  *SystemgeListener `json:"systemgeServerConfig"`  // *required*
 
-	InfoLoggerPath    string  `json:"internalInfoLoggerPath"`    // *required*
-	WarningLoggerPath string  `json:"internalWarningLoggerPath"` // *required*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`           // *required*
-	MailerConfig      *Mailer `json:"mailer"`                    // *required*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
 
 	HeapUpdateIntervalMs          uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
 	GoroutineUpdateIntervalMs     uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled

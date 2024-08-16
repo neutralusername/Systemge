@@ -26,19 +26,19 @@ func UnmarshalHTTP(data string) *HTTPServer {
 type WebsocketServer struct {
 	Name string `json:"name"` // *required*
 
-	ServerConfig *TcpListener `json:"serverConfig"` // *required* (the configuration of the underlying http server)
-	Pattern      string       `json:"pattern"`      // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
+	ListenerConfig *TcpListener `json:"listenerConfig"` // *required* (the configuration of the underlying http server)
+	Pattern        string       `json:"pattern"`        // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-	MailerConfig      *Mailer `json:"mailer"`            // *optional*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	RandomizerSeed    int64   `json:"randomizerSeed"`    // *optional*
 
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
-	ClientRateLimiterBytes    *TokenBucketRateLimiter `json:"connectionRateLimiterBytes"` // *optional* (rate limiter for clients)
-	ClientRateLimiterMessages *TokenBucketRateLimiter `json:"connectionRateLimiterMsgs"`  // *optional* (rate limiter for clients)
+	ClientRateLimiterBytes    *TokenBucketRateLimiter `json:"clientRateLimiterBytes"`    // *optional* (rate limiter for clients)
+	ClientRateLimiterMessages *TokenBucketRateLimiter `json:"clientRateLimiterMessages"` // *optional* (rate limiter for clients)
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 
