@@ -8,13 +8,15 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection) error {
+func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection) map[string]error {
 	taskGroup := Tools.NewTaskGroup()
+	errors := make(map[string]error)
 	for _, connection := range connections {
 		taskGroup.AddTask(func() {
 			func(connection *SystemgeConnection) {
 				err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
 				if err != nil {
+					errors[connection.GetName()] = err
 					return
 				}
 				connection.asyncMessagesSent.Add(1)
@@ -22,7 +24,7 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 		})
 	}
 	taskGroup.ExecuteTasks()
-	return nil
+	return errors
 }
 
 func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error {
@@ -34,8 +36,9 @@ func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error 
 	return nil
 }
 
-func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (map[string]*Message.Message, error) {
+func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (map[string]*Message.Message, map[string]error) {
 	responses := make(map[string]*Message.Message)
+	errors := make(map[string]error)
 	taskGroup := Tools.NewTaskGroup()
 	for _, connection := range connections {
 		taskGroup.AddTask(func() {
@@ -44,6 +47,7 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 				err := connection.SendMessage(Message.NewSync(topic, payload, synctoken).Serialize())
 				if err != nil {
 					connection.removeResponseChannel(synctoken)
+					errors[connection.GetName()] = err
 					return
 				}
 				connection.syncRequestsSent.Add(1)
@@ -60,9 +64,11 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 					case <-connection.stopChannel:
 						connection.noSyncResponseReceived.Add(1)
 						connection.removeResponseChannel(synctoken)
+						errors[connection.GetName()] = Error.New("SystemgeClient stopped before receiving response", nil)
 					case <-timeout.C:
 						connection.noSyncResponseReceived.Add(1)
 						connection.removeResponseChannel(synctoken)
+						errors[connection.GetName()] = Error.New("Timeout before receiving response", nil)
 					}
 				} else {
 					select {
@@ -76,6 +82,7 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 					case <-connection.stopChannel:
 						connection.noSyncResponseReceived.Add(1)
 						connection.removeResponseChannel(synctoken)
+						errors[connection.GetName()] = Error.New("SystemgeClient stopped before receiving response", nil)
 					}
 				}
 			}(connection)
