@@ -31,6 +31,8 @@ type SystemgeReceiver struct {
 	processingChannel chan func()
 	waitGroup         sync.WaitGroup
 
+	stopChannel chan bool
+
 	messageId uint32
 
 	// metrics
@@ -91,6 +93,7 @@ func (receiver *SystemgeReceiver) Start() error {
 		receiver.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(receiver.config.RateLimiterMessages)
 	}
 	receiver.processingChannel = make(chan func(), receiver.config.ProcessingChannelSize)
+	receiver.stopChannel = make(chan bool)
 	if receiver.config.ProcessSequentially {
 		go receiver.processingLoopSequentially()
 	} else {
@@ -126,6 +129,7 @@ func (receiver *SystemgeReceiver) Stop() error {
 	receiver.processingChannel = nil
 	receiver.waitGroup.Wait()
 	close(processingChannel)
+	close(receiver.stopChannel)
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver stopped")
 	}
@@ -139,4 +143,10 @@ func (receiver *SystemgeReceiver) GetStatus() int {
 
 func (receiver *SystemgeReceiver) GetName() string {
 	return receiver.config.Name
+}
+
+// GetStopChannel returns a channel that will block until the receiver is stopped.
+// Can be used to trigger an event when the receiver is stopped (e.g. due to connection loss)
+func (receiver *SystemgeReceiver) GetStopChannel() <-chan bool {
+	return receiver.stopChannel
 }

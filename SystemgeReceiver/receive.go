@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Tcp"
 )
 
 func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
@@ -18,6 +19,10 @@ func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 				receiver.errorLogger.Log(Error.New("failed to receive message", err).Error())
 			}
 			receiver.waitGroup.Done()
+			if Tcp.IsConnectionClosed(err) {
+				receiver.Stop()
+				break
+			}
 			continue
 		}
 		receiver.messageId++

@@ -2,9 +2,11 @@ package SystemgeClient
 
 import (
 	"sync"
+	"time"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
@@ -21,6 +23,8 @@ type SystemgeClient struct {
 	connection     *SystemgeConnection.SystemgeConnection
 	receiver       *SystemgeReceiver.SystemgeReceiver
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
+
+	stopChannel chan bool
 
 	errorLogger   *Tools.Logger
 	warningLogger *Tools.Logger
@@ -75,7 +79,9 @@ func (client *SystemgeClient) Start() error {
 	if client.status != Status.STOPPED {
 		return Error.New("client not stopped", nil)
 	}
-	client.infoLogger.Log("starting client")
+	if client.infoLogger != nil {
+		client.infoLogger.Log("starting client")
+	}
 	client.status = Status.PENDING
 
 	connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, client.config.EndpointConfig, client.GetName(), client.config.MaxServerNameLength)
@@ -84,16 +90,22 @@ func (client *SystemgeClient) Start() error {
 		return Error.New("failed to establish connection", err)
 	}
 	receiver := SystemgeReceiver.New(client.config.ReceiverConfig, connection, client.messageHandler)
-	err = receiver.Start()
-	if err != nil {
+	if err := receiver.Start(); err != nil {
 		connection.Close()
 		client.status = Status.STOPPED
 		return Error.New("failed to start receiver", err)
 	}
 	client.connection = connection
 	client.receiver = receiver
+	client.stopChannel = make(chan bool)
 
-	client.infoLogger.Log("client started")
+	if client.config.Reconnect {
+		go client.reconnect()
+	}
+
+	if client.infoLogger != nil {
+		client.infoLogger.Log("client started")
+	}
 	client.status = Status.STARTED
 	return nil
 }
@@ -104,11 +116,12 @@ func (client *SystemgeClient) Stop() error {
 	if client.status != Status.STARTED {
 		return Error.New("client not started", nil)
 	}
-	client.infoLogger.Log("stopping client")
+	if client.infoLogger != nil {
+		client.infoLogger.Log("stopping client")
+	}
 	client.status = Status.PENDING
 
-	err := client.receiver.Stop()
-	if err != nil {
+	if err := client.receiver.Stop(); err != nil {
 		if client.errorLogger != nil {
 			client.errorLogger.Log("failed to stop receiver: " + err.Error())
 		}
@@ -116,8 +129,45 @@ func (client *SystemgeClient) Stop() error {
 	client.receiver = nil
 	client.connection.Close()
 	client.connection = nil
+	close(client.stopChannel)
+	client.stopChannel = nil
 
-	client.infoLogger.Log("client stopped")
+	if client.infoLogger != nil {
+		client.infoLogger.Log("client stopped")
+	}
 	client.status = Status.STOPPED
 	return nil
+}
+
+func (client *SystemgeClient) reconnect() {
+	select {
+	case <-client.stopChannel:
+		return
+	case <-client.receiver.GetStopChannel():
+		if client.infoLogger != nil {
+			client.infoLogger.Log("receiver stopped, reconnecting")
+		}
+		client.Stop()
+		attempts := 0
+		for {
+			attempts++
+			err := client.Start()
+			if err == nil {
+				if client.infoLogger != nil {
+					client.infoLogger.Log("reconnected")
+				}
+				break
+			}
+			if client.warningLogger != nil {
+				client.warningLogger.Log(Error.New("failed reconnect attempt #"+Helpers.IntToString(attempts), err).Error())
+			}
+			if client.config.MaxReconnectAttempts > 0 && attempts >= int(client.config.MaxReconnectAttempts) {
+				if client.errorLogger != nil {
+					client.errorLogger.Log("max reconnect attempts reached")
+				}
+				break
+			}
+			time.Sleep(time.Duration(client.config.ReconnectAttemptDelayMs) * time.Millisecond)
+		}
+	}
 }

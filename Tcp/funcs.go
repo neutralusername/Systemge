@@ -1,7 +1,11 @@
 package Tcp
 
 import (
+	"errors"
+	"io"
 	"net"
+	"os"
+	"syscall"
 	"time"
 
 	"github.com/neutralusername/Systemge/Error"
@@ -40,4 +44,26 @@ func Receive(netConn net.Conn, timeoutMs uint64, bufferSize uint32) ([]byte, int
 		return nil, bytesRead, err
 	}
 	return buffer[:bytesRead], bytesRead, nil
+}
+
+func IsConnectionClosed(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) || errors.Is(err, os.ErrClosed) {
+		return true
+	}
+	var netErr *net.OpError
+	if errors.As(err, &netErr) {
+		switch netErr.Err {
+		case syscall.EPIPE, syscall.ECONNRESET, syscall.ENOTCONN,
+			syscall.ECONNABORTED, syscall.ENETDOWN,
+			syscall.ENETUNREACH, syscall.EHOSTDOWN:
+			return true
+		}
+	}
+	if netErrInterface, ok := err.(net.Error); ok && !netErrInterface.Timeout() {
+		return true
+	}
+	return false
 }
