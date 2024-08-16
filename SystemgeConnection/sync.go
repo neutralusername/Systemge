@@ -9,12 +9,19 @@ import (
 )
 
 func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection) error {
+	taskGroup := Tools.NewTaskGroup()
 	for _, connection := range connections {
-		err := connection.AsyncMessage(topic, payload)
-		if err != nil {
-			return err
-		}
+		taskGroup.AddTask(func() {
+			func(connection *SystemgeConnection) {
+				err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
+				if err != nil {
+					return
+				}
+				connection.asyncMessagesSent.Add(1)
+			}(connection)
+		})
 	}
+	taskGroup.ExecuteTasks()
 	return nil
 }
 
