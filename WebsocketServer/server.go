@@ -87,19 +87,20 @@ func (server *WebsocketServer) Start() error {
 	}
 	server.status = Status.PENDING
 
-	server.httpServer = HTTPServer.New(&Config.HTTPServer{
+	httpServer := HTTPServer.New(&Config.HTTPServer{
 		ServerConfig: server.config.ServerConfig,
 	}, map[string]http.HandlerFunc{
 		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 	})
-	if server.config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
-	}
-	err := server.httpServer.Start()
+	err := httpServer.Start()
 	if err != nil {
 		server.httpServer = nil
 		server.status = Status.STOPPED
 		return Error.New("failed starting websocket handshake handler", err)
+	}
+	server.httpServer = httpServer
+	if server.config.IpRateLimiter != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
 	server.connectionChannel = make(chan *websocket.Conn)
 	go server.handleWebsocketConnections()
