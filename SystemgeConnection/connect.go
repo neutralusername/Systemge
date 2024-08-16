@@ -17,7 +17,7 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	}
 	connection, err := clientHandshake(config, clientName, netConn)
 	if err != nil {
-		return connection, Error.New("Failed to handshake with "+endpointConfig.Address, err)
+		return nil, Error.New("Failed to handshake with "+endpointConfig.Address, err)
 	}
 	return connection, nil
 }
