@@ -28,8 +28,8 @@ type SystemgeReceiver struct {
 	infoLogger    *Tools.Logger
 	mailer        *Tools.Mailer
 
-	messageChannel chan func()
-	waitGroup      sync.WaitGroup
+	processingChannel chan func()
+	waitGroup         sync.WaitGroup
 
 	messageId uint32
 
@@ -90,13 +90,13 @@ func (receiver *SystemgeReceiver) Start() error {
 	if receiver.config.RateLimiterMessages != nil {
 		receiver.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(receiver.config.RateLimiterMessages)
 	}
-	receiver.messageChannel = make(chan func())
+	receiver.processingChannel = make(chan func(), receiver.config.ProcessingChannelSize)
 	if receiver.config.ProcessSequentially {
 		go receiver.processingLoopSequentially()
 	} else {
 		go receiver.processingLoopConcurrently()
 	}
-	go receiver.receive(receiver.messageChannel)
+	go receiver.receive(receiver.processingChannel)
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver started")
 	}
@@ -122,8 +122,8 @@ func (receiver *SystemgeReceiver) Stop() error {
 		receiver.rateLimiterMessages.Stop()
 		receiver.rateLimiterMessages = nil
 	}
-	messageChannel := receiver.messageChannel
-	receiver.messageChannel = nil
+	messageChannel := receiver.processingChannel
+	receiver.processingChannel = nil
 	receiver.waitGroup.Wait()
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiver stopped")

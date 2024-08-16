@@ -10,7 +10,7 @@ func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Receiving messages")
 	}
-	for receiver.messageChannel == messageChannel {
+	for receiver.processingChannel == messageChannel {
 		receiver.waitGroup.Add(1)
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
@@ -26,7 +26,7 @@ func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
 		}
 		func(connection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) {
-			receiver.messageChannel <- func() {
+			receiver.processingChannel <- func() {
 				err := receiver.processMessage(connection, messageBytes, messageId)
 				if err != nil {
 					if receiver.warningLogger != nil {

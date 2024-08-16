@@ -8,8 +8,8 @@ type SystemgeReceiver struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	ProcessSequentially bool `json:"processSequentially"` // default: false (if true, the receiver will handle messages sequentially)
-	ProcessChannelSize  int  `json:"processChannelSize"`  // default: 0 == no guarantee on order of arrival (if >0, the order of arrival is guaranteed as long as the channel is never full)
+	ProcessSequentially   bool `json:"processSequentially"` // default: false (if true, the receiver will handle messages sequentially)
+	ProcessingChannelSize int  `json:"processChannelSize"`  // default: 0 == no guarantee on order of arrival (irrelevant if ProcessSequentially is false) (if >0, the order of arrival is guaranteed as long as the channel is never full)
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterBytes"` // *optional* (rate limiter for outgoing connections)
 	RateLimiterMessages *TokenBucketRateLimiter `json:"outgoingConnectionRateLimiterMsgs"`  // *optional* (rate limiter for outgoing connections)

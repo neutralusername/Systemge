@@ -1,18 +1,5 @@
 package WebsocketServer
 
-func (server *WebsocketServer) removeClient(client *WebsocketClient) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	delete(server.clients, client.GetId())
-	for groupId := range server.clientGroups[client.GetId()] {
-		delete(server.clientGroups[client.GetId()], groupId)
-		delete(server.groups[groupId], client.GetId())
-		if len(server.groups[groupId]) == 0 {
-			delete(server.groups, groupId)
-		}
-	}
-}
-
 // ClientExists returns true if a client with the given id exists.
 func (server *WebsocketServer) ClientExists(websocketId string) bool {
 	server.mutex.RLock()
@@ -40,4 +27,17 @@ func (server *WebsocketServer) GetGroupCount() int {
 	server.mutex.RLock()
 	defer server.mutex.RUnlock()
 	return len(server.groups)
+}
+
+func (server *WebsocketServer) removeClient(client *WebsocketClient) {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	delete(server.clients, client.GetId())
+	for groupId := range server.clientGroups[client.GetId()] {
+		delete(server.clientGroups[client.GetId()], groupId)
+		delete(server.groups[groupId], client.GetId())
+		if len(server.groups[groupId]) == 0 {
+			delete(server.groups, groupId)
+		}
+	}
 }

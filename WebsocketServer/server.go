@@ -66,7 +66,6 @@ func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandl
 	if messageHandlers == nil {
 		panic("messageHandlers is nil")
 	}
-
 	if config.Upgrader == nil {
 		config.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  1024,

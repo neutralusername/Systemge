@@ -11,9 +11,14 @@ func (receiver *SystemgeReceiver) processingLoopSequentially() {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Processing messages sequentially")
 	}
-	for process := range receiver.messageChannel {
+	for process := range receiver.processingChannel {
 		if process == nil {
 			return
+		}
+		if len(receiver.processingChannel) >= cap(receiver.processingChannel)-1 {
+			if receiver.errorLogger != nil {
+				receiver.errorLogger.Log("Processing channel capacity reached")
+			}
 		}
 		process()
 	}
@@ -23,7 +28,7 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently() {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Processing messages concurrently")
 	}
-	for process := range receiver.messageChannel {
+	for process := range receiver.processingChannel {
 		if process == nil {
 			return
 		}
