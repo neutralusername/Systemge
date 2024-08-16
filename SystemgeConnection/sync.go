@@ -27,15 +27,6 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 	return errors
 }
 
-func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error {
-	err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
-	if err != nil {
-		return err
-	}
-	connection.asyncMessagesSent.Add(1)
-	return nil
-}
-
 func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (map[string]*Message.Message, map[string]error) {
 	responses := make(map[string]*Message.Message)
 	errors := make(map[string]error)
@@ -90,6 +81,15 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 	}
 	taskGroup.ExecuteTasks()
 	return responses, nil
+}
+
+func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error {
+	err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
+	if err != nil {
+		return err
+	}
+	connection.asyncMessagesSent.Add(1)
+	return nil
 }
 
 func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Message.Message, error) {

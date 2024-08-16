@@ -51,12 +51,14 @@ func (receiver *SystemgeReceiver) receive(messageChannel chan func()) {
 			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
 		}
 		receiver.messageChannel <- func() {
-			err := receiver.processMessage(receiver.connection, messageBytes, messageId)
-			if err != nil {
-				if receiver.warningLogger != nil {
-					receiver.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint32ToString(messageId), err).Error())
+			func(connection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) {
+				err := receiver.processMessage(connection, messageBytes, messageId)
+				if err != nil {
+					if receiver.warningLogger != nil {
+						receiver.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint32ToString(messageId), err).Error())
+					}
 				}
-			}
+			}(receiver.connection, messageBytes, messageId)
 		}
 	}
 }
