@@ -1,5 +1,21 @@
 package Config
 
+type SystemgeClient struct {
+	Name string `json:"name"` // *required*
+
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+
+	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
+	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
+
+	Reconnect               bool   `json:"reconnect"`               // default: false (if true, the client will attempt to reconnect if the connection is lost)
+	ReconnectAttemptDelayMs uint64 `json:"reconnectAttemptDelayMs"` // default: 1000 (the delay between reconnection attempts in milliseconds)
+	MaxReconnectAttempts    uint64 `json:"maxReconnectAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+}
+
 type SystemgeServer struct {
 	Name string `json:"name"` // *required*
 
