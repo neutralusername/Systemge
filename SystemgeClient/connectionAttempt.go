@@ -86,7 +86,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 						client.mutex.Lock()
 						delete(client.connections, endpointConfig.Address)
 						client.mutex.Unlock()
-						go client.startConnectionAttempts(endpointConfig)
+						client.connectionAttemptChannel <- endpointConfig
 					}
 					client.connectionWaitGroup.Done()
 				}
