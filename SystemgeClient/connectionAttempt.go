@@ -21,10 +21,12 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	client.mutex.Lock()
 	if client.connections[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
+		client.connectionAttemptWaitGroup.Done()
 		return Error.New("Connection already exists", nil)
 	}
 	if client.connectionAttemptsMap[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
+		client.connectionAttemptWaitGroup.Done()
 		return Error.New("Connection attempt already in progress", nil)
 	}
 	attempt := &ConnectionAttempt{
