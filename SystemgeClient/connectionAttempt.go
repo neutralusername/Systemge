@@ -37,8 +37,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 
 	go func() {
 		defer client.connectionAttemptWaitGroup.Done()
-		err := client.connectionAttempts(attempt)
-		if err != nil {
+		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
 			}
@@ -103,16 +102,16 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 		client.mutex.Unlock()
 		client.connectionWaitGroup.Done()
 	case <-connection.GetCloseChannel():
+		client.mutex.Lock()
+		delete(client.connections, endpointConfig.Address)
+		client.mutex.Unlock()
+		client.connectionWaitGroup.Done()
 		if client.config.Reconnect {
-			client.mutex.Lock()
-			delete(client.connections, endpointConfig.Address)
-			client.mutex.Unlock()
 			if err := client.startConnectionAttempts(endpointConfig); err != nil {
 				if client.errorLogger != nil {
 					client.errorLogger.Log(Error.New("failed starting connection attempt", err).Error())
 				}
 			}
 		}
-		client.connectionWaitGroup.Done()
 	}
 }
