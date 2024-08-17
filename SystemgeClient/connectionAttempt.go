@@ -5,8 +5,25 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
+
+// AddConnection attempts to add a connection to the client
+func (client *SystemgeClient) AddConnection(endpointConfig *Config.TcpEndpoint) error {
+	if endpointConfig == nil {
+		return Error.New("endpointConfig is nil", nil)
+	}
+	if endpointConfig.Address == "" {
+		return Error.New("endpointConfig.Address is empty", nil)
+	}
+	client.statusMutex.Lock()
+	defer client.statusMutex.Unlock()
+	if client.status == Status.STOPPED {
+		return Error.New("client stopped", nil)
+	}
+	return client.startConnectionAttempts(endpointConfig)
+}
 
 type ConnectionAttempt struct {
 	attempts       uint32
@@ -16,17 +33,17 @@ type ConnectionAttempt struct {
 }
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
-	client.connectionWaitGroup.Add(1)
+	client.waitGroup.Add(1)
 
 	client.mutex.Lock()
 	if client.connections[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
-		client.connectionWaitGroup.Done()
+		client.waitGroup.Done()
 		return Error.New("Connection already exists", nil)
 	}
 	if client.connectionAttemptsMap[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
-		client.connectionWaitGroup.Done()
+		client.waitGroup.Done()
 		return Error.New("Connection attempt already in progress", nil)
 	}
 	attempt := &ConnectionAttempt{
@@ -37,7 +54,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	client.mutex.Unlock()
 
 	go func() {
-		defer client.connectionWaitGroup.Done()
+		defer client.waitGroup.Done()
 		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
@@ -87,7 +104,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			}
 			client.connections[attempt.endpointConfig.Address] = connection
 
-			client.connectionWaitGroup.Add(1)
+			client.waitGroup.Add(1)
 			go client.connectionClosure(connection, attempt.endpointConfig)
 			return nil
 		}
@@ -101,7 +118,7 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 		client.mutex.Lock()
 		delete(client.connections, endpointConfig.Address)
 		client.mutex.Unlock()
-		client.connectionWaitGroup.Done()
+		client.waitGroup.Done()
 	case <-connection.GetCloseChannel():
 		client.mutex.Lock()
 		delete(client.connections, endpointConfig.Address)
@@ -113,6 +130,6 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 				}
 			}
 		}
-		client.connectionWaitGroup.Done()
+		client.waitGroup.Done()
 	}
 }
