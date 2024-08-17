@@ -7,7 +7,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -27,7 +26,7 @@ type SystemgeConnection struct {
 	syncResponseChannels map[string]chan *Message.Message
 	syncMutex            sync.Mutex
 
-	stopChannel chan bool
+	closeChannel chan bool
 
 	// metrics
 	bytesSent     atomic.Uint64
@@ -41,13 +40,13 @@ type SystemgeConnection struct {
 	noSyncResponseReceived       atomic.Uint32
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeConnection {
+func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messageHandler *SystemgeMessageHandler) *SystemgeConnection {
 	connection := &SystemgeConnection{
-		name:        name,
-		config:      config,
-		netConn:     netConn,
-		randomizer:  Tools.NewRandomizer(config.RandomizerSeed),
-		stopChannel: make(chan bool),
+		name:         name,
+		config:       config,
+		netConn:      netConn,
+		randomizer:   Tools.NewRandomizer(config.RandomizerSeed),
+		closeChannel: make(chan bool),
 	}
 	if config.ReceiverConfig != nil {
 		receiver := NewReceiver(config.ReceiverConfig, connection, messageHandler)
@@ -61,16 +60,16 @@ func (connection *SystemgeConnection) Close() {
 	if connection.receiver != nil {
 		connection.receiver.Close()
 	}
-	close(connection.stopChannel)
+	close(connection.closeChannel)
 }
 
 func (connection *SystemgeConnection) GetName() string {
 	return connection.name
 }
 
-// GetStopChannel returns a channel that will be closed when the connection is closed.
+// GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *SystemgeConnection) GetStopChannel() <-chan bool {
-	return connection.stopChannel
+func (connection *SystemgeConnection) GetCloseChannel() <-chan bool {
+	return connection.closeChannel
 }

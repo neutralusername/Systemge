@@ -1,14 +1,6 @@
 package SystemgeClient
 
-import (
-	"time"
-
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/Tools"
-)
-
+/*
 func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection.SystemgeConnection) map[string]error {
 	taskGroup := Tools.NewTaskGroup()
 	errors := make(map[string]error)
@@ -84,3 +76,4 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection.
 	taskGroup.ExecuteTasks()
 	return responses, nil
 }
+*/

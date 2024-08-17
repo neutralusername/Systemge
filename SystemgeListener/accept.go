@@ -8,11 +8,10 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection, messageHandler *SystemgeConnection.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -47,7 +46,7 @@ func (listener *SystemgeListener) AcceptConnection(serverName string, connection
 	return connection, nil
 }
 
-func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn, messageHandler *SystemgeConnection.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)

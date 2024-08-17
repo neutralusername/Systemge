@@ -35,7 +35,7 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 				connection.syncFailureResponsesReceived.Add(1)
 			}
 			return responseMessage, nil
-		case <-connection.stopChannel:
+		case <-connection.closeChannel:
 			connection.noSyncResponseReceived.Add(1)
 			connection.RemoveResponseChannel(synctoken)
 			return nil, Error.New("SystemgeClient stopped before receiving response", nil)
@@ -53,7 +53,7 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 				connection.syncFailureResponsesReceived.Add(1)
 			}
 			return responseMessage, nil
-		case <-connection.stopChannel:
+		case <-connection.closeChannel:
 			connection.noSyncResponseReceived.Add(1)
 			connection.RemoveResponseChannel(synctoken)
 			return nil, Error.New("SystemgeClient stopped before receiving response", nil)

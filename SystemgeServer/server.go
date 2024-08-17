@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -18,7 +17,7 @@ type SystemgeServer struct {
 
 	config         *Config.SystemgeServer
 	listener       *SystemgeListener.SystemgeListener
-	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
+	messageHandler *SystemgeConnection.SystemgeMessageHandler
 
 	clients            map[string]*SystemgeConnection.SystemgeConnection
 	clientsMutex       sync.Mutex
@@ -30,7 +29,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
+func New(config *Config.SystemgeServer, messageHandler *SystemgeConnection.SystemgeMessageHandler) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -135,7 +134,7 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 	}
 
 	for server.handlerStopChannel == stopChannel {
-		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
+		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig, server.messageHandler)
 		if err != nil {
 			if server.errorLogger != nil {
 				server.errorLogger.Log("error accepting connection: " + err.Error())
@@ -145,22 +144,11 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 		if server.infoLogger != nil {
 			server.infoLogger.Log("connection accepted: " + connection.GetName())
 		}
-		receiver := SystemgeReceiver.New(server.config.ReceiverConfig, connection, server.messageHandler)
-		if err := receiver.Start(); err != nil {
-			connection.Close()
-			if server.errorLogger != nil {
-				server.errorLogger.Log("error starting receiver: " + err.Error())
-			}
-			continue
-		}
 		server.clientsMutex.Lock()
-		server.clients[connection.GetName()] = &Client{
-			connection: connection,
-			receiver:   receiver,
-		}
+		server.clients[connection.GetName()] = connection
 		server.clientsMutex.Unlock()
 		go func() {
-			<-receiver.GetStopChannel()
+			<-connection.GetCloseChannel()
 			server.clientsMutex.Lock()
 			delete(server.clients, connection.GetName())
 			server.clientsMutex.Unlock()

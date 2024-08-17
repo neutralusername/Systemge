@@ -1,4 +1,4 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"sync"
@@ -27,7 +27,7 @@ type SystemgeMessageHandler struct {
 }
 
 // pass a handler with an empty string as the key to handle messages with unknown topics
-func New(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers) *SystemgeMessageHandler {
+func NewMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers) *SystemgeMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}
@@ -114,4 +114,28 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequestSequentially(mess
 	}
 	messageHandler.syncRequestsHandled.Add(1)
 	return handler(message)
+}
+
+func (messageHandler *SystemgeMessageHandler) AddAsyncMessageHandler(topic string, handler func(*Message.Message)) {
+	messageHandler.asyncMutex.Lock()
+	messageHandler.asyncMessageHandlers[topic] = handler
+	messageHandler.asyncMutex.Unlock()
+}
+
+func (messageHandler *SystemgeMessageHandler) AddSyncMessageHandler(topic string, handler func(*Message.Message) (string, error)) {
+	messageHandler.syncMutex.Lock()
+	messageHandler.syncMessageHandlers[topic] = handler
+	messageHandler.syncMutex.Unlock()
+}
+
+func (messageHandler *SystemgeMessageHandler) RemoveAsyncMessageHandler(topic string) {
+	messageHandler.asyncMutex.Lock()
+	delete(messageHandler.asyncMessageHandlers, topic)
+	messageHandler.asyncMutex.Unlock()
+}
+
+func (messageHandler *SystemgeMessageHandler) RemoveSyncMessageHandler(topic string) {
+	messageHandler.syncMutex.Lock()
+	delete(messageHandler.syncMessageHandlers, topic)
+	messageHandler.syncMutex.Unlock()
 }

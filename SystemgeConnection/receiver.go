@@ -5,14 +5,13 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeReceiver struct {
 	config         *Config.SystemgeReceiver
 	connection     *SystemgeConnection
-	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
+	messageHandler *SystemgeMessageHandler
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -38,7 +37,7 @@ type SystemgeReceiver struct {
 	byteRateLimiterExceeded    atomic.Uint32
 }
 
-func NewReceiver(config *Config.SystemgeReceiver, connection *SystemgeConnection, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeReceiver {
+func NewReceiver(config *Config.SystemgeReceiver, connection *SystemgeConnection, messageHandler *SystemgeMessageHandler) *SystemgeReceiver {
 	if config == nil {
 		panic("config is nil")
 	}
