@@ -17,7 +17,6 @@ type ConnectionAttempt struct {
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
 	client.connectionAttemptWaitGroup.Add(1)
-	client.startingConnectionAttemptChannel <- true
 
 	client.mutex.Lock()
 	if client.connections[endpointConfig.Address] != nil {

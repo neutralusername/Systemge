@@ -25,8 +25,6 @@ type SystemgeClient struct {
 	connections           map[string]*SystemgeConnection.SystemgeConnection
 	connectionAttemptsMap map[string]*ConnectionAttempt
 
-	startingConnectionAttemptChannel chan bool
-
 	connectionAttemptWaitGroup sync.WaitGroup
 	connectionWaitGroup        sync.WaitGroup
 
@@ -94,9 +92,6 @@ func (client *SystemgeClient) Start() error {
 	client.status = Status.PENDING
 
 	client.stopChannel = make(chan bool)
-	client.startingConnectionAttemptChannel = make(chan bool)
-
-	go client.statusMonitor()
 
 	for _, endpointConfig := range client.config.EndpointConfigs {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
@@ -112,37 +107,6 @@ func (client *SystemgeClient) Start() error {
 	return nil
 }
 
-func (client *SystemgeClient) statusMonitor() {
-	for {
-		select {
-		case <-client.stopChannel:
-			return
-		case b := <-client.startingConnectionAttemptChannel:
-			if !b {
-				return
-			}
-
-			client.statusMutex.Lock()
-			if client.status == Status.STOPPED {
-				client.statusMutex.Unlock()
-				return
-			}
-			client.status = Status.PENDING
-			client.statusMutex.Unlock()
-
-			client.connectionAttemptWaitGroup.Wait()
-
-			client.statusMutex.Lock()
-			if client.status == Status.STOPPED {
-				client.statusMutex.Unlock()
-				return
-			}
-			client.status = Status.STARTED
-			client.statusMutex.Unlock()
-		}
-	}
-}
-
 func (client *SystemgeClient) Stop() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
@@ -156,8 +120,6 @@ func (client *SystemgeClient) Stop() error {
 
 	close(client.stopChannel)
 	client.stopChannel = nil
-	close(client.startingConnectionAttemptChannel)
-	client.startingConnectionAttemptChannel = nil
 
 	client.connectionAttemptWaitGroup.Wait()
 	client.connectionWaitGroup.Wait()
