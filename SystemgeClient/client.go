@@ -99,6 +99,14 @@ func (client *SystemgeClient) Start() error {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed starting connection attempts", err).Error())
 			}
+			if client.mailer != nil {
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts", err).Error()))
+				if err != nil {
+					if client.errorLogger != nil {
+						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					}
+				}
+			}
 		}
 	}
 

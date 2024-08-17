@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type ConnectionAttempt struct {
@@ -53,6 +54,14 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
 			}
+			if client.mailer != nil {
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed connection attempt", err).Error()))
+				if err != nil {
+					if client.errorLogger != nil {
+						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					}
+				}
+			}
 		}
 		val = client.statusUpdateCounter.Add(-1)
 		if val == 0 {
@@ -92,6 +101,14 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				if client.errorLogger != nil {
 					client.errorLogger.Log(Error.New("failed establishing connection attempt #"+Helpers.Uint32ToString(attempt.attempts), err).Error())
 				}
+				if client.mailer != nil {
+					err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed establishing connection attempt", err).Error()))
+					if err != nil {
+						if client.errorLogger != nil {
+							client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						}
+					}
+				}
 				continue
 			}
 			client.connectionAttemptsSuccess.Add(1)
@@ -128,6 +145,14 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 			if err := client.startConnectionAttempts(endpointConfig); err != nil {
 				if client.errorLogger != nil {
 					client.errorLogger.Log(Error.New("failed starting connection attempt", err).Error())
+				}
+				if client.mailer != nil {
+					err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempt", err).Error()))
+					if err != nil {
+						if client.errorLogger != nil {
+							client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						}
+					}
 				}
 			}
 		}
