@@ -105,7 +105,6 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 		client.mutex.Lock()
 		delete(client.connections, endpointConfig.Address)
 		client.mutex.Unlock()
-		client.connectionWaitGroup.Done()
 		if client.config.Reconnect {
 			if err := client.startConnectionAttempts(endpointConfig); err != nil {
 				if client.errorLogger != nil {
@@ -113,5 +112,6 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 				}
 			}
 		}
+		client.connectionWaitGroup.Done()
 	}
 }
