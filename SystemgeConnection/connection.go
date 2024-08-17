@@ -48,7 +48,7 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 		randomizer:   Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel: make(chan bool),
 	}
-	if config.ReceiverConfig != nil {
+	if config.ReceiverConfig != nil && messageHandler != nil {
 		receiver := NewReceiver(config.ReceiverConfig, connection, messageHandler)
 		connection.receiver = receiver
 	}
