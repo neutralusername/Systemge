@@ -25,8 +25,7 @@ type SystemgeClient struct {
 	connections           map[string]*SystemgeConnection.SystemgeConnection
 	connectionAttemptsMap map[string]*ConnectionAttempt
 
-	connectionAttemptWaitGroup sync.WaitGroup
-	connectionWaitGroup        sync.WaitGroup
+	connectionWaitGroup sync.WaitGroup
 
 	errorLogger   *Tools.Logger
 	warningLogger *Tools.Logger
@@ -121,7 +120,6 @@ func (client *SystemgeClient) Stop() error {
 	close(client.stopChannel)
 	client.stopChannel = nil
 
-	client.connectionAttemptWaitGroup.Wait()
 	client.connectionWaitGroup.Wait()
 
 	if client.infoLogger != nil {

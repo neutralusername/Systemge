@@ -16,17 +16,17 @@ type ConnectionAttempt struct {
 }
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
-	client.connectionAttemptWaitGroup.Add(1)
+	client.connectionWaitGroup.Add(1)
 
 	client.mutex.Lock()
 	if client.connections[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
-		client.connectionAttemptWaitGroup.Done()
+		client.connectionWaitGroup.Done()
 		return Error.New("Connection already exists", nil)
 	}
 	if client.connectionAttemptsMap[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
-		client.connectionAttemptWaitGroup.Done()
+		client.connectionWaitGroup.Done()
 		return Error.New("Connection attempt already in progress", nil)
 	}
 	attempt := &ConnectionAttempt{
@@ -37,7 +37,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	client.mutex.Unlock()
 
 	go func() {
-		defer client.connectionAttemptWaitGroup.Done()
+		defer client.connectionWaitGroup.Done()
 		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
