@@ -96,12 +96,17 @@ func (client *SystemgeClient) Start() error {
 
 	for _, endpointConfig := range client.config.EndpointConfigs {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
-			close(client.stopChannel)
-			client.stopChannel = nil
-
-			client.waitGroup.Wait()
-			client.status = Status.STOPPED
-			return Error.New("failed to start connection attempts", err)
+			if client.errorLogger != nil {
+				client.errorLogger.Log(Error.New("failed starting connection attempts", err).Error())
+			}
+			if client.mailer != nil {
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts", err).Error()))
+				if err != nil {
+					if client.errorLogger != nil {
+						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					}
+				}
+			}
 		}
 	}
 
