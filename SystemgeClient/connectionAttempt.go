@@ -88,31 +88,33 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			client.connections[attempt.endpointConfig.Address] = connection
 
 			client.connectionWaitGroup.Add(1)
-			go func() {
-				select {
-				case <-client.stopChannel:
-					connection.Close()
-					client.mutex.Lock()
-					delete(client.connections, attempt.endpointConfig.Address)
-					client.mutex.Unlock()
-					client.connectionWaitGroup.Done()
-				case <-connection.GetCloseChannel():
-					if client.config.Reconnect {
-						client.mutex.Lock()
-						delete(client.connections, attempt.endpointConfig.Address)
-						client.mutex.Unlock()
-						go func() {
-							if err := client.startConnectionAttempts(attempt.endpointConfig); err != nil {
-								if client.errorLogger != nil {
-									client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
-								}
-							}
-						}()
-					}
-					client.connectionWaitGroup.Done()
-				}
-			}()
+			go client.connectionClosure(connection, attempt.endpointConfig)
 			return nil
 		}
+	}
+}
+
+func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpEndpoint) {
+	select {
+	case <-client.stopChannel:
+		connection.Close()
+		client.mutex.Lock()
+		delete(client.connections, endpointConfig.Address)
+		client.mutex.Unlock()
+		client.connectionWaitGroup.Done()
+	case <-connection.GetCloseChannel():
+		if client.config.Reconnect {
+			client.mutex.Lock()
+			delete(client.connections, endpointConfig.Address)
+			client.mutex.Unlock()
+			go func() {
+				if err := client.startConnectionAttempts(endpointConfig); err != nil {
+					if client.errorLogger != nil {
+						client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+					}
+				}
+			}()
+		}
+		client.connectionWaitGroup.Done()
 	}
 }
