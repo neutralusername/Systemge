@@ -17,7 +17,6 @@ type ConnectionAttempt struct {
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
 	client.connectionAttemptWaitGroup.Add(1)
-	defer client.connectionAttemptWaitGroup.Done()
 	client.startingConnectionAttemptChannel <- true
 
 	client.mutex.Lock()
@@ -25,7 +24,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		client.mutex.Unlock()
 		return Error.New("Connection already exists", nil)
 	}
-	if client.connectionAttempts[endpointConfig.Address] != nil {
+	if client.connectionAttemptsMap[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
 		return Error.New("Connection attempt already in progress", nil)
 	}
@@ -33,15 +32,27 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		attempts:       0,
 		endpointConfig: endpointConfig,
 	}
-	client.connectionAttempts[endpointConfig.Address] = attempt
+	client.connectionAttemptsMap[endpointConfig.Address] = attempt
 	client.mutex.Unlock()
 
+	go func() {
+		defer client.connectionAttemptWaitGroup.Done()
+		err := client.connectionAttempts(attempt)
+		if err != nil {
+			if client.errorLogger != nil {
+				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+			}
+		}
+	}()
+	return nil
+}
+
+func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) error {
 	endAttempt := func() {
 		client.mutex.Lock()
 		defer client.mutex.Unlock()
-		delete(client.connectionAttempts, endpointConfig.Address)
+		delete(client.connectionAttemptsMap, attempt.endpointConfig.Address)
 	}
-
 	for {
 		select {
 		case <-client.stopChannel:
@@ -59,7 +70,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 			if attempt.attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
-			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, endpointConfig, client.GetName(), client.config.MaxServerNameLength, client.messageHandler)
+			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength, client.messageHandler)
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)
 				attempt.attempts++
@@ -69,12 +80,12 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 
 			client.mutex.Lock()
 			defer client.mutex.Unlock()
-			delete(client.connectionAttempts, endpointConfig.Address)
+			delete(client.connectionAttemptsMap, attempt.endpointConfig.Address)
 			if attempt.isAborted {
 				connection.Close()
 				return Error.New("Connection attempt aborted", nil)
 			}
-			client.connections[endpointConfig.Address] = connection
+			client.connections[attempt.endpointConfig.Address] = connection
 
 			client.connectionWaitGroup.Add(1)
 			go func() {
@@ -82,16 +93,16 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 				case <-client.stopChannel:
 					connection.Close()
 					client.mutex.Lock()
-					delete(client.connections, endpointConfig.Address)
+					delete(client.connections, attempt.endpointConfig.Address)
 					client.mutex.Unlock()
 					client.connectionWaitGroup.Done()
 				case <-connection.GetCloseChannel():
 					if client.config.Reconnect {
 						client.mutex.Lock()
-						delete(client.connections, endpointConfig.Address)
+						delete(client.connections, attempt.endpointConfig.Address)
 						client.mutex.Unlock()
 						go func() {
-							if err := client.startConnectionAttempts(endpointConfig); err != nil {
+							if err := client.startConnectionAttempts(attempt.endpointConfig); err != nil {
 								if client.errorLogger != nil {
 									client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
 								}

@@ -22,8 +22,8 @@ type SystemgeClient struct {
 
 	stopChannel chan bool
 
-	connections        map[string]*SystemgeConnection.SystemgeConnection
-	connectionAttempts map[string]*ConnectionAttempt
+	connections           map[string]*SystemgeConnection.SystemgeConnection
+	connectionAttemptsMap map[string]*ConnectionAttempt
 
 	startingConnectionAttemptChannel chan bool
 
@@ -54,8 +54,8 @@ func New(config *Config.SystemgeClient, messageHandler *SystemgeConnection.Syste
 	client := &SystemgeClient{
 		config: config,
 
-		connections:        make(map[string]*SystemgeConnection.SystemgeConnection),
-		connectionAttempts: make(map[string]*ConnectionAttempt),
+		connections:           make(map[string]*SystemgeConnection.SystemgeConnection),
+		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
 
 		messageHandler: messageHandler,
 	}
@@ -96,17 +96,15 @@ func (client *SystemgeClient) Start() error {
 	client.stopChannel = make(chan bool)
 	client.startingConnectionAttemptChannel = make(chan bool)
 
-	for _, endpointConfig := range client.config.EndpointConfigs {
-		go func() {
-			if err := client.startConnectionAttempts(endpointConfig); err != nil {
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
-				}
-			}
-		}()
-	}
-
 	go client.statusMonitor()
+
+	for _, endpointConfig := range client.config.EndpointConfigs {
+		if err := client.startConnectionAttempts(endpointConfig); err != nil {
+			if client.errorLogger != nil {
+				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+			}
+		}
+	}
 
 	if client.infoLogger != nil {
 		client.infoLogger.Log("client started")
