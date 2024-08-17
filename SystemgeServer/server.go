@@ -136,8 +136,8 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 	for server.handlerStopChannel == stopChannel {
 		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig, server.messageHandler)
 		if err != nil {
-			if server.errorLogger != nil {
-				server.errorLogger.Log("error accepting connection: " + err.Error())
+			if server.warningLogger != nil {
+				server.warningLogger.Log("error accepting connection: " + err.Error())
 			}
 			continue
 		}

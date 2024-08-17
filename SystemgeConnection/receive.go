@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (receiver *SystemgeReceiver) receive() {
@@ -14,12 +15,23 @@ func (receiver *SystemgeReceiver) receive() {
 		receiver.waitGroup.Add(1)
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
-			if receiver.errorLogger != nil {
-				receiver.errorLogger.Log(Error.New("failed to receive message", err).Error())
+			if receiver.warningLogger != nil {
+				receiver.warningLogger.Log(Error.New("failed to receive message", err).Error())
 			}
 			receiver.waitGroup.Done()
 			if Tcp.IsConnectionClosed(err) {
 				receiver.connection.Close()
+				if receiver.errorLogger != nil {
+					receiver.errorLogger.Log("Connection closed")
+				}
+				if receiver.mailer != nil {
+					err := receiver.mailer.Send(Tools.NewMail(nil, "error", Error.New("connection closed", err).Error()))
+					if err != nil {
+						if receiver.errorLogger != nil {
+							receiver.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						}
+					}
+				}
 				break
 			}
 			continue

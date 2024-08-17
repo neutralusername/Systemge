@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (receiver *SystemgeReceiver) processingLoopSequentially() {
@@ -20,6 +21,14 @@ func (receiver *SystemgeReceiver) processingLoopSequentially() {
 		if len(receiver.processingChannel) >= cap(receiver.processingChannel)-1 {
 			if receiver.errorLogger != nil {
 				receiver.errorLogger.Log("Processing channel capacity reached")
+			}
+			if receiver.mailer != nil {
+				err := receiver.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
+				if err != nil {
+					if receiver.errorLogger != nil {
+						receiver.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					}
+				}
 			}
 		}
 		process()
