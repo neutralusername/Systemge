@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -17,6 +18,11 @@ type ConnectionAttempt struct {
 }
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
+	noramlzedAddres, err := Helpers.NormalizeAddress(endpointConfig.Address)
+	if err != nil {
+		return Error.New("failed normalizing address", err)
+	}
+	endpointConfig.Address = noramlzedAddres
 	client.waitGroup.Add(1)
 
 	client.mutex.Lock()
