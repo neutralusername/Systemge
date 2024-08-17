@@ -58,7 +58,6 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		if val == 0 {
 			client.status = Status.STARTED
 		}
-
 	}()
 	return nil
 }
@@ -88,6 +87,9 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			}
 			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength, client.messageHandler)
 			if err != nil {
+				if client.errorLogger != nil {
+					client.errorLogger.Log(Error.New("failed establishing connection", err).Error())
+				}
 				client.connectionAttemptsFailed.Add(1)
 				attempt.attempts++
 				continue

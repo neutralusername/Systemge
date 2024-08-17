@@ -12,6 +12,12 @@ import (
 )
 
 func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection, messageHandler *SystemgeConnection.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
+	if connectionConfig.ReceiverConfig != nil && messageHandler == nil {
+		return nil, Error.New("receiverConfig is set but messageHandler is nil", nil)
+	}
+	if connectionConfig.ReceiverConfig == nil && messageHandler != nil {
+		return nil, Error.New("receiverConfig is nil but messageHandler is set", nil)
+	}
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId

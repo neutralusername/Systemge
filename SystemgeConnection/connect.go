@@ -11,6 +11,12 @@ import (
 )
 
 func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int, messageHandler *SystemgeMessageHandler) (*SystemgeConnection, error) {
+	if config.ReceiverConfig != nil && messageHandler == nil {
+		return nil, Error.New("receiverConfig is set but messageHandler is nil", nil)
+	}
+	if config.ReceiverConfig == nil && messageHandler != nil {
+		return nil, Error.New("receiverConfig is nil but messageHandler is set", nil)
+	}
 	netConn, err := Tcp.NewClient(endpointConfig)
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)

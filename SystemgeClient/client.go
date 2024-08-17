@@ -18,12 +18,12 @@ type SystemgeClient struct {
 	config *Config.SystemgeClient
 
 	messageHandler *SystemgeConnection.SystemgeMessageHandler
-	mutex          sync.RWMutex
 
-	stopChannel chan bool
-
+	mutex                 sync.RWMutex
 	connections           map[string]*SystemgeConnection.SystemgeConnection
 	connectionAttemptsMap map[string]*ConnectionAttempt
+
+	stopChannel chan bool
 
 	waitGroup sync.WaitGroup
 
