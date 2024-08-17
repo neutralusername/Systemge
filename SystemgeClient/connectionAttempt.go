@@ -16,6 +16,10 @@ type ConnectionAttempt struct {
 }
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
+	client.connectionAttemptWaitGroup.Add(1)
+	defer client.connectionAttemptWaitGroup.Done()
+	client.startingConnectionAttemptChannel <- true
+
 	client.mutex.Lock()
 	if client.connections[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
@@ -86,7 +90,13 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 						client.mutex.Lock()
 						delete(client.connections, endpointConfig.Address)
 						client.mutex.Unlock()
-						client.connectionAttemptChannel <- endpointConfig
+						go func() {
+							if err := client.startConnectionAttempts(endpointConfig); err != nil {
+								if client.errorLogger != nil {
+									client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+								}
+							}
+						}()
 					}
 					client.connectionWaitGroup.Done()
 				}

@@ -25,7 +25,8 @@ type SystemgeClient struct {
 	connections        map[string]*SystemgeConnection.SystemgeConnection
 	connectionAttempts map[string]*ConnectionAttempt
 
-	connectionAttemptChannel   chan *Config.TcpEndpoint
+	startingConnectionAttemptChannel chan bool
+
 	connectionAttemptWaitGroup sync.WaitGroup
 	connectionWaitGroup        sync.WaitGroup
 
@@ -93,12 +94,19 @@ func (client *SystemgeClient) Start() error {
 	client.status = Status.PENDING
 
 	client.stopChannel = make(chan bool)
-	client.connectionAttemptChannel = make(chan *Config.TcpEndpoint, len(client.config.EndpointConfigs))
+	client.startingConnectionAttemptChannel = make(chan bool)
 
-	go client.connectionAttemptStatusMonitor()
 	for _, endpointConfig := range client.config.EndpointConfigs {
-		client.connectionAttemptChannel <- endpointConfig
+		go func() {
+			if err := client.startConnectionAttempts(endpointConfig); err != nil {
+				if client.errorLogger != nil {
+					client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+				}
+			}
+		}()
 	}
+
+	go client.statusMonitor()
 
 	if client.infoLogger != nil {
 		client.infoLogger.Log("client started")
@@ -106,16 +114,16 @@ func (client *SystemgeClient) Start() error {
 	return nil
 }
 
-// updates the status of the client to STARTED or PENDING, depending on whether there are any connection attempts in progress
-func (client *SystemgeClient) connectionAttemptStatusMonitor() {
+func (client *SystemgeClient) statusMonitor() {
 	for {
 		select {
 		case <-client.stopChannel:
 			return
-		case endpointConfig := <-client.connectionAttemptChannel:
-			if endpointConfig == nil {
+		case b := <-client.startingConnectionAttemptChannel:
+			if !b {
 				return
 			}
+
 			client.statusMutex.Lock()
 			if client.status == Status.STOPPED {
 				client.statusMutex.Unlock()
@@ -124,22 +132,15 @@ func (client *SystemgeClient) connectionAttemptStatusMonitor() {
 			client.status = Status.PENDING
 			client.statusMutex.Unlock()
 
-			client.connectionAttemptWaitGroup.Add(1)
-			if err := client.startConnectionAttempts(endpointConfig); err != nil {
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
-				}
-			}
-			client.connectionAttemptWaitGroup.Done()
-			if len(client.connectionAttemptChannel) == 0 {
-				client.statusMutex.Lock()
-				if client.status == Status.STOPPED {
-					client.statusMutex.Unlock()
-					return
-				}
-				client.status = Status.STARTED
+			client.connectionAttemptWaitGroup.Wait()
+
+			client.statusMutex.Lock()
+			if client.status == Status.STOPPED {
 				client.statusMutex.Unlock()
+				return
 			}
+			client.status = Status.STARTED
+			client.statusMutex.Unlock()
 		}
 	}
 }
@@ -157,8 +158,9 @@ func (client *SystemgeClient) Stop() error {
 
 	close(client.stopChannel)
 	client.stopChannel = nil
-	close(client.connectionAttemptChannel)
-	client.connectionAttemptChannel = nil
+	close(client.startingConnectionAttemptChannel)
+	client.startingConnectionAttemptChannel = nil
+
 	client.connectionAttemptWaitGroup.Wait()
 	client.connectionWaitGroup.Wait()
 
