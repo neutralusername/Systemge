@@ -101,7 +101,7 @@ func (client *SystemgeClient) Start() error {
 	for _, endpointConfig := range client.config.EndpointConfigs {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+				client.errorLogger.Log(Error.New("failed starting connection attempts", err).Error())
 			}
 		}
 	}
