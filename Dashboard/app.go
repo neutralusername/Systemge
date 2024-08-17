@@ -1,22 +1,20 @@
 package Dashboard
 
-import (
-	"net/http"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
+/*
+var dashboardServerMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
+	Message.TOPIC_REGISTER_MODULE:    app.RegisterModuleHandler,
+	Message.TOPIC_UNREGISTER_MODULE:  app.UnregisterModuleHandler,
+	Message.TOPIC_REGISTER_SERVICE:   app.RegisterServiceHandler,
+	Message.TOPIC_UNREGISTER_SERVICE: app.UnregisterServiceHandler,
+})
 
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Module"
-	"github.com/neutralusername/Systemge/SystemgeServer"
-	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketServer"
-)
+var dashboardClientMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
+	Message.TOPIC_GET_SERVICE_STATUS: app.GetServiceStatusHandler,
+	Message.TOPIC_GET_METRICS:        app.GetMetricsHandler,
+	Message.TOPIC_START_SERVICE:      app.StartServiceHandler,
+	Message.TOPIC_STOP_SERVICE:       app.StopServiceHandler,
+	Message.TOPIC_EXECUTE_COMMAND:    app.ExecuteCommandHandler,
+})
 
 type App struct {
 	started bool
@@ -24,9 +22,9 @@ type App struct {
 	services map[string]Module.ServiceModule
 	modules  map[string]Module.Module
 	mutex    sync.RWMutex
-	config   *Config.Dashboard
+	config   *Config.DashboardServer
 
-	systemgeServer  *SystemgeServer.SystemgeListener
+	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
@@ -36,27 +34,39 @@ type App struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.Dashboard) *App {
+func New(config *Config.DashboardServer) *App {
 	if config == nil {
 		panic("config is nil")
 	}
 	if config.HTTPServerConfig == nil {
 		panic("config.HTTPServerConfig is nil")
 	}
-	if config.HTTPServerConfig.ServerConfig == nil {
+	if config.HTTPServerConfig.TcpListenerConfig == nil {
 		panic("config.HTTPServerConfig.ServerConfig is nil")
 	}
 	if config.WebsocketServerConfig == nil {
 		panic("config.WebsocketServerConfig is nil")
 	}
-	if config.WebsocketServerConfig.ListenerConfig == nil {
+	if config.WebsocketServerConfig.Pattern == "" {
+		panic("config.WebsocketServerConfig.Pattern is empty")
+	}
+	if config.WebsocketServerConfig.TcpListenerConfig == nil {
 		panic("config.WebsocketServerConfig.ServerConfig is nil")
 	}
 	if config.SystemgeServerConfig == nil {
 		panic("config.SystemgeServerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ServerConfig == nil {
+	if config.SystemgeServerConfig.ListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig is nil")
+	}
+	if config.SystemgeServerConfig.ListenerConfig.TcpListenerConfig == nil {
+		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
+	}
+	if config.SystemgeServerConfig.ReceiverConfig == nil {
+		panic("config.SystemgeServerConfig.ReceiverConfig is nil")
+	}
+	if config.SystemgeServerConfig.ConnectionConfig == nil {
+		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
 	app := &App{
 		services: make(map[string]Module.ServiceModule),
@@ -72,18 +82,11 @@ func New(config *Config.Dashboard) *App {
 	app.httpServer = HTTPServer.New(config.HTTPServerConfig, nil)
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("app.go")] + "frontend/"
-	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.ListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
+	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
 	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, map[string]SystemgeServer.AsyncMessageHandler{
-		Message.TOPIC_SERVICE_STATUS: app.ServiceStatusHandler,
-	}, map[string]SystemgeServer.SyncMessageHandler{
-		Message.TOPIC_REGISTER_MODULE:    app.RegisterModuleHandler,
-		Message.TOPIC_UNREGISTER_MODULE:  app.UnregisterModuleHandler,
-		Message.TOPIC_REGISTER_SERVICE:   app.RegisterServiceHandler,
-		Message.TOPIC_UNREGISTER_SERVICE: app.UnregisterServiceHandler,
-	})
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, dashboardServerMessageHandlers)
 	return app
 }
 
@@ -192,3 +195,4 @@ func (app *App) heapUpdateRoutine() {
 		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
 	}
 }
+*/

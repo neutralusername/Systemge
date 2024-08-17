@@ -1,14 +1,6 @@
 package Dashboard
 
-import (
-	"runtime"
-
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/WebsocketServer"
-)
-
+/*
 func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.MessageHandler {
 	return map[string]WebsocketServer.MessageHandler{
 		"start": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
@@ -90,3 +82,4 @@ func (app *App) nodeCommand(command *Command) (string, error) {
 	}
 	return result, nil
 }
+*/

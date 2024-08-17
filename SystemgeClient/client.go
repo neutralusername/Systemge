@@ -14,14 +14,18 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+type Client struct {
+	connection *SystemgeConnection.SystemgeConnection
+	receiver   *SystemgeReceiver.SystemgeReceiver
+}
+
 type SystemgeClient struct {
 	status      int
 	statusMutex sync.Mutex
 
 	config *Config.SystemgeClient
 
-	connection     *SystemgeConnection.SystemgeConnection
-	receiver       *SystemgeReceiver.SystemgeReceiver
+	clients        map[string]*Client
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
 	stopChannel chan bool
@@ -36,8 +40,8 @@ func New(config *Config.SystemgeClient, messageHandler *SystemgeMessageHandler.S
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.EndpointConfig == nil {
-		panic("config.EndpointConfig is nil")
+	if config.EndpointConfigs == nil {
+		panic("config.EndpointConfigs is nil")
 	}
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")

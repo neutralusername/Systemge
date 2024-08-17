@@ -1,11 +1,6 @@
 package Dashboard
 
-import (
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Module"
-)
-
+/*
 type DashboardConnection struct {
 }
 
@@ -18,3 +13,4 @@ func ConnectToDashboard(module Module.Module, endpoint *Config.TcpEndpoint) (*Da
 	}
 
 }
+*/

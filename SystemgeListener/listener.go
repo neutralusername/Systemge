@@ -28,10 +28,10 @@ func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}
-	if config.ListenerConfig == nil {
+	if config.TcpListenerConfig == nil {
 		return nil, Error.New("listener is nil", nil)
 	}
-	tcpListener, err := Tcp.NewListener(config.ListenerConfig)
+	tcpListener, err := Tcp.NewListener(config.TcpListenerConfig)
 	if err != nil {
 		return nil, Error.New("failed to create listener", err)
 	}

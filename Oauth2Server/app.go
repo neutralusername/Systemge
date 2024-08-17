@@ -43,7 +43,7 @@ func New(config *Config.Oauth2) *Server {
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	server.httpServer = HTTPServer.New(&Config.HTTPServer{
-		ServerConfig: config.ServerConfig,
+		TcpListenerConfig: config.TcpListenerConfig,
 	}, server.GetHTTPMessageHandlers())
 	return server
 }

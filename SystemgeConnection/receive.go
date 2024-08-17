@@ -1,17 +1,16 @@
-package SystemgeReceiver
+package SystemgeConnection
 
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (receiver *SystemgeReceiver) receive(stopChannel chan bool) {
+func (receiver *SystemgeReceiver) receive() {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Started receiving messages")
 	}
-	for receiver.stopChannel == stopChannel {
+	for receiver.processingChannel != nil {
 		receiver.waitGroup.Add(1)
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
@@ -20,7 +19,7 @@ func (receiver *SystemgeReceiver) receive(stopChannel chan bool) {
 			}
 			receiver.waitGroup.Done()
 			if Tcp.IsConnectionClosed(err) {
-				receiver.Stop()
+				receiver.connection.Close()
 				break
 			}
 			continue
@@ -30,7 +29,7 @@ func (receiver *SystemgeReceiver) receive(stopChannel chan bool) {
 		if infoLogger := receiver.infoLogger; infoLogger != nil {
 			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
 		}
-		func(connection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) {
+		func(connection *SystemgeConnection, messageBytes []byte, messageId uint32) {
 			receiver.processingChannel <- func() {
 				err := receiver.processMessage(connection, messageBytes, messageId)
 				if err != nil {

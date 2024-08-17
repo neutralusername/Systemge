@@ -7,6 +7,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -15,6 +16,8 @@ type SystemgeConnection struct {
 	config     *Config.SystemgeConnection
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
+
+	receiver *SystemgeReceiver
 
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
@@ -38,7 +41,7 @@ type SystemgeConnection struct {
 	noSyncResponseReceived       atomic.Uint32
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
+func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeConnection {
 	connection := &SystemgeConnection{
 		name:        name,
 		config:      config,
@@ -46,14 +49,28 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *Syst
 		randomizer:  Tools.NewRandomizer(config.RandomizerSeed),
 		stopChannel: make(chan bool),
 	}
+	if config.ReceiverConfig != nil {
+		receiver := NewReceiver(config.ReceiverConfig, connection, messageHandler)
+		connection.receiver = receiver
+	}
 	return connection
 }
 
 func (connection *SystemgeConnection) Close() {
 	connection.netConn.Close()
+	if connection.receiver != nil {
+		connection.receiver.Close()
+	}
 	close(connection.stopChannel)
 }
 
 func (connection *SystemgeConnection) GetName() string {
 	return connection.name
+}
+
+// GetStopChannel returns a channel that will be closed when the connection is closed.
+// Blocks until the connection is closed.
+// This can be used to trigger an event when the connection is closed.
+func (connection *SystemgeConnection) GetStopChannel() <-chan bool {
+	return connection.stopChannel
 }

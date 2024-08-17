@@ -8,10 +8,11 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -36,7 +37,7 @@ func (listener *SystemgeListener) AcceptConnection(serverName string, connection
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
-	connection, err := listener.serverHandshake(connectionConfig, serverName, netConn)
+	connection, err := listener.serverHandshake(connectionConfig, serverName, netConn, messageHandler)
 	if err != nil {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
@@ -46,7 +47,7 @@ func (listener *SystemgeListener) AcceptConnection(serverName string, connection
 	return connection, nil
 }
 
-func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
@@ -68,5 +69,5 @@ func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.Syste
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return SystemgeConnection.New(connectionConfig, netConn, message.GetPayload()), nil
+	return SystemgeConnection.New(connectionConfig, netConn, message.GetPayload(), messageHandler), nil
 }

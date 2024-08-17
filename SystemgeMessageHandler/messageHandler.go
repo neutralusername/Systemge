@@ -8,9 +8,12 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
+type AsyncMessageHandlers map[string]func(*Message.Message)
+type SyncMessageHandlers map[string]func(*Message.Message) (string, error)
+
 type SystemgeMessageHandler struct {
-	asyncMessageHandlers map[string]func(*Message.Message)
-	syncMessageHandlers  map[string]func(*Message.Message) (string, error)
+	asyncMessageHandlers AsyncMessageHandlers
+	syncMessageHandlers  SyncMessageHandlers
 	syncMutex            sync.Mutex
 	asyncMutex           sync.Mutex
 	sequentialMutex      sync.RWMutex
@@ -24,7 +27,13 @@ type SystemgeMessageHandler struct {
 }
 
 // pass a handler with an empty string as the key to handle messages with unknown topics
-func NewMessageHandler(asyncMessageHandlers map[string]func(*Message.Message), syncMessageHandlers map[string]func(*Message.Message) (string, error)) *SystemgeMessageHandler {
+func New(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers) *SystemgeMessageHandler {
+	if asyncMessageHandlers == nil {
+		asyncMessageHandlers = make(AsyncMessageHandlers)
+	}
+	if syncMessageHandlers == nil {
+		syncMessageHandlers = make(SyncMessageHandlers)
+	}
 	systemgeMessageHandlers := &SystemgeMessageHandler{
 		asyncMessageHandlers: asyncMessageHandlers,
 		syncMessageHandlers:  syncMessageHandlers,

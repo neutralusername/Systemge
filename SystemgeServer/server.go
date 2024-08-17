@@ -9,14 +9,8 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
-	"github.com/neutralusername/Systemge/SystemgeReceiver"
 	"github.com/neutralusername/Systemge/Tools"
 )
-
-type Client struct {
-	connection *SystemgeConnection.SystemgeConnection
-	receiver   *SystemgeReceiver.SystemgeReceiver
-}
 
 type SystemgeServer struct {
 	status      int
@@ -26,7 +20,7 @@ type SystemgeServer struct {
 	listener       *SystemgeListener.SystemgeListener
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
-	clients            map[string]*Client
+	clients            map[string]*SystemgeConnection.SystemgeConnection
 	clientsMutex       sync.Mutex
 	handlerStopChannel chan bool
 
@@ -43,13 +37,10 @@ func New(config *Config.SystemgeServer, messageHandler *SystemgeMessageHandler.S
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.ReceiverConfig == nil {
-		panic("config.ReceiverConfig is nil")
-	}
 	if config.ListenerConfig == nil {
 		panic("listener is nil")
 	}
-	if config.ListenerConfig.ListenerConfig == nil {
+	if config.ListenerConfig.TcpListenerConfig == nil {
 		panic("listener.ListenerConfig is nil")
 	}
 	if messageHandler == nil {
@@ -58,7 +49,7 @@ func New(config *Config.SystemgeServer, messageHandler *SystemgeMessageHandler.S
 	server := &SystemgeServer{
 		config:         config,
 		messageHandler: messageHandler,
-		clients:        make(map[string]*Client),
+		clients:        make(map[string]*SystemgeConnection.SystemgeConnection),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
@@ -118,9 +109,8 @@ func (server *SystemgeServer) Stop() error {
 	server.listener = nil
 
 	server.clientsMutex.Lock()
-	for _, client := range server.clients {
-		client.receiver.Stop()
-		client.connection.Close()
+	for _, connection := range server.clients {
+		connection.Close()
 	}
 	server.clientsMutex.Unlock()
 
@@ -169,6 +159,12 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			receiver:   receiver,
 		}
 		server.clientsMutex.Unlock()
+		go func() {
+			<-receiver.GetStopChannel()
+			server.clientsMutex.Lock()
+			delete(server.clients, connection.GetName())
+			server.clientsMutex.Unlock()
+		}()
 		if server.infoLogger != nil {
 			server.infoLogger.Log("receiver started: " + connection.GetName())
 		}
