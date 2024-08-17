@@ -13,7 +13,7 @@ import (
 
 type SystemgeClient struct {
 	status      int
-	statusMutex sync.Mutex
+	statusMutex sync.RWMutex
 
 	config *Config.SystemgeClient
 
@@ -31,6 +31,8 @@ type SystemgeClient struct {
 	warningLogger *Tools.Logger
 	infoLogger    *Tools.Logger
 	mailer        *Tools.Mailer
+
+	statusUpdateCounter atomic.Int32
 
 	// metrics
 
@@ -115,7 +117,6 @@ func (client *SystemgeClient) Stop() error {
 	if client.infoLogger != nil {
 		client.infoLogger.Log("stopping client")
 	}
-	client.status = Status.PENDING
 
 	close(client.stopChannel)
 	client.stopChannel = nil

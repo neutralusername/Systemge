@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
@@ -38,11 +39,20 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 
 	go func() {
 		defer client.waitGroup.Done()
+		val := client.statusUpdateCounter.Add(1)
+		if val == 1 {
+			client.status = Status.PENDING
+		}
 		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
 			}
 		}
+		val = client.statusUpdateCounter.Add(-1)
+		if val == 0 {
+			client.status = Status.STARTED
+		}
+
 	}()
 	return nil
 }

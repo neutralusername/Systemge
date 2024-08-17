@@ -14,8 +14,8 @@ func (client *SystemgeClient) AddConnection(endpointConfig *Config.TcpEndpoint) 
 	if endpointConfig.Address == "" {
 		return Error.New("endpointConfig.Address is empty", nil)
 	}
-	client.statusMutex.Lock()
-	defer client.statusMutex.Unlock()
+	client.statusMutex.RLock()
+	defer client.statusMutex.RUnlock()
 	if client.status == Status.STOPPED {
 		return Error.New("client stopped", nil)
 	}
