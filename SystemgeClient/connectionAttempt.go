@@ -40,7 +40,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		err := client.connectionAttempts(attempt)
 		if err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting connection attempt", err).Error())
+				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
 			}
 		}
 	}()
