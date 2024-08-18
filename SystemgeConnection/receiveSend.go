@@ -27,7 +27,7 @@ func (connection *SystemgeConnection) ReceiveMessage() ([]byte, error) {
 		completedMsgBytes = append(completedMsgBytes, connection.tcpBuffer...)
 		receivedMessageBytes, _, err := Tcp.Receive(connection.netConn, connection.config.TcpReceiveTimeoutMs, connection.config.TcpBufferBytes)
 		if err != nil {
-			return nil, Error.New("Failed to refill tcp buffer", err)
+			return nil, err
 		}
 		connection.tcpBuffer = receivedMessageBytes
 		connection.bytesReceived.Add(uint64(len(receivedMessageBytes)))
