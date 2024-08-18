@@ -116,6 +116,10 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				connection.Close()
 				return Error.New("Connection attempt aborted", nil)
 			}
+			if client.nameConnections[connection.GetName()] != nil {
+				connection.Close()
+				return Error.New("Connection name already exists", nil)
+			}
 			client.addressConnections[attempt.endpointConfig.Address] = connection
 			client.nameConnections[connection.GetName()] = connection
 
