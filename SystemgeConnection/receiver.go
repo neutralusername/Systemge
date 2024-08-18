@@ -72,11 +72,11 @@ func NewReceiver(config *Config.SystemgeReceiver, connection *SystemgeConnection
 	}
 	receiver.processingChannel = make(chan func(), receiver.config.ProcessingChannelSize)
 	if receiver.config.ProcessSequentially {
-		go receiver.processingLoopSequentially()
+		go receiver.processingLoopSequentially(receiver.processingChannel)
 	} else {
-		go receiver.processingLoopConcurrently()
+		go receiver.processingLoopConcurrently(receiver.processingChannel)
 	}
-	go receiver.receive()
+	go receiver.receive(receiver.processingChannel)
 	return receiver
 }
 

@@ -7,11 +7,11 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (receiver *SystemgeReceiver) receive() {
+func (receiver *SystemgeReceiver) receive(processingChannel chan func()) {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Started receiving messages")
 	}
-	for receiver.processingChannel != nil {
+	for receiver.processingChannel == processingChannel {
 		receiver.waitGroup.Add(1)
 		messageBytes, err := receiver.connection.ReceiveMessage()
 		if err != nil {
@@ -42,7 +42,7 @@ func (receiver *SystemgeReceiver) receive() {
 			infoLogger.Log("Received message #" + Helpers.Uint32ToString(messageId))
 		}
 		func(connection *SystemgeConnection, messageBytes []byte, messageId uint32) {
-			receiver.processingChannel <- func() {
+			processingChannel <- func() {
 				err := receiver.processMessage(connection, messageBytes, messageId)
 				if err != nil {
 					if receiver.warningLogger != nil {

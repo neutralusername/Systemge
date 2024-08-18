@@ -7,18 +7,18 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (receiver *SystemgeReceiver) processingLoopSequentially() {
+func (receiver *SystemgeReceiver) processingLoopSequentially(processingChannel chan func()) {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Starting processing messages sequentially")
 	}
-	for process := range receiver.processingChannel {
+	for process := range processingChannel {
 		if process == nil {
 			if receiver.infoLogger != nil {
 				receiver.infoLogger.Log("Stopping processing messages sequentially")
 			}
 			return
 		}
-		if len(receiver.processingChannel) >= cap(receiver.processingChannel)-1 {
+		if len(processingChannel) >= cap(processingChannel)-1 {
 			if receiver.errorLogger != nil {
 				receiver.errorLogger.Log("Processing channel capacity reached")
 			}
@@ -35,11 +35,11 @@ func (receiver *SystemgeReceiver) processingLoopSequentially() {
 	}
 }
 
-func (receiver *SystemgeReceiver) processingLoopConcurrently() {
+func (receiver *SystemgeReceiver) processingLoopConcurrently(processingChannel chan func()) {
 	if receiver.infoLogger != nil {
 		receiver.infoLogger.Log("Starting processing messages concurrently")
 	}
-	for process := range receiver.processingChannel {
+	for process := range processingChannel {
 		if process == nil {
 			if receiver.infoLogger != nil {
 				receiver.infoLogger.Log("Stopping processing messages concurrently")
