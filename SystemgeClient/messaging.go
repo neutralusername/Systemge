@@ -7,11 +7,11 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ...string) <-chan error {
+func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ...string) error {
 	client.statusMutex.RLock()
 	if client.status == Status.STOPPED {
 		client.statusMutex.RUnlock()
-		return nil
+		return Error.New("Client stopped", nil)
 	}
 	client.mutex.Lock()
 	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
@@ -34,10 +34,16 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	return SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	errChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	for err := range errChannel {
+		if client.errorLogger != nil {
+			client.errorLogger.Log(err.Error())
+		}
+	}
+	return nil
 }
 
-func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, <-chan error) {
+func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
 	client.statusMutex.RLock()
 	if client.status == Status.STOPPED {
 		client.statusMutex.RUnlock()
@@ -64,5 +70,13 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	return SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
+	responseChannel, errorChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
+	go func() {
+		for err := range errorChannel {
+			if client.errorLogger != nil {
+				client.errorLogger.Log(err.Error())
+			}
+		}
+	}()
+	return responseChannel, nil
 }

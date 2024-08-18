@@ -7,11 +7,11 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ...string) <-chan error {
+func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ...string) error {
 	server.statusMutex.RLock()
 	if server.status == Status.STOPPED {
 		server.statusMutex.RUnlock()
-		return nil
+		return Error.New("Server stopped", nil)
 	}
 	server.clientsMutex.Lock()
 	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
@@ -34,14 +34,22 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 	server.clientsMutex.Unlock()
 	server.statusMutex.RUnlock()
 
-	return SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	errChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	go func() {
+		for err := range errChannel {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(err.Error())
+			}
+		}
+	}()
+	return nil
 }
 
-func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, <-chan error) {
+func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
 	server.statusMutex.RLock()
 	if server.status == Status.STOPPED {
 		server.statusMutex.RUnlock()
-		return nil, nil
+		return nil, Error.New("Server stopped", nil)
 	}
 	server.clientsMutex.Lock()
 	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
@@ -64,5 +72,13 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 	server.clientsMutex.Unlock()
 	server.statusMutex.RUnlock()
 
-	return SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
+	responseChannel, errChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
+	go func() {
+		for err := range errChannel {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(err.Error())
+			}
+		}
+	}()
+	return responseChannel, nil
 }
