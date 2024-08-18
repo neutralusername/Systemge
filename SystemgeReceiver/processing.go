@@ -1,9 +1,10 @@
-package SystemgeConnection
+package SystemgeReceiver
 
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -50,7 +51,7 @@ func (receiver *SystemgeReceiver) processingLoopConcurrently(processingChannel c
 	}
 }
 
-func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection, messageBytes []byte, messageId uint32) error {
+func (receiver *SystemgeReceiver) processMessage(clientConnection *SystemgeConnection.SystemgeConnection, messageBytes []byte, messageId uint32) error {
 	if infoLogger := receiver.infoLogger; infoLogger != nil {
 		infoLogger.Log("Processing message #" + Helpers.Uint32ToString(messageId))
 	}

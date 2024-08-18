@@ -27,6 +27,10 @@ func (connection *SystemgeConnection) ReceiveMessage() ([]byte, error) {
 		completedMsgBytes = append(completedMsgBytes, connection.tcpBuffer...)
 		receivedMessageBytes, _, err := Tcp.Receive(connection.netConn, connection.config.TcpReceiveTimeoutMs, connection.config.TcpBufferBytes)
 		if err != nil {
+			if Tcp.IsConnectionClosed(err) {
+				connection.Close()
+				return nil, Error.New("Connection closed", err)
+			}
 			return nil, err
 		}
 		connection.tcpBuffer = receivedMessageBytes
@@ -40,6 +44,10 @@ func (connection *SystemgeConnection) SendMessage(bytes []byte) error {
 
 	bytesSent, err := Tcp.Send(connection.netConn, bytes, connection.config.TcpSendTimeoutMs)
 	if err != nil {
+		if Tcp.IsConnectionClosed(err) {
+			connection.Close()
+			return Error.New("Connection closed", err)
+		}
 		return err
 	}
 	connection.bytesSent.Add(bytesSent)

@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -17,7 +18,8 @@ type SystemgeClient struct {
 
 	config *Config.SystemgeClient
 
-	messageHandler *SystemgeConnection.SystemgeMessageHandler
+	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
+	receiverConfig *Config.SystemgeReceiver
 
 	mutex                 sync.RWMutex
 	connections           map[string]*SystemgeConnection.SystemgeConnection // address -> connection
@@ -40,7 +42,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint32
 }
 
-func New(config *Config.SystemgeClient, messageHandler *SystemgeConnection.SystemgeMessageHandler) *SystemgeClient {
+func New(config *Config.SystemgeClient, receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -50,6 +52,12 @@ func New(config *Config.SystemgeClient, messageHandler *SystemgeConnection.Syste
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
+	if receiverConfig != nil && messageHandler == nil {
+		panic("receiverConfig is set but messageHandler is nil")
+	}
+	if receiverConfig == nil && messageHandler != nil {
+		panic("messageHandler is set but receiverConfig is nil")
+	}
 	client := &SystemgeClient{
 		config: config,
 
@@ -57,6 +65,7 @@ func New(config *Config.SystemgeClient, messageHandler *SystemgeConnection.Syste
 		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
 
 		messageHandler: messageHandler,
+		receiverConfig: receiverConfig,
 	}
 	if config.InfoLoggerPath != "" {
 		client.infoLogger = Tools.NewLogger("[Info: \""+client.GetName()+"\"] ", config.InfoLoggerPath)

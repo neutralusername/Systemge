@@ -47,9 +47,6 @@ type SystemgeConnection struct {
 
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-
-	ReceiverConfig *SystemgeReceiver `json:"receiverConfig"` // *optional* (if nil, the connection will not receive/handle incoming messages)
-
 }
 
 type SystemgeReceiver struct {

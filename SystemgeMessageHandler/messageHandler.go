@@ -1,4 +1,4 @@
-package SystemgeConnection
+package SystemgeMessageHandler
 
 import (
 	"sync"
@@ -27,7 +27,7 @@ type SystemgeMessageHandler struct {
 }
 
 // pass a handler with an empty string as the key to handle messages with unknown topics
-func NewMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers) *SystemgeMessageHandler {
+func New(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers) *SystemgeMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}

@@ -10,25 +10,19 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int, messageHandler *SystemgeMessageHandler) (*SystemgeConnection, error) {
-	if config.ReceiverConfig != nil && messageHandler == nil {
-		return nil, Error.New("receiverConfig is set but messageHandler is nil", nil)
-	}
-	if config.ReceiverConfig == nil && messageHandler != nil {
-		return nil, Error.New("receiverConfig is nil but messageHandler is set", nil)
-	}
+func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*SystemgeConnection, error) {
 	netConn, err := Tcp.NewClient(endpointConfig)
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
 	}
-	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn, messageHandler)
+	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn)
 	if err != nil {
 		return nil, Error.New("Failed to handshake with "+endpointConfig.Address, err)
 	}
 	return connection, nil
 }
 
-func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn, messageHandler *SystemgeMessageHandler) (*SystemgeConnection, error) {
+func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
 	_, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, clientName).Serialize(), config.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
@@ -50,5 +44,5 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if len(message.GetPayload()) == 0 {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	return New(config, netConn, message.GetPayload(), messageHandler), nil
+	return New(config, netConn, message.GetPayload()), nil
 }

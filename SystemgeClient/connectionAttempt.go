@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeReceiver"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -97,7 +98,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			if attempt.attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
-			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength, client.messageHandler)
+			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
 			attempt.attempts++
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)
@@ -118,6 +119,11 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			client.connections[attempt.endpointConfig.Address] = connection
 
 			client.waitGroup.Add(1)
+
+			if client.receiverConfig != nil && client.messageHandler != nil {
+				// todo: add runtime funcs to to something with the receiver
+				SystemgeReceiver.New(connection, client.receiverConfig, client.messageHandler)
+			}
 
 			if infoLogger := client.infoLogger; infoLogger != nil {
 				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))

@@ -16,8 +16,6 @@ type SystemgeConnection struct {
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
 
-	receiver *SystemgeReceiver
-
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
 
@@ -43,17 +41,13 @@ type SystemgeConnection struct {
 	noSyncResponseReceived       atomic.Uint32
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messageHandler *SystemgeMessageHandler) *SystemgeConnection {
+func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
 	connection := &SystemgeConnection{
 		name:         name,
 		config:       config,
 		netConn:      netConn,
 		randomizer:   Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel: make(chan bool),
-	}
-	if config.ReceiverConfig != nil && messageHandler != nil {
-		receiver := NewReceiver(config.ReceiverConfig, connection, messageHandler)
-		connection.receiver = receiver
 	}
 	return connection
 }
@@ -66,9 +60,6 @@ func (connection *SystemgeConnection) Close() {
 	}
 	connection.closed = true
 	connection.netConn.Close()
-	if connection.receiver != nil {
-		connection.receiver.Close()
-	}
 	close(connection.closeChannel)
 }
 

@@ -1,17 +1,19 @@
-package SystemgeConnection
+package SystemgeReceiver
 
 import (
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeReceiver struct {
 	config         *Config.SystemgeReceiver
-	connection     *SystemgeConnection
-	messageHandler *SystemgeMessageHandler
+	connection     *SystemgeConnection.SystemgeConnection
+	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -23,6 +25,9 @@ type SystemgeReceiver struct {
 
 	processingChannel chan func()
 	waitGroup         sync.WaitGroup
+
+	closed      bool
+	closedMutex sync.Mutex
 
 	messageId uint32
 
@@ -37,7 +42,7 @@ type SystemgeReceiver struct {
 	byteRateLimiterExceeded    atomic.Uint32
 }
 
-func NewReceiver(config *Config.SystemgeReceiver, connection *SystemgeConnection, messageHandler *SystemgeMessageHandler) *SystemgeReceiver {
+func New(connection *SystemgeConnection.SystemgeConnection, config *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeReceiver {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -81,6 +86,12 @@ func NewReceiver(config *Config.SystemgeReceiver, connection *SystemgeConnection
 }
 
 func (receiver *SystemgeReceiver) Close() {
+	receiver.closedMutex.Lock()
+	defer receiver.closedMutex.Unlock()
+	if receiver.closed {
+		return
+	}
+	receiver.closed = true
 	if receiver.rateLimiterBytes != nil {
 		receiver.rateLimiterBytes.Stop()
 		receiver.rateLimiterBytes = nil
