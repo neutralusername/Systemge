@@ -20,8 +20,8 @@ type SystemgeClient struct {
 	messageHandler *SystemgeConnection.SystemgeMessageHandler
 
 	mutex                 sync.RWMutex
-	connections           map[string]*SystemgeConnection.SystemgeConnection
-	connectionAttemptsMap map[string]*ConnectionAttempt
+	connections           map[string]*SystemgeConnection.SystemgeConnection // address -> connection
+	connectionAttemptsMap map[string]*ConnectionAttempt                     // address -> connection attempt
 
 	stopChannel chan bool
 
@@ -97,10 +97,10 @@ func (client *SystemgeClient) Start() error {
 	for _, endpointConfig := range client.config.EndpointConfigs {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting connection attempts", err).Error())
+				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
 						client.errorLogger.Log(Error.New("failed sending mail", err).Error())

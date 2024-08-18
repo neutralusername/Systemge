@@ -19,11 +19,11 @@ type ConnectionAttempt struct {
 }
 
 func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
-	noramlzedAddres, err := Helpers.NormalizeAddress(endpointConfig.Address)
+	normalizedAddress, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
 		return Error.New("failed normalizing address", err)
 	}
-	endpointConfig.Address = noramlzedAddres
+	endpointConfig.Address = normalizedAddress
 	client.waitGroup.Add(1)
 
 	client.mutex.Lock()
@@ -52,10 +52,10 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		}
 		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed connection attempt", err).Error())
+				client.errorLogger.Log(Error.New("failed connection attempts to \""+attempt.endpointConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed connection attempt", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed connection attempts to \""+attempt.endpointConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
 						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
@@ -72,6 +72,9 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 }
 
 func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) error {
+	if infoLogger := client.infoLogger; infoLogger != nil {
+		infoLogger.Log("Starting connection attempts to \"" + attempt.endpointConfig.Address + "\"")
+	}
 	endAttempt := func() {
 		client.mutex.Lock()
 		defer client.mutex.Unlock()
@@ -95,19 +98,11 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
 			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength, client.messageHandler)
+			attempt.attempts++
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)
-				attempt.attempts++
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Error.New("failed establishing connection attempt #"+Helpers.Uint32ToString(attempt.attempts), err).Error())
-				}
-				if client.mailer != nil {
-					err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed establishing connection attempt", err).Error()))
-					if err != nil {
-						if client.errorLogger != nil {
-							client.errorLogger.Log(Error.New("failed sending mail", err).Error())
-						}
-					}
+				if client.warningLogger != nil {
+					client.warningLogger.Log(Error.New("failed establishing connection to \""+attempt.endpointConfig.Address+"\" on attempt #"+Helpers.Uint32ToString(attempt.attempts), err).Error())
 				}
 				continue
 			}
@@ -123,6 +118,11 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			client.connections[attempt.endpointConfig.Address] = connection
 
 			client.waitGroup.Add(1)
+
+			if infoLogger := client.infoLogger; infoLogger != nil {
+				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))
+			}
+
 			go client.connectionClosure(connection, attempt.endpointConfig)
 			return nil
 		}
@@ -144,10 +144,10 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 		if client.config.Reconnect {
 			if err := client.startConnectionAttempts(endpointConfig); err != nil {
 				if client.errorLogger != nil {
-					client.errorLogger.Log(Error.New("failed starting connection attempt", err).Error())
+					client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error())
 				}
 				if client.mailer != nil {
-					err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempt", err).Error()))
+					err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error()))
 					if err != nil {
 						if client.errorLogger != nil {
 							client.errorLogger.Log(Error.New("failed sending mail", err).Error())

@@ -137,12 +137,12 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig, server.messageHandler)
 		if err != nil {
 			if server.warningLogger != nil {
-				server.warningLogger.Log("error accepting connection: " + err.Error())
+				server.warningLogger.Log(Error.New("failed to accept connection", err).Error())
 			}
 			continue
 		}
 		if server.infoLogger != nil {
-			server.infoLogger.Log("connection accepted: " + connection.GetName())
+			server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
 		}
 		server.clientsMutex.Lock()
 		server.clients[connection.GetName()] = connection
@@ -152,9 +152,12 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			server.clientsMutex.Lock()
 			delete(server.clients, connection.GetName())
 			server.clientsMutex.Unlock()
+			if server.infoLogger != nil {
+				server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
+			}
 		}()
 		if server.infoLogger != nil {
-			server.infoLogger.Log("receiver started: " + connection.GetName())
+			server.infoLogger.Log("receiver for connection \"" + connection.GetName() + "\" started")
 		}
 	}
 	close(stopChannel)
