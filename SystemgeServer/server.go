@@ -159,6 +159,14 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 		}
 
 		server.clientsMutex.Lock()
+		if _, ok := server.clients[connection.GetName()]; ok {
+			server.clientsMutex.Unlock()
+			if server.warningLogger != nil {
+				server.warningLogger.Log("connection \"" + connection.GetName() + "\" already exists")
+			}
+			connection.Close()
+			continue
+		}
 		server.clients[connection.GetName()] = connection
 		server.clientsMutex.Unlock()
 		go func() {
