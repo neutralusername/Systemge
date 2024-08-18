@@ -22,7 +22,8 @@ type SystemgeClient struct {
 	receiverConfig *Config.SystemgeReceiver
 
 	mutex                 sync.RWMutex
-	connections           map[string]*SystemgeConnection.SystemgeConnection // address -> connection
+	addressConnections    map[string]*SystemgeConnection.SystemgeConnection // address -> connection
+	nameConnections       map[string]*SystemgeConnection.SystemgeConnection // name -> connection
 	connectionAttemptsMap map[string]*ConnectionAttempt                     // address -> connection attempt
 
 	stopChannel chan bool
@@ -61,7 +62,8 @@ func New(config *Config.SystemgeClient, receiverConfig *Config.SystemgeReceiver,
 	client := &SystemgeClient{
 		config: config,
 
-		connections:           make(map[string]*SystemgeConnection.SystemgeConnection),
+		addressConnections:    make(map[string]*SystemgeConnection.SystemgeConnection),
+		nameConnections:       make(map[string]*SystemgeConnection.SystemgeConnection),
 		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
 
 		messageHandler: messageHandler,

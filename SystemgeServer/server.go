@@ -15,7 +15,7 @@ import (
 
 type SystemgeServer struct {
 	status      int
-	statusMutex sync.Mutex
+	statusMutex sync.RWMutex
 
 	config   *Config.SystemgeServer
 	listener *SystemgeListener.SystemgeListener
@@ -109,10 +109,11 @@ func (server *SystemgeServer) Stop() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("stopping server")
 	}
+
+	server.listener.Close()
 	handlerStopChannel := server.handlerStopChannel
 	server.handlerStopChannel = nil
 	<-handlerStopChannel
-	server.listener.Close()
 	server.listener = nil
 
 	server.clientsMutex.Lock()
@@ -136,12 +137,12 @@ func (server *SystemgeServer) GetStatus() int {
 	return server.status
 }
 
-func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
+func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("connection handler started")
 	}
 
-	for server.handlerStopChannel == stopChannel {
+	for server.handlerStopChannel == handlerStopChannel {
 		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
 		if err != nil {
 			if server.warningLogger != nil {
@@ -153,7 +154,7 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
 		}
 		if server.receiverConfig != nil && server.messageHandler != nil {
-			// todo: add runtime funcs to to something with the receiver
+			// todo: add runtime funcs to do something with the receiver
 			SystemgeReceiver.New(connection, server.receiverConfig, server.messageHandler)
 		}
 
@@ -173,7 +174,7 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			server.infoLogger.Log("receiver for connection \"" + connection.GetName() + "\" started")
 		}
 	}
-	close(stopChannel)
+	close(handlerStopChannel)
 
 	if server.infoLogger != nil {
 		server.infoLogger.Log("connection handler stopped")

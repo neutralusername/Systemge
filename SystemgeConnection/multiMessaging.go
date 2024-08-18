@@ -22,7 +22,6 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 				connection.asyncMessagesSent.Add(1)
 			})
 		}(connection)
-
 	}
 	taskGroup.ExecuteTasks()
 	return errors

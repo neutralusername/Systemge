@@ -36,7 +36,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	if client.status == Status.STOPPED {
 		return Error.New("client stopped", nil)
 	}
-	if connection, ok := client.connections[address]; ok {
+	if connection, ok := client.addressConnections[address]; ok {
 		connection.Close()
 		return nil
 	}

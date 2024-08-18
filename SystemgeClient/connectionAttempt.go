@@ -28,7 +28,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	client.waitGroup.Add(1)
 
 	client.mutex.Lock()
-	if client.connections[endpointConfig.Address] != nil {
+	if client.addressConnections[endpointConfig.Address] != nil {
 		client.mutex.Unlock()
 		client.waitGroup.Done()
 		return Error.New("Connection already exists", nil)
@@ -116,12 +116,13 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				connection.Close()
 				return Error.New("Connection attempt aborted", nil)
 			}
-			client.connections[attempt.endpointConfig.Address] = connection
+			client.addressConnections[attempt.endpointConfig.Address] = connection
+			client.nameConnections[connection.GetName()] = connection
 
 			client.waitGroup.Add(1)
 
 			if client.receiverConfig != nil && client.messageHandler != nil {
-				// todo: add runtime funcs to to something with the receiver
+				// todo: add runtime funcs to do something with the receiver
 				SystemgeReceiver.New(connection, client.receiverConfig, client.messageHandler)
 			}
 
@@ -140,12 +141,14 @@ func (client *SystemgeClient) connectionClosure(connection *SystemgeConnection.S
 	case <-client.stopChannel:
 		connection.Close()
 		client.mutex.Lock()
-		delete(client.connections, endpointConfig.Address)
+		delete(client.addressConnections, endpointConfig.Address)
+		delete(client.nameConnections, connection.GetName())
 		client.mutex.Unlock()
 		client.waitGroup.Done()
 	case <-connection.GetCloseChannel():
 		client.mutex.Lock()
-		delete(client.connections, endpointConfig.Address)
+		delete(client.addressConnections, endpointConfig.Address)
+		delete(client.nameConnections, connection.GetName())
 		client.mutex.Unlock()
 		if client.config.Reconnect {
 			if err := client.startConnectionAttempts(endpointConfig); err != nil {
