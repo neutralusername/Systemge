@@ -21,3 +21,28 @@ func (client *SystemgeClient) AddConnection(endpointConfig *Config.TcpEndpoint) 
 	}
 	return client.startConnectionAttempts(endpointConfig)
 }
+
+// RemoveConnection attempts to remove a connection from the client
+func (client *SystemgeClient) RemoveConnection(address string) error {
+	if address == "" {
+		return Error.New("address is empty", nil)
+	}
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status == Status.STOPPED {
+		return Error.New("client stopped", nil)
+	}
+	if connection, ok := client.connections[address]; ok {
+		connection.Close()
+		return nil
+	}
+	if connectionAttempt, ok := client.connectionAttemptsMap[address]; ok {
+		connectionAttempt.isAborted = true
+		return nil
+	}
+	return Error.New("connection not found", nil)
+}

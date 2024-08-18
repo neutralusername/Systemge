@@ -21,6 +21,9 @@ type SystemgeConnection struct {
 	sendMutex    sync.Mutex
 	receiveMutex sync.Mutex
 
+	closed      bool
+	closedMutex sync.Mutex
+
 	tcpBuffer []byte
 
 	syncResponseChannels map[string]chan *Message.Message
@@ -56,6 +59,12 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 }
 
 func (connection *SystemgeConnection) Close() {
+	connection.closedMutex.Lock()
+	defer connection.closedMutex.Unlock()
+	if connection.closed {
+		return
+	}
+	connection.closed = true
 	connection.netConn.Close()
 	if connection.receiver != nil {
 		connection.receiver.Close()
