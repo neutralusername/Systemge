@@ -40,7 +40,7 @@ func (connection *SystemgeConnection) SendMessage(bytes []byte) error {
 
 	bytesSent, err := Tcp.Send(connection.netConn, bytes, connection.config.TcpSendTimeoutMs)
 	if err != nil {
-		return Error.New("Failed to send message", err)
+		return err
 	}
 	connection.bytesSent.Add(bytesSent)
 	return nil
