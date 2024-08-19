@@ -3,10 +3,9 @@ package Config
 import "encoding/json"
 
 type DashboardServer struct {
-	HTTPServerConfig      *HTTPServer       `json:"httpServerConfig"`      // *required*
-	WebsocketServerConfig *WebsocketServer  `json:"websocketServerConfig"` // *required*
-	SystemgeServerConfig  *SystemgeServer   `json:"systemgeServerConfig"`  // *required*
-	ReceiverConfig        *SystemgeReceiver `json:"receiverConfig"`        // *required*
+	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
+	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
+	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*

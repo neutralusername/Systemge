@@ -1,8 +1,9 @@
 package Dashboard
 
-/*
-type DashboardServer struct {
+/* type DashboardServer struct {
 	closed bool
+
+	clients map[string]*Client
 
 	mutex  sync.RWMutex
 	config *Config.DashboardServer
@@ -45,9 +46,6 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	if config.SystemgeServerConfig.ListenerConfig.TcpListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
-	if config.ReceiverConfig == nil {
-		panic("config.SystemgeServerConfig.ReceiverConfig is nil")
-	}
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
@@ -66,13 +64,8 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
-	var dashboardServerMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
-		Message.TOPIC_REGISTER_COMMAND:   app.RegisterCommandHandler,
-		Message.TOPIC_UNREGISTER_COMMAND: app.UnregisterCommandHandler,
-	})
-
 	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, config.ReceiverConfig, dashboardServerMessageHandlers)
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, nil, nil)
 
 	err := app.httpServer.Start()
 	if err != nil {
@@ -100,12 +93,19 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	return app
 }
 
-func (app *DashboardServer) RegisterCommandHandler(message *Message.Message) (string, error) {
-
-}
-
-func (app *DashboardServer) UnregisterCommandHandler(message *Message.Message) (string, error) {
-
+func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {
+	response, err := connection.SyncRequest(Message.TOPIC_GET_INTRODUCTION, "")
+	if err != nil {
+		return err
+	}
+	client, err := unmarshalClient(response.GetPayload())
+	if err != nil {
+		return err
+	}
+	app.mutex.Lock()
+	app.clients[client.Name] = client
+	app.mutex.Unlock()
+	return nil
 }
 
 func (app *DashboardServer) Close() {

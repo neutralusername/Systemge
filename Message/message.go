@@ -19,13 +19,11 @@ type messageData struct {
 	Payload   string `json:"payload"`
 }
 
-const TOPIC_REGISTER_COMMAND = "register_command"
-const TOPIC_UNREGISTER_COMMAND = "unregister_command"
-
-const TOPIC_GET_SERVICE_STATUS = "get_service_status"
+const TOPIC_GET_INTRODUCTION = "get_introduction"
+const TOPIC_GET_STATUS = "get_service_status"
 const TOPIC_GET_METRICS = "get_metrics"
-const TOPIC_START_SERVICE = "start_service"
-const TOPIC_STOP_SERVICE = "stop_service"
+const TOPIC_START = "start_service"
+const TOPIC_STOP = "stop_service"
 const TOPIC_EXECUTE_COMMAND = "execute_command"
 
 const TOPIC_SUCCESS = "success"
