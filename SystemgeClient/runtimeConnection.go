@@ -59,7 +59,7 @@ func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string
 	}
 	names := make(map[string]string, len(client.addressConnections))
 	for address, connection := range client.addressConnections {
-		names[address] = connection.GetName()
+		names[connection.GetName()] = address
 	}
 	return names
 }

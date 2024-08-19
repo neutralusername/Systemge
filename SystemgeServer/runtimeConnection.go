@@ -22,7 +22,7 @@ func (server *SystemgeServer) RemoveConection(name string) error {
 	return Error.New("connection not found", nil)
 }
 
-func (server *SystemgeServer) GetConnectionNames() []string {
+func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string {
 	server.statusMutex.RLock()
 	server.mutex.Lock()
 	defer func() {
@@ -32,9 +32,9 @@ func (server *SystemgeServer) GetConnectionNames() []string {
 	if server.status != Status.STARTED {
 		return nil
 	}
-	names := make([]string, 0, len(server.clients))
-	for name := range server.clients {
-		names = append(names, name)
+	names := make(map[string]string, len(server.clients))
+	for name, connection := range server.clients {
+		names[name] = connection.GetAddress()
 	}
 	return names
 }

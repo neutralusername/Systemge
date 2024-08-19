@@ -74,3 +74,7 @@ func (connection *SystemgeConnection) GetName() string {
 func (connection *SystemgeConnection) GetCloseChannel() <-chan bool {
 	return connection.closeChannel
 }
+
+func (connection *SystemgeConnection) GetAddress() string {
+	return connection.netConn.RemoteAddr().String()
+}

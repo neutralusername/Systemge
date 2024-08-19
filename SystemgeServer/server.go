@@ -23,7 +23,7 @@ type SystemgeServer struct {
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 	receiverConfig *Config.SystemgeReceiver
 
-	clients            map[string]*SystemgeConnection.SystemgeConnection
+	clients            map[string]*SystemgeConnection.SystemgeConnection // name -> connection
 	mutex              sync.Mutex
 	handlerStopChannel chan bool
 
