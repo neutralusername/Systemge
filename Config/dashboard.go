@@ -13,10 +13,10 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
 
-	HeapUpdateIntervalMs          uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
-	GoroutineUpdateIntervalMs     uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
-	ServiceStatusUpdateIntervalMs uint64 `json:"serviceStatusUpdateIntervalMs"` // default: 0 = disabled
-	MetricsUpdateIntervalMs       uint64 `json:"metricsUpdateIntervalMs"`       // default: 0 = disabled
+	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
+	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
+	StatusUpdateIntervalMs    uint64 `json:"serviceStatusUpdateIntervalMs"` // default: 0 = disabled
+	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`       // default: 0 = disabled
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
@@ -26,7 +26,15 @@ func UnmarshalDashboardServer(data string) *DashboardServer {
 }
 
 type DashboardClient struct {
+	Name string `json:"name"` // *required*
+
 	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
 	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
 	EndpointConfig   *TcpEndpoint        `json:"endpointConfig"`   // *required*
+}
+
+func UnmarshalDashboardClient(data string) *DashboardClient {
+	var dashboard DashboardClient
+	json.Unmarshal([]byte(data), &dashboard)
+	return &dashboard
 }

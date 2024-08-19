@@ -20,8 +20,9 @@ type SystemgeServer struct {
 	config   *Config.SystemgeServer
 	listener *SystemgeListener.SystemgeListener
 
-	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
-	receiverConfig *Config.SystemgeReceiver
+	onConnectHandler func(*SystemgeConnection.SystemgeConnection) error
+	messageHandler   *SystemgeMessageHandler.SystemgeMessageHandler
+	receiverConfig   *Config.SystemgeReceiver
 
 	clients            map[string]*SystemgeConnection.SystemgeConnection // name -> connection
 	mutex              sync.Mutex
@@ -33,7 +34,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
+func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -156,6 +157,18 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 		if server.infoLogger != nil {
 			server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
 		}
+
+		if server.onConnectHandler != nil {
+			err := server.onConnectHandler(connection)
+			if err != nil {
+				if server.warningLogger != nil {
+					server.warningLogger.Log(Error.New("onConnectHandler failed", err).Error())
+				}
+				connection.Close()
+				continue
+			}
+		}
+
 		if server.receiverConfig != nil && server.messageHandler != nil {
 			// todo: add runtime funcs to do something with the receiver
 			SystemgeReceiver.New(connection, server.receiverConfig, server.messageHandler)

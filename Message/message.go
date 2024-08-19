@@ -19,10 +19,9 @@ type messageData struct {
 	Payload   string `json:"payload"`
 }
 
-const TOPIC_REGISTER_MODULE = "register_module"
-const TOPIC_UNREGISTER_MODULE = "unregister_module"
-const TOPIC_REGISTER_SERVICE = "register_service"
-const TOPIC_UNREGISTER_SERVICE = "unregister_service"
+const TOPIC_REGISTER_COMMAND = "register_command"
+const TOPIC_UNREGISTER_COMMAND = "unregister_command"
+
 const TOPIC_GET_SERVICE_STATUS = "get_service_status"
 const TOPIC_GET_METRICS = "get_metrics"
 const TOPIC_START_SERVICE = "start_service"

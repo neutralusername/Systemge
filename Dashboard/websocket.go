@@ -53,7 +53,7 @@ func (app *DashboardServer) GetWebsocketMessageHandlers() map[string]WebsocketSe
 func (app *DashboardServer) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
-	for _, n := range app.nodes {
+	for _, n := range app.modules {
 		go func() {
 			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(n))).Serialize())
 		}()
@@ -67,7 +67,7 @@ func (app *DashboardServer) OnDisconnectHandler(websocketClient *WebsocketServer
 
 func (app *DashboardServer) nodeCommand(command *Command) (string, error) {
 	app.mutex.RLock()
-	n := app.nodes[command.Name]
+	n := app.modules[command.ModuleName]
 	app.mutex.RUnlock()
 	if n == nil {
 		return "", Error.New("Node not found", nil)
@@ -78,7 +78,7 @@ func (app *DashboardServer) nodeCommand(command *Command) (string, error) {
 	}
 	result, err := commandHandler(n, command.Args)
 	if err != nil {
-		return "", Error.New("Failed to execute command \""+command.Name+"\": "+err.Error(), nil)
+		return "", Error.New("Failed to execute command \""+command.ModuleName+"\": "+err.Error(), nil)
 	}
 	return result, nil
 }
