@@ -53,33 +53,25 @@ func (app *DashboardServer) GetWebsocketMessageHandlers() map[string]WebsocketSe
 func (app *DashboardServer) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
-	for _, n := range app.modules {
+	for _, client := range app.clients {
 		go func() {
-			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(client))).Serialize())
 		}()
 	}
 	return nil
 }
 
-func (app *DashboardServer) OnDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
-
-}
-
-func (app *DashboardServer) nodeCommand(command *Command) (string, error) {
+func (app *DashboardServer) executeCommand(clientName, commandName string, args []string) (string, error) {
 	app.mutex.RLock()
-	n := app.modules[command.ModuleName]
+	client := app.clients[clientName]
 	app.mutex.RUnlock()
-	if n == nil {
+	if client == nil {
 		return "", Error.New("Node not found", nil)
 	}
-	commandHandler := n.GetCommandHandlers()[command.Command]
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	result, err := commandHandler(n, command.Args)
+	response, err := client.executeCommand(commandName, args)
 	if err != nil {
-		return "", Error.New("Failed to execute command \""+command.ModuleName+"\": "+err.Error(), nil)
+		return "", err
 	}
-	return result, nil
+	return response.GetPayload(), nil
 }
 */

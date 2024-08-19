@@ -1,9 +1,10 @@
 package Dashboard
 
-/* type DashboardServer struct {
+/*
+type DashboardServer struct {
 	closed bool
 
-	clients map[string]*Client
+	clients map[string]*client
 
 	mutex  sync.RWMutex
 	config *Config.DashboardServer
@@ -64,7 +65,7 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
-	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
+	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, nil)
 	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, nil, nil)
 
 	err := app.httpServer.Start()
@@ -84,10 +85,13 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 		go app.goroutineUpdateRoutine()
 	}
 	if app.config.StatusUpdateIntervalMs > 0 {
-		go app.serviceStatusUpdateRoutine()
+		go app.statusUpdateRoutine()
 	}
 	if app.config.HeapUpdateIntervalMs > 0 {
 		go app.heapUpdateRoutine()
+	}
+	if app.config.MetricsUpdateIntervalMs > 0 {
+		go app.metricsUpdateRoutine()
 	}
 
 	return app
@@ -102,6 +106,8 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 	if err != nil {
 		return err
 	}
+	client.connection = connection
+	app.registerModuleHttpHandlers(client)
 	app.mutex.Lock()
 	app.clients[client.Name] = client
 	app.mutex.Unlock()
@@ -120,18 +126,25 @@ func (app *DashboardServer) Close() {
 	app.systemgeServer.Stop()
 }
 
-func (app *DashboardServer) serviceStatusUpdateRoutine() {
+func (app *DashboardServer) statusUpdateRoutine() {
 	for !app.closed {
 		app.mutex.RLock()
-		for _, node := range app.services {
-			statusUpdateJson := Helpers.JsonMarshal(newServiceStatus(node))
-			go app.websocketServer.Broadcast(Message.NewAsync("nodeStatus", statusUpdateJson))
-			if infoLogger := app.infoLogger; infoLogger != nil {
-				infoLogger.Log("status update routine: \"" + statusUpdateJson + "\"")
-			}
+		for _, client := range app.clients {
+
 		}
 		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
+	}
+}
+
+func (app *DashboardServer) metricsUpdateRoutine() {
+	for !app.closed {
+		app.mutex.RLock()
+		for _, client := range app.clients {
+
+		}
+		app.mutex.RUnlock()
+		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
 	}
 }
 
