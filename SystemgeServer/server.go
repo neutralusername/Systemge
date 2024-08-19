@@ -162,7 +162,7 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 			err := server.onConnectHandler(connection)
 			if err != nil {
 				if server.warningLogger != nil {
-					server.warningLogger.Log(Error.New("onConnectHandler failed", err).Error())
+					server.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
 				}
 				connection.Close()
 				continue
