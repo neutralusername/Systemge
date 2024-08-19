@@ -206,9 +206,19 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 }
 
 func (server *SystemgeServer) GetBlacklist() *Tools.AccessControlList {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return nil
+	}
 	return server.listener.GetBlacklist()
 }
 
 func (server *SystemgeServer) GetWhitelist() *Tools.AccessControlList {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return nil
+	}
 	return server.listener.GetWhitelist()
 }
