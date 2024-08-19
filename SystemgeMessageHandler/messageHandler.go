@@ -34,17 +34,17 @@ func New(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMess
 	if syncMessageHandlers == nil {
 		syncMessageHandlers = make(SyncMessageHandlers)
 	}
-	systemgeMessageHandlers := &SystemgeMessageHandler{
+	systemgeMessageHandler := &SystemgeMessageHandler{
 		asyncMessageHandlers: asyncMessageHandlers,
 		syncMessageHandlers:  syncMessageHandlers,
 	}
 	if handler, exists := asyncMessageHandlers[""]; exists {
-		systemgeMessageHandlers.unknwonAsyncTopicHandler = handler
+		systemgeMessageHandler.unknwonAsyncTopicHandler = handler
 	}
 	if handler, exists := syncMessageHandlers[""]; exists {
-		systemgeMessageHandlers.unknwonSyncTopicHandler = handler
+		systemgeMessageHandler.unknwonSyncTopicHandler = handler
 	}
-	return systemgeMessageHandlers
+	return systemgeMessageHandler
 }
 
 func (messageHandler *SystemgeMessageHandler) HandleAsyncMessage(message *Message.Message) error {

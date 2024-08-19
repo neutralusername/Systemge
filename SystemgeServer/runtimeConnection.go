@@ -1,0 +1,40 @@
+package SystemgeServer
+
+import (
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Status"
+)
+
+func (server *SystemgeServer) RemoveConection(name string) error {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+	if server.status != Status.STARTED {
+		return Error.New("server is not started", nil)
+	}
+	if connection, ok := server.clients[name]; ok {
+		connection.Close()
+		return nil
+	}
+	return Error.New("connection not found", nil)
+}
+
+func (server *SystemgeServer) GetConnectionNames() []string {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+	if server.status != Status.STARTED {
+		return nil
+	}
+	names := make([]string, 0, len(server.clients))
+	for name := range server.clients {
+		names = append(names, name)
+	}
+	return names
+}

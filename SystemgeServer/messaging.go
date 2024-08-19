@@ -13,7 +13,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 		server.statusMutex.RUnlock()
 		return Error.New("Server stopped", nil)
 	}
-	server.clientsMutex.Lock()
+	server.mutex.Lock()
 	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range server.clients {
@@ -31,7 +31,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 			connections = append(connections, connection)
 		}
 	}
-	server.clientsMutex.Unlock()
+	server.mutex.Unlock()
 	server.statusMutex.RUnlock()
 
 	errChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
@@ -51,7 +51,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 		server.statusMutex.RUnlock()
 		return nil, Error.New("Server stopped", nil)
 	}
-	server.clientsMutex.Lock()
+	server.mutex.Lock()
 	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range server.clients {
@@ -69,7 +69,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 			connections = append(connections, connection)
 		}
 	}
-	server.clientsMutex.Unlock()
+	server.mutex.Unlock()
 	server.statusMutex.RUnlock()
 
 	responseChannel, errChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)

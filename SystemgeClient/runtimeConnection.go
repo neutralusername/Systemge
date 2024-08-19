@@ -46,3 +46,20 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	}
 	return Error.New("connection not found", nil)
 }
+
+func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status != Status.STARTED {
+		return nil
+	}
+	names := make(map[string]string, len(client.addressConnections))
+	for address, connection := range client.addressConnections {
+		names[address] = connection.GetName()
+	}
+	return names
+}

@@ -24,7 +24,7 @@ type SystemgeServer struct {
 	receiverConfig *Config.SystemgeReceiver
 
 	clients            map[string]*SystemgeConnection.SystemgeConnection
-	clientsMutex       sync.Mutex
+	mutex              sync.Mutex
 	handlerStopChannel chan bool
 
 	errorLogger   *Tools.Logger
@@ -119,11 +119,11 @@ func (server *SystemgeServer) Stop() error {
 	<-handlerStopChannel
 	server.listener = nil
 
-	server.clientsMutex.Lock()
+	server.mutex.Lock()
 	for _, connection := range server.clients {
 		connection.Close()
 	}
-	server.clientsMutex.Unlock()
+	server.mutex.Unlock()
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server stopped")
@@ -161,9 +161,9 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 			SystemgeReceiver.New(connection, server.receiverConfig, server.messageHandler)
 		}
 
-		server.clientsMutex.Lock()
+		server.mutex.Lock()
 		if _, ok := server.clients[connection.GetName()]; ok {
-			server.clientsMutex.Unlock()
+			server.mutex.Unlock()
 			if server.warningLogger != nil {
 				server.warningLogger.Log("connection \"" + connection.GetName() + "\" already exists")
 			}
@@ -171,12 +171,12 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 			continue
 		}
 		server.clients[connection.GetName()] = connection
-		server.clientsMutex.Unlock()
+		server.mutex.Unlock()
 		go func() {
 			<-connection.GetCloseChannel()
-			server.clientsMutex.Lock()
+			server.mutex.Lock()
 			delete(server.clients, connection.GetName())
-			server.clientsMutex.Unlock()
+			server.mutex.Unlock()
 			if server.infoLogger != nil {
 				server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
 			}
