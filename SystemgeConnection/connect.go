@@ -11,6 +11,9 @@ import (
 )
 
 func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*SystemgeConnection, error) {
+	if config == nil {
+		return nil, Error.New("Config is nil", nil)
+	}
 	netConn, err := Tcp.NewClient(endpointConfig)
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
@@ -31,6 +34,7 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
 	}
+	messageBytes = messageBytes[:len(messageBytes)-1]
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
@@ -38,7 +42,7 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
 	}
-	if len(message.GetPayload()) > maxServerNameLength {
+	if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
 		return nil, Error.New("Received server name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.IntToString(maxServerNameLength), nil)
 	}
 	if len(message.GetPayload()) == 0 {

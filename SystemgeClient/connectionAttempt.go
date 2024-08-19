@@ -133,7 +133,6 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			if infoLogger := client.infoLogger; infoLogger != nil {
 				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))
 			}
-
 			go client.connectionClosure(connection, attempt.endpointConfig)
 			return nil
 		}

@@ -32,6 +32,12 @@ type HTTPServer struct {
 }
 
 func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
+	if config == nil {
+		panic("config is nil")
+	}
+	if config.TcpListenerConfig == nil {
+		panic("config.TcpListenerConfig is nil")
+	}
 	mux := NewCustomMux()
 	server := &HTTPServer{
 		config:   config,

@@ -51,6 +51,7 @@ func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.Syste
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
 	}
+	messageBytes = messageBytes[:len(messageBytes)-1]
 	message, err := Message.Deserialize(messageBytes, "")
 	if err != nil {
 		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
@@ -58,7 +59,7 @@ func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.Syste
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
 	}
-	if len(message.GetPayload()) > int(listener.config.MaxClientNameLength) {
+	if int(listener.config.MaxClientNameLength) > 0 && len(message.GetPayload()) > int(listener.config.MaxClientNameLength) {
 		return nil, Error.New("Received client name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.Uint64ToString(listener.config.MaxClientNameLength), nil)
 	}
 	if message.GetPayload() == "" {

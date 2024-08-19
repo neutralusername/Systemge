@@ -52,6 +52,9 @@ func New(config *Config.SystemgeServer, receiverConfig *Config.SystemgeReceiver,
 	if messageHandler != nil && receiverConfig == nil {
 		panic("messageHandler is set but receiverConfig is nil")
 	}
+	if config.ConnectionConfig.TcpBufferBytes == 0 {
+		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
+	}
 	server := &SystemgeServer{
 		config:         config,
 		messageHandler: messageHandler,

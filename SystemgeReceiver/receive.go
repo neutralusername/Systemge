@@ -11,7 +11,7 @@ func (receiver *SystemgeReceiver) receive(processingChannel chan func()) {
 		receiver.infoLogger.Log("Started receiving messages")
 	}
 	for receiver.processingChannel == processingChannel {
-		switch {
+		select {
 		case <-receiver.connection.GetCloseChannel():
 			if receiver.infoLogger != nil {
 				receiver.infoLogger.Log("Stopped receiving messages")
@@ -45,5 +45,4 @@ func (receiver *SystemgeReceiver) receive(processingChannel chan func()) {
 			}(receiver.connection, messageBytes, messageId)
 		}
 	}
-
 }

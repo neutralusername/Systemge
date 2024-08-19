@@ -41,7 +41,6 @@ func (connection *SystemgeConnection) ReceiveMessage() ([]byte, error) {
 func (connection *SystemgeConnection) SendMessage(bytes []byte) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
-
 	bytesSent, err := Tcp.Send(connection.netConn, bytes, connection.config.TcpSendTimeoutMs)
 	if err != nil {
 		if Tcp.IsConnectionClosed(err) {

@@ -43,11 +43,12 @@ type SystemgeConnection struct {
 
 func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
 	connection := &SystemgeConnection{
-		name:         name,
-		config:       config,
-		netConn:      netConn,
-		randomizer:   Tools.NewRandomizer(config.RandomizerSeed),
-		closeChannel: make(chan bool),
+		name:                 name,
+		config:               config,
+		netConn:              netConn,
+		randomizer:           Tools.NewRandomizer(config.RandomizerSeed),
+		closeChannel:         make(chan bool),
+		syncResponseChannels: make(map[string]chan *Message.Message),
 	}
 	return connection
 }
