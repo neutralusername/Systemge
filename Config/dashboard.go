@@ -3,9 +3,10 @@ package Config
 import "encoding/json"
 
 type DashboardServer struct {
-	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
-	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
+	HTTPServerConfig      *HTTPServer       `json:"httpServerConfig"`      // *required*
+	WebsocketServerConfig *WebsocketServer  `json:"websocketServerConfig"` // *required*
+	SystemgeServerConfig  *SystemgeServer   `json:"systemgeServerConfig"`  // *required*
+	ReceiverConfig        *SystemgeReceiver `json:"receiverConfig"`        // *required*
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*
@@ -22,4 +23,10 @@ func UnmarshalDashboardServer(data string) *DashboardServer {
 	var dashboard DashboardServer
 	json.Unmarshal([]byte(data), &dashboard)
 	return &dashboard
+}
+
+type DashboardClient struct {
+	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
+	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
+	EndpointConfig   *TcpEndpoint        `json:"endpointConfig"`   // *required*
 }

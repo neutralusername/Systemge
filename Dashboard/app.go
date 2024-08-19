@@ -1,22 +1,58 @@
 package Dashboard
 
-/*
-var dashboardServerMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
-	Message.TOPIC_REGISTER_MODULE:    app.RegisterModuleHandler,
-	Message.TOPIC_UNREGISTER_MODULE:  app.UnregisterModuleHandler,
-	Message.TOPIC_REGISTER_SERVICE:   app.RegisterServiceHandler,
-	Message.TOPIC_UNREGISTER_SERVICE: app.UnregisterServiceHandler,
-})
+/* type DashboardClient struct {
+	config             *Config.DashboardClient
+	module             Module.Module
+	systemgeConnection *SystemgeConnection.SystemgeConnection
+}
 
-var dashboardClientMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
-	Message.TOPIC_GET_SERVICE_STATUS: app.GetServiceStatusHandler,
-	Message.TOPIC_GET_METRICS:        app.GetMetricsHandler,
-	Message.TOPIC_START_SERVICE:      app.StartServiceHandler,
-	Message.TOPIC_STOP_SERVICE:       app.StopServiceHandler,
-	Message.TOPIC_EXECUTE_COMMAND:    app.ExecuteCommandHandler,
-})
+func NewDashboardClient(config *Config.DashboardClient, module Module.Module) *DashboardClient {
+	app := &DashboardClient{
+		config: config,
+		module: module,
+	}
 
-type App struct {
+	return app
+}
+
+func (app *DashboardClient) Start() error {
+	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.module.GetName()+"-DashboardClient", 0)
+	if err != nil {
+		return err
+	}
+	app.systemgeConnection = connection
+	var dashboardClientMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
+		Message.TOPIC_GET_SERVICE_STATUS: app.GetServiceStatusHandler,
+		Message.TOPIC_GET_METRICS:        app.GetMetricsHandler,
+		Message.TOPIC_START_SERVICE:      app.StartServiceHandler,
+		Message.TOPIC_STOP_SERVICE:       app.StopServiceHandler,
+		Message.TOPIC_EXECUTE_COMMAND:    app.ExecuteCommandHandler,
+	})
+	SystemgeReceiver.New(connection, app.config.ReceiverConfig, dashboardClientMessageHandlers)
+	return nil
+}
+
+func (app *DashboardClient) GetServiceStatusHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardClient) GetMetricsHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardClient) StartServiceHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardClient) StopServiceHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardClient) ExecuteCommandHandler(message *Message.Message) (string, error) {
+
+}
+
+type DashboardServer struct {
 	started bool
 
 	services map[string]Module.ServiceModule
@@ -34,7 +70,7 @@ type App struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.DashboardServer) *App {
+func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -62,13 +98,13 @@ func New(config *Config.DashboardServer) *App {
 	if config.SystemgeServerConfig.ListenerConfig.TcpListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ReceiverConfig == nil {
+	if config.ReceiverConfig == nil {
 		panic("config.SystemgeServerConfig.ReceiverConfig is nil")
 	}
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
-	app := &App{
+	app := &DashboardServer{
 		services: make(map[string]Module.ServiceModule),
 		modules:  make(map[string]Module.Module),
 		mutex:    sync.RWMutex{},
@@ -85,12 +121,35 @@ func New(config *Config.DashboardServer) *App {
 	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
+	var dashboardServerMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
+		Message.TOPIC_REGISTER_MODULE:    app.RegisterModuleHandler,
+		Message.TOPIC_UNREGISTER_MODULE:  app.UnregisterModuleHandler,
+		Message.TOPIC_REGISTER_SERVICE:   app.RegisterServiceHandler,
+		Message.TOPIC_UNREGISTER_SERVICE: app.UnregisterServiceHandler,
+	})
+
 	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, app.OnDisconnectHandler)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, dashboardServerMessageHandlers)
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, config.ReceiverConfig, dashboardServerMessageHandlers)
 	return app
 }
 
-func (app *App) Start() error {
+func (app *DashboardServer) RegisterModuleHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardServer) UnregisterModuleHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardServer) RegisterServiceHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardServer) UnregisterServiceHandler(message *Message.Message) (string, error) {
+
+}
+
+func (app *DashboardServer) Start() error {
 	err := app.httpServer.Start()
 	if err != nil {
 		return err
@@ -122,7 +181,7 @@ func (app *App) Start() error {
 	return nil
 }
 
-func (app *App) Stop() error {
+func (app *DashboardServer) Stop() error {
 	app.started = false
 	app.httpServer.Stop()
 	app.websocketServer.Stop()
@@ -130,7 +189,7 @@ func (app *App) Stop() error {
 	return nil
 }
 
-func (app *App) registerModuleHttpHandlers(module Module.Module) {
+func (app *DashboardServer) registerModuleHttpHandlers(module Module.Module) {
 	_, filePath, _, _ := runtime.Caller(0)
 
 	app.httpServer.AddRoute("/"+module.GetName(), func(w http.ResponseWriter, r *http.Request) {
@@ -152,12 +211,12 @@ func (app *App) registerModuleHttpHandlers(module Module.Module) {
 	})
 }
 
-func (app *App) unregisterNodeHttpHandlers(module Module.Module) {
+func (app *DashboardServer) unregisterNodeHttpHandlers(module Module.Module) {
 	app.httpServer.RemoveRoute("/" + module.GetName())
 	app.httpServer.RemoveRoute("/" + module.GetName() + "/command/")
 }
 
-func (app *App) serviceStatusUpdateRoutine() {
+func (app *DashboardServer) serviceStatusUpdateRoutine() {
 	for app.started {
 		app.mutex.RLock()
 		for _, node := range app.services {
@@ -172,7 +231,7 @@ func (app *App) serviceStatusUpdateRoutine() {
 	}
 }
 
-func (app *App) goroutineUpdateRoutine() {
+func (app *DashboardServer) goroutineUpdateRoutine() {
 	for app.started {
 		goroutineCount := runtime.NumGoroutine()
 		go app.websocketServer.Broadcast(Message.NewAsync("goroutineCount", strconv.Itoa(goroutineCount)))
@@ -183,7 +242,7 @@ func (app *App) goroutineUpdateRoutine() {
 	}
 }
 
-func (app *App) heapUpdateRoutine() {
+func (app *DashboardServer) heapUpdateRoutine() {
 	for app.started {
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)

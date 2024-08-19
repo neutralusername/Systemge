@@ -1,7 +1,7 @@
 package Dashboard
 
 /*
-func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.MessageHandler {
+func (app *DashboardServer) GetWebsocketMessageHandlers() map[string]WebsocketServer.MessageHandler {
 	return map[string]WebsocketServer.MessageHandler{
 		"start": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
@@ -50,7 +50,7 @@ func (app *App) GetWebsocketMessageHandlers() map[string]WebsocketServer.Message
 	}
 }
 
-func (app *App) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
+func (app *DashboardServer) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
 	for _, n := range app.nodes {
@@ -61,11 +61,11 @@ func (app *App) OnConnectHandler(websocketClient *WebsocketServer.WebsocketClien
 	return nil
 }
 
-func (app *App) OnDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
+func (app *DashboardServer) OnDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
 
 }
 
-func (app *App) nodeCommand(command *Command) (string, error) {
+func (app *DashboardServer) nodeCommand(command *Command) (string, error) {
 	app.mutex.RLock()
 	n := app.nodes[command.Name]
 	app.mutex.RUnlock()
