@@ -51,3 +51,11 @@ func (listener *SystemgeListener) Close() {
 		listener.ipRateLimiter.Stop()
 	}
 }
+
+func (listener *SystemgeListener) GetBlacklist() *Tools.AccessControlList {
+	return listener.tcpListener.GetBlacklist()
+}
+
+func (listener *SystemgeListener) GetWhitelist() *Tools.AccessControlList {
+	return listener.tcpListener.GetWhitelist()
+}

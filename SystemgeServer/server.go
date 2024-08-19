@@ -191,3 +191,11 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 		server.infoLogger.Log("connection handler stopped")
 	}
 }
+
+func (server *SystemgeServer) GetBlacklist() *Tools.AccessControlList {
+	return server.listener.GetBlacklist()
+}
+
+func (server *SystemgeServer) GetWhitelist() *Tools.AccessControlList {
+	return server.listener.GetWhitelist()
+}
