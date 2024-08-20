@@ -48,7 +48,7 @@ func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
 func (listener *SystemgeListener) Close() {
 	listener.tcpListener.GetListener().Close()
 	if listener.ipRateLimiter != nil {
-		listener.ipRateLimiter.Stop()
+		listener.ipRateLimiter.Close()
 	}
 }
 

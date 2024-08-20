@@ -113,11 +113,11 @@ func (connection *SystemgeConnection) Close() {
 	close(connection.closeChannel)
 
 	if connection.rateLimiterBytes != nil {
-		connection.rateLimiterBytes.Stop()
+		connection.rateLimiterBytes.Close()
 		connection.rateLimiterBytes = nil
 	}
 	if connection.rateLimiterMessages != nil {
-		connection.rateLimiterMessages.Stop()
+		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
 

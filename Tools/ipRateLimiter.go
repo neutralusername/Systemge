@@ -16,7 +16,7 @@ type IpRateLimiter struct {
 	cleanupInterval time.Duration
 }
 
-func (rl *IpRateLimiter) Stop() {
+func (rl *IpRateLimiter) Close() {
 	rl.active = false
 }
 

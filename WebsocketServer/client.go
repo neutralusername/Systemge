@@ -58,10 +58,10 @@ func (server *WebsocketServer) newClient(id string, websocketConnection *websock
 		client.watchdog = nil
 		websocketConnection.Close()
 		if client.rateLimiterBytes != nil {
-			client.rateLimiterBytes.Stop()
+			client.rateLimiterBytes.Close()
 		}
 		if client.rateLimiterMsgs != nil {
-			client.rateLimiterMsgs.Stop()
+			client.rateLimiterMsgs.Close()
 		}
 		if server.onDisconnectHandler != nil {
 			server.onDisconnectHandler(client)

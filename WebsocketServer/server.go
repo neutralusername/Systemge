@@ -117,7 +117,7 @@ func (server *WebsocketServer) Start() error {
 	server.connectionChannel = make(chan *websocket.Conn)
 	err := httpServer.Start()
 	if err != nil {
-		server.ipRateLimiter.Stop()
+		server.ipRateLimiter.Close()
 		server.ipRateLimiter = nil
 		close(server.connectionChannel)
 		server.connectionChannel = nil
@@ -149,7 +149,7 @@ func (server *WebsocketServer) Stop() error {
 	server.httpServer = nil
 	close(server.connectionChannel)
 	if server.ipRateLimiter != nil {
-		server.ipRateLimiter.Stop()
+		server.ipRateLimiter.Close()
 		server.ipRateLimiter = nil
 	}
 
