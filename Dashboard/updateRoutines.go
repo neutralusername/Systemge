@@ -59,7 +59,7 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 						}
 						return
 					}
-					client.Metrics = metrics
+					client.Metrics = metrics.Metrics
 					app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", response.GetPayload()))
 				}
 			}()

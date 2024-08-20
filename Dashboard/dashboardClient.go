@@ -101,7 +101,11 @@ func (app *DashboardClient) getMetricsHandler(message *Message.Message) (string,
 	if app.getMetricsFunc == nil {
 		return "", Error.New("No metrics available", nil)
 	}
-	return Helpers.JsonMarshal(app.getMetricsFunc()), nil
+	metrics := Metrics{
+		Metrics: app.getMetricsFunc(),
+		Name:    app.config.Name,
+	}
+	return Helpers.JsonMarshal(metrics), nil
 }
 
 func (app *DashboardClient) startHandler(message *Message.Message) (string, error) {

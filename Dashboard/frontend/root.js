@@ -34,6 +34,39 @@ export class root extends React.Component {
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+        this.distinctColors = [
+            "#556b2f",
+            "#7f0000",
+            "#483d8b",
+            "#008000",
+            "#b8860b",
+            "#008b8b",
+            "#00008b",  
+            "#32cd32",
+            "#7f007f",
+            "#8fbc8f",
+            "#b03060",
+            "#ff0000",
+            "#ff8c00",
+            "#00ff00",
+            "#8a2be2",
+            "#dc143c",
+            "#00ffff",
+            "#00bfff",
+            "#0000ff",
+            "#adff2f",
+            "#da70d6",
+            "#ff00ff",
+            "#1e90ff",
+            "#f0e68c",
+            "#fa8072",
+            "#ffff54",
+            "#b0e0e6",
+            "#90ee90",
+            "#ff1493",
+            "#7b68ee",
+            "#ffb6c1",
+        ];
     }
 
     constructMessage(topic, payload) {
@@ -71,7 +104,6 @@ export class root extends React.Component {
 
     handleMessage(event) {
         let message = JSON.parse(event.data);
-        console.log(message)
         switch (message.topic) {
             case "error":
             case "responseMessage":
@@ -94,7 +126,7 @@ export class root extends React.Component {
             case "statusUpdate":
                 this.handleStatusUpdate(JSON.parse(message.payload));
                 break;
-            case "updateMetrics":
+            case "metricsUpdate":
                 this.handleMetricUpdate(JSON.parse(message.payload));
                 break;
             default:
@@ -124,6 +156,11 @@ export class root extends React.Component {
     }
 
     handleAddModule(addModule) {
+        Object.keys(addModule.metrics).forEach((key) => {
+            addModule.metrics[key] = {
+                [new Date().valueOf()]: addModule.metrics[key],
+            }
+        });
         this.setState({
             modules: {
                 ...this.state.modules,
@@ -147,24 +184,22 @@ export class root extends React.Component {
     }
 
     handleMetricUpdate(metrics) {
-       /*  let node = this.state.modules[nodeCounters.name];
-        if (!node) {
+        let module = this.state.modules[metrics.name];
+        if (!module) {
             return;
         }
-        let currentCounters = node[type] || {};
-        if (Object.keys(currentCounters).length > 50) {
-            delete currentCounters[Object.keys(currentCounters)[0]];
-        }
-        currentCounters[new Date().valueOf()] = nodeCounters;
+        Object.keys(module.metrics).forEach((key) => {
+            module.metrics[key][new Date().valueOf()] = metrics.metrics[key];
+            if (Object.keys(module.metrics[key]).length > 50) {
+                delete module.metrics[key][Object.keys(module.metrics[key])[0]];
+            }
+        })
         this.setState({
-            nodes: {
+            modules: {
                 ...this.state.modules,
-                [nodeCounters.name]: {
-                    ...node,
-                    [type]: currentCounters,
-                },
+                [metrics.name]: module,
             },
-        }); */
+        });
     }
 
     handleClose() {
@@ -204,7 +239,7 @@ export class root extends React.Component {
 
     render() {
         let urlPath = window.location.pathname;
-        let nodeStatuses = [];
+        let statuses = [];
         let buttons = [];
         let multiLineGraphs = [];
         let commandsComponent = null;
@@ -221,7 +256,7 @@ export class root extends React.Component {
 
         if (urlPath === "/") {
             for (let nodeName in this.state.modules) {
-                nodeStatuses.push(React.createElement(
+                statuses.push(React.createElement(
                     nodeStatus, {
                         node: this.state.modules[nodeName],
                         key: nodeName,
@@ -264,7 +299,7 @@ export class root extends React.Component {
         } else {
             let nodeName = urlPath.substring(1);
             if (this.state.modules[nodeName]) {
-                nodeStatuses.push(React.createElement(
+                statuses.push(React.createElement(
                     nodeStatus, {
                         node: this.state.modules[nodeName],
                         key: nodeName,
@@ -345,7 +380,7 @@ export class root extends React.Component {
                 },
                 "close",
             ),
-            nodeStatuses,
+            statuses,
             commandsComponent,
             buttons,
             multiLineGraphs,
