@@ -85,7 +85,7 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 		"stop":    app.stopHandler,
 		"command": app.commandHandler,
 		"gc":      app.gcHandler,
-	}, app.onConnectHandler, nil)
+	}, app.onWebsocketConnectHandler, nil)
 	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler, nil, nil)
 
 	err := app.httpServer.Start()
@@ -151,7 +151,7 @@ func (app *DashboardServer) onSystemgeDisconnectHandler(name, address string) {
 	defer app.mutex.Unlock()
 	if client, ok := app.clients[name]; ok {
 		delete(app.clients, name)
-		app.unregisterNodeHttpHandlers(client.Name)
+		app.unregisterModuleHttpHandlers(client.Name)
 	}
 }
 
@@ -177,7 +177,7 @@ func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
 	})
 }
 
-func (app *DashboardServer) unregisterNodeHttpHandlers(clientName string) {
+func (app *DashboardServer) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName)
 	app.httpServer.RemoveRoute("/" + clientName + "/command/")
 }

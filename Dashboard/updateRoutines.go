@@ -18,14 +18,14 @@ func (app *DashboardServer) statusUpdateRoutine() {
 					response, err := client.connection.SyncRequest(Message.TOPIC_GET_STATUS, "")
 					if err != nil {
 						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to get status for node \"" + client.Name + "\": " + err.Error())
+							app.errorLogger.Log("Failed to get status for client \"" + client.Name + "\": " + err.Error())
 						}
 						return
 					}
 					status, err := strconv.Atoi(response.GetPayload())
 					if err != nil {
 						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to parse status for node \"" + client.Name + "\": " + err.Error())
+							app.errorLogger.Log("Failed to parse status for client \"" + client.Name + "\": " + err.Error())
 						}
 						return
 					}
@@ -48,14 +48,14 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 					response, err := client.connection.SyncRequest(Message.TOPIC_GET_METRICS, "")
 					if err != nil {
 						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to get metrics for node \"" + client.Name + "\": " + err.Error())
+							app.errorLogger.Log("Failed to get metrics for client \"" + client.Name + "\": " + err.Error())
 						}
 						return
 					}
 					metrics, err := unmarshalMetrics(response.GetPayload())
 					if err != nil {
 						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to parse metrics for node \"" + client.Name + "\": " + err.Error())
+							app.errorLogger.Log("Failed to parse metrics for client \"" + client.Name + "\": " + err.Error())
 						}
 						return
 					}

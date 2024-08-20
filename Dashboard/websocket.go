@@ -14,10 +14,10 @@ func (app *DashboardServer) startHandler(websocketClient *WebsocketServer.Websoc
 	client := app.clients[message.GetPayload()]
 	app.mutex.RUnlock()
 	if client == nil {
-		return Error.New("Node not found", nil)
+		return Error.New("Client not found", nil)
 	}
 	if !client.HasStartFunc {
-		return Error.New("Node has no start function", nil)
+		return Error.New("Client has no start function", nil)
 	}
 	response, err := client.connection.SyncRequest(Message.TOPIC_START, "")
 	if err != nil {
@@ -36,10 +36,10 @@ func (app *DashboardServer) stopHandler(websocketClient *WebsocketServer.Websock
 	client := app.clients[message.GetPayload()]
 	app.mutex.RUnlock()
 	if client == nil {
-		return Error.New("Node not found", nil)
+		return Error.New("Client not found", nil)
 	}
 	if !client.HasStopFunc {
-		return Error.New("Node has no stop function", nil)
+		return Error.New("Client has no stop function", nil)
 	}
 	response, err := client.connection.SyncRequest(Message.TOPIC_STOP, "")
 	if err != nil {
@@ -77,7 +77,7 @@ func (app *DashboardServer) commandHandler(websocketClient *WebsocketServer.Webs
 	return nil
 }
 
-func (app *DashboardServer) onConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
+func (app *DashboardServer) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
 	for _, client := range app.clients {
