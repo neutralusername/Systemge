@@ -140,19 +140,21 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 	}
 	client.connection = connection
 	app.mutex.Lock()
-	defer app.mutex.Unlock()
 	app.registerModuleHttpHandlers(client)
 	app.clients[client.Name] = client
+	app.mutex.Unlock()
+	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
 }
 
 func (app *DashboardServer) onSystemgeDisconnectHandler(name, address string) {
 	app.mutex.Lock()
-	defer app.mutex.Unlock()
 	if client, ok := app.clients[name]; ok {
 		delete(app.clients, name)
 		app.unregisterModuleHttpHandlers(client.Name)
 	}
+	app.mutex.Unlock()
+	app.websocketServer.Broadcast(Message.NewAsync("removeModule", name))
 }
 
 func (app *DashboardServer) registerModuleHttpHandlers(client *client) {

@@ -68,6 +68,9 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			server.outgoigMessageCounter.Add(1)
 			server.bytesSentCounter.Add(uint64(len(messageBytes)))
 		})
+	} else {
+		server.mutex.RUnlock()
+		return Error.New("Client \""+id+"\" does not exist", nil)
 	}
 	server.mutex.RUnlock()
 	waitGroup.ExecuteTasks()
