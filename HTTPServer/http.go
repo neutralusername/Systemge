@@ -29,6 +29,8 @@ type HTTPServer struct {
 	whitelist      *Tools.AccessControlList
 	handlers       Handlers
 	requestCounter atomic.Uint64
+
+	mux *CustomMux
 }
 
 func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
@@ -38,20 +40,16 @@ func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
 	if config.TcpListenerConfig == nil {
 		panic("config.TcpListenerConfig is nil")
 	}
-	mux := NewCustomMux()
 	server := &HTTPServer{
-		config:   config,
-		handlers: handlers,
-		httpServer: &http.Server{
-			MaxHeaderBytes:    int(config.MaxHeaderBytes),
-			ReadHeaderTimeout: time.Duration(config.ReadHeaderTimeoutMs) * time.Millisecond,
-			WriteTimeout:      time.Duration(config.WriteTimeoutMs) * time.Millisecond,
-
-			Addr:    ":" + Helpers.IntToString(int(config.TcpListenerConfig.Port)),
-			Handler: mux,
-		},
+		mux:       NewCustomMux(),
+		config:    config,
+		handlers:  handlers,
 		blacklist: Tools.NewAccessControlList(config.TcpListenerConfig.Blacklist),
 		whitelist: Tools.NewAccessControlList(config.TcpListenerConfig.Whitelist),
+	}
+	for pattern, handler := range handlers {
+		handlers[pattern] = server.httpRequestWrapper(handler)
+		server.mux.AddRoute(pattern, handlers[pattern])
 	}
 	if config.ErrorLoggerPath != "" {
 		file := Helpers.OpenFileAppend(config.ErrorLoggerPath)
@@ -62,10 +60,6 @@ func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
-	}
-	for pattern, handler := range handlers {
-		handlers[pattern] = server.httpRequestWrapper(handler)
-		mux.AddRoute(pattern, handlers[pattern])
 	}
 	return server
 }
@@ -79,6 +73,15 @@ func (server *HTTPServer) Start() error {
 	server.status = Status.PENDING
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting http server")
+	}
+
+	server.httpServer = &http.Server{
+		MaxHeaderBytes:    int(server.config.MaxHeaderBytes),
+		ReadHeaderTimeout: time.Duration(server.config.ReadHeaderTimeoutMs) * time.Millisecond,
+		WriteTimeout:      time.Duration(server.config.WriteTimeoutMs) * time.Millisecond,
+
+		Addr:    ":" + Helpers.IntToString(int(server.config.TcpListenerConfig.Port)),
+		Handler: server.mux,
 	}
 
 	errorChannel := make(chan error)
@@ -135,6 +138,7 @@ func (server *HTTPServer) Stop() error {
 	if err != nil {
 		return Error.New("failed stopping http server", err)
 	}
+	server.httpServer = nil
 
 	if server.infoLogger != nil {
 		server.infoLogger.Log("http server stopped")
@@ -152,11 +156,11 @@ func (server *HTTPServer) GetHTTPRequestCounter() uint64 {
 }
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
-	server.httpServer.Handler.(*CustomMux).AddRoute(pattern, handlerFunc)
+	server.mux.AddRoute(pattern, handlerFunc)
 }
 
 func (server *HTTPServer) RemoveRoute(pattern string) {
-	server.httpServer.Handler.(*CustomMux).RemoveRoute(pattern)
+	server.mux.RemoveRoute(pattern)
 }
 
 func (server *HTTPServer) GetBlacklist() *Tools.AccessControlList {
