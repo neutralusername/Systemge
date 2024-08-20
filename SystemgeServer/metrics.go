@@ -1,34 +1,91 @@
 package SystemgeServer
 
+import "github.com/neutralusername/Systemge/Status"
+
 func (server *SystemgeServer) GetConnectionAttempts() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.GetConnectionAttempts()
 }
 func (server *SystemgeServer) RetrieveConnectionAttempts() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.RetrieveConnectionAttempts()
 }
 
 func (server *SystemgeServer) GetFailedConnections() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.GetFailedConnections()
 }
 func (server *SystemgeServer) RetrieveFailedConnections() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.RetrieveFailedConnections()
 }
 
 func (server *SystemgeServer) GetRejectedConnections() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.GetRejectedConnections()
 }
 func (server *SystemgeServer) RetrieveRejectedConnections() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.RetrieveRejectedConnections()
 }
 
 func (server *SystemgeServer) GetAcceptedConnections() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.GetAcceptedConnections()
 }
 func (server *SystemgeServer) RetrieveAcceptedConnections() uint64 {
+	server.statusMutex.RLock()
+	defer server.statusMutex.RUnlock()
+	if server.status != Status.STARTED {
+		return 0
+	}
+
 	return server.listener.RetrieveAcceptedConnections()
 }
 
 func (server *SystemgeServer) GetBytesSent() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetBytesSent()
@@ -36,6 +93,13 @@ func (server *SystemgeServer) GetBytesSent() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveBytesSent() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveBytesSent()
@@ -44,6 +108,13 @@ func (server *SystemgeServer) RetrieveBytesSent() uint64 {
 }
 
 func (server *SystemgeServer) GetBytesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetBytesReceived()
@@ -51,6 +122,13 @@ func (server *SystemgeServer) GetBytesReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveBytesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveBytesReceived()
@@ -59,6 +137,13 @@ func (server *SystemgeServer) RetrieveBytesReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetAsyncMessagesSent() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetAsyncMessagesSent()
@@ -66,6 +151,13 @@ func (server *SystemgeServer) GetAsyncMessagesSent() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveAsyncMessagesSent() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveAsyncMessagesSent()
@@ -74,6 +166,13 @@ func (server *SystemgeServer) RetrieveAsyncMessagesSent() uint64 {
 }
 
 func (server *SystemgeServer) GetSyncRequestsSent() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetSyncRequestsSent()
@@ -81,6 +180,13 @@ func (server *SystemgeServer) GetSyncRequestsSent() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveSyncRequestsSent() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveSyncRequestsSent()
@@ -89,6 +195,13 @@ func (server *SystemgeServer) RetrieveSyncRequestsSent() uint64 {
 }
 
 func (server *SystemgeServer) GetSyncSuccessResponsesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetSyncSuccessResponsesReceived()
@@ -96,6 +209,13 @@ func (server *SystemgeServer) GetSyncSuccessResponsesReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveSyncSuccessResponsesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveSyncSuccessResponsesReceived()
@@ -104,6 +224,13 @@ func (server *SystemgeServer) RetrieveSyncSuccessResponsesReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetSyncFailureResponsesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetSyncFailureResponsesReceived()
@@ -111,6 +238,13 @@ func (server *SystemgeServer) GetSyncFailureResponsesReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveSyncFailureResponsesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveSyncFailureResponsesReceived()
@@ -119,6 +253,13 @@ func (server *SystemgeServer) RetrieveSyncFailureResponsesReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetNoSyncResponseReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetNoSyncResponseReceived()
@@ -126,6 +267,13 @@ func (server *SystemgeServer) GetNoSyncResponseReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveNoSyncResponseReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveNoSyncResponseReceived()
@@ -134,6 +282,13 @@ func (server *SystemgeServer) RetrieveNoSyncResponseReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetAsyncMessagesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetAsyncMessagesReceived()
@@ -141,6 +296,13 @@ func (server *SystemgeServer) GetAsyncMessagesReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveAsyncMessagesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveAsyncMessagesReceived()
@@ -149,6 +311,13 @@ func (server *SystemgeServer) RetrieveAsyncMessagesReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetSyncRequestsReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetSyncRequestsReceived()
@@ -156,6 +325,13 @@ func (server *SystemgeServer) GetSyncRequestsReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveSyncRequestsReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveSyncRequestsReceived()
@@ -164,6 +340,13 @@ func (server *SystemgeServer) RetrieveSyncRequestsReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetInvalidMessagesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetInvalidMessagesReceived()
@@ -171,6 +354,13 @@ func (server *SystemgeServer) GetInvalidMessagesReceived() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveInvalidMessagesReceived() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveInvalidMessagesReceived()
@@ -179,6 +369,13 @@ func (server *SystemgeServer) RetrieveInvalidMessagesReceived() uint64 {
 }
 
 func (server *SystemgeServer) GetMessageRateLimiterExceeded() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetMessageRateLimiterExceeded()
@@ -186,6 +383,13 @@ func (server *SystemgeServer) GetMessageRateLimiterExceeded() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveMessageRateLimiterExceeded() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveMessageRateLimiterExceeded()
@@ -194,6 +398,13 @@ func (server *SystemgeServer) RetrieveMessageRateLimiterExceeded() uint64 {
 }
 
 func (server *SystemgeServer) GetByteRateLimiterExceeded() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.GetByteRateLimiterExceeded()
@@ -201,6 +412,13 @@ func (server *SystemgeServer) GetByteRateLimiterExceeded() uint64 {
 	return sum
 }
 func (server *SystemgeServer) RetrieveByteRateLimiterExceeded() uint64 {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+
 	sum := uint64(0)
 	for _, connection := range server.clients {
 		sum += connection.RetrieveByteRateLimiterExceeded()
