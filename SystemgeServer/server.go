@@ -13,6 +13,9 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+type OnConnectHandler func(*SystemgeConnection.SystemgeConnection) error
+type OnDisconnectHandler func(string, string)
+
 type SystemgeServer struct {
 	status      int
 	statusMutex sync.RWMutex
@@ -20,9 +23,10 @@ type SystemgeServer struct {
 	config   *Config.SystemgeServer
 	listener *SystemgeListener.SystemgeListener
 
-	onConnectHandler func(*SystemgeConnection.SystemgeConnection) error
-	messageHandler   *SystemgeMessageHandler.SystemgeMessageHandler
-	receiverConfig   *Config.SystemgeReceiver
+	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
+	onDisconnectHandler func(string, string)
+	messageHandler      *SystemgeMessageHandler.SystemgeMessageHandler
+	receiverConfig      *Config.SystemgeReceiver
 
 	clients            map[string]*SystemgeConnection.SystemgeConnection // name -> connection
 	mutex              sync.Mutex
@@ -34,7 +38,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
+func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(string, string), receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -57,10 +61,13 @@ func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnectio
 		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
 	}
 	server := &SystemgeServer{
-		config:         config,
-		messageHandler: messageHandler,
-		receiverConfig: receiverConfig,
-		clients:        make(map[string]*SystemgeConnection.SystemgeConnection),
+		config:              config,
+		messageHandler:      messageHandler,
+		receiverConfig:      receiverConfig,
+		onConnectHandler:    onConnectHandler,
+		onDisconnectHandler: onDisconnectHandler,
+
+		clients: make(map[string]*SystemgeConnection.SystemgeConnection),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
@@ -187,6 +194,9 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 		server.mutex.Unlock()
 		go func() {
 			<-connection.GetCloseChannel()
+			if server.onDisconnectHandler != nil {
+				server.onDisconnectHandler(connection.GetName(), connection.GetAddress())
+			}
 			server.mutex.Lock()
 			delete(server.clients, connection.GetName())
 			server.mutex.Unlock()

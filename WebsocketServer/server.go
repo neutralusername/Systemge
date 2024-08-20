@@ -15,6 +15,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type OnConnectHandler func(*WebsocketClient) error
+type OnDisconnectHandler func(*WebsocketClient)
+
 type MessageHandler func(*WebsocketClient, *Message.Message) error
 
 type WebsocketServer struct {
@@ -28,8 +31,8 @@ type WebsocketServer struct {
 	mailer        *Tools.Mailer
 	randomizer    *Tools.Randomizer
 
-	onConnectHandler    func(*WebsocketClient) error
-	onDisconnectHandler func(*WebsocketClient)
+	onConnectHandler    OnConnectHandler
+	onDisconnectHandler OnDisconnectHandler
 
 	ipRateLimiter *Tools.IpRateLimiter
 

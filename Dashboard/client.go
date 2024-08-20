@@ -31,19 +31,19 @@ func unmarshalClient(data string) (*client, error) {
 	return &client, nil
 }
 
-func (client *client) executeCommand(command string, args []string) (*Message.Message, error) {
-	if client.connection == nil {
-		return nil, Error.New("No connection available", nil)
-	}
+func (client *client) executeCommand(command string, args []string) (string, error) {
 	if !client.Commands[command] {
-		return nil, Error.New("Command not found", nil)
+		return "", Error.New("Command \""+command+"\" not found", nil)
 	}
 	response, err := client.connection.SyncRequest(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
 		Command: command,
 		Args:    args,
 	}))
 	if err != nil {
-		return nil, err
+		return "", Error.New("Failed to send command \""+command+"\" to client \""+client.Name+"\"", err)
 	}
-	return response, nil
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return "", Error.New(response.GetPayload(), nil)
+	}
+	return response.GetPayload(), nil
 }

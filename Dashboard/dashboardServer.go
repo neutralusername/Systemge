@@ -80,8 +80,13 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
-	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, app.GetWebsocketMessageHandlers(), app.OnConnectHandler, nil)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, nil, nil)
+	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
+		"start":   app.startHandler,
+		"stop":    app.stopHandler,
+		"command": app.commandHandler,
+		"gc":      app.gcHandler,
+	}, app.onConnectHandler, nil)
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler, nil, nil)
 
 	err := app.httpServer.Start()
 	if err != nil {
@@ -134,11 +139,20 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 		return err
 	}
 	client.connection = connection
-	app.registerModuleHttpHandlers(client)
 	app.mutex.Lock()
+	defer app.mutex.Unlock()
+	app.registerModuleHttpHandlers(client)
 	app.clients[client.Name] = client
-	app.mutex.Unlock()
 	return nil
+}
+
+func (app *DashboardServer) onSystemgeDisconnectHandler(name, address string) {
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+	if client, ok := app.clients[name]; ok {
+		delete(app.clients, name)
+		app.unregisterNodeHttpHandlers(client.Name)
+	}
 }
 
 func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
@@ -154,16 +168,16 @@ func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
 			http.Error(w, "No command", http.StatusBadRequest)
 			return
 		}
-		response, err := client.executeCommand(argsSplit[0], argsSplit[1:])
+		result, err := client.executeCommand(argsSplit[0], argsSplit[1:])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(response.GetPayload()))
+		w.Write([]byte(result))
 	})
 }
 
-func (app *DashboardServer) unregisterNodeHttpHandlers(client *client) {
-	app.httpServer.RemoveRoute("/" + client.Name)
-	app.httpServer.RemoveRoute("/" + client.Name + "/command/")
+func (app *DashboardServer) unregisterNodeHttpHandlers(clientName string) {
+	app.httpServer.RemoveRoute("/" + clientName)
+	app.httpServer.RemoveRoute("/" + clientName + "/command/")
 }
