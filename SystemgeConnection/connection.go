@@ -93,14 +93,12 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 	if config.RateLimiterMessages != nil {
 		connection.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
-	if connection.messageHandler != nil {
-		if connection.config.ProcessSequentially {
-			go connection.processingLoopSequentially()
-		} else {
-			go connection.processingLoopConcurrently()
-		}
-		go connection.receive()
+	if connection.config.ProcessSequentially {
+		go connection.processingLoopSequentially()
+	} else {
+		go connection.processingLoopConcurrently()
 	}
+	go connection.receive()
 	return connection
 }
 

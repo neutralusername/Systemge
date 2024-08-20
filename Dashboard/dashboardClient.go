@@ -18,10 +18,10 @@ type DashboardClient struct {
 	stopFunc       func() error
 	getMetricsFunc func() map[string]uint64
 	getStatusFunc  func() int
-	commands       map[string]func(args []string) (string, error)
+	commands       map[string]CommandHandler
 }
 
-func NewDashboardClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands map[string]func(args []string) (string, error)) *DashboardClient {
+func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands map[string]CommandHandler) *DashboardClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -30,6 +30,9 @@ func NewDashboardClient(config *Config.DashboardClient, startFunc func() error, 
 	}
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
+	}
+	if config.ConnectionConfig.TcpBufferBytes == 0 {
+		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
 	}
 	if config.EndpointConfig == nil {
 		panic("config.EndpointConfig is nil")

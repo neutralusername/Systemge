@@ -107,29 +107,34 @@ func (connection *SystemgeConnection) processMessage(messageBytes []byte, messag
 		connection.invalidMessagesReceived.Add(1)
 		return Error.New("failed to validate message", err)
 	}
-	if message.GetSyncTokenToken() == "" {
-		connection.asyncMessagesReceived.Add(1)
-		err := connection.messageHandler.HandleAsyncMessage(message)
-		if err != nil {
-			connection.invalidMessagesReceived.Add(1)
-			return Error.New("failed to handle async message", err)
-		}
-	} else if message.IsResponse() {
+	if message.IsResponse() {
 		if err := connection.AddSyncResponse(message); err != nil {
 			connection.invalidMessagesReceived.Add(1)
 			return Error.New("failed to add sync response message", err)
 		}
-	} else {
-		connection.syncRequestsReceived.Add(1)
-		if responsePayload, err := connection.messageHandler.HandleSyncRequest(message); err != nil {
-			if err := connection.SendMessage(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
-				return Error.New("failed to send failure response", err)
+	} else if connection.messageHandler != nil {
+		if message.GetSyncTokenToken() == "" {
+			connection.asyncMessagesReceived.Add(1)
+			err := connection.messageHandler.HandleAsyncMessage(message)
+			if err != nil {
+				connection.invalidMessagesReceived.Add(1)
+				return Error.New("failed to handle async message", err)
 			}
 		} else {
-			if err := connection.SendMessage(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
-				return Error.New("failed to send success response", err)
+			connection.syncRequestsReceived.Add(1)
+			if responsePayload, err := connection.messageHandler.HandleSyncRequest(message); err != nil {
+				if err := connection.SendMessage(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
+					return Error.New("failed to send failure response", err)
+				}
+			} else {
+				if err := connection.SendMessage(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
+					return Error.New("failed to send success response", err)
+				}
 			}
 		}
+	} else {
+		connection.invalidMessagesReceived.Add(1)
+		return Error.New("no message handler available", nil)
 	}
 	if infoLogger := connection.infoLogger; infoLogger != nil {
 		infoLogger.Log("Processed message #" + Helpers.Uint64ToString(messageId))

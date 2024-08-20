@@ -34,7 +34,7 @@ type DashboardServer struct {
 	mailer        *Tools.Mailer
 }
 
-func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
+func NewServer(config *Config.DashboardServer) *DashboardServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -65,9 +65,13 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
+	if config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes == 0 {
+		config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
+	}
 	app := &DashboardServer{
-		mutex:  sync.RWMutex{},
-		config: config,
+		mutex:   sync.RWMutex{},
+		config:  config,
+		clients: make(map[string]*client),
 
 		infoLogger:    Tools.NewLogger("[Info: \"Dashboard\"]", config.InfoLoggerPath),
 		warningLogger: Tools.NewLogger("[Warning: \"Dashboard\"]", config.WarningLoggerPath),
@@ -76,7 +80,7 @@ func NewDashboardServer(config *Config.DashboardServer) *DashboardServer {
 	}
 	app.httpServer = HTTPServer.New(config.HTTPServerConfig, nil)
 	_, callerPath, _, _ := runtime.Caller(0)
-	frontendPath := callerPath[:len(callerPath)-len("app.go")] + "frontend/"
+	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
 	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
 
