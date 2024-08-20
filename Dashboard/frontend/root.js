@@ -10,8 +10,8 @@ import {
     multiLineGraph 
 } from "./multiLineGraph.js";
 import { 
-    nodeStatus 
-} from "./nodeStatus.js";
+    status
+} from "./status.js";
 import { 
     GenerateRandomAlphaNumericString 
 } from "./randomizer.js";
@@ -78,6 +78,20 @@ export class root extends React.Component {
 
     setStateRoot(state) {
         this.setState(state);
+    }
+
+    getRandomDistinctColors(count) {
+        let colors = [];
+        let availableColors = [...this.distinctColors];
+        for (let i = 0; i < count; i++) {
+            if (availableColors.length === 0) {
+                availableColors = [...this.distinctColors];
+            }
+            let randomIndex = Math.floor(Math.random() * availableColors.length);
+            colors.push(availableColors[randomIndex]);
+            availableColors.splice(randomIndex, 1);
+        }
+        return colors;
     }
 
     setResponseMessage(message) {
@@ -156,11 +170,15 @@ export class root extends React.Component {
     }
 
     handleAddModule(addModule) {
+        let metricNames = Object.keys(addModule.metrics);
+        let metrics = {};
         Object.keys(addModule.metrics).forEach((key) => {
-            addModule.metrics[key] = {
-                [new Date().valueOf()]: addModule.metrics[key],
+            metrics[new Date().valueOf()] = {
+                [key]: addModule.metrics[key],
             }
         });
+        addModule.metricNames = metricNames;
+        addModule.metrics = metrics;
         this.setState({
             modules: {
                 ...this.state.modules,
@@ -188,12 +206,10 @@ export class root extends React.Component {
         if (!module) {
             return;
         }
-        Object.keys(module.metrics).forEach((key) => {
-            module.metrics[key][new Date().valueOf()] = metrics.metrics[key];
-            if (Object.keys(module.metrics[key]).length > 50) {
-                delete module.metrics[key][Object.keys(module.metrics[key])[0]];
-            }
-        })
+        module.metrics[new Date().valueOf()] = metrics.metrics;
+        if (Object.keys(module.metrics).length > 50) {
+            delete module.metrics[Object.keys(module.metrics)[0]];
+        }
         this.setState({
             modules: {
                 ...this.state.modules,
@@ -218,18 +234,30 @@ export class root extends React.Component {
         setTimeout(myLoop, 1000 * 60 * 4);
     }
 
-    renderMultiLineGraph(nodeName, countersType, labels, colors) {
-        let nodeCounters = {};
-        Object.keys(this.state.modules[nodeName][countersType]).forEach((key) => {
-            nodeCounters[key] = labels.map((label) => this.state.modules[nodeName][countersType][key][label]);
+    renderMultiLineGraph(moduleName) {
+        let module = this.state.modules[moduleName];
+        let dataSet = {};
+        let colors = this.getRandomDistinctColors(this.state.metricsCount);
+        let legend = module.metricNames;
+        let labels = [];
+        Object.keys(module.metrics).forEach((dateTime) => {
+            labels.push(new Date(Number(dateTime)).toLocaleTimeString());
+            let metrics = module.metrics[dateTime];
+            Object.keys(metrics).forEach((metric) => {
+                if (dataSet[metric] === undefined) {
+                    dataSet[metric] = [];
+                }
+                dataSet[metric].push(metrics[metric]);
+            });
         });
+        
         return React.createElement(
             multiLineGraph, {
-                title: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters "${nodeName}"`,
-                chartName: `${countersType} ${nodeName}`,
-                dataLabel: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters`,
-                dataSet: nodeCounters,
-                labels,
+                title: "metrics",
+                chartName: `${moduleName}`,
+                dataLabels: legend,
+                dataSet: dataSet,
+                labels : labels,
                 colors,
                 height: "400px",
                 width: "1200px",
@@ -246,37 +274,33 @@ export class root extends React.Component {
 
 
 
-        const renderGraphsForNode = (nodeName) => {
-          /*   Object.keys(this.counterConfig).forEach((key) => {
-                if (this.state.modules[nodeName][key]) {
-                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
-                }
-            }); */
+        const renderGraphsForModule = (modulekey) => {
+            multiLineGraphs.push(this.renderMultiLineGraph(modulekey));
         };
 
         if (urlPath === "/") {
-            for (let nodeName in this.state.modules) {
+            for (let moduleName in this.state.modules) {
                 statuses.push(React.createElement(
-                    nodeStatus, {
-                        node: this.state.modules[nodeName],
-                        key: nodeName,
+                    status, {
+                        module: this.state.modules[moduleName],
+                        key: moduleName,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
                 ));
             }
             if (this.state.modules.dashboard) {
-                renderGraphsForNode("dashboard");
+                renderGraphsForModule("dashboard");
             }
             buttons.push(
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            Object.keys(this.state.modules).forEach((nodeName) => {
-                                if (nodeName === "dashboard") {
+                            Object.keys(this.state.modules).forEach((moduleKey) => {
+                                if (moduleKey === "dashboard") {
                                     return;
                                 }
-                                this.WS_CONNECTION.send(this.constructMessage("start", nodeName));
+                                this.WS_CONNECTION.send(this.constructMessage("start", moduleKey));
                             });
                         },
                     },
@@ -285,11 +309,11 @@ export class root extends React.Component {
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            Object.keys(this.state.modules).forEach((nodeName) => {
-                                if (nodeName === "dashboard") {
+                            Object.keys(this.state.modules).forEach((moduleKey) => {
+                                if (moduleKey === "dashboard") {
                                     return;
                                 }
-                                this.WS_CONNECTION.send(this.constructMessage("stop", nodeName));
+                                this.WS_CONNECTION.send(this.constructMessage("stop", moduleKey));
                             });
                         },
                     },
@@ -297,20 +321,20 @@ export class root extends React.Component {
                 ),
             );
         } else {
-            let nodeName = urlPath.substring(1);
-            if (this.state.modules[nodeName]) {
+            let moduleName = urlPath.substring(1);
+            if (this.state.modules[moduleName]) {
                 statuses.push(React.createElement(
-                    nodeStatus, {
-                        node: this.state.modules[nodeName],
-                        key: nodeName,
+                    status, {
+                        module: this.state.modules[moduleName],
+                        key: moduleName,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
                 ));
-                renderGraphsForNode(nodeName);
+                renderGraphsForModule(moduleName);
                 commandsComponent = React.createElement(
                     commands, {
-                        node: this.state.modules[nodeName],
+                        module: this.state.modules[moduleName],
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },

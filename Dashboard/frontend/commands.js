@@ -7,7 +7,7 @@ export class commands extends React.Component {
 	}
 
 	render() {
-		let commands = Object.keys(this.props.node.commands).map((command) => {
+		let commands = Object.keys(this.props.module.commands).map((command) => {
 			return React.createElement(
 				"div", {
 					key: command,
@@ -22,7 +22,7 @@ export class commands extends React.Component {
 					"button", {
 						onClick: () => {
 							this.props.WS_CONNECTION.send(this.props.constructMessage("command", JSON.stringify({
-								name: this.props.node.name,
+								name: this.props.module.name,
 								command: command,
 								args: document.getElementById(command).value !== "" ? document.getElementById(command).value.split(" ") : [],
 							})));

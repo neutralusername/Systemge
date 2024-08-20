@@ -39,23 +39,18 @@ export class multiLineGraph extends React.Component {
 		if (this.props.graphColor === undefined) {
 			graphColor = "rgb(75, 192, 192)";
 		}
-		let dataSets = this.props.labels.map((label, index) => {
-			return ({
+		let dataSets = this.props.dataLabels.map((label, index) => {
+			return {
 				label: label,
-				data: Object.values(this.props.dataSet).map((numbers) => {
-					return numbers[index];
-				}),
-				fill: fill,
+				data: this.props.dataSet[label],
+				fill: false,
 				borderColor: this.props.colors[index],
-			})
+			}
 		})
 		this.setState({
 			chart : new Chart(this.props.chartName, {
 				type: 'line',
 				data: {
-					labels: Object.keys(this.props.dataSet).map((key) => {
-						return new Date(parseInt(key)).toLocaleTimeString();
-					}),
 					datasets: dataSets,
 				},
 				options: options,
@@ -67,20 +62,15 @@ export class multiLineGraph extends React.Component {
 			let visibilityStates = this.state.chart.data.datasets.map((dataSet) => {
 				return this.state.chart.getDatasetMeta(this.state.chart.data.datasets.indexOf(dataSet)).hidden;
 			})
-			let dataSets = this.props.labels.map((label, index) => {
+			this.state.chart.data.labels = this.props.labels;
+			this.state.chart.data.datasets =  this.props.dataLabels.map((label, index) => {
 				return ({
 					label: label,
-					data: Object.values(this.props.dataSet).map((numbers) => {
-						return numbers[index];
-					}),
+					data: this.props.dataSet[label],
 					fill: false,
 					borderColor: this.props.colors[index],
 				})
 			})
-			this.state.chart.data.labels = Object.keys(this.props.dataSet).map((key) => {
-				return new Date(parseInt(key)).toLocaleTimeString();
-			})
-			this.state.chart.data.datasets = dataSets
 			this.state.chart.data.datasets.forEach((dataSet, index) => {
 				this.state.chart.getDatasetMeta(index).hidden = visibilityStates[index];
 			})
