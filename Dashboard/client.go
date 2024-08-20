@@ -1,39 +1,17 @@
 package Dashboard
 
-/*
-type client struct {
-	Name          string            `json:"name"`
-	Commands      map[string]bool   `json:"commands"`
-	Metrics       map[string]uint64 `json:"metrics"`
-	HasStatusFunc bool              `json:"hasStatusFunc"`
-	HasStartFunc  bool              `json:"hasStartFunc"`
-	HasStopFunc   bool              `json:"hasStopFunc"`
+import (
+	"encoding/json"
 
-	connection *SystemgeConnection.SystemgeConnection
-}
-
-func (client *client) executeCommand(command string, args []string) (*Message.Message, error) {
-	if client.connection == nil {
-		return nil, Error.New("No connection available", nil)
-	}
-	if !client.Commands[command] {
-		return nil, Error.New("Command not found", nil)
-	}
-	response, err := client.connection.SyncRequest(Message.TOPIC_EXECUTE_COMMAND, command)
-	if err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func unmarshalClient(data string) (*client, error) {
-	var client client
-	err := json.Unmarshal([]byte(data), &client)
-	if err != nil {
-		return nil, err
-	}
-	return &client, nil
-}
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
+	"github.com/neutralusername/Systemge/SystemgeReceiver"
+)
 
 type DashboardClient struct {
 	config             *Config.DashboardClient
@@ -88,49 +66,28 @@ func NewDashboardClient(config *Config.DashboardClient, startFunc func() error, 
 	return app
 }
 
-func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
-	_, filePath, _, _ := runtime.Caller(0)
-
-	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(filePath[:len(filePath)-len("lifecycle.go")]+"frontend"))).ServeHTTP(w, r)
-	})
-	app.httpServer.AddRoute("/"+client.Name+"/command/", func(w http.ResponseWriter, r *http.Request) {
-		args := r.URL.Path[len("/"+client.Name+"/command/"):]
-		argsSplit := strings.Split(args, " ")
-		if len(argsSplit) == 0 {
-			http.Error(w, "No command", http.StatusBadRequest)
-			return
-		}
-		response, err := client.executeCommand(argsSplit[0], argsSplit[1:])
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write([]byte(response.GetPayload()))
-	})
-}
-
-func (app *DashboardServer) unregisterNodeHttpHandlers(client *client) {
-	app.httpServer.RemoveRoute("/" + client.Name)
-	app.httpServer.RemoveRoute("/" + client.Name + "/command/")
-}
-
-func (app *DashboardClient) Close() {
-	app.systemgeConnection.Close()
-}
-
 func (app *DashboardClient) GetIntroductionHandler(message *Message.Message) (string, error) {
 	commands := make(map[string]bool)
 	for command := range app.commands {
 		commands[command] = true
 	}
+	status := Status.NON_EXISTENT
+	if app.getStatusFunc != nil {
+		status = app.getStatusFunc()
+	}
+	metrics := make(map[string]uint64)
+	if app.getMetricsFunc != nil {
+		metrics = app.getMetricsFunc()
+	}
 	return Helpers.JsonMarshal(&client{
-		Name:          app.config.Name,
-		Commands:      commands,
-		Metrics:       app.getMetricsFunc(),
-		HasStatusFunc: app.getStatusFunc != nil,
-		HasStartFunc:  app.startFunc != nil,
-		HasStopFunc:   app.stopFunc != nil,
+		Name:           app.config.Name,
+		Status:         status,
+		Metrics:        metrics,
+		Commands:       commands,
+		HasStatusFunc:  app.getStatusFunc != nil,
+		HasStartFunc:   app.startFunc != nil,
+		HasStopFunc:    app.stopFunc != nil,
+		HasMetricsFunc: app.getMetricsFunc != nil,
 	}), nil
 }
 
@@ -156,7 +113,7 @@ func (app *DashboardClient) StartHandler(message *Message.Message) (string, erro
 	if err != nil {
 		return "", err
 	}
-	return "", nil
+	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
 func (app *DashboardClient) StopHandler(message *Message.Message) (string, error) {
@@ -167,7 +124,7 @@ func (app *DashboardClient) StopHandler(message *Message.Message) (string, error
 	if err != nil {
 		return "", err
 	}
-	return "", nil
+	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
 func (app *DashboardClient) ExecuteCommandHandler(message *Message.Message) (string, error) {
@@ -181,4 +138,39 @@ func (app *DashboardClient) ExecuteCommandHandler(message *Message.Message) (str
 	}
 	return "", commandFunc(nil)
 }
-*/
+
+type client struct {
+	Name           string            `json:"name"`
+	Status         int               `json:"status"`
+	Commands       map[string]bool   `json:"commands"`
+	Metrics        map[string]uint64 `json:"metrics"`
+	HasStatusFunc  bool              `json:"hasStatusFunc"`
+	HasStartFunc   bool              `json:"hasStartFunc"`
+	HasStopFunc    bool              `json:"hasStopFunc"`
+	HasMetricsFunc bool              `json:"hasMetricsFunc"`
+
+	connection *SystemgeConnection.SystemgeConnection
+}
+
+func (client *client) executeCommand(command string, args []string) (*Message.Message, error) {
+	if client.connection == nil {
+		return nil, Error.New("No connection available", nil)
+	}
+	if !client.Commands[command] {
+		return nil, Error.New("Command not found", nil)
+	}
+	response, err := client.connection.SyncRequest(Message.TOPIC_EXECUTE_COMMAND, command)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func unmarshalClient(data string) (*client, error) {
+	var client client
+	err := json.Unmarshal([]byte(data), &client)
+	if err != nil {
+		return nil, err
+	}
+	return &client, nil
+}

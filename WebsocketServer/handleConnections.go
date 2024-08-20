@@ -136,10 +136,8 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		}
 		return Error.New("no handler for topic \""+message.GetTopic()+"\"", nil)
 	}
-	err := handler(client, message)
-	if err != nil {
-		err := client.Send(Message.NewAsync("error", Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize())
-		if err != nil {
+	if err := handler(client, message); err != nil {
+		if err := client.Send(Message.NewAsync("error", Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize()); err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send error message to client", err).Error())
 			}

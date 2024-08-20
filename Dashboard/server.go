@@ -1,6 +1,23 @@
 package Dashboard
 
-/*
+import (
+	"net/http"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/HTTPServer"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeServer"
+	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketServer"
+)
+
 type DashboardServer struct {
 	closed bool
 
@@ -114,6 +131,37 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 	return nil
 }
 
+func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
+	_, filePath, _, _ := runtime.Caller(0)
+
+	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(filePath[:len(filePath)-len("client.go")]+"frontend"))).ServeHTTP(w, r)
+	})
+	app.httpServer.AddRoute("/"+client.Name+"/command/", func(w http.ResponseWriter, r *http.Request) {
+		args := r.URL.Path[len("/"+client.Name+"/command/"):]
+		argsSplit := strings.Split(args, " ")
+		if len(argsSplit) == 0 {
+			http.Error(w, "No command", http.StatusBadRequest)
+			return
+		}
+		response, err := client.executeCommand(argsSplit[0], argsSplit[1:])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(response.GetPayload()))
+	})
+}
+
+func (app *DashboardServer) unregisterNodeHttpHandlers(client *client) {
+	app.httpServer.RemoveRoute("/" + client.Name)
+	app.httpServer.RemoveRoute("/" + client.Name + "/command/")
+}
+
+func (app *DashboardClient) Close() {
+	app.systemgeConnection.Close()
+}
+
 func (app *DashboardServer) Close() {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
@@ -130,7 +178,26 @@ func (app *DashboardServer) statusUpdateRoutine() {
 	for !app.closed {
 		app.mutex.RLock()
 		for _, client := range app.clients {
-
+			go func() {
+				if client.HasStatusFunc {
+					response, err := client.connection.SyncRequest(Message.TOPIC_GET_STATUS, "")
+					if err != nil {
+						if app.errorLogger != nil {
+							app.errorLogger.Log("Failed to get status for node \"" + client.Name + "\": " + err.Error())
+						}
+						return
+					}
+					status, err := strconv.Atoi(response.GetPayload())
+					if err != nil {
+						if app.errorLogger != nil {
+							app.errorLogger.Log("Failed to parse status for node \"" + client.Name + "\": " + err.Error())
+						}
+						return
+					}
+					client.Status = status
+					app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(StatusUpdate{Name: client.Name, Status: status})))
+				}
+			}()
 		}
 		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
@@ -141,7 +208,26 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 	for !app.closed {
 		app.mutex.RLock()
 		for _, client := range app.clients {
-
+			go func() {
+				if client.HasMetricsFunc {
+					response, err := client.connection.SyncRequest(Message.TOPIC_GET_METRICS, "")
+					if err != nil {
+						if app.errorLogger != nil {
+							app.errorLogger.Log("Failed to get metrics for node \"" + client.Name + "\": " + err.Error())
+						}
+						return
+					}
+					metrics, err := unmarshalMetrics(response.GetPayload())
+					if err != nil {
+						if app.errorLogger != nil {
+							app.errorLogger.Log("Failed to parse metrics for node \"" + client.Name + "\": " + err.Error())
+						}
+						return
+					}
+					client.Metrics = metrics
+					app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", response.GetPayload()))
+				}
+			}()
 		}
 		app.mutex.RUnlock()
 		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
@@ -171,4 +257,3 @@ func (app *DashboardServer) heapUpdateRoutine() {
 		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
 	}
 }
-*/

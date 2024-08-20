@@ -1,46 +1,59 @@
 package Dashboard
 
-/*
+import (
+	"runtime"
+
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/WebsocketServer"
+)
+
 func (app *DashboardServer) GetWebsocketMessageHandlers() map[string]WebsocketServer.MessageHandler {
 	return map[string]WebsocketServer.MessageHandler{
 		"start": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
-			n := app.services[message.GetPayload()]
+			client := app.clients[message.GetPayload()]
 			app.mutex.RUnlock()
-			if n == nil {
+			if client == nil {
 				return Error.New("Node not found", nil)
 			}
-			err := n.Start()
-			if err != nil {
-				return Error.New("Failed to start node \""+n.GetName()+"\": "+err.Error(), nil)
+			if !client.HasStartFunc {
+				return Error.New("Node has no start function", nil)
 			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
+			response, err := client.connection.SyncRequest(Message.TOPIC_START, "")
+			if err != nil {
+				return Error.New("Failed to send start request to client \""+client.Name+"\": "+err.Error(), nil)
+			}
+			if response.GetTopic() == Message.TOPIC_FAILURE {
+				return Error.New(response.GetPayload(), nil)
+			}
+			client.Status = Helpers.StringToInt(response.GetPayload())
+			app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(StatusUpdate{Name: client.Name, Status: client.Status})))
 			return nil
 		},
 		"stop": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 			app.mutex.RLock()
-			n := app.services[message.GetPayload()]
+			client := app.clients[message.GetPayload()]
 			app.mutex.RUnlock()
-			if n == nil {
+			if client == nil {
 				return Error.New("Node not found", nil)
 			}
-			err := n.Stop()
-			if err != nil {
-				return Error.New("Failed to stop node \""+n.GetName()+"\": "+err.Error(), nil)
+			if !client.HasStopFunc {
+				return Error.New("Node has no stop function", nil)
 			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
+			response, err := client.connection.SyncRequest(Message.TOPIC_STOP, "")
+			if err != nil {
+				return Error.New("Failed to send stop request to client \""+client.Name+"\": "+err.Error(), nil)
+			}
+			if response.GetTopic() == Message.TOPIC_FAILURE {
+				return Error.New(response.GetPayload(), nil)
+			}
+			client.Status = Helpers.StringToInt(response.GetPayload())
+			app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(StatusUpdate{Name: client.Name, Status: client.Status})))
 			return nil
 		},
 		"command": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-			command := unmarshalCommand(message.GetPayload())
-			if command == nil {
-				return Error.New("Invalid command", nil)
-			}
-			result, err := app.nodeCommand(command)
-			if err != nil {
-				return err
-			}
-			websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
 			return nil
 		},
 		"gc": func(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
@@ -55,7 +68,7 @@ func (app *DashboardServer) OnConnectHandler(websocketClient *WebsocketServer.We
 	defer app.mutex.RUnlock()
 	for _, client := range app.clients {
 		go func() {
-			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(client))).Serialize())
+			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(client)).Serialize())
 		}()
 	}
 	return nil
@@ -74,4 +87,3 @@ func (app *DashboardServer) executeCommand(clientName, commandName string, args 
 	}
 	return response.GetPayload(), nil
 }
-*/

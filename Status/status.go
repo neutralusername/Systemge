@@ -1,7 +1,8 @@
 package Status
 
 const (
-	STOPPED = 0
-	PENDING = 1
-	STARTED = 2
+	NON_EXISTENT = -1
+	STOPPED      = 0
+	PENDING      = 1
+	STARTED      = 2
 )
