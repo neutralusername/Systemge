@@ -26,7 +26,7 @@ export class root extends React.Component {
         this.state = {
             responseMessages: {},
             responseMessageTimeouts: {},
-            nodes: {},
+            modules: {},
             heapUpdates: {},
             goroutineUpdates: {},
         };
@@ -141,6 +141,7 @@ export class root extends React.Component {
 
     handleMessage(event) {
         let message = JSON.parse(event.data);
+        console.log(message)
         switch (message.topic) {
             case "error":
             case "responseMessage":
@@ -152,16 +153,16 @@ export class root extends React.Component {
             case "goroutineCount":
                 this.handleGoroutineCount(message.payload);
                 break;
-            case "addNode":
-                this.handleAddNode(JSON.parse(message.payload));
+            case "addModule":
+                this.handleAddModule(JSON.parse(message.payload));
                 break;
-            case "removeNode":
-                let nodes = { ...this.state.nodes };
-                delete nodes[message.payload];
-                this.setState({ nodes });
+            case "removeModule":
+                let modules = { ...this.state.modules };
+                delete modules[message.payload];
+                this.setState({ modules });
                 break;
-            case "nodeStatus":
-                this.handleNodeStatus(JSON.parse(message.payload));
+            case "statusUpdate":
+                this.handleStatusUpdate(JSON.parse(message.payload));
                 break;
             case "nodeSystemgeClientCounters":
             case "nodeSystemgeClientRateLimitCounters":
@@ -208,28 +209,23 @@ export class root extends React.Component {
         this.setState({ goroutineUpdates });
     }
 
-    handleAddNode(addNode) {
+    handleAddModule(addModule) {
         this.setState({
-            nodes: {
-                ...this.state.nodes,
-                [addNode.name]: {
-                    ...this.state.nodes[addNode.name],
-                    name: addNode.name,
-                    status: addNode.status,
-                    commands: addNode.commands,
-                },
+            modules: {
+                ...this.state.modules,
+                [addModule.name]: addModule,
             },
         });
     }
 
-    handleNodeStatus(nodeStatus) {
-        if (this.state.nodes[nodeStatus.name]) {
+    handleStatusUpdate(status) {
+        if (this.state.modules[status.name]) {
             this.setState({
-                nodes: {
-                    ...this.state.nodes,
-                    [nodeStatus.name]: {
-                        ...this.state.nodes[nodeStatus.name],
-                        status: nodeStatus.status,
+                modules: {
+                    ...this.state.modules,
+                    [status.name]: {
+                        ...this.state.modules[status.name],
+                        status: status.status,
                     },
                 },
             });
@@ -237,7 +233,7 @@ export class root extends React.Component {
     }
 
     handleNodeCounters(type, nodeCounters) {
-        let node = this.state.nodes[nodeCounters.name];
+        let node = this.state.modules[nodeCounters.name];
         if (!node) {
             return;
         }
@@ -248,7 +244,7 @@ export class root extends React.Component {
         currentCounters[new Date().valueOf()] = nodeCounters;
         this.setState({
             nodes: {
-                ...this.state.nodes,
+                ...this.state.modules,
                 [nodeCounters.name]: {
                     ...node,
                     [type]: currentCounters,
@@ -275,8 +271,8 @@ export class root extends React.Component {
 
     renderMultiLineGraph(nodeName, countersType, labels, colors) {
         let nodeCounters = {};
-        Object.keys(this.state.nodes[nodeName][countersType]).forEach((key) => {
-            nodeCounters[key] = labels.map((label) => this.state.nodes[nodeName][countersType][key][label]);
+        Object.keys(this.state.modules[nodeName][countersType]).forEach((key) => {
+            nodeCounters[key] = labels.map((label) => this.state.modules[nodeName][countersType][key][label]);
         });
         return React.createElement(
             multiLineGraph, {
@@ -303,31 +299,31 @@ export class root extends React.Component {
 
         const renderGraphsForNode = (nodeName) => {
             Object.keys(this.counterConfig).forEach((key) => {
-                if (this.state.nodes[nodeName][key]) {
+                if (this.state.modules[nodeName][key]) {
                     multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
                 }
             });
         };
 
         if (urlPath === "/") {
-            for (let nodeName in this.state.nodes) {
+            for (let nodeName in this.state.modules) {
                 nodeStatuses.push(React.createElement(
                     nodeStatus, {
-                        node: this.state.nodes[nodeName],
+                        node: this.state.modules[nodeName],
                         key: nodeName,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
                 ));
             }
-            if (this.state.nodes.dashboard) {
+            if (this.state.modules.dashboard) {
                 renderGraphsForNode("dashboard");
             }
             buttons.push(
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            Object.keys(this.state.nodes).forEach((nodeName) => {
+                            Object.keys(this.state.modules).forEach((nodeName) => {
                                 if (nodeName === "dashboard") {
                                     return;
                                 }
@@ -340,7 +336,7 @@ export class root extends React.Component {
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            Object.keys(this.state.nodes).forEach((nodeName) => {
+                            Object.keys(this.state.modules).forEach((nodeName) => {
                                 if (nodeName === "dashboard") {
                                     return;
                                 }
@@ -353,10 +349,10 @@ export class root extends React.Component {
             );
         } else {
             let nodeName = urlPath.substring(1);
-            if (this.state.nodes[nodeName]) {
+            if (this.state.modules[nodeName]) {
                 nodeStatuses.push(React.createElement(
                     nodeStatus, {
-                        node: this.state.nodes[nodeName],
+                        node: this.state.modules[nodeName],
                         key: nodeName,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
@@ -365,7 +361,7 @@ export class root extends React.Component {
                 renderGraphsForNode(nodeName);
                 commandsComponent = React.createElement(
                     commands, {
-                        node: this.state.nodes[nodeName],
+                        node: this.state.modules[nodeName],
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },

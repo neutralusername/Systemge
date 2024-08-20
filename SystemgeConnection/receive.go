@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -28,6 +29,10 @@ func (connection *SystemgeConnection) receiveLoop() {
 					connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
 				}
 				connection.waitGroup.Done()
+				if Tcp.IsConnectionClosed(err) {
+					connection.Close()
+					return
+				}
 				continue
 			}
 			connection.messageId++
