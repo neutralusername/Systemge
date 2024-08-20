@@ -55,7 +55,7 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if name == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	connection := New(config, netConn, name, messageHandler)
-	connection.tcpBuffer = conn.tcpBuffer
-	return connection, nil
+	conn.messageHandler = messageHandler
+	conn.name = name
+	return conn, nil
 }
