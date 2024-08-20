@@ -5,7 +5,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
@@ -21,33 +20,33 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	}
 	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn, messageHandler)
 	if err != nil {
+		netConn.Close()
 		return nil, Error.New("Failed to handshake with "+endpointConfig.Address, err)
 	}
 	return connection, nil
 }
 
 func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection, error) {
-	_, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, clientName).Serialize(), config.TcpSendTimeoutMs)
+	name := ""
+	channel := make(chan struct{})
+	conn := New(config, netConn, "", SystemgeMessageHandler.New(SystemgeMessageHandler.AsyncMessageHandlers{
+		Message.TOPIC_NAME: func(message *Message.Message) {
+			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
+				return
+			}
+			name = message.GetPayload()
+			close(channel)
+		},
+	}, nil))
+	err := conn.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
-	if err != nil {
-		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
-	}
-	messageBytes = messageBytes[:len(messageBytes)-1]
-	message, err := Message.Deserialize(messageBytes, "")
-	if err != nil {
-		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
-	}
-	if message.GetTopic() != Message.TOPIC_NAME {
-		return nil, Error.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
-	}
-	if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
-		return nil, Error.New("Received server name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.IntToString(maxServerNameLength), nil)
-	}
-	if len(message.GetPayload()) == 0 {
+	<-channel
+	if name == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	return New(config, netConn, message.GetPayload(), messageHandler), nil
+	connection := New(config, netConn, name, messageHandler)
+	connection.tcpBuffer = conn.tcpBuffer
+	return connection, nil
 }
