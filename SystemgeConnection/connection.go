@@ -98,7 +98,7 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 	} else {
 		go connection.processingLoopConcurrently()
 	}
-	go connection.receive()
+	go connection.receiveLoop()
 	return connection
 }
 

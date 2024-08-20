@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *SystemgeConnection) receiveMessage() ([]byte, error) {
+func (connection *SystemgeConnection) receive() ([]byte, error) {
 	connection.receiveMutex.Lock()
 	defer connection.receiveMutex.Unlock()
 
@@ -38,14 +38,7 @@ func (connection *SystemgeConnection) receiveMessage() ([]byte, error) {
 	}
 }
 
-func (connection *SystemgeConnection) ReceiveMessage() ([]byte, error) {
-	if connection.messageHandler != nil {
-		return nil, Error.New("Automatic message handling is enabled", nil)
-	}
-	return connection.receiveMessage()
-}
-
-func (connection *SystemgeConnection) SendMessage(bytes []byte) error {
+func (connection *SystemgeConnection) send(bytes []byte) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
 	bytesSent, err := Tcp.Send(connection.netConn, bytes, connection.config.TcpSendTimeoutMs)

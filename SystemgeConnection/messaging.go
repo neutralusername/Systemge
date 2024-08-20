@@ -9,7 +9,7 @@ import (
 )
 
 func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error {
-	err := connection.SendMessage(Message.NewAsync(topic, payload).Serialize())
+	err := connection.send(Message.NewAsync(topic, payload).Serialize())
 	if err != nil {
 		return err
 	}
@@ -19,7 +19,7 @@ func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error 
 
 func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Message.Message, error) {
 	synctoken, responseChannel := connection.InitResponseChannel()
-	err := connection.SendMessage(Message.NewSync(topic, payload, synctoken).Serialize())
+	err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize())
 	if err != nil {
 		connection.RemoveResponseChannel(synctoken)
 		return nil, err

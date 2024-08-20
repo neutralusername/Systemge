@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *SystemgeConnection) receive() {
+func (connection *SystemgeConnection) receiveLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
@@ -22,7 +22,7 @@ func (connection *SystemgeConnection) receive() {
 			return
 		default:
 			connection.waitGroup.Add(1)
-			messageBytes, err := connection.receiveMessage()
+			messageBytes, err := connection.receive()
 			if err != nil {
 				if connection.warningLogger != nil {
 					connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
@@ -123,11 +123,11 @@ func (connection *SystemgeConnection) processMessage(messageBytes []byte, messag
 		} else {
 			connection.syncRequestsReceived.Add(1)
 			if responsePayload, err := connection.messageHandler.HandleSyncRequest(message); err != nil {
-				if err := connection.SendMessage(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
+				if err := connection.send(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
 					return Error.New("failed to send failure response", err)
 				}
 			} else {
-				if err := connection.SendMessage(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
+				if err := connection.send(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
 					return Error.New("failed to send success response", err)
 				}
 			}
