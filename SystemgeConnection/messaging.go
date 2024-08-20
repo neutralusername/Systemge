@@ -25,39 +25,27 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 		return nil, err
 	}
 	connection.syncRequestsSent.Add(1)
+
+	var timeout <-chan time.Time
 	if connection.config.SyncRequestTimeoutMs > 0 {
-		timeout := time.NewTimer(time.Duration(connection.config.SyncRequestTimeoutMs) * time.Millisecond)
-		select {
-		case responseMessage := <-responseChannel:
-			if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
-				connection.syncSuccessResponsesReceived.Add(1)
-			} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
-				connection.syncFailureResponsesReceived.Add(1)
-			}
-			return responseMessage, nil
-		case <-connection.closeChannel:
-			connection.noSyncResponseReceived.Add(1)
-			connection.RemoveResponseChannel(synctoken)
-			return nil, Error.New("SystemgeClient stopped before receiving response", nil)
-		case <-timeout.C:
-			connection.noSyncResponseReceived.Add(1)
-			connection.RemoveResponseChannel(synctoken)
-			return nil, Error.New("Timeout before receiving response", nil)
+		timeout = time.After(time.Duration(connection.config.SyncRequestTimeoutMs) * time.Millisecond)
+	}
+	select {
+	case responseMessage := <-responseChannel:
+		if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
+			connection.syncSuccessResponsesReceived.Add(1)
+		} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
+			connection.syncFailureResponsesReceived.Add(1)
 		}
-	} else {
-		select {
-		case responseMessage := <-responseChannel:
-			if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
-				connection.syncSuccessResponsesReceived.Add(1)
-			} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
-				connection.syncFailureResponsesReceived.Add(1)
-			}
-			return responseMessage, nil
-		case <-connection.closeChannel:
-			connection.noSyncResponseReceived.Add(1)
-			connection.RemoveResponseChannel(synctoken)
-			return nil, Error.New("SystemgeClient stopped before receiving response", nil)
-		}
+		return responseMessage, nil
+	case <-connection.closeChannel:
+		connection.noSyncResponseReceived.Add(1)
+		connection.RemoveResponseChannel(synctoken)
+		return nil, Error.New("SystemgeClient stopped before receiving response", nil)
+	case <-timeout:
+		connection.noSyncResponseReceived.Add(1)
+		connection.RemoveResponseChannel(synctoken)
+		return nil, Error.New("Timeout before receiving response", nil)
 	}
 }
 
