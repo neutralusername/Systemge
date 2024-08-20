@@ -33,13 +33,13 @@ type SystemgeReceiver struct {
 
 	// metrics
 
-	asyncMessagesReceived   atomic.Uint32
-	syncRequestsReceived    atomic.Uint32
-	invalidMessagesReceived atomic.Uint32
-	syncResponsesReceived   atomic.Uint32
+	asyncMessagesReceived   atomic.Uint64
+	syncRequestsReceived    atomic.Uint64
+	invalidMessagesReceived atomic.Uint64
+	syncResponsesReceived   atomic.Uint64
 
-	messageRateLimiterExceeded atomic.Uint32
-	byteRateLimiterExceeded    atomic.Uint32
+	messageRateLimiterExceeded atomic.Uint64
+	byteRateLimiterExceeded    atomic.Uint64
 }
 
 func New(connection *SystemgeConnection.SystemgeConnection, config *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeReceiver {

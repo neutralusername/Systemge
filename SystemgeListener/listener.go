@@ -18,10 +18,10 @@ type SystemgeListener struct {
 
 	// metrics
 
-	connectionAttempts  atomic.Uint32
-	failedConnections   atomic.Uint32
-	rejectedConnections atomic.Uint32
-	acceptedConnections atomic.Uint32
+	connectionAttempts  atomic.Uint64
+	failedConnections   atomic.Uint64
+	rejectedConnections atomic.Uint64
+	acceptedConnections atomic.Uint64
 }
 
 func New(config *Config.SystemgeListener) (*SystemgeListener, error) {

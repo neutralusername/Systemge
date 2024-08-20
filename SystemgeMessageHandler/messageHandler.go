@@ -22,8 +22,9 @@ type SystemgeMessageHandler struct {
 	unknwonSyncTopicHandler  func(*Message.Message) (string, error)
 
 	// metrics
-	asyncMessagesHandled atomic.Uint64
-	syncRequestsHandled  atomic.Uint64
+	asyncMessagesHandled  atomic.Uint64
+	syncRequestsHandled   atomic.Uint64
+	unknownTopicsReceived atomic.Uint64
 }
 
 // pass a handler with an empty string as the key to handle messages with unknown topics
@@ -54,6 +55,7 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessage(message *Messag
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	messageHandler.asyncMutex.Unlock()
 	if !exists {
+		messageHandler.unknownTopicsReceived.Add(1)
 		if messageHandler.unknwonAsyncTopicHandler != nil {
 			messageHandler.asyncMessagesHandled.Add(1)
 			messageHandler.unknwonAsyncTopicHandler(message)
@@ -74,6 +76,7 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequest(message *Message
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.Unlock()
 	if !exists {
+		messageHandler.unknownTopicsReceived.Add(1)
 		if messageHandler.unknwonSyncTopicHandler != nil {
 			messageHandler.syncRequestsHandled.Add(1)
 			return messageHandler.unknwonSyncTopicHandler(message)
@@ -89,6 +92,7 @@ func (messageHandler *SystemgeMessageHandler) HandleAsyncMessageSequentially(mes
 	defer messageHandler.sequentialMutex.Unlock()
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	if !exists {
+		messageHandler.unknownTopicsReceived.Add(1)
 		if messageHandler.unknwonAsyncTopicHandler != nil {
 			messageHandler.asyncMessagesHandled.Add(1)
 			messageHandler.unknwonAsyncTopicHandler(message)
@@ -106,6 +110,7 @@ func (messageHandler *SystemgeMessageHandler) HandleSyncRequestSequentially(mess
 	defer messageHandler.sequentialMutex.Unlock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	if !exists {
+		messageHandler.unknownTopicsReceived.Add(1)
 		if messageHandler.unknwonSyncTopicHandler != nil {
 			messageHandler.syncRequestsHandled.Add(1)
 			return messageHandler.unknwonSyncTopicHandler(message)
