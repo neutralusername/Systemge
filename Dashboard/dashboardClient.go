@@ -130,10 +130,13 @@ func (app *DashboardClient) executeCommandHandler(message *Message.Message) (str
 	if app.commands == nil {
 		return "", nil
 	}
-	command := message.GetPayload()
-	commandFunc, ok := app.commands[command]
+	command, err := unmarshalCommand(message.GetPayload())
+	if err != nil {
+		return "", err
+	}
+	commandFunc, ok := app.commands[command.Command]
 	if !ok {
 		return "", Error.New("Command not found", nil)
 	}
-	return commandFunc(nil)
+	return commandFunc(command.Args)
 }

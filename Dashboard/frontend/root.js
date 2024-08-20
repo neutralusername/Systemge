@@ -34,76 +34,6 @@ export class root extends React.Component {
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
-        this.counterConfig = {
-            nodeWebsocketCounters: {
-                labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"],
-            },
-            nodeSystemgeClientCounters: {
-                labels: ["bytesSent", "bytesReceived", "invalidMessagesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeClientRateLimitCounters: {
-                labels: ["messageRateLimiterExceeded", "byteRateLimiterExceeded"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeClientConnectionCounters: {
-                labels: ["connectionAttempts", "connectionAttemptsSuccessful", "connectionAttemptsFailed", "connectionAttemptBytesSent", "connectionAttemptBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
-            },
-            nodeSystemgeClientSyncResponseCounters: {
-                labels: ["syncSuccessResponsesReceived", "syncFailureResponsesReceived", "syncResponseBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeClientAsyncMessageCounters: {
-                labels: ["asyncMessagesSent", "asyncMessageBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeClientSyncRequestCounters: {
-                labels: ["syncRequestsSent", "syncRequestBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeClientTopicCounters: {
-                labels: ["topicAddReceived", "topicRemoveReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerCounters: {
-                labels: ["bytesReceived", "bytesSent", "invalidMessagesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeServerRateLimitCounters: {
-                labels: ["messageRateLimiterExceeded", "byteRateLimiterExceeded"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerConnectionCounters: {
-                labels: ["connectionAttempts", "connectionAttemptsSuccessful", "connectionAttemptsFailed", "connectionAttemptBytesSent", "connectionAttemptBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
-            },
-            nodeSystemgeServerSyncResponseCounters: {
-                labels: ["syncSuccessResponsesSent", "syncFailureResponsesSent", "syncResponseBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeServerAsyncMessageCounters: {
-                labels: ["asyncMessagesReceived", "asyncMessageBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerSyncRequestCounters: {
-                labels: ["syncRequestsReceived", "syncRequestBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerTopicCounters: {
-                labels: ["topicAddSent", "topicRemoveSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSpawnerCounters: {
-                labels: ["spawnedNodeCount"],
-                colors: ["rgb(255, 99, 132)"],
-            },
-            nodeHttpCounters: {
-                labels: ["requestCount" ],
-                colors: ["rgb(255, 99, 132)" ],
-            }
-        };
     }
 
     constructMessage(topic, payload) {
@@ -164,24 +94,8 @@ export class root extends React.Component {
             case "statusUpdate":
                 this.handleStatusUpdate(JSON.parse(message.payload));
                 break;
-            case "nodeSystemgeClientCounters":
-            case "nodeSystemgeClientRateLimitCounters":
-            case "nodeSystemgeClientConnectionCounters":
-            case "nodeSystemgeClientSyncResponseCounters":
-            case "nodeSystemgeClientAsyncMessageCounters":
-            case "nodeSystemgeClientSyncRequestCounters":
-            case "nodeSystemgeClientTopicCounters":
-            case "nodeSystemgeServerCounters":
-            case "nodeSystemgeServerRateLimitCounters":
-            case "nodeSystemgeServerConnectionCounters":
-            case "nodeSystemgeServerSyncResponseCounters":
-            case "nodeSystemgeServerAsyncMessageCounters":
-            case "nodeSystemgeServerSyncRequestCounters":
-            case "nodeSystemgeServerTopicCounters":
-            case "nodeWebsocketCounters":
-            case "nodeSpawnerCounters":
-            case "nodeHttpCounters":
-                this.handleNodeCounters(message.topic, JSON.parse(message.payload));
+            case "updateMetrics":
+                this.handleMetricUpdate(JSON.parse(message.payload));
                 break;
             default:
                 console.log("Unknown message topic: " + event.data);
@@ -232,8 +146,8 @@ export class root extends React.Component {
         }
     }
 
-    handleNodeCounters(type, nodeCounters) {
-        let node = this.state.modules[nodeCounters.name];
+    handleMetricUpdate(metrics) {
+       /*  let node = this.state.modules[nodeCounters.name];
         if (!node) {
             return;
         }
@@ -250,7 +164,7 @@ export class root extends React.Component {
                     [type]: currentCounters,
                 },
             },
-        });
+        }); */
     }
 
     handleClose() {
@@ -298,11 +212,11 @@ export class root extends React.Component {
 
 
         const renderGraphsForNode = (nodeName) => {
-            Object.keys(this.counterConfig).forEach((key) => {
+          /*   Object.keys(this.counterConfig).forEach((key) => {
                 if (this.state.modules[nodeName][key]) {
                     multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
                 }
-            });
+            }); */
         };
 
         if (urlPath === "/") {

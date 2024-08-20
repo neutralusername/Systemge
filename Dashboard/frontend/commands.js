@@ -7,7 +7,7 @@ export class commands extends React.Component {
 	}
 
 	render() {
-		let commands = this.props.node.commands ? this.props.node.commands.map((command) => {
+		let commands = Object.keys(this.props.node.commands).map((command) => {
 			return React.createElement(
 				"div", {
 					key: command,
@@ -39,7 +39,7 @@ export class commands extends React.Component {
 					},
 				),
 			);
-		}): null;
+		});
 		if (commands) {
 			commands.sort((a, b) => {
 				if (a.key < b.key) {
