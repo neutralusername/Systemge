@@ -47,7 +47,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 
 	go func() {
 		defer client.waitGroup.Done()
-		val := client.statusUpdateCounter.Add(1)
+		val := client.ongoingConnectionAttempts.Add(1)
 		if val == 1 {
 			client.status = Status.PENDING
 		}
@@ -64,7 +64,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 				}
 			}
 		}
-		val = client.statusUpdateCounter.Add(-1)
+		val = client.ongoingConnectionAttempts.Add(-1)
 		if val == 0 {
 			client.status = Status.STARTED
 		}

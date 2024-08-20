@@ -35,7 +35,7 @@ type SystemgeClient struct {
 	infoLogger    *Tools.Logger
 	mailer        *Tools.Mailer
 
-	statusUpdateCounter atomic.Int32
+	ongoingConnectionAttempts atomic.Int32
 
 	// metrics
 
