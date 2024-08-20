@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
-	"github.com/neutralusername/Systemge/SystemgeReceiver"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -26,7 +25,6 @@ type SystemgeServer struct {
 	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
 	onDisconnectHandler func(string, string)
 	messageHandler      *SystemgeMessageHandler.SystemgeMessageHandler
-	receiverConfig      *Config.SystemgeReceiver
 
 	clients            map[string]*SystemgeConnection.SystemgeConnection // name -> connection
 	mutex              sync.Mutex
@@ -38,7 +36,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(string, string), receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
+func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(string, string), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -51,19 +49,12 @@ func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnectio
 	if config.ListenerConfig.TcpListenerConfig == nil {
 		panic("listener.ListenerConfig is nil")
 	}
-	if messageHandler == nil && receiverConfig != nil {
-		panic("receiverConfig is set but messageHandler is nil")
-	}
-	if messageHandler != nil && receiverConfig == nil {
-		panic("messageHandler is set but receiverConfig is nil")
-	}
 	if config.ConnectionConfig.TcpBufferBytes == 0 {
 		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
 	}
 	server := &SystemgeServer{
 		config:              config,
 		messageHandler:      messageHandler,
-		receiverConfig:      receiverConfig,
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 
@@ -154,7 +145,7 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 	}
 
 	for server.handlerStopChannel == handlerStopChannel {
-		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
+		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig, server.messageHandler)
 		if err != nil {
 			if server.warningLogger != nil {
 				server.warningLogger.Log(Error.New("failed to accept connection", err).Error())
@@ -174,11 +165,6 @@ func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
 				connection.Close()
 				continue
 			}
-		}
-
-		if server.receiverConfig != nil && server.messageHandler != nil {
-			// todo: add runtime funcs to do something with the receiver
-			SystemgeReceiver.New(connection, server.receiverConfig, server.messageHandler)
 		}
 
 		server.mutex.Lock()

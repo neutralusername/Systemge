@@ -19,7 +19,6 @@ type SystemgeClient struct {
 	config *Config.SystemgeClient
 
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
-	receiverConfig *Config.SystemgeReceiver
 
 	mutex                 sync.RWMutex
 	addressConnections    map[string]*SystemgeConnection.SystemgeConnection // address -> connection
@@ -43,7 +42,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint32
 }
 
-func New(config *Config.SystemgeClient, receiverConfig *Config.SystemgeReceiver, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
+func New(config *Config.SystemgeClient, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -52,12 +51,6 @@ func New(config *Config.SystemgeClient, receiverConfig *Config.SystemgeReceiver,
 	}
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
-	}
-	if receiverConfig != nil && messageHandler == nil {
-		panic("receiverConfig is set but messageHandler is nil")
-	}
-	if receiverConfig == nil && messageHandler != nil {
-		panic("messageHandler is set but receiverConfig is nil")
 	}
 	if config.ConnectionConfig.TcpBufferBytes == 0 {
 		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
@@ -70,7 +63,6 @@ func New(config *Config.SystemgeClient, receiverConfig *Config.SystemgeReceiver,
 		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
 
 		messageHandler: messageHandler,
-		receiverConfig: receiverConfig,
 	}
 	if config.InfoLoggerPath != "" {
 		client.infoLogger = Tools.NewLogger("[Info: \""+client.GetName()+"\"] ", config.InfoLoggerPath)

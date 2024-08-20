@@ -55,3 +55,43 @@ func (connection *SystemgeConnection) RetrieveSyncFailureResponsesReceived() uin
 func (connection *SystemgeConnection) RetrieveNoSyncResponseReceived() uint64 {
 	return connection.noSyncResponseReceived.Swap(0)
 }
+
+func (receiver *SystemgeConnection) GetAsyncMessagesReceived() uint64 {
+	return receiver.asyncMessagesReceived.Load()
+}
+
+func (receiver *SystemgeConnection) GetSyncRequestsReceived() uint64 {
+	return receiver.syncRequestsReceived.Load()
+}
+
+func (receiver *SystemgeConnection) GetInvalidMessagesReceived() uint64 {
+	return receiver.invalidMessagesReceived.Load()
+}
+
+func (receiver *SystemgeConnection) GetMessageRateLimiterExceeded() uint64 {
+	return receiver.messageRateLimiterExceeded.Load()
+}
+
+func (receiver *SystemgeConnection) GetByteRateLimiterExceeded() uint64 {
+	return receiver.byteRateLimiterExceeded.Load()
+}
+
+func (receiver *SystemgeConnection) RetrieveAsyncMessagesReceived() uint64 {
+	return receiver.asyncMessagesReceived.Swap(0)
+}
+
+func (receiver *SystemgeConnection) RetrieveSyncRequestsReceived() uint64 {
+	return receiver.syncRequestsReceived.Swap(0)
+}
+
+func (receiver *SystemgeConnection) RetrieveInvalidMessagesReceived() uint64 {
+	return receiver.invalidMessagesReceived.Swap(0)
+}
+
+func (receiver *SystemgeConnection) RetrieveMessageRateLimiterExceeded() uint64 {
+	return receiver.messageRateLimiterExceeded.Swap(0)
+}
+
+func (receiver *SystemgeConnection) RetrieveByteRateLimiterExceeded() uint64 {
+	return receiver.byteRateLimiterExceeded.Swap(0)
+}

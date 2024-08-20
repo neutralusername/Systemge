@@ -39,6 +39,11 @@ type SystemgeListener struct {
 }
 
 type SystemgeConnection struct {
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
 	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeoutMs"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
@@ -47,13 +52,6 @@ type SystemgeConnection struct {
 
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-}
-
-type SystemgeReceiver struct {
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
 	ProcessSequentially   bool `json:"processSequentially"`   // default: false (if true, the receiver will handle messages sequentially)
 	ProcessingChannelSize int  `json:"processingChannelSize"` // default: 0 == no guarantee on order of arrival (irrelevant if ProcessSequentially is false) (if >0, the order of arrival is guaranteed as long as the channel is never full)

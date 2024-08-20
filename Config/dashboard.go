@@ -28,7 +28,6 @@ type DashboardClient struct {
 	Name string `json:"name"` // *required*
 
 	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
-	ReceiverConfig   *SystemgeReceiver   `json:"receiverConfig"`   // *required*
 	EndpointConfig   *TcpEndpoint        `json:"endpointConfig"`   // *required*
 }
 

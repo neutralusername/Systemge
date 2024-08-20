@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
-	"github.com/neutralusername/Systemge/SystemgeReceiver"
 )
 
 type DashboardClient struct {
@@ -35,9 +34,6 @@ func NewDashboardClient(config *Config.DashboardClient, startFunc func() error, 
 	if config.EndpointConfig == nil {
 		panic("config.EndpointConfig is nil")
 	}
-	if config.ReceiverConfig == nil {
-		panic("config.ReceiverConfig is nil")
-	}
 	app := &DashboardClient{
 		config:         config,
 		startFunc:      startFunc,
@@ -46,12 +42,6 @@ func NewDashboardClient(config *Config.DashboardClient, startFunc func() error, 
 		getStatusFunc:  getStatusFunc,
 		commands:       commands,
 	}
-
-	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, 0)
-	if err != nil {
-		panic(err)
-	}
-	app.systemgeConnection = connection
 	var dashboardClientMessageHandlers = SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
 		Message.TOPIC_GET_INTRODUCTION: app.getIntroductionHandler,
 		Message.TOPIC_GET_STATUS:       app.getStatusHandler,
@@ -60,7 +50,11 @@ func NewDashboardClient(config *Config.DashboardClient, startFunc func() error, 
 		Message.TOPIC_STOP:             app.stopHandler,
 		Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
 	})
-	SystemgeReceiver.New(connection, app.config.ReceiverConfig, dashboardClientMessageHandlers)
+	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, 0, dashboardClientMessageHandlers)
+	if err != nil {
+		panic(err)
+	}
+	app.systemgeConnection = connection
 	return app
 }
 
