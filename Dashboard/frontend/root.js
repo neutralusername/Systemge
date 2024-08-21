@@ -180,12 +180,12 @@ export class root extends React.Component {
         let metricNames = Object.keys(addModule.metrics);
         let metrics = {};
         Object.keys(addModule.metrics).forEach((key) => {
-            metrics[new Date().valueOf()] = {
-                [key]: addModule.metrics[key],
-            }
+            metrics[key] = addModule.metrics[key];
         });
         addModule.metricNames = metricNames;
-        addModule.metrics = metrics;
+        addModule.metrics = {
+            [new Date().valueOf()]: metrics,
+        }
         this.setState({
             modules: {
                 ...this.state.modules,
