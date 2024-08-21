@@ -59,9 +59,9 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 	}
 	app.systemgeConnection = connection
 	if config.ConnectionConfig.ProcessSequentially {
-		go app.systemgeConnection.StartProcessingLoopSequentially()
+		app.systemgeConnection.StartProcessingLoopSequentially()
 	} else {
-		go app.systemgeConnection.StartProcessingLoopConcurrently()
+		app.systemgeConnection.StartProcessingLoopConcurrently()
 	}
 	return app
 }

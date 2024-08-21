@@ -26,9 +26,9 @@ type SystemgeServer struct {
 	onDisconnectHandler func(string, string)
 	messageHandler      *SystemgeMessageHandler.SystemgeMessageHandler
 
-	clients            map[string]*SystemgeConnection.SystemgeConnection // name -> connection
-	mutex              sync.Mutex
-	handlerStopChannel chan bool
+	clients     map[string]*SystemgeConnection.SystemgeConnection // name -> connection
+	mutex       sync.Mutex
+	stopChannel chan bool
 
 	waitGroup sync.WaitGroup
 
@@ -93,7 +93,7 @@ func (server *SystemgeServer) Start() error {
 		return Error.New("failed to create listener", err)
 	}
 	server.listener = listener
-	server.handlerStopChannel = make(chan bool)
+	server.stopChannel = make(chan bool)
 	go server.handleConnections()
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
@@ -114,7 +114,7 @@ func (server *SystemgeServer) Stop() error {
 		server.infoLogger.Log("stopping server")
 	}
 
-	close(server.handlerStopChannel)
+	close(server.stopChannel)
 	server.listener.Close()
 
 	server.mutex.Lock()
@@ -124,7 +124,7 @@ func (server *SystemgeServer) Stop() error {
 	server.mutex.Unlock()
 
 	server.waitGroup.Wait()
-	server.handlerStopChannel = nil
+	server.stopChannel = nil
 	server.listener = nil
 
 	if infoLogger := server.infoLogger; infoLogger != nil {

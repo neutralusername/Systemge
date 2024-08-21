@@ -171,9 +171,9 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			}
 
 			if client.config.ConnectionConfig.ProcessSequentially {
-				go connection.StartProcessingLoopSequentially()
+				connection.StartProcessingLoopSequentially()
 			} else {
-				go connection.StartProcessingLoopConcurrently()
+				connection.StartProcessingLoopConcurrently()
 			}
 			return nil
 		}

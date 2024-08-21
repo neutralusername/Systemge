@@ -13,7 +13,7 @@ func (server *SystemgeServer) handleConnections() {
 	for {
 		server.waitGroup.Add(1)
 		select {
-		case <-server.handlerStopChannel:
+		case <-server.stopChannel:
 			if server.infoLogger != nil {
 				server.infoLogger.Log("connection handler stopped")
 			}
@@ -50,13 +50,14 @@ func (server *SystemgeServer) handleConnections() {
 					if server.warningLogger != nil {
 						server.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
 					}
+					continue
 				}
 			}
 
 			if server.config.ConnectionConfig.ProcessSequentially {
-				go connection.StartProcessingLoopSequentially()
+				connection.StartProcessingLoopSequentially()
 			} else {
-				go connection.StartProcessingLoopConcurrently()
+				connection.StartProcessingLoopConcurrently()
 			}
 		}
 	}

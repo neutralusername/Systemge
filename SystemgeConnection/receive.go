@@ -93,69 +93,73 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 	return nil
 }
 
-func (connection *SystemgeConnection) StartProcessingLoopSequentially() {
+func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
-		return
+		return Error.New("Processing loop already running", nil)
 	}
 	connection.processingLoopStopChannel = make(chan bool)
 	connection.processMutex.Unlock()
-
-	if connection.infoLogger != nil {
-		connection.infoLogger.Log("Starting processing messages sequentially")
-	}
-	for {
-		select {
-		case process := <-connection.processingChannel:
-			if connection.config.ProcessingChannelSize > 0 && len(connection.processingChannel) >= connection.config.ProcessingChannelSize-1 {
-				if connection.errorLogger != nil {
-					connection.errorLogger.Log("Processing channel capacity reached")
-				}
-				if connection.mailer != nil {
-					err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
-					if err != nil {
-						if connection.errorLogger != nil {
-							connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
+	go func() {
+		if connection.infoLogger != nil {
+			connection.infoLogger.Log("Starting processing messages sequentially")
+		}
+		for {
+			select {
+			case process := <-connection.processingChannel:
+				if connection.config.ProcessingChannelSize > 0 && len(connection.processingChannel) >= connection.config.ProcessingChannelSize-1 {
+					if connection.errorLogger != nil {
+						connection.errorLogger.Log("Processing channel capacity reached")
+					}
+					if connection.mailer != nil {
+						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
+						if err != nil {
+							if connection.errorLogger != nil {
+								connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
+							}
 						}
 					}
 				}
+				process()
+			case <-connection.processingLoopStopChannel:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Stopping processing messages sequentially")
+				}
+				connection.processingLoopStopChannel = nil
+				return
 			}
-			process()
-		case <-connection.processingLoopStopChannel:
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Stopping processing messages sequentially")
-			}
-			connection.processingLoopStopChannel = nil
-			return
 		}
-	}
+	}()
+	return nil
 }
 
-func (connection *SystemgeConnection) StartProcessingLoopConcurrently() {
+func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
-		return
+		return Error.New("Processing loop already running", nil)
 	}
 	connection.processingLoopStopChannel = make(chan bool)
 	connection.processMutex.Unlock()
-
-	if connection.infoLogger != nil {
-		connection.infoLogger.Log("Starting processing messages concurrently")
-	}
-	for {
-		select {
-		case process := <-connection.processingChannel:
-			go process()
-		case <-connection.processingLoopStopChannel:
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Stopping processing messages concurrently")
-			}
-			connection.processingLoopStopChannel = nil
-			return
+	go func() {
+		if connection.infoLogger != nil {
+			connection.infoLogger.Log("Starting processing messages concurrently")
 		}
-	}
+		for {
+			select {
+			case process := <-connection.processingChannel:
+				go process()
+			case <-connection.processingLoopStopChannel:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Stopping processing messages concurrently")
+				}
+				connection.processingLoopStopChannel = nil
+				return
+			}
+		}
+	}()
+	return nil
 }
 
 func (connection *SystemgeConnection) processMessage(messageBytes []byte, messageId uint64) error {
