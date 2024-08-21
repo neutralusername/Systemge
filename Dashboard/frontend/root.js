@@ -80,17 +80,24 @@ export class root extends React.Component {
         this.setState(state);
     }
 
-    getRandomDistinctColors(count) {
-        let colors = [];
-        let availableColors = [...this.distinctColors];
-        for (let i = 0; i < count; i++) {
-            if (availableColors.length === 0) {
-                availableColors = [...this.distinctColors];
-            }
-            let randomIndex = Math.floor(Math.random() * availableColors.length);
-            colors.push(availableColors[randomIndex]);
-            availableColors.splice(randomIndex, 1);
+    generateHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length && i < 30; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convert to 32bit integer
         }
+        return Math.abs(hash);
+    }
+
+    getRandomDistinctColors(strings) {
+        let colors = [];
+        strings.forEach(str => {
+            const hash = this.generateHash(str);
+            const colorIndex = hash % this.distinctColors.length;
+            colors.push(this.distinctColors[colorIndex]);
+        });
+
         return colors;
     }
 
@@ -237,7 +244,7 @@ export class root extends React.Component {
     renderMultiLineGraph(moduleName) {
         let module = this.state.modules[moduleName];
         let dataSet = {};
-        let colors = this.getRandomDistinctColors(module.metricNames.length);
+        let colors = this.getRandomDistinctColors(module.metricNames);
         let legend = module.metricNames;
         let labels = [];
         Object.keys(module.metrics).forEach((dateTime) => {
