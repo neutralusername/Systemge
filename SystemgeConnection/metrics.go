@@ -1,5 +1,39 @@
 package SystemgeConnection
 
+func (connection *SystemgeConnection) GetMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"bytes_sent":                      connection.GetBytesSent(),
+		"bytes_received":                  connection.GetBytesReceived(),
+		"async_messages_sent":             connection.GetAsyncMessagesSent(),
+		"sync_requests_sent":              connection.GetSyncRequestsSent(),
+		"sync_success_responses_received": connection.GetSyncSuccessResponsesReceived(),
+		"sync_failure_responses_received": connection.GetSyncFailureResponsesReceived(),
+		"no_sync_response_received":       connection.GetNoSyncResponseReceived(),
+		"async_messages_received":         connection.GetAsyncMessagesReceived(),
+		"sync_requests_received":          connection.GetSyncRequestsReceived(),
+		"invalid_messages_received":       connection.GetInvalidMessagesReceived(),
+		"message_rate_limiter_exceeded":   connection.GetMessageRateLimiterExceeded(),
+		"byte_rate_limiter_exceeded":      connection.GetByteRateLimiterExceeded(),
+	}
+}
+
+func (connection *SystemgeConnection) RetrieveMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"bytes_sent":                      connection.RetrieveBytesSent(),
+		"bytes_received":                  connection.RetrieveBytesReceived(),
+		"async_messages_sent":             connection.RetrieveAsyncMessagesSent(),
+		"sync_requests_sent":              connection.RetrieveSyncRequestsSent(),
+		"sync_success_responses_received": connection.RetrieveSyncSuccessResponsesReceived(),
+		"sync_failure_responses_received": connection.RetrieveSyncFailureResponsesReceived(),
+		"no_sync_response_received":       connection.RetrieveNoSyncResponseReceived(),
+		"async_messages_received":         connection.RetrieveAsyncMessagesReceived(),
+		"sync_requests_received":          connection.RetrieveSyncRequestsReceived(),
+		"invalid_messages_received":       connection.RetrieveInvalidMessagesReceived(),
+		"message_rate_limiter_exceeded":   connection.RetrieveMessageRateLimiterExceeded(),
+		"byte_rate_limiter_exceeded":      connection.RetrieveByteRateLimiterExceeded(),
+	}
+}
+
 func (connection *SystemgeConnection) GetBytesSent() uint64 {
 	return connection.bytesSent.Load()
 }
