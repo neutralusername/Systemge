@@ -2,7 +2,6 @@ package SystemgeConnection
 
 import (
 	"net"
-	"time"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
@@ -43,17 +42,9 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	var timeout <-chan time.Time
-	if config.TcpReceiveTimeoutMs > 0 {
-		timeout = time.After(time.Duration(config.TcpReceiveTimeoutMs) * time.Millisecond)
-	}
-	select {
-	case <-channel:
-	case <-timeout:
-		return nil, Error.New("Timeout while waiting for \""+Message.TOPIC_NAME+"\" message", nil)
-	}
-	if name == "" {
-		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
+	err = conn.ProcessNextMessage()
+	if err != nil {
+		return nil, Error.New("Failed to process \""+Message.TOPIC_NAME+"\" message", err)
 	}
 	conn.messageHandler = messageHandler
 	conn.name = name

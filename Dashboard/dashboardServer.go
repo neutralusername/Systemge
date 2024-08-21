@@ -134,7 +134,16 @@ func (app *DashboardServer) Close() {
 }
 
 func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {
+	errChannel := make(chan error)
+	go func() {
+		err := connection.ProcessNextMessage()
+		errChannel <- err
+	}()
 	response, err := connection.SyncRequest(Message.TOPIC_GET_INTRODUCTION, "")
+	if err != nil {
+		return err
+	}
+	err = <-errChannel
 	if err != nil {
 		return err
 	}
@@ -143,10 +152,12 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 		return err
 	}
 	client.connection = connection
+
 	app.mutex.Lock()
 	app.registerModuleHttpHandlers(client)
 	app.clients[client.Name] = client
 	app.mutex.Unlock()
+	println("yu")
 	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
 }

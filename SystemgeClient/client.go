@@ -20,6 +20,9 @@ type SystemgeClient struct {
 
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
+	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
+	onDisconnectHandler func(string, string)
+
 	mutex                 sync.RWMutex
 	addressConnections    map[string]*SystemgeConnection.SystemgeConnection // address -> connection
 	nameConnections       map[string]*SystemgeConnection.SystemgeConnection // name -> connection
@@ -42,7 +45,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint32
 }
 
-func New(config *Config.SystemgeClient, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
+func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(string, string), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -61,6 +64,9 @@ func New(config *Config.SystemgeClient, messageHandler *SystemgeMessageHandler.S
 		addressConnections:    make(map[string]*SystemgeConnection.SystemgeConnection),
 		nameConnections:       make(map[string]*SystemgeConnection.SystemgeConnection),
 		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
+
+		onConnectHandler:    onConnectHandler,
+		onDisconnectHandler: onDisconnectHandler,
 
 		messageHandler: messageHandler,
 	}
@@ -133,9 +139,16 @@ func (client *SystemgeClient) Stop() error {
 	}
 
 	close(client.stopChannel)
-	client.stopChannel = nil
+
+	client.mutex.Lock()
+	for _, connection := range client.addressConnections {
+		connection.Close()
+	}
+	client.mutex.Unlock()
 
 	client.waitGroup.Wait()
+
+	client.stopChannel = nil
 
 	if client.infoLogger != nil {
 		client.infoLogger.Log("client stopped")

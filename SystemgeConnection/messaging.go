@@ -18,10 +18,10 @@ func (connection *SystemgeConnection) AsyncMessage(topic, payload string) error 
 }
 
 func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Message.Message, error) {
-	synctoken, responseChannel := connection.InitResponseChannel()
+	synctoken, responseChannel := connection.initResponseChannel()
 	err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize())
 	if err != nil {
-		connection.RemoveResponseChannel(synctoken)
+		connection.removeResponseChannel(synctoken)
 		return nil, err
 	}
 	connection.syncRequestsSent.Add(1)
@@ -40,16 +40,16 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 		return responseMessage, nil
 	case <-connection.closeChannel:
 		connection.noSyncResponseReceived.Add(1)
-		connection.RemoveResponseChannel(synctoken)
+		connection.removeResponseChannel(synctoken)
 		return nil, Error.New("SystemgeClient stopped before receiving response", nil)
 	case <-timeout:
 		connection.noSyncResponseReceived.Add(1)
-		connection.RemoveResponseChannel(synctoken)
+		connection.removeResponseChannel(synctoken)
 		return nil, Error.New("Timeout before receiving response", nil)
 	}
 }
 
-func (connection *SystemgeConnection) AddSyncResponse(message *Message.Message) error {
+func (connection *SystemgeConnection) addSyncResponse(message *Message.Message) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	if responseChannel, ok := connection.syncResponseChannels[message.GetSyncTokenToken()]; ok {
@@ -61,7 +61,7 @@ func (connection *SystemgeConnection) AddSyncResponse(message *Message.Message) 
 	return Error.New("No response channel found", nil)
 }
 
-func (connection *SystemgeConnection) InitResponseChannel() (string, chan *Message.Message) {
+func (connection *SystemgeConnection) initResponseChannel() (string, chan *Message.Message) {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	syncToken := connection.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
@@ -72,7 +72,7 @@ func (connection *SystemgeConnection) InitResponseChannel() (string, chan *Messa
 	return syncToken, connection.syncResponseChannels[syncToken]
 }
 
-func (connection *SystemgeConnection) RemoveResponseChannel(syncToken string) {
+func (connection *SystemgeConnection) removeResponseChannel(syncToken string) {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	if responseChannel, ok := connection.syncResponseChannels[syncToken]; ok {

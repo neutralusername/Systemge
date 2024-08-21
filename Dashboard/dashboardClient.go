@@ -58,6 +58,11 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 		panic(err)
 	}
 	app.systemgeConnection = connection
+	if config.ConnectionConfig.ProcessSequentially {
+		go app.systemgeConnection.StartProcessingLoopSequentially()
+	} else {
+		go app.systemgeConnection.StartProcessingLoopConcurrently()
+	}
 	return app
 }
 

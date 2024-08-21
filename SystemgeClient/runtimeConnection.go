@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 // AddConnection attempts to add a connection to the client
@@ -45,6 +46,24 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 		return nil
 	}
 	return Error.New("connection not found", nil)
+}
+
+func (client *SystemgeClient) GetConnection(name string) *SystemgeConnection.SystemgeConnection {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status != Status.STARTED {
+		return nil
+	}
+	for _, connection := range client.addressConnections {
+		if connection.GetName() == name {
+			return connection
+		}
+	}
+	return nil
 }
 
 func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string {

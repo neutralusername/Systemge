@@ -37,8 +37,10 @@ type SystemgeConnection struct {
 
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
-	processingChannel chan func()
-	waitGroup         sync.WaitGroup
+	processMutex              sync.Mutex
+	processingChannel         chan func()
+	processingLoopStopChannel chan bool
+	waitGroup                 sync.WaitGroup
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -93,11 +95,6 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 	if config.RateLimiterMessages != nil {
 		connection.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
-	if connection.config.ProcessSequentially {
-		go connection.processingLoopSequentially()
-	} else {
-		go connection.processingLoopConcurrently()
-	}
 	go connection.receiveLoop()
 	return connection
 }
@@ -105,6 +102,7 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 func (connection *SystemgeConnection) Close() {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
+
 	if connection.closed {
 		return
 	}
@@ -121,10 +119,14 @@ func (connection *SystemgeConnection) Close() {
 		connection.rateLimiterMessages = nil
 	}
 
-	processingChannel := connection.processingChannel
+	connection.processMutex.Lock()
+	if connection.processingLoopStopChannel != nil {
+		connection.waitGroup.Wait()
+	}
+	connection.processMutex.Unlock()
+
+	close(connection.processingChannel)
 	connection.processingChannel = nil
-	connection.waitGroup.Wait()
-	close(processingChannel)
 }
 
 func (connection *SystemgeConnection) GetName() string {

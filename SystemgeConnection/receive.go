@@ -1,6 +1,8 @@
 package SystemgeConnection
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -13,7 +15,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 		connection.infoLogger.Log("Started receiving messages")
 	}
 
-	for connection.processingChannel != nil {
+	for {
 		select {
 		case <-connection.closeChannel:
 			if connection.infoLogger != nil {
@@ -41,8 +43,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 				infoLogger.Log("Received message #" + Helpers.Uint64ToString(messageId))
 			}
 			connection.processingChannel <- func() {
-				err := connection.processMessage(messageBytes, messageId)
-				if err != nil {
+				if err := connection.processMessage(messageBytes, messageId); err != nil {
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(messageId), err).Error())
 					}
@@ -52,46 +53,118 @@ func (connection *SystemgeConnection) receiveLoop() {
 	}
 }
 
-func (connection *SystemgeConnection) processingLoopSequentially() {
-	if connection.infoLogger != nil {
-		connection.infoLogger.Log("Starting processing messages sequentially")
+func (connection *SystemgeConnection) ProcessNextMessage() error {
+	connection.processMutex.Lock()
+	defer connection.processMutex.Unlock()
+	if connection.processingChannel == nil {
+		return Error.New("Connection closed", nil)
 	}
-	for process := range connection.processingChannel {
+	if connection.processingLoopStopChannel != nil {
+		return Error.New("Processing loop already running", nil)
+	}
+	var timeout <-chan time.Time
+	if connection.config.TcpReceiveTimeoutMs > 0 {
+		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)
+	}
+	select {
+	case process := <-connection.processingChannel:
 		if process == nil {
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Stopping processing messages sequentially")
-			}
-			return
-		}
-		if len(connection.processingChannel) >= cap(connection.processingChannel)-1 {
-			if connection.errorLogger != nil {
-				connection.errorLogger.Log("Processing channel capacity reached")
-			}
-			if connection.mailer != nil {
-				err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
-				if err != nil {
-					if connection.errorLogger != nil {
-						connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
-					}
-				}
-			}
+			return Error.New("Connection closed", nil)
 		}
 		process()
+		return nil
+	case <-timeout:
+		return Error.New("Timeout while waiting for message", nil)
 	}
 }
 
-func (connection *SystemgeConnection) processingLoopConcurrently() {
+func (connection *SystemgeConnection) StopProcessingLoop() error {
+	connection.processMutex.Lock()
+	defer connection.processMutex.Unlock()
+	if connection.processingChannel == nil {
+		return Error.New("Connection closed", nil)
+	}
+	if connection.processingLoopStopChannel == nil {
+		return Error.New("Processing loop not running", nil)
+	}
+	close(connection.processingLoopStopChannel)
+	return nil
+}
+
+func (connection *SystemgeConnection) StartProcessingLoopSequentially() {
+	connection.processMutex.Lock()
+	if connection.processingLoopStopChannel != nil {
+		connection.processMutex.Unlock()
+		return
+	}
+	connection.processingLoopStopChannel = make(chan bool)
+	connection.processMutex.Unlock()
+
+	if connection.infoLogger != nil {
+		connection.infoLogger.Log("Starting processing messages sequentially")
+	}
+	for {
+		select {
+		case process := <-connection.processingChannel:
+			if process == nil {
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Stopping processing messages sequentially")
+				}
+				return
+			}
+			if len(connection.processingChannel) >= cap(connection.processingChannel)-1 {
+				if connection.errorLogger != nil {
+					connection.errorLogger.Log("Processing channel capacity reached")
+				}
+				if connection.mailer != nil {
+					err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
+					if err != nil {
+						if connection.errorLogger != nil {
+							connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						}
+					}
+				}
+			}
+			process()
+		case <-connection.processingLoopStopChannel:
+			if connection.infoLogger != nil {
+				connection.infoLogger.Log("Stopping processing messages sequentially")
+			}
+			connection.processingLoopStopChannel = nil
+			return
+		}
+	}
+}
+
+func (connection *SystemgeConnection) StartProcessingLoopConcurrently() {
+	connection.processMutex.Lock()
+	if connection.processingLoopStopChannel != nil {
+		connection.processMutex.Unlock()
+		return
+	}
+	connection.processingLoopStopChannel = make(chan bool)
+	connection.processMutex.Unlock()
+
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Starting processing messages concurrently")
 	}
-	for process := range connection.processingChannel {
-		if process == nil {
+	for {
+		select {
+		case process := <-connection.processingChannel:
+			if process == nil {
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Stopping processing messages concurrently")
+				}
+				return
+			}
+			go process()
+		case <-connection.processingLoopStopChannel:
 			if connection.infoLogger != nil {
 				connection.infoLogger.Log("Stopping processing messages concurrently")
 			}
+			connection.processingLoopStopChannel = nil
 			return
 		}
-		go process()
 	}
 }
 
@@ -113,7 +186,7 @@ func (connection *SystemgeConnection) processMessage(messageBytes []byte, messag
 		return Error.New("failed to validate message", err)
 	}
 	if message.IsResponse() {
-		if err := connection.AddSyncResponse(message); err != nil {
+		if err := connection.addSyncResponse(message); err != nil {
 			connection.invalidMessagesReceived.Add(1)
 			return Error.New("failed to add sync response message", err)
 		}

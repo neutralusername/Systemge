@@ -30,6 +30,8 @@ type SystemgeServer struct {
 	mutex              sync.Mutex
 	handlerStopChannel chan bool
 
+	waitGroup sync.WaitGroup
+
 	errorLogger   *Tools.Logger
 	warningLogger *Tools.Logger
 	infoLogger    *Tools.Logger
@@ -92,7 +94,7 @@ func (server *SystemgeServer) Start() error {
 	}
 	server.listener = listener
 	server.handlerStopChannel = make(chan bool)
-	go server.handleConnections(server.handlerStopChannel)
+	go server.handleConnections()
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server started")
@@ -113,16 +115,17 @@ func (server *SystemgeServer) Stop() error {
 	}
 
 	server.listener.Close()
-	handlerStopChannel := server.handlerStopChannel
-	server.handlerStopChannel = nil
-	<-handlerStopChannel
-	server.listener = nil
+	close(server.handlerStopChannel)
 
 	server.mutex.Lock()
 	for _, connection := range server.clients {
 		connection.Close()
 	}
 	server.mutex.Unlock()
+
+	server.waitGroup.Wait()
+	server.handlerStopChannel = nil
+	server.listener = nil
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server stopped")
@@ -137,68 +140,6 @@ func (server *SystemgeServer) GetName() string {
 
 func (server *SystemgeServer) GetStatus() int {
 	return server.status
-}
-
-func (server *SystemgeServer) handleConnections(handlerStopChannel chan bool) {
-	if server.infoLogger != nil {
-		server.infoLogger.Log("connection handler started")
-	}
-
-	for server.handlerStopChannel == handlerStopChannel {
-		connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig, server.messageHandler)
-		if err != nil {
-			if server.warningLogger != nil {
-				server.warningLogger.Log(Error.New("failed to accept connection", err).Error())
-			}
-			continue
-		}
-		if server.infoLogger != nil {
-			server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
-		}
-
-		if server.onConnectHandler != nil {
-			err := server.onConnectHandler(connection)
-			if err != nil {
-				if server.warningLogger != nil {
-					server.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
-				}
-				connection.Close()
-				continue
-			}
-		}
-
-		server.mutex.Lock()
-		if _, ok := server.clients[connection.GetName()]; ok {
-			server.mutex.Unlock()
-			if server.warningLogger != nil {
-				server.warningLogger.Log("connection \"" + connection.GetName() + "\" already exists")
-			}
-			connection.Close()
-			continue
-		}
-		server.clients[connection.GetName()] = connection
-		server.mutex.Unlock()
-		go func() {
-			<-connection.GetCloseChannel()
-			if server.onDisconnectHandler != nil {
-				server.onDisconnectHandler(connection.GetName(), connection.GetAddress())
-			}
-			server.mutex.Lock()
-			delete(server.clients, connection.GetName())
-			server.mutex.Unlock()
-			if server.infoLogger != nil {
-				server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
-			}
-		}()
-		if server.infoLogger != nil {
-			server.infoLogger.Log("receiver for connection \"" + connection.GetName() + "\" started")
-		}
-	}
-	close(handlerStopChannel)
-
-	if server.infoLogger != nil {
-		server.infoLogger.Log("connection handler stopped")
-	}
 }
 
 func (server *SystemgeServer) GetBlacklist() *Tools.AccessControlList {
