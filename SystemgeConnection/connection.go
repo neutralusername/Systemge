@@ -42,11 +42,11 @@ type SystemgeConnection struct {
 
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
-	processMutex              sync.Mutex
-	processingChannel         chan *messageInProcess
-	processingLoopStopChannel chan bool
-	unprocessedMessages       atomic.Int64
-	waitGroup                 sync.WaitGroup
+	processMutex                sync.Mutex
+	processingChannel           chan *messageInProcess
+	processingLoopStopChannel   chan bool
+	messagesInProcessingChannel atomic.Int64
+	waitGroup                   sync.WaitGroup
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter

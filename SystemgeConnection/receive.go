@@ -24,14 +24,14 @@ func (connection *SystemgeConnection) receiveLoop() {
 			connection.Close()
 			return
 		default:
-			connection.unprocessedMessages.Add(1)
+			connection.messagesInProcessingChannel.Add(1)
 			connection.waitGroup.Add(1)
 			messageBytes, err := connection.receive()
 			if err != nil {
 				if connection.warningLogger != nil {
 					connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
 				}
-				connection.unprocessedMessages.Add(-1)
+				connection.messagesInProcessingChannel.Add(-1)
 				connection.waitGroup.Done()
 				if Tcp.IsConnectionClosed(err) {
 					connection.Close()
@@ -46,7 +46,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 			}
 			if err := connection.checkRateLimits(messageBytes); err != nil {
 				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
+				connection.messagesInProcessingChannel.Add(-1)
 				connection.waitGroup.Done()
 				if connection.errorLogger != nil {
 					connection.errorLogger.Log(Error.New("failed to check rate limits for message #"+Helpers.Uint64ToString(messageId), err).Error())
@@ -56,7 +56,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 			message, err := Message.Deserialize(messageBytes, connection.GetName())
 			if err != nil {
 				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
+				connection.messagesInProcessingChannel.Add(-1)
 				connection.waitGroup.Done()
 				if warningLogger := connection.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("failed to deserialize message #"+Helpers.Uint64ToString(messageId), err).Error())
@@ -65,7 +65,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 			}
 			if err := connection.validateMessage(message); err != nil {
 				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
+				connection.messagesInProcessingChannel.Add(-1)
 				connection.waitGroup.Done()
 				if warningLogger := connection.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("failed to validate message #"+Helpers.Uint64ToString(messageId), err).Error())
@@ -84,8 +84,8 @@ func (connection *SystemgeConnection) receiveLoop() {
 	}
 }
 
-func (connection *SystemgeConnection) UnprocessedMessages() int64 {
-	return connection.unprocessedMessages.Load()
+func (connection *SystemgeConnection) MessagesInProcessingChannel() int64 {
+	return connection.messagesInProcessingChannel.Load()
 }
 
 func (connection *SystemgeConnection) GetNextMessage() (*Message.Message, error) {
@@ -104,7 +104,7 @@ func (connection *SystemgeConnection) GetNextMessage() (*Message.Message, error)
 			connection.infoLogger.Log("Returned message # in GetNextMessage" + Helpers.Uint64ToString(message.id))
 		}
 		connection.waitGroup.Done()
-		connection.unprocessedMessages.Add(-1)
+		connection.messagesInProcessingChannel.Add(-1)
 		return message.message, nil
 	case <-timeout:
 		return nil, Error.New("Timeout while waiting for message", nil)
@@ -158,7 +158,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 						infoLogger.Log("Processed message #" + Helpers.Uint64ToString(message.id))
 					}
 				}
-				connection.unprocessedMessages.Add(-1)
+				connection.messagesInProcessingChannel.Add(-1)
 				connection.waitGroup.Done()
 			case <-connection.processingLoopStopChannel:
 				if connection.infoLogger != nil {
@@ -197,7 +197,7 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 							infoLogger.Log("Processed message #" + Helpers.Uint64ToString(message.id))
 						}
 					}
-					connection.unprocessedMessages.Add(-1)
+					connection.messagesInProcessingChannel.Add(-1)
 					connection.waitGroup.Done()
 				}()
 			case <-connection.processingLoopStopChannel:
