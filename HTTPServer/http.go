@@ -27,7 +27,6 @@ type HTTPServer struct {
 	httpServer     *http.Server
 	blacklist      *Tools.AccessControlList
 	whitelist      *Tools.AccessControlList
-	handlers       Handlers
 	requestCounter atomic.Uint64
 
 	mux *CustomMux
@@ -43,13 +42,11 @@ func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
 	server := &HTTPServer{
 		mux:       NewCustomMux(),
 		config:    config,
-		handlers:  handlers,
 		blacklist: Tools.NewAccessControlList(config.TcpListenerConfig.Blacklist),
 		whitelist: Tools.NewAccessControlList(config.TcpListenerConfig.Whitelist),
 	}
 	for pattern, handler := range handlers {
-		handlers[pattern] = server.httpRequestWrapper(handler)
-		server.mux.AddRoute(pattern, handlers[pattern])
+		server.mux.AddRoute(pattern, server.httpRequestWrapper(handler))
 	}
 	if config.ErrorLoggerPath != "" {
 		file := Helpers.OpenFileAppend(config.ErrorLoggerPath)
