@@ -3,7 +3,6 @@ package Oauth2Server
 import (
 	"net/http"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 
 	"golang.org/x/oauth2"
@@ -12,19 +11,6 @@ import (
 type oauth2SessionRequest struct {
 	token          *oauth2.Token
 	sessionChannel chan<- *session
-}
-
-func (app *Server) GetHTTPComponentConfig() *Config.HTTPServer {
-	return &Config.HTTPServer{
-		TcpListenerConfig: app.config.TcpListenerConfig,
-	}
-}
-
-func (app *Server) GetHTTPMessageHandlers() map[string]http.HandlerFunc {
-	return map[string]http.HandlerFunc{
-		app.config.AuthPath:         app.oauth2Auth(),
-		app.config.AuthCallbackPath: app.oauth2AuthCallback(),
-	}
 }
 
 func (server *Server) oauth2AuthCallback() http.HandlerFunc {

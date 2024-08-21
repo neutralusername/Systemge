@@ -1,15 +1,20 @@
 package Oauth2Server
 
 import (
+	"net/http"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Server struct {
+	status      int
+	statusMutex sync.Mutex
+
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config.Oauth2
 
@@ -44,28 +49,47 @@ func New(config *Config.Oauth2) *Server {
 	}
 	server.httpServer = HTTPServer.New(&Config.HTTPServer{
 		TcpListenerConfig: config.TcpListenerConfig,
-	}, server.GetHTTPMessageHandlers())
+	}, map[string]http.HandlerFunc{
+		server.config.AuthPath:         server.oauth2Auth(),
+		server.config.AuthCallbackPath: server.oauth2AuthCallback(),
+	})
 	return server
 }
 
-func (server *Server) Start() {
-	go func() {
-		err := server.httpServer.Start()
-		if err != nil {
-			panic(err)
-		}
-	}()
+func (server *Server) Start() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STOPPED {
+		return Error.New("Server is not in stopped state", nil)
+	}
+	server.status = Status.PENDING
+	err := server.httpServer.Start()
+	if err != nil {
+		server.status = Status.STOPPED
+		return err
+	}
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
 	go handleSessionRequests(server)
+	server.status = Status.STARTED
+	return nil
 }
 
-func (server *Server) Stop() {
+func (server *Server) Stop() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STARTED {
+		return Error.New("Server is not in started state", nil)
+	}
+	server.status = Status.PENDING
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	server.httpServer.Stop()
 	close(server.sessionRequestChannel)
 	server.removeAllSessions()
+	server.status = Status.STOPPED
+	return nil
 }
 
 func handleSessionRequests(server *Server) {
