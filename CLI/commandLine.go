@@ -9,6 +9,8 @@ import (
 
 func Start(commandHandlers Dashboard.CommandHandlers) {
 	println("Welcome to the Systemge command line interface")
+	println("Type 'exit' to exit")
+	println("Type your command followed by arguments separated by spaces")
 	for {
 		print("> ")
 		var command string
