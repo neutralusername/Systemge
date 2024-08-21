@@ -3,6 +3,7 @@ package Dashboard
 import "encoding/json"
 
 type CommandHandler func([]string) (string, error)
+type CommandHandlers map[string]CommandHandler
 
 type Command struct {
 	Name    string   `json:"name"`
