@@ -63,14 +63,14 @@ func (server *Server) Start() error {
 		return Error.New("Server is not in stopped state", nil)
 	}
 	server.status = Status.PENDING
+	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
 	err := server.httpServer.Start()
 	if err != nil {
 		server.status = Status.STOPPED
+		close(server.sessionRequestChannel)
+		server.sessionRequestChannel = nil
 		return err
 	}
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
 	go handleSessionRequests(server)
 	server.status = Status.STARTED
 	return nil
@@ -83,11 +83,18 @@ func (server *Server) Stop() error {
 		return Error.New("Server is not in started state", nil)
 	}
 	server.status = Status.PENDING
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
 	server.httpServer.Stop()
 	close(server.sessionRequestChannel)
-	server.removeAllSessions()
+
+	server.mutex.Lock()
+	for _, session := range server.sessions {
+		session.watchdog.Stop()
+		session.watchdog = nil
+		delete(server.sessions, session.sessionId)
+		delete(server.identities, session.identity)
+	}
+	server.mutex.Unlock()
+
 	server.status = Status.STOPPED
 	return nil
 }

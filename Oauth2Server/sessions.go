@@ -65,12 +65,3 @@ func (server *Server) getRemoveSessionFunc(session *session) func() {
 		}
 	}
 }
-
-func (server *Server) removeAllSessions() {
-	for _, session := range server.sessions {
-		session.watchdog.Stop()
-		session.watchdog = nil
-		delete(server.sessions, session.sessionId)
-		delete(server.identities, session.identity)
-	}
-}
