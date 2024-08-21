@@ -27,6 +27,11 @@ func Start(commandHandlers Dashboard.CommandHandlers) {
 			println("Command not found")
 			continue
 		}
-		commandHandler(segments[1:])
+		result, err := commandHandler(segments[1:])
+		if err != nil {
+			println("Error: " + err.Error())
+			continue
+		}
+		println(result)
 	}
 }
