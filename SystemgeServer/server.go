@@ -114,8 +114,8 @@ func (server *SystemgeServer) Stop() error {
 		server.infoLogger.Log("stopping server")
 	}
 
-	server.listener.Close()
 	close(server.handlerStopChannel)
+	server.listener.Close()
 
 	server.mutex.Lock()
 	for _, connection := range server.clients {
