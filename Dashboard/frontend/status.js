@@ -9,7 +9,7 @@ export class status extends React.Component {
 	render() {
 		return React.createElement(
 			"div", {
-				className: "nodeStatus",
+				className: "status",
 				style: {
 					display: "flex",
 					flexDirection: "column",
@@ -18,7 +18,7 @@ export class status extends React.Component {
 			}, 
 			React.createElement(
 				"div", {
-					className: "nodeStatus",
+					className: "status",
 					style: {
 						display: "flex",
 						alignItems: "center",

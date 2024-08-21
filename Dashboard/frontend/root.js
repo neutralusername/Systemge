@@ -237,7 +237,7 @@ export class root extends React.Component {
     renderMultiLineGraph(moduleName) {
         let module = this.state.modules[moduleName];
         let dataSet = {};
-        let colors = this.getRandomDistinctColors(this.state.metricsCount);
+        let colors = this.getRandomDistinctColors(module.metricNames.length);
         let legend = module.metricNames;
         let labels = [];
         Object.keys(module.metrics).forEach((dateTime) => {

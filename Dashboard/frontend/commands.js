@@ -53,7 +53,7 @@ export class commands extends React.Component {
 		}
 		return React.createElement(
 			"div", {
-				className: "nodeStatus",
+				className: "commands",
 				style: {
 					margin: "10px",
 					display: "flex",
