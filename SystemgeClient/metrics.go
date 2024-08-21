@@ -1,16 +1,54 @@
 package SystemgeClient
 
-func (client *SystemgeClient) GetConnectionAttemptsFailed() uint32 {
+func (client *SystemgeClient) GetMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"connection_attempts_failed":      client.GetConnectionAttemptsFailed(),
+		"connection_attempts_success":     client.GetConnectionAttemptsSuccess(),
+		"bytes_sent":                      client.GetBytesSent(),
+		"bytes_received":                  client.GetBytesReceived(),
+		"async_messages_sent":             client.GetAsyncMessagesSent(),
+		"sync_requests_sent":              client.GetSyncRequestsSent(),
+		"sync_success_responses_received": client.GetSyncSuccessResponsesReceived(),
+		"sync_failure_responses_received": client.GetSyncFailureResponsesReceived(),
+		"no_sync_response_received":       client.GetNoSyncResponseReceived(),
+		"async_messages_received":         client.GetAsyncMessagesReceived(),
+		"sync_requests_received":          client.GetSyncRequestsReceived(),
+		"invalid_messages_received":       client.GetInvalidMessagesReceived(),
+		"message_rate_limiter_exceeded":   client.GetMessageRateLimiterExceeded(),
+		"byte_rate_limiter_exceeded":      client.GetByteRateLimiterExceeded(),
+	}
+}
+
+func (client *SystemgeClient) RetrieveMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"connection_attempts_failed":      client.RetrieveConnectionAttemptsFailed(),
+		"connection_attempts_success":     client.RetrieveConnectionAttemptsSuccess(),
+		"bytes_sent":                      client.RetrieveBytesSent(),
+		"bytes_received":                  client.RetrieveBytesReceived(),
+		"async_messages_sent":             client.RetrieveAsyncMessagesSent(),
+		"sync_requests_sent":              client.RetrieveSyncRequestsSent(),
+		"sync_success_responses_received": client.RetrieveSyncSuccessResponsesReceived(),
+		"sync_failure_responses_received": client.RetrieveSyncFailureResponsesReceived(),
+		"no_sync_response_received":       client.RetrieveNoSyncResponseReceived(),
+		"async_messages_received":         client.RetrieveAsyncMessagesReceived(),
+		"sync_requests_received":          client.RetrieveSyncRequestsReceived(),
+		"invalid_messages_received":       client.RetrieveInvalidMessagesReceived(),
+		"message_rate_limiter_exceeded":   client.RetrieveMessageRateLimiterExceeded(),
+		"byte_rate_limiter_exceeded":      client.RetrieveByteRateLimiterExceeded(),
+	}
+}
+
+func (client *SystemgeClient) GetConnectionAttemptsFailed() uint64 {
 	return client.connectionAttemptsFailed.Load()
 }
-func (client *SystemgeClient) RetrieveConnectionAttemptsFailed() uint32 {
+func (client *SystemgeClient) RetrieveConnectionAttemptsFailed() uint64 {
 	return client.connectionAttemptsFailed.Swap(0)
 }
 
-func (client *SystemgeClient) GetConnectionAttemptsSuccess() uint32 {
+func (client *SystemgeClient) GetConnectionAttemptsSuccess() uint64 {
 	return client.connectionAttemptsSuccess.Load()
 }
-func (client *SystemgeClient) RetrieveConnectionAttemptsSuccess() uint32 {
+func (client *SystemgeClient) RetrieveConnectionAttemptsSuccess() uint64 {
 	return client.connectionAttemptsSuccess.Swap(0)
 }
 

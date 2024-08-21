@@ -10,14 +10,14 @@ import (
 )
 
 type client struct {
-	Name           string          `json:"name"`
-	Status         int             `json:"status"`
-	Commands       map[string]bool `json:"commands"`
-	Metrics        Metrics         `json:"metrics"`
-	HasStatusFunc  bool            `json:"hasStatusFunc"`
-	HasStartFunc   bool            `json:"hasStartFunc"`
-	HasStopFunc    bool            `json:"hasStopFunc"`
-	HasMetricsFunc bool            `json:"hasMetricsFunc"`
+	Name           string            `json:"name"`
+	Status         int               `json:"status"`
+	Commands       map[string]bool   `json:"commands"`
+	Metrics        map[string]uint64 `json:"metrics"`
+	HasStatusFunc  bool              `json:"hasStatusFunc"`
+	HasStartFunc   bool              `json:"hasStartFunc"`
+	HasStopFunc    bool              `json:"hasStopFunc"`
+	HasMetricsFunc bool              `json:"hasMetricsFunc"`
 
 	connection *SystemgeConnection.SystemgeConnection
 }

@@ -2,6 +2,48 @@ package SystemgeServer
 
 import "github.com/neutralusername/Systemge/Status"
 
+func (server *SystemgeServer) GetMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"connection_attempts":             server.GetConnectionAttempts(),
+		"failed_connections":              server.GetFailedConnections(),
+		"rejected_connections":            server.GetRejectedConnections(),
+		"accepted_connections":            server.GetAcceptedConnections(),
+		"bytes_sent":                      server.GetBytesSent(),
+		"bytes_received":                  server.GetBytesReceived(),
+		"async_messages_sent":             server.GetAsyncMessagesSent(),
+		"sync_requests_sent":              server.GetSyncRequestsSent(),
+		"sync_success_responses_received": server.GetSyncSuccessResponsesReceived(),
+		"sync_failure_responses_received": server.GetSyncFailureResponsesReceived(),
+		"no_sync_response_received":       server.GetNoSyncResponseReceived(),
+		"async_messages_received":         server.GetAsyncMessagesReceived(),
+		"sync_requests_received":          server.GetSyncRequestsReceived(),
+		"invalid_messages_received":       server.GetInvalidMessagesReceived(),
+		"message_rate_limiter_exceeded":   server.GetMessageRateLimiterExceeded(),
+		"byte_rate_limiter_exceeded":      server.GetByteRateLimiterExceeded(),
+	}
+}
+
+func (server *SystemgeServer) RetrieveMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"connection_attempts":             server.RetrieveConnectionAttempts(),
+		"failed_connections":              server.RetrieveFailedConnections(),
+		"rejected_connections":            server.RetrieveRejectedConnections(),
+		"accepted_connections":            server.RetrieveAcceptedConnections(),
+		"bytes_sent":                      server.RetrieveBytesSent(),
+		"bytes_received":                  server.RetrieveBytesReceived(),
+		"async_messages_sent":             server.RetrieveAsyncMessagesSent(),
+		"sync_requests_sent":              server.RetrieveSyncRequestsSent(),
+		"sync_success_responses_received": server.RetrieveSyncSuccessResponsesReceived(),
+		"sync_failure_responses_received": server.RetrieveSyncFailureResponsesReceived(),
+		"no_sync_response_received":       server.RetrieveNoSyncResponseReceived(),
+		"async_messages_received":         server.RetrieveAsyncMessagesReceived(),
+		"sync_requests_received":          server.RetrieveSyncRequestsReceived(),
+		"invalid_messages_received":       server.RetrieveInvalidMessagesReceived(),
+		"message_rate_limiter_exceeded":   server.RetrieveMessageRateLimiterExceeded(),
+		"byte_rate_limiter_exceeded":      server.RetrieveByteRateLimiterExceeded(),
+	}
+}
+
 func (server *SystemgeServer) GetConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()

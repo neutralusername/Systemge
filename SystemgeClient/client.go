@@ -37,12 +37,12 @@ type SystemgeClient struct {
 	infoLogger    *Tools.Logger
 	mailer        *Tools.Mailer
 
-	ongoingConnectionAttempts atomic.Int32
+	ongoingConnectionAttempts atomic.Int64
 
 	// metrics
 
-	connectionAttemptsFailed  atomic.Uint32
-	connectionAttemptsSuccess atomic.Uint32
+	connectionAttemptsFailed  atomic.Uint64
+	connectionAttemptsSuccess atomic.Uint64
 }
 
 func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(string, string), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
