@@ -40,6 +40,7 @@ type SystemgeConnection struct {
 	processMutex              sync.Mutex
 	processingChannel         chan func()
 	processingLoopStopChannel chan bool
+	unprocessedMessages       atomic.Int64
 	waitGroup                 sync.WaitGroup
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
@@ -107,8 +108,8 @@ func (connection *SystemgeConnection) Close() {
 		return
 	}
 	connection.closed = true
-	connection.netConn.Close()
 	close(connection.closeChannel)
+	connection.netConn.Close()
 
 	if connection.rateLimiterBytes != nil {
 		connection.rateLimiterBytes.Close()
@@ -122,11 +123,15 @@ func (connection *SystemgeConnection) Close() {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.waitGroup.Wait()
+		close(connection.processingLoopStopChannel)
 	}
 	connection.processMutex.Unlock()
+}
 
-	close(connection.processingChannel)
-	connection.processingChannel = nil
+func (connection *SystemgeConnection) IsClosed() bool {
+	connection.closedMutex.Lock()
+	defer connection.closedMutex.Unlock()
+	return connection.closed
 }
 
 func (connection *SystemgeConnection) GetName() string {

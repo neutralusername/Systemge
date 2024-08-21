@@ -24,12 +24,14 @@ func (connection *SystemgeConnection) receiveLoop() {
 			connection.Close()
 			return
 		default:
+			connection.unprocessedMessages.Add(1)
 			connection.waitGroup.Add(1)
 			messageBytes, err := connection.receive()
 			if err != nil {
 				if connection.warningLogger != nil {
 					connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
 				}
+				connection.unprocessedMessages.Add(-1)
 				connection.waitGroup.Done()
 				if Tcp.IsConnectionClosed(err) {
 					connection.Close()
@@ -48,17 +50,20 @@ func (connection *SystemgeConnection) receiveLoop() {
 						connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(messageId), err).Error())
 					}
 				}
+				connection.unprocessedMessages.Add(-1)
+				connection.waitGroup.Done()
 			}
 		}
 	}
 }
 
+func (connection *SystemgeConnection) UnprocessedMessages() int64 {
+	return connection.unprocessedMessages.Load()
+}
+
 func (connection *SystemgeConnection) ProcessNextMessage() error {
 	connection.processMutex.Lock()
 	defer connection.processMutex.Unlock()
-	if connection.processingChannel == nil {
-		return Error.New("Connection closed", nil)
-	}
 	if connection.processingLoopStopChannel != nil {
 		return Error.New("Processing loop already running", nil)
 	}
@@ -81,9 +86,6 @@ func (connection *SystemgeConnection) ProcessNextMessage() error {
 func (connection *SystemgeConnection) StopProcessingLoop() error {
 	connection.processMutex.Lock()
 	defer connection.processMutex.Unlock()
-	if connection.processingChannel == nil {
-		return Error.New("Connection closed", nil)
-	}
 	if connection.processingLoopStopChannel == nil {
 		return Error.New("Processing loop not running", nil)
 	}
@@ -106,13 +108,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() {
 	for {
 		select {
 		case process := <-connection.processingChannel:
-			if process == nil {
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Stopping processing messages sequentially")
-				}
-				return
-			}
-			if len(connection.processingChannel) >= cap(connection.processingChannel)-1 {
+			if connection.config.ProcessingChannelSize > 0 && len(connection.processingChannel) >= connection.config.ProcessingChannelSize-1 {
 				if connection.errorLogger != nil {
 					connection.errorLogger.Log("Processing channel capacity reached")
 				}
@@ -151,12 +147,6 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() {
 	for {
 		select {
 		case process := <-connection.processingChannel:
-			if process == nil {
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Stopping processing messages concurrently")
-				}
-				return
-			}
 			go process()
 		case <-connection.processingLoopStopChannel:
 			if connection.infoLogger != nil {
@@ -169,7 +159,6 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() {
 }
 
 func (connection *SystemgeConnection) processMessage(messageBytes []byte, messageId uint64) error {
-	defer connection.waitGroup.Done()
 	if infoLogger := connection.infoLogger; infoLogger != nil {
 		infoLogger.Log("Processing message #" + Helpers.Uint64ToString(messageId))
 	}
