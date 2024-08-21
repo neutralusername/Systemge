@@ -2,13 +2,15 @@ package Dashboard
 
 import "encoding/json"
 
-type Metrics struct {
-	Metrics map[string]uint64 `json:"metrics"`
-	Name    string            `json:"name"`
+type Metrics map[string]uint64
+
+type metrics struct {
+	Metrics Metrics `json:"metrics"`
+	Name    string  `json:"name"`
 }
 
-func unmarshalMetrics(data string) (Metrics, error) {
-	var m Metrics
+func unmarshalMetrics(data string) (metrics, error) {
+	var m metrics
 	err := json.Unmarshal([]byte(data), &m)
 	return m, err
 }

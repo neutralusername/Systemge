@@ -16,12 +16,12 @@ type DashboardClient struct {
 
 	startFunc      func() error
 	stopFunc       func() error
-	getMetricsFunc func() map[string]uint64
+	getMetricsFunc func() Metrics
 	getStatusFunc  func() int
 	commands       CommandHandlers
 }
 
-func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands CommandHandlers) *DashboardClient {
+func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() Metrics, getStatusFunc func() int, commands CommandHandlers) *DashboardClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -74,7 +74,7 @@ func (app *DashboardClient) getIntroductionHandler(message *Message.Message) (st
 	if app.getStatusFunc != nil {
 		status = app.getStatusFunc()
 	}
-	metrics := make(map[string]uint64)
+	metrics := make(Metrics)
 	if app.getMetricsFunc != nil {
 		metrics = app.getMetricsFunc()
 	}
@@ -101,7 +101,7 @@ func (app *DashboardClient) getMetricsHandler(message *Message.Message) (string,
 	if app.getMetricsFunc == nil {
 		return "", Error.New("No metrics available", nil)
 	}
-	metrics := Metrics{
+	metrics := metrics{
 		Metrics: app.getMetricsFunc(),
 		Name:    app.config.Name,
 	}
