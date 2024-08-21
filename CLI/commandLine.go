@@ -10,7 +10,7 @@ import (
 func Start(commandHandlers Dashboard.CommandHandlers) {
 	println("Welcome to the Systemge command line interface")
 	for {
-		print("Enter a command: ")
+		print("> ")
 		var command string
 		_, _ = fmt.Scanln(&command)
 		if command == "exit" {
