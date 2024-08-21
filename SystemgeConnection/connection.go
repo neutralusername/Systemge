@@ -11,6 +11,11 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+type messageInProcess struct {
+	message *Message.Message
+	id      uint64
+}
+
 type SystemgeConnection struct {
 	name       string
 	config     *Config.SystemgeConnection
@@ -38,7 +43,7 @@ type SystemgeConnection struct {
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
 	processMutex              sync.Mutex
-	processingChannel         chan func()
+	processingChannel         chan *messageInProcess
 	processingLoopStopChannel chan bool
 	unprocessedMessages       atomic.Int64
 	waitGroup                 sync.WaitGroup
@@ -75,7 +80,7 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 		randomizer:           Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:         make(chan bool),
 		syncResponseChannels: make(map[string]chan *Message.Message),
-		processingChannel:    make(chan func(), config.ProcessingChannelSize),
+		processingChannel:    make(chan *messageInProcess, config.ProcessingChannelSize),
 		messageHandler:       messageHandler,
 	}
 	if config.InfoLoggerPath != "" {
@@ -107,6 +112,7 @@ func (connection *SystemgeConnection) Close() {
 	if connection.closed {
 		return
 	}
+
 	connection.closed = true
 	close(connection.closeChannel)
 	connection.netConn.Close()

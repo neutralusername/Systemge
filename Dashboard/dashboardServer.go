@@ -136,8 +136,16 @@ func (app *DashboardServer) Close() {
 func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {
 	errChannel := make(chan error)
 	go func() {
-		err := connection.ProcessNextMessage()
-		errChannel <- err
+		message, err := connection.GetNextMessage()
+		if err != nil {
+			errChannel <- err
+			return
+		}
+		err = connection.ProcessMessage(message)
+		if err != nil {
+			errChannel <- err
+		}
+		close(errChannel)
 	}()
 	response, err := connection.SyncRequest(Message.TOPIC_GET_INTRODUCTION, "")
 	if err != nil {

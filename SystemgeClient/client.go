@@ -137,7 +137,6 @@ func (client *SystemgeClient) Stop() error {
 	if client.infoLogger != nil {
 		client.infoLogger.Log("stopping client")
 	}
-
 	close(client.stopChannel)
 
 	client.mutex.Lock()

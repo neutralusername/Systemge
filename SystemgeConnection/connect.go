@@ -28,25 +28,26 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 
 func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection, error) {
 	name := ""
-	channel := make(chan struct{})
-	conn := New(config, netConn, "", SystemgeMessageHandler.New(SystemgeMessageHandler.AsyncMessageHandlers{
+	connection := New(config, netConn, "", messageHandler)
+	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
+	if err != nil {
+		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	message, err := connection.GetNextMessage()
+	if err != nil {
+		return nil, Error.New("Failed to process \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	SystemgeMessageHandler.New(SystemgeMessageHandler.AsyncMessageHandlers{
 		Message.TOPIC_NAME: func(message *Message.Message) {
 			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
 				return
 			}
 			name = message.GetPayload()
-			close(channel)
 		},
-	}, nil))
-	err := conn.AsyncMessage(Message.TOPIC_NAME, clientName)
-	if err != nil {
-		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
+	}, nil).HandleAsyncMessage(message)
+	if name == "" {
+		return nil, Error.New("Server did not respond with a name", nil)
 	}
-	err = conn.ProcessNextMessage()
-	if err != nil {
-		return nil, Error.New("Failed to process \""+Message.TOPIC_NAME+"\" message", err)
-	}
-	conn.messageHandler = messageHandler
-	conn.name = name
-	return conn, nil
+	connection.name = name
+	return connection, nil
 }
