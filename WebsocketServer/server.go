@@ -19,6 +19,7 @@ type OnConnectHandler func(*WebsocketClient) error
 type OnDisconnectHandler func(*WebsocketClient)
 
 type MessageHandler func(*WebsocketClient, *Message.Message) error
+type MessageHandlers map[string]MessageHandler
 
 type WebsocketServer struct {
 	status      int
@@ -42,7 +43,7 @@ type WebsocketServer struct {
 	clients           map[string]*WebsocketClient            // websocketId -> client
 	groups            map[string]map[string]*WebsocketClient // groupId -> map[websocketId]client
 	clientGroups      map[string]map[string]bool             // websocketId -> map[groupId]bool
-	messageHandlers   map[string]MessageHandler
+	messageHandlers   MessageHandlers
 
 	messageHandlerMutex sync.Mutex
 	mutex               sync.RWMutex
@@ -56,7 +57,7 @@ type WebsocketServer struct {
 }
 
 // onConnectHandler, onDisconnectHandler may be nil
-func New(config *Config.WebsocketServer, messageHandlers map[string]MessageHandler, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
+func New(config *Config.WebsocketServer, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
 	if config == nil {
 		panic("config is nil")
 	}
