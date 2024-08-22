@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/neutralusername/Systemge/Dashboard"
+	"github.com/neutralusername/Systemge/Commands"
 )
 
-func Start(commandHandlers Dashboard.CommandHandlers) {
+func Start(commandHandlers Commands.Handlers) {
 	println("Welcome to the Systemge command line interface")
 	println("Type 'exit' to exit")
 	println("Type your command followed by arguments separated by spaces")

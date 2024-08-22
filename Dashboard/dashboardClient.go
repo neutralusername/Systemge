@@ -1,6 +1,7 @@
 package Dashboard
 
 import (
+	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
@@ -18,10 +19,10 @@ type DashboardClient struct {
 	stopFunc       func() error
 	getMetricsFunc func() map[string]uint64
 	getStatusFunc  func() int
-	commands       CommandHandlers
+	commands       Commands.Handlers
 }
 
-func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands CommandHandlers) *DashboardClient {
+func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *DashboardClient {
 	if config == nil {
 		panic("config is nil")
 	}
