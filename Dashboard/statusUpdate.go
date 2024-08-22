@@ -1,6 +1,6 @@
 package Dashboard
 
-type StatusUpdate struct {
+type statusUpdate struct {
 	Name   string `json:"name"`
 	Status int    `json:"status"`
 }

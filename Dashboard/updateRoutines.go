@@ -30,7 +30,7 @@ func (app *DashboardServer) statusUpdateRoutine() {
 						return
 					}
 					client.Status = status
-					app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(StatusUpdate{Name: client.Name, Status: status})))
+					app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: status})))
 				}
 			}()
 		}
