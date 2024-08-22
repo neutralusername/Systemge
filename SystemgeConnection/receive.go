@@ -79,12 +79,13 @@ func (connection *SystemgeConnection) receiveLoop() {
 				if err := connection.AddSyncResponse(message); err != nil {
 					connection.invalidMessagesReceived.Add(1)
 					connection.messagesInProcessingChannel.Add(-1)
-					connection.waitGroup.Done()
+
 					if warningLogger := connection.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
 					}
-					continue
 				}
+				connection.waitGroup.Done()
+				continue
 			} else {
 				connection.processingChannel <- &messageInProcess{
 					message: message,
