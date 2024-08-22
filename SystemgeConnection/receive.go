@@ -75,10 +75,21 @@ func (connection *SystemgeConnection) receiveLoop() {
 			if infoLogger := connection.infoLogger; infoLogger != nil {
 				infoLogger.Log("queueing message #" + Helpers.Uint64ToString(messageId) + " for processing")
 			}
-
-			connection.processingChannel <- &messageInProcess{
-				message: message,
-				id:      messageId,
+			if message.IsResponse() {
+				if err := connection.AddSyncResponse(message); err != nil {
+					connection.invalidMessagesReceived.Add(1)
+					connection.messagesInProcessingChannel.Add(-1)
+					connection.waitGroup.Done()
+					if warningLogger := connection.warningLogger; warningLogger != nil {
+						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
+					}
+					continue
+				}
+			} else {
+				connection.processingChannel <- &messageInProcess{
+					message: message,
+					id:      messageId,
+				}
 			}
 		}
 	}
@@ -213,12 +224,7 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 }
 
 func (connection *SystemgeConnection) ProcessMessage(message *Message.Message) error {
-	if message.IsResponse() {
-		if err := connection.AddSyncResponse(message); err != nil {
-			connection.invalidMessagesReceived.Add(1)
-			return Error.New("failed to add sync response message", err)
-		}
-	} else if connection.messageHandler != nil {
+	if connection.messageHandler != nil {
 		if message.GetSyncTokenToken() == "" {
 			connection.asyncMessagesReceived.Add(1)
 			err := connection.messageHandler.HandleAsyncMessage(message)
