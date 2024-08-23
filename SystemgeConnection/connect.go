@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection, error) {
+func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*SystemgeConnection, error) {
 	if config == nil {
 		return nil, Error.New("Config is nil", nil)
 	}
@@ -18,7 +18,7 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	if err != nil {
 		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
 	}
-	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn, messageHandler)
+	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn)
 	if err != nil {
 		netConn.Close()
 		return nil, Error.New("Failed to handshake with "+endpointConfig.Address, err)
@@ -26,9 +26,9 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	return connection, nil
 }
 
-func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) (*SystemgeConnection, error) {
+func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
 	name := ""
-	connection := New(config, netConn, "", messageHandler)
+	connection := New(config, netConn, "")
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)

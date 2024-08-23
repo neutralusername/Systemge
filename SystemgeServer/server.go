@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -24,7 +23,6 @@ type SystemgeServer struct {
 
 	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
 	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
-	messageHandler      *SystemgeMessageHandler.SystemgeMessageHandler
 
 	clients     map[string]*SystemgeConnection.SystemgeConnection // name -> connection
 	mutex       sync.Mutex
@@ -38,7 +36,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeServer {
+func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -56,7 +54,6 @@ func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnectio
 	}
 	server := &SystemgeServer{
 		config:              config,
-		messageHandler:      messageHandler,
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 

@@ -7,7 +7,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -40,8 +39,6 @@ type SystemgeConnection struct {
 
 	closeChannel chan bool
 
-	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
-
 	processMutex              sync.Mutex
 	processingChannel         chan *messageInProcess
 	processingLoopStopChannel chan bool
@@ -71,7 +68,7 @@ type SystemgeConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeConnection {
+func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
 	connection := &SystemgeConnection{
 		name:                 name,
 		config:               config,
@@ -80,7 +77,6 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 		closeChannel:         make(chan bool),
 		syncResponseChannels: make(map[string]chan *Message.Message),
 		processingChannel:    make(chan *messageInProcess, config.ProcessingChannelCapacity),
-		messageHandler:       messageHandler,
 	}
 	if config.InfoLoggerPath != "" {
 		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)

@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -17,8 +16,6 @@ type SystemgeClient struct {
 	statusMutex sync.RWMutex
 
 	config *Config.SystemgeClient
-
-	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
 	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
 	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
@@ -45,7 +42,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint64
 }
 
-func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
+func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -67,8 +64,6 @@ func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnectio
 
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
-
-		messageHandler: messageHandler,
 	}
 	if config.InfoLoggerPath != "" {
 		client.infoLogger = Tools.NewLogger("[Info: \""+client.GetName()+"\"] ", config.InfoLoggerPath)

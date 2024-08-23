@@ -90,7 +90,7 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 		"command": app.commandHandler,
 		"gc":      app.gcHandler,
 	}, app.onWebsocketConnectHandler, nil)
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler, nil)
+	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
 
 	err := app.httpServer.Start()
 	if err != nil {

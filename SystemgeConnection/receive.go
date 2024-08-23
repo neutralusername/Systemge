@@ -6,6 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -139,7 +140,7 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 	return nil
 }
 
-func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
+func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -155,7 +156,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 		for {
 			select {
 			case message := <-connection.processingChannel:
-				if err := connection.ProcessMessage(message.message); err != nil {
+				if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
 					}
@@ -176,7 +177,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 	return nil
 }
 
-func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
+func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -193,7 +194,7 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 			select {
 			case message := <-connection.processingChannel:
 				go func() {
-					if err := connection.ProcessMessage(message.message); err != nil {
+					if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
 						if connection.warningLogger != nil {
 							connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
 						}
@@ -215,18 +216,18 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 	return nil
 }
 
-func (connection *SystemgeConnection) ProcessMessage(message *Message.Message) error {
-	if connection.messageHandler != nil {
+func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) error {
+	if messageHandler != nil {
 		if message.GetSyncToken() == "" {
 			connection.asyncMessagesReceived.Add(1)
-			err := connection.messageHandler.HandleAsyncMessage(message)
+			err := messageHandler.HandleAsyncMessage(message)
 			if err != nil {
 				connection.invalidMessagesReceived.Add(1)
 				return Error.New("failed to handle async message", err)
 			}
 		} else {
 			connection.syncRequestsReceived.Add(1)
-			if responsePayload, err := connection.messageHandler.HandleSyncRequest(message); err != nil {
+			if responsePayload, err := messageHandler.HandleSyncRequest(message); err != nil {
 				if err := connection.send(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
 					return Error.New("failed to send failure response", err)
 				}
