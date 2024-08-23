@@ -35,7 +35,10 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	}
 	message, err := connection.GetNextMessage()
 	if err != nil {
-		return nil, Error.New("Failed to process \""+Message.TOPIC_NAME+"\" message", err)
+		return nil, Error.New("Failed to get next message", err)
+	}
+	if message.GetTopic() != Message.TOPIC_NAME {
+		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}
 	SystemgeMessageHandler.New(SystemgeMessageHandler.AsyncMessageHandlers{
 		Message.TOPIC_NAME: func(message *Message.Message) {
