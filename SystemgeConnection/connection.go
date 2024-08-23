@@ -124,8 +124,6 @@ func (connection *SystemgeConnection) Close() {
 		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
-
-	connection.processMutex.Unlock()
 }
 
 func (connection *SystemgeConnection) IsClosed() bool {
