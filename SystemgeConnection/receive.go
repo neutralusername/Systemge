@@ -129,6 +129,7 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 		return Error.New("Processing loop not running", nil)
 	}
 	close(connection.processingLoopStopChannel)
+	connection.processingLoopStopChannel = nil
 	return nil
 }
 
@@ -138,7 +139,8 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 		connection.processMutex.Unlock()
 		return Error.New("Processing loop already running", nil)
 	}
-	connection.processingLoopStopChannel = make(chan bool)
+	processingLoopStopChannel := make(chan bool)
+	connection.processingLoopStopChannel = processingLoopStopChannel
 	connection.processMutex.Unlock()
 	go func() {
 		if connection.infoLogger != nil {
@@ -171,11 +173,10 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 				}
 				connection.messagesInProcessingChannel.Add(-1)
 				connection.waitGroup.Done()
-			case <-connection.processingLoopStopChannel:
+			case <-processingLoopStopChannel:
 				if connection.infoLogger != nil {
 					connection.infoLogger.Log("Stopping processing messages sequentially")
 				}
-				connection.processingLoopStopChannel = nil
 				return
 			}
 		}
@@ -189,7 +190,8 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 		connection.processMutex.Unlock()
 		return Error.New("Processing loop already running", nil)
 	}
-	connection.processingLoopStopChannel = make(chan bool)
+	processingLoopStopChannel := make(chan bool)
+	connection.processingLoopStopChannel = processingLoopStopChannel
 	connection.processMutex.Unlock()
 	go func() {
 		if connection.infoLogger != nil {
@@ -211,11 +213,10 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 					connection.messagesInProcessingChannel.Add(-1)
 					connection.waitGroup.Done()
 				}()
-			case <-connection.processingLoopStopChannel:
+			case <-processingLoopStopChannel:
 				if connection.infoLogger != nil {
 					connection.infoLogger.Log("Stopping processing messages concurrently")
 				}
-				connection.processingLoopStopChannel = nil
 				return
 			}
 		}

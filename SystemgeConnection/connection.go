@@ -130,6 +130,7 @@ func (connection *SystemgeConnection) Close() {
 	if connection.processingLoopStopChannel != nil {
 		connection.waitGroup.Wait()
 		close(connection.processingLoopStopChannel)
+		connection.processingLoopStopChannel = nil
 	}
 	connection.processMutex.Unlock()
 }
