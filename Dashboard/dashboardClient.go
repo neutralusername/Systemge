@@ -65,6 +65,7 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 }
 
 func (app *DashboardClient) Close() {
+	app.systemgeConnection.StopProcessingLoop()
 	app.systemgeConnection.Close()
 }
 
