@@ -36,6 +36,7 @@ type syncResponseStruct struct {
 	err      error
 }
 
+// requires a call to Close() to stop the message handler (otherwise it will keep running until the program ends)
 func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler *AsyncMessageHandler, unknownTopicSyncHandler *SyncMessageHandler, queueSize int) *SequentialMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
