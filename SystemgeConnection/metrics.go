@@ -9,9 +9,9 @@ func (connection *SystemgeConnection) GetMetrics() map[string]uint64 {
 		"sync_success_responses_received": connection.GetSyncSuccessResponsesReceived(),
 		"sync_failure_responses_received": connection.GetSyncFailureResponsesReceived(),
 		"no_sync_response_received":       connection.GetNoSyncResponseReceived(),
-		"async_messages_received":         connection.GetAsyncMessagesReceived(),
-		"sync_requests_received":          connection.GetSyncRequestsReceived(),
 		"invalid_messages_received":       connection.GetInvalidMessagesReceived(),
+		"invalid_sync_responses_received": connection.GetInvalidSyncResponsesReceived(),
+		"valid_messages_received":         connection.GetValidMessagesReceived(),
 		"message_rate_limiter_exceeded":   connection.GetMessageRateLimiterExceeded(),
 		"byte_rate_limiter_exceeded":      connection.GetByteRateLimiterExceeded(),
 	}
@@ -26,9 +26,9 @@ func (connection *SystemgeConnection) RetrieveMetrics() map[string]uint64 {
 		"sync_success_responses_received": connection.RetrieveSyncSuccessResponsesReceived(),
 		"sync_failure_responses_received": connection.RetrieveSyncFailureResponsesReceived(),
 		"no_sync_response_received":       connection.RetrieveNoSyncResponseReceived(),
-		"async_messages_received":         connection.RetrieveAsyncMessagesReceived(),
-		"sync_requests_received":          connection.RetrieveSyncRequestsReceived(),
 		"invalid_messages_received":       connection.RetrieveInvalidMessagesReceived(),
+		"invalid_sync_responses_received": connection.RetrieveInvalidSyncResponsesReceived(),
+		"valid_messages_received":         connection.RetrieveValidMessagesReceived(),
 		"message_rate_limiter_exceeded":   connection.RetrieveMessageRateLimiterExceeded(),
 		"byte_rate_limiter_exceeded":      connection.RetrieveByteRateLimiterExceeded(),
 	}
@@ -83,25 +83,25 @@ func (connection *SystemgeConnection) RetrieveNoSyncResponseReceived() uint64 {
 	return connection.noSyncResponseReceived.Swap(0)
 }
 
-func (receiver *SystemgeConnection) GetAsyncMessagesReceived() uint64 {
-	return receiver.asyncMessagesReceived.Load()
-}
-func (receiver *SystemgeConnection) RetrieveAsyncMessagesReceived() uint64 {
-	return receiver.asyncMessagesReceived.Swap(0)
-}
-
-func (receiver *SystemgeConnection) GetSyncRequestsReceived() uint64 {
-	return receiver.syncRequestsReceived.Load()
-}
-func (receiver *SystemgeConnection) RetrieveSyncRequestsReceived() uint64 {
-	return receiver.syncRequestsReceived.Swap(0)
-}
-
 func (receiver *SystemgeConnection) GetInvalidMessagesReceived() uint64 {
 	return receiver.invalidMessagesReceived.Load()
 }
 func (receiver *SystemgeConnection) RetrieveInvalidMessagesReceived() uint64 {
 	return receiver.invalidMessagesReceived.Swap(0)
+}
+
+func (receiver *SystemgeConnection) GetInvalidSyncResponsesReceived() uint64 {
+	return receiver.invalidSyncResponsesReceived.Load()
+}
+func (receiver *SystemgeConnection) RetrieveInvalidSyncResponsesReceived() uint64 {
+	return receiver.invalidSyncResponsesReceived.Swap(0)
+}
+
+func (receiver *SystemgeConnection) GetValidMessagesReceived() uint64 {
+	return receiver.validMessagesReceived.Load()
+}
+func (receiver *SystemgeConnection) RetrieveValidMessagesReceived() uint64 {
+	return receiver.validMessagesReceived.Swap(0)
 }
 
 func (receiver *SystemgeConnection) GetMessageRateLimiterExceeded() uint64 {

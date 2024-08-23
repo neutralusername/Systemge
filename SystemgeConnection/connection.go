@@ -60,9 +60,9 @@ type SystemgeConnection struct {
 	syncFailureResponsesReceived atomic.Uint64
 	noSyncResponseReceived       atomic.Uint64
 
-	asyncMessagesReceived   atomic.Uint64
-	syncRequestsReceived    atomic.Uint64
-	invalidMessagesReceived atomic.Uint64
+	invalidMessagesReceived      atomic.Uint64
+	invalidSyncResponsesReceived atomic.Uint64
+	validMessagesReceived        atomic.Uint64
 
 	messageRateLimiterExceeded atomic.Uint64
 	byteRateLimiterExceeded    atomic.Uint64

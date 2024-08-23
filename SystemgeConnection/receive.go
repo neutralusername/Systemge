@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *SystemgeConnection) receiveLoop() {
@@ -80,7 +81,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 			}
 			if message.IsResponse() {
 				if err := connection.addSyncResponse(message); err != nil {
-					connection.invalidMessagesReceived.Add(1)
+					connection.invalidSyncResponsesReceived.Add(1)
 					if warningLogger := connection.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
 					}
@@ -88,9 +89,10 @@ func (connection *SystemgeConnection) receiveLoop() {
 				connection.unprocessedMessages.Add(-1)
 				continue
 			} else {
+				connection.validMessagesReceived.Add(1)
 				if connection.config.ProcessingChannelCapacity > 0 && len(connection.processingChannel) == cap(connection.processingChannel) {
 					if connection.warningLogger != nil {
-						connection.warningLogger.Log("Processing channel capacity reached")
+						connection.warningLogger.Log("Processing channel capacity reached for message #" + Helpers.Uint64ToString(messageId))
 					}
 				}
 				connection.processingChannel <- &messageInProcess{
@@ -140,6 +142,9 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 }
 
 func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler SystemgeMessageHandler.MessageHandler) error {
+	if messageHandler == nil {
+		return Error.New("No message handler set", nil)
+	}
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -156,8 +161,16 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHan
 			select {
 			case message := <-connection.processingChannel:
 				if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
-					if connection.warningLogger != nil {
-						connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
+					if connection.errorLogger != nil {
+						connection.errorLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
+					}
+					if connection.mailer != nil {
+						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error()))
+						if err != nil {
+							if connection.errorLogger != nil {
+								connection.errorLogger.Log(Error.New("Failed to send mail", err).Error())
+							}
+						}
 					}
 				} else {
 					if infoLogger := connection.infoLogger; infoLogger != nil {
@@ -194,8 +207,16 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHan
 			case message := <-connection.processingChannel:
 				go func() {
 					if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
-						if connection.warningLogger != nil {
-							connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
+						if connection.errorLogger != nil {
+							connection.errorLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
+						}
+						if connection.mailer != nil {
+							err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error()))
+							if err != nil {
+								if connection.errorLogger != nil {
+									connection.errorLogger.Log(Error.New("Failed to send mail", err).Error())
+								}
+							}
 						}
 					} else {
 						if infoLogger := connection.infoLogger; infoLogger != nil {
@@ -216,29 +237,24 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHan
 }
 
 func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler SystemgeMessageHandler.MessageHandler) error {
-	if messageHandler != nil {
-		if message.GetSyncToken() == "" {
-			connection.asyncMessagesReceived.Add(1)
-			err := messageHandler.HandleAsyncMessage(message)
-			if err != nil {
-				connection.invalidMessagesReceived.Add(1)
-				return Error.New("failed to handle async message", err)
-			}
-		} else {
-			connection.syncRequestsReceived.Add(1)
-			if responsePayload, err := messageHandler.HandleSyncRequest(message); err != nil {
-				if err := connection.send(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
-					return Error.New("failed to send failure response", err)
-				}
-			} else {
-				if err := connection.send(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
-					return Error.New("failed to send success response", err)
-				}
-			}
+	if messageHandler == nil {
+		return Error.New("no message handler set", nil)
+	}
+	if message.GetSyncToken() == "" {
+		err := messageHandler.HandleAsyncMessage(message)
+		if err != nil {
+			return Error.New("failed to handle async message", err)
 		}
 	} else {
-		connection.invalidMessagesReceived.Add(1)
-		return Error.New("no message handler available", nil)
+		if responsePayload, err := messageHandler.HandleSyncRequest(message); err != nil {
+			if err := connection.send(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
+				return Error.New("failed to send failure response", err)
+			}
+		} else {
+			if err := connection.send(message.NewSuccessResponse(responsePayload).Serialize()); err != nil {
+				return Error.New("failed to send success response", err)
+			}
+		}
 	}
 	return nil
 }

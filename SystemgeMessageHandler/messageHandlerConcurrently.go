@@ -44,12 +44,12 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(message *Mess
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	messageHandler.asyncMutex.Unlock()
 	if !exists {
-		messageHandler.unknownTopicsReceived.Add(1)
 		if messageHandler.unknwonAsyncTopicHandler != nil {
 			messageHandler.asyncMessagesHandled.Add(1)
 			messageHandler.unknwonAsyncTopicHandler(message)
 			return nil
 		} else {
+			messageHandler.unknownTopicsReceived.Add(1)
 			return Error.New("No handler for async message", nil)
 		}
 	}
@@ -63,12 +63,13 @@ func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(message *Messa
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.Unlock()
 	if !exists {
-		messageHandler.unknownTopicsReceived.Add(1)
 		if messageHandler.unknwonSyncTopicHandler != nil {
 			messageHandler.syncRequestsHandled.Add(1)
 			return messageHandler.unknwonSyncTopicHandler(message)
+		} else {
+			messageHandler.unknownTopicsReceived.Add(1)
+			return "", Error.New("No handler for sync message", nil)
 		}
-		return "", Error.New("No handler for sync message", nil)
 	}
 	messageHandler.syncRequestsHandled.Add(1)
 	return handler(message)
