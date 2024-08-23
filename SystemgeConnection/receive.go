@@ -38,7 +38,6 @@ func (connection *SystemgeConnection) receiveLoop() {
 				}
 				continue
 			}
-			// todo - add option to do stuff past this in a separate goroutine
 			connection.messageId++
 			messageId := connection.messageId
 			if infoLogger := connection.infoLogger; infoLogger != nil {
