@@ -85,6 +85,8 @@ func (connection *SystemgeConnection) receiveLoop() {
 					if warningLogger := connection.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
 					}
+				} else {
+					connection.validMessagesReceived.Add(1)
 				}
 				connection.unprocessedMessages.Add(-1)
 				continue
