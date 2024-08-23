@@ -79,7 +79,7 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 		randomizer:           Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:         make(chan bool),
 		syncResponseChannels: make(map[string]chan *Message.Message),
-		processingChannel:    make(chan *messageInProcess, config.ProcessingChannelSize),
+		processingChannel:    make(chan *messageInProcess, config.ProcessingChannelCapacity),
 		messageHandler:       messageHandler,
 	}
 	if config.InfoLoggerPath != "" {

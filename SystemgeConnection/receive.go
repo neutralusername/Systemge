@@ -80,6 +80,19 @@ func (connection *SystemgeConnection) receiveLoop() {
 				connection.unprocessedMessages.Add(-1)
 				continue
 			} else {
+				if connection.config.ProcessingChannelCapacity > 0 && len(connection.processingChannel) == cap(connection.processingChannel) {
+					if connection.errorLogger != nil {
+						connection.errorLogger.Log("Processing channel capacity reached")
+					}
+					if connection.mailer != nil {
+						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
+						if err != nil {
+							if connection.errorLogger != nil {
+								connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
+							}
+						}
+					}
+				}
 				connection.processingChannel <- &messageInProcess{
 					message: message,
 					id:      messageId,
@@ -142,19 +155,6 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially() error {
 		for {
 			select {
 			case message := <-connection.processingChannel:
-				if connection.config.ProcessingChannelSize > 0 && len(connection.processingChannel) >= connection.config.ProcessingChannelSize-1 {
-					if connection.errorLogger != nil {
-						connection.errorLogger.Log("Processing channel capacity reached")
-					}
-					if connection.mailer != nil {
-						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
-						if err != nil {
-							if connection.errorLogger != nil {
-								connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
-							}
-						}
-					}
-				}
 				if err := connection.ProcessMessage(message.message); err != nil {
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())

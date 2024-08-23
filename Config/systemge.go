@@ -53,7 +53,7 @@ type SystemgeConnection struct {
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 
-	ProcessingChannelSize int `json:"processingChannelSize"` // default: 0 == no guarantee on order of arrival (irrelevant if ProcessSequentially is false) (if >0, the order of arrival is guaranteed as long as the channel is never full)
+	ProcessingChannelCapacity int `json:"processingChannelSize"` // default: 0 (how many messages can be received before being processed (n+1))
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional*
 	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*
