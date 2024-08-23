@@ -76,11 +76,10 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 					messageHandler.syncRequestsHandled.Add(1)
 					response, err := messageHandler.unknwonSyncTopicHandler(messageStruct.message)
 					messageStruct.responseChannel <- &syncResponseStruct{response: response, err: err}
-					continue
 				} else {
 					messageStruct.responseChannel <- &syncResponseStruct{response: "", err: Error.New("No handler for sync message", nil)}
-					continue
 				}
+				continue
 			}
 			messageHandler.syncRequestsHandled.Add(1)
 			response, err := handler(messageStruct.message)
