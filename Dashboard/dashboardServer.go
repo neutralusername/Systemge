@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -172,7 +173,7 @@ func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
 		if err != nil {
-			http.Error(w, "Failed to read body: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
 			return
 		}
 		args := strings.Split(string(body), " ")
