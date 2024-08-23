@@ -105,7 +105,7 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 	return connection
 }
 
-// if processing loop is running, this function will block until all messages are processed
+// if processing loop is running, this function will block until all remaining messages are processed
 func (connection *SystemgeConnection) Close() {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
