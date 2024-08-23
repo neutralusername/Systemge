@@ -34,9 +34,9 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 	server.mutex.Unlock()
 	server.statusMutex.RUnlock()
 
-	errChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	errorChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
 	go func() {
-		for err := range errChannel {
+		for err := range errorChannel {
 			if server.errorLogger != nil {
 				server.errorLogger.Log(err.Error())
 			}
@@ -72,9 +72,9 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 	server.mutex.Unlock()
 	server.statusMutex.RUnlock()
 
-	responseChannel, errChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
+	responseChannel, errorChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
 	go func() {
-		for err := range errChannel {
+		for err := range errorChannel {
 			if server.errorLogger != nil {
 				server.errorLogger.Log(err.Error())
 			}

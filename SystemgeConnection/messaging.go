@@ -49,7 +49,7 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 	}
 }
 
-func (connection *SystemgeConnection) AddSyncResponse(message *Message.Message) error {
+func (connection *SystemgeConnection) addSyncResponse(message *Message.Message) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	if responseChannel, ok := connection.syncResponseChannels[message.GetSyncTokenToken()]; ok {

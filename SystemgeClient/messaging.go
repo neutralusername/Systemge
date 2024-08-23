@@ -34,12 +34,14 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	errChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
-	for err := range errChannel {
-		if client.errorLogger != nil {
-			client.errorLogger.Log(err.Error())
+	errorChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	go func() {
+		for err := range errorChannel {
+			if client.errorLogger != nil {
+				client.errorLogger.Log(err.Error())
+			}
 		}
-	}
+	}()
 	return nil
 }
 

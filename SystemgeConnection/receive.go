@@ -71,7 +71,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 				infoLogger.Log("queueing message #" + Helpers.Uint64ToString(messageId) + " for processing")
 			}
 			if message.IsResponse() {
-				if err := connection.AddSyncResponse(message); err != nil {
+				if err := connection.addSyncResponse(message); err != nil {
 					connection.invalidMessagesReceived.Add(1)
 					if warningLogger := connection.warningLogger; warningLogger != nil {
 						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
