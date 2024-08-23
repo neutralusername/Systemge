@@ -45,6 +45,7 @@ func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
 	return listener, nil
 }
 
+// closing this will not automatically close all connections accepted by this listener
 func (listener *SystemgeListener) Close() {
 	listener.tcpListener.GetListener().Close()
 	if listener.ipRateLimiter != nil {
