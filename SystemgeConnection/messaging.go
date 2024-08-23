@@ -52,10 +52,10 @@ func (connection *SystemgeConnection) SyncRequest(topic, payload string) (*Messa
 func (connection *SystemgeConnection) addSyncResponse(message *Message.Message) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
-	if responseChannel, ok := connection.syncResponseChannels[message.GetSyncTokenToken()]; ok {
+	if responseChannel, ok := connection.syncResponseChannels[message.GetSyncToken()]; ok {
 		responseChannel <- message
 		close(responseChannel)
-		delete(connection.syncResponseChannels, message.GetSyncTokenToken())
+		delete(connection.syncResponseChannels, message.GetSyncToken())
 		return nil
 	}
 	return Error.New("No response channel found", nil)

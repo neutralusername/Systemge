@@ -35,7 +35,7 @@ func (message *Message) GetTopic() string {
 	return message.topic
 }
 
-func (message *Message) GetSyncTokenToken() string {
+func (message *Message) GetSyncToken() string {
 	return message.syncToken
 }
 

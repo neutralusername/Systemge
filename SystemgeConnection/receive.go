@@ -217,7 +217,7 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently() error {
 
 func (connection *SystemgeConnection) ProcessMessage(message *Message.Message) error {
 	if connection.messageHandler != nil {
-		if message.GetSyncTokenToken() == "" {
+		if message.GetSyncToken() == "" {
 			connection.asyncMessagesReceived.Add(1)
 			err := connection.messageHandler.HandleAsyncMessage(message)
 			if err != nil {
@@ -256,7 +256,7 @@ func (connection *SystemgeConnection) checkRateLimits(messageBytes []byte) error
 }
 
 func (connection *SystemgeConnection) validateMessage(message *Message.Message) error {
-	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncTokenToken()) > maxSyncTokenSize {
+	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}
 	if len(message.GetTopic()) == 0 {
