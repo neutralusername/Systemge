@@ -144,6 +144,7 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 	return nil
 }
 
+// A started loop will run indefinitely until StopProcessingLoop is called.
 func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler SystemgeMessageHandler.MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("No message handler set", nil)
@@ -192,6 +193,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHan
 	return nil
 }
 
+// A started loop will run indefinitely until StopProcessingLoop is called.
 func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler SystemgeMessageHandler.MessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
