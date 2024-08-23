@@ -21,7 +21,7 @@ type SystemgeClient struct {
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
 	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(string, string)
+	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
 
 	mutex                 sync.RWMutex
 	addressConnections    map[string]*SystemgeConnection.SystemgeConnection // address -> connection
@@ -45,7 +45,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint64
 }
 
-func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(string, string), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
+func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection), messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -128,9 +128,6 @@ func (client *SystemgeClient) Start() error {
 	return nil
 }
 
-// blocks until all clients are disconnected.
-// this function will cause a deadlock if it is called from a clients message handler and the processing loop of this particular client is active.
-// to avoid this, stop the processing loop with connection.StopProcessingLoop() before calling this function.
 func (client *SystemgeClient) Stop() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()

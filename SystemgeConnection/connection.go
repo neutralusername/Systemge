@@ -42,11 +42,10 @@ type SystemgeConnection struct {
 
 	messageHandler *SystemgeMessageHandler.SystemgeMessageHandler
 
-	processMutex                sync.Mutex
-	processingChannel           chan *messageInProcess
-	processingLoopStopChannel   chan bool
-	messagesInProcessingChannel atomic.Int64
-	waitGroup                   sync.WaitGroup
+	processMutex              sync.Mutex
+	processingChannel         chan *messageInProcess
+	processingLoopStopChannel chan bool
+	unprocessedMessages       atomic.Int64
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -105,8 +104,6 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string, messa
 	return connection
 }
 
-// if processing loop is running, this function will block until all remaining messages are processed and then stop the processing loop.
-// will cause a deadlock if this is called within a message handler of this connection and the processing loop is active.
 func (connection *SystemgeConnection) Close() {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
@@ -128,12 +125,6 @@ func (connection *SystemgeConnection) Close() {
 		connection.rateLimiterMessages = nil
 	}
 
-	connection.processMutex.Lock()
-	if connection.processingLoopStopChannel != nil {
-		connection.waitGroup.Wait()
-		close(connection.processingLoopStopChannel)
-		connection.processingLoopStopChannel = nil
-	}
 	connection.processMutex.Unlock()
 }
 

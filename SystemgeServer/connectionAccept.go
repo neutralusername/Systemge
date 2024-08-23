@@ -36,7 +36,7 @@ func (server *SystemgeServer) handleConnections() {
 				server.mutex.Unlock()
 
 				if server.onDisconnectHandler != nil {
-					server.onDisconnectHandler(connection.GetName(), connection.GetAddress())
+					server.onDisconnectHandler(connection)
 				}
 				server.waitGroup.Done()
 
@@ -52,12 +52,6 @@ func (server *SystemgeServer) handleConnections() {
 					}
 					continue
 				}
-			}
-
-			if server.config.ConnectionConfig.ProcessSequentially {
-				connection.StartProcessingLoopSequentially()
-			} else {
-				connection.StartProcessingLoopConcurrently()
 			}
 		}
 	}

@@ -139,7 +139,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				client.mutex.Unlock()
 
 				if client.onDisconnectHandler != nil {
-					client.onDisconnectHandler(connection.GetName(), connection.GetAddress())
+					client.onDisconnectHandler(connection)
 				}
 
 				if client.config.Reconnect {
@@ -168,12 +168,6 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 					connection.Close()
 					continue
 				}
-			}
-
-			if client.config.ConnectionConfig.ProcessSequentially {
-				connection.StartProcessingLoopSequentially()
-			} else {
-				connection.StartProcessingLoopConcurrently()
 			}
 			return nil
 		}

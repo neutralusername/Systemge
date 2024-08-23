@@ -152,14 +152,14 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeDisconnectHandler(name, address string) {
+func (app *DashboardServer) onSystemgeDisconnectHandler(connection *SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
-	if client, ok := app.clients[name]; ok {
-		delete(app.clients, name)
+	if client, ok := app.clients[connection.GetName()]; ok {
+		delete(app.clients, connection.GetName())
 		app.unregisterModuleHttpHandlers(client.Name)
 	}
 	app.mutex.Unlock()
-	app.websocketServer.Broadcast(Message.NewAsync("removeModule", name))
+	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
 
 func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
