@@ -38,7 +38,7 @@ type syncResponseStruct struct {
 
 // requires a call to Close() to stop the message handler (otherwise it will keep running until the program ends).
 // Handle calls after Close() will cause a panic.
-func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler *AsyncMessageHandler, unknownTopicSyncHandler *SyncMessageHandler, queueSize int) *SequentialMessageHandler {
+func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *SequentialMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}
@@ -48,8 +48,8 @@ func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 	systemgeMessageHandler := &SequentialMessageHandler{
 		asyncMessageHandlers:     asyncMessageHandlers,
 		syncMessageHandlers:      syncMessageHandlers,
-		unknwonAsyncTopicHandler: *unknownTopicAsyncHandler,
-		unknwonSyncTopicHandler:  *unknownTopicSyncHandler,
+		unknwonAsyncTopicHandler: unknownTopicAsyncHandler,
+		unknwonSyncTopicHandler:  unknownTopicSyncHandler,
 		messageQueue:             make(chan *queueStruct, queueSize),
 	}
 	go systemgeMessageHandler.handleMessages()
