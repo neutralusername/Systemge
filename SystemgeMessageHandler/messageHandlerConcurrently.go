@@ -23,7 +23,7 @@ type ConcurrentMessageHandler struct {
 	unknownTopicsReceived atomic.Uint64
 }
 
-func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler *AsyncMessageHandler, unknownTopicSyncHandler *SyncMessageHandler) *ConcurrentMessageHandler {
+func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler) *ConcurrentMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}
@@ -33,8 +33,8 @@ func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 	systemgeMessageHandler := &ConcurrentMessageHandler{
 		asyncMessageHandlers:     asyncMessageHandlers,
 		syncMessageHandlers:      syncMessageHandlers,
-		unknwonAsyncTopicHandler: *unknownTopicAsyncHandler,
-		unknwonSyncTopicHandler:  *unknownTopicSyncHandler,
+		unknwonAsyncTopicHandler: unknownTopicAsyncHandler,
+		unknwonSyncTopicHandler:  unknownTopicSyncHandler,
 	}
 	return systemgeMessageHandler
 }
