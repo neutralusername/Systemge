@@ -133,6 +133,10 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			go func() {
 				<-connection.GetCloseChannel()
 
+				if infoLogger := client.infoLogger; infoLogger != nil {
+					infoLogger.Log("Connection closed to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\"")
+				}
+
 				client.mutex.Lock()
 				delete(client.addressConnections, attempt.endpointConfig.Address)
 				delete(client.nameConnections, connection.GetName())
