@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *SystemgeConnection) receiveLoop() {
@@ -82,16 +81,8 @@ func (connection *SystemgeConnection) receiveLoop() {
 				continue
 			} else {
 				if connection.config.ProcessingChannelCapacity > 0 && len(connection.processingChannel) == cap(connection.processingChannel) {
-					if connection.errorLogger != nil {
-						connection.errorLogger.Log("Processing channel capacity reached")
-					}
-					if connection.mailer != nil {
-						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("processing channel capacity reached", nil).Error()))
-						if err != nil {
-							if connection.errorLogger != nil {
-								connection.errorLogger.Log(Error.New("failed sending mail", err).Error())
-							}
-						}
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log("Processing channel capacity reached")
 					}
 				}
 				connection.processingChannel <- &messageInProcess{
