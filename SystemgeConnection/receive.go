@@ -140,7 +140,7 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 	return nil
 }
 
-func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) error {
+func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler SystemgeMessageHandler.MessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -177,7 +177,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHan
 	return nil
 }
 
-func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) error {
+func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler SystemgeMessageHandler.MessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -216,7 +216,7 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHan
 	return nil
 }
 
-func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler *SystemgeMessageHandler.SystemgeMessageHandler) error {
+func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler SystemgeMessageHandler.MessageHandler) error {
 	if messageHandler != nil {
 		if message.GetSyncToken() == "" {
 			connection.asyncMessagesReceived.Add(1)
