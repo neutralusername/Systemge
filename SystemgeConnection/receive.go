@@ -42,11 +42,19 @@ func (connection *SystemgeConnection) receiveLoop() {
 			if infoLogger := connection.infoLogger; infoLogger != nil {
 				infoLogger.Log("Received message #" + Helpers.Uint64ToString(messageId))
 			}
-			if err := connection.checkRateLimits(messageBytes); err != nil {
-				connection.invalidMessagesReceived.Add(1)
+			if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+				connection.byteRateLimiterExceeded.Add(1)
 				connection.unprocessedMessages.Add(-1)
-				if connection.errorLogger != nil {
-					connection.errorLogger.Log(Error.New("failed to check rate limits for message #"+Helpers.Uint64ToString(messageId), err).Error())
+				if connection.warningLogger != nil {
+					connection.warningLogger.Log("Byte rate limiter exceeded for message #" + Helpers.Uint64ToString(messageId))
+				}
+				continue
+			}
+			if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
+				connection.messageRateLimiterExceeded.Add(1)
+				connection.unprocessedMessages.Add(-1)
+				if connection.warningLogger != nil {
+					connection.warningLogger.Log("Message rate limiter exceeded for message #" + Helpers.Uint64ToString(messageId))
 				}
 				continue
 			}
@@ -231,18 +239,6 @@ func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, m
 	} else {
 		connection.invalidMessagesReceived.Add(1)
 		return Error.New("no message handler available", nil)
-	}
-	return nil
-}
-
-func (connection *SystemgeConnection) checkRateLimits(messageBytes []byte) error {
-	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		connection.byteRateLimiterExceeded.Add(1)
-		return Error.New("receiver rate limiter bytes exceeded", nil)
-	}
-	if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
-		connection.messageRateLimiterExceeded.Add(1)
-		return Error.New("receiver rate limiter messages exceeded", nil)
 	}
 	return nil
 }
