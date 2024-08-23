@@ -135,6 +135,9 @@ func (server *WebsocketServer) Start() error {
 	return nil
 }
 
+// blocks until all clients are disconnected.
+// this function will cause a deadlock if it is called from a clients message handler and the processing loop of this particular client is active.
+// to avoid this, stop the processing loop with connection.StopProcessingLoop() before calling this function.
 func (server *WebsocketServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
