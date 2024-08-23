@@ -168,6 +168,25 @@ func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
 	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(filePath[:len(filePath)-len("dasbboardServer.go")]+"frontend"))).ServeHTTP(w, r)
 	})
+	app.httpServer.AddRoute("/"+client.Name+"/command", func(w http.ResponseWriter, r *http.Request) {
+		body := make([]byte, r.ContentLength)
+		_, err := r.Body.Read(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		args := strings.Split(string(body), " ")
+		if len(args) == 0 {
+			http.Error(w, "No command", http.StatusBadRequest)
+			return
+		}
+		result, err := client.executeCommand(args[0], args[1:])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(result))
+	})
 	app.httpServer.AddRoute("/"+client.Name+"/command/", func(w http.ResponseWriter, r *http.Request) {
 		args := r.URL.Path[len("/"+client.Name+"/command/"):]
 		argsSplit := strings.Split(args, " ")
