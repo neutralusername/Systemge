@@ -51,14 +51,16 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 		panic(err)
 	}
 	app.systemgeConnection = connection
-	app.systemgeConnection.StartProcessingLoopSequentially(SystemgeMessageHandler.New(nil, map[string]func(*Message.Message) (string, error){
-		Message.TOPIC_GET_INTRODUCTION: app.getIntroductionHandler,
-		Message.TOPIC_GET_STATUS:       app.getStatusHandler,
-		Message.TOPIC_GET_METRICS:      app.getMetricsHandler,
-		Message.TOPIC_START:            app.startHandler,
-		Message.TOPIC_STOP:             app.stopHandler,
-		Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
-	}))
+	app.systemgeConnection.StartProcessingLoopSequentially(
+		SystemgeMessageHandler.New(nil, SystemgeMessageHandler.SyncMessageHandlers{
+			Message.TOPIC_GET_INTRODUCTION: app.getIntroductionHandler,
+			Message.TOPIC_GET_STATUS:       app.getStatusHandler,
+			Message.TOPIC_GET_METRICS:      app.getMetricsHandler,
+			Message.TOPIC_START:            app.startHandler,
+			Message.TOPIC_STOP:             app.stopHandler,
+			Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
+		}, nil, nil, false),
+	)
 
 	return app
 }

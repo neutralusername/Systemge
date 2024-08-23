@@ -47,7 +47,7 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 			}
 			name = message.GetPayload()
 		},
-	}, nil).HandleAsyncMessage(message)
+	}, nil, nil, nil, true).HandleAsyncMessage(message)
 	if name == "" {
 		return nil, Error.New("Server did not respond with a name", nil)
 	}
