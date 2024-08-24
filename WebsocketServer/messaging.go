@@ -36,7 +36,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		})
 	}
 	server.mutex.RUnlock()
-	waitGroup.ExecuteTasks()
+	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
 
@@ -73,7 +73,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 		return Error.New("Client \""+id+"\" does not exist", nil)
 	}
 	server.mutex.RUnlock()
-	waitGroup.ExecuteTasks()
+	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
 
@@ -113,7 +113,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		}
 	}
 	server.mutex.RUnlock()
-	waitGroup.ExecuteTasks()
+	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
 
@@ -151,6 +151,6 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		})
 	}
 	server.mutex.RUnlock()
-	waitGroup.ExecuteTasks()
+	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
