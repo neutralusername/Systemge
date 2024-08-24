@@ -16,7 +16,7 @@ type IpRateLimiter struct {
 	cleanupInterval time.Duration
 }
 
-func (rl *IpRateLimiter) Stop() {
+func (rl *IpRateLimiter) Close() {
 	rl.active = false
 }
 
@@ -41,6 +41,7 @@ func NewIpRateLimiter(config *Config.IpRateLimiter) *IpRateLimiter {
 	return rl
 }
 
+// Returns true if the connection attempt is allowed, false otherwise
 func (rl *IpRateLimiter) RegisterConnectionAttempt(ip string) bool {
 	rl.mutex.Lock()
 	defer rl.mutex.Unlock()

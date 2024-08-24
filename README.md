@@ -86,8 +86,6 @@ For information on how to use this library, check out the samples:
 - [Systemge-Sample-ChessServerMapOneNode](https://github.com/neutralusername/SystemgeSampleChessServerMapOneNode)
 - [Systemge-Sample-ChessServerMap](https://github.com/neutralusername/SystemgeSampleChessServerMap)
 - [Systemge-Sample-ChessServerSpawner](https://github.com/neutralusername/Systemge-Sample-ChessServerSpawner)
-- [Systemge-Sample-OneNodePing](https://github.com/neutralusername/SystemgeSampleOneNodePing)
-- [Systemge-Sample-PingPong](https://github.com/neutralusername/Systemge-Sample-PingPong)
 - [Systemge-Sample-PingSpawner](https://github.com/neutralusername/Systemge-Sample-PingSpawner)
 
 ## Contact

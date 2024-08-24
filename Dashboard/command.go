@@ -1,8 +1,6 @@
 package Dashboard
 
-import (
-	"encoding/json"
-)
+import "encoding/json"
 
 type Command struct {
 	Name    string   `json:"name"`
@@ -10,11 +8,8 @@ type Command struct {
 	Args    []string `json:"args"`
 }
 
-func unmarshalCommand(command string) *Command {
-	c := &Command{}
-	err := json.Unmarshal([]byte(command), c)
-	if err != nil {
-		return nil
-	}
-	return c
+func unmarshalCommand(data string) (*Command, error) {
+	var r Command
+	err := json.Unmarshal([]byte(data), &r)
+	return &r, err
 }

@@ -6,90 +6,84 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Node"
+	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (app *App) GetWebsocketMessageHandlers() map[string]Node.WebsocketMessageHandler {
-	return map[string]Node.WebsocketMessageHandler{
-		"start": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			app.mutex.RLock()
-			n := app.nodes[message.GetPayload()]
-			app.mutex.RUnlock()
-			if n == nil {
-				return Error.New("Node not found", nil)
-			}
-			err := n.Start()
-			if err != nil {
-				return Error.New("Failed to start node \""+n.GetName()+"\": "+err.Error(), nil)
-			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
-			return nil
-		},
-		"stop": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			app.mutex.RLock()
-			n := app.nodes[message.GetPayload()]
-			app.mutex.RUnlock()
-			if n == nil {
-				return Error.New("Node not found", nil)
-			}
-			err := n.Stop()
-			if err != nil {
-				return Error.New("Failed to stop node \""+n.GetName()+"\": "+err.Error(), nil)
-			}
-			websocketClient.Send(Message.NewAsync("nodeStatus", Helpers.JsonMarshal(NodeStatus{Name: message.GetPayload(), Status: n.GetStatus()})).Serialize())
-			return nil
-		},
-		"command": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			command := unmarshalCommand(message.GetPayload())
-			if command == nil {
-				return Error.New("Invalid command", nil)
-			}
-			result, err := app.nodeCommand(command)
-			if err != nil {
-				return err
-			}
-			websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
-			return nil
-		},
-		"gc": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			runtime.GC()
-			return nil
-		},
-		"close": func(node *Node.Node, websocketClient *Node.WebsocketClient, message *Message.Message) error {
-			node.Stop()
-			return nil
-		},
+func (app *DashboardServer) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	app.mutex.RLock()
+	client := app.clients[message.GetPayload()]
+	app.mutex.RUnlock()
+	if client == nil {
+		return Error.New("Client not found", nil)
 	}
+	if !client.HasStartFunc {
+		return Error.New("Client has no start function", nil)
+	}
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_START, "")
+	if err != nil {
+		return Error.New("Failed to send start request to client \""+client.Name+"\": "+err.Error(), nil)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return Error.New(response.GetPayload(), nil)
+	}
+	client.Status = Helpers.StringToInt(response.GetPayload())
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: client.Status})))
+	return nil
 }
 
-func (app *App) OnConnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
+func (app *DashboardServer) stopHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	app.mutex.RLock()
+	client := app.clients[message.GetPayload()]
+	app.mutex.RUnlock()
+	if client == nil {
+		return Error.New("Client not found", nil)
+	}
+	if !client.HasStopFunc {
+		return Error.New("Client has no stop function", nil)
+	}
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
+	if err != nil {
+		return Error.New("Failed to send stop request to client \""+client.Name+"\": "+err.Error(), nil)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return Error.New(response.GetPayload(), nil)
+	}
+	client.Status = Helpers.StringToInt(response.GetPayload())
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: client.Status})))
+	return nil
+}
+
+func (app *DashboardServer) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	runtime.GC()
+	return nil
+}
+
+func (app *DashboardServer) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	command, err := unmarshalCommand(message.GetPayload())
+	if err != nil {
+		return err
+	}
+	app.mutex.RLock()
+	client := app.clients[command.Name]
+	app.mutex.RUnlock()
+	if client == nil {
+		return Error.New("Client not found", nil)
+	}
+	result, err := client.executeCommand(command.Command, command.Args)
+	if err != nil {
+		return Error.New("Failed to execute command: "+err.Error(), nil)
+	}
+	websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
+	return nil
+}
+
+func (app *DashboardServer) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
-	for _, n := range app.nodes {
+	for _, client := range app.clients {
 		go func() {
-			websocketClient.Send(Message.NewAsync("addNode", Helpers.JsonMarshal(newAddNode(n))).Serialize())
+			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(client)).Serialize())
 		}()
 	}
-}
-
-func (app *App) OnDisconnectHandler(node *Node.Node, websocketClient *Node.WebsocketClient) {
-
-}
-
-func (app *App) nodeCommand(command *Command) (string, error) {
-	app.mutex.RLock()
-	n := app.nodes[command.Name]
-	app.mutex.RUnlock()
-	if n == nil {
-		return "", Error.New("Node not found", nil)
-	}
-	commandHandler := n.GetCommandHandlers()[command.Command]
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	result, err := commandHandler(n, command.Args)
-	if err != nil {
-		return "", Error.New("Failed to execute command \""+command.Name+"\": "+err.Error(), nil)
-	}
-	return result, nil
+	return nil
 }

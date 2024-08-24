@@ -1,0 +1,1 @@
+export const WS_PORT = 8444;export const WS_PATTERN = "/ws";

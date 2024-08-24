@@ -1,4 +1,8 @@
 import { commands } from "./commands.js";
+import {
+    WS_PATTERN, 
+    WS_PORT 
+} from "./configs.js";
 import { 
     lineGraph 
 } from "./lineGraph.js";
@@ -6,8 +10,8 @@ import {
     multiLineGraph 
 } from "./multiLineGraph.js";
 import { 
-    nodeStatus 
-} from "./nodeStatus.js";
+    status
+} from "./status.js";
 import { 
     GenerateRandomAlphaNumericString 
 } from "./randomizer.js";
@@ -22,84 +26,47 @@ export class root extends React.Component {
         this.state = {
             responseMessages: {},
             responseMessageTimeouts: {},
-            nodes: {},
+            modules: {},
             heapUpdates: {},
             goroutineUpdates: {},
         };
-        this.WS_CONNECTION = GetWebsocketConnection();
+        this.WS_CONNECTION = GetWebsocketConnection(WS_PORT, WS_PATTERN);
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
-        this.counterConfig = {
-            nodeWebsocketCounters: {
-                labels: ["inc", "out", "clientCount", "groupCount", "bytesSent", "bytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"],
-            },
-            nodeSystemgeClientCounters: {
-                labels: ["bytesSent", "bytesReceived", "invalidMessagesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeClientRateLimitCounters: {
-                labels: ["messageRateLimiterExceeded", "byteRateLimiterExceeded"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeClientConnectionCounters: {
-                labels: ["connectionAttempts", "connectionAttemptsSuccessful", "connectionAttemptsFailed", "connectionAttemptBytesSent", "connectionAttemptBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
-            },
-            nodeSystemgeClientSyncResponseCounters: {
-                labels: ["syncSuccessResponsesReceived", "syncFailureResponsesReceived", "syncResponseBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeClientAsyncMessageCounters: {
-                labels: ["asyncMessagesSent", "asyncMessageBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeClientSyncRequestCounters: {
-                labels: ["syncRequestsSent", "syncRequestBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeClientTopicCounters: {
-                labels: ["topicAddReceived", "topicRemoveReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerCounters: {
-                labels: ["bytesReceived", "bytesSent", "invalidMessagesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeServerRateLimitCounters: {
-                labels: ["messageRateLimiterExceeded", "byteRateLimiterExceeded"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerConnectionCounters: {
-                labels: ["connectionAttempts", "connectionAttemptsSuccessful", "connectionAttemptsFailed", "connectionAttemptBytesSent", "connectionAttemptBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)"],
-            },
-            nodeSystemgeServerSyncResponseCounters: {
-                labels: ["syncSuccessResponsesSent", "syncFailureResponsesSent", "syncResponseBytesSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)"],
-            },
-            nodeSystemgeServerAsyncMessageCounters: {
-                labels: ["asyncMessagesReceived", "asyncMessageBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerSyncRequestCounters: {
-                labels: ["syncRequestsReceived", "syncRequestBytesReceived"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSystemgeServerTopicCounters: {
-                labels: ["topicAddSent", "topicRemoveSent"],
-                colors: ["rgb(255, 99, 132)", "rgb(54, 162, 235)"],
-            },
-            nodeSpawnerCounters: {
-                labels: ["spawnedNodeCount"],
-                colors: ["rgb(255, 99, 132)"],
-            },
-            nodeHttpCounters: {
-                labels: ["requestCount" ],
-                colors: ["rgb(255, 99, 132)" ],
-            }
-        };
+        this.distinctColors = [
+            "#556b2f",
+            "#7f0000",
+            "#483d8b",
+            "#008000",
+            "#b8860b",
+            "#008b8b",
+            "#00008b",  
+            "#32cd32",
+            "#7f007f",
+            "#8fbc8f",
+            "#b03060",
+            "#ff0000",
+            "#ff8c00",
+            "#00ff00",
+            "#8a2be2",
+            "#dc143c",
+            "#00ffff",
+            "#00bfff",
+            "#0000ff",
+            "#adff2f",
+            "#da70d6",
+            "#ff00ff",
+            "#1e90ff",
+            "#f0e68c",
+            "#fa8072",
+            "#ffff54",
+            "#b0e0e6",
+            "#90ee90",
+            "#ff1493",
+            "#7b68ee",
+            "#ffb6c1",
+        ];
     }
 
     constructMessage(topic, payload) {
@@ -111,6 +78,27 @@ export class root extends React.Component {
 
     setStateRoot(state) {
         this.setState(state);
+    }
+
+    generateHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length && i < 30; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return Math.abs(hash);
+    }
+
+    getRandomDistinctColors(strings) {
+        let colors = [];
+        strings.forEach(str => {
+            const hash = this.generateHash(str);
+            const colorIndex = hash % this.distinctColors.length;
+            colors.push(this.distinctColors[colorIndex]);
+        });
+
+        return colors;
     }
 
     setResponseMessage(message) {
@@ -148,35 +136,19 @@ export class root extends React.Component {
             case "goroutineCount":
                 this.handleGoroutineCount(message.payload);
                 break;
-            case "addNode":
-                this.handleAddNode(JSON.parse(message.payload));
+            case "addModule":
+                this.handleAddModule(JSON.parse(message.payload));
                 break;
-            case "removeNode":
-                let nodes = { ...this.state.nodes };
-                delete nodes[message.payload];
-                this.setState({ nodes });
+            case "removeModule":
+                let modules = { ...this.state.modules };
+                delete modules[message.payload];
+                this.setState({ modules });
                 break;
-            case "nodeStatus":
-                this.handleNodeStatus(JSON.parse(message.payload));
+            case "statusUpdate":
+                this.handleStatusUpdate(JSON.parse(message.payload));
                 break;
-            case "nodeSystemgeClientCounters":
-            case "nodeSystemgeClientRateLimitCounters":
-            case "nodeSystemgeClientConnectionCounters":
-            case "nodeSystemgeClientSyncResponseCounters":
-            case "nodeSystemgeClientAsyncMessageCounters":
-            case "nodeSystemgeClientSyncRequestCounters":
-            case "nodeSystemgeClientTopicCounters":
-            case "nodeSystemgeServerCounters":
-            case "nodeSystemgeServerRateLimitCounters":
-            case "nodeSystemgeServerConnectionCounters":
-            case "nodeSystemgeServerSyncResponseCounters":
-            case "nodeSystemgeServerAsyncMessageCounters":
-            case "nodeSystemgeServerSyncRequestCounters":
-            case "nodeSystemgeServerTopicCounters":
-            case "nodeWebsocketCounters":
-            case "nodeSpawnerCounters":
-            case "nodeHttpCounters":
-                this.handleNodeCounters(message.topic, JSON.parse(message.payload));
+            case "metricsUpdate":
+                this.handleMetricUpdate(JSON.parse(message.payload));
                 break;
             default:
                 console.log("Unknown message topic: " + event.data);
@@ -204,51 +176,51 @@ export class root extends React.Component {
         this.setState({ goroutineUpdates });
     }
 
-    handleAddNode(addNode) {
+    handleAddModule(addModule) {
+        let metricNames = Object.keys(addModule.metrics);
+        let metrics = {};
+        Object.keys(addModule.metrics).forEach((key) => {
+            metrics[key] = addModule.metrics[key];
+        });
+        addModule.metricNames = metricNames;
+        addModule.metrics = {
+            [new Date().valueOf()]: metrics,
+        }
         this.setState({
-            nodes: {
-                ...this.state.nodes,
-                [addNode.name]: {
-                    ...this.state.nodes[addNode.name],
-                    name: addNode.name,
-                    status: addNode.status,
-                    commands: addNode.commands,
-                },
+            modules: {
+                ...this.state.modules,
+                [addModule.name]: addModule,
             },
         });
     }
 
-    handleNodeStatus(nodeStatus) {
-        if (this.state.nodes[nodeStatus.name]) {
+    handleStatusUpdate(status) {
+        if (this.state.modules[status.name]) {
             this.setState({
-                nodes: {
-                    ...this.state.nodes,
-                    [nodeStatus.name]: {
-                        ...this.state.nodes[nodeStatus.name],
-                        status: nodeStatus.status,
+                modules: {
+                    ...this.state.modules,
+                    [status.name]: {
+                        ...this.state.modules[status.name],
+                        status: status.status,
                     },
                 },
             });
         }
     }
 
-    handleNodeCounters(type, nodeCounters) {
-        let node = this.state.nodes[nodeCounters.name];
-        if (!node) {
+    handleMetricUpdate(metrics) {
+        let module = this.state.modules[metrics.name];
+        if (!module) {
             return;
         }
-        let currentCounters = node[type] || {};
-        if (Object.keys(currentCounters).length > 50) {
-            delete currentCounters[Object.keys(currentCounters)[0]];
+        module.metrics[new Date().valueOf()] = metrics.metrics;
+        if (Object.keys(module.metrics).length > 50) {
+            delete module.metrics[Object.keys(module.metrics)[0]];
         }
-        currentCounters[new Date().valueOf()] = nodeCounters;
         this.setState({
-            nodes: {
-                ...this.state.nodes,
-                [nodeCounters.name]: {
-                    ...node,
-                    [type]: currentCounters,
-                },
+            modules: {
+                ...this.state.modules,
+                [metrics.name]: module,
             },
         });
     }
@@ -269,18 +241,30 @@ export class root extends React.Component {
         setTimeout(myLoop, 1000 * 60 * 4);
     }
 
-    renderMultiLineGraph(nodeName, countersType, labels, colors) {
-        let nodeCounters = {};
-        Object.keys(this.state.nodes[nodeName][countersType]).forEach((key) => {
-            nodeCounters[key] = labels.map((label) => this.state.nodes[nodeName][countersType][key][label]);
+    renderMultiLineGraph(moduleName) {
+        let module = this.state.modules[moduleName];
+        let dataSet = {};
+        let colors = this.getRandomDistinctColors(module.metricNames);
+        let legend = module.metricNames;
+        let labels = [];
+        Object.keys(module.metrics).forEach((dateTime) => {
+            labels.push(new Date(Number(dateTime)).toLocaleTimeString());
+            let metrics = module.metrics[dateTime];
+            Object.keys(metrics).forEach((metric) => {
+                if (dataSet[metric] === undefined) {
+                    dataSet[metric] = [];
+                }
+                dataSet[metric].push(metrics[metric]);
+            });
         });
+        
         return React.createElement(
             multiLineGraph, {
-                title: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters "${nodeName}"`,
-                chartName: `${countersType} ${nodeName}`,
-                dataLabel: `${countersType.replace(/node|Counters/g, '').toLowerCase()} counters`,
-                dataSet: nodeCounters,
-                labels,
+                title: "metrics",
+                chartName: `${moduleName}`,
+                dataLabels: legend,
+                dataSet: dataSet,
+                labels : labels,
                 colors,
                 height: "400px",
                 width: "1200px",
@@ -290,44 +274,40 @@ export class root extends React.Component {
 
     render() {
         let urlPath = window.location.pathname;
-        let nodeStatuses = [];
+        let statuses = [];
         let buttons = [];
         let multiLineGraphs = [];
         let commandsComponent = null;
 
 
 
-        const renderGraphsForNode = (nodeName) => {
-            Object.keys(this.counterConfig).forEach((key) => {
-                if (this.state.nodes[nodeName][key]) {
-                    multiLineGraphs.push(this.renderMultiLineGraph(nodeName, key, this.counterConfig[key].labels, this.counterConfig[key].colors));
-                }
-            });
+        const renderGraphsForModule = (modulekey) => {
+            multiLineGraphs.push(this.renderMultiLineGraph(modulekey));
         };
 
         if (urlPath === "/") {
-            for (let nodeName in this.state.nodes) {
-                nodeStatuses.push(React.createElement(
-                    nodeStatus, {
-                        node: this.state.nodes[nodeName],
-                        key: nodeName,
+            for (let moduleName in this.state.modules) {
+                statuses.push(React.createElement(
+                    status, {
+                        module: this.state.modules[moduleName],
+                        key: moduleName,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
                 ));
             }
-            if (this.state.nodes.dashboard) {
-                renderGraphsForNode("dashboard");
+            if (this.state.modules.dashboard) {
+                renderGraphsForModule("dashboard");
             }
             buttons.push(
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            Object.keys(this.state.nodes).forEach((nodeName) => {
-                                if (nodeName === "dashboard") {
+                            Object.keys(this.state.modules).forEach((moduleKey) => {
+                                if (moduleKey === "dashboard") {
                                     return;
                                 }
-                                this.WS_CONNECTION.send(this.constructMessage("start", nodeName));
+                                this.WS_CONNECTION.send(this.constructMessage("start", moduleKey));
                             });
                         },
                     },
@@ -336,11 +316,11 @@ export class root extends React.Component {
                 React.createElement(
                     "button", {
                         onClick: () => {
-                            Object.keys(this.state.nodes).forEach((nodeName) => {
-                                if (nodeName === "dashboard") {
+                            Object.keys(this.state.modules).forEach((moduleKey) => {
+                                if (moduleKey === "dashboard") {
                                     return;
                                 }
-                                this.WS_CONNECTION.send(this.constructMessage("stop", nodeName));
+                                this.WS_CONNECTION.send(this.constructMessage("stop", moduleKey));
                             });
                         },
                     },
@@ -348,20 +328,20 @@ export class root extends React.Component {
                 ),
             );
         } else {
-            let nodeName = urlPath.substring(1);
-            if (this.state.nodes[nodeName]) {
-                nodeStatuses.push(React.createElement(
-                    nodeStatus, {
-                        node: this.state.nodes[nodeName],
-                        key: nodeName,
+            let moduleName = urlPath.substring(1);
+            if (this.state.modules[moduleName]) {
+                statuses.push(React.createElement(
+                    status, {
+                        module: this.state.modules[moduleName],
+                        key: moduleName,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
                 ));
-                renderGraphsForNode(nodeName);
+                renderGraphsForModule(moduleName);
                 commandsComponent = React.createElement(
                     commands, {
-                        node: this.state.nodes[nodeName],
+                        module: this.state.modules[moduleName],
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
@@ -431,7 +411,7 @@ export class root extends React.Component {
                 },
                 "close",
             ),
-            nodeStatuses,
+            statuses,
             commandsComponent,
             buttons,
             multiLineGraphs,

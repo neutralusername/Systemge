@@ -23,6 +23,9 @@ type Mail struct {
 }
 
 func NewMailer(config *Config.Mailer) *Mailer {
+	if config == nil {
+		return nil
+	}
 	return &Mailer{
 		smtpHost:       config.SmtpHost,
 		smtpPort:       config.SmtpPort,

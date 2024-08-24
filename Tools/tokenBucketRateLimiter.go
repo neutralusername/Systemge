@@ -30,7 +30,7 @@ func NewTokenBucketRateLimiter(config *Config.TokenBucketRateLimiter) *TokenBuck
 	return rateLimiter
 }
 
-func (rateLimiter *TokenBucketRateLimiter) Stop() {
+func (rateLimiter *TokenBucketRateLimiter) Close() {
 	rateLimiter.active = false
 }
 
