@@ -9,19 +9,13 @@ import (
 
 func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection) <-chan error {
 	errorChannel := make(chan error, len(connections))
-	waitGroup := sync.WaitGroup{}
-	waitGroup.Add(len(connections))
 	for _, connection := range connections {
 		err := connection.AsyncMessage(topic, payload)
 		if err != nil {
-			errorChannel <- Error.New("Error in AsyncMessage for \""+connection.GetName()+"\"", err)
+			errorChannel <- Error.New("Failed to send AsyncMessage to \""+connection.GetName()+"\"", err)
 		}
-		waitGroup.Done()
 	}
-	go func() {
-		waitGroup.Wait()
-		close(errorChannel)
-	}()
+	close(errorChannel)
 	return errorChannel
 }
 
