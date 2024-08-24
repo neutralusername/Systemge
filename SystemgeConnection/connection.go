@@ -34,8 +34,8 @@ type SystemgeConnection struct {
 
 	tcpBuffer []byte
 
-	syncResponseChannels map[string]chan *Message.Message
-	syncMutex            sync.Mutex
+	syncRequests map[string]*syncRequestStruct
+	syncMutex    sync.Mutex
 
 	closeChannel chan bool
 
@@ -70,13 +70,13 @@ type SystemgeConnection struct {
 
 func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
 	connection := &SystemgeConnection{
-		name:                 name,
-		config:               config,
-		netConn:              netConn,
-		randomizer:           Tools.NewRandomizer(config.RandomizerSeed),
-		closeChannel:         make(chan bool),
-		syncResponseChannels: make(map[string]chan *Message.Message),
-		processingChannel:    make(chan *messageInProcess, config.ProcessingChannelCapacity),
+		name:              name,
+		config:            config,
+		netConn:           netConn,
+		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
+		closeChannel:      make(chan bool),
+		syncRequests:      make(map[string]*syncRequestStruct),
+		processingChannel: make(chan *messageInProcess, config.ProcessingChannelCapacity),
 	}
 	if config.InfoLoggerPath != "" {
 		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)

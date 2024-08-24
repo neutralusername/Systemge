@@ -135,7 +135,7 @@ func (app *DashboardServer) Close() {
 }
 
 func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {
-	response, err := connection.SyncRequest(Message.TOPIC_GET_INTRODUCTION, "")
+	response, err := connection.SyncRequestBlocking(Message.TOPIC_GET_INTRODUCTION, "")
 	if err != nil {
 		return err
 	}

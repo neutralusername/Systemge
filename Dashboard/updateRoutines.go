@@ -15,7 +15,7 @@ func (app *DashboardServer) statusUpdateRoutine() {
 		for _, client := range app.clients {
 			go func() {
 				if client.HasStatusFunc {
-					response, err := client.connection.SyncRequest(Message.TOPIC_GET_STATUS, "")
+					response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_STATUS, "")
 					if err != nil {
 						if app.errorLogger != nil {
 							app.errorLogger.Log("Failed to get status for client \"" + client.Name + "\": " + err.Error())
@@ -45,7 +45,7 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 		for _, client := range app.clients {
 			go func() {
 				if client.HasMetricsFunc {
-					response, err := client.connection.SyncRequest(Message.TOPIC_GET_METRICS, "")
+					response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_METRICS, "")
 					if err != nil {
 						if app.errorLogger != nil {
 							app.errorLogger.Log("Failed to get metrics for client \"" + client.Name + "\": " + err.Error())

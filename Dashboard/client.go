@@ -35,7 +35,7 @@ func (client *client) executeCommand(command string, args []string) (string, err
 	if !client.Commands[command] {
 		return "", Error.New("Command \""+command+"\" not found", nil)
 	}
-	response, err := client.connection.SyncRequest(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
 		Command: command,
 		Args:    args,
 	}))

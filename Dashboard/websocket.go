@@ -19,7 +19,7 @@ func (app *DashboardServer) startHandler(websocketClient *WebsocketServer.Websoc
 	if !client.HasStartFunc {
 		return Error.New("Client has no start function", nil)
 	}
-	response, err := client.connection.SyncRequest(Message.TOPIC_START, "")
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_START, "")
 	if err != nil {
 		return Error.New("Failed to send start request to client \""+client.Name+"\": "+err.Error(), nil)
 	}
@@ -41,7 +41,7 @@ func (app *DashboardServer) stopHandler(websocketClient *WebsocketServer.Websock
 	if !client.HasStopFunc {
 		return Error.New("Client has no stop function", nil)
 	}
-	response, err := client.connection.SyncRequest(Message.TOPIC_STOP, "")
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
 	if err != nil {
 		return Error.New("Failed to send stop request to client \""+client.Name+"\": "+err.Error(), nil)
 	}

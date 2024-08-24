@@ -12,13 +12,11 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 	waitGroup := sync.WaitGroup{}
 	waitGroup.Add(len(connections))
 	for _, connection := range connections {
-		go func(connection *SystemgeConnection) {
-			err := connection.AsyncMessage(topic, payload)
-			if err != nil {
-				errorChannel <- Error.New("Error in AsyncMessage for \""+connection.GetName()+"\"", err)
-			}
-			waitGroup.Done()
-		}(connection)
+		err := connection.AsyncMessage(topic, payload)
+		if err != nil {
+			errorChannel <- Error.New("Error in AsyncMessage for \""+connection.GetName()+"\"", err)
+		}
+		waitGroup.Done()
 	}
 	go func() {
 		waitGroup.Wait()
@@ -28,25 +26,31 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 }
 
 func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (<-chan *Message.Message, <-chan error) {
-	responseChannel := make(chan *Message.Message, len(connections))
+	responsesChannel := make(chan *Message.Message, len(connections))
 	errorChannel := make(chan error, len(connections))
 	waitGroup := sync.WaitGroup{}
-	waitGroup.Add(len(connections))
 	for _, connection := range connections {
-		go func(connection *SystemgeConnection) {
-			response, err := connection.SyncRequest(topic, payload)
-			if err != nil {
-				errorChannel <- Error.New("Error in SyncRequest for \""+connection.GetName()+"\"", err)
-			} else {
-				responseChannel <- response
-			}
-			waitGroup.Done()
-		}(connection)
+		responseChannel, err := connection.SyncRequest(topic, payload)
+		if err != nil {
+			errorChannel <- Error.New("Failed to send SyncRequest to \""+connection.GetName()+"\"", err)
+		} else {
+			waitGroup.Add(1)
+			go func(connection *SystemgeConnection, responseChannel <-chan *Message.Message) {
+				responseMessage := <-responseChannel
+				if responseMessage == nil {
+					errorChannel <- Error.New("Failed to receive response from \""+connection.GetName()+"\"", nil)
+				} else {
+					responsesChannel <- responseMessage
+				}
+				waitGroup.Done()
+
+			}(connection, responseChannel)
+		}
 	}
 	go func() {
 		waitGroup.Wait()
-		close(responseChannel)
+		close(responsesChannel)
 		close(errorChannel)
 	}()
-	return responseChannel, errorChannel
+	return responsesChannel, errorChannel
 }
