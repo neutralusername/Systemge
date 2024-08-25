@@ -236,7 +236,7 @@ export class root extends React.Component {
     handleOpen() {
         let myLoop = () => {
             this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
-            setTimeout(myLoop, 1000 * 60 * 4);
+            setTimeout(myLoop, 1000 * 60 * 1);
         };
         setTimeout(myLoop, 1000 * 60 * 4);
     }

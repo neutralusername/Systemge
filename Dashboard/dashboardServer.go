@@ -11,6 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -18,12 +19,18 @@ import (
 )
 
 type DashboardServer struct {
-	closed bool
+	statusMutex sync.Mutex
+	status      int
+
+	mutex sync.RWMutex
 
 	clients map[string]*client
 
-	mutex  sync.RWMutex
+	frontendPath string
+
 	config *Config.DashboardServer
+
+	waitGroup sync.WaitGroup
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
@@ -69,71 +76,115 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 	if config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes == 0 {
 		config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
 	}
+
+	_, callerPath, _, _ := runtime.Caller(0)
+	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
+	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
+
 	app := &DashboardServer{
 		mutex:   sync.RWMutex{},
 		config:  config,
 		clients: make(map[string]*client),
+
+		frontendPath: frontendPath,
 
 		infoLogger:    Tools.NewLogger("[Info: \"Dashboard\"]", config.InfoLoggerPath),
 		warningLogger: Tools.NewLogger("[Warning: \"Dashboard\"]", config.WarningLoggerPath),
 		errorLogger:   Tools.NewLogger("[Error: \"Dashboard\"]", config.ErrorLoggerPath),
 		mailer:        Tools.NewMailer(config.MailerConfig),
 	}
+	return app
+}
 
-	app.httpServer = HTTPServer.New(config.HTTPServerConfig, nil)
-	_, callerPath, _, _ := runtime.Caller(0)
-	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
-	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";")
-	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(frontendPath))
+func (app *DashboardServer) Start() error {
+	app.statusMutex.Lock()
+	defer app.statusMutex.Unlock()
+	if app.status == Status.STARTED {
+		return Error.New("Already started", nil)
+	}
 
-	app.websocketServer = WebsocketServer.New(config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
+	app.systemgeServer = SystemgeServer.New(app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
+	if err := app.systemgeServer.Start(); err != nil {
+		return err
+	}
+
+	app.websocketServer = WebsocketServer.New(app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
 		"start":   app.startHandler,
 		"stop":    app.stopHandler,
 		"command": app.commandHandler,
 		"gc":      app.gcHandler,
 	}, app.onWebsocketConnectHandler, nil)
-
-	app.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
-
-	err := app.httpServer.Start()
-	if err != nil {
-		panic(err)
-	}
-	err = app.websocketServer.Start()
-	if err != nil {
-		panic(err)
-	}
-	err = app.systemgeServer.Start()
-	if err != nil {
-		panic(err)
+	if err := app.websocketServer.Start(); err != nil {
+		if err := app.systemgeServer.Stop(); err != nil {
+			if app.errorLogger != nil {
+				app.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
+			}
+		}
+		return err
 	}
 
+	app.httpServer = HTTPServer.New(app.config.HTTPServerConfig, nil)
+	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
+	if err := app.httpServer.Start(); err != nil {
+		if err := app.systemgeServer.Stop(); err != nil {
+			if app.errorLogger != nil {
+				app.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
+			}
+		}
+		if err := app.websocketServer.Stop(); err != nil {
+			if app.errorLogger != nil {
+				app.errorLogger.Log(Error.New("Failed to stop Websocket server after failed start", err).Error())
+			}
+		}
+		return err
+	}
+	app.status = Status.STARTED
 	if app.config.GoroutineUpdateIntervalMs > 0 {
+		app.waitGroup.Add(1)
 		go app.goroutineUpdateRoutine()
 	}
 	if app.config.StatusUpdateIntervalMs > 0 {
+		app.waitGroup.Add(1)
 		go app.statusUpdateRoutine()
 	}
 	if app.config.HeapUpdateIntervalMs > 0 {
+		app.waitGroup.Add(1)
 		go app.heapUpdateRoutine()
 	}
 	if app.config.MetricsUpdateIntervalMs > 0 {
+		app.waitGroup.Add(1)
 		go app.metricsUpdateRoutine()
 	}
-
-	return app
+	return nil
 }
 
-func (app *DashboardServer) Close() {
-	app.mutex.Lock()
-	defer app.mutex.Unlock()
-	if app.closed {
-		return
+func (app *DashboardServer) Stop() error {
+	app.statusMutex.Lock()
+	defer app.statusMutex.Unlock()
+	if app.status == Status.STOPPED {
+		return Error.New("Already stopped", nil)
 	}
-	app.closed = true
-	app.httpServer.Stop()
-	app.websocketServer.Stop()
-	app.systemgeServer.Stop()
+	app.status = Status.PENDING
+	app.waitGroup.Wait()
+
+	if err := app.systemgeServer.Stop(); err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log(Error.New("Failed to stop Systemge server", err).Error())
+		}
+	}
+	if err := app.websocketServer.Stop(); err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log(Error.New("Failed to stop Websocket server", err).Error())
+		}
+	}
+	if err := app.httpServer.Stop(); err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log(Error.New("Failed to stop HTTP server", err).Error())
+		}
+	}
+
+	app.status = Status.STOPPED
+	return nil
 }
 
 func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {

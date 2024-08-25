@@ -2,6 +2,7 @@ package MessageBroker
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Dashboard"
@@ -20,9 +21,11 @@ type MessageBrokerServer struct {
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
 
-	messageHandler SystemgeConnection.MessageHandler
+	messageHandler  SystemgeConnection.MessageHandler
+	dashboardClient *Dashboard.DashboardClient
 
 	clients map[string]*client
+	mutex   sync.Mutex
 }
 
 func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerServer {
@@ -52,13 +55,20 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	}
 	server.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
 
-	Dashboard.NewClient(
-		config.DashboardClientConfig,
-		server.systemgeServer.Start, server.systemgeServer.Stop, nil, server.systemgeServer.GetStatus,
-		nil,
-	)
+	if config.DashboardClientConfig != nil {
+		server.dashboardClient = Dashboard.NewClient(
+			config.DashboardClientConfig,
+			server.systemgeServer.Start, server.systemgeServer.Stop, nil, server.systemgeServer.GetStatus,
+			nil,
+		)
+	}
 
 	return server
+}
+
+func (server *MessageBrokerServer) Stop() {
+	server.systemgeServer.Stop()
+	server.dashboardClient.Stop()
 }
 
 func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConnection.SystemgeConnection) error {
@@ -70,12 +80,18 @@ func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConn
 	if err != nil {
 		return err
 	}
+	server.mutex.Lock()
 	server.clients[connection.GetName()] = client
+	server.mutex.Unlock()
 	connection.StartProcessingLoopSequentially(server.messageHandler)
 	return nil
 }
 
 func (server *MessageBrokerServer) onSystemgeDisconnection(connection *SystemgeConnection.SystemgeConnection) {
+	server.mutex.Lock()
+	delete(server.clients, connection.GetName())
+	server.mutex.Unlock()
+	connection.StopProcessingLoop()
 }
 
 type client struct {

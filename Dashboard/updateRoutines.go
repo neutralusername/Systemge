@@ -7,10 +7,14 @@ import (
 
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 )
 
 func (app *DashboardServer) statusUpdateRoutine() {
-	for !app.closed {
+	defer app.waitGroup.Done()
+	for app.status == Status.STARTED {
+		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
+
 		app.mutex.RLock()
 		for _, client := range app.clients {
 			go func() {
@@ -35,12 +39,14 @@ func (app *DashboardServer) statusUpdateRoutine() {
 			}()
 		}
 		app.mutex.RUnlock()
-		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *DashboardServer) metricsUpdateRoutine() {
-	for !app.closed {
+	defer app.waitGroup.Done()
+	for app.status == Status.STARTED {
+		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
+
 		app.mutex.RLock()
 		for _, client := range app.clients {
 			go func() {
@@ -65,23 +71,27 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 			}()
 		}
 		app.mutex.RUnlock()
-		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *DashboardServer) goroutineUpdateRoutine() {
-	for !app.closed {
+	defer app.waitGroup.Done()
+	for app.status == Status.STARTED {
+		time.Sleep(time.Duration(app.config.GoroutineUpdateIntervalMs) * time.Millisecond)
+
 		goroutineCount := runtime.NumGoroutine()
 		go app.websocketServer.Broadcast(Message.NewAsync("goroutineCount", strconv.Itoa(goroutineCount)))
 		if infoLogger := app.infoLogger; infoLogger != nil {
 			infoLogger.Log("goroutine update routine: \"" + strconv.Itoa(goroutineCount) + "\"")
 		}
-		time.Sleep(time.Duration(app.config.GoroutineUpdateIntervalMs) * time.Millisecond)
 	}
 }
 
 func (app *DashboardServer) heapUpdateRoutine() {
-	for !app.closed {
+	defer app.waitGroup.Done()
+	for app.status == Status.STARTED {
+		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
+
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
 		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
@@ -89,6 +99,5 @@ func (app *DashboardServer) heapUpdateRoutine() {
 		if infoLogger := app.infoLogger; infoLogger != nil {
 			infoLogger.Log("heap update routine: \"" + heapSize + "\"")
 		}
-		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
 	}
 }

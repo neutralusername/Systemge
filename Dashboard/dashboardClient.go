@@ -1,6 +1,8 @@
 package Dashboard
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
@@ -19,6 +21,9 @@ type DashboardClient struct {
 	getMetricsFunc func() map[string]uint64
 	getStatusFunc  func() int
 	commands       Commands.Handlers
+
+	status int
+	mutex  sync.Mutex
 }
 
 func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *DashboardClient {
@@ -31,11 +36,11 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 	if config.EndpointConfig == nil {
 		panic("config.EndpointConfig is nil")
+	}
+	if config.ConnectionConfig.TcpBufferBytes == 0 {
+		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
 	}
 	app := &DashboardClient{
 		config:         config,
@@ -45,9 +50,18 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 		getStatusFunc:  getStatusFunc,
 		commands:       commands,
 	}
+	return app
+}
+
+func (app *DashboardClient) Start() error {
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+	if app.status == Status.STARTED {
+		return Error.New("Already started", nil)
+	}
 	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, 0)
 	if err != nil {
-		panic(err)
+		return Error.New("Failed to establish connection", err)
 	}
 	app.systemgeConnection = connection
 	app.systemgeConnection.StartProcessingLoopSequentially(
@@ -60,13 +74,21 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 			Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
 		}, nil, nil),
 	)
-
-	return app
+	app.status = Status.STARTED
+	return nil
 }
 
-func (app *DashboardClient) Close() {
+func (app *DashboardClient) Stop() error {
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+	if app.status == Status.STOPPED {
+		return Error.New("Already stopped", nil)
+	}
 	app.systemgeConnection.StopProcessingLoop()
 	app.systemgeConnection.Close()
+	app.systemgeConnection = nil
+	app.status = Status.STOPPED
+	return nil
 }
 
 func (app *DashboardClient) getIntroductionHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
