@@ -1,4 +1,4 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"sync"
@@ -17,8 +17,8 @@ type SequentialMessageHandler struct {
 
 	messageQueue chan *queueStruct
 
-	unknwonAsyncTopicHandler func(*Message.Message)
-	unknwonSyncTopicHandler  func(*Message.Message) (string, error)
+	unknwonAsyncTopicHandler AsyncMessageHandler
+	unknwonSyncTopicHandler  SyncMessageHandler
 
 	// metrics
 	asyncMessagesHandled  atomic.Uint64
@@ -30,6 +30,7 @@ type queueStruct struct {
 	message             *Message.Message
 	syncResponseChannel chan *syncResponseStruct
 	asyncErrorChannel   chan error
+	connection          *SystemgeConnection
 }
 
 type syncResponseStruct struct {
@@ -74,7 +75,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 			if !exists {
 				if messageHandler.unknwonSyncTopicHandler != nil {
 					messageHandler.syncRequestsHandled.Add(1)
-					response, err := messageHandler.unknwonSyncTopicHandler(messageStruct.message)
+					response, err := messageHandler.unknwonSyncTopicHandler(messageStruct.connection, messageStruct.message)
 					messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
@@ -82,7 +83,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 				}
 			} else {
 				messageHandler.syncRequestsHandled.Add(1)
-				response, err := handler(messageStruct.message)
+				response, err := handler(messageStruct.connection, messageStruct.message)
 				messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
 			}
 		} else {
@@ -92,7 +93,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 			if !exists {
 				if messageHandler.unknwonAsyncTopicHandler != nil {
 					messageHandler.asyncMessagesHandled.Add(1)
-					messageHandler.unknwonAsyncTopicHandler(messageStruct.message)
+					messageHandler.unknwonAsyncTopicHandler(messageStruct.connection, messageStruct.message)
 					messageStruct.asyncErrorChannel <- nil
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
@@ -100,17 +101,21 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 				}
 			} else {
 				messageHandler.asyncMessagesHandled.Add(1)
-				handler(messageStruct.message)
+				handler(messageStruct.connection, messageStruct.message)
 				messageStruct.asyncErrorChannel <- nil
 			}
 		}
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(message *Message.Message) error {
+func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection *SystemgeConnection, message *Message.Message) error {
 	response := make(chan error)
 	select {
-	case messageHandler.messageQueue <- &queueStruct{message: message, asyncErrorChannel: response}:
+	case messageHandler.messageQueue <- &queueStruct{
+		message:           message,
+		asyncErrorChannel: response,
+		connection:        connection,
+	}:
 		err := <-response
 		return err
 	default:
@@ -118,10 +123,14 @@ func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(message *Mess
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) HandleSyncRequest(message *Message.Message) (string, error) {
+func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection *SystemgeConnection, message *Message.Message) (string, error) {
 	response := make(chan *syncResponseStruct)
 	select {
-	case messageHandler.messageQueue <- &queueStruct{message: message, syncResponseChannel: response}:
+	case messageHandler.messageQueue <- &queueStruct{
+		message:             message,
+		syncResponseChannel: response,
+		connection:          connection,
+	}:
 		responseStruct := <-response
 		return responseStruct.response, responseStruct.err
 	default:
@@ -129,13 +138,13 @@ func (messageHandler *SequentialMessageHandler) HandleSyncRequest(message *Messa
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) AddAsyncMessageHandler(topic string, handler func(*Message.Message)) {
+func (messageHandler *SequentialMessageHandler) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
 	messageHandler.asyncMutex.Lock()
 	messageHandler.asyncMessageHandlers[topic] = handler
 	messageHandler.asyncMutex.Unlock()
 }
 
-func (messageHandler *SequentialMessageHandler) AddSyncMessageHandler(topic string, handler func(*Message.Message) (string, error)) {
+func (messageHandler *SequentialMessageHandler) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
 	messageHandler.syncMutex.Lock()
 	messageHandler.syncMessageHandlers[topic] = handler
 	messageHandler.syncMutex.Unlock()
@@ -153,21 +162,21 @@ func (messageHandler *SequentialMessageHandler) RemoveSyncMessageHandler(topic s
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *SequentialMessageHandler) SetUnknownAsyncHandler(handler func(*Message.Message)) {
+func (messageHandler *SequentialMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
 	messageHandler.unknwonAsyncTopicHandler = handler
 }
 
-func (messageHandler *SequentialMessageHandler) SetUnknownSyncHandler(handler func(*Message.Message) (string, error)) {
+func (messageHandler *SequentialMessageHandler) SetUnknownSyncHandler(handler SyncMessageHandler) {
 	messageHandler.unknwonSyncTopicHandler = handler
 }
 
-func (messageHandler *SequentialMessageHandler) GetAsyncMessageHandler(topic string) func(*Message.Message) {
+func (messageHandler *SequentialMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	return messageHandler.asyncMessageHandlers[topic]
 }
 
-func (messageHandler *SequentialMessageHandler) GetSyncMessageHandler(topic string) func(*Message.Message) (string, error) {
+func (messageHandler *SequentialMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	return messageHandler.syncMessageHandlers[topic]

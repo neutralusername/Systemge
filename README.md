@@ -1,6 +1,6 @@
 # Systemge Framework
 
-**Systemge** is a configuration-driven framework designed for crafting performant distributed peer-to-peer systems. In Systemge, interconnected "Nodes" communicate through asynchronous and synchronous messages over a lightweight custom protocol. Nodes can also interact with external systems through HTTP/WebSocket APIs.
+**Systemge** is a library designed for crafting performant distributed systems. In Systemge, interconnected "Nodes" communicate through asynchronous and synchronous messages over a lightweight custom protocol. Nodes can also interact with external systems through HTTP/WebSocket APIs.
 
 ## Key Features
 

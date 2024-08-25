@@ -1,4 +1,4 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"sync"
@@ -14,8 +14,8 @@ type ConcurrentMessageHandler struct {
 	syncMutex            sync.Mutex
 	asyncMutex           sync.Mutex
 
-	unknwonAsyncTopicHandler func(*Message.Message)
-	unknwonSyncTopicHandler  func(*Message.Message) (string, error)
+	unknwonAsyncTopicHandler AsyncMessageHandler
+	unknwonSyncTopicHandler  SyncMessageHandler
 
 	// metrics
 	asyncMessagesHandled  atomic.Uint64
@@ -39,14 +39,14 @@ func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 	return systemgeMessageHandler
 }
 
-func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(message *Message.Message) error {
+func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection *SystemgeConnection, message *Message.Message) error {
 	messageHandler.asyncMutex.Lock()
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	messageHandler.asyncMutex.Unlock()
 	if !exists {
 		if messageHandler.unknwonAsyncTopicHandler != nil {
 			messageHandler.asyncMessagesHandled.Add(1)
-			messageHandler.unknwonAsyncTopicHandler(message)
+			messageHandler.unknwonAsyncTopicHandler(connection, message)
 			return nil
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
@@ -54,34 +54,34 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(message *Mess
 		}
 	}
 	messageHandler.asyncMessagesHandled.Add(1)
-	handler(message)
+	handler(connection, message)
 	return nil
 }
 
-func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(message *Message.Message) (string, error) {
+func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection *SystemgeConnection, message *Message.Message) (string, error) {
 	messageHandler.syncMutex.Lock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.Unlock()
 	if !exists {
 		if messageHandler.unknwonSyncTopicHandler != nil {
 			messageHandler.syncRequestsHandled.Add(1)
-			return messageHandler.unknwonSyncTopicHandler(message)
+			return messageHandler.unknwonSyncTopicHandler(connection, message)
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
 			return "", Error.New("No handler for sync message", nil)
 		}
 	}
 	messageHandler.syncRequestsHandled.Add(1)
-	return handler(message)
+	return handler(connection, message)
 }
 
-func (messageHandler *ConcurrentMessageHandler) AddAsyncMessageHandler(topic string, handler func(*Message.Message)) {
+func (messageHandler *ConcurrentMessageHandler) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
 	messageHandler.asyncMutex.Lock()
 	messageHandler.asyncMessageHandlers[topic] = handler
 	messageHandler.asyncMutex.Unlock()
 }
 
-func (messageHandler *ConcurrentMessageHandler) AddSyncMessageHandler(topic string, handler func(*Message.Message) (string, error)) {
+func (messageHandler *ConcurrentMessageHandler) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
 	messageHandler.syncMutex.Lock()
 	messageHandler.syncMessageHandlers[topic] = handler
 	messageHandler.syncMutex.Unlock()
@@ -99,21 +99,21 @@ func (messageHandler *ConcurrentMessageHandler) RemoveSyncMessageHandler(topic s
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *ConcurrentMessageHandler) SetUnknownAsyncHandler(handler func(*Message.Message)) {
+func (messageHandler *ConcurrentMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
 	messageHandler.unknwonAsyncTopicHandler = handler
 }
 
-func (messageHandler *ConcurrentMessageHandler) SetUnknownSyncHandler(handler func(*Message.Message) (string, error)) {
+func (messageHandler *ConcurrentMessageHandler) SetUnknownSyncHandler(handler SyncMessageHandler) {
 	messageHandler.unknwonSyncTopicHandler = handler
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetAsyncMessageHandler(topic string) func(*Message.Message) {
+func (messageHandler *ConcurrentMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	return messageHandler.asyncMessageHandlers[topic]
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetSyncMessageHandler(topic string) func(*Message.Message) (string, error) {
+func (messageHandler *ConcurrentMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	return messageHandler.syncMessageHandlers[topic]

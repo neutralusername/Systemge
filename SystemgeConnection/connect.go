@@ -6,7 +6,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
@@ -40,14 +39,14 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}
-	SystemgeMessageHandler.NewConcurrentMessageHandler(SystemgeMessageHandler.AsyncMessageHandlers{
-		Message.TOPIC_NAME: func(message *Message.Message) {
+	NewConcurrentMessageHandler(AsyncMessageHandlers{
+		Message.TOPIC_NAME: func(connection *SystemgeConnection, message *Message.Message) {
 			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
 				return
 			}
 			name = message.GetPayload()
 		},
-	}, nil, nil, nil).HandleAsyncMessage(message)
+	}, nil, nil, nil).HandleAsyncMessage(connection, message)
 	if name == "" {
 		return nil, Error.New("Server did not respond with a name", nil)
 	}

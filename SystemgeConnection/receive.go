@@ -6,7 +6,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -144,7 +143,7 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 }
 
 // A started loop will run indefinitely until StopProcessingLoop is called.
-func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler SystemgeMessageHandler.MessageHandler) error {
+func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("No message handler set", nil)
 	}
@@ -193,7 +192,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHan
 }
 
 // A started loop will run indefinitely until StopProcessingLoop is called.
-func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler SystemgeMessageHandler.MessageHandler) error {
+func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler MessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -240,17 +239,17 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHan
 	return nil
 }
 
-func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler SystemgeMessageHandler.MessageHandler) error {
+func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("no message handler set", nil)
 	}
 	if message.GetSyncToken() == "" {
-		err := messageHandler.HandleAsyncMessage(message)
+		err := messageHandler.HandleAsyncMessage(connection, message)
 		if err != nil {
 			return Error.New("failed to handle async message", err)
 		}
 	} else {
-		if responsePayload, err := messageHandler.HandleSyncRequest(message); err != nil {
+		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
 			if err := connection.send(message.NewFailureResponse(err.Error()).Serialize()); err != nil {
 				return Error.New("failed to send failure response", err)
 			}

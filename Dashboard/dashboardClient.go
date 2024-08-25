@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
 type DashboardClient struct {
@@ -52,7 +51,7 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 	}
 	app.systemgeConnection = connection
 	app.systemgeConnection.StartProcessingLoopSequentially(
-		SystemgeMessageHandler.NewConcurrentMessageHandler(nil, SystemgeMessageHandler.SyncMessageHandlers{
+		SystemgeConnection.NewConcurrentMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
 			Message.TOPIC_GET_INTRODUCTION: app.getIntroductionHandler,
 			Message.TOPIC_GET_STATUS:       app.getStatusHandler,
 			Message.TOPIC_GET_METRICS:      app.getMetricsHandler,
@@ -70,7 +69,7 @@ func (app *DashboardClient) Close() {
 	app.systemgeConnection.Close()
 }
 
-func (app *DashboardClient) getIntroductionHandler(message *Message.Message) (string, error) {
+func (app *DashboardClient) getIntroductionHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	commands := make(map[string]bool)
 	for command := range app.commands {
 		commands[command] = true
@@ -95,14 +94,14 @@ func (app *DashboardClient) getIntroductionHandler(message *Message.Message) (st
 	}), nil
 }
 
-func (app *DashboardClient) getStatusHandler(message *Message.Message) (string, error) {
+func (app *DashboardClient) getStatusHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.getStatusFunc == nil {
 		return "", Error.New("No status available", nil)
 	}
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *DashboardClient) getMetricsHandler(message *Message.Message) (string, error) {
+func (app *DashboardClient) getMetricsHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.getMetricsFunc == nil {
 		return "", Error.New("No metrics available", nil)
 	}
@@ -113,7 +112,7 @@ func (app *DashboardClient) getMetricsHandler(message *Message.Message) (string,
 	return Helpers.JsonMarshal(metrics), nil
 }
 
-func (app *DashboardClient) startHandler(message *Message.Message) (string, error) {
+func (app *DashboardClient) startHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.startFunc == nil {
 		return "", Error.New("No start function available", nil)
 	}
@@ -124,7 +123,7 @@ func (app *DashboardClient) startHandler(message *Message.Message) (string, erro
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *DashboardClient) stopHandler(message *Message.Message) (string, error) {
+func (app *DashboardClient) stopHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.stopFunc == nil {
 		return "", Error.New("No stop function available", nil)
 	}
@@ -135,7 +134,7 @@ func (app *DashboardClient) stopHandler(message *Message.Message) (string, error
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *DashboardClient) executeCommandHandler(message *Message.Message) (string, error) {
+func (app *DashboardClient) executeCommandHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.commands == nil {
 		return "", nil
 	}
