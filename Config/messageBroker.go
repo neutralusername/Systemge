@@ -24,6 +24,8 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 type MessageBrokerClient struct {
 	Name string `json:"name"` // *required*
 
+	MaxServerNameLength int `json:"maxServerNameLength"` // *required*
+
 	AsyncTopics []string `json:"asyncTopics"` // *required*
 	SyncTopics  []string `json:"syncTopics"`  // *required*
 
