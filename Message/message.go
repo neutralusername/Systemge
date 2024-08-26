@@ -29,6 +29,11 @@ const TOPIC_START = "start_service"
 const TOPIC_STOP = "stop_service"
 const TOPIC_EXECUTE_COMMAND = "execute_command"
 
+const TOPIC_ADD_ASYNC_TOPICS = "add_async_topics"
+const TOPIC_ADD_SYNC_TOPICS = "add_sync_topics"
+const TOPIC_REMOVE_ASYNC_TOPICS = "remove_async_topics"
+const TOPIC_REMOVE_SYNC_TOPICS = "remove_sync_topics"
+
 const TOPIC_NAME = "name"
 
 func (message *Message) GetTopic() string {

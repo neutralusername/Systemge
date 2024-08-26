@@ -7,8 +7,33 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-// AddConnection attempts to add a connection to the client
-func (client *SystemgeClient) AddConnection(endpointConfig *Config.TcpEndpoint) error {
+// AddConnection adds an active connection to the client.
+// if reconnectEndpointConfig is not nil, the connection will attempt to reconnect
+func (client *SystemgeClient) AddConnection(connection *SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpEndpoint) error {
+	if connection == nil {
+		return Error.New("connection is nil", nil)
+	}
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status == Status.STOPPED {
+		return Error.New("client stopped", nil)
+	}
+	if _, ok := client.addressConnections[connection.GetAddress()]; ok {
+		return Error.New("connection already exists", nil)
+	}
+	client.addressConnections[connection.GetAddress()] = connection
+	client.nameConnections[connection.GetName()] = connection
+	client.waitGroup.Add(1)
+	go client.handleDisconnect(connection, reconnectEndpointConfig)
+	return nil
+}
+
+// AddConnectionAttempt attempts to connect to a server and add it to the client
+func (client *SystemgeClient) AddConnectionAttempt(endpointConfig *Config.TcpEndpoint) error {
 	if endpointConfig == nil {
 		return Error.New("endpointConfig is nil", nil)
 	}

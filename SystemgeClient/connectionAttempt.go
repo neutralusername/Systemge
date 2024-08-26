@@ -130,39 +130,11 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))
 			}
 
-			go func() {
-				<-connection.GetCloseChannel()
-
-				if infoLogger := client.infoLogger; infoLogger != nil {
-					infoLogger.Log("Connection closed to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\"")
-				}
-
-				client.mutex.Lock()
-				delete(client.addressConnections, attempt.endpointConfig.Address)
-				delete(client.nameConnections, connection.GetName())
-				client.mutex.Unlock()
-
-				if client.onDisconnectHandler != nil {
-					client.onDisconnectHandler(connection)
-				}
-
-				if client.config.Reconnect {
-					if err := client.startConnectionAttempts(attempt.endpointConfig); err != nil {
-						if client.errorLogger != nil {
-							client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+attempt.endpointConfig.Address+"\"", err).Error())
-						}
-						if client.mailer != nil {
-							err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting (re-)connection attempts to \""+attempt.endpointConfig.Address+"\"", err).Error()))
-							if err != nil {
-								if client.errorLogger != nil {
-									client.errorLogger.Log(Error.New("failed sending mail", err).Error())
-								}
-							}
-						}
-					}
-				}
-				client.waitGroup.Done()
-			}()
+			var endpointConfig *Config.TcpEndpoint
+			if client.config.Reconnect {
+				endpointConfig = attempt.endpointConfig
+			}
+			go client.handleDisconnect(connection, endpointConfig)
 
 			if client.onConnectHandler != nil {
 				if err := client.onConnectHandler(connection); err != nil {
@@ -176,4 +148,39 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			return nil
 		}
 	}
+}
+
+func (client *SystemgeClient) handleDisconnect(connection *SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpEndpoint) {
+	<-connection.GetCloseChannel()
+
+	if infoLogger := client.infoLogger; infoLogger != nil {
+		infoLogger.Log("Connection closed to \"" + connection.GetAddress() + "\" with name \"" + connection.GetName() + "\"")
+	}
+
+	client.mutex.Lock()
+	delete(client.addressConnections, connection.GetAddress())
+	delete(client.nameConnections, connection.GetName())
+	client.mutex.Unlock()
+
+	if client.onDisconnectHandler != nil {
+		client.onDisconnectHandler(connection)
+	}
+
+	if endpointConfig != nil {
+		if err := client.startConnectionAttempts(endpointConfig); err != nil {
+			if client.errorLogger != nil {
+				client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error())
+			}
+			if client.mailer != nil {
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error()))
+				if err != nil {
+					if client.errorLogger != nil {
+						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					}
+				}
+			}
+		}
+	}
+
+	client.waitGroup.Done()
 }
