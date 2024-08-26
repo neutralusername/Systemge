@@ -108,12 +108,8 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 		Message.TOPIC_ADD_SYNC_TOPICS:     server.addSyncTopics,
 		Message.TOPIC_REMOVE_SYNC_TOPICS:  server.removeSyncTopics,
 	}, nil, nil, 100000)
-	for _, topic := range server.config.AsyncTopics {
-		server.messageHandler.AddAsyncMessageHandler(topic, server.handleAsyncPropagate)
-	}
-	for _, topic := range server.config.SyncTopics {
-		server.messageHandler.AddSyncMessageHandler(topic, server.handleSyncPropagate)
-	}
+	server.AddAsyncTopics(server.config.AsyncTopics)
+	server.AddSyncTopics(server.config.SyncTopics)
 	return server
 }
 
@@ -220,7 +216,6 @@ func (server *MessageBrokerServer) addSyncTopics(connection *SystemgeConnection.
 	if err != nil {
 		return "", err
 	}
-
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
