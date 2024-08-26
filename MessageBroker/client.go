@@ -2,6 +2,7 @@ package MessageBroker
 
 import (
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -26,6 +27,10 @@ func NewMessageBrokerClient(config *Config.MessageBrokerClient) (*SystemgeConnec
 	if _, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_ADD_SYNC_TOPICS, Helpers.JsonMarshal(config.SyncTopics)); err != nil {
 		systemgeConnection.Close()
 		return nil, Error.New("Failed to add sync topics", err)
+	}
+	if err := Dashboard.NewClient(config.DashboardClientConfig, nil, nil, nil, nil, nil).Start(); err != nil {
+		systemgeConnection.Close()
+		return nil, Error.New("Failed to start dashboard client", err)
 	}
 	return systemgeConnection, nil
 }

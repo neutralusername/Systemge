@@ -3,8 +3,8 @@ package Config
 import "encoding/json"
 
 type MessageBrokerServer struct {
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"` // *required*
-	DashboardClientConfig *DashboardClient `json:"dashboardConfig"`      // *required*
+	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
+	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
 
 	AsyncTopics []string `json:"asyncTopics"` // *required*
 	SyncTopics  []string `json:"syncTopics"`  // *required*
@@ -24,13 +24,15 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 type MessageBrokerClient struct {
 	Name string `json:"name"` // *required*
 
+	ConnectionConfig      *SystemgeConnection `json:"connectionConfig"`      // *required*
+	EndpointConfig        *TcpEndpoint        `json:"endpointConfig"`        // *required*
+	DashboardClientConfig *DashboardClient    `json:"dashboardClientConfig"` // *required*
+
 	MaxServerNameLength int `json:"maxServerNameLength"` // *required*
 
 	AsyncTopics []string `json:"asyncTopics"` // *required*
 	SyncTopics  []string `json:"syncTopics"`  // *required*
 
-	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
-	EndpointConfig   *TcpEndpoint        `json:"endpointConfig"`   // *required*
 }
 
 func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
