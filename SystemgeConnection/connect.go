@@ -26,7 +26,6 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 }
 
 func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
-	name := ""
 	connection := New(config, netConn, "")
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
@@ -39,6 +38,7 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}
+	name := ""
 	NewConcurrentMessageHandler(AsyncMessageHandlers{
 		Message.TOPIC_NAME: func(connection *SystemgeConnection, message *Message.Message) {
 			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {

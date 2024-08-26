@@ -32,7 +32,6 @@ type SystemgeServer struct {
 
 type SystemgeListener struct {
 	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
-	EndpointConfig    *TcpEndpoint `json:"endpointConfig"`    // *optional*
 
 	IpRateLimiter       *IpRateLimiter `json:"ipRateLimiter"`       // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 	MaxClientNameLength uint64         `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)

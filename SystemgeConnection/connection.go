@@ -6,7 +6,9 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -100,12 +102,12 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *Syst
 	return connection
 }
 
-func (connection *SystemgeConnection) Close() {
+func (connection *SystemgeConnection) Close() error {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 
 	if connection.closed {
-		return
+		return Error.New("Connection already closed", nil)
 	}
 
 	connection.closed = true
@@ -120,12 +122,17 @@ func (connection *SystemgeConnection) Close() {
 		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
+	return nil
 }
 
-func (connection *SystemgeConnection) IsClosed() bool {
+func (connection *SystemgeConnection) IsClosed() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
-	return connection.closed
+	if connection.closed {
+		return Status.STOPPED
+	} else {
+		return Status.STARTED
+	}
 }
 
 func (connection *SystemgeConnection) GetName() string {
