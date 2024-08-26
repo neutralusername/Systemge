@@ -73,7 +73,7 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	}
 	server.systemgeServer = SystemgeServer.New(server.config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
 
-	if server.dashboardClient != nil {
+	if server.config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(
 			server.config.DashboardClientConfig,
 			server.systemgeServer.Start, server.systemgeServer.Stop, nil, server.systemgeServer.GetStatus,
