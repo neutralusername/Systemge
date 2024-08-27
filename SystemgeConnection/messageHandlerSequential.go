@@ -73,9 +73,9 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 			handler, exists := messageHandler.syncMessageHandlers[messageStruct.message.GetTopic()]
 			messageHandler.syncMutex.Unlock()
 			if !exists {
-				if messageHandler.unknwonSyncTopicHandler != nil {
+				if unknownMessageHandler := messageHandler.unknwonSyncTopicHandler; unknownMessageHandler != nil {
 					messageHandler.syncRequestsHandled.Add(1)
-					response, err := messageHandler.unknwonSyncTopicHandler(messageStruct.connection, messageStruct.message)
+					response, err := unknownMessageHandler(messageStruct.connection, messageStruct.message)
 					messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
@@ -91,9 +91,9 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 			handler, exists := messageHandler.asyncMessageHandlers[messageStruct.message.GetTopic()]
 			messageHandler.asyncMutex.Unlock()
 			if !exists {
-				if messageHandler.unknwonAsyncTopicHandler != nil {
+				if unknownMessageHandler := messageHandler.unknwonAsyncTopicHandler; unknownMessageHandler != nil {
 					messageHandler.asyncMessagesHandled.Add(1)
-					messageHandler.unknwonAsyncTopicHandler(messageStruct.connection, messageStruct.message)
+					unknownMessageHandler(messageStruct.connection, messageStruct.message)
 					messageStruct.asyncErrorChannel <- nil
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
