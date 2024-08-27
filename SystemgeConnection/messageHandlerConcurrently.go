@@ -23,6 +23,7 @@ type ConcurrentMessageHandler struct {
 	unknownTopicsReceived atomic.Uint64
 }
 
+// any number of message handlers may be active at the same time.
 func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler) *ConcurrentMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)

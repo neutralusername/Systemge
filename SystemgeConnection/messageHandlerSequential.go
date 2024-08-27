@@ -38,6 +38,7 @@ type syncResponseStruct struct {
 	err      error
 }
 
+// one message handler is active at a time.
 // requires a call to Close() to stop the message handler (otherwise it will keep running until the program ends).
 // Handle calls after Close() will cause a panic.
 func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *SequentialMessageHandler {
