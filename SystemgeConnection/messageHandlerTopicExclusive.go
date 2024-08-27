@@ -36,7 +36,7 @@ type syncMessageHandler struct {
 	messageQueue   chan *queueStruct
 }
 
-// one message handler of each topic may be active at a time.
+// one message handler of each topic may be active at the same time.
 func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *TopicExclusiveMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
@@ -53,28 +53,28 @@ func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, 
 			messageHandler: unknownTopicAsyncHandler,
 			messageQueue:   make(chan *queueStruct, queueSize),
 		}
-		go systemgeMessageHandler.handleMessages(systemgeMessageHandler.unknownAsyncTopicHandler.messageQueue)
+		go systemgeMessageHandler.handleAsyncMessages(systemgeMessageHandler.unknownAsyncTopicHandler)
 	}
 	if unknownTopicSyncHandler != nil {
 		systemgeMessageHandler.unknownSyncTopicHandler = &syncMessageHandler{
 			messageHandler: unknownTopicSyncHandler,
 			messageQueue:   make(chan *queueStruct, queueSize),
 		}
-		go systemgeMessageHandler.handleMessages(systemgeMessageHandler.unknownSyncTopicHandler.messageQueue)
+		go systemgeMessageHandler.handleSyncMessages(systemgeMessageHandler.unknownSyncTopicHandler)
 	}
 	for topic, handler := range asyncMessageHandlers {
 		systemgeMessageHandler.asyncMessageHandlers[topic] = &asyncMessageHandler{
 			messageHandler: handler,
 			messageQueue:   make(chan *queueStruct, queueSize),
 		}
-		go systemgeMessageHandler.handleMessages(systemgeMessageHandler.asyncMessageHandlers[topic].messageQueue)
+		go systemgeMessageHandler.handleAsyncMessages(systemgeMessageHandler.asyncMessageHandlers[topic])
 	}
 	for topic, handler := range syncMessageHandlers {
 		systemgeMessageHandler.syncMessageHandlers[topic] = &syncMessageHandler{
 			messageHandler: handler,
 			messageQueue:   make(chan *queueStruct, queueSize),
 		}
-		go systemgeMessageHandler.handleMessages(systemgeMessageHandler.syncMessageHandlers[topic].messageQueue)
+		go systemgeMessageHandler.handleSyncMessages(systemgeMessageHandler.syncMessageHandlers[topic])
 	}
 	return systemgeMessageHandler
 }
@@ -85,13 +85,25 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connectio
 	messageHandler.asyncMutex.Unlock()
 	if !exists {
 		if messageHandler.unknownAsyncTopicHandler != nil {
-
-			return nil
+			messageHandler.asyncMessagesHandled.Add(1)
+			response := make(chan error)
+			select {
+			case messageHandler.unknownAsyncTopicHandler.messageQueue <- &queueStruct{
+				connection:          connection,
+				message:             message,
+				syncResponseChannel: nil,
+				asyncErrorChannel:   response,
+			}:
+				return <-response
+			default:
+				return Error.New("Message queue is full", nil)
+			}
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
 			return Error.New("No handler for async message", nil)
 		}
 	}
+	messageHandler.asyncMessagesHandled.Add(1)
 	response := make(chan error)
 	select {
 	case handler.messageQueue <- &queueStruct{
@@ -112,12 +124,25 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection
 	messageHandler.syncMutex.Unlock()
 	if !exists {
 		if messageHandler.unknownSyncTopicHandler != nil {
-
+			messageHandler.syncRequestsHandled.Add(1)
+			response := make(chan *syncResponseStruct)
+			select {
+			case messageHandler.unknownSyncTopicHandler.messageQueue <- &queueStruct{
+				connection:          connection,
+				message:             message,
+				syncResponseChannel: response,
+			}:
+				responseStruct := <-response
+				return responseStruct.response, responseStruct.err
+			default:
+				return "", Error.New("Message queue is full", nil)
+			}
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
 			return "", Error.New("No handler for sync message", nil)
 		}
 	}
+	messageHandler.syncRequestsHandled.Add(1)
 	response := make(chan *syncResponseStruct)
 	select {
 	case handler.messageQueue <- &queueStruct{
@@ -152,48 +177,27 @@ func (messageHandler *TopicExclusiveMessageHandler) Close() {
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) handleMessages(queue chan *queueStruct) {
+func (messageHandler *TopicExclusiveMessageHandler) handleAsyncMessages(asyncMessageHandler *asyncMessageHandler) {
 	for {
-		messageStruct := <-queue
+		messageStruct := <-asyncMessageHandler.messageQueue
 		if messageStruct == nil {
 			return
 		}
-		if messageStruct.syncResponseChannel != nil {
-			messageHandler.syncMutex.Lock()
-			handler, exists := messageHandler.syncMessageHandlers[messageStruct.message.GetTopic()]
-			messageHandler.syncMutex.Unlock()
-			if !exists {
-				if unknownMessageHandler := messageHandler.unknownSyncTopicHandler; unknownMessageHandler != nil {
-					messageHandler.syncRequestsHandled.Add(1)
-					response, err := unknownMessageHandler.messageHandler(messageStruct.connection, messageStruct.message)
-					messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
-				} else {
-					messageHandler.unknownTopicsReceived.Add(1)
-					messageStruct.syncResponseChannel <- &syncResponseStruct{response: "", err: Error.New("No handler for sync message", nil)}
-				}
-			} else {
-				messageHandler.syncRequestsHandled.Add(1)
-				response, err := handler.messageHandler(messageStruct.connection, messageStruct.message)
-				messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
-			}
-		} else {
-			messageHandler.asyncMutex.Lock()
-			handler, exists := messageHandler.asyncMessageHandlers[messageStruct.message.GetTopic()]
-			messageHandler.asyncMutex.Unlock()
-			if !exists {
-				if unknownMessageHandler := messageHandler.unknownAsyncTopicHandler; unknownMessageHandler != nil {
-					messageHandler.asyncMessagesHandled.Add(1)
-					unknownMessageHandler.messageHandler(messageStruct.connection, messageStruct.message)
-					messageStruct.asyncErrorChannel <- nil
-				} else {
-					messageHandler.unknownTopicsReceived.Add(1)
-					messageStruct.asyncErrorChannel <- Error.New("No handler for async message", nil)
-				}
-			} else {
-				messageHandler.asyncMessagesHandled.Add(1)
-				handler.messageHandler(messageStruct.connection, messageStruct.message)
-				messageStruct.asyncErrorChannel <- nil
-			}
+		asyncMessageHandler.messageHandler(messageStruct.connection, messageStruct.message)
+		messageStruct.asyncErrorChannel <- nil
+	}
+}
+
+func (messageHandler *TopicExclusiveMessageHandler) handleSyncMessages(syncMessageHandler *syncMessageHandler) {
+	for {
+		messageStruct := <-syncMessageHandler.messageQueue
+		if messageStruct == nil {
+			return
+		}
+		response, err := syncMessageHandler.messageHandler(messageStruct.connection, messageStruct.message)
+		messageStruct.syncResponseChannel <- &syncResponseStruct{
+			response: response,
+			err:      err,
 		}
 	}
 }
@@ -209,7 +213,7 @@ func (messageHandler *TopicExclusiveMessageHandler) AddAsyncMessageHandler(topic
 		messageQueue:   make(chan *queueStruct, messageHandler.queueSize),
 	}
 	messageHandler.asyncMessageHandlers[topic] = asyncMessageHandler
-	go messageHandler.handleMessages(asyncMessageHandler.messageQueue)
+	go messageHandler.handleAsyncMessages(asyncMessageHandler)
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
@@ -223,7 +227,7 @@ func (messageHandler *TopicExclusiveMessageHandler) AddSyncMessageHandler(topic 
 		messageQueue:   make(chan *queueStruct, messageHandler.queueSize),
 	}
 	messageHandler.syncMessageHandlers[topic] = syncMessageHandler
-	go messageHandler.handleMessages(syncMessageHandler.messageQueue)
+	go messageHandler.handleSyncMessages(syncMessageHandler)
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
@@ -235,7 +239,7 @@ func (messageHandler *TopicExclusiveMessageHandler) SetUnknownAsyncHandler(handl
 			messageHandler: handler,
 			messageQueue:   make(chan *queueStruct, messageHandler.queueSize),
 		}
-		go messageHandler.handleMessages(messageHandler.unknownAsyncTopicHandler.messageQueue)
+		go messageHandler.handleAsyncMessages(messageHandler.unknownAsyncTopicHandler)
 	} else {
 		messageHandler.unknownAsyncTopicHandler = nil
 	}
@@ -250,7 +254,7 @@ func (messageHandler *TopicExclusiveMessageHandler) SetUnknownSyncHandler(handle
 			messageHandler: handler,
 			messageQueue:   make(chan *queueStruct, messageHandler.queueSize),
 		}
-		go messageHandler.handleMessages(messageHandler.unknownSyncTopicHandler.messageQueue)
+		go messageHandler.handleSyncMessages(messageHandler.unknownSyncTopicHandler)
 	} else {
 		messageHandler.unknownSyncTopicHandler = nil
 	}
