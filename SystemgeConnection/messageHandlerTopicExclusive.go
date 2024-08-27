@@ -226,6 +226,9 @@ func (messageHandler *TopicExclusiveMessageHandler) AddSyncMessageHandler(topic 
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
+	if messageHandler.unknownAsyncTopicHandler != nil {
+		close(messageHandler.unknownAsyncTopicHandler.messageQueue)
+	}
 	if handler != nil {
 		messageHandler.unknownAsyncTopicHandler = &asyncMessageHandler{
 			messageHandler: handler,
@@ -233,14 +236,14 @@ func (messageHandler *TopicExclusiveMessageHandler) SetUnknownAsyncHandler(handl
 		}
 		go messageHandler.handleMessages(messageHandler.unknownAsyncTopicHandler.messageQueue)
 	} else {
-		if messageHandler.unknownAsyncTopicHandler != nil {
-			close(messageHandler.unknownAsyncTopicHandler.messageQueue)
-		}
 		messageHandler.unknownAsyncTopicHandler = nil
 	}
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) SetUnknownSyncHandler(handler SyncMessageHandler) {
+	if messageHandler.unknownSyncTopicHandler != nil {
+		close(messageHandler.unknownSyncTopicHandler.messageQueue)
+	}
 	if handler != nil {
 		messageHandler.unknownSyncTopicHandler = &syncMessageHandler{
 			messageHandler: handler,
@@ -248,9 +251,6 @@ func (messageHandler *TopicExclusiveMessageHandler) SetUnknownSyncHandler(handle
 		}
 		go messageHandler.handleMessages(messageHandler.unknownSyncTopicHandler.messageQueue)
 	} else {
-		if messageHandler.unknownSyncTopicHandler != nil {
-			close(messageHandler.unknownSyncTopicHandler.messageQueue)
-		}
 		messageHandler.unknownSyncTopicHandler = nil
 	}
 }
