@@ -18,7 +18,8 @@ import {
 import {
     GetWebsocketConnection,
 } from "./wsConnection.js";
- 
+
+
 
 export class root extends React.Component {
     constructor(props) {
@@ -30,10 +31,14 @@ export class root extends React.Component {
             heapUpdates: {},
             goroutineUpdates: {},
         };
+
+        document.body.style.background = "#222426"
+        document.body.style.color = "#ffffff"
         this.WS_CONNECTION = GetWebsocketConnection(WS_PORT, WS_PATTERN);
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+      
         this.distinctColors = [
             "#556b2f",
             "#7f0000",

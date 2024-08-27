@@ -116,8 +116,7 @@ func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection *S
 		asyncErrorChannel: response,
 		connection:        connection,
 	}:
-		err := <-response
-		return err
+		return <-response
 	default:
 		return Error.New("Message queue is full", nil)
 	}
