@@ -38,7 +38,7 @@ export class root extends React.Component {
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
-      
+		Chart.defaults.color = "#ffffff";
         this.distinctColors = [
             "#556b2f",
             "#7f0000",

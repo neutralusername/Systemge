@@ -43,7 +43,7 @@ export class multiLineGraph extends React.Component {
 			return {
 				label: label,
 				data: this.props.dataSet[label],
-				fill: false,
+				fill: fill,
 				borderColor: this.props.colors[index],
 			}
 		})
