@@ -15,6 +15,8 @@ type TopicExclusiveMessageHandler struct {
 	syncMutex  sync.Mutex
 	asyncMutex sync.Mutex
 
+	messageQueue chan *queueStruct
+
 	unknownAsyncTopicHandler *asyncMessageHandler
 	unknownSyncTopicHandler  *syncMessageHandler
 
@@ -47,6 +49,10 @@ func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, 
 	systemgeMessageHandler := &TopicExclusiveMessageHandler{
 		asyncMessageHandlers: make(map[string]*asyncMessageHandler),
 		syncMessageHandlers:  make(map[string]*syncMessageHandler),
+
+		messageQueue: make(chan *queueStruct, queueSize),
+
+		queueSize: queueSize,
 	}
 	if unknownTopicAsyncHandler != nil {
 		systemgeMessageHandler.unknownAsyncTopicHandler = &asyncMessageHandler{
@@ -76,41 +82,17 @@ func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, 
 		}
 		go systemgeMessageHandler.handleSyncMessages(systemgeMessageHandler.syncMessageHandlers[topic])
 	}
+	go systemgeMessageHandler.handleMessages()
 	return systemgeMessageHandler
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connection *SystemgeConnection, message *Message.Message) error {
-	messageHandler.asyncMutex.Lock()
-	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
-	messageHandler.asyncMutex.Unlock()
-	if !exists {
-		if messageHandler.unknownAsyncTopicHandler != nil {
-			messageHandler.asyncMessagesHandled.Add(1)
-			response := make(chan error)
-			select {
-			case messageHandler.unknownAsyncTopicHandler.messageQueue <- &queueStruct{
-				connection:          connection,
-				message:             message,
-				syncResponseChannel: nil,
-				asyncErrorChannel:   response,
-			}:
-				return <-response
-			default:
-				return Error.New("Message queue is full", nil)
-			}
-		} else {
-			messageHandler.unknownTopicsReceived.Add(1)
-			return Error.New("No handler for async message", nil)
-		}
-	}
-	messageHandler.asyncMessagesHandled.Add(1)
 	response := make(chan error)
 	select {
-	case handler.messageQueue <- &queueStruct{
-		connection:          connection,
-		message:             message,
-		syncResponseChannel: nil,
-		asyncErrorChannel:   response,
+	case messageHandler.messageQueue <- &queueStruct{
+		message:           message,
+		asyncErrorChannel: response,
+		connection:        connection,
 	}:
 		return <-response
 	default:
@@ -119,41 +101,55 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connectio
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection *SystemgeConnection, message *Message.Message) (string, error) {
-	messageHandler.syncMutex.Lock()
-	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
-	messageHandler.syncMutex.Unlock()
-	if !exists {
-		if messageHandler.unknownSyncTopicHandler != nil {
-			messageHandler.syncRequestsHandled.Add(1)
-			response := make(chan *syncResponseStruct)
-			select {
-			case messageHandler.unknownSyncTopicHandler.messageQueue <- &queueStruct{
-				connection:          connection,
-				message:             message,
-				syncResponseChannel: response,
-			}:
-				responseStruct := <-response
-				return responseStruct.response, responseStruct.err
-			default:
-				return "", Error.New("Message queue is full", nil)
-			}
-		} else {
-			messageHandler.unknownTopicsReceived.Add(1)
-			return "", Error.New("No handler for sync message", nil)
-		}
-	}
-	messageHandler.syncRequestsHandled.Add(1)
 	response := make(chan *syncResponseStruct)
 	select {
-	case handler.messageQueue <- &queueStruct{
-		connection:          connection,
+	case messageHandler.messageQueue <- &queueStruct{
 		message:             message,
 		syncResponseChannel: response,
+		connection:          connection,
 	}:
 		responseStruct := <-response
 		return responseStruct.response, responseStruct.err
 	default:
 		return "", Error.New("Message queue is full", nil)
+	}
+}
+
+func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
+	for {
+		messageStruct := <-messageHandler.messageQueue
+		if messageStruct == nil {
+			return
+		}
+		if messageStruct.syncResponseChannel != nil {
+			messageHandler.syncMutex.Lock()
+			handler, exists := messageHandler.syncMessageHandlers[messageStruct.message.GetTopic()]
+			messageHandler.syncMutex.Unlock()
+			if !exists {
+				if unknownMessageHandler := messageHandler.unknownSyncTopicHandler; unknownMessageHandler != nil {
+					unknownMessageHandler.messageQueue <- messageStruct
+				} else {
+					messageHandler.unknownTopicsReceived.Add(1)
+					messageStruct.syncResponseChannel <- &syncResponseStruct{response: "", err: Error.New("No handler for sync message", nil)}
+				}
+			} else {
+				handler.messageQueue <- messageStruct
+			}
+		} else {
+			messageHandler.asyncMutex.Lock()
+			handler, exists := messageHandler.asyncMessageHandlers[messageStruct.message.GetTopic()]
+			messageHandler.asyncMutex.Unlock()
+			if !exists {
+				if unknownMessageHandler := messageHandler.unknownAsyncTopicHandler; unknownMessageHandler != nil {
+					unknownMessageHandler.messageQueue <- messageStruct
+				} else {
+					messageHandler.unknownTopicsReceived.Add(1)
+					messageStruct.asyncErrorChannel <- Error.New("No handler for async message", nil)
+				}
+			} else {
+				handler.messageQueue <- messageStruct
+			}
+		}
 	}
 }
 
