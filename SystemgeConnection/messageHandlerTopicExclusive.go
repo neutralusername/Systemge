@@ -154,6 +154,7 @@ func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) Close() {
+	close(messageHandler.messageQueue)
 	messageHandler.asyncMutex.Lock()
 	for key, handler := range messageHandler.asyncMessageHandlers {
 		close(handler.messageQueue)
