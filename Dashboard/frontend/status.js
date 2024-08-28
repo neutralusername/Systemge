@@ -49,6 +49,9 @@ export class status extends React.Component {
 					},
 					React.createElement(
 						"a", {
+							style: {
+								color: "white",
+							},
 							href: this.props.module.name !== "dashboard" ? `/${this.props.module.name}` : "",
 							onClick: (e) => {
 								e.preventDefault();
