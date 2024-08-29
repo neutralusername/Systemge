@@ -29,6 +29,10 @@ type MessageBrokerClient struct {
 	DashboardClientConfig *DashboardClient    `json:"dashboardClientConfig"` // *required*
 
 	MaxServerNameLength int `json:"maxServerNameLength"` // *required*
+
+	AsyncTopics []string `json:"asyncTopics"` // *required*
+	SyncTopics  []string `json:"syncTopics"`  // *required*
+
 }
 
 func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
