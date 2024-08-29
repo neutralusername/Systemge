@@ -93,6 +93,17 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 		errorLogger:   Tools.NewLogger("[Error: \"Dashboard\"]", config.ErrorLoggerPath),
 		mailer:        Tools.NewMailer(config.MailerConfig),
 	}
+
+	app.systemgeServer = SystemgeServer.New(app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
+	app.websocketServer = WebsocketServer.New(app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
+		"start":   app.startHandler,
+		"stop":    app.stopHandler,
+		"command": app.commandHandler,
+		"gc":      app.gcHandler,
+	}, app.onWebsocketConnectHandler, nil)
+	app.httpServer = HTTPServer.New(app.config.HTTPServerConfig, nil)
+	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
+
 	return app
 }
 
@@ -103,17 +114,10 @@ func (app *DashboardServer) Start() error {
 		return Error.New("Already started", nil)
 	}
 
-	app.systemgeServer = SystemgeServer.New(app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
 	if err := app.systemgeServer.Start(); err != nil {
 		return err
 	}
 
-	app.websocketServer = WebsocketServer.New(app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
-		"start":   app.startHandler,
-		"stop":    app.stopHandler,
-		"command": app.commandHandler,
-		"gc":      app.gcHandler,
-	}, app.onWebsocketConnectHandler, nil)
 	if err := app.websocketServer.Start(); err != nil {
 		if err := app.systemgeServer.Stop(); err != nil {
 			if app.errorLogger != nil {
@@ -123,8 +127,6 @@ func (app *DashboardServer) Start() error {
 		return err
 	}
 
-	app.httpServer = HTTPServer.New(app.config.HTTPServerConfig, nil)
-	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 	if err := app.httpServer.Start(); err != nil {
 		if err := app.systemgeServer.Stop(); err != nil {
 			if app.errorLogger != nil {
@@ -217,11 +219,7 @@ func (app *DashboardServer) onSystemgeDisconnectHandler(connection *SystemgeConn
 }
 
 func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
-	_, filePath, _, _ := runtime.Caller(0)
-
-	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(filePath[:len(filePath)-len("dasbboardServer.go")]+"frontend"))).ServeHTTP(w, r)
-	})
+	app.httpServer.AddRoute("/"+client.Name, HTTPServer.SendDirectory(app.frontendPath))
 	app.httpServer.AddRoute("/"+client.Name+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
@@ -260,4 +258,5 @@ func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
 func (app *DashboardServer) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName)
 	app.httpServer.RemoveRoute("/" + clientName + "/command/")
+	app.httpServer.RemoveRoute("/" + clientName + "/command")
 }
