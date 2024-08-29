@@ -79,7 +79,11 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
-	Helpers.CreateFile(frontendPath+"configs.js", "export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";")
+	Helpers.CreateFile(frontendPath+"configs.js",
+		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";"+
+			"export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";"+
+			"export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";",
+	)
 
 	app := &DashboardServer{
 		mutex:   sync.RWMutex{},

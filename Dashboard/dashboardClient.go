@@ -59,7 +59,7 @@ func (app *DashboardClient) Start() error {
 	if app.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, 0)
+	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, app.config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}

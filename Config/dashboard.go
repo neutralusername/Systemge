@@ -29,8 +29,9 @@ func UnmarshalDashboardServer(data string) *DashboardServer {
 type DashboardClient struct {
 	Name string `json:"name"` // *required*
 
-	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
-	EndpointConfig   *TcpEndpoint        `json:"endpointConfig"`   // *required*
+	MaxServerNameLength int                 `json:"maxServerNameLength"` // default: <=0 = disabled
+	ConnectionConfig    *SystemgeConnection `json:"connectionConfig"`    // *required*
+	EndpointConfig      *TcpEndpoint        `json:"endpointConfig"`      // *required*
 }
 
 func UnmarshalDashboardClient(data string) *DashboardClient {
