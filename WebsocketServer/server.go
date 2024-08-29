@@ -8,42 +8,11 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
 )
-
-type OnConnectHandler func(*WebsocketClient) error
-type OnDisconnectHandler func(*WebsocketClient)
-
-type MessageHandler func(*WebsocketClient, *Message.Message) error
-type MessageHandlers map[string]MessageHandler
-
-func NewMessageHandlers() MessageHandlers {
-	return make(map[string]MessageHandler)
-}
-
-// handlers of handlers2 will be merged into handlers and overwrite existing duplicate keys.
-func (handlers MessageHandlers) Merge(handlers2 MessageHandlers) {
-	for key, value := range handlers2 {
-		handlers[key] = value
-	}
-}
-
-func (handlers MessageHandlers) Add(topic string, handler MessageHandler) {
-	handlers[topic] = handler
-}
-
-func (handlers MessageHandlers) Remove(topic string) {
-	delete(handlers, topic)
-}
-
-func (handlers MessageHandlers) Get(topic string) (MessageHandler, bool) {
-	handler, ok := handlers[topic]
-	return handler, ok
-}
 
 type WebsocketServer struct {
 	status      int
@@ -68,9 +37,9 @@ type WebsocketServer struct {
 	groups            map[string]map[string]*WebsocketClient // groupId -> map[websocketId]client
 	clientGroups      map[string]map[string]bool             // websocketId -> map[groupId]bool
 	messageHandlers   MessageHandlers
+	clientMutex       sync.RWMutex
 
 	messageHandlerMutex sync.Mutex
-	mutex               sync.RWMutex
 
 	// metrics
 
@@ -178,12 +147,12 @@ func (server *WebsocketServer) Stop() error {
 		server.ipRateLimiter = nil
 	}
 
-	server.mutex.Lock()
+	server.clientMutex.Lock()
 	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
 	for _, websocketClient := range server.clients {
 		websocketClientsToDisconnect = append(websocketClientsToDisconnect, websocketClient)
 	}
-	server.mutex.Unlock()
+	server.clientMutex.Unlock()
 
 	for _, websocketClient := range websocketClientsToDisconnect {
 		websocketClient.Disconnect()

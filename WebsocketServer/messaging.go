@@ -14,7 +14,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
-	server.mutex.RLock()
+	server.clientMutex.RLock()
 	for _, client := range server.clients {
 		waitGroup.AddTask(func() {
 			err := client.Send(messageBytes)
@@ -35,7 +35,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			server.bytesSentCounter.Add(uint64(len(messageBytes)))
 		})
 	}
-	server.mutex.RUnlock()
+	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
@@ -48,8 +48,11 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
-	server.mutex.RLock()
-	if client, exists := server.clients[id]; exists {
+	server.clientMutex.RLock()
+	if client, exists := server.clients[id]; !exists {
+		server.clientMutex.RUnlock()
+		return Error.New("Client \""+id+"\" does not exist", nil)
+	} else {
 		waitGroup.AddTask(func() {
 			err := client.Send(messageBytes)
 			if err != nil {
@@ -68,11 +71,8 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			server.outgoigMessageCounter.Add(1)
 			server.bytesSentCounter.Add(uint64(len(messageBytes)))
 		})
-	} else {
-		server.mutex.RUnlock()
-		return Error.New("Client \""+id+"\" does not exist", nil)
 	}
-	server.mutex.RUnlock()
+	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
@@ -89,7 +89,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
-	server.mutex.RLock()
+	server.clientMutex.RLock()
 	for _, id := range ids {
 		if client, exists := server.clients[id]; exists {
 			waitGroup.AddTask(func() {
@@ -112,7 +112,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			})
 		}
 	}
-	server.mutex.RUnlock()
+	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }
@@ -125,9 +125,9 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
-	server.mutex.RLock()
+	server.clientMutex.RLock()
 	if server.groups[groupId] == nil {
-		server.mutex.RUnlock()
+		server.clientMutex.RUnlock()
 		return Error.New("Group \""+groupId+"\" does not exist", nil)
 	}
 	for _, client := range server.groups[groupId] {
@@ -150,7 +150,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			server.bytesSentCounter.Add(uint64(len(messageBytes)))
 		})
 	}
-	server.mutex.RUnlock()
+	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
 	return nil
 }

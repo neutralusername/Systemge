@@ -25,7 +25,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 }
 
 func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *websocket.Conn) {
-	server.mutex.Lock()
+	server.clientMutex.Lock()
 	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	for _, exists := server.clients[websocketId]; exists; {
 		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
@@ -33,7 +33,7 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 	client := server.newClient(websocketId, websocketConnection)
 	server.clients[websocketId] = client
 	server.clientGroups[websocketId] = make(map[string]bool)
-	server.mutex.Unlock()
+	server.clientMutex.Unlock()
 
 	defer client.Disconnect()
 	if infoLogger := server.infoLogger; infoLogger != nil {
