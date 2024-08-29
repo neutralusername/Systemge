@@ -91,11 +91,18 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 		clients: make(map[string]*client),
 
 		frontendPath: frontendPath,
-
-		infoLogger:    Tools.NewLogger("[Info: \"Dashboard\"]", config.InfoLoggerPath),
-		warningLogger: Tools.NewLogger("[Warning: \"Dashboard\"]", config.WarningLoggerPath),
-		errorLogger:   Tools.NewLogger("[Error: \"Dashboard\"]", config.ErrorLoggerPath),
-		mailer:        Tools.NewMailer(config.MailerConfig),
+	}
+	if config.InfoLoggerPath != "" {
+		app.infoLogger = Tools.NewLogger("[Info: \"DashboardServer\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		app.warningLogger = Tools.NewLogger("[Warning: \"DashboardServer\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		app.errorLogger = Tools.NewLogger("[Error: \"DashboardServer\"] ", config.ErrorLoggerPath)
+	}
+	if config.MailerConfig != nil {
+		app.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
 	app.systemgeServer = SystemgeServer.New(app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
