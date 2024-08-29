@@ -12,6 +12,8 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
 
+	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
+
 	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
 	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
 	StatusUpdateIntervalMs    uint64 `json:"serviceStatusUpdateIntervalMs"` // default: 0 = disabled

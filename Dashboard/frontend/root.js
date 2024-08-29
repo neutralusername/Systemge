@@ -1,5 +1,6 @@
 import { commands } from "./commands.js";
 import {
+    MAX_CHART_ENTRIES,
     WS_PATTERN, 
     WS_PORT 
 } from "./configs.js";
@@ -164,7 +165,7 @@ export class root extends React.Component {
     handleHeapStatus(payload) {
         let heapStatus = Number(payload);
         let heapUpdates = { ...this.state.heapUpdates };
-        if (Object.keys(heapUpdates).length > 50) {
+        if (Object.keys(heapUpdates).length > MAX_CHART_ENTRIES) {
             delete heapUpdates[Object.keys(heapUpdates)[0]];
         }
         heapUpdates[new Date().valueOf()] = heapStatus;
@@ -174,7 +175,7 @@ export class root extends React.Component {
     handleGoroutineCount(payload) {
         let goroutineCount = Number(payload);
         let goroutineUpdates = { ...this.state.goroutineUpdates };
-        if (Object.keys(goroutineUpdates).length > 50) {
+        if (Object.keys(goroutineUpdates).length > MAX_CHART_ENTRIES) {
             delete goroutineUpdates[Object.keys(goroutineUpdates)[0]];
         }
         goroutineUpdates[new Date().valueOf()] = goroutineCount;
@@ -219,7 +220,7 @@ export class root extends React.Component {
             return;
         }
         module.metrics[new Date().valueOf()] = metrics.metrics;
-        if (Object.keys(module.metrics).length > 50) {
+        if (Object.keys(module.metrics).length > MAX_CHART_ENTRIES) {
             delete module.metrics[Object.keys(module.metrics)[0]];
         }
         this.setState({
