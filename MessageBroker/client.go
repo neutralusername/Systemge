@@ -32,15 +32,17 @@ func NewMessageBrokerClient(config *Config.MessageBrokerClient, systemgeMessageH
 		systemgeConnection.Close()
 		return nil, Error.New("Failed to add sync topics", err)
 	}
-	dashboardClient := Dashboard.NewClient(config.DashboardClientConfig, nil, systemgeConnection.Close, systemgeConnection.GetMetrics, systemgeConnection.IsClosed, dashboardCommands)
-	if err := dashboardClient.Start(); err != nil {
-		systemgeConnection.Close()
-		return nil, Error.New("Failed to start dashboard client", err)
+	if config.DashboardClientConfig != nil {
+		dashboardClient := Dashboard.NewClient(config.DashboardClientConfig, nil, systemgeConnection.Close, systemgeConnection.GetMetrics, systemgeConnection.IsClosed, dashboardCommands)
+		if err := dashboardClient.Start(); err != nil {
+			systemgeConnection.Close()
+			return nil, Error.New("Failed to start dashboard client", err)
+		}
+		go func() {
+			<-systemgeConnection.GetCloseChannel()
+			dashboardClient.Stop()
+		}()
 	}
-	go func() {
-		<-systemgeConnection.GetCloseChannel()
-		dashboardClient.Stop()
-	}()
 	if err := systemgeConnection.StartProcessingLoopSequentially(systemgeMessageHandler); err != nil {
 		systemgeConnection.Close()
 		return nil, Error.New("Failed to start processing loop", err)
