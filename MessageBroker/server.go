@@ -60,17 +60,25 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	server := &MessageBrokerServer{
 		config: config,
 
-		infoLogger:    Tools.NewLogger("[Info: \"MessageBroker\"]", config.InfoLoggerPath),
-		warningLogger: Tools.NewLogger("[Warning: \"MessageBroker\"]", config.WarningLoggerPath),
-		errorLogger:   Tools.NewLogger("[Error: \"MessageBroker\"]", config.ErrorLoggerPath),
-		mailer:        Tools.NewMailer(config.MailerConfig),
-
 		asyncTopicResolutions: make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
 		syncTopicResolutions:  make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
 
 		clientsAsyncTopics: make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
 		clientsSyncTopics:  make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
+	if config.InfoLoggerPath != "" {
+		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		server.warningLogger = Tools.NewLogger("[Warning: \"MessageBrokerServer\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		server.errorLogger = Tools.NewLogger("[Error: \"MessageBrokerServer\"] ", config.ErrorLoggerPath)
+	}
+	if config.MailerConfig != nil {
+		server.mailer = Tools.NewMailer(config.MailerConfig)
+	}
+
 	server.systemgeServer = SystemgeServer.New(server.config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
 
 	if server.config.DashboardClientConfig != nil {
