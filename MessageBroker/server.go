@@ -96,7 +96,8 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 				},
 			},
 		)
-		if err := server.dashboardClient.Start(); err != nil {
+
+		if err := server.StartDashboardClient(); err != nil {
 			if server.errorLogger != nil {
 				server.errorLogger.Log(Error.New("failed to start dashboard client", err).Error())
 			}
@@ -111,6 +112,20 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	server.AddAsyncTopics(server.config.AsyncTopics)
 	server.AddSyncTopics(server.config.SyncTopics)
 	return server
+}
+
+func (server *MessageBrokerServer) StartDashboardClient() error {
+	if server.dashboardClient == nil {
+		return Error.New("dashboard client is not enabled", nil)
+	}
+	return server.dashboardClient.Start()
+}
+
+func (server *MessageBrokerServer) StopDashboardClient() error {
+	if server.dashboardClient == nil {
+		return Error.New("dashboard client is not enabled", nil)
+	}
+	return server.dashboardClient.Stop()
 }
 
 func (server *MessageBrokerServer) Start() error {
