@@ -162,6 +162,26 @@ func (messageHandler *SequentialMessageHandler) RemoveSyncMessageHandler(topic s
 	messageHandler.syncMutex.Unlock()
 }
 
+func (messageHandler *SequentialMessageHandler) GetAsyncTopics() []string {
+	messageHandler.asyncMutex.Lock()
+	defer messageHandler.asyncMutex.Unlock()
+	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
+	for topic := range messageHandler.asyncMessageHandlers {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
+func (messageHandler *SequentialMessageHandler) GetSyncTopics() []string {
+	messageHandler.syncMutex.Lock()
+	defer messageHandler.syncMutex.Unlock()
+	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
+	for topic := range messageHandler.syncMessageHandlers {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
 func (messageHandler *SequentialMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
 	messageHandler.unknwonAsyncTopicHandler = handler
 }

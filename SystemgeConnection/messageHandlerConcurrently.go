@@ -120,6 +120,26 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncMessageHandler(topic stri
 	return messageHandler.syncMessageHandlers[topic]
 }
 
+func (messageHandler *ConcurrentMessageHandler) GetAsyncTopics() []string {
+	messageHandler.asyncMutex.Lock()
+	defer messageHandler.asyncMutex.Unlock()
+	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
+	for topic := range messageHandler.asyncMessageHandlers {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
+func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
+	messageHandler.syncMutex.Lock()
+	defer messageHandler.syncMutex.Unlock()
+	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
+	for topic := range messageHandler.syncMessageHandlers {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
 func (messageHandler *ConcurrentMessageHandler) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }

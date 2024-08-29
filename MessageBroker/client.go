@@ -24,11 +24,11 @@ func NewMessageBrokerClient(config *Config.MessageBrokerClient, systemgeMessageH
 	if err != nil {
 		return nil, Error.New("Failed to establish connection", err)
 	}
-	if _, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_ADD_ASYNC_TOPICS, Helpers.JsonMarshal(config.AsyncTopics)); err != nil {
+	if _, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_ADD_ASYNC_TOPICS, Helpers.JsonMarshal(systemgeMessageHandler.GetAsyncTopics())); err != nil {
 		systemgeConnection.Close()
 		return nil, Error.New("Failed to add async topics", err)
 	}
-	if _, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_ADD_SYNC_TOPICS, Helpers.JsonMarshal(config.SyncTopics)); err != nil {
+	if _, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_ADD_SYNC_TOPICS, Helpers.JsonMarshal(systemgeMessageHandler.GetSyncTopics())); err != nil {
 		systemgeConnection.Close()
 		return nil, Error.New("Failed to add sync topics", err)
 	}

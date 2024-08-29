@@ -293,6 +293,26 @@ func (messageHandler *TopicExclusiveMessageHandler) GetSyncMessageHandler(topic 
 	return nil
 }
 
+func (messageHandler *TopicExclusiveMessageHandler) GetAsyncTopics() []string {
+	messageHandler.asyncMutex.Lock()
+	defer messageHandler.asyncMutex.Unlock()
+	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
+	for topic := range messageHandler.asyncMessageHandlers {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
+func (messageHandler *TopicExclusiveMessageHandler) GetSyncTopics() []string {
+	messageHandler.syncMutex.Lock()
+	defer messageHandler.syncMutex.Unlock()
+	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
+	for topic := range messageHandler.syncMessageHandlers {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
 func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }

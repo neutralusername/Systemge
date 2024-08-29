@@ -65,6 +65,8 @@ type MessageHandler interface {
 	SetUnknownSyncHandler(handler SyncMessageHandler)
 	GetAsyncMessageHandler(topic string) AsyncMessageHandler
 	GetSyncMessageHandler(topic string) SyncMessageHandler
+	GetAsyncTopics() []string
+	GetSyncTopics() []string
 
 	GetAsyncMessagesHandled() uint64
 	RetrieveAsyncMessagesHandled() uint64
