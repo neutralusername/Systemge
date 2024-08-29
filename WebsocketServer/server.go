@@ -49,7 +49,7 @@ type WebsocketServer struct {
 	bytesReceivedCounter   atomic.Uint64
 }
 
-// onConnectHandler, onDisconnectHandler may be nil
+// onConnectHandler, onDisconnectHandler may be nil.
 func New(config *Config.WebsocketServer, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
 	if config == nil {
 		panic("config is nil")

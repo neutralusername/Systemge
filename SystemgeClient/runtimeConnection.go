@@ -107,3 +107,16 @@ func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string
 	}
 	return names
 }
+
+func (client *SystemgeClient) GetConnectionCount() int {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status != Status.STARTED {
+		return 0
+	}
+	return len(client.addressConnections)
+}

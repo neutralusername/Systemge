@@ -125,7 +125,7 @@ func (connection *SystemgeConnection) Close() error {
 	return nil
 }
 
-func (connection *SystemgeConnection) IsClosed() int {
+func (connection *SystemgeConnection) GetStatus() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 	if connection.closed {

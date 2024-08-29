@@ -33,7 +33,7 @@ func NewMessageBrokerClient(config *Config.MessageBrokerClient, systemgeMessageH
 		return nil, Error.New("Failed to add sync topics", err)
 	}
 	if config.DashboardClientConfig != nil {
-		dashboardClient := Dashboard.NewClient(config.DashboardClientConfig, nil, messageBrokerClient.Close, messageBrokerClient.GetMetrics, messageBrokerClient.IsClosed, dashboardCommands)
+		dashboardClient := Dashboard.NewClient(config.DashboardClientConfig, nil, messageBrokerClient.Close, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
 		if err := dashboardClient.Start(); err != nil {
 			messageBrokerClient.Close()
 			return nil, Error.New("Failed to start dashboard client", err)

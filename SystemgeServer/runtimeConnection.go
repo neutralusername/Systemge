@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) RemoveConection(name string) error {
+func (server *SystemgeServer) RemoveConnection(name string) error {
 	server.statusMutex.RLock()
 	server.mutex.Lock()
 	defer func() {
@@ -54,4 +54,17 @@ func (server *SystemgeServer) GetConnection(name string) *SystemgeConnection.Sys
 		return connection
 	}
 	return nil
+}
+
+func (server *SystemgeServer) GetConnectionCount() int {
+	server.statusMutex.RLock()
+	server.mutex.Lock()
+	defer func() {
+		server.mutex.Unlock()
+		server.statusMutex.RUnlock()
+	}()
+	if server.status != Status.STARTED {
+		return 0
+	}
+	return len(server.clients)
 }
