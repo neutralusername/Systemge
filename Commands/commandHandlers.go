@@ -2,3 +2,27 @@ package Commands
 
 type Handler func([]string) (string, error)
 type Handlers map[string]Handler
+
+func NewHandlers() Handlers {
+	return make(Handlers)
+}
+
+// handlers of map2 will be merged into map1 and overwrite existing duplicate keys.
+func (map1 Handlers) Merge(map2 Handlers) {
+	for key, value := range map2 {
+		map1[key] = value
+	}
+}
+
+func (map1 Handlers) Add(key string, value Handler) {
+	map1[key] = value
+}
+
+func (map1 Handlers) Remove(key string) {
+	delete(map1, key)
+}
+
+func (map1 Handlers) Get(key string) (Handler, bool) {
+	value, ok := map1[key]
+	return value, ok
+}

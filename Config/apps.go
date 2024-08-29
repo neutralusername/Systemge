@@ -9,8 +9,8 @@ import (
 type Oauth2 struct {
 	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
 
-	InfoLoggerPath    string `json:"internalInfoLoggerPath"`    // *required*
-	WarningLoggerPath string `json:"internalWarningLoggerPath"` // *required*
+	InfoLoggerPath    string `json:"infoLoggerPath"`    // *required*
+	WarningLoggerPath string `json:"warningLoggerPath"` // *required*
 
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 

@@ -38,7 +38,7 @@ type syncMessageHandler struct {
 	messageQueue   chan *queueStruct
 }
 
-// one message handler of each topic may be active at the same time.
+// one message handler of each topic may be active at the same time. messages are handled in the order they were added to the queue.
 func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *TopicExclusiveMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
