@@ -31,7 +31,7 @@ type MessageBrokerClient struct {
 	dashboardClient     *Dashboard.DashboardClient
 
 	ongoingTopicResolutions map[string]*resultionAttempt
-	topicResolutions        map[string]*SystemgeConnection.SystemgeConnection // topic -> [connectionName -> connection]
+	topicResolutions        map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
 	mutex                   sync.Mutex
 
 	asyncTopics map[string]bool
@@ -169,7 +169,24 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 			continue
 		}
 		brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.MessageBrokerClientConfig.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+		if err != nil {
+			if messageBrokerClient.warningLogger != nil {
+				messageBrokerClient.warningLogger.Log(Error.New("Failed to establish connection to broker \""+endpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		messageBrokerClient.mutex.Lock()
+		resolutionAttempt.result = brokerConnection
+		close(resolutionAttempt.ongoing)
+		delete(messageBrokerClient.ongoingTopicResolutions, topic)
+		messageBrokerClient.mutex.Unlock()
+		return brokerConnection, nil
 	}
+	messageBrokerClient.mutex.Lock()
+	close(resolutionAttempt.ongoing)
+	delete(messageBrokerClient.ongoingTopicResolutions, topic)
+	messageBrokerClient.mutex.Unlock()
+	return nil, Error.New("Failed to resolve connection", nil)
 }
 
 func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {

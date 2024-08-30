@@ -85,7 +85,7 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	if server.config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(
 			server.config.DashboardClientConfig,
-			server.systemgeServer.Start, server.systemgeServer.Stop, nil, server.systemgeServer.GetStatus,
+			server.systemgeServer.Start, server.systemgeServer.Stop, server.GetMetrics, server.systemgeServer.GetStatus,
 			Commands.Handlers{
 				Message.TOPIC_ADD_ASYNC_TOPICS: func(args []string) (string, error) {
 					server.AddAsyncTopics(args)
@@ -154,6 +154,11 @@ func (server *MessageBrokerServer) Stop() error {
 
 func (server *MessageBrokerServer) GetStatus() int {
 	return server.systemgeServer.GetStatus()
+}
+
+func (server *MessageBrokerServer) GetMetrics() map[string]uint64 {
+	// TODO: gather metrics
+	return nil
 }
 
 func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
