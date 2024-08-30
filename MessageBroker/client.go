@@ -27,8 +27,8 @@ type MessageBrokerClient struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	messageBrokerClient *SystemgeClient.SystemgeClient
-	dashboardClient     *Dashboard.DashboardClient
+	brokerSystemgeClient *SystemgeClient.SystemgeClient
+	dashboardClient      *Dashboard.DashboardClient
 
 	ongoingTopicResolutions map[string]*resultionAttempt
 	topicResolutions        map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
@@ -92,7 +92,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	messageBrokerClient.messageBrokerClient = SystemgeClient.New(config.MessageBrokerClientConfig, nil, nil)
+	messageBrokerClient.brokerSystemgeClient = SystemgeClient.New(config.MessageBrokerClientConfig, nil, nil)
 
 	if config.DashboardClientConfig != nil {
 		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
@@ -119,6 +119,41 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	return messageBrokerClient
 }
 
+func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
+	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
+		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
+		if err != nil {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		response, err := resolverConnection.SyncRequestBlocking(Message.TOPIC_RESOLVE_ASYNC, topic)
+		resolverConnection.Close() //probably redundant
+		if err != nil {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		if response.GetTopic() == Message.TOPIC_FAILURE {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverEndpoint.Address+"\"", nil).Error())
+			}
+			continue
+		}
+		endpoint := Config.UnmarshalTcpEndpoint(response.GetPayload())
+		if endpoint == nil {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())
+			}
+			continue
+		}
+		return endpoint, nil
+	}
+	return nil, Error.New("Failed to resolve broker endpoint", nil)
+}
+
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
@@ -139,54 +174,28 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	messageBrokerClient.mutex.Unlock()
 
-	for _, resolverEndpoint := range messageBrokerClient.config.ResolverEndpoints {
-		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
-		if err != nil {
-			if messageBrokerClient.warningLogger != nil {
-				messageBrokerClient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())
-			}
-			continue
-		}
-		response, err := resolverConnection.SyncRequestBlocking(Message.TOPIC_RESOLVE_ASYNC, topic)
-		resolverConnection.Close() //probably redundant
-		if err != nil {
-			if messageBrokerClient.warningLogger != nil {
-				messageBrokerClient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", err).Error())
-			}
-			continue
-		}
-		if response.GetTopic() == Message.TOPIC_FAILURE {
-			if messageBrokerClient.warningLogger != nil {
-				messageBrokerClient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverEndpoint.Address+"\"", nil).Error())
-			}
-			continue
-		}
-		endpoint := Config.UnmarshalTcpEndpoint(response.GetPayload())
-		if endpoint == nil {
-			if messageBrokerClient.warningLogger != nil {
-				messageBrokerClient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())
-			}
-			continue
-		}
-		brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.MessageBrokerClientConfig.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
-		if err != nil {
-			if messageBrokerClient.warningLogger != nil {
-				messageBrokerClient.warningLogger.Log(Error.New("Failed to establish connection to broker \""+endpoint.Address+"\"", err).Error())
-			}
-			continue
-		}
+	brokerEndpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+	if err != nil {
 		messageBrokerClient.mutex.Lock()
-		resolutionAttempt.result = brokerConnection
 		close(resolutionAttempt.ongoing)
 		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		messageBrokerClient.mutex.Unlock()
-		return brokerConnection, nil
+		return nil, Error.New("Failed to resolve broker endpoint", err)
+	}
+	brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.MessageBrokerClientConfig.ConnectionConfig, brokerEndpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+	if err != nil {
+		messageBrokerClient.mutex.Lock()
+		close(resolutionAttempt.ongoing)
+		delete(messageBrokerClient.ongoingTopicResolutions, topic)
+		messageBrokerClient.mutex.Unlock()
+		return nil, Error.New("Failed to establish connection to broker", err)
 	}
 	messageBrokerClient.mutex.Lock()
+	resolutionAttempt.result = brokerConnection
 	close(resolutionAttempt.ongoing)
 	delete(messageBrokerClient.ongoingTopicResolutions, topic)
 	messageBrokerClient.mutex.Unlock()
-	return nil, Error.New("Failed to resolve connection", nil)
+	return brokerConnection, nil
 }
 
 func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {
@@ -204,7 +213,47 @@ func (messageBrokerClient *MessageBrokerClient) StopDashboardClient() error {
 }
 
 func (messageBrokerClient *MessageBrokerClient) Start() error {
+	messageBrokerClient.statusMutex.Lock()
+	defer messageBrokerClient.statusMutex.Unlock()
+	if messageBrokerClient.status != Status.STOPPED {
+		return Error.New("Already started", nil)
+	}
+	messageBrokerClient.status = Status.PENDING
 
+	if err := messageBrokerClient.brokerSystemgeClient.Start(); err != nil {
+		messageBrokerClient.status = Status.STOPPED
+		return Error.New("Failed to start message broker client", err)
+	}
+
+	for topic, _ := range messageBrokerClient.asyncTopics {
+		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+		if err != nil {
+			messageBrokerClient.brokerSystemgeClient.Stop()
+			messageBrokerClient.status = Status.STOPPED
+			return Error.New("Failed to resolve broker endpoint", err)
+		}
+		if err = messageBrokerClient.brokerSystemgeClient.AddConnectionAttempt(endpoint); err != nil {
+			messageBrokerClient.brokerSystemgeClient.Stop()
+			messageBrokerClient.status = Status.STOPPED
+			return Error.New("Failed to add connection attempt", err)
+		}
+	}
+	for topic, _ := range messageBrokerClient.syncTopics {
+		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+		if err != nil {
+			messageBrokerClient.brokerSystemgeClient.Stop()
+			messageBrokerClient.status = Status.STOPPED
+			return Error.New("Failed to resolve broker endpoint", err)
+		}
+		if err = messageBrokerClient.brokerSystemgeClient.AddConnectionAttempt(endpoint); err != nil {
+			messageBrokerClient.brokerSystemgeClient.Stop()
+			messageBrokerClient.status = Status.STOPPED
+			return Error.New("Failed to add connection attempt", err)
+		}
+	}
+
+	messageBrokerClient.status = Status.STARTED
+	return nil
 }
 
 func (messageBrokerClient *MessageBrokerClient) Stop() error {
