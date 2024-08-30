@@ -27,12 +27,11 @@ type MessageBrokerClient struct {
 	messageHandler SystemgeConnection.MessageHandler
 
 	messageBrokerClient *SystemgeClient.SystemgeClient
+	dashboardClient     *Dashboard.DashboardClient
 
-	resolverConnection *SystemgeConnection.SystemgeConnection
+	resolverConnections map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
 
-	dashboardClient *Dashboard.DashboardClient
-
-	topicResolutions map[string]map[string]*SystemgeConnection.SystemgeConnection
+	topicResolutions map[string]map[string]*SystemgeConnection.SystemgeConnection // topic -> [connectionName -> connection]
 
 	asyncTopics map[string]bool
 	syncTopics  map[string]bool
@@ -91,8 +90,19 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	messageBrokerClient.messageBrokerClient = SystemgeClient.New(config.MessageBrokerClientConfig, nil, nil)
 
 	if config.DashboardClientConfig != nil {
-		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, nil, messageBrokerClient.GetStatus, dashboardCommands)
-
+		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
+		if err := messageBrokerClient.StartDashboardClient(); err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())
+			}
+			if messageBrokerClient.mailer != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to start dashboard client", err).Error())); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					}
+				}
+			}
+		}
 	}
 
 	for _, asyncTopic := range config.AsyncTopics {
@@ -102,6 +112,20 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		messageBrokerClient.syncTopics[syncTopic] = true
 	}
 	return messageBrokerClient
+}
+
+func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {
+	if messageBrokerClient.dashboardClient == nil {
+		return Error.New("Dashboard client is not configured", nil)
+	}
+	return messageBrokerClient.dashboardClient.Start()
+}
+
+func (messageBrokerClient *MessageBrokerClient) StopDashboardClient() error {
+	if messageBrokerClient.dashboardClient == nil {
+		return Error.New("Dashboard client is not configured", nil)
+	}
+	return messageBrokerClient.dashboardClient.Stop()
 }
 
 func (messageBrokerClient *MessageBrokerClient) Start() error {
@@ -115,3 +139,5 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
 
 }
+
+func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {}

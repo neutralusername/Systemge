@@ -2,6 +2,7 @@ package MessageBroker
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
@@ -31,6 +32,12 @@ type Resolver struct {
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
+
+	// metrics
+
+	sucessfulAsyncResolutions atomic.Uint64
+	sucessfulSyncResolutions  atomic.Uint64
+	failedResolutions         atomic.Uint64
 }
 
 func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
@@ -147,15 +154,6 @@ func (resolver *Resolver) Stop() error {
 	return resolver.systemgeServer.Stop()
 }
 
-func (resolver *Resolver) GetStatus() int {
-	return resolver.systemgeServer.GetStatus()
-}
-
-func (resolver *Resolver) GetMetrics() map[string]uint64 {
-	// TODO: gather metrics
-	return nil
-}
-
 func (resolver *Resolver) StartDashboardClient() error {
 	if resolver.dashboardClient == nil {
 		return Error.New("Dashboard client is not configured", nil)
@@ -168,6 +166,18 @@ func (resolver *Resolver) StopDashboardClient() error {
 		return Error.New("Dashboard client is not configured", nil)
 	}
 	return resolver.dashboardClient.Stop()
+}
+
+func (resolver *Resolver) GetStatus() int {
+	return resolver.systemgeServer.GetStatus()
+}
+
+func (resolver *Resolver) GetMetrics() map[string]uint64 {
+	metrics := resolver.systemgeServer.RetrieveMetrics()
+	metrics["sucessful_async_resolutions"] = resolver.sucessfulAsyncResolutions.Load()
+	metrics["sucessful_sync_resolutions"] = resolver.sucessfulSyncResolutions.Load()
+	metrics["failed_resolutions"] = resolver.failedResolutions.Load()
+	return metrics
 }
 
 func (resolver *Resolver) AddAsyncResolution(topic string, resolution *Config.TcpEndpoint) {
@@ -217,19 +227,30 @@ func (resolver *Resolver) resolveSync(connection *SystemgeConnection.SystemgeCon
 func (resolver *Resolver) onConnect(connection *SystemgeConnection.SystemgeConnection) error {
 	message, err := connection.GetNextMessage()
 	if err != nil {
+		resolver.failedResolutions.Add(1)
 		return err
 	}
 	switch message.GetTopic() {
 	case Message.TOPIC_RESOLVE_ASYNC:
-		fallthrough
-	case Message.TOPIC_RESOLVE_SYNC:
 		err := connection.ProcessMessage(message, resolver.messageHandler)
 		if err != nil {
+			resolver.failedResolutions.Add(1)
 			return err
 		}
 		connection.Close()
+		resolver.sucessfulAsyncResolutions.Add(1)
+		return nil
+	case Message.TOPIC_RESOLVE_SYNC:
+		err := connection.ProcessMessage(message, resolver.messageHandler)
+		if err != nil {
+			resolver.failedResolutions.Add(1)
+			return err
+		}
+		connection.Close()
+		resolver.sucessfulSyncResolutions.Add(1)
 		return nil
 	default:
+		resolver.failedResolutions.Add(1)
 		return Error.New("Invalid topic", nil)
 	}
 }
