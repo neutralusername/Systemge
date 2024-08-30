@@ -109,6 +109,13 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 			if server.errorLogger != nil {
 				server.errorLogger.Log(Error.New("failed to start dashboard client", err).Error())
 			}
+			if server.mailer != nil {
+				if err := server.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed to start dashboard client", err).Error())); err != nil {
+					if server.errorLogger != nil {
+						server.errorLogger.Log(Error.New("failed to send mail", err).Error())
+					}
+				}
+			}
 		}
 	}
 	server.messageHandler = SystemgeConnection.NewSequentialMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{

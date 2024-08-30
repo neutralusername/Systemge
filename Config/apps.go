@@ -27,6 +27,9 @@ type Oauth2 struct {
 
 func UnmarshalOauth2(data string) *Oauth2 {
 	var oauth2 Oauth2
-	json.Unmarshal([]byte(data), &oauth2)
+	err := json.Unmarshal([]byte(data), &oauth2)
+	if err != nil {
+		return nil
+	}
 	return &oauth2
 }

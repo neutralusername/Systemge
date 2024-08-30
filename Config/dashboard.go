@@ -22,7 +22,10 @@ type DashboardServer struct {
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
 	var dashboard DashboardServer
-	json.Unmarshal([]byte(data), &dashboard)
+	err := json.Unmarshal([]byte(data), &dashboard)
+	if err != nil {
+		return nil
+	}
 	return &dashboard
 }
 
@@ -36,6 +39,9 @@ type DashboardClient struct {
 
 func UnmarshalDashboardClient(data string) *DashboardClient {
 	var dashboard DashboardClient
-	json.Unmarshal([]byte(data), &dashboard)
+	err := json.Unmarshal([]byte(data), &dashboard)
+	if err != nil {
+		return nil
+	}
 	return &dashboard
 }

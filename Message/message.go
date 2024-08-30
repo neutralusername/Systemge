@@ -36,6 +36,9 @@ const TOPIC_REMOVE_SYNC_TOPICS = "remove_sync_topics"
 
 const TOPIC_NAME = "name"
 
+const TOPIC_RESOLVE_ASYNC = "resolve_async"
+const TOPIC_RESOLVE_SYNC = "resolve_sync"
+
 func (message *Message) GetTopic() string {
 	return message.topic
 }

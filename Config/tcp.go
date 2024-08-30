@@ -12,9 +12,12 @@ type TcpListener struct {
 }
 
 func UnmarshalTcpServer(data string) *TcpListener {
-	var tcpServer TcpListener
-	json.Unmarshal([]byte(data), &tcpServer)
-	return &tcpServer
+	var tcpListener TcpListener
+	err := json.Unmarshal([]byte(data), &tcpListener)
+	if err != nil {
+		return nil
+	}
+	return &tcpListener
 }
 
 type TcpEndpoint struct {
@@ -25,6 +28,9 @@ type TcpEndpoint struct {
 
 func UnmarshalTcpEndpoint(data string) *TcpEndpoint {
 	var tcpEndpoint TcpEndpoint
-	json.Unmarshal([]byte(data), &tcpEndpoint)
+	err := json.Unmarshal([]byte(data), &tcpEndpoint)
+	if err != nil {
+		return nil
+	}
 	return &tcpEndpoint
 }

@@ -7,56 +7,17 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeClient"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func NewMessageBrokerClient(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) (*SystemgeConnection.SystemgeConnection, error) {
-	if config.ConnectionConfig == nil {
-		return nil, Error.New("ConnectionConfig is required", nil)
-	}
-	if config.EndpointConfig == nil {
-		return nil, Error.New("EndpointConfig is required", nil)
-	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
-	messageBrokerClient, err := SystemgeConnection.EstablishConnection(config.ConnectionConfig, config.EndpointConfig, config.Name, config.MaxServerNameLength)
-	if err != nil {
-		return nil, Error.New("Failed to establish connection", err)
-	}
-	if _, err := messageBrokerClient.SyncRequestBlocking(Message.TOPIC_ADD_ASYNC_TOPICS, Helpers.JsonMarshal(config.AsyncTopics)); err != nil {
-		messageBrokerClient.Close()
-		return nil, Error.New("Failed to add async topics", err)
-	}
-	if _, err := messageBrokerClient.SyncRequestBlocking(Message.TOPIC_ADD_SYNC_TOPICS, Helpers.JsonMarshal(config.SyncTopics)); err != nil {
-		messageBrokerClient.Close()
-		return nil, Error.New("Failed to add sync topics", err)
-	}
-	if config.DashboardClientConfig != nil {
-		dashboardClient := Dashboard.NewClient(config.DashboardClientConfig, nil, messageBrokerClient.Close, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
-		if err := dashboardClient.Start(); err != nil {
-			messageBrokerClient.Close()
-			return nil, Error.New("Failed to start dashboard client", err)
-		}
-		go func() {
-			<-messageBrokerClient.GetCloseChannel()
-			dashboardClient.Stop()
-		}()
-	}
-	if err := messageBrokerClient.StartProcessingLoopSequentially(systemgeMessageHandler); err != nil {
-		messageBrokerClient.Close()
-		return nil, Error.New("Failed to start processing loop", err)
-	}
-	return messageBrokerClient, nil
-}
-
 type MessageBrokerClient struct {
 	status      int
 	statusMutex sync.Mutex
+
+	config *Config.MessageBrokerClient
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
@@ -65,45 +26,92 @@ type MessageBrokerClient struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	connections      map[string]*SystemgeConnection.SystemgeConnection
-	mutex            sync.Mutex
+	messageBrokerClient *SystemgeClient.SystemgeClient
+
+	resolverConnection *SystemgeConnection.SystemgeConnection
+
+	dashboardClient *Dashboard.DashboardClient
+
 	topicResolutions map[string]map[string]*SystemgeConnection.SystemgeConnection
 
-	config *Config.MessageBrokerClient
+	asyncTopics map[string]bool
+	syncTopics  map[string]bool
+	mutex       sync.Mutex
 }
 
-func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) (*MessageBrokerClient, error) {
-	if config.ConnectionConfig == nil {
-		return nil, Error.New("ConnectionConfig is required", nil)
+func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
+	if config == nil {
+		panic(Error.New("Config is required", nil))
 	}
-	if config.EndpointConfig == nil {
-		return nil, Error.New("EndpointConfig is required", nil)
+	if config.ResolverConnectionConfig == nil {
+		panic(Error.New("ResolverConnectionConfig is required", nil))
 	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
+	if config.ResolverEndpoint == nil {
+		panic(Error.New("ResolverEndpoint is required", nil))
 	}
+	if config.MessageBrokerClientConfig == nil {
+		panic(Error.New("MessageBrokerClientConfig is required", nil))
+	}
+	if config.MessageBrokerClientConfig.ConnectionConfig == nil {
+		panic(Error.New("MessageBrokerClientConfig.ConnectionConfig is required", nil))
+	}
+	if config.MessageBrokerClientConfig.Name == "" {
+		panic(Error.New("MessageBrokerClientConfig.Name is required", nil))
+	}
+	if config.MessageBrokerClientConfig.ConnectionConfig.TcpBufferBytes == 0 {
+		config.MessageBrokerClientConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
+	}
+	if config.ResolverConnectionConfig.TcpBufferBytes == 0 {
+		config.ResolverConnectionConfig.TcpBufferBytes = 1024 * 4
+	}
+
 	messageBrokerClient := &MessageBrokerClient{
 		config:           config,
 		messageHandler:   systemgeMessageHandler,
-		connections:      make(map[string]*SystemgeConnection.SystemgeConnection),
 		topicResolutions: make(map[string]map[string]*SystemgeConnection.SystemgeConnection),
+
+		asyncTopics: make(map[string]bool),
+		syncTopics:  make(map[string]bool),
 
 		status: Status.STOPPED,
 	}
-	if config.ConnectionConfig.InfoLoggerPath != "" {
-		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerClient\"] ", config.ConnectionConfig.InfoLoggerPath)
+	if config.InfoLoggerPath != "" {
+		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerClient\"] ", config.InfoLoggerPath)
 	}
-	if config.ConnectionConfig.WarningLoggerPath != "" {
-		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \"MessageBrokerClient\"] ", config.ConnectionConfig.WarningLoggerPath)
+	if config.WarningLoggerPath != "" {
+		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \"MessageBrokerClient\"] ", config.WarningLoggerPath)
 	}
-	if config.ConnectionConfig.ErrorLoggerPath != "" {
-		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \"MessageBrokerClient\"] ", config.ConnectionConfig.ErrorLoggerPath)
+	if config.ErrorLoggerPath != "" {
+		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \"MessageBrokerClient\"] ", config.ErrorLoggerPath)
 	}
-	if config.ConnectionConfig.MailerConfig != nil {
-		messageBrokerClient.mailer = Tools.NewMailer(config.ConnectionConfig.MailerConfig)
+	if config.MailerConfig != nil {
+		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	// resolve and establish connections
+	messageBrokerClient.messageBrokerClient = SystemgeClient.New(config.MessageBrokerClientConfig, nil, nil)
 
-	return messageBrokerClient, nil
+	if config.DashboardClientConfig != nil {
+		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, nil, messageBrokerClient.GetStatus, dashboardCommands)
+
+	}
+
+	for _, asyncTopic := range config.AsyncTopics {
+		messageBrokerClient.asyncTopics[asyncTopic] = true
+	}
+	for _, syncTopic := range config.SyncTopics {
+		messageBrokerClient.syncTopics[syncTopic] = true
+	}
+	return messageBrokerClient
+}
+
+func (messageBrokerClient *MessageBrokerClient) Start() error {
+
+}
+
+func (messageBrokerClient *MessageBrokerClient) Stop() error {
+
+}
+
+func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
+
 }

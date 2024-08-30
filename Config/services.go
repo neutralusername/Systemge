@@ -23,7 +23,10 @@ type HTTPServer struct {
 
 func UnmarshalHTTPServer(data string) *HTTPServer {
 	var http HTTPServer
-	json.Unmarshal([]byte(data), &http)
+	err := json.Unmarshal([]byte(data), &http)
+	if err != nil {
+		return nil
+	}
 	return &http
 }
 
@@ -53,7 +56,10 @@ type WebsocketServer struct {
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
-	var websocket WebsocketServer
-	json.Unmarshal([]byte(data), &websocket)
-	return &websocket
+	var ws WebsocketServer
+	err := json.Unmarshal([]byte(data), &ws)
+	if err != nil {
+		return nil
+	}
+	return &ws
 }
