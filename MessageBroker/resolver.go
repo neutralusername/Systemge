@@ -139,6 +139,18 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 	return resolver
 }
 
+func (resolver *Resolver) Start() error {
+	return resolver.systemgeServer.Start()
+}
+
+func (resolver *Resolver) Stop() error {
+	return resolver.systemgeServer.Stop()
+}
+
+func (resolver *Resolver) GetStatus() int {
+	return resolver.systemgeServer.GetStatus()
+}
+
 func (resolver *Resolver) GetMetrics() map[string]uint64 {
 	// TODO: gather metrics
 	return nil
