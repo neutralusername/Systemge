@@ -140,4 +140,6 @@ func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
 
 }
 
-func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {}
+func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
+
+}

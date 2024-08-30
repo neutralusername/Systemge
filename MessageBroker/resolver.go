@@ -174,9 +174,9 @@ func (resolver *Resolver) GetStatus() int {
 
 func (resolver *Resolver) GetMetrics() map[string]uint64 {
 	metrics := resolver.systemgeServer.RetrieveMetrics()
-	metrics["sucessful_async_resolutions"] = resolver.sucessfulAsyncResolutions.Load()
-	metrics["sucessful_sync_resolutions"] = resolver.sucessfulSyncResolutions.Load()
-	metrics["failed_resolutions"] = resolver.failedResolutions.Load()
+	metrics["sucessful_async_resolutions"] = resolver.RetrieveSucessfulAsyncResolutions()
+	metrics["sucessful_sync_resolutions"] = resolver.RetrieveSucessfulSyncResolutions()
+	metrics["failed_resolutions"] = resolver.RetrieveFailedResolutions()
 	return metrics
 }
 
@@ -253,4 +253,25 @@ func (resolver *Resolver) onConnect(connection *SystemgeConnection.SystemgeConne
 		resolver.failedResolutions.Add(1)
 		return Error.New("Invalid topic", nil)
 	}
+}
+
+func (resolver *Resolver) GetSucessfulAsyncResolutions() uint64 {
+	return resolver.sucessfulAsyncResolutions.Load()
+}
+func (resolver *Resolver) RetrieveSucessfulAsyncResolutions() uint64 {
+	return resolver.sucessfulAsyncResolutions.Swap(0)
+}
+
+func (resolver *Resolver) GetSucessfulSyncResolutions() uint64 {
+	return resolver.sucessfulSyncResolutions.Load()
+}
+func (resolver *Resolver) RetrieveSucessfulSyncResolutions() uint64 {
+	return resolver.sucessfulSyncResolutions.Swap(0)
+}
+
+func (resolver *Resolver) GetFailedResolutions() uint64 {
+	return resolver.failedResolutions.Load()
+}
+func (resolver *Resolver) RetrieveFailedResolutions() uint64 {
+	return resolver.failedResolutions.Swap(0)
 }
