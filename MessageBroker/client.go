@@ -92,7 +92,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	messageBrokerClient.brokerSystemgeClient = SystemgeClient.New(config.MessageBrokerClientConfig, nil, nil)
+	messageBrokerClient.brokerSystemgeClient = SystemgeClient.New(config.MessageBrokerClientConfig, messageBrokerClient.onConnection, messageBrokerClient.onDisconnection)
 
 	if config.DashboardClientConfig != nil {
 		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
