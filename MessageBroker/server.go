@@ -10,6 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -140,6 +141,38 @@ func (server *MessageBrokerServer) StopDashboardClient() error {
 		return Error.New("dashboard client is not enabled", nil)
 	}
 	return server.dashboardClient.Stop()
+}
+
+func (server *MessageBrokerServer) Start() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STOPPED {
+		return Error.New("server is already started", nil)
+	}
+	err := server.systemgeServer.Start()
+	if err != nil {
+		return err
+	}
+
+	server.status = Status.STARTED
+	return nil
+}
+
+func (server *MessageBrokerServer) Stop() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status != Status.STARTED {
+		return Error.New("server is already stopped", nil)
+	}
+	err := server.systemgeServer.Stop()
+	if err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log(Error.New("failed to stop systemge server", err).Error())
+		}
+	}
+
+	server.status = Status.STOPPED
+	return nil
 }
 
 func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
