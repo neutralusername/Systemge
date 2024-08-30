@@ -9,16 +9,12 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Resolver struct {
-	status      int
-	statusMutex sync.Mutex
-
 	config *Config.MessageBrokerResolver
 
 	systemgeServer *SystemgeServer.SystemgeServer
@@ -88,7 +84,7 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 	resolver.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, resolver.onConnect, nil)
 
 	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, resolver.Start, resolver.Stop, resolver.GetMetrics, resolver.GetStatus, Commands.Handlers{
+		resolver.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, Commands.Handlers{
 			"add_async_resolution": func(args []string) (string, error) {
 				if len(args) != 2 {
 					return "", Error.New("Invalid number of arguments (expected 1)", nil)
@@ -162,32 +158,6 @@ func (resolver *Resolver) StopDashboardClient() error {
 	return resolver.dashboardClient.Stop()
 }
 
-func (resolver *Resolver) Start() error {
-	resolver.statusMutex.Lock()
-	defer resolver.statusMutex.Unlock()
-	if resolver.status != Status.STOPPED {
-		return Error.New("Already started", nil)
-	}
-	if err := resolver.systemgeServer.Start(); err != nil {
-		return Error.New("Failed to start systemge server", err)
-	}
-	resolver.status = Status.STARTED
-	return nil
-}
-
-func (resolver *Resolver) Stop() error {
-	resolver.statusMutex.Lock()
-	defer resolver.statusMutex.Unlock()
-	if resolver.status != Status.STARTED {
-		return Error.New("Already stopped", nil)
-	}
-	if err := resolver.systemgeServer.Stop(); err != nil {
-		return Error.New("Failed to stop systemge server", err)
-	}
-	resolver.status = Status.STOPPED
-	return nil
-}
-
 func (resolver *Resolver) AddAsyncResolution(topic string, resolution *Config.TcpEndpoint) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
@@ -210,10 +180,6 @@ func (resolver *Resolver) RemoveSyncResolution(topic string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	delete(resolver.syncTopicResolutions, topic)
-}
-
-func (resolver *Resolver) GetStatus() int {
-	return resolver.status
 }
 
 func (resolver *Resolver) resolveAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
