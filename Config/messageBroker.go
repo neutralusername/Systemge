@@ -26,7 +26,7 @@ type MessageBrokerClient struct {
 
 	MessageBrokerClientConfig *SystemgeClient     `json:"clientConfig"`             // *required*
 	ResolverConnectionConfig  *SystemgeConnection `json:"resolverConnectionConfig"` // *required*
-	ResolverEndpoint          *TcpEndpoint        `json:"resolverEndpoint"`         // *required*
+	ResolverEndpoints         []*TcpEndpoint      `json:"resolverEndpoints"`        // *required*
 	DashboardClientConfig     *DashboardClient    `json:"dashboardClientConfig"`    // *required*
 
 	TopicResolutionLifetimeMs uint64 `json:"topicResolutionLifetimeMs"` // default: 0

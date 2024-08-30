@@ -37,6 +37,8 @@ type MessageBrokerServer struct {
 	syncTopicResolutions  map[string]map[*SystemgeConnection.SystemgeConnection]bool
 
 	mutex sync.Mutex
+
+	// metrics
 }
 
 func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerServer {

@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeClient"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -29,13 +30,17 @@ type MessageBrokerClient struct {
 	messageBrokerClient *SystemgeClient.SystemgeClient
 	dashboardClient     *Dashboard.DashboardClient
 
-	resolverConnections map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
-
-	topicResolutions map[string]map[string]*SystemgeConnection.SystemgeConnection // topic -> [connectionName -> connection]
+	ongoingTopicResolutions map[string]*resultionAttempt
+	topicResolutions        map[string]*SystemgeConnection.SystemgeConnection // topic -> [connectionName -> connection]
+	mutex                   sync.Mutex
 
 	asyncTopics map[string]bool
 	syncTopics  map[string]bool
-	mutex       sync.Mutex
+}
+
+type resultionAttempt struct {
+	ongoing chan bool
+	result  *SystemgeConnection.SystemgeConnection
 }
 
 func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
@@ -45,8 +50,8 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	if config.ResolverConnectionConfig == nil {
 		panic(Error.New("ResolverConnectionConfig is required", nil))
 	}
-	if config.ResolverEndpoint == nil {
-		panic(Error.New("ResolverEndpoint is required", nil))
+	if len(config.ResolverEndpoints) == 0 {
+		panic(Error.New("At least one ResolverEndpoint is required", nil))
 	}
 	if config.MessageBrokerClientConfig == nil {
 		panic(Error.New("MessageBrokerClientConfig is required", nil))
@@ -67,7 +72,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	messageBrokerClient := &MessageBrokerClient{
 		config:           config,
 		messageHandler:   systemgeMessageHandler,
-		topicResolutions: make(map[string]map[string]*SystemgeConnection.SystemgeConnection),
+		topicResolutions: make(map[string]*SystemgeConnection.SystemgeConnection),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),
@@ -114,6 +119,59 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	return messageBrokerClient
 }
 
+func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*SystemgeConnection.SystemgeConnection, error) {
+	messageBrokerClient.mutex.Lock()
+	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
+		messageBrokerClient.mutex.Unlock()
+		return resolution, nil
+	}
+	if resolutionAttempt := messageBrokerClient.ongoingTopicResolutions[topic]; resolutionAttempt != nil {
+		messageBrokerClient.mutex.Unlock()
+		<-resolutionAttempt.ongoing
+		if resolutionAttempt.result == nil {
+			return nil, Error.New("Failed to resolve connection", nil)
+		}
+		return resolutionAttempt.result, nil
+	}
+	resolutionAttempt := &resultionAttempt{
+		ongoing: make(chan bool),
+	}
+	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
+	messageBrokerClient.mutex.Unlock()
+
+	for _, resolverEndpoint := range messageBrokerClient.config.ResolverEndpoints {
+		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+		if err != nil {
+			if messageBrokerClient.warningLogger != nil {
+				messageBrokerClient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		response, err := resolverConnection.SyncRequestBlocking(Message.TOPIC_RESOLVE_ASYNC, topic)
+		resolverConnection.Close() //probably redundant
+		if err != nil {
+			if messageBrokerClient.warningLogger != nil {
+				messageBrokerClient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		if response.GetTopic() == Message.TOPIC_FAILURE {
+			if messageBrokerClient.warningLogger != nil {
+				messageBrokerClient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverEndpoint.Address+"\"", nil).Error())
+			}
+			continue
+		}
+		endpoint := Config.UnmarshalTcpEndpoint(response.GetPayload())
+		if endpoint == nil {
+			if messageBrokerClient.warningLogger != nil {
+				messageBrokerClient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())
+			}
+			continue
+		}
+		brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.MessageBrokerClientConfig.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+	}
+}
+
 func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {
 	if messageBrokerClient.dashboardClient == nil {
 		return Error.New("Dashboard client is not configured", nil)
@@ -142,4 +200,8 @@ func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
 
 func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
 
+}
+
+func (messageBrokerClient *MessageBrokerClient) GetName() string {
+	return messageBrokerClient.config.Name
 }
