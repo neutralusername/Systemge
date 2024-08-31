@@ -30,8 +30,8 @@ type MessageBrokerServer struct {
 	messageHandler  SystemgeConnection.MessageHandler
 	dashboardClient *Dashboard.DashboardClient
 
-	asyncSubscriptions map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
-	syncSubscriptions  map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	asyncConnectionSubscriptions map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	syncConnectionSubscriptions  map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 
 	asyncTopicSubscriptions map[string]map[*SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
 	syncTopicSubscriptions  map[string]map[*SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
@@ -64,8 +64,8 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 		asyncTopicSubscriptions: make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
 		syncTopicSubscriptions:  make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
 
-		asyncSubscriptions: make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
-		syncSubscriptions:  make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
+		asyncConnectionSubscriptions: make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
+		syncConnectionSubscriptions:  make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)
@@ -221,7 +221,7 @@ func (server *MessageBrokerServer) subscribeAsync(connection *SystemgeConnection
 	}
 	for _, topic := range topics {
 		server.asyncTopicSubscriptions[topic][connection] = true
-		server.asyncSubscriptions[connection][topic] = true
+		server.asyncConnectionSubscriptions[connection][topic] = true
 	}
 	return "", nil
 }
@@ -241,7 +241,7 @@ func (server *MessageBrokerServer) subscribeSync(connection *SystemgeConnection.
 	}
 	for _, topic := range topics {
 		server.syncTopicSubscriptions[topic][connection] = true
-		server.syncSubscriptions[connection][topic] = true
+		server.syncConnectionSubscriptions[connection][topic] = true
 	}
 	return "", nil
 }
@@ -262,7 +262,7 @@ func (server *MessageBrokerServer) unsubscribeAsync(connection *SystemgeConnecti
 	}
 	for _, topic := range topics {
 		delete(server.asyncTopicSubscriptions[topic], connection)
-		delete(server.asyncSubscriptions[connection], topic)
+		delete(server.asyncConnectionSubscriptions[connection], topic)
 	}
 	return "", nil
 }
@@ -283,7 +283,7 @@ func (server *MessageBrokerServer) unsubscribeSync(connection *SystemgeConnectio
 	}
 	for _, topic := range topics {
 		delete(server.syncTopicSubscriptions[topic], connection)
-		delete(server.syncSubscriptions[connection], topic)
+		delete(server.syncConnectionSubscriptions[connection], topic)
 	}
 	return "", nil
 }
@@ -329,8 +329,8 @@ func (server *MessageBrokerServer) handleSyncPropagate(connection *SystemgeConne
 
 func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
-	server.asyncSubscriptions[connection] = make(map[string]bool)
-	server.syncSubscriptions[connection] = make(map[string]bool)
+	server.asyncConnectionSubscriptions[connection] = make(map[string]bool)
+	server.syncConnectionSubscriptions[connection] = make(map[string]bool)
 	server.mutex.Unlock()
 	connection.StartProcessingLoopSequentially(server.messageHandler)
 	return nil
@@ -339,13 +339,13 @@ func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConn
 func (server *MessageBrokerServer) onSystemgeDisconnection(connection *SystemgeConnection.SystemgeConnection) {
 	connection.StopProcessingLoop()
 	server.mutex.Lock()
-	for topic := range server.asyncSubscriptions[connection] {
+	for topic := range server.asyncConnectionSubscriptions[connection] {
 		delete(server.asyncTopicSubscriptions[topic], connection)
 	}
-	delete(server.asyncSubscriptions, connection)
-	for topic := range server.syncSubscriptions[connection] {
+	delete(server.asyncConnectionSubscriptions, connection)
+	for topic := range server.syncConnectionSubscriptions[connection] {
 		delete(server.syncTopicSubscriptions[topic], connection)
 	}
-	delete(server.syncSubscriptions, connection)
+	delete(server.syncConnectionSubscriptions, connection)
 	server.mutex.Unlock()
 }
