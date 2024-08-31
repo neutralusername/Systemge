@@ -236,7 +236,13 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
+						str := ""
+						if syncTopic {
+							str = "sync"
+						} else {
+							str = "async"
+						}
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+str+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
 					}
 					if messageBrokerClient.mailer != nil {
 						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())); err != nil {
