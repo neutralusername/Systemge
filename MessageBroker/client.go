@@ -331,8 +331,8 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
 		messageBrokerClient.mutex.Unlock()
 
-		messageBrokerClient.mutex.Lock()
-		defer messageBrokerClient.mutex.Unlock()
+		messageBrokerClient.statusMutex.Lock()
+		defer messageBrokerClient.statusMutex.Unlock()
 		if messageBrokerClient.status != Status.STARTED {
 			return
 		}
