@@ -30,7 +30,7 @@ type MessageBrokerClient struct {
 
 	ongoingTopicResolutions map[string]*resultionAttempt
 
-	connections         map[string]*connection // endpointString -> connection
+	brokerConnections   map[string]*connection // endpointString -> connection
 	outTopicResolutions map[string]*connection // topic -> connection
 	inTopicResolutions  map[string]*connection // topic -> connection
 
@@ -85,7 +85,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		outTopicResolutions: make(map[string]*connection),
 		inTopicResolutions:  make(map[string]*connection),
 
-		connections: make(map[string]*connection),
+		brokerConnections: make(map[string]*connection),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),
@@ -210,7 +210,7 @@ func (messageBrokerClient *MessageBrokerClient) subscribeTopic(endpoint *Config.
 	}
 
 	messageBrokerClient.mutex.Lock()
-	conn := messageBrokerClient.connections[getEndpointString(endpoint)]
+	conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
 	messageBrokerClient.mutex.Unlock()
 
 	if conn == nil {
@@ -224,7 +224,7 @@ func (messageBrokerClient *MessageBrokerClient) subscribeTopic(endpoint *Config.
 			topics:     map[string]bool{},
 		}
 		messageBrokerClient.mutex.Lock()
-		messageBrokerClient.connections[getEndpointString(endpoint)] = conn
+		messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
 		messageBrokerClient.mutex.Unlock()
 	}
 
