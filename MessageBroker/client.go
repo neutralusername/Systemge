@@ -271,6 +271,9 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			}
 			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, subscribedTopic)
 		}
+
+		// set status to started once all resolutions are done
+
 		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		resolutionAttempt.result = result
 		close(resolutionAttempt.ongoing)
