@@ -227,11 +227,13 @@ func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.
 	if sync {
 		_, err := brokerConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
 		if err != nil {
+			brokerConnection.Close()
 			return Error.New("Failed to subscribe to topic", err)
 		}
 	} else {
 		_, err := brokerConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
 		if err != nil {
+			brokerConnection.Close()
 			return Error.New("Failed to subscribe to topic", err)
 		}
 	}
