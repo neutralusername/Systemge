@@ -153,19 +153,43 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
-		err := messageBrokerClient.subscribeTopic(topic, false)
+		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
 			// todo: clean up existing connections
-			return Error.New("Failed to subscribe to topic", err)
+			return Error.New("Failed to resolve broker endpoint for async topic \""+topic+"\"", err)
+		}
+		connection, err := messageBrokerClient.getConnection(endpoint)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
+			return Error.New("Failed to get connection to async topic \""+topic+"\"", err)
+		}
+		err = messageBrokerClient.subscribeToTopic(connection, topic, false)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
+			return Error.New("Failed to subscribe to async topic \""+topic+"\"", err)
 		}
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-		err := messageBrokerClient.subscribeTopic(topic, true)
+		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
 			// todo: clean up existing connections
-			return Error.New("Failed to subscribe to topic", err)
+			return Error.New("Failed to resolve broker endpoint for sync topic \""+topic+"\"", err)
+		}
+		connection, err := messageBrokerClient.getConnection(endpoint)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
+			return Error.New("Failed to get connection to sync topic \""+topic+"\"", err)
+		}
+		err = messageBrokerClient.subscribeToTopic(connection, topic, true)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
+			return Error.New("Failed to subscribe to sync topic \""+topic+"\"", err)
 		}
 	}
 
@@ -212,33 +236,6 @@ func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *con
 	}
 	connection.topics[topic] = true
 	return nil
-}
-
-func (messageBrokerClient *MessageBrokerClient) getConnection(topic string, sync bool) (*connection, error) {
-	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-	if err != nil {
-		return nil, Error.New("Failed to resolve broker endpoint", err)
-	}
-
-	messageBrokerClient.mutex.Lock()
-	conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
-	messageBrokerClient.mutex.Unlock()
-
-	if conn == nil {
-		newConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
-		if err != nil {
-			return nil, Error.New("Failed to establish connection to broker", err)
-		}
-		conn = &connection{
-			connection: newConnection,
-			endpoint:   endpoint,
-			topics:     map[string]bool{},
-		}
-		messageBrokerClient.mutex.Lock()
-		messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
-		messageBrokerClient.mutex.Unlock()
-	}
-	return conn, nil
 }
 
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
@@ -321,6 +318,28 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 	delete(messageBrokerClient.ongoingTopicResolutions, topic)
 	messageBrokerClient.mutex.Unlock()
 	return resolutionAttempt.result, nil
+}
+
+func (messageBrokerClient *MessageBrokerClient) getConnection(endpoint *Config.TcpEndpoint) (*connection, error) {
+	messageBrokerClient.mutex.Lock()
+	conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
+	messageBrokerClient.mutex.Unlock()
+
+	if conn == nil {
+		newConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+		if err != nil {
+			return nil, Error.New("Failed to establish connection to broker", err)
+		}
+		conn = &connection{
+			connection: newConnection,
+			endpoint:   endpoint,
+			topics:     map[string]bool{},
+		}
+		messageBrokerClient.mutex.Lock()
+		messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
+		messageBrokerClient.mutex.Unlock()
+	}
+	return conn, nil
 }
 
 func getEndpointString(endpoint *Config.TcpEndpoint) string {
