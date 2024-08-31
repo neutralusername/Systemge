@@ -236,11 +236,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						str := "sync"
-						if !syncTopic {
-							str = "async"
-						}
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+str+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
 					}
 					if messageBrokerClient.mailer != nil {
 						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())); err != nil {
@@ -319,4 +315,11 @@ func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *con
 
 func getEndpointString(endpoint *Config.TcpEndpoint) string {
 	return endpoint.Address + endpoint.TlsCert
+}
+
+func getASyncString(async bool) string {
+	if async {
+		return "async"
+	}
+	return "sync"
 }
