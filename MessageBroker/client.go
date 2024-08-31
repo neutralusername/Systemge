@@ -145,44 +145,10 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
-		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to resolve broker endpoint for async topic \""+topic+"\"", err)
-		}
-		connection, err := messageBrokerClient.getConnection(endpoint)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to get connection to async topic \""+topic+"\"", err)
-		}
-		err = messageBrokerClient.subscribeToTopic(connection, topic, false)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to subscribe to async topic \""+topic+"\"", err)
-		}
+		connection, err := messageBrokerClient.resolveConnection(topic)
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to resolve broker endpoint for sync topic \""+topic+"\"", err)
-		}
-		connection, err := messageBrokerClient.getConnection(endpoint)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to get connection to sync topic \""+topic+"\"", err)
-		}
-		err = messageBrokerClient.subscribeToTopic(connection, topic, true)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to subscribe to sync topic \""+topic+"\"", err)
-		}
+		connection, err := messageBrokerClient.resolveConnection(topic)
 	}
 
 	messageBrokerClient.status = Status.STARTED
