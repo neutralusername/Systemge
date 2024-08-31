@@ -147,16 +147,16 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	}
 	messageBrokerClient.status = Status.PENDING
 
-	for topic, _ := range messageBrokerClient.asyncTopics {
-		//deadlock
-		_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
+	go func() {
+		for topic, _ := range messageBrokerClient.asyncTopics {
+			_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
 
-	}
-	for topic, _ := range messageBrokerClient.syncTopics {
-		//deadlock
-		_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
+		}
+		for topic, _ := range messageBrokerClient.syncTopics {
+			_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
 
-	}
+		}
+	}()
 
 	return nil
 }
