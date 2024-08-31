@@ -164,7 +164,7 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 	}
 	messageBrokerClient.status = Status.PENDING
 
-	//make sure no new connection attempts can be initiated or completed and all ongoing attempts are finished.
+	//make sure no new connection attempts can be initiated or completed and all ongoing attempts are finished from this point on.
 
 	messageBrokerClient.mutex.Lock()
 	for _, connection := range messageBrokerClient.brokerConnections {
