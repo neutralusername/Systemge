@@ -236,10 +236,8 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						str := "" // if only go had ternary operators
-						if syncTopic {
-							str = "sync"
-						} else {
+						str := "sync"
+						if !syncTopic {
 							str = "async"
 						}
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+str+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
