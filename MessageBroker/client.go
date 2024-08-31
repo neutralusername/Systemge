@@ -158,17 +158,29 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		messageBrokerClient.inSubscription(endpoint, topic, false)
+		err = messageBrokerClient.inSubscription(endpoint, topic, false)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
+			return Error.New("Failed to subscribe to topic", err)
+		}
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
 		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		messageBrokerClient.inSubscription(endpoint, topic, true)
+		err = messageBrokerClient.inSubscription(endpoint, topic, true)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			// todo: clean up existing connections
+			return Error.New("Failed to subscribe to topic", err)
+		}
 	}
 
 	messageBrokerClient.status = Status.STARTED
