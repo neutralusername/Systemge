@@ -146,15 +146,15 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
-		_, err := messageBrokerClient.resolveConnection(topic, false)
+		_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
 
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-		_, err := messageBrokerClient.resolveConnection(topic, true)
+
+		_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
 
 	}
 
-	messageBrokerClient.status = Status.STARTED
 	return nil
 }
 
@@ -165,8 +165,6 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 		return Error.New("Already started", nil)
 	}
 	messageBrokerClient.status = Status.PENDING
-
-	// make sure no new connection attempts can be initiated or completed and all ongoing attempts are finished from this point onwards.
 
 	messageBrokerClient.mutex.Lock()
 	for _, connection := range messageBrokerClient.brokerConnections {
@@ -225,7 +223,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
-func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool) (*connection, error) {
+func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool, subscribedTopic bool) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
@@ -243,6 +241,9 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		ongoing: make(chan bool),
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
+
+	//add mechanism with statusMutex to check if the client is stopped and set status to pending if not until all resolutions are done
+
 	messageBrokerClient.mutex.Unlock()
 
 	finishAttempt := func(result *connection) {
@@ -251,8 +252,9 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			messageBrokerClient.topicResolutions[topic] = result
 			result.topics[topic] = true
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
-			subscribedTopic := (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic])
 			if subscribedTopic {
+
+				// do in separate goroutine to not hog the mutex
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
@@ -265,6 +267,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 						}
 					}
 				}
+
 			}
 			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, subscribedTopic)
 		}
@@ -333,17 +336,17 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 
 		messageBrokerClient.statusMutex.Lock()
 		defer messageBrokerClient.statusMutex.Unlock()
-		if messageBrokerClient.status != Status.STARTED {
+		if messageBrokerClient.status == Status.STOPPED {
 			return
 		}
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
 
-			_, err := messageBrokerClient.resolveConnection(topic, false)
+			_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
 
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
 
-			_, err := messageBrokerClient.resolveConnection(topic, true)
+			_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
 
 		}
 	}
