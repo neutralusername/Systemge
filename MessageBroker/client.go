@@ -198,7 +198,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 			continue
 		}
 		response, err := resolverConnection.SyncRequestBlocking(Message.TOPIC_RESOLVE_ASYNC, topic)
-		resolverConnection.Close() //probably redundant
+		resolverConnection.Close() // close in case there was an issue on the resolver side that prevented closing the connection
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {
 				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", err).Error())

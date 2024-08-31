@@ -93,6 +93,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 						connection.warningLogger.Log("Processing channel capacity reached for message #" + Helpers.Uint64ToString(messageId))
 					}
 				}
+				// todo: fix situation where processing channel is full and connection closes that causes the connection to not auto-close (is recognized on message reception)
 				connection.processingChannel <- &messageInProcess{
 					message: message,
 					id:      messageId,
