@@ -234,6 +234,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		ongoing: make(chan bool),
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
+	// race condition
 	messageBrokerClient.waitgroup.Add(1)
 	messageBrokerClient.mutex.Unlock()
 
