@@ -160,7 +160,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 			messageBrokerClient.status = Status.STOPPED
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		messageBrokerClient.subscriptionLoop(endpoint, topic, false)
+		messageBrokerClient.inSubscription(endpoint, topic, false)
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
 		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
@@ -168,7 +168,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 			messageBrokerClient.status = Status.STOPPED
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		messageBrokerClient.subscriptionLoop(endpoint, topic, true)
+		messageBrokerClient.inSubscription(endpoint, topic, true)
 	}
 
 	messageBrokerClient.status = Status.STARTED
@@ -192,16 +192,57 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 }
 
 // checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
-// on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
-func (messageBrokerClient *MessageBrokerClient) subscriptionLoop(endpoint *Config.TcpEndpoint, topic string, sync bool) {
+// TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
+func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.TcpEndpoint, topic string, sync bool) error {
 	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 	if err != nil {
-		if messageBrokerClient.errorLogger != nil {
-			messageBrokerClient.errorLogger.Log(Error.New("Failed to resolve broker endpoint for incoming topic \""+topic+"\"", err).Error())
-		}
-		return
+		return Error.New("Failed to resolve broker endpoint", err)
 	}
-
+	existingConnection := messageBrokerClient.inConnections[getEndpointString(endpoint)]
+	if existingConnection != nil {
+		if _, exists := existingConnection.topics[topic]; exists {
+			return nil
+		}
+		if sync {
+			_, err := existingConnection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
+			if err != nil {
+				return Error.New("Failed to subscribe to topic \""+topic+"\"", err)
+			}
+		} else {
+			_, err := existingConnection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
+			if err != nil {
+				return Error.New("Failed to subscribe to topic", err)
+			}
+		}
+		existingConnection.topics[topic] = true
+		return nil
+	}
+	brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+	if err != nil {
+		if messageBrokerClient.errorLogger != nil {
+			messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to broker", err).Error())
+		}
+		return Error.New("Failed to establish connection to broker", err)
+	}
+	if sync {
+		_, err := brokerConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
+		if err != nil {
+			return Error.New("Failed to subscribe to topic", err)
+		}
+	} else {
+		_, err := brokerConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
+		if err != nil {
+			return Error.New("Failed to subscribe to topic", err)
+		}
+	}
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
+	messageBrokerClient.inConnections[getEndpointString(endpoint)] = &connection{
+		connection: brokerConnection,
+		endpoint:   endpoint,
+		topics:     map[string]bool{topic: true},
+	}
+	return nil
 }
 
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
@@ -267,7 +308,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 		messageBrokerClient.mutex.Unlock()
 		return nil, Error.New("Failed to resolve broker endpoint", err)
 	}
-	brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.MessageBrokerClientConfig.ConnectionConfig, brokerEndpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+	brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.OutConnectionConfig, brokerEndpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 	if err != nil {
 		messageBrokerClient.mutex.Lock()
 		close(resolutionAttempt.ongoing)
