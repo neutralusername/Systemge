@@ -267,6 +267,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
 			if subscribedTopic {
 				go func() {
+					// race condition
 					if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 						if messageBrokerClient.errorLogger != nil {
 							messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
