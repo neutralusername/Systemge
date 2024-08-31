@@ -30,10 +30,10 @@ type MessageBrokerClient struct {
 
 	ongoingTopicResolutions map[string]*resultionAttempt
 
-	outConnections     map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
-	inConnections      map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
-	outTopicResolution map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
-	inTopicResolution  map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
+	outConnections      map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
+	inConnections       map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
+	outTopicResolutions map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
+	inTopicResolutions  map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
 
 	mutex sync.Mutex
 
@@ -73,9 +73,9 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	}
 
 	messageBrokerClient := &MessageBrokerClient{
-		config:             config,
-		messageHandler:     systemgeMessageHandler,
-		outTopicResolution: make(map[string]*SystemgeConnection.SystemgeConnection),
+		config:              config,
+		messageHandler:      systemgeMessageHandler,
+		outTopicResolutions: make(map[string]*SystemgeConnection.SystemgeConnection),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),
@@ -222,7 +222,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBrokerClient.mutex.Lock()
-	if resolution := messageBrokerClient.outTopicResolution[topic]; resolution != nil {
+	if resolution := messageBrokerClient.outTopicResolutions[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
 		return resolution, nil
 	}
