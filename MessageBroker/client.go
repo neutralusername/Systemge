@@ -164,7 +164,6 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 	if messageBrokerClient.status != Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-	messageBrokerClient.status = Status.PENDING
 
 	messageBrokerClient.mutex.Lock()
 	for _, connection := range messageBrokerClient.brokerConnections {
@@ -224,7 +223,6 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 }
 
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool, subscribedTopic bool) (*connection, error) {
-
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
 		messageBrokerClient.statusMutex.Unlock()
