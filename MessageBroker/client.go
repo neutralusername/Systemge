@@ -194,6 +194,13 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 // checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
 // on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
 func (messageBrokerClient *MessageBrokerClient) subscriptionLoop(endpoint *Config.TcpEndpoint, topic string, sync bool) {
+	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+	if err != nil {
+		if messageBrokerClient.errorLogger != nil {
+			messageBrokerClient.errorLogger.Log(Error.New("Failed to resolve broker endpoint for incoming topic \""+topic+"\"", err).Error())
+		}
+		return
+	}
 
 }
 
@@ -277,4 +284,8 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 	delete(messageBrokerClient.ongoingTopicResolutions, topic)
 	messageBrokerClient.mutex.Unlock()
 	return resolutionAttempt.result, nil
+}
+
+func getEndpointString(endpoint *Config.TcpEndpoint) string {
+	return endpoint.Address + endpoint.TlsCert
 }
