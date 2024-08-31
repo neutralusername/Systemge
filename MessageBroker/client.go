@@ -258,7 +258,6 @@ func (messageBrokerClient *MessageBrokerClient) getConnection(endpoint *Config.T
 // checks if connection for topic is already resolved. if not, checks if resolution is ongoing and waits for it to finish.
 // if resolution is not ongoing, starts resolution by resolving the topics endpoint.
 // checks if connection to endpoint is already established. if not, establishes connection.
-// todo: start re-resolving goroutine
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
@@ -284,6 +283,22 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 		resolutionAttempt.result = result
 		close(resolutionAttempt.ongoing)
 		delete(messageBrokerClient.ongoingTopicResolutions, topic)
+		if result != nil {
+			messageBrokerClient.topicResolutions[topic] = result
+			result.topics[topic] = true
+			/* go func() {
+				var topicResolutionTimeout <-chan time.Time
+				if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
+					topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
+				}
+				select {
+				case <-topicResolutionTimeout:
+
+				case <-connection.connection.GetCloseChannel():
+
+				}
+			}() */
+		}
 		messageBrokerClient.mutex.Unlock()
 	}
 
