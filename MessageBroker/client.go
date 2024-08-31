@@ -257,13 +257,10 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 
 	finishAttempt := func(result *connection) {
 		messageBrokerClient.mutex.Lock()
-		resolutionAttempt.result = result
-		close(resolutionAttempt.ongoing)
-		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		if result != nil {
 			messageBrokerClient.topicResolutions[topic] = result
 			result.topics[topic] = true
-			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result
+			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
 			/* go func() {
 				var topicResolutionTimeout <-chan time.Time
 				if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
@@ -277,6 +274,9 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 				}
 			}() */
 		}
+		resolutionAttempt.result = result
+		close(resolutionAttempt.ongoing)
+		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		messageBrokerClient.mutex.Unlock()
 	}
 
@@ -301,14 +301,12 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 		return nil, Error.New("Failed to establish connection to broker", err)
 	}
 
-	newConnection := &connection{
+	finishAttempt(&connection{
 		connection: systemgeConnection,
 		endpoint:   endpoint,
 		topics:     map[string]bool{},
-	}
-
-	finishAttempt(newConnection)
-	return newConnection, nil
+	})
+	return resolutionAttempt.result, nil
 }
 
 func getEndpointString(endpoint *Config.TcpEndpoint) string {
