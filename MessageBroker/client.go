@@ -48,7 +48,7 @@ type connection struct {
 
 type resultionAttempt struct {
 	ongoing chan bool
-	result  *SystemgeConnection.SystemgeConnection
+	result  *connection
 }
 
 func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
@@ -78,9 +78,12 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	}
 
 	messageBrokerClient := &MessageBrokerClient{
-		config:              config,
-		messageHandler:      systemgeMessageHandler,
-		outTopicResolutions: make(map[string]*SystemgeConnection.SystemgeConnection),
+		config:                  config,
+		messageHandler:          systemgeMessageHandler,
+		outTopicResolutions:     make(map[string]*connection),
+		inTopicResolutions:      make(map[string]*connection),
+		ongoingTopicResolutions: make(map[string]*resultionAttempt),
+		outConnections:          make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),
@@ -225,7 +228,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
-func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*SystemgeConnection.SystemgeConnection, error) {
+func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.outTopicResolutions[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
@@ -262,9 +265,12 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 		return nil, Error.New("Failed to establish connection to broker", err)
 	}
 	messageBrokerClient.mutex.Lock()
-	resolutionAttempt.result = brokerConnection
+	resolutionAttempt.result = &connection{
+		connection: brokerConnection,
+		endpoint:   brokerEndpoint,
+	}
 	close(resolutionAttempt.ongoing)
 	delete(messageBrokerClient.ongoingTopicResolutions, topic)
 	messageBrokerClient.mutex.Unlock()
-	return brokerConnection, nil
+	return resolutionAttempt.result, nil
 }
