@@ -348,11 +348,6 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
 		messageBrokerClient.mutex.Unlock()
 
-		messageBrokerClient.statusMutex.Lock()
-		defer messageBrokerClient.statusMutex.Unlock()
-		if messageBrokerClient.status == Status.STOPPED {
-			return
-		}
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
 
 			_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
