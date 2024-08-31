@@ -29,8 +29,11 @@ type MessageBrokerClient struct {
 	dashboardClient *Dashboard.DashboardClient
 
 	ongoingTopicResolutions map[string]*resultionAttempt
-	outTopicResolution      map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
-	inTopicResolution       map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
+
+	outConnections     map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
+	inConnections      map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
+	outTopicResolution map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
+	inTopicResolution  map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
 
 	mutex sync.Mutex
 
