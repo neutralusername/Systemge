@@ -210,52 +210,43 @@ func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.
 	if err != nil {
 		return Error.New("Failed to resolve broker endpoint", err)
 	}
-	existingConnection := messageBrokerClient.inConnections[getEndpointString(endpoint)]
-	if existingConnection != nil {
-		if _, exists := existingConnection.topics[topic]; exists {
-			return nil
+
+	messageBrokerClient.mutex.Lock()
+	conn := messageBrokerClient.inConnections[getEndpointString(endpoint)]
+	messageBrokerClient.mutex.Unlock()
+
+	if conn == nil {
+		newConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+		if err != nil {
+			return Error.New("Failed to establish connection to broker", err)
 		}
-		if sync {
-			_, err := existingConnection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
-			if err != nil {
-				return Error.New("Failed to subscribe to topic \""+topic+"\"", err)
-			}
-		} else {
-			_, err := existingConnection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
-			if err != nil {
-				return Error.New("Failed to subscribe to topic", err)
-			}
+		conn = &connection{
+			connection: newConnection,
+			endpoint:   endpoint,
+			topics:     map[string]bool{},
 		}
-		existingConnection.topics[topic] = true
+		messageBrokerClient.mutex.Lock()
+		messageBrokerClient.inConnections[getEndpointString(endpoint)] = conn
+		messageBrokerClient.mutex.Unlock()
+	}
+
+	if _, exists := conn.topics[topic]; exists {
 		return nil
 	}
-	brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
-	if err != nil {
-		if messageBrokerClient.errorLogger != nil {
-			messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to broker", err).Error())
-		}
-		return Error.New("Failed to establish connection to broker", err)
-	}
 	if sync {
-		_, err := brokerConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
+		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
 		if err != nil {
-			brokerConnection.Close()
-			return Error.New("Failed to subscribe to topic", err)
+			// todo: clean up connection if no other topics (issues due to concurrency?)
+			return Error.New("Failed to subscribe to topic \""+topic+"\"", err)
 		}
 	} else {
-		_, err := brokerConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
+		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
 		if err != nil {
-			brokerConnection.Close()
+			// todo: clean up connection if no other topics (issues due to concurrency?)
 			return Error.New("Failed to subscribe to topic", err)
 		}
 	}
-	messageBrokerClient.mutex.Lock()
-	defer messageBrokerClient.mutex.Unlock()
-	messageBrokerClient.inConnections[getEndpointString(endpoint)] = &connection{
-		connection: brokerConnection,
-		endpoint:   endpoint,
-		topics:     map[string]bool{topic: true},
-	}
+	conn.topics[topic] = true
 	return nil
 }
 
