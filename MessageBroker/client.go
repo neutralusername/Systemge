@@ -146,10 +146,10 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
-		connection, err := messageBrokerClient.resolveConnection(topic, false)
+		_, err := messageBrokerClient.resolveConnection(topic, false)
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-		connection, err := messageBrokerClient.resolveConnection(topic, true)
+		_, err := messageBrokerClient.resolveConnection(topic, true)
 	}
 
 	messageBrokerClient.status = Status.STARTED
@@ -157,7 +157,11 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 }
 
 func (messageBrokerClient *MessageBrokerClient) Stop() error {
-
+	messageBrokerClient.mutex.Lock()
+	for _, connection := range messageBrokerClient.brokerConnections {
+		connection.connection.Close()
+	}
+	messageBrokerClient.mutex.Unlock()
 }
 
 func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
@@ -292,13 +296,20 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 	}
 	select {
 	case <-topicResolutionTimeout:
+		if subscribedTopic {
 
+		} else {
+
+		}
 	case <-connection.connection.GetCloseChannel():
+		if subscribedTopic {
 
+		} else {
+
+		}
 	}
 }
 
-// TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
 func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
 	if sync {
 		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
