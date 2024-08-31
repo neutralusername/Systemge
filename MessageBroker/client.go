@@ -231,7 +231,8 @@ func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.
 	}
 
 	if _, exists := conn.topics[topic]; exists {
-		return nil
+		// should this ever be called if topic is already subscribed?
+		return nil // possibly return error
 	}
 	if sync {
 		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
