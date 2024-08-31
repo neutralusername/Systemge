@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeClient"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -27,12 +26,13 @@ type MessageBrokerClient struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	brokerSystemgeClient *SystemgeClient.SystemgeClient
-	dashboardClient      *Dashboard.DashboardClient
+	dashboardClient *Dashboard.DashboardClient
 
 	ongoingTopicResolutions map[string]*resultionAttempt
-	topicResolutions        map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
-	mutex                   sync.Mutex
+	outTopicResolution      map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
+	inTopicResolution       map[string]*SystemgeConnection.SystemgeConnection // topic -> connection
+
+	mutex sync.Mutex
 
 	asyncTopics map[string]bool
 	syncTopics  map[string]bool
@@ -70,9 +70,9 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	}
 
 	messageBrokerClient := &MessageBrokerClient{
-		config:           config,
-		messageHandler:   systemgeMessageHandler,
-		topicResolutions: make(map[string]*SystemgeConnection.SystemgeConnection),
+		config:             config,
+		messageHandler:     systemgeMessageHandler,
+		outTopicResolution: make(map[string]*SystemgeConnection.SystemgeConnection),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),
@@ -91,8 +91,6 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	if config.MailerConfig != nil {
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
 	}
-
-	messageBrokerClient.brokerSystemgeClient = SystemgeClient.New(config.MessageBrokerClientConfig, messageBrokerClient.onConnection, messageBrokerClient.onDisconnection)
 
 	if config.DashboardClientConfig != nil {
 		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
@@ -117,6 +115,71 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		messageBrokerClient.syncTopics[syncTopic] = true
 	}
 	return messageBrokerClient
+}
+
+func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {
+	if messageBrokerClient.dashboardClient == nil {
+		return Error.New("Dashboard client is not configured", nil)
+	}
+	return messageBrokerClient.dashboardClient.Start()
+}
+
+func (messageBrokerClient *MessageBrokerClient) StopDashboardClient() error {
+	if messageBrokerClient.dashboardClient == nil {
+		return Error.New("Dashboard client is not configured", nil)
+	}
+	return messageBrokerClient.dashboardClient.Stop()
+}
+
+func (messageBrokerClient *MessageBrokerClient) Start() error {
+	messageBrokerClient.statusMutex.Lock()
+	defer messageBrokerClient.statusMutex.Unlock()
+	if messageBrokerClient.status != Status.STOPPED {
+		return Error.New("Already started", nil)
+	}
+	messageBrokerClient.status = Status.PENDING
+
+	for topic, _ := range messageBrokerClient.asyncTopics {
+		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			return Error.New("Failed to resolve broker endpoint", err)
+		}
+
+	}
+	for topic, _ := range messageBrokerClient.syncTopics {
+		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+		if err != nil {
+			messageBrokerClient.status = Status.STOPPED
+			return Error.New("Failed to resolve broker endpoint", err)
+		}
+
+	}
+
+	messageBrokerClient.status = Status.STARTED
+	return nil
+}
+
+// checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
+// if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
+func (messageBrokerClient *MessageBrokerClient) subscriptionLoop(endpoint *Config.TcpEndpoint, topic string) {
+
+}
+
+func (messageBrokerClient *MessageBrokerClient) Stop() error {
+
+}
+
+func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
+
+}
+
+func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
+
+}
+
+func (messageBrokerClient *MessageBrokerClient) GetName() string {
+	return messageBrokerClient.config.Name
 }
 
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
@@ -156,7 +219,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*SystemgeConnection.SystemgeConnection, error) {
 	messageBrokerClient.mutex.Lock()
-	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
+	if resolution := messageBrokerClient.outTopicResolution[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
 		return resolution, nil
 	}
@@ -196,78 +259,4 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 	delete(messageBrokerClient.ongoingTopicResolutions, topic)
 	messageBrokerClient.mutex.Unlock()
 	return brokerConnection, nil
-}
-
-func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {
-	if messageBrokerClient.dashboardClient == nil {
-		return Error.New("Dashboard client is not configured", nil)
-	}
-	return messageBrokerClient.dashboardClient.Start()
-}
-
-func (messageBrokerClient *MessageBrokerClient) StopDashboardClient() error {
-	if messageBrokerClient.dashboardClient == nil {
-		return Error.New("Dashboard client is not configured", nil)
-	}
-	return messageBrokerClient.dashboardClient.Stop()
-}
-
-func (messageBrokerClient *MessageBrokerClient) Start() error {
-	messageBrokerClient.statusMutex.Lock()
-	defer messageBrokerClient.statusMutex.Unlock()
-	if messageBrokerClient.status != Status.STOPPED {
-		return Error.New("Already started", nil)
-	}
-	messageBrokerClient.status = Status.PENDING
-
-	if err := messageBrokerClient.brokerSystemgeClient.Start(); err != nil {
-		messageBrokerClient.status = Status.STOPPED
-		return Error.New("Failed to start message broker client", err)
-	}
-
-	for topic, _ := range messageBrokerClient.asyncTopics {
-		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-		if err != nil {
-			messageBrokerClient.brokerSystemgeClient.Stop()
-			messageBrokerClient.status = Status.STOPPED
-			return Error.New("Failed to resolve broker endpoint", err)
-		}
-		if err = messageBrokerClient.brokerSystemgeClient.AddConnectionAttempt(endpoint); err != nil {
-			messageBrokerClient.brokerSystemgeClient.Stop()
-			messageBrokerClient.status = Status.STOPPED
-			return Error.New("Failed to add connection attempt", err)
-		}
-	}
-	for topic, _ := range messageBrokerClient.syncTopics {
-		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-		if err != nil {
-			messageBrokerClient.brokerSystemgeClient.Stop()
-			messageBrokerClient.status = Status.STOPPED
-			return Error.New("Failed to resolve broker endpoint", err)
-		}
-		if err = messageBrokerClient.brokerSystemgeClient.AddConnectionAttempt(endpoint); err != nil {
-			messageBrokerClient.brokerSystemgeClient.Stop()
-			messageBrokerClient.status = Status.STOPPED
-			return Error.New("Failed to add connection attempt", err)
-		}
-	}
-
-	messageBrokerClient.status = Status.STARTED
-	return nil
-}
-
-func (messageBrokerClient *MessageBrokerClient) Stop() error {
-
-}
-
-func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
-
-}
-
-func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
-
-}
-
-func (messageBrokerClient *MessageBrokerClient) GetName() string {
-	return messageBrokerClient.config.Name
 }

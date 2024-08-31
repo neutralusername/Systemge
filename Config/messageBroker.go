@@ -29,7 +29,8 @@ type MessageBrokerClient struct {
 	ResolverEndpoints         []*TcpEndpoint      `json:"resolverEndpoints"`        // *required*
 	DashboardClientConfig     *DashboardClient    `json:"dashboardClientConfig"`    // *required*
 
-	TopicResolutionLifetimeMs uint64 `json:"topicResolutionLifetimeMs"` // default: 0
+	OutTopicResolutionLifetimeMs uint64 `json:"outTopicResolutionLifetimeMs"` // default: 0 == until disconnect
+	InTopicResolutionLifetimeMs  uint64 `json:"inTopicResolutionLifetimeMs"`  // default: 0 == until disconnect
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*

@@ -30,11 +30,11 @@ type MessageBrokerServer struct {
 	messageHandler  SystemgeConnection.MessageHandler
 	dashboardClient *Dashboard.DashboardClient
 
-	clientsAsyncTopics map[*SystemgeConnection.SystemgeConnection]map[string]bool
-	clientsSyncTopics  map[*SystemgeConnection.SystemgeConnection]map[string]bool
+	asyncSubscriptions map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	syncSubscriptions  map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 
-	asyncTopicResolutions map[string]map[*SystemgeConnection.SystemgeConnection]bool
-	syncTopicResolutions  map[string]map[*SystemgeConnection.SystemgeConnection]bool
+	asyncTopicSubscriptions map[string]map[*SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
+	syncTopicSubscriptions  map[string]map[*SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
 
 	mutex sync.Mutex
 
@@ -61,11 +61,11 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	server := &MessageBrokerServer{
 		config: config,
 
-		asyncTopicResolutions: make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
-		syncTopicResolutions:  make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
+		asyncTopicSubscriptions: make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
+		syncTopicSubscriptions:  make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
 
-		clientsAsyncTopics: make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
-		clientsSyncTopics:  make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
+		asyncSubscriptions: make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
+		syncSubscriptions:  make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)
@@ -87,19 +87,19 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 			server.config.DashboardClientConfig,
 			server.systemgeServer.Start, server.systemgeServer.Stop, server.GetMetrics, server.systemgeServer.GetStatus,
 			Commands.Handlers{
-				Message.TOPIC_ADD_ASYNC_TOPICS: func(args []string) (string, error) {
+				Message.TOPIC_SUBSCRIBE_ASYNC: func(args []string) (string, error) {
 					server.AddAsyncTopics(args)
 					return "success", nil
 				},
-				Message.TOPIC_ADD_SYNC_TOPICS: func(args []string) (string, error) {
+				Message.TOPIC_SUBSCRIBE_SYNC: func(args []string) (string, error) {
 					server.AddSyncTopics(args)
 					return "success", nil
 				},
-				Message.TOPIC_REMOVE_ASYNC_TOPICS: func(args []string) (string, error) {
+				Message.TOPIC_UNSUBSCRIBE_ASYNC: func(args []string) (string, error) {
 					server.RemoveAsyncTopics(args)
 					return "success", nil
 				},
-				Message.TOPIC_REMOVE_SYNC_TOPICS: func(args []string) (string, error) {
+				Message.TOPIC_UNSUBSCRIBE_SYNC: func(args []string) (string, error) {
 					server.RemoveSyncTopics(args)
 					return "success", nil
 				},
@@ -120,10 +120,10 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 		}
 	}
 	server.messageHandler = SystemgeConnection.NewSequentialMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
-		Message.TOPIC_ADD_ASYNC_TOPICS:    server.addAsyncTopics,
-		Message.TOPIC_REMOVE_ASYNC_TOPICS: server.removeAsyncTopics,
-		Message.TOPIC_ADD_SYNC_TOPICS:     server.addSyncTopics,
-		Message.TOPIC_REMOVE_SYNC_TOPICS:  server.removeSyncTopics,
+		Message.TOPIC_SUBSCRIBE_ASYNC:   server.subscribeAsync,
+		Message.TOPIC_UNSUBSCRIBE_ASYNC: server.unsubscribeAsync,
+		Message.TOPIC_SUBSCRIBE_SYNC:    server.subscribeSync,
+		Message.TOPIC_UNSUBSCRIBE_SYNC:  server.unsubscribeSync,
 	}, nil, nil, 100000)
 	server.AddAsyncTopics(server.config.AsyncTopics)
 	server.AddSyncTopics(server.config.SyncTopics)
@@ -166,8 +166,8 @@ func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		server.messageHandler.AddAsyncMessageHandler(topic, server.handleAsyncPropagate)
-		if server.asyncTopicResolutions[topic] == nil {
-			server.asyncTopicResolutions[topic] = make(map[*SystemgeConnection.SystemgeConnection]bool)
+		if server.asyncTopicSubscriptions[topic] == nil {
+			server.asyncTopicSubscriptions[topic] = make(map[*SystemgeConnection.SystemgeConnection]bool)
 		}
 	}
 }
@@ -177,8 +177,8 @@ func (server *MessageBrokerServer) AddSyncTopics(topics []string) {
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		server.messageHandler.AddSyncMessageHandler(topic, server.handleSyncPropagate)
-		if server.syncTopicResolutions[topic] == nil {
-			server.syncTopicResolutions[topic] = make(map[*SystemgeConnection.SystemgeConnection]bool)
+		if server.syncTopicSubscriptions[topic] == nil {
+			server.syncTopicSubscriptions[topic] = make(map[*SystemgeConnection.SystemgeConnection]bool)
 		}
 	}
 }
@@ -187,9 +187,9 @@ func (server *MessageBrokerServer) RemoveAsyncTopics(topics []string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
-		if server.asyncTopicResolutions[topic] != nil {
+		if server.asyncTopicSubscriptions[topic] != nil {
 			server.messageHandler.RemoveAsyncMessageHandler(topic)
-			delete(server.asyncTopicResolutions, topic)
+			delete(server.asyncTopicSubscriptions, topic)
 		}
 	}
 }
@@ -198,14 +198,14 @@ func (server *MessageBrokerServer) RemoveSyncTopics(topics []string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
-		if server.syncTopicResolutions[topic] != nil {
+		if server.syncTopicSubscriptions[topic] != nil {
 			server.messageHandler.RemoveSyncMessageHandler(topic)
-			delete(server.syncTopicResolutions, topic)
+			delete(server.syncTopicSubscriptions, topic)
 		}
 	}
 }
 
-func (server *MessageBrokerServer) addAsyncTopics(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) subscribeAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -215,18 +215,18 @@ func (server *MessageBrokerServer) addAsyncTopics(connection *SystemgeConnection
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
-		if server.asyncTopicResolutions[topic] == nil {
+		if server.asyncTopicSubscriptions[topic] == nil {
 			return "", Error.New("unknown async topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
-		server.asyncTopicResolutions[topic][connection] = true
-		server.clientsAsyncTopics[connection][topic] = true
+		server.asyncTopicSubscriptions[topic][connection] = true
+		server.asyncSubscriptions[connection][topic] = true
 	}
 	return "", nil
 }
 
-func (server *MessageBrokerServer) addSyncTopics(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) subscribeSync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -235,18 +235,18 @@ func (server *MessageBrokerServer) addSyncTopics(connection *SystemgeConnection.
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
-		if server.syncTopicResolutions[topic] == nil {
+		if server.syncTopicSubscriptions[topic] == nil {
 			return "", Error.New("unknown sync topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
-		server.syncTopicResolutions[topic][connection] = true
-		server.clientsSyncTopics[connection][topic] = true
+		server.syncTopicSubscriptions[topic][connection] = true
+		server.syncSubscriptions[connection][topic] = true
 	}
 	return "", nil
 }
 
-func (server *MessageBrokerServer) removeAsyncTopics(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) unsubscribeAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -256,18 +256,18 @@ func (server *MessageBrokerServer) removeAsyncTopics(connection *SystemgeConnect
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
-		if server.asyncTopicResolutions[topic] == nil {
+		if server.asyncTopicSubscriptions[topic] == nil {
 			return "", Error.New("unknown async topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
-		delete(server.asyncTopicResolutions[topic], connection)
-		delete(server.clientsAsyncTopics[connection], topic)
+		delete(server.asyncTopicSubscriptions[topic], connection)
+		delete(server.asyncSubscriptions[connection], topic)
 	}
 	return "", nil
 }
 
-func (server *MessageBrokerServer) removeSyncTopics(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) unsubscribeSync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -277,13 +277,13 @@ func (server *MessageBrokerServer) removeSyncTopics(connection *SystemgeConnecti
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
-		if server.syncTopicResolutions[topic] == nil {
+		if server.syncTopicSubscriptions[topic] == nil {
 			return "", Error.New("unknown sync topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
-		delete(server.syncTopicResolutions[topic], connection)
-		delete(server.clientsSyncTopics[connection], topic)
+		delete(server.syncTopicSubscriptions[topic], connection)
+		delete(server.syncSubscriptions[connection], topic)
 	}
 	return "", nil
 }
@@ -291,7 +291,7 @@ func (server *MessageBrokerServer) removeSyncTopics(connection *SystemgeConnecti
 func (server *MessageBrokerServer) handleAsyncPropagate(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	for client := range server.asyncTopicResolutions[message.GetTopic()] {
+	for client := range server.asyncTopicSubscriptions[message.GetTopic()] {
 		if client != connection {
 			client.AsyncMessage(message.GetTopic(), message.GetPayload())
 		}
@@ -302,7 +302,7 @@ func (server *MessageBrokerServer) handleSyncPropagate(connection *SystemgeConne
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	responseChannels := []<-chan *Message.Message{}
-	for client := range server.syncTopicResolutions[message.GetTopic()] {
+	for client := range server.syncTopicSubscriptions[message.GetTopic()] {
 		if client != connection {
 			responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
 			if err != nil {
@@ -329,8 +329,8 @@ func (server *MessageBrokerServer) handleSyncPropagate(connection *SystemgeConne
 
 func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
-	server.clientsAsyncTopics[connection] = make(map[string]bool)
-	server.clientsSyncTopics[connection] = make(map[string]bool)
+	server.asyncSubscriptions[connection] = make(map[string]bool)
+	server.syncSubscriptions[connection] = make(map[string]bool)
 	server.mutex.Unlock()
 	connection.StartProcessingLoopSequentially(server.messageHandler)
 	return nil
@@ -339,13 +339,13 @@ func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConn
 func (server *MessageBrokerServer) onSystemgeDisconnection(connection *SystemgeConnection.SystemgeConnection) {
 	connection.StopProcessingLoop()
 	server.mutex.Lock()
-	for topic := range server.clientsAsyncTopics[connection] {
-		delete(server.asyncTopicResolutions[topic], connection)
+	for topic := range server.asyncSubscriptions[connection] {
+		delete(server.asyncTopicSubscriptions[topic], connection)
 	}
-	delete(server.clientsAsyncTopics, connection)
-	for topic := range server.clientsSyncTopics[connection] {
-		delete(server.syncTopicResolutions[topic], connection)
+	delete(server.asyncSubscriptions, connection)
+	for topic := range server.syncSubscriptions[connection] {
+		delete(server.syncTopicSubscriptions[topic], connection)
 	}
-	delete(server.clientsSyncTopics, connection)
+	delete(server.syncSubscriptions, connection)
 	server.mutex.Unlock()
 }
