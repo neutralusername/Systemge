@@ -25,6 +25,8 @@ type MessageBrokerClient struct {
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
 
+	waitGroup sync.WaitGroup
+
 	messageHandler SystemgeConnection.MessageHandler
 
 	dashboardClient *Dashboard.DashboardClient
@@ -171,6 +173,8 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 	}
 	messageBrokerClient.mutex.Unlock()
 
+	messageBrokerClient.waitGroup.Wait()
+
 	messageBrokerClient.status = Status.STOPPED
 	return nil
 }
@@ -266,6 +270,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			result.topics[topic] = true
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
 			if subscribedTopic {
+				messageBrokerClient.waitGroup.Add(1)
 				go func() {
 					// race condition
 					if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
@@ -280,6 +285,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 							}
 						}
 					}
+					messageBrokerClient.waitGroup.Done()
 				}()
 			}
 			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, subscribedTopic)
