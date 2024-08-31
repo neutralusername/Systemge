@@ -174,29 +174,6 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 
 // TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
 
-// subscribes to the provided topic using the provided connection
-func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
-	if _, exists := connection.topics[topic]; exists {
-		// should this ever be called if topic is already subscribed?
-		return nil // possibly return error
-	}
-	if sync {
-		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
-		if err != nil {
-			// todo: clean up connection if no other topics (issues due to concurrency?)
-			return Error.New("Failed to subscribe to topic", err)
-		}
-	} else {
-		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
-		if err != nil {
-			// todo: clean up connection if no other topics (issues due to concurrency?)
-			return Error.New("Failed to subscribe to topic", err)
-		}
-	}
-	connection.topics[topic] = true
-	return nil
-}
-
 // goes through all assigned resolvers in order and tries to resolve the topic.
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
 	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
@@ -262,7 +239,20 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			messageBrokerClient.topicResolutions[topic] = result
 			result.topics[topic] = true
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
-			//subscribe if topic is in either map
+			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
+				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
+					}
+					if messageBrokerClient.mailer != nil {
+						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())); err != nil {
+							if messageBrokerClient.errorLogger != nil {
+								messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+							}
+						}
+					}
+				}
+			}
 			go messageBrokerClient.handleTopicResolutionLifetime(result, topic)
 		}
 		resolutionAttempt.result = result
@@ -311,6 +301,24 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 	case <-connection.connection.GetCloseChannel():
 
 	}
+}
+
+func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
+	if _, exists := connection.topics[topic]; exists {
+		return Error.New("Already subscribed to topic", nil)
+	}
+	if sync {
+		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
+		if err != nil {
+			return Error.New("Failed to subscribe to topic", err)
+		}
+	} else {
+		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
+		if err != nil {
+			return Error.New("Failed to subscribe to topic", err)
+		}
+	}
+	return nil
 }
 
 func getEndpointString(endpoint *Config.TcpEndpoint) string {
