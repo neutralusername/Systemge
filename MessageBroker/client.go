@@ -30,7 +30,6 @@ type MessageBrokerClient struct {
 	dashboardClient *Dashboard.DashboardClient
 
 	ongoingTopicResolutions map[string]*resultionAttempt
-	waitgroup               sync.WaitGroup
 
 	brokerConnections map[string]*connection // endpointString -> connection
 	topicResolutions  map[string]*connection // topic -> connection
@@ -158,15 +157,23 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 }
 
 func (messageBrokerClient *MessageBrokerClient) Stop() error {
+	messageBrokerClient.statusMutex.Lock()
+	defer messageBrokerClient.statusMutex.Unlock()
+	if messageBrokerClient.status != Status.STARTED {
+		return Error.New("Already started", nil)
+	}
+	messageBrokerClient.status = Status.PENDING
 
-	// signal someehow to no longer attempt new resolutions
-	messageBrokerClient.waitgroup.Wait()
+	//make sure no new connection attempts can be initiated or completed and all ongoing attempts are finished.
 
 	messageBrokerClient.mutex.Lock()
 	for _, connection := range messageBrokerClient.brokerConnections {
 		connection.connection.Close()
 	}
 	messageBrokerClient.mutex.Unlock()
+
+	messageBrokerClient.status = Status.STOPPED
+	return nil
 }
 
 func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
@@ -234,8 +241,6 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		ongoing: make(chan bool),
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
-	// race condition
-	messageBrokerClient.waitgroup.Add(1)
 	messageBrokerClient.mutex.Unlock()
 
 	finishAttempt := func(result *connection) {
@@ -265,7 +270,6 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		resolutionAttempt.result = result
 		close(resolutionAttempt.ongoing)
 		messageBrokerClient.mutex.Unlock()
-		messageBrokerClient.waitgroup.Done()
 	}
 
 	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
