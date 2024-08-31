@@ -236,7 +236,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						str := ""
+						str := "" // if only go had ternary operators
 						if syncTopic {
 							str = "sync"
 						} else {
