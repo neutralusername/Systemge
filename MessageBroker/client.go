@@ -238,7 +238,7 @@ func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.
 		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
 		if err != nil {
 			// todo: clean up connection if no other topics (issues due to concurrency?)
-			return Error.New("Failed to subscribe to topic \""+topic+"\"", err)
+			return Error.New("Failed to subscribe to topic", err)
 		}
 	} else {
 		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
