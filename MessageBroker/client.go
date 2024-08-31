@@ -153,13 +153,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
-		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to resolve broker endpoint", err)
-		}
-		err = messageBrokerClient.subscribeTopic(endpoint, topic, false)
+		err := messageBrokerClient.subscribeTopic(topic, false)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
 			// todo: clean up existing connections
@@ -167,13 +161,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 		}
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
-		if err != nil {
-			messageBrokerClient.status = Status.STOPPED
-			// todo: clean up existing connections
-			return Error.New("Failed to resolve broker endpoint", err)
-		}
-		err = messageBrokerClient.subscribeTopic(endpoint, topic, true)
+		err := messageBrokerClient.subscribeTopic(topic, true)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
 			// todo: clean up existing connections
@@ -201,12 +189,35 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.config.Name
 }
 
-// checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
 // TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
-func (messageBrokerClient *MessageBrokerClient) subscribeTopic(endpoint *Config.TcpEndpoint, topic string, sync bool) error {
+// checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
+
+func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
+	if _, exists := connection.topics[topic]; exists {
+		// should this ever be called if topic is already subscribed?
+		return nil // possibly return error
+	}
+	if sync {
+		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
+		if err != nil {
+			// todo: clean up connection if no other topics (issues due to concurrency?)
+			return Error.New("Failed to subscribe to topic", err)
+		}
+	} else {
+		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
+		if err != nil {
+			// todo: clean up connection if no other topics (issues due to concurrency?)
+			return Error.New("Failed to subscribe to topic", err)
+		}
+	}
+	connection.topics[topic] = true
+	return nil
+}
+
+func (messageBrokerClient *MessageBrokerClient) getConnection(topic string, sync bool) (*connection, error) {
 	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 	if err != nil {
-		return Error.New("Failed to resolve broker endpoint", err)
+		return nil, Error.New("Failed to resolve broker endpoint", err)
 	}
 
 	messageBrokerClient.mutex.Lock()
@@ -216,7 +227,7 @@ func (messageBrokerClient *MessageBrokerClient) subscribeTopic(endpoint *Config.
 	if conn == nil {
 		newConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 		if err != nil {
-			return Error.New("Failed to establish connection to broker", err)
+			return nil, Error.New("Failed to establish connection to broker", err)
 		}
 		conn = &connection{
 			connection: newConnection,
@@ -227,26 +238,7 @@ func (messageBrokerClient *MessageBrokerClient) subscribeTopic(endpoint *Config.
 		messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
 		messageBrokerClient.mutex.Unlock()
 	}
-
-	if _, exists := conn.topics[topic]; exists {
-		// should this ever be called if topic is already subscribed?
-		return nil // possibly return error
-	}
-	if sync {
-		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
-		if err != nil {
-			// todo: clean up connection if no other topics (issues due to concurrency?)
-			return Error.New("Failed to subscribe to topic", err)
-		}
-	} else {
-		_, err := conn.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, topic)
-		if err != nil {
-			// todo: clean up connection if no other topics (issues due to concurrency?)
-			return Error.New("Failed to subscribe to topic", err)
-		}
-	}
-	conn.topics[topic] = true
-	return nil
+	return conn, nil
 }
 
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
