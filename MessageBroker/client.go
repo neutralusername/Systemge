@@ -30,8 +30,7 @@ type MessageBrokerClient struct {
 
 	ongoingTopicResolutions map[string]*resultionAttempt
 
-	outConnections      map[string]*connection // endpointString -> connection
-	inConnections       map[string]*connection // endpointString -> connection
+	connections         map[string]*connection // endpointString -> connection
 	outTopicResolutions map[string]*connection // topic -> connection
 	inTopicResolutions  map[string]*connection // topic -> connection
 
@@ -86,8 +85,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		outTopicResolutions: make(map[string]*connection),
 		inTopicResolutions:  make(map[string]*connection),
 
-		outConnections: make(map[string]*connection),
-		inConnections:  make(map[string]*connection),
+		connections: make(map[string]*connection),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),
@@ -161,7 +159,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 			// todo: clean up existing connections
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		err = messageBrokerClient.inSubscription(endpoint, topic, false)
+		err = messageBrokerClient.subscribeTopic(endpoint, topic, false)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
 			// todo: clean up existing connections
@@ -175,7 +173,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 			// todo: clean up existing connections
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		err = messageBrokerClient.inSubscription(endpoint, topic, true)
+		err = messageBrokerClient.subscribeTopic(endpoint, topic, true)
 		if err != nil {
 			messageBrokerClient.status = Status.STOPPED
 			// todo: clean up existing connections
@@ -205,14 +203,14 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 
 // checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
 // TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
-func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.TcpEndpoint, topic string, sync bool) error {
+func (messageBrokerClient *MessageBrokerClient) subscribeTopic(endpoint *Config.TcpEndpoint, topic string, sync bool) error {
 	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 	if err != nil {
 		return Error.New("Failed to resolve broker endpoint", err)
 	}
 
 	messageBrokerClient.mutex.Lock()
-	conn := messageBrokerClient.inConnections[getEndpointString(endpoint)]
+	conn := messageBrokerClient.connections[getEndpointString(endpoint)]
 	messageBrokerClient.mutex.Unlock()
 
 	if conn == nil {
@@ -226,7 +224,7 @@ func (messageBrokerClient *MessageBrokerClient) inSubscription(endpoint *Config.
 			topics:     map[string]bool{},
 		}
 		messageBrokerClient.mutex.Lock()
-		messageBrokerClient.inConnections[getEndpointString(endpoint)] = conn
+		messageBrokerClient.connections[getEndpointString(endpoint)] = conn
 		messageBrokerClient.mutex.Unlock()
 	}
 
