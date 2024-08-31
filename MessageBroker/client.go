@@ -2,6 +2,7 @@ package MessageBroker
 
 import (
 	"sync"
+	"time"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
@@ -145,10 +146,10 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
-		connection, err := messageBrokerClient.resolveConnection(topic)
+		connection, err := messageBrokerClient.resolveConnection(topic, false)
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-		connection, err := messageBrokerClient.resolveConnection(topic)
+		connection, err := messageBrokerClient.resolveConnection(topic, true)
 	}
 
 	messageBrokerClient.status = Status.STARTED
@@ -235,7 +236,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 // checks if connection for topic is already resolved. if not, checks if resolution is ongoing and waits for it to finish.
 // if resolution is not ongoing, starts resolution by resolving the topics endpoint.
 // checks if connection to endpoint is already established. if not, establishes connection.
-func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*connection, error) {
+func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
@@ -261,18 +262,8 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 			messageBrokerClient.topicResolutions[topic] = result
 			result.topics[topic] = true
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
-			/* go func() {
-				var topicResolutionTimeout <-chan time.Time
-				if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
-					topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
-				}
-				select {
-				case <-topicResolutionTimeout:
-
-				case <-connection.connection.GetCloseChannel():
-
-				}
-			}() */
+			//subscribe if topic is in either map
+			go messageBrokerClient.handleTopicResolutionLifetime(result, topic)
 		}
 		resolutionAttempt.result = result
 		close(resolutionAttempt.ongoing)
@@ -307,6 +298,19 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 		topics:     map[string]bool{},
 	})
 	return resolutionAttempt.result, nil
+}
+
+func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(connection *connection, topic string) {
+	var topicResolutionTimeout <-chan time.Time
+	if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
+		topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
+	}
+	select {
+	case <-topicResolutionTimeout:
+
+	case <-connection.connection.GetCloseChannel():
+
+	}
 }
 
 func getEndpointString(endpoint *Config.TcpEndpoint) string {
