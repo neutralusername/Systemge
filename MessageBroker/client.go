@@ -85,13 +85,13 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		status: Status.STOPPED,
 	}
 	if config.InfoLoggerPath != "" {
-		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerClient\"] ", config.InfoLoggerPath)
+		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \"MessageBrokerClient\"] ", config.WarningLoggerPath)
+		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \"MessageBrokerClient\"] ", config.ErrorLoggerPath)
+		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
@@ -172,8 +172,8 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 }
 
 // TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
-// checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
 
+// subscribes to the provided topic using the provided connection
 func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
 	if _, exists := connection.topics[topic]; exists {
 		// should this ever be called if topic is already subscribed?
@@ -196,6 +196,7 @@ func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *con
 	return nil
 }
 
+// goes through all assigned resolvers in order and tries to resolve the topic.
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
 	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
 		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
@@ -231,6 +232,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
+// checks if connection to endpoint is already established. if not, establishes connection.
 func (messageBrokerClient *MessageBrokerClient) getConnection(endpoint *Config.TcpEndpoint) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
@@ -256,7 +258,7 @@ func (messageBrokerClient *MessageBrokerClient) getConnection(endpoint *Config.T
 // checks if connection for topic is already resolved. if not, checks if resolution is ongoing and waits for it to finish.
 // if resolution is not ongoing, starts resolution by resolving the topics endpoint.
 // checks if connection to endpoint is already established. if not, establishes connection.
-// incomplete?
+// todo: start re-resolving goroutine
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
