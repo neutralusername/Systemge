@@ -279,7 +279,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	messageBrokerClient.mutex.Unlock()
 
-	removeAttempt := func(result *connection) {
+	finishAttempt := func(result *connection) {
 		messageBrokerClient.mutex.Lock()
 		resolutionAttempt.result = result
 		close(resolutionAttempt.ongoing)
@@ -289,17 +289,17 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 
 	brokerEndpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 	if err != nil {
-		removeAttempt(nil)
+		finishAttempt(nil)
 		return nil, Error.New("Failed to resolve broker endpoint", err)
 	}
 
 	connection, err := messageBrokerClient.getConnection(brokerEndpoint)
 	if err != nil {
-		removeAttempt(nil)
+		finishAttempt(nil)
 		return nil, Error.New("Failed to get connection", err)
 	}
 
-	removeAttempt(connection)
+	finishAttempt(connection)
 	return resolutionAttempt.result, nil
 }
 
