@@ -32,13 +32,18 @@ type MessageBrokerClient struct {
 
 	outConnections      map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
 	inConnections       map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
-	outTopicResolutions map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
-	inTopicResolutions  map[string]*SystemgeConnection.SystemgeConnection          // topic -> connection
+	outTopicResolutions map[string]*connection                                     // topic -> connection
+	inTopicResolutions  map[string]*connection                                     // topic -> connection
 
 	mutex sync.Mutex
 
 	asyncTopics map[string]bool
 	syncTopics  map[string]bool
+}
+
+type connection struct {
+	connection *SystemgeConnection.SystemgeConnection
+	endpoint   *Config.TcpEndpoint
 }
 
 type resultionAttempt struct {
