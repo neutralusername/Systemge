@@ -239,7 +239,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
 					}
 					if messageBrokerClient.mailer != nil {
-						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())); err != nil {
+						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())); err != nil {
 							if messageBrokerClient.errorLogger != nil {
 								messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
 							}
