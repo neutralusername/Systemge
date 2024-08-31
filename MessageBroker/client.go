@@ -233,7 +233,8 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			messageBrokerClient.topicResolutions[topic] = result
 			result.topics[topic] = true
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
-			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
+			subscribedTopic := (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic])
+			if subscribedTopic {
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
@@ -247,11 +248,11 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 					}
 				}
 			}
-			go messageBrokerClient.handleTopicResolutionLifetime(result, topic)
+			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, subscribedTopic)
 		}
+		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		resolutionAttempt.result = result
 		close(resolutionAttempt.ongoing)
-		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		messageBrokerClient.mutex.Unlock()
 	}
 
@@ -284,7 +285,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 	return resolutionAttempt.result, nil
 }
 
-func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(connection *connection, topic string) {
+func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(connection *connection, topic string, subscribedTopic bool) {
 	var topicResolutionTimeout <-chan time.Time
 	if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
 		topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
