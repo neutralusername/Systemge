@@ -148,7 +148,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 			messageBrokerClient.status = Status.STOPPED
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		messageBrokerClient.subscriptionLoop(endpoint, topic)
+		messageBrokerClient.subscriptionLoop(endpoint, topic, false)
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
 		endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
@@ -156,17 +156,11 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 			messageBrokerClient.status = Status.STOPPED
 			return Error.New("Failed to resolve broker endpoint", err)
 		}
-		messageBrokerClient.subscriptionLoop(endpoint, topic)
+		messageBrokerClient.subscriptionLoop(endpoint, topic, true)
 	}
 
 	messageBrokerClient.status = Status.STARTED
 	return nil
-}
-
-// checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
-// on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
-func (messageBrokerClient *MessageBrokerClient) subscriptionLoop(endpoint *Config.TcpEndpoint, topic string) {
-
 }
 
 func (messageBrokerClient *MessageBrokerClient) Stop() error {
@@ -183,6 +177,12 @@ func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
 
 func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.config.Name
+}
+
+// checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
+// on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
+func (messageBrokerClient *MessageBrokerClient) subscriptionLoop(endpoint *Config.TcpEndpoint, topic string, sync bool) {
+
 }
 
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
