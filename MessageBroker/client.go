@@ -148,11 +148,12 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	for topic, _ := range messageBrokerClient.asyncTopics {
+		//deadlock
 		_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
 
 	}
 	for topic, _ := range messageBrokerClient.syncTopics {
-
+		//deadlock
 		_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
 
 	}
@@ -272,7 +273,6 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			if subscribedTopic {
 				messageBrokerClient.waitGroup.Add(1)
 				go func() {
-					// race condition
 					if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
 						if messageBrokerClient.errorLogger != nil {
 							messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
