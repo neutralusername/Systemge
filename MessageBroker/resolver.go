@@ -22,9 +22,9 @@ type Resolver struct {
 
 	dashboardClient *Dashboard.DashboardClient
 
-	asyncTopicResolutions map[string]*Config.TcpEndpoint
-	syncTopicResolutions  map[string]*Config.TcpEndpoint
-	mutex                 sync.Mutex
+	asyncTopicEndpoints map[string]*Config.TcpEndpoint
+	syncTopicEndpoints  map[string]*Config.TcpEndpoint
+	mutex               sync.Mutex
 
 	messageHandler SystemgeConnection.MessageHandler
 
@@ -58,9 +58,9 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 	}
 
 	resolver := &Resolver{
-		config:                config,
-		asyncTopicResolutions: make(map[string]*Config.TcpEndpoint),
-		syncTopicResolutions:  make(map[string]*Config.TcpEndpoint),
+		config:              config,
+		asyncTopicEndpoints: make(map[string]*Config.TcpEndpoint),
+		syncTopicEndpoints:  make(map[string]*Config.TcpEndpoint),
 	}
 
 	if config.InfoLoggerPath != "" {
@@ -76,11 +76,21 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 		resolver.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	for topic, resolution := range config.AsyncTopicResolutions {
-		resolver.asyncTopicResolutions[topic] = resolution
+	for topic, endpoint := range config.AsyncTopicEndpoints {
+		normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
+		if err != nil {
+			panic(err)
+		}
+		endpoint.Address = normalizedAddress
+		resolver.asyncTopicEndpoints[topic] = endpoint
 	}
-	for topic, resolution := range config.SyncTopicResolutions {
-		resolver.syncTopicResolutions[topic] = resolution
+	for topic, endpoint := range config.SyncTopicEndpoints {
+		normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
+		if err != nil {
+			panic(err)
+		}
+		endpoint.Address = normalizedAddress
+		resolver.syncTopicEndpoints[topic] = endpoint
 	}
 
 	resolver.messageHandler = SystemgeConnection.NewConcurrentMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
@@ -100,6 +110,11 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 				if endpoint == nil {
 					return "", Error.New("Invalid endpoint in json format provided", nil)
 				}
+				normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
+				if err != nil {
+					return "", err
+				}
+				endpoint.Address = normalizedAddress
 				resolver.AddAsyncResolution(args[0], endpoint)
 				return "Success", nil
 			},
@@ -111,6 +126,11 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 				if endpoint == nil {
 					return "", Error.New("Invalid endpoint in json format provided", nil)
 				}
+				normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
+				if err != nil {
+					return "", err
+				}
+				endpoint.Address = normalizedAddress
 				resolver.AddSyncResolution(args[0], endpoint)
 				return "Success", nil
 			},
@@ -183,31 +203,31 @@ func (resolver *Resolver) GetMetrics() map[string]uint64 {
 func (resolver *Resolver) AddAsyncResolution(topic string, resolution *Config.TcpEndpoint) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	resolver.asyncTopicResolutions[topic] = resolution
+	resolver.asyncTopicEndpoints[topic] = resolution
 }
 
 func (resolver *Resolver) AddSyncResolution(topic string, resolution *Config.TcpEndpoint) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	resolver.syncTopicResolutions[topic] = resolution
+	resolver.syncTopicEndpoints[topic] = resolution
 }
 
 func (resolver *Resolver) RemoveAsyncResolution(topic string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	delete(resolver.asyncTopicResolutions, topic)
+	delete(resolver.asyncTopicEndpoints, topic)
 }
 
 func (resolver *Resolver) RemoveSyncResolution(topic string) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	delete(resolver.syncTopicResolutions, topic)
+	delete(resolver.syncTopicEndpoints, topic)
 }
 
 func (resolver *Resolver) resolveAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	if resolution, ok := resolver.asyncTopicResolutions[message.GetTopic()]; ok {
+	if resolution, ok := resolver.asyncTopicEndpoints[message.GetTopic()]; ok {
 		return Helpers.JsonMarshal(resolution), nil
 	} else {
 		return "", Error.New("Unkown topic", nil)
@@ -217,7 +237,7 @@ func (resolver *Resolver) resolveAsync(connection *SystemgeConnection.SystemgeCo
 func (resolver *Resolver) resolveSync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	if resolution, ok := resolver.syncTopicResolutions[message.GetTopic()]; ok {
+	if resolution, ok := resolver.syncTopicEndpoints[message.GetTopic()]; ok {
 		return Helpers.JsonMarshal(resolution), nil
 	} else {
 		return "", Error.New("Unkown topic", nil)

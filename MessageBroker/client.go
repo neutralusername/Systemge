@@ -30,10 +30,10 @@ type MessageBrokerClient struct {
 
 	ongoingTopicResolutions map[string]*resultionAttempt
 
-	outConnections      map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
-	inConnections       map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topics
-	outTopicResolutions map[string]*connection                                     // topic -> connection
-	inTopicResolutions  map[string]*connection                                     // topic -> connection
+	outConnections      map[string]*connection // endpointString -> connection
+	inConnections       map[string]*connection // endpointString -> connection
+	outTopicResolutions map[string]*connection // topic -> connection
+	inTopicResolutions  map[string]*connection // topic -> connection
 
 	mutex sync.Mutex
 
@@ -44,6 +44,7 @@ type MessageBrokerClient struct {
 type connection struct {
 	connection *SystemgeConnection.SystemgeConnection
 	endpoint   *Config.TcpEndpoint
+	topics     map[string]bool
 }
 
 type resultionAttempt struct {
@@ -80,10 +81,13 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	messageBrokerClient := &MessageBrokerClient{
 		config:                  config,
 		messageHandler:          systemgeMessageHandler,
-		outTopicResolutions:     make(map[string]*connection),
-		inTopicResolutions:      make(map[string]*connection),
 		ongoingTopicResolutions: make(map[string]*resultionAttempt),
-		outConnections:          make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
+
+		outTopicResolutions: make(map[string]*connection),
+		inTopicResolutions:  make(map[string]*connection),
+
+		outConnections: make(map[string]*connection),
+		inConnections:  make(map[string]*connection),
 
 		asyncTopics: make(map[string]bool),
 		syncTopics:  make(map[string]bool),

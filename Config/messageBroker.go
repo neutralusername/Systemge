@@ -63,6 +63,6 @@ type MessageBrokerResolver struct {
 
 	MaxClientNameLength int `json:"maxClientNameLength"` // *required*
 
-	AsyncTopicResolutions map[string]*TcpEndpoint `json:"asyncTopicResolutions"` // *required*
-	SyncTopicResolutions  map[string]*TcpEndpoint `json:"syncTopicResolutions"`  // *required*
+	AsyncTopicEndpoints map[string]*TcpEndpoint `json:"asyncTopicResolutions"` // *required*
+	SyncTopicEndpoints  map[string]*TcpEndpoint `json:"syncTopicResolutions"`  // *required*
 }
