@@ -161,7 +161,7 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 }
 
 // checks if connection to endpoint exists. if not exists establish connection. use connection to subscribe to topic.
-// if lifetime >0 or on disconnect, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
+// on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
 func (messageBrokerClient *MessageBrokerClient) subscriptionLoop(endpoint *Config.TcpEndpoint, topic string) {
 
 }
