@@ -172,9 +172,6 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.config.Name
 }
 
-// TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
-
-// goes through all assigned resolvers in order and tries to resolve the topic.
 func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
 	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
 		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
@@ -210,9 +207,6 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
-// checks if connection for topic is already resolved. if not, checks if resolution is ongoing and waits for it to finish.
-// if resolution is not ongoing, starts resolution by resolving the topics endpoint.
-// checks if connection to endpoint is already established. if not, establishes connection.
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
@@ -303,6 +297,7 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 	}
 }
 
+// TODO (different func): on disconnect or if lifetime >0, wait for lifetime to pass and resolve topic again. if endpoint changes, update connection and subscribe to topic.
 func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
 	if sync {
 		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
