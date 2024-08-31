@@ -30,9 +30,8 @@ type MessageBrokerClient struct {
 
 	ongoingTopicResolutions map[string]*resultionAttempt
 
-	brokerConnections   map[string]*connection // endpointString -> connection
-	outTopicResolutions map[string]*connection // topic -> connection
-	inTopicResolutions  map[string]*connection // topic -> connection
+	brokerConnections map[string]*connection // endpointString -> connection
+	topicResolutions  map[string]*connection // topic -> connection
 
 	mutex sync.Mutex
 
@@ -58,23 +57,17 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	if config.ResolverConnectionConfig == nil {
 		panic(Error.New("ResolverConnectionConfig is required", nil))
 	}
+	if config.ConnectionConfig == nil {
+		panic(Error.New("ConnectionConfig is required", nil))
+	}
 	if len(config.ResolverEndpoints) == 0 {
 		panic(Error.New("At least one ResolverEndpoint is required", nil))
 	}
-	if config.MessageBrokerClientConfig == nil {
-		panic(Error.New("MessageBrokerClientConfig is required", nil))
-	}
-	if config.MessageBrokerClientConfig.ConnectionConfig == nil {
-		panic(Error.New("MessageBrokerClientConfig.ConnectionConfig is required", nil))
-	}
-	if config.MessageBrokerClientConfig.Name == "" {
-		panic(Error.New("MessageBrokerClientConfig.Name is required", nil))
-	}
-	if config.MessageBrokerClientConfig.ConnectionConfig.TcpBufferBytes == 0 {
-		config.MessageBrokerClientConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 	if config.ResolverConnectionConfig.TcpBufferBytes == 0 {
 		config.ResolverConnectionConfig.TcpBufferBytes = 1024 * 4
+	}
+	if config.ConnectionConfig.TcpBufferBytes == 0 {
+		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
 	}
 
 	messageBrokerClient := &MessageBrokerClient{
@@ -82,8 +75,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		messageHandler:          systemgeMessageHandler,
 		ongoingTopicResolutions: make(map[string]*resultionAttempt),
 
-		outTopicResolutions: make(map[string]*connection),
-		inTopicResolutions:  make(map[string]*connection),
+		topicResolutions: make(map[string]*connection),
 
 		brokerConnections: make(map[string]*connection),
 
@@ -275,7 +267,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
-	if resolution := messageBrokerClient.outTopicResolutions[topic]; resolution != nil {
+	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
 		return resolution, nil
 	}
@@ -301,22 +293,22 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string) 
 		messageBrokerClient.mutex.Unlock()
 		return nil, Error.New("Failed to resolve broker endpoint", err)
 	}
-	brokerConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.OutConnectionConfig, brokerEndpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+
+	connection, err := messageBrokerClient.getConnection(brokerEndpoint)
 	if err != nil {
 		messageBrokerClient.mutex.Lock()
 		close(resolutionAttempt.ongoing)
 		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		messageBrokerClient.mutex.Unlock()
-		return nil, Error.New("Failed to establish connection to broker", err)
+		return nil, Error.New("Failed to get connection", err)
 	}
+
 	messageBrokerClient.mutex.Lock()
-	resolutionAttempt.result = &connection{
-		connection: brokerConnection,
-		endpoint:   brokerEndpoint,
-	}
+	resolutionAttempt.result = connection
 	close(resolutionAttempt.ongoing)
 	delete(messageBrokerClient.ongoingTopicResolutions, topic)
 	messageBrokerClient.mutex.Unlock()
+
 	return resolutionAttempt.result, nil
 }
 
@@ -326,7 +318,7 @@ func (messageBrokerClient *MessageBrokerClient) getConnection(endpoint *Config.T
 	messageBrokerClient.mutex.Unlock()
 
 	if conn == nil {
-		newConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.InConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+		newConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 		if err != nil {
 			return nil, Error.New("Failed to establish connection to broker", err)
 		}
