@@ -304,9 +304,6 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 }
 
 func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
-	if _, exists := connection.topics[topic]; exists {
-		return Error.New("Already subscribed to topic", nil)
-	}
 	if sync {
 		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
 		if err != nil {
