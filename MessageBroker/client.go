@@ -290,7 +290,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 					}
 				}
 			} else {
-				// what to do when failing to subscribe to topic you want to receive messages of? shut down, retry, log and ignore?
+				// what to do when failing to connect to broker you want to receive messages of? shut down, retry, log and ignore?
 			}
 		}
 		messageBrokerClient.waitGroup.Done()
