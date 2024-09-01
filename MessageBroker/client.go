@@ -194,41 +194,6 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.config.Name
 }
 
-func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
-	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
-		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
-		if err != nil {
-			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())
-			}
-			continue
-		}
-		response, err := resolverConnection.SyncRequestBlocking(Message.TOPIC_RESOLVE_ASYNC, topic)
-		resolverConnection.Close() // close in case there was an issue on the resolver side that prevented closing the connection
-		if err != nil {
-			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", err).Error())
-			}
-			continue
-		}
-		if response.GetTopic() == Message.TOPIC_FAILURE {
-			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverEndpoint.Address+"\"", nil).Error())
-			}
-			continue
-		}
-		endpoint := Config.UnmarshalTcpEndpoint(response.GetPayload())
-		if endpoint == nil {
-			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())
-			}
-			continue
-		}
-		return endpoint, nil
-	}
-	return nil, Error.New("Failed to resolve broker endpoint", nil)
-}
-
 func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic string, syncTopic bool) error {
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
@@ -238,7 +203,6 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 	messageBrokerClient.status = Status.PENDING
 
 	messageBrokerClient.waitGroup.Add(1)
-	defer messageBrokerClient.waitGroup.Done()
 
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
@@ -268,9 +232,11 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 
 	go func() {
 		err := messageBrokerClient.resolutionAttempt(resolutionAttempt)
+		messageBrokerClient.waitGroup.Done()
 	}()
 	return nil
 }
+
 func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAttempt *resolutionAttempt) error {
 	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(resolutionAttempt.topic)
 	if err != nil {
@@ -301,6 +267,7 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 	messageBrokerClient.finishResolutionAttempt(connection, resolutionAttempt)
 	return nil
 }
+
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(connection *connection, resolutionAttempt *resolutionAttempt) {
 	messageBrokerClient.mutex.Lock()
 
@@ -391,6 +358,41 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 
 		}
 	}
+}
+
+func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
+	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
+		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
+		if err != nil {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		response, err := resolverConnection.SyncRequestBlocking(Message.TOPIC_RESOLVE_ASYNC, topic)
+		resolverConnection.Close() // close in case there was an issue on the resolver side that prevented closing the connection
+		if err != nil {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+			}
+			continue
+		}
+		if response.GetTopic() == Message.TOPIC_FAILURE {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverEndpoint.Address+"\"", nil).Error())
+			}
+			continue
+		}
+		endpoint := Config.UnmarshalTcpEndpoint(response.GetPayload())
+		if endpoint == nil {
+			if messageBrokerclient.warningLogger != nil {
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())
+			}
+			continue
+		}
+		return endpoint, nil
+	}
+	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
 func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
