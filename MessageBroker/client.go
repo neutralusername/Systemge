@@ -263,6 +263,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 	messageBrokerClient.statusMutex.Unlock()
 
 	finishAttempt := func(result *connection) {
+		// waitgroup is not done until it acquires lock -> deadlock
 		messageBrokerClient.statusMutex.Lock()
 		if messageBrokerClient.status == Status.STOPPED {
 			messageBrokerClient.statusMutex.Unlock()
