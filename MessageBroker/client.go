@@ -324,39 +324,31 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 			endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
 
 			if endpoint.Address != connection.endpoint.Address || endpoint.TlsCert != connection.endpoint.TlsCert {
-				messageBrokerClient.mutex.Lock()
-				delete(messageBrokerClient.topicResolutions, topic)
-				if syncTopic {
-					delete(connection.responsibleSyncTopics, topic)
-				} else {
-					delete(connection.responsibleAsyncTopics, topic)
-				}
-				if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
-					delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
-					connection.connection.Close()
-				}
-				messageBrokerClient.mutex.Unlock()
+				messageBrokerClient.removeTopic(connection, topic, syncTopic)
 				err := messageBrokerClient.startResolutionAttempt(topic, syncTopic, stopChannel)
 
 			} else {
 				go messageBrokerClient.handleTopicResolutionLifetime(connection, topic, syncTopic, stopChannel)
 			}
 		} else {
-			messageBrokerClient.mutex.Lock()
-			delete(messageBrokerClient.topicResolutions, topic)
-			if syncTopic {
-				delete(connection.responsibleSyncTopics, topic)
-			} else {
-				delete(connection.responsibleAsyncTopics, topic)
-			}
-			if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
-				delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
-				connection.connection.Close()
-			}
-			messageBrokerClient.mutex.Unlock()
+			messageBrokerClient.removeTopic(connection, topic, syncTopic)
 		}
 	case <-stopChannel:
 		return
+	}
+}
+func (messageBrokerClient *MessageBrokerClient) removeTopic(connection *connection, topic string, sync bool) {
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
+	delete(messageBrokerClient.topicResolutions, topic)
+	if sync {
+		delete(connection.responsibleSyncTopics, topic)
+	} else {
+		delete(connection.responsibleAsyncTopics, topic)
+	}
+	if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
+		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+		connection.connection.Close()
 	}
 }
 
