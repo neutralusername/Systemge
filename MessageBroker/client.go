@@ -31,7 +31,7 @@ type MessageBrokerClient struct {
 
 	dashboardClient *Dashboard.DashboardClient
 
-	ongoingTopicResolutions map[string]*resultionAttempt
+	ongoingTopicResolutions map[string]*resolutionAttempt
 
 	brokerConnections map[string]*connection // endpointString -> connection
 	topicResolutions  map[string]*connection // topic -> connection
@@ -48,9 +48,11 @@ type connection struct {
 	topics     map[string]bool
 }
 
-type resultionAttempt struct {
-	ongoing chan bool
-	result  *connection
+type resolutionAttempt struct {
+	topic     string
+	syncTopic bool
+	ongoing   chan bool
+	result    *connection
 }
 
 func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
@@ -76,7 +78,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	messageBrokerClient := &MessageBrokerClient{
 		config:                  config,
 		messageHandler:          systemgeMessageHandler,
-		ongoingTopicResolutions: make(map[string]*resultionAttempt),
+		ongoingTopicResolutions: make(map[string]*resolutionAttempt),
 
 		topicResolutions: make(map[string]*connection),
 
@@ -227,11 +229,11 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
-func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool) (*connection, error) {
+func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic string, syncTopic bool) error {
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
 		messageBrokerClient.statusMutex.Unlock()
-		return nil, Error.New("Client is stopped", nil)
+		return Error.New("Client is stopped", nil)
 	}
 	messageBrokerClient.status = Status.PENDING
 
@@ -243,7 +245,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		messageBrokerClient.mutex.Unlock()
 		messageBrokerClient.statusMutex.Unlock()
 
-		return resolution, nil
+		return nil
 	}
 	if resolutionAttempt := messageBrokerClient.ongoingTopicResolutions[topic]; resolutionAttempt != nil {
 		messageBrokerClient.mutex.Unlock()
@@ -251,56 +253,29 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 
 		<-resolutionAttempt.ongoing
 		if resolutionAttempt.result == nil {
-			return nil, Error.New("Failed to resolve connection", nil)
+			return Error.New("Failed to resolve connection", nil)
 		}
-		return resolutionAttempt.result, nil
+		return nil
 	}
-	resolutionAttempt := &resultionAttempt{
-		ongoing: make(chan bool),
+	resolutionAttempt := &resolutionAttempt{
+		ongoing:   make(chan bool),
+		topic:     topic,
+		syncTopic: syncTopic,
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	messageBrokerClient.mutex.Unlock()
 	messageBrokerClient.statusMutex.Unlock()
 
-	finishAttempt := func(result *connection) {
-		messageBrokerClient.mutex.Lock()
-
-		delete(messageBrokerClient.ongoingTopicResolutions, topic)
-		resolutionAttempt.result = result
-		close(resolutionAttempt.ongoing)
-
-		if result != nil {
-			messageBrokerClient.topicResolutions[topic] = result
-			result.topics[topic] = true
-			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
-
-			messageBrokerClient.mutex.Unlock()
-
-			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
-				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
-					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())
-					}
-					if messageBrokerClient.mailer != nil {
-						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(syncTopic)+" topic \""+topic+"\" on broker \""+result.endpoint.Address+"\"", err).Error())); err != nil {
-							if messageBrokerClient.errorLogger != nil {
-								messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-							}
-						}
-					}
-				}
-			}
-			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, syncTopic)
-
-		} else {
-			messageBrokerClient.mutex.Unlock()
-		}
-	}
-
-	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+	go func() {
+		err := messageBrokerClient.resolutionAttempt(resolutionAttempt)
+	}()
+	return nil
+}
+func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAttempt *resolutionAttempt) error {
+	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(resolutionAttempt.topic)
 	if err != nil {
-		finishAttempt(nil)
-		return nil, Error.New("Failed to resolve broker endpoint", err)
+		messageBrokerClient.finishResolutionAttempt(nil, resolutionAttempt)
+		return Error.New("Failed to resolve broker endpoint", err)
 	}
 
 	messageBrokerClient.mutex.Lock()
@@ -308,14 +283,14 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 	messageBrokerClient.mutex.Unlock()
 
 	if existingConnection != nil {
-		finishAttempt(existingConnection)
-		return existingConnection, nil
+		messageBrokerClient.finishResolutionAttempt(existingConnection, resolutionAttempt)
+		return nil
 	}
 
 	systemgeConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 	if err != nil {
-		finishAttempt(nil)
-		return nil, Error.New("Failed to establish connection to broker", err)
+		messageBrokerClient.finishResolutionAttempt(nil, resolutionAttempt)
+		return Error.New("Failed to establish connection to broker", err)
 	}
 	connection := &connection{
 		connection: systemgeConnection,
@@ -323,8 +298,41 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		topics:     map[string]bool{},
 	}
 	go messageBrokerClient.handleConnectionLifetime(connection)
-	finishAttempt(connection)
-	return resolutionAttempt.result, nil
+	messageBrokerClient.finishResolutionAttempt(connection, resolutionAttempt)
+	return nil
+}
+func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(connection *connection, resolutionAttempt *resolutionAttempt) {
+	messageBrokerClient.mutex.Lock()
+
+	delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+	resolutionAttempt.result = connection
+	close(resolutionAttempt.ongoing)
+
+	if connection != nil {
+		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = connection
+		connection.topics[resolutionAttempt.topic] = true
+		messageBrokerClient.brokerConnections[getEndpointString(connection.endpoint)] = connection // operation can be redundant if connection was already established for another topic
+
+		messageBrokerClient.mutex.Unlock()
+
+		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+			if err := messageBrokerClient.subscribeToTopic(connection, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
+				if messageBrokerClient.errorLogger != nil {
+					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+connection.endpoint.Address+"\"", err).Error())
+				}
+				if messageBrokerClient.mailer != nil {
+					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+connection.endpoint.Address+"\"", err).Error())); err != nil {
+						if messageBrokerClient.errorLogger != nil {
+							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						}
+					}
+				}
+			}
+		}
+		go messageBrokerClient.handleTopicResolutionLifetime(connection, resolutionAttempt.topic, resolutionAttempt.syncTopic)
+	} else {
+		messageBrokerClient.mutex.Unlock()
+	}
 }
 
 func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(connection *connection, topic string, syncTopic bool) {
