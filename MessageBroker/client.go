@@ -233,7 +233,6 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 
 	go func() {
 		err := messageBrokerClient.resolutionAttempt(resolutionAttempt)
-		messageBrokerClient.waitGroup.Done()
 	}()
 	return nil
 }
@@ -270,6 +269,7 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 }
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
+	defer messageBrokerClient.waitGroup.Done()
 	messageBrokerClient.mutex.Lock()
 
 	delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
