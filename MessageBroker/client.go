@@ -326,20 +326,40 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 	}
 	select {
 	case <-topicResolutionTimeout:
-		messageBrokerClient.mutex.Lock()
-		delete(messageBrokerClient.topicResolutions, topic)
-		if syncTopic {
-			delete(connection.responsibleSyncTopics, topic)
-		} else {
-			delete(connection.responsibleAsyncTopics, topic)
-		}
-		if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
-			delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
-			connection.connection.Close()
-		}
-		messageBrokerClient.mutex.Unlock()
 		if (syncTopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!syncTopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
-			err := messageBrokerClient.startResolutionAttempt(topic, syncTopic, stopChannel)
+			endpoint, err := messageBrokerClient.resolveBrokerEndpoint(topic)
+
+			if endpoint.Address != connection.endpoint.Address || endpoint.TlsCert != connection.endpoint.TlsCert {
+				messageBrokerClient.mutex.Lock()
+				delete(messageBrokerClient.topicResolutions, topic)
+				if syncTopic {
+					delete(connection.responsibleSyncTopics, topic)
+				} else {
+					delete(connection.responsibleAsyncTopics, topic)
+				}
+				if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
+					delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+					connection.connection.Close()
+				}
+				messageBrokerClient.mutex.Unlock()
+				err := messageBrokerClient.startResolutionAttempt(topic, syncTopic, stopChannel)
+
+			} else {
+				go messageBrokerClient.handleTopicResolutionLifetime(connection, topic, syncTopic, stopChannel)
+			}
+		} else {
+			messageBrokerClient.mutex.Lock()
+			delete(messageBrokerClient.topicResolutions, topic)
+			if syncTopic {
+				delete(connection.responsibleSyncTopics, topic)
+			} else {
+				delete(connection.responsibleAsyncTopics, topic)
+			}
+			if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
+				delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+				connection.connection.Close()
+			}
+			messageBrokerClient.mutex.Unlock()
 		}
 	case <-stopChannel:
 		return
