@@ -344,6 +344,8 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		}
 		messageBrokerClient.mutex.Unlock()
 
+		// todo: finish this
+
 		if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 
 		} else {
