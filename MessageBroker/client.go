@@ -149,11 +149,11 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 
 	go func() {
 		for topic, _ := range messageBrokerClient.asyncTopics {
-			_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
+			_, err := messageBrokerClient.resolveConnection(topic, false)
 
 		}
 		for topic, _ := range messageBrokerClient.syncTopics {
-			_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
+			_, err := messageBrokerClient.resolveConnection(topic, true)
 
 		}
 	}()
@@ -227,7 +227,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 	return nil, Error.New("Failed to resolve broker endpoint", nil)
 }
 
-func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool, subscribedTopic bool) (*connection, error) {
+func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool) (*connection, error) {
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
 		messageBrokerClient.statusMutex.Unlock()
@@ -270,7 +270,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			messageBrokerClient.topicResolutions[topic] = result
 			result.topics[topic] = true
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
-			if subscribedTopic {
+			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 				messageBrokerClient.waitGroup.Add(1)
 				go func() {
 					if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
@@ -288,7 +288,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 					messageBrokerClient.waitGroup.Done()
 				}()
 			}
-			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, subscribedTopic)
+			go messageBrokerClient.handleTopicResolutionLifetime(result, topic, syncTopic)
 		}
 		delete(messageBrokerClient.ongoingTopicResolutions, topic)
 		resolutionAttempt.result = result
@@ -326,19 +326,30 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 	return resolutionAttempt.result, nil
 }
 
-func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(connection *connection, topic string, subscribedTopic bool) {
+func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(connection *connection, topic string, syncTopic bool) {
 	var topicResolutionTimeout <-chan time.Time
 	if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
 		topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
 	}
 	select {
 	case <-topicResolutionTimeout:
-		if subscribedTopic {
+		messageBrokerClient.mutex.Lock()
+		delete(messageBrokerClient.topicResolutions, topic)
+		delete(connection.topics, topic)
+
+		if len(connection.topics) == 0 {
+			delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+			connection.connection.Close()
+		}
+		messageBrokerClient.mutex.Unlock()
+
+		if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 
 		} else {
 
 		}
 	case <-connection.connection.GetCloseChannel():
+		// will get triggered multiple times if the connection is responsible for multiple topics
 		messageBrokerClient.mutex.Lock()
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
@@ -355,13 +366,11 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		messageBrokerClient.mutex.Unlock()
 
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
-
-			_, err := messageBrokerClient.resolveConnection(topic, false, messageBrokerClient.asyncTopics[topic])
+			_, err := messageBrokerClient.resolveConnection(topic, false)
 
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
-
-			_, err := messageBrokerClient.resolveConnection(topic, true, messageBrokerClient.syncTopics[topic])
+			_, err := messageBrokerClient.resolveConnection(topic, true)
 
 		}
 	}
