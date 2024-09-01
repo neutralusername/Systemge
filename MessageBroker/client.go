@@ -317,12 +317,13 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 		finishAttempt(nil)
 		return nil, Error.New("Failed to establish connection to broker", err)
 	}
-
-	finishAttempt(&connection{
+	connection := &connection{
 		connection: systemgeConnection,
 		endpoint:   endpoint,
 		topics:     map[string]bool{},
-	})
+	}
+	go messageBrokerClient.handleConnectionLifetime(connection)
+	finishAttempt(connection)
 	return resolutionAttempt.result, nil
 }
 
@@ -348,8 +349,14 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		} else {
 
 		}
+	}
+}
+
+func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connection *connection) {
+	select {
 	case <-connection.connection.GetCloseChannel():
-		// will get triggered multiple times if the connection is responsible for multiple topics
+		// todo: think through possible race conditions between the go call and the select and in regards to topic lifetime handling
+
 		messageBrokerClient.mutex.Lock()
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
