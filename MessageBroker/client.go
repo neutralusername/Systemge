@@ -280,21 +280,15 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 				go func() {
 					err := messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
 				}()
-			case <-stopChannel:
-				messageBrokerClient.mutex.Lock()
-				delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-				messageBrokerClient.mutex.Unlock()
-				close(resolutionAttempt.ongoing)
-				messageBrokerClient.waitGroup.Done()
 				return
+			case <-stopChannel:
 			}
-		} else {
-			messageBrokerClient.mutex.Lock()
-			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-			messageBrokerClient.mutex.Unlock()
-			close(resolutionAttempt.ongoing)
-			messageBrokerClient.waitGroup.Done()
 		}
+		messageBrokerClient.mutex.Lock()
+		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+		messageBrokerClient.mutex.Unlock()
+		close(resolutionAttempt.ongoing)
+		messageBrokerClient.waitGroup.Done()
 	} else {
 		messageBrokerClient.mutex.Lock()
 		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
