@@ -43,9 +43,10 @@ type MessageBrokerClient struct {
 }
 
 type connection struct {
-	connection *SystemgeConnection.SystemgeConnection
-	endpoint   *Config.TcpEndpoint
-	topics     map[string]bool
+	connection  *SystemgeConnection.SystemgeConnection
+	endpoint    *Config.TcpEndpoint
+	asyncTopics map[string]bool
+	syncTopics  map[string]bool
 }
 
 type resolutionAttempt struct {
@@ -260,9 +261,10 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 		return Error.New("Failed to establish connection to broker", err)
 	}
 	connection := &connection{
-		connection: systemgeConnection,
-		endpoint:   endpoint,
-		topics:     map[string]bool{},
+		connection:  systemgeConnection,
+		endpoint:    endpoint,
+		asyncTopics: make(map[string]bool),
+		syncTopics:  make(map[string]bool),
 	}
 	resolutionAttempt.result = connection
 	resolutionAttempt.newConnection = true
@@ -285,7 +287,11 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 	} else {
 		messageBrokerClient.mutex.Lock()
 		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
-		resolutionAttempt.result.topics[resolutionAttempt.topic] = true
+		if resolutionAttempt.syncTopic {
+			resolutionAttempt.result.syncTopics[resolutionAttempt.topic] = true
+		} else {
+			resolutionAttempt.result.asyncTopics[resolutionAttempt.topic] = true
+		}
 		if resolutionAttempt.newConnection {
 			messageBrokerClient.brokerConnections[getEndpointString(resolutionAttempt.result.endpoint)] = resolutionAttempt.result
 			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
@@ -322,9 +328,13 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 	case <-topicResolutionTimeout:
 		messageBrokerClient.mutex.Lock()
 		delete(messageBrokerClient.topicResolutions, topic)
-		delete(connection.topics, topic)
+		if syncTopic {
+			delete(connection.syncTopics, topic)
+		} else {
+			delete(connection.asyncTopics, topic)
+		}
 
-		if len(connection.topics) == 0 {
+		if len(connection.asyncTopics) == 0 && len(connection.syncTopics) == 0 {
 			delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
 			connection.connection.Close()
 		}
@@ -342,13 +352,17 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 		messageBrokerClient.mutex.Lock()
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
-		for topic, _ := range connection.topics {
+		for topic, _ := range connection.asyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
-			delete(connection.topics, topic)
-			//bug (same topic can not be used for sync and async as of now)
+			delete(connection.asyncTopics, topic)
 			if messageBrokerClient.asyncTopics[topic] {
 				subscribedAsyncTopicsByClosedConnection = append(subscribedAsyncTopicsByClosedConnection, topic)
-			} else if messageBrokerClient.syncTopics[topic] {
+			}
+		}
+		for topic, _ := range connection.syncTopics {
+			delete(messageBrokerClient.topicResolutions, topic)
+			delete(connection.syncTopics, topic)
+			if messageBrokerClient.syncTopics[topic] {
 				subscribedSyncTopicsByClosedConnection = append(subscribedSyncTopicsByClosedConnection, topic)
 			}
 		}
