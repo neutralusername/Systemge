@@ -39,9 +39,6 @@ func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc 
 	if config.EndpointConfig == nil {
 		panic("config.EndpointConfig is nil")
 	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 	app := &DashboardClient{
 		config:         config,
 		startFunc:      startFunc,

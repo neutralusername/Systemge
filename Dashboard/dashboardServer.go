@@ -73,9 +73,6 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
-	if config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes == 0 {
-		config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"

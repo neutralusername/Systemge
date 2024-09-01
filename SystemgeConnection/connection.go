@@ -98,6 +98,9 @@ func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *Syst
 	if config.RateLimiterMessages != nil {
 		connection.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
+	if config.TcpBufferBytes <= 0 {
+		config.TcpBufferBytes = 1024 * 4
+	}
 	go connection.receiveLoop()
 	return connection
 }

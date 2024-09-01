@@ -52,9 +52,7 @@ func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnectio
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
+
 	client := &SystemgeClient{
 		config: config,
 

@@ -53,9 +53,6 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 	if config.SystemgeServerConfig.Name == "" {
 		panic("SystemgeServerConfig.Name is required")
 	}
-	if config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes == 0 {
-		config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 
 	resolver := &Resolver{
 		config:              config,

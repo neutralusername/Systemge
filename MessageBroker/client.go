@@ -72,12 +72,6 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	if len(config.ResolverEndpoints) == 0 {
 		panic(Error.New("At least one ResolverEndpoint is required", nil))
 	}
-	if config.ResolverConnectionConfig.TcpBufferBytes == 0 {
-		config.ResolverConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 
 	messageBrokerClient := &MessageBrokerClient{
 		config:                  config,
