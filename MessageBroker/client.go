@@ -271,12 +271,13 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
 	defer func() {
-		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-		close(resolutionAttempt.ongoing)
-		messageBrokerClient.mutex.Unlock()
-
 		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
 			if resolutionAttempt.result != nil {
+				delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+				close(resolutionAttempt.ongoing)
+				messageBrokerClient.waitGroup.Done()
+				messageBrokerClient.mutex.Unlock()
+
 				if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
@@ -290,12 +291,15 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 					}
 				}
 			} else {
-				err := messageBrokerClient.startResolutionAttempt(resolutionAttempt.topic, resolutionAttempt.syncTopic)
-				// todo: think through possible scenarios
-				// deadlock on .Stop() call because never done
+				go messageBrokerClient.resolutionAttempt(resolutionAttempt)
+				// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
 			}
+		} else {
+			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+			close(resolutionAttempt.ongoing)
+			messageBrokerClient.waitGroup.Done()
+			messageBrokerClient.mutex.Unlock()
 		}
-		messageBrokerClient.waitGroup.Done()
 	}()
 
 	messageBrokerClient.mutex.Lock()
