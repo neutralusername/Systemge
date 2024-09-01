@@ -330,12 +330,8 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		}
 		messageBrokerClient.mutex.Unlock()
 
-		// todo: finish this
-
 		if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
-
-		} else {
-
+			err := messageBrokerClient.startResolutionAttempt(topic, syncTopic)
 		}
 	}
 }
@@ -343,14 +339,13 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connection *connection) {
 	select {
 	case <-connection.connection.GetCloseChannel():
-		// todo: think through possible race conditions between the go call and the select and in regards to topic lifetime handling
-
 		messageBrokerClient.mutex.Lock()
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
 		for topic, _ := range connection.topics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.topics, topic)
+			//bug (same topic can not be used for sync and async as of now)
 			if messageBrokerClient.asyncTopics[topic] {
 				subscribedAsyncTopicsByClosedConnection = append(subscribedAsyncTopicsByClosedConnection, topic)
 			} else if messageBrokerClient.syncTopics[topic] {
