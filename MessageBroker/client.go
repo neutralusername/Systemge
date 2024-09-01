@@ -203,6 +203,7 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 	// unlikely but possible race condition:
 	// possible scenario: function was called in .Start(), didn't receive the statusMutex before the messageBrokerClient called .Stop() and .Start() again
 	//-> will proceed even though this call is invalid and there will be multiple resolution attempts for one topic.
+	// todo: make sure that each call of this function is associated to a "session" in some way.
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
 		messageBrokerClient.statusMutex.Unlock()
