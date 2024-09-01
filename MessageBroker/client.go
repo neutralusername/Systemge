@@ -155,16 +155,14 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	stopChannel := make(chan bool)
 	messageBrokerClient.stopChannel = stopChannel
 
-	go func() {
-		for topic, _ := range messageBrokerClient.subscribedAsyncTopics {
-			err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
+	for topic, _ := range messageBrokerClient.subscribedAsyncTopics {
+		err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
 
-		}
-		for topic, _ := range messageBrokerClient.subscribedSyncTopics {
-			err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
+	}
+	for topic, _ := range messageBrokerClient.subscribedSyncTopics {
+		err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 
-		}
-	}()
+	}
 
 	messageBrokerClient.status = Status.STARTED
 	return nil
@@ -199,10 +197,9 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.config.Name
 }
 
+// expects startMutex to be locked in certain cases similar to systemgeClients connections attempts
 func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) error {
-	messageBrokerClient.statusMutex.Lock()
 	if stopChannel != messageBrokerClient.stopChannel {
-		messageBrokerClient.statusMutex.Unlock()
 		return Error.New("Aborted because resolution attempt is from previous session", nil)
 	}
 
@@ -211,13 +208,11 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 	messageBrokerClient.mutex.Lock()
 	if resolution := messageBrokerClient.topicResolutions[topic]; resolution != nil {
 		messageBrokerClient.mutex.Unlock()
-		messageBrokerClient.statusMutex.Unlock()
 
 		return nil
 	}
 	if resolutionAttempt := messageBrokerClient.ongoingTopicResolutions[topic]; resolutionAttempt != nil {
 		messageBrokerClient.mutex.Unlock()
-		messageBrokerClient.statusMutex.Unlock()
 
 		<-resolutionAttempt.ongoing
 		if resolutionAttempt.result == nil {
@@ -232,7 +227,6 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	messageBrokerClient.mutex.Unlock()
-	messageBrokerClient.statusMutex.Unlock()
 
 	go func() {
 		err := messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
