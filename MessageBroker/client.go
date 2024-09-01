@@ -200,6 +200,9 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 }
 
 func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic string, syncTopic bool) error {
+	// unlikely but possible race condition:
+	// possible scenario: function was called in .Start(), didn't receive the statusMutex before the messageBrokerClient called .Stop() and .Start() again
+	//-> will proceed even though this call is invalid and there will be multiple resolution attempts for one topic.
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
 		messageBrokerClient.statusMutex.Unlock()
@@ -275,7 +278,9 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 	if resolutionAttempt.result == nil {
 		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
-			go messageBrokerClient.resolutionAttempt(resolutionAttempt)
+			go func() {
+				err := messageBrokerClient.resolutionAttempt(resolutionAttempt)
+			}()
 			// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
 		} else {
 			messageBrokerClient.mutex.Lock()
