@@ -275,7 +275,6 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 			if resolutionAttempt.result != nil {
 				delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 				close(resolutionAttempt.ongoing)
-				messageBrokerClient.waitGroup.Done()
 				messageBrokerClient.mutex.Unlock()
 
 				if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
@@ -290,6 +289,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 						}
 					}
 				}
+				messageBrokerClient.waitGroup.Done()
 			} else {
 				messageBrokerClient.mutex.Unlock()
 				go messageBrokerClient.resolutionAttempt(resolutionAttempt)
@@ -298,8 +298,8 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		} else {
 			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 			close(resolutionAttempt.ongoing)
-			messageBrokerClient.waitGroup.Done()
 			messageBrokerClient.mutex.Unlock()
+			messageBrokerClient.waitGroup.Done()
 		}
 	}()
 
