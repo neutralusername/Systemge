@@ -275,6 +275,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 	if resolutionAttempt.result == nil {
 		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
+			// could result in a suboptimal situation when the client is trying to message the broker responsible for this topic
 			select {
 			default:
 				go func() {
