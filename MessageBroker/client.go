@@ -269,20 +269,9 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 }
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
-	defer messageBrokerClient.waitGroup.Done()
-	messageBrokerClient.mutex.Lock()
-
-	delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-
-	close(resolutionAttempt.ongoing)
-
-	if resolutionAttempt.result != nil {
-		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
-		resolutionAttempt.result.topics[resolutionAttempt.topic] = true
-		if resolutionAttempt.newConnection {
-			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
-			messageBrokerClient.brokerConnections[getEndpointString(resolutionAttempt.result.endpoint)] = resolutionAttempt.result
-		}
+	defer func() {
+		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+		close(resolutionAttempt.ongoing)
 		messageBrokerClient.mutex.Unlock()
 
 		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
@@ -299,9 +288,18 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 				}
 			}
 		}
+		messageBrokerClient.waitGroup.Done()
+	}()
+
+	messageBrokerClient.mutex.Lock()
+	if resolutionAttempt.result != nil {
+		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
+		resolutionAttempt.result.topics[resolutionAttempt.topic] = true
+		if resolutionAttempt.newConnection {
+			messageBrokerClient.brokerConnections[getEndpointString(resolutionAttempt.result.endpoint)] = resolutionAttempt.result
+			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
+		}
 		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic)
-	} else {
-		messageBrokerClient.mutex.Unlock()
 	}
 }
 
