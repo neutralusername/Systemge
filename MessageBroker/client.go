@@ -275,10 +275,19 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 	if resolutionAttempt.result == nil {
 		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
-			go func() {
-				err := messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
-			}()
-			// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
+			select {
+			default:
+				go func() {
+					err := messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
+				}()
+			case <-stopChannel:
+				messageBrokerClient.mutex.Lock()
+				delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+				messageBrokerClient.mutex.Unlock()
+				close(resolutionAttempt.ongoing)
+				messageBrokerClient.waitGroup.Done()
+				return
+			}
 		} else {
 			messageBrokerClient.mutex.Lock()
 			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
