@@ -255,7 +255,6 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 		resolutionAttempt.result = existingConnection
 		return nil
 	}
-
 	systemgeConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection to broker", err)
@@ -276,8 +275,8 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		close(resolutionAttempt.ongoing)
 		messageBrokerClient.mutex.Unlock()
 
-		if resolutionAttempt.result != nil {
-			if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+			if resolutionAttempt.result != nil {
 				if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
@@ -290,6 +289,8 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 						}
 					}
 				}
+			} else {
+				// what to do when failing to subscribe to topic you want to receive messages of? shut down, retry, log and ignore?
 			}
 		}
 		messageBrokerClient.waitGroup.Done()
