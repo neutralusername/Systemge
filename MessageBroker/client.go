@@ -38,8 +38,8 @@ type MessageBrokerClient struct {
 
 	mutex sync.Mutex
 
-	asyncTopics map[string]bool
-	syncTopics  map[string]bool
+	subscribedAsyncTopics map[string]bool
+	subscribedSyncTopics  map[string]bool
 }
 
 type connection struct {
@@ -86,8 +86,8 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 
 		brokerConnections: make(map[string]*connection),
 
-		asyncTopics: make(map[string]bool),
-		syncTopics:  make(map[string]bool),
+		subscribedAsyncTopics: make(map[string]bool),
+		subscribedSyncTopics:  make(map[string]bool),
 
 		status: Status.STOPPED,
 	}
@@ -121,10 +121,10 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	}
 
 	for _, asyncTopic := range config.AsyncTopics {
-		messageBrokerClient.asyncTopics[asyncTopic] = true
+		messageBrokerClient.subscribedAsyncTopics[asyncTopic] = true
 	}
 	for _, syncTopic := range config.SyncTopics {
-		messageBrokerClient.syncTopics[syncTopic] = true
+		messageBrokerClient.subscribedSyncTopics[syncTopic] = true
 	}
 	return messageBrokerClient
 }
@@ -152,11 +152,11 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	messageBrokerClient.status = Status.PENDING
 
 	go func() {
-		for topic, _ := range messageBrokerClient.asyncTopics {
+		for topic, _ := range messageBrokerClient.subscribedAsyncTopics {
 			err := messageBrokerClient.startResolutionAttempt(topic, false)
 
 		}
-		for topic, _ := range messageBrokerClient.syncTopics {
+		for topic, _ := range messageBrokerClient.subscribedSyncTopics {
 			err := messageBrokerClient.startResolutionAttempt(topic, true)
 
 		}
@@ -273,7 +273,7 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
 	if resolutionAttempt.result == nil {
-		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+		if (resolutionAttempt.syncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
 			go messageBrokerClient.resolutionAttempt(resolutionAttempt)
 			// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
@@ -300,7 +300,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 		messageBrokerClient.mutex.Unlock()
 
-		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+		if (resolutionAttempt.syncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
 				if messageBrokerClient.errorLogger != nil {
 					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
@@ -340,7 +340,7 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(co
 		}
 		messageBrokerClient.mutex.Unlock()
 
-		if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
+		if (syncTopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!syncTopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
 			err := messageBrokerClient.startResolutionAttempt(topic, syncTopic)
 		}
 	}
@@ -355,14 +355,14 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 		for topic, _ := range connection.responsibleAsyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleAsyncTopics, topic)
-			if messageBrokerClient.asyncTopics[topic] {
+			if messageBrokerClient.subscribedAsyncTopics[topic] {
 				subscribedAsyncTopicsByClosedConnection = append(subscribedAsyncTopicsByClosedConnection, topic)
 			}
 		}
 		for topic, _ := range connection.responsibleSyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleSyncTopics, topic)
-			if messageBrokerClient.syncTopics[topic] {
+			if messageBrokerClient.subscribedSyncTopics[topic] {
 				subscribedSyncTopicsByClosedConnection = append(subscribedSyncTopicsByClosedConnection, topic)
 			}
 		}
