@@ -270,8 +270,20 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 }
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
-	messageBrokerClient.mutex.Lock()
-	if resolutionAttempt.result != nil {
+	if resolutionAttempt.result == nil {
+		if !(resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) && !(!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+			messageBrokerClient.mutex.Lock()
+			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+			messageBrokerClient.mutex.Unlock()
+			close(resolutionAttempt.ongoing)
+			messageBrokerClient.waitGroup.Done()
+		} else {
+			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
+			go messageBrokerClient.resolutionAttempt(resolutionAttempt)
+			// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
+		}
+	} else {
+		messageBrokerClient.mutex.Lock()
 		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
 		resolutionAttempt.result.topics[resolutionAttempt.topic] = true
 		if resolutionAttempt.newConnection {
@@ -279,9 +291,9 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
 		}
 		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic)
-
 		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 		messageBrokerClient.mutex.Unlock()
+
 		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
 			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
 				if messageBrokerClient.errorLogger != nil {
@@ -298,17 +310,6 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		}
 		close(resolutionAttempt.ongoing)
 		messageBrokerClient.waitGroup.Done()
-	} else if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
-		messageBrokerClient.mutex.Unlock()
-		// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
-		go messageBrokerClient.resolutionAttempt(resolutionAttempt)
-		// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
-	} else {
-		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-		messageBrokerClient.mutex.Unlock()
-		close(resolutionAttempt.ongoing)
-		messageBrokerClient.waitGroup.Done()
-
 	}
 }
 
