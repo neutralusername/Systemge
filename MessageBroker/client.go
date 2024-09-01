@@ -291,6 +291,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 				}
 			} else {
 				go messageBrokerClient.resolutionAttempt(resolutionAttempt)
+				// its no longer in the map
 				// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
 				return
 			}
