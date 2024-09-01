@@ -270,41 +270,6 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 }
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
-	defer func() {
-		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
-			if resolutionAttempt.result != nil {
-				delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-				messageBrokerClient.mutex.Unlock()
-
-				if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
-					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
-					}
-					if messageBrokerClient.mailer != nil {
-						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())); err != nil {
-							if messageBrokerClient.errorLogger != nil {
-								messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-							}
-						}
-					}
-				}
-
-				close(resolutionAttempt.ongoing)
-				messageBrokerClient.waitGroup.Done()
-			} else {
-				messageBrokerClient.mutex.Unlock()
-				// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
-				go messageBrokerClient.resolutionAttempt(resolutionAttempt)
-				// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
-			}
-		} else {
-			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-			messageBrokerClient.mutex.Unlock()
-			close(resolutionAttempt.ongoing)
-			messageBrokerClient.waitGroup.Done()
-		}
-	}()
-
 	messageBrokerClient.mutex.Lock()
 	if resolutionAttempt.result != nil {
 		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
@@ -314,6 +279,39 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
 		}
 		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic)
+	}
+
+	if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+		if resolutionAttempt.result != nil {
+			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+			messageBrokerClient.mutex.Unlock()
+
+			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
+				if messageBrokerClient.errorLogger != nil {
+					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
+				}
+				if messageBrokerClient.mailer != nil {
+					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())); err != nil {
+						if messageBrokerClient.errorLogger != nil {
+							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						}
+					}
+				}
+			}
+
+			close(resolutionAttempt.ongoing)
+			messageBrokerClient.waitGroup.Done()
+		} else {
+			messageBrokerClient.mutex.Unlock()
+			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
+			go messageBrokerClient.resolutionAttempt(resolutionAttempt)
+			// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
+		}
+	} else {
+		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+		messageBrokerClient.mutex.Unlock()
+		close(resolutionAttempt.ongoing)
+		messageBrokerClient.waitGroup.Done()
 	}
 }
 
