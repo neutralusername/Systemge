@@ -291,6 +291,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 					}
 				}
 			} else {
+				messageBrokerClient.mutex.Unlock()
 				go messageBrokerClient.resolutionAttempt(resolutionAttempt)
 				// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
 			}
