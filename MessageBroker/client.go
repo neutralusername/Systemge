@@ -230,6 +230,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, syncTopic bool) (*connection, error) {
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status == Status.STOPPED {
+		// race condition if messagebroker stopped and started in quick succession
 		messageBrokerClient.statusMutex.Unlock()
 
 		return nil, Error.New("Client is stopped", nil)
@@ -262,6 +263,7 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 	finishAttempt := func(result *connection) {
 		messageBrokerClient.statusMutex.Lock()
 		if messageBrokerClient.status == Status.STOPPED {
+			// race condition if messagebroker stopped and started in quick succession
 			messageBrokerClient.statusMutex.Unlock()
 			return
 		}
