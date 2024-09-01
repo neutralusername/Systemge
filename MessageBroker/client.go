@@ -263,12 +263,6 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 	messageBrokerClient.statusMutex.Unlock()
 
 	finishAttempt := func(result *connection) {
-		// waitgroup is not done until it acquires lock -> deadlock
-		messageBrokerClient.statusMutex.Lock()
-		if messageBrokerClient.status == Status.STOPPED {
-			messageBrokerClient.statusMutex.Unlock()
-			return
-		}
 		messageBrokerClient.mutex.Lock()
 
 		delete(messageBrokerClient.ongoingTopicResolutions, topic)
@@ -281,7 +275,6 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 			messageBrokerClient.brokerConnections[getEndpointString(result.endpoint)] = result // operation can be redundant if connection was already established for another topic
 
 			messageBrokerClient.mutex.Unlock()
-			messageBrokerClient.statusMutex.Unlock()
 
 			if (syncTopic && messageBrokerClient.syncTopics[topic]) || (!syncTopic && messageBrokerClient.asyncTopics[topic]) {
 				if err := messageBrokerClient.subscribeToTopic(result, topic, syncTopic); err != nil {
@@ -301,7 +294,6 @@ func (messageBrokerClient *MessageBrokerClient) resolveConnection(topic string, 
 
 		} else {
 			messageBrokerClient.mutex.Unlock()
-			messageBrokerClient.statusMutex.Unlock()
 		}
 	}
 
