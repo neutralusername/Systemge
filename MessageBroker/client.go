@@ -290,7 +290,9 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 					}
 				}
 			} else {
-				// what to do when failing to connect to broker you want to receive messages of? shut down, resolve again and retry, log and ignore?
+				go messageBrokerClient.resolutionAttempt(resolutionAttempt)
+				// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
+				return
 			}
 		}
 		messageBrokerClient.waitGroup.Done()
