@@ -280,10 +280,9 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		}
 		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic)
 
+		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
+		messageBrokerClient.mutex.Unlock()
 		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
-			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-			messageBrokerClient.mutex.Unlock()
-
 			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
 				if messageBrokerClient.errorLogger != nil {
 					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
@@ -296,15 +295,9 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 					}
 				}
 			}
-
-			close(resolutionAttempt.ongoing)
-			messageBrokerClient.waitGroup.Done()
-		} else {
-			delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
-			messageBrokerClient.mutex.Unlock()
-			close(resolutionAttempt.ongoing)
-			messageBrokerClient.waitGroup.Done()
 		}
+		close(resolutionAttempt.ongoing)
+		messageBrokerClient.waitGroup.Done()
 	} else {
 		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
 			messageBrokerClient.mutex.Unlock()
