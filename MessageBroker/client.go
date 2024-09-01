@@ -264,7 +264,6 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 		endpoint:   endpoint,
 		topics:     map[string]bool{},
 	}
-	go messageBrokerClient.handleConnectionLifetime(connection)
 	resolutionAttempt.result = connection
 	resolutionAttempt.newConnection = true
 	return nil
@@ -281,6 +280,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
 		resolutionAttempt.result.topics[resolutionAttempt.topic] = true
 		if resolutionAttempt.newConnection {
+			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
 			messageBrokerClient.brokerConnections[getEndpointString(resolutionAttempt.result.endpoint)] = resolutionAttempt.result
 		}
 		messageBrokerClient.mutex.Unlock()
