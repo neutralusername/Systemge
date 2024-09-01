@@ -274,15 +274,17 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 		close(resolutionAttempt.ongoing)
 		messageBrokerClient.mutex.Unlock()
 
-		if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
-			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
-				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
-				}
-				if messageBrokerClient.mailer != nil {
-					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())); err != nil {
-						if messageBrokerClient.errorLogger != nil {
-							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+		if resolutionAttempt.result != nil {
+			if (resolutionAttempt.syncTopic && messageBrokerClient.syncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.asyncTopics[resolutionAttempt.topic]) {
+				if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
+					}
+					if messageBrokerClient.mailer != nil {
+						if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())); err != nil {
+							if messageBrokerClient.errorLogger != nil {
+								messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+							}
 						}
 					}
 				}
