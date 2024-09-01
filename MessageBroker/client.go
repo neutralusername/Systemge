@@ -292,6 +292,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 			} else {
 				err := messageBrokerClient.startResolutionAttempt(resolutionAttempt.topic, resolutionAttempt.syncTopic)
 				// todo: think through possible scenarios
+				// deadlock on .Stop() call because never done
 			}
 		}
 		messageBrokerClient.waitGroup.Done()
