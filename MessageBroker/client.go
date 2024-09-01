@@ -152,15 +152,16 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 
 	go func() {
 		for topic, _ := range messageBrokerClient.asyncTopics {
-			_, err := messageBrokerClient.resolveConnection(topic, false)
+			err := messageBrokerClient.startResolutionAttempt(topic, false)
 
 		}
 		for topic, _ := range messageBrokerClient.syncTopics {
-			_, err := messageBrokerClient.resolveConnection(topic, true)
+			err := messageBrokerClient.startResolutionAttempt(topic, true)
 
 		}
 	}()
 
+	messageBrokerClient.status = Status.STARTED
 	return nil
 }
 
@@ -170,6 +171,8 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 	if messageBrokerClient.status != Status.STARTED {
 		return Error.New("Already started", nil)
 	}
+
+	messageBrokerClient.status = Status.PENDING
 
 	messageBrokerClient.waitGroup.Wait()
 
@@ -201,7 +204,6 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 		messageBrokerClient.statusMutex.Unlock()
 		return Error.New("Client is stopped", nil)
 	}
-	messageBrokerClient.status = Status.PENDING
 
 	messageBrokerClient.waitGroup.Add(1)
 
@@ -353,11 +355,11 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 		messageBrokerClient.mutex.Unlock()
 
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
-			_, err := messageBrokerClient.resolveConnection(topic, false)
+			err := messageBrokerClient.startResolutionAttempt(topic, false)
 
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
-			_, err := messageBrokerClient.resolveConnection(topic, true)
+			err := messageBrokerClient.startResolutionAttempt(topic, true)
 
 		}
 	}
