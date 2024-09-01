@@ -51,7 +51,7 @@ type connection struct {
 
 type resolutionAttempt struct {
 	topic         string
-	syncTopic     bool
+	isSyncTopic   bool
 	ongoing       chan bool
 	result        *connection
 	newConnection bool
@@ -226,9 +226,9 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 		return nil
 	}
 	resolutionAttempt := &resolutionAttempt{
-		ongoing:   make(chan bool),
-		topic:     topic,
-		syncTopic: syncTopic,
+		ongoing:     make(chan bool),
+		topic:       topic,
+		isSyncTopic: syncTopic,
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	messageBrokerClient.mutex.Unlock()
@@ -273,7 +273,7 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt) {
 	if resolutionAttempt.result == nil {
-		if (resolutionAttempt.syncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
+		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
 			go messageBrokerClient.resolutionAttempt(resolutionAttempt)
 			// todo: make sure this doesn't result in infinite loop in case of messageBrokerClient.Stop() call
@@ -287,7 +287,7 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 	} else {
 		messageBrokerClient.mutex.Lock()
 		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = resolutionAttempt.result
-		if resolutionAttempt.syncTopic {
+		if resolutionAttempt.isSyncTopic {
 			resolutionAttempt.result.responsibleSyncTopics[resolutionAttempt.topic] = true
 		} else {
 			resolutionAttempt.result.responsibleAsyncTopics[resolutionAttempt.topic] = true
@@ -296,17 +296,17 @@ func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resoluti
 			messageBrokerClient.brokerConnections[getEndpointString(resolutionAttempt.result.endpoint)] = resolutionAttempt.result
 			go messageBrokerClient.handleConnectionLifetime(resolutionAttempt.result)
 		}
-		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic)
+		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 		delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 		messageBrokerClient.mutex.Unlock()
 
-		if (resolutionAttempt.syncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.syncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
-			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.syncTopic); err != nil {
+		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
+			if err := messageBrokerClient.subscribeToTopic(resolutionAttempt.result, resolutionAttempt.topic, resolutionAttempt.isSyncTopic); err != nil {
 				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
+					messageBrokerClient.errorLogger.Log(Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.isSyncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())
 				}
 				if messageBrokerClient.mailer != nil {
-					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.syncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())); err != nil {
+					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to subscribe to "+getASyncString(resolutionAttempt.isSyncTopic)+" topic \""+resolutionAttempt.topic+"\" on broker \""+resolutionAttempt.result.endpoint.Address+"\"", err).Error())); err != nil {
 						if messageBrokerClient.errorLogger != nil {
 							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
 						}
