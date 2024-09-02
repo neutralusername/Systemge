@@ -48,7 +48,7 @@ func New(name string, config *Config.SystemgeClient, onConnectHandler func(Syste
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.EndpointConfigs == nil {
+	if config.ClientConfigs == nil {
 		panic("config.EndpointConfigs is nil")
 	}
 	if config.ConnectionConfig == nil {
@@ -102,7 +102,7 @@ func (client *SystemgeClient) Start() error {
 
 	client.stopChannel = make(chan bool)
 
-	for _, endpointConfig := range client.config.EndpointConfigs {
+	for _, endpointConfig := range client.config.ClientConfigs {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error())

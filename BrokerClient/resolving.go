@@ -7,9 +7,9 @@ import (
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoints(topic string) ([]*Config.TcpClient, error) {
+func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string) ([]*Config.TcpClient, error) {
 	endpoints := []*Config.TcpClient{}
-	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
+	for _, resolverEndpoint := range messageBrokerclient.config.ResolverClientConfigs {
 		resolverConnection, err := TcpConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {

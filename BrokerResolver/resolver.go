@@ -76,7 +76,7 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 		resolver.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	for topic, endpoint := range config.AsyncTopicEndpoints {
+	for topic, endpoint := range config.AsyncTopicClientConfigs {
 		normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
 		if err != nil {
 			panic(err)
@@ -84,7 +84,7 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 		endpoint.Address = normalizedAddress
 		resolver.asyncTopicEndpoints[topic] = endpoint
 	}
-	for topic, endpoint := range config.SyncTopicEndpoints {
+	for topic, endpoint := range config.SyncTopicClientConfigs {
 		normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
 		if err != nil {
 			panic(err)
@@ -101,7 +101,7 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 	resolver.systemgeServer = SystemgeServer.New(name+"_systemgeServer", config.SystemgeServerConfig, resolver.onConnect, nil)
 
 	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, Commands.Handlers{
+		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, Commands.Handlers{
 			"add_async_resolution": func(args []string) (string, error) {
 				if len(args) != 2 {
 					return "", Error.New("Invalid number of arguments (expected 1)", nil)

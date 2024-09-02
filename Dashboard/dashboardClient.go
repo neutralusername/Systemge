@@ -14,6 +14,7 @@ import (
 )
 
 type DashboardClient struct {
+	name               string
 	config             *Config.DashboardClient
 	systemgeConnection SystemgeConnection.SystemgeConnection
 
@@ -27,20 +28,21 @@ type DashboardClient struct {
 	mutex  sync.Mutex
 }
 
-func NewClient(config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *DashboardClient {
+func NewClient(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *DashboardClient {
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.Name == "" {
+	if name == "" {
 		panic("config.Name is empty")
 	}
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.EndpointConfig == nil {
+	if config.ClientConfig == nil {
 		panic("config.EndpointConfig is nil")
 	}
 	app := &DashboardClient{
+		name:           name,
 		config:         config,
 		startFunc:      startFunc,
 		stopFunc:       stopFunc,
@@ -57,7 +59,7 @@ func (app *DashboardClient) Start() error {
 	if app.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-	connection, err := TcpConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, app.config.MaxServerNameLength)
+	connection, err := TcpConnection.EstablishConnection(app.config.ConnectionConfig, app.config.ClientConfig, app.name, app.config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
@@ -103,7 +105,7 @@ func (app *DashboardClient) getIntroductionHandler(connection SystemgeConnection
 		metrics = app.getMetricsFunc()
 	}
 	return Helpers.JsonMarshal(&client{
-		Name:           app.config.Name,
+		Name:           app.name,
 		Status:         status,
 		Metrics:        metrics,
 		Commands:       commands,
@@ -127,7 +129,7 @@ func (app *DashboardClient) getMetricsHandler(connection SystemgeConnection.Syst
 	}
 	metrics := metrics{
 		Metrics: app.getMetricsFunc(),
-		Name:    app.config.Name,
+		Name:    app.name,
 	}
 	return Helpers.JsonMarshal(metrics), nil
 }

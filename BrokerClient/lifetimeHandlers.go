@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
+func (messageBrokerClient *Client) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
 	select {
 	case <-connection.connection.GetCloseChannel():
 		messageBrokerClient.mutex.Lock()
@@ -82,7 +82,7 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 	}
 }
 
-func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(topic string, isSynctopic bool, stopChannel chan bool) {
+func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, isSynctopic bool, stopChannel chan bool) {
 	var topicResolutionTimeout <-chan time.Time
 	if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
 		topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)

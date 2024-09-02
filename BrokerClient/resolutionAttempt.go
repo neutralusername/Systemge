@@ -13,7 +13,7 @@ type resolutionAttempt struct {
 	err         error
 }
 
-func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) error {
+func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) error {
 	if stopChannel != messageBrokerClient.stopChannel {
 		return Error.New("Aborted because resolution attempt is from previous session", nil)
 	}
@@ -49,7 +49,7 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 	return nil
 }
 
-func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
+func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
 
 	endpoints, err := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic)
 	if err != nil {

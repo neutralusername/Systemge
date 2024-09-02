@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type MessageBrokerClient struct {
+type Client struct {
 	name string
 
 	status      int
@@ -51,7 +51,7 @@ type connection struct {
 	responsibleSyncTopics  map[string]bool
 }
 
-func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
+func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
@@ -61,11 +61,11 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	if config.ConnectionConfig == nil {
 		panic(Error.New("ConnectionConfig is required", nil))
 	}
-	if len(config.ResolverEndpoints) == 0 {
+	if len(config.ResolverClientConfigs) == 0 {
 		panic(Error.New("At least one ResolverEndpoint is required", nil))
 	}
 
-	messageBrokerClient := &MessageBrokerClient{
+	messageBrokerClient := &Client{
 		name:                    name,
 		config:                  config,
 		messageHandler:          systemgeMessageHandler,
@@ -94,7 +94,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	}
 
 	if config.DashboardClientConfig != nil {
-		messageBrokerClient.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
+		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
 		if err := messageBrokerClient.StartDashboardClient(); err != nil {
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())
@@ -120,21 +120,21 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	return messageBrokerClient
 }
 
-func (messageBrokerClient *MessageBrokerClient) StartDashboardClient() error {
+func (messageBrokerClient *Client) StartDashboardClient() error {
 	if messageBrokerClient.dashboardClient == nil {
 		return Error.New("Dashboard client is not configured", nil)
 	}
 	return messageBrokerClient.dashboardClient.Start()
 }
 
-func (messageBrokerClient *MessageBrokerClient) StopDashboardClient() error {
+func (messageBrokerClient *Client) StopDashboardClient() error {
 	if messageBrokerClient.dashboardClient == nil {
 		return Error.New("Dashboard client is not configured", nil)
 	}
 	return messageBrokerClient.dashboardClient.Stop()
 }
 
-func (messageBrokerClient *MessageBrokerClient) Start() error {
+func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
 	if messageBrokerClient.status != Status.STOPPED {
@@ -163,13 +163,13 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	return nil
 }
 
-func (messageBrokerClient *MessageBrokerClient) stop() {
+func (messageBrokerClient *Client) stop() {
 	close(messageBrokerClient.stopChannel)
 	messageBrokerClient.stopChannel = nil
 	messageBrokerClient.waitGroup.Wait()
 	messageBrokerClient.status = Status.STOPPED
 }
-func (messageBrokerClient *MessageBrokerClient) Stop() error {
+func (messageBrokerClient *Client) Stop() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
 	if messageBrokerClient.status != Status.STARTED {
@@ -180,11 +180,11 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 	return nil
 }
 
-func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
+func (messageBrokerClient *Client) GetStatus() int {
 	return messageBrokerClient.status
 }
 
-func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
+func (messageBrokerClient *Client) GetMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
 	messageBrokerClient.mutex.Lock()
 	metrics["ongoingTopicResolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
@@ -200,7 +200,7 @@ func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
 	return metrics
 }
 
-func (messageBrokerClient *MessageBrokerClient) GetName() string {
+func (messageBrokerClient *Client) GetName() string {
 	return messageBrokerClient.name
 }
 

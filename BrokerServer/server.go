@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type MessageBrokerServer struct {
+type Server struct {
 	name string
 
 	config         *Config.MessageBrokerServer
@@ -38,7 +38,7 @@ type MessageBrokerServer struct {
 	// metrics
 }
 
-func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
+func New(name string, config *Config.MessageBrokerServer) *Server {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -55,7 +55,7 @@ func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
 
-	server := &MessageBrokerServer{
+	server := &Server{
 		name:   name,
 		config: config,
 
@@ -81,7 +81,7 @@ func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
 	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer", server.config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
 
 	if server.config.DashboardClientConfig != nil {
-		server.dashboardClient = Dashboard.NewClient(
+		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
 			server.config.DashboardClientConfig,
 			server.systemgeServer.Start, server.systemgeServer.Stop, server.GetMetrics, server.systemgeServer.GetStatus,
 			Commands.Handlers{
@@ -128,37 +128,37 @@ func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
 	return server
 }
 
-func (server *MessageBrokerServer) StartDashboardClient() error {
+func (server *Server) StartDashboardClient() error {
 	if server.dashboardClient == nil {
 		return Error.New("dashboard client is not enabled", nil)
 	}
 	return server.dashboardClient.Start()
 }
 
-func (server *MessageBrokerServer) StopDashboardClient() error {
+func (server *Server) StopDashboardClient() error {
 	if server.dashboardClient == nil {
 		return Error.New("dashboard client is not enabled", nil)
 	}
 	return server.dashboardClient.Stop()
 }
 
-func (server *MessageBrokerServer) Start() error {
+func (server *Server) Start() error {
 	return server.systemgeServer.Start()
 }
 
-func (server *MessageBrokerServer) Stop() error {
+func (server *Server) Stop() error {
 	return server.systemgeServer.Stop()
 }
 
-func (server *MessageBrokerServer) GetStatus() int {
+func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *MessageBrokerServer) GetMetrics() map[string]uint64 {
+func (server *Server) GetMetrics() map[string]uint64 {
 	// TODO: gather metrics
 	return nil
 }
 
-func (server *MessageBrokerServer) GetName() string {
+func (server *Server) GetName() string {
 	return server.name
 }

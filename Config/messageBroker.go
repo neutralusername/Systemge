@@ -27,7 +27,7 @@ type MessageBrokerClient struct {
 
 	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
 
-	ResolverEndpoints []*TcpClient `json:"resolverEndpoints"` // *required*
+	ResolverClientConfigs []*TcpClient `json:"resolverClientConfigs"` // *required*
 
 	TopicResolutionLifetimeMs uint64 `json:"outTopicResolutionLifetimeMs"` // default: 0 == until disconnect
 
@@ -60,6 +60,6 @@ type MessageBrokerResolver struct {
 
 	MaxClientNameLength int `json:"maxClientNameLength"` // *required*
 
-	AsyncTopicEndpoints map[string]*TcpClient `json:"asyncTopicResolutions"` // *required*
-	SyncTopicEndpoints  map[string]*TcpClient `json:"syncTopicResolutions"`  // *required*
+	AsyncTopicClientConfigs map[string]*TcpClient `json:"asyncTopicClientConfigs"` // *required*
+	SyncTopicClientConfigs  map[string]*TcpClient `json:"syncTopicClientConfigs"`  // *required*
 }

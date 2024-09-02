@@ -4,7 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
+func (server *Server) AddAsyncTopics(topics []string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
@@ -15,7 +15,7 @@ func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
 	}
 }
 
-func (server *MessageBrokerServer) AddSyncTopics(topics []string) {
+func (server *Server) AddSyncTopics(topics []string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
@@ -26,7 +26,7 @@ func (server *MessageBrokerServer) AddSyncTopics(topics []string) {
 	}
 }
 
-func (server *MessageBrokerServer) RemoveAsyncTopics(topics []string) {
+func (server *Server) RemoveAsyncTopics(topics []string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
@@ -37,7 +37,7 @@ func (server *MessageBrokerServer) RemoveAsyncTopics(topics []string) {
 	}
 }
 
-func (server *MessageBrokerServer) RemoveSyncTopics(topics []string) {
+func (server *Server) RemoveSyncTopics(topics []string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {

@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (messageBrokerClient *MessageBrokerClient) AsyncMessage(topic string, payload string) {
+func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
 
@@ -27,7 +27,7 @@ func (messageBrokerClient *MessageBrokerClient) AsyncMessage(topic string, paylo
 	}
 }
 
-func (messageBrokerClient *MessageBrokerClient) SyncMessage(topic string, payload string) []*Message.Message {
+func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*Message.Message {
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
 
@@ -67,7 +67,7 @@ func (messageBrokerClient *MessageBrokerClient) SyncMessage(topic string, payloa
 
 }
 
-func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
+func (MessageBrokerClient *Client) subscribeToTopic(connection *connection, topic string, sync bool) error {
 	if sync {
 		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, topic)
 		if err != nil {

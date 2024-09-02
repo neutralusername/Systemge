@@ -30,11 +30,9 @@ func UnmarshalDashboardServer(data string) *DashboardServer {
 }
 
 type DashboardClient struct {
-	Name string `json:"name"` // *required*
-
 	MaxServerNameLength int            `json:"maxServerNameLength"` // default: <=0 = disabled
 	ConnectionConfig    *TcpConnection `json:"connectionConfig"`    // *required*
-	EndpointConfig      *TcpClient     `json:"endpointConfig"`      // *required*
+	ClientConfig        *TcpClient     `json:"clientConfig"`        // *required*
 }
 
 func UnmarshalDashboardClient(data string) *DashboardClient {
