@@ -51,7 +51,7 @@ func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	if config.HTTPServerConfig == nil {
 		panic("config.HTTPServerConfig is nil")
 	}
-	if config.HTTPServerConfig.TcpListenerConfig == nil {
+	if config.HTTPServerConfig.TcpServerConfig == nil {
 		panic("config.HTTPServerConfig.ServerConfig is nil")
 	}
 	if config.WebsocketServerConfig == nil {
@@ -60,7 +60,7 @@ func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	if config.WebsocketServerConfig.Pattern == "" {
 		panic("config.WebsocketServerConfig.Pattern is empty")
 	}
-	if config.WebsocketServerConfig.TcpListenerConfig == nil {
+	if config.WebsocketServerConfig.TcpServerConfig == nil {
 		panic("config.WebsocketServerConfig.ServerConfig is nil")
 	}
 	if config.SystemgeServerConfig == nil {
@@ -69,7 +69,7 @@ func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	if config.SystemgeServerConfig.ListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ListenerConfig.TcpListenerConfig == nil {
+	if config.SystemgeServerConfig.ListenerConfig.TcpServerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
@@ -79,7 +79,7 @@ func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
 	Helpers.CreateFile(frontendPath+"configs.js",
-		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";"+
+		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpServerConfig.Port)+";"+
 			"export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";"+
 			"export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";",
 	)

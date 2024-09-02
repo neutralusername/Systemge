@@ -38,15 +38,15 @@ func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer 
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.TcpListenerConfig == nil {
+	if config.TcpServerConfig == nil {
 		panic("config.TcpListenerConfig is nil")
 	}
 	server := &HTTPServer{
 		name:      name,
 		mux:       NewCustomMux(),
 		config:    config,
-		blacklist: Tools.NewAccessControlList(config.TcpListenerConfig.Blacklist),
-		whitelist: Tools.NewAccessControlList(config.TcpListenerConfig.Whitelist),
+		blacklist: Tools.NewAccessControlList(config.TcpServerConfig.Blacklist),
+		whitelist: Tools.NewAccessControlList(config.TcpServerConfig.Whitelist),
 	}
 	for pattern, handler := range handlers {
 		server.mux.AddRoute(pattern, server.httpRequestWrapper(handler))
@@ -80,15 +80,15 @@ func (server *HTTPServer) Start() error {
 		ReadHeaderTimeout: time.Duration(server.config.ReadHeaderTimeoutMs) * time.Millisecond,
 		WriteTimeout:      time.Duration(server.config.WriteTimeoutMs) * time.Millisecond,
 
-		Addr:    ":" + Helpers.IntToString(int(server.config.TcpListenerConfig.Port)),
+		Addr:    ":" + Helpers.IntToString(int(server.config.TcpServerConfig.Port)),
 		Handler: server.mux,
 	}
 
 	errorChannel := make(chan error)
 	ended := false
 	go func() {
-		if server.config.TcpListenerConfig.TlsCertPath != "" && server.config.TcpListenerConfig.TlsKeyPath != "" {
-			err := server.httpServer.ListenAndServeTLS(server.config.TcpListenerConfig.TlsCertPath, server.config.TcpListenerConfig.TlsKeyPath)
+		if server.config.TcpServerConfig.TlsCertPath != "" && server.config.TcpServerConfig.TlsKeyPath != "" {
+			err := server.httpServer.ListenAndServeTLS(server.config.TcpServerConfig.TlsCertPath, server.config.TcpServerConfig.TlsKeyPath)
 			if err != nil {
 				if !ended {
 					errorChannel <- err

@@ -50,7 +50,7 @@ func New(name string, config *Config.Oauth2) *Server {
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	server.httpServer = HTTPServer.New(name+"_httpServer", &Config.HTTPServer{
-		TcpListenerConfig: config.TcpListenerConfig,
+		TcpServerConfig: config.TcpServerConfig,
 	}, map[string]http.HandlerFunc{
 		server.config.AuthPath:         server.oauth2Auth(),
 		server.config.AuthCallbackPath: server.oauth2AuthCallback(),

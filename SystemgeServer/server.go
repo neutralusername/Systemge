@@ -49,7 +49,7 @@ func New(name string, config *Config.SystemgeServer, onConnectHandler func(Syste
 	if config.ListenerConfig == nil {
 		panic("listener is nil")
 	}
-	if config.ListenerConfig.TcpListenerConfig == nil {
+	if config.ListenerConfig.TcpServerConfig == nil {
 		panic("listener.ListenerConfig is nil")
 	}
 

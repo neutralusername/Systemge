@@ -56,7 +56,7 @@ func New(name string, config *Config.WebsocketServer, messageHandlers MessageHan
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.TcpListenerConfig == nil {
+	if config.TcpServerConfig == nil {
 		panic("config.ServerConfig is nil")
 	}
 	if config.Pattern == "" {
@@ -104,7 +104,7 @@ func (server *WebsocketServer) Start() error {
 	server.status = Status.PENDING
 
 	httpServer := HTTPServer.New(server.name+"_httpServer", &Config.HTTPServer{
-		TcpListenerConfig: server.config.TcpListenerConfig,
+		TcpServerConfig: server.config.TcpServerConfig,
 	}, map[string]http.HandlerFunc{
 		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 	})

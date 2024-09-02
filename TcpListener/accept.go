@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
+func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpConnection) (SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -47,7 +47,7 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 	return connection, nil
 }
 
-func (listener *TcpListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
+func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
 	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)

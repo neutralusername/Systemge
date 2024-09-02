@@ -7,7 +7,7 @@ import (
 )
 
 type HTTPServer struct {
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
 	InfoLoggerPath    string `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string `json:"warningLoggerPath"` // *optional*
@@ -29,8 +29,8 @@ func UnmarshalHTTPServer(data string) *HTTPServer {
 }
 
 type WebsocketServer struct {
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
-	Pattern           string       `json:"pattern"`           // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
+	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*

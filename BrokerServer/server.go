@@ -48,7 +48,7 @@ func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
 	if config.SystemgeServerConfig.ListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ListenerConfig.TcpListenerConfig == nil {
+	if config.SystemgeServerConfig.ListenerConfig.TcpServerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
 	if config.SystemgeServerConfig.ConnectionConfig == nil {

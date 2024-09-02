@@ -7,7 +7,7 @@ import (
 )
 
 type Oauth2 struct {
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
 	InfoLoggerPath    string `json:"infoLoggerPath"`    // *required*
 	WarningLoggerPath string `json:"warningLoggerPath"` // *required*

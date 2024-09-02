@@ -6,8 +6,8 @@ type SystemgeClient struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	EndpointConfigs  []*TcpEndpoint      `json:"endpointConfigs"`  // *optional*
-	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
+	EndpointConfigs  []*TcpEndpoint `json:"endpointConfigs"`  // *optional*
+	ConnectionConfig *TcpConnection `json:"connectionConfig"` // *required*
 
 	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
 
@@ -22,18 +22,18 @@ type SystemgeServer struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	ListenerConfig   *SystemgeListener   `json:"listenerConfig"`   // *required*
-	ConnectionConfig *SystemgeConnection `json:"connectionConfig"` // *required*
+	ListenerConfig   *TcpListener   `json:"listenerConfig"`   // *required*
+	ConnectionConfig *TcpConnection `json:"connectionConfig"` // *required*
 }
 
-type SystemgeListener struct {
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
+type TcpListener struct {
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
 	IpRateLimiter       *IpRateLimiter `json:"ipRateLimiter"`       // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 	MaxClientNameLength uint64         `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
-type SystemgeConnection struct {
+type TcpConnection struct {
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*

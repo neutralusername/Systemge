@@ -7,7 +7,7 @@ import (
 )
 
 type SystemgeListener interface {
-	AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (SystemgeConnection.SystemgeConnection, error)
+	AcceptConnection(serverName string, connectionConfig *Config.TcpConnection) (SystemgeConnection.SystemgeConnection, error)
 	Close()
 	GetAcceptedConnections() uint64
 	GetBlacklist() *Tools.AccessControlList

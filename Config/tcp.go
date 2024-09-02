@@ -2,7 +2,7 @@ package Config
 
 import "encoding/json"
 
-type TcpListener struct {
+type TcpServer struct {
 	Port        uint16 `json:"port"`        // *required*
 	TlsCertPath string `json:"tlsCertPath"` // *optional* cert path!
 	TlsKeyPath  string `json:"tlsKeyPath"`  // *optional*
@@ -11,8 +11,8 @@ type TcpListener struct {
 	Whitelist []string `json:"whitelist"` // *optional* (if empty, all IPs are allowed)
 }
 
-func UnmarshalTcpServer(data string) *TcpListener {
-	var tcpListener TcpListener
+func UnmarshalTcpServer(data string) *TcpServer {
+	var tcpListener TcpServer
 	err := json.Unmarshal([]byte(data), &tcpListener)
 	if err != nil {
 		return nil

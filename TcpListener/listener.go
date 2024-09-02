@@ -10,7 +10,7 @@ import (
 )
 
 type TcpListener struct {
-	config        *Config.SystemgeListener
+	config        *Config.TcpListener
 	tcpListener   *Tcp.Listener
 	ipRateLimiter *Tools.IpRateLimiter
 
@@ -24,14 +24,14 @@ type TcpListener struct {
 	acceptedConnections atomic.Uint64
 }
 
-func New(config *Config.SystemgeListener) (*TcpListener, error) {
+func New(config *Config.TcpListener) (*TcpListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}
-	if config.TcpListenerConfig == nil {
+	if config.TcpServerConfig == nil {
 		return nil, Error.New("listener is nil", nil)
 	}
-	tcpListener, err := Tcp.NewListener(config.TcpListenerConfig)
+	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
 	if err != nil {
 		return nil, Error.New("failed to create listener", err)
 	}
