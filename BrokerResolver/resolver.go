@@ -24,8 +24,8 @@ type Resolver struct {
 
 	dashboardClient *Dashboard.DashboardClient
 
-	asyncTopicEndpoints map[string]*Config.TcpEndpoint
-	syncTopicEndpoints  map[string]*Config.TcpEndpoint
+	asyncTopicEndpoints map[string]*Config.TcpClient
+	syncTopicEndpoints  map[string]*Config.TcpClient
 	mutex               sync.Mutex
 
 	messageHandler SystemgeConnection.MessageHandler
@@ -59,8 +59,8 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 	resolver := &Resolver{
 		name:                name,
 		config:              config,
-		asyncTopicEndpoints: make(map[string]*Config.TcpEndpoint),
-		syncTopicEndpoints:  make(map[string]*Config.TcpEndpoint),
+		asyncTopicEndpoints: make(map[string]*Config.TcpClient),
+		syncTopicEndpoints:  make(map[string]*Config.TcpClient),
 	}
 
 	if config.InfoLoggerPath != "" {
@@ -106,7 +106,7 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 				if len(args) != 2 {
 					return "", Error.New("Invalid number of arguments (expected 1)", nil)
 				}
-				endpoint := Config.UnmarshalTcpEndpoint(args[1])
+				endpoint := Config.UnmarshalTcpClient(args[1])
 				if endpoint == nil {
 					return "", Error.New("Invalid endpoint in json format provided", nil)
 				}
@@ -122,7 +122,7 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 				if len(args) != 2 {
 					return "", Error.New("Invalid number of arguments (expected 1)", nil)
 				}
-				endpoint := Config.UnmarshalTcpEndpoint(args[1])
+				endpoint := Config.UnmarshalTcpClient(args[1])
 				if endpoint == nil {
 					return "", Error.New("Invalid endpoint in json format provided", nil)
 				}

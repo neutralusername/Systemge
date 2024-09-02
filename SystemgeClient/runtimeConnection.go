@@ -9,7 +9,7 @@ import (
 
 // AddConnection adds an active connection to the client.
 // if reconnectEndpointConfig is not nil, the connection will attempt to reconnect
-func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpClient) error {
 	if connection == nil {
 		return Error.New("connection is nil", nil)
 	}
@@ -33,7 +33,7 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 }
 
 // AddConnectionAttempt attempts to connect to a server and add it to the client
-func (client *SystemgeClient) AddConnectionAttempt(endpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) AddConnectionAttempt(endpointConfig *Config.TcpClient) error {
 	if endpointConfig == nil {
 		return Error.New("endpointConfig is nil", nil)
 	}

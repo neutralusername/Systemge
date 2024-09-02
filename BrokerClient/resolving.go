@@ -7,8 +7,8 @@ import (
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoints(topic string) ([]*Config.TcpEndpoint, error) {
-	endpoints := []*Config.TcpEndpoint{}
+func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoints(topic string) ([]*Config.TcpClient, error) {
+	endpoints := []*Config.TcpClient{}
 	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
 		resolverConnection, err := TcpConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
@@ -31,7 +31,7 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoints(topic str
 			}
 			continue
 		}
-		endpoint := Config.UnmarshalTcpEndpoint(response.GetPayload())
+		endpoint := Config.UnmarshalTcpClient(response.GetPayload())
 		if endpoint == nil {
 			if messageBrokerclient.warningLogger != nil {
 				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())

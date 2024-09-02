@@ -6,7 +6,7 @@ type SystemgeClient struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	EndpointConfigs  []*TcpEndpoint `json:"endpointConfigs"`  // *optional*
+	EndpointConfigs  []*TcpClient   `json:"endpointConfigs"`  // *optional*
 	ConnectionConfig *TcpConnection `json:"connectionConfig"` // *required*
 
 	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)

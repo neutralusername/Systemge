@@ -14,12 +14,12 @@ import (
 
 type ConnectionAttempt struct {
 	attempts       uint32
-	endpointConfig *Config.TcpEndpoint
+	endpointConfig *Config.TcpClient
 
 	isAborted bool
 }
 
-func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpClient) error {
 	normalizedAddress, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
 		return Error.New("failed normalizing address", err)
@@ -131,7 +131,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))
 			}
 
-			var endpointConfig *Config.TcpEndpoint
+			var endpointConfig *Config.TcpClient
 			if client.config.Reconnect {
 				endpointConfig = attempt.endpointConfig
 			}
@@ -151,7 +151,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 	}
 }
 
-func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpEndpoint) {
+func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpClient) {
 	<-connection.GetCloseChannel()
 
 	if infoLogger := client.infoLogger; infoLogger != nil {

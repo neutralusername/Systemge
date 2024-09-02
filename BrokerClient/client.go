@@ -46,7 +46,7 @@ type MessageBrokerClient struct {
 
 type connection struct {
 	connection             SystemgeConnection.SystemgeConnection
-	endpoint               *Config.TcpEndpoint
+	endpoint               *Config.TcpClient
 	responsibleAsyncTopics map[string]bool
 	responsibleSyncTopics  map[string]bool
 }
@@ -204,7 +204,7 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.name
 }
 
-func getEndpointString(endpoint *Config.TcpEndpoint) string {
+func getEndpointString(endpoint *Config.TcpClient) string {
 	return endpoint.Address + endpoint.TlsCert
 }
 

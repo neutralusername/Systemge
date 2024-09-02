@@ -20,14 +20,14 @@ func UnmarshalTcpServer(data string) *TcpServer {
 	return &tcpListener
 }
 
-type TcpEndpoint struct {
+type TcpClient struct {
 	Address string `json:"address"` // *required* (e.g. "127.0.0.1:60009")
 	Domain  string `json:"domain"`  // *optional* (e.g. "example.com")
 	TlsCert string `json:"tlsCert"` // *optional* cert, NOT path!
 }
 
-func UnmarshalTcpEndpoint(data string) *TcpEndpoint {
-	var tcpEndpoint TcpEndpoint
+func UnmarshalTcpClient(data string) *TcpClient {
+	var tcpEndpoint TcpClient
 	err := json.Unmarshal([]byte(data), &tcpEndpoint)
 	if err != nil {
 		return nil
