@@ -22,8 +22,6 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 }
 
 type MessageBrokerClient struct {
-	Name string `json:"name"` // *required*
-
 	ConnectionConfig         *SystemgeConnection `json:"outConnectionConfig"`      // *required*
 	ResolverConnectionConfig *SystemgeConnection `json:"resolverConnectionConfig"` // *required*
 
@@ -52,8 +50,6 @@ func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
 }
 
 type MessageBrokerResolver struct {
-	Name string `json:"name"` // *required*
-
 	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
 	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
 

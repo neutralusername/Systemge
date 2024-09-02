@@ -17,6 +17,8 @@ import (
 type Handlers map[string]http.HandlerFunc
 
 type HTTPServer struct {
+	name string
+
 	status      int
 	statusMutex sync.Mutex
 
@@ -32,7 +34,7 @@ type HTTPServer struct {
 	mux *CustomMux
 }
 
-func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
+func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -40,6 +42,7 @@ func New(config *Config.HTTPServer, handlers Handlers) *HTTPServer {
 		panic("config.TcpListenerConfig is nil")
 	}
 	server := &HTTPServer{
+		name:      name,
 		mux:       NewCustomMux(),
 		config:    config,
 		blacklist: Tools.NewAccessControlList(config.TcpListenerConfig.Blacklist),
@@ -169,7 +172,7 @@ func (server *HTTPServer) GetWhitelist() *Tools.AccessControlList {
 }
 
 func (server *HTTPServer) GetName() string {
-	return server.config.Name
+	return server.name
 }
 
 func (server *HTTPServer) GetStatus() int {

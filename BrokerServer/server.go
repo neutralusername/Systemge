@@ -14,6 +14,8 @@ import (
 )
 
 type MessageBrokerServer struct {
+	name string
+
 	config         *Config.MessageBrokerServer
 	systemgeServer *SystemgeServer.SystemgeServer
 
@@ -36,7 +38,7 @@ type MessageBrokerServer struct {
 	// metrics
 }
 
-func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerServer {
+func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -54,6 +56,7 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 	}
 
 	server := &MessageBrokerServer{
+		name:   name,
 		config: config,
 
 		asyncTopicSubscriptions: make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
@@ -75,7 +78,7 @@ func NewMessageBrokerServer(config *Config.MessageBrokerServer) *MessageBrokerSe
 		server.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	server.systemgeServer = SystemgeServer.New(server.config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
+	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer", server.config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
 
 	if server.config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(
@@ -154,4 +157,8 @@ func (server *MessageBrokerServer) GetStatus() int {
 func (server *MessageBrokerServer) GetMetrics() map[string]uint64 {
 	// TODO: gather metrics
 	return nil
+}
+
+func (server *MessageBrokerServer) GetName() string {
+	return server.name
 }

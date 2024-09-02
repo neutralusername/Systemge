@@ -13,6 +13,8 @@ import (
 )
 
 type MessageBrokerClient struct {
+	name string
+
 	status      int
 	statusMutex sync.Mutex
 
@@ -49,7 +51,7 @@ type connection struct {
 	responsibleSyncTopics  map[string]bool
 }
 
-func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
+func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *MessageBrokerClient {
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
@@ -64,6 +66,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 	}
 
 	messageBrokerClient := &MessageBrokerClient{
+		name:                    name,
 		config:                  config,
 		messageHandler:          systemgeMessageHandler,
 		ongoingTopicResolutions: make(map[string]*resolutionAttempt),
@@ -78,13 +81,13 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		status: Status.STOPPED,
 	}
 	if config.InfoLoggerPath != "" {
-		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath)
+		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath)
+		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath)
+		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
@@ -198,7 +201,7 @@ func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
 }
 
 func (messageBrokerClient *MessageBrokerClient) GetName() string {
-	return messageBrokerClient.config.Name
+	return messageBrokerClient.name
 }
 
 func getEndpointString(endpoint *Config.TcpEndpoint) string {

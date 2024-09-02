@@ -15,6 +15,8 @@ type OnConnectHandler func(*SystemgeConnection.SystemgeConnection) error
 type OnDisconnectHandler func(string, string)
 
 type SystemgeServer struct {
+	name string
+
 	status      int
 	statusMutex sync.RWMutex
 
@@ -36,7 +38,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeServer {
+func New(name string, config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -51,6 +53,7 @@ func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnectio
 	}
 
 	server := &SystemgeServer{
+		name:                name,
 		config:              config,
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
@@ -130,7 +133,7 @@ func (server *SystemgeServer) Stop() error {
 }
 
 func (server *SystemgeServer) GetName() string {
-	return server.config.Name
+	return server.name
 }
 
 func (server *SystemgeServer) GetStatus() int {

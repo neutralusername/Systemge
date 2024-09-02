@@ -12,6 +12,8 @@ import (
 )
 
 type SystemgeClient struct {
+	name string
+
 	status      int
 	statusMutex sync.RWMutex
 
@@ -42,7 +44,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint64
 }
 
-func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeClient {
+func New(name string, config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -54,6 +56,7 @@ func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnectio
 	}
 
 	client := &SystemgeClient{
+		name:   name,
 		config: config,
 
 		addressConnections:    make(map[string]*SystemgeConnection.SystemgeConnection),
@@ -79,7 +82,7 @@ func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnectio
 }
 
 func (client *SystemgeClient) GetName() string {
-	return client.config.Name
+	return client.name
 }
 
 func (client *SystemgeClient) GetStatus() int {

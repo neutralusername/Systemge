@@ -15,6 +15,8 @@ import (
 )
 
 type WebsocketServer struct {
+	name string
+
 	status      int
 	statusMutex sync.Mutex
 
@@ -50,7 +52,7 @@ type WebsocketServer struct {
 }
 
 // onConnectHandler, onDisconnectHandler may be nil.
-func New(config *Config.WebsocketServer, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
+func New(name string, config *Config.WebsocketServer, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -73,6 +75,7 @@ func New(config *Config.WebsocketServer, messageHandlers MessageHandlers, onConn
 		}
 	}
 	server := &WebsocketServer{
+		name:                name,
 		clients:             make(map[string]*WebsocketClient),
 		groups:              make(map[string]map[string]*WebsocketClient),
 		clientGroups:        make(map[string]map[string]bool),
@@ -80,9 +83,9 @@ func New(config *Config.WebsocketServer, messageHandlers MessageHandlers, onConn
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 		config:              config,
-		errorLogger:         Tools.NewLogger("[Error: \""+config.Name+"\"] ", config.ErrorLoggerPath),
-		infoLogger:          Tools.NewLogger("[Info: \""+config.Name+"\"] ", config.InfoLoggerPath),
-		warningLogger:       Tools.NewLogger("[Warning: \""+config.Name+"\"] ", config.WarningLoggerPath),
+		errorLogger:         Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath),
+		infoLogger:          Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath),
+		warningLogger:       Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath),
 		mailer:              Tools.NewMailer(config.MailerConfig),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
@@ -100,7 +103,7 @@ func (server *WebsocketServer) Start() error {
 	}
 	server.status = Status.PENDING
 
-	httpServer := HTTPServer.New(&Config.HTTPServer{
+	httpServer := HTTPServer.New(server.name+"_httpServer", &Config.HTTPServer{
 		TcpListenerConfig: server.config.TcpListenerConfig,
 	}, map[string]http.HandlerFunc{
 		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
@@ -166,7 +169,7 @@ func (server *WebsocketServer) Stop() error {
 }
 
 func (server *WebsocketServer) GetName() string {
-	return server.config.Name
+	return server.name
 }
 
 func (server *WebsocketServer) GetStatus() int {

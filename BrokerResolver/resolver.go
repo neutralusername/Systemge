@@ -16,6 +16,8 @@ import (
 )
 
 type Resolver struct {
+	name string
+
 	config *Config.MessageBrokerResolver
 
 	systemgeServer *SystemgeServer.SystemgeServer
@@ -40,7 +42,7 @@ type Resolver struct {
 	failedResolutions         atomic.Uint64
 }
 
-func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
+func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -50,24 +52,25 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
 		panic("SystemgeServerConfig.ConnectionConfig is required")
 	}
-	if config.SystemgeServerConfig.Name == "" {
+	if name == "" {
 		panic("SystemgeServerConfig.Name is required")
 	}
 
 	resolver := &Resolver{
+		name:                name,
 		config:              config,
 		asyncTopicEndpoints: make(map[string]*Config.TcpEndpoint),
 		syncTopicEndpoints:  make(map[string]*Config.TcpEndpoint),
 	}
 
 	if config.InfoLoggerPath != "" {
-		resolver.infoLogger = Tools.NewLogger("[Info: \""+config.Name+"\"]", config.InfoLoggerPath)
+		resolver.infoLogger = Tools.NewLogger("[Info: \""+name+"\"]", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		resolver.warningLogger = Tools.NewLogger("[Warning: \""+config.Name+"\"]", config.WarningLoggerPath)
+		resolver.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"]", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		resolver.errorLogger = Tools.NewLogger("[Error: \""+config.Name+"\"]", config.ErrorLoggerPath)
+		resolver.errorLogger = Tools.NewLogger("[Error: \""+name+"\"]", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
 		resolver.mailer = Tools.NewMailer(config.MailerConfig)
@@ -95,7 +98,7 @@ func NewResolver(config *Config.MessageBrokerResolver) *Resolver {
 		Message.TOPIC_RESOLVE_SYNC:  resolver.resolveSync,
 	}, nil, nil)
 
-	resolver.systemgeServer = SystemgeServer.New(config.SystemgeServerConfig, resolver.onConnect, nil)
+	resolver.systemgeServer = SystemgeServer.New(name+"_systemgeServer", config.SystemgeServerConfig, resolver.onConnect, nil)
 
 	if config.DashboardClientConfig != nil {
 		resolver.dashboardClient = Dashboard.NewClient(config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, Commands.Handlers{
@@ -187,6 +190,10 @@ func (resolver *Resolver) StopDashboardClient() error {
 
 func (resolver *Resolver) GetStatus() int {
 	return resolver.systemgeServer.GetStatus()
+}
+
+func (resolver *Resolver) GetName() string {
+	return resolver.name
 }
 
 func (resolver *Resolver) GetMetrics() map[string]uint64 {

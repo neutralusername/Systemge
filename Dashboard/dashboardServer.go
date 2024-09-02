@@ -19,6 +19,8 @@ import (
 )
 
 type DashboardServer struct {
+	name string
+
 	statusMutex sync.Mutex
 	status      int
 
@@ -42,7 +44,7 @@ type DashboardServer struct {
 	mailer        *Tools.Mailer
 }
 
-func NewServer(config *Config.DashboardServer) *DashboardServer {
+func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -83,6 +85,7 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 	)
 
 	app := &DashboardServer{
+		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
 		clients: make(map[string]*client),
@@ -102,14 +105,14 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 		app.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	app.systemgeServer = SystemgeServer.New(app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
-	app.websocketServer = WebsocketServer.New(app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
+	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer", app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
+	app.websocketServer = WebsocketServer.New(name+"_websocketServer", app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
 		"start":   app.startHandler,
 		"stop":    app.stopHandler,
 		"command": app.commandHandler,
 		"gc":      app.gcHandler,
 	}, app.onWebsocketConnectHandler, nil)
-	app.httpServer = HTTPServer.New(app.config.HTTPServerConfig, nil)
+	app.httpServer = HTTPServer.New(name+"_httpServer", app.config.HTTPServerConfig, nil)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
 	return app
