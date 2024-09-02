@@ -150,14 +150,14 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 	stopChannel := make(chan bool)
 	messageBrokerClient.stopChannel = stopChannel
 
-	for topic, _ := range messageBrokerClient.subscribedAsyncTopics {
+	for topic := range messageBrokerClient.subscribedAsyncTopics {
 		err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
 		if err != nil {
 			messageBrokerClient.stop()
 			return err
 		}
 	}
-	for topic, _ := range messageBrokerClient.subscribedSyncTopics {
+	for topic := range messageBrokerClient.subscribedSyncTopics {
 		err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 		if err != nil {
 			messageBrokerClient.stop()
@@ -187,11 +187,23 @@ func (messageBrokerClient *MessageBrokerClient) Stop() error {
 }
 
 func (messageBrokerClient *MessageBrokerClient) GetStatus() int {
-
+	return messageBrokerClient.status
 }
 
 func (messageBrokerClient *MessageBrokerClient) GetMetrics() map[string]uint64 {
-
+	metrics := map[string]uint64{}
+	messageBrokerClient.mutex.Lock()
+	metrics["ongoingTopicResolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
+	metrics["brokerConnections"] = uint64(len(messageBrokerClient.brokerConnections))
+	metrics["topicResolutions"] = uint64(len(messageBrokerClient.topicResolutions))
+	for _, connection := range messageBrokerClient.brokerConnections {
+		metrics := connection.connection.RetrieveMetrics()
+		for key, value := range metrics {
+			metrics[key] += value
+		}
+	}
+	messageBrokerClient.mutex.Unlock()
+	return metrics
 }
 
 func (messageBrokerClient *MessageBrokerClient) GetName() string {
@@ -273,10 +285,15 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 			conn.responsibleAsyncTopics[resolutionAttempt.topic] = true
 		}
 		connections[getEndpointString(endpoint)] = conn
+		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
+			messageBrokerClient.subscribeToTopic(conn, resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+		}
+		messageBrokerClient.mutex.Lock()
 		if messageBrokerClient.brokerConnections[getEndpointString(endpoint)] == nil {
 			messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
 			go messageBrokerClient.handleConnectionLifetime(conn, stopChannel)
 		}
+		messageBrokerClient.mutex.Unlock()
 	}
 
 	messageBrokerClient.mutex.Lock()
@@ -310,11 +327,26 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(to
 	}
 	select {
 	case <-topicResolutionTimeout:
-		// todo: handle situation where client stops after this is called
-
 		if (isSynctopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!isSynctopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
+			messageBrokerClient.statusMutex.Lock()
+			if messageBrokerClient.status != Status.STARTED {
+				messageBrokerClient.statusMutex.Unlock()
+				return
+			}
 			err := messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel)
-
+			if err != nil {
+				if messageBrokerClient.errorLogger != nil {
+					messageBrokerClient.errorLogger.Log(Error.New("Failed to restart resolution attempt for topic \""+topic+"\"", err).Error())
+				}
+				if messageBrokerClient.mailer != nil {
+					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to restart resolution attempt", err).Error())); err != nil {
+						if messageBrokerClient.errorLogger != nil {
+							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						}
+					}
+				}
+			}
+			messageBrokerClient.statusMutex.Unlock()
 		} else {
 			messageBrokerClient.mutex.Lock()
 			defer messageBrokerClient.mutex.Unlock()
@@ -339,19 +371,17 @@ func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(to
 func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
 	select {
 	case <-connection.connection.GetCloseChannel():
-		// todo: handle situation where client stops after this is called
-
 		messageBrokerClient.mutex.Lock()
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
-		for topic, _ := range connection.responsibleAsyncTopics {
+		for topic := range connection.responsibleAsyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleAsyncTopics, topic)
 			if messageBrokerClient.subscribedAsyncTopics[topic] {
 				subscribedAsyncTopicsByClosedConnection = append(subscribedAsyncTopicsByClosedConnection, topic)
 			}
 		}
-		for topic, _ := range connection.responsibleSyncTopics {
+		for topic := range connection.responsibleSyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleSyncTopics, topic)
 			if messageBrokerClient.subscribedSyncTopics[topic] {
@@ -361,21 +391,49 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
 		messageBrokerClient.mutex.Unlock()
 
+		messageBrokerClient.statusMutex.Lock()
+		if messageBrokerClient.status != Status.STARTED {
+			messageBrokerClient.statusMutex.Unlock()
+			return
+		}
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
 			err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
-
+			if err != nil {
+				if messageBrokerClient.errorLogger != nil {
+					messageBrokerClient.errorLogger.Log(Error.New("Failed to restart resolution attempt for topic \""+topic+"\"", err).Error())
+				}
+				if messageBrokerClient.mailer != nil {
+					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to restart resolution attempt", err).Error())); err != nil {
+						if messageBrokerClient.errorLogger != nil {
+							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						}
+					}
+				}
+			}
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
 			err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
-
+			if err != nil {
+				if messageBrokerClient.errorLogger != nil {
+					messageBrokerClient.errorLogger.Log(Error.New("Failed to restart resolution attempt for topic \""+topic+"\"", err).Error())
+				}
+				if messageBrokerClient.mailer != nil {
+					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to restart resolution attempt", err).Error())); err != nil {
+						if messageBrokerClient.errorLogger != nil {
+							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						}
+					}
+				}
+			}
 		}
+		messageBrokerClient.statusMutex.Unlock()
 	case <-stopChannel:
 		messageBrokerClient.mutex.Lock()
-		for topic, _ := range connection.responsibleAsyncTopics {
+		for topic := range connection.responsibleAsyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleAsyncTopics, topic)
 		}
-		for topic, _ := range connection.responsibleSyncTopics {
+		for topic := range connection.responsibleSyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleSyncTopics, topic)
 		}
