@@ -5,7 +5,6 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -44,7 +43,7 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	errorChannel := TcpConnection.MultiAsyncMessage(topic, payload, connections...)
+	errorChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
 	go func() {
 		for err := range errorChannel {
 			if client.errorLogger != nil {
@@ -98,7 +97,7 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	responseChannel, errorChannel := TcpConnection.MultiSyncRequest(topic, payload, connections...)
+	responseChannel, errorChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
 	go func() {
 		for err := range errorChannel {
 			if client.errorLogger != nil {
