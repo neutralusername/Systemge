@@ -276,7 +276,7 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 		connections[getEndpointString(endpoint)] = conn
 		if messageBrokerClient.brokerConnections[getEndpointString(endpoint)] == nil {
 			messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
-			// go messageBrokerClient.handleConnectionLifetime(connection, stopChannel)
+			go messageBrokerClient.handleConnectionLifetime(conn, stopChannel)
 		}
 	}
 
