@@ -69,5 +69,5 @@ func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.Syste
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return SystemgeConnection.New(connectionConfig, netConn, message.GetPayload()), nil
+	return SystemgeConnection.New(message.GetPayload(), connectionConfig, netConn), nil
 }

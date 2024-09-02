@@ -26,7 +26,7 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 }
 
 func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
-	connection := New(config, netConn, "")
+	connection := New("", config, netConn)
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)

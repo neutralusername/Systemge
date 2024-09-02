@@ -70,7 +70,7 @@ type SystemgeConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
+func New(name string, config *Config.SystemgeConnection, netConn net.Conn) *SystemgeConnection {
 	connection := &SystemgeConnection{
 		name:              name,
 		config:            config,
