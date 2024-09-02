@@ -198,7 +198,6 @@ func (messageBrokerClient *MessageBrokerClient) GetName() string {
 	return messageBrokerClient.config.Name
 }
 
-// expects startMutex to be locked in certain cases similar to systemgeClients connections attempts
 func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) error {
 	if stopChannel != messageBrokerClient.stopChannel {
 		return Error.New("Aborted because resolution attempt is from previous session", nil)
@@ -304,43 +303,44 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 	go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.topic, resolutionAttempt.isSyncTopic, stopChannel)
 }
 
-func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(topic string, syncTopic bool, stopChannel chan bool) {
+func (messageBrokerClient *MessageBrokerClient) handleTopicResolutionLifetime(topic string, isSynctopic bool, stopChannel chan bool) {
 	var topicResolutionTimeout <-chan time.Time
 	if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
 		topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
 	}
 	select {
 	case <-topicResolutionTimeout:
-		if (syncTopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!syncTopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
-			err := messageBrokerClient.startResolutionAttempt(topic, syncTopic, stopChannel)
+		// todo: handle situation where client stops after this is called
+
+		if (isSynctopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!isSynctopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
+			err := messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel)
 
 		} else {
-			messageBrokerClient.removeTopic(topic, syncTopic)
+			messageBrokerClient.mutex.Lock()
+			defer messageBrokerClient.mutex.Unlock()
+			for _, connection := range messageBrokerClient.topicResolutions[topic] {
+				if isSynctopic {
+					delete(connection.responsibleSyncTopics, topic)
+				} else {
+					delete(connection.responsibleAsyncTopics, topic)
+				}
+				if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
+					delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+					connection.connection.Close()
+				}
+			}
+			delete(messageBrokerClient.topicResolutions, topic)
 		}
 	case <-stopChannel:
 		return
 	}
 }
-func (messageBrokerClient *MessageBrokerClient) removeTopic(topic string, sync bool) {
-	messageBrokerClient.mutex.Lock()
-	defer messageBrokerClient.mutex.Unlock()
-	for _, connection := range messageBrokerClient.topicResolutions[topic] {
-		if sync {
-			delete(connection.responsibleSyncTopics, topic)
-		} else {
-			delete(connection.responsibleAsyncTopics, topic)
-		}
-		if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
-			delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
-			connection.connection.Close()
-		}
-	}
-	delete(messageBrokerClient.topicResolutions, topic)
-}
 
 func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
 	select {
 	case <-connection.connection.GetCloseChannel():
+		// todo: handle situation where client stops after this is called
+
 		messageBrokerClient.mutex.Lock()
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
@@ -363,9 +363,7 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
 			err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
-			if err != nil {
 
-			}
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
 			err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
