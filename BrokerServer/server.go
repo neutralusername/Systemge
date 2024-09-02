@@ -1,4 +1,4 @@
-package MessageBroker
+package BrokerServer
 
 import (
 	"encoding/json"

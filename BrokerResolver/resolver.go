@@ -1,4 +1,4 @@
-package MessageBroker
+package BrokerResolver
 
 import (
 	"sync"
