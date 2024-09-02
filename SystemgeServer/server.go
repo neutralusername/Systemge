@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/TcpListener"
 	"github.com/neutralusername/Systemge/Tools"
@@ -22,7 +23,7 @@ type SystemgeServer struct {
 	statusMutex sync.RWMutex
 
 	config   *Config.SystemgeServer
-	listener *TcpListener.SystemgeListener
+	listener SystemgeListener.SystemgeListener
 
 	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
 	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)

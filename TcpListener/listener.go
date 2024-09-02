@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type SystemgeListener struct {
+type TcpListener struct {
 	config        *Config.SystemgeListener
 	tcpListener   *Tcp.Listener
 	ipRateLimiter *Tools.IpRateLimiter
@@ -24,7 +24,7 @@ type SystemgeListener struct {
 	acceptedConnections atomic.Uint64
 }
 
-func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
+func New(config *Config.SystemgeListener) (*TcpListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}
@@ -35,7 +35,7 @@ func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
 	if err != nil {
 		return nil, Error.New("failed to create listener", err)
 	}
-	listener := &SystemgeListener{
+	listener := &TcpListener{
 		config:      config,
 		tcpListener: tcpListener,
 	}
@@ -46,17 +46,17 @@ func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
 }
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *SystemgeListener) Close() {
+func (listener *TcpListener) Close() {
 	listener.tcpListener.GetListener().Close()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
 	}
 }
 
-func (listener *SystemgeListener) GetBlacklist() *Tools.AccessControlList {
+func (listener *TcpListener) GetBlacklist() *Tools.AccessControlList {
 	return listener.tcpListener.GetBlacklist()
 }
 
-func (listener *SystemgeListener) GetWhitelist() *Tools.AccessControlList {
+func (listener *TcpListener) GetWhitelist() *Tools.AccessControlList {
 	return listener.tcpListener.GetWhitelist()
 }
