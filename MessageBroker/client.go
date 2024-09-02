@@ -35,8 +35,8 @@ type MessageBrokerClient struct {
 
 	ongoingTopicResolutions map[string]*resolutionAttempt
 
-	brokerConnections map[string]*connection // endpointString -> connection
-	topicResolutions  map[string]*connection // topic -> connection
+	brokerConnections map[string]*connection            // endpointString -> connection
+	topicResolutions  map[string]map[string]*connection // topic -> [endpointString -> connection]
 
 	mutex sync.Mutex
 
@@ -55,7 +55,7 @@ type resolutionAttempt struct {
 	topic         string
 	isSyncTopic   bool
 	ongoing       chan bool
-	result        *connection
+	connection    []*connection
 	newConnection bool
 }
 
@@ -78,7 +78,7 @@ func NewMessageBrokerClient_(config *Config.MessageBrokerClient, systemgeMessage
 		messageHandler:          systemgeMessageHandler,
 		ongoingTopicResolutions: make(map[string]*resolutionAttempt),
 
-		topicResolutions: make(map[string]*connection),
+		topicResolutions: make(map[string]map[string]*connection),
 
 		brokerConnections: make(map[string]*connection),
 
@@ -151,31 +151,37 @@ func (messageBrokerClient *MessageBrokerClient) Start() error {
 
 	for topic, _ := range messageBrokerClient.subscribedAsyncTopics {
 		err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
-
+		if err != nil {
+			messageBrokerClient.stop()
+			return err
+		}
 	}
 	for topic, _ := range messageBrokerClient.subscribedSyncTopics {
 		err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
-
+		if err != nil {
+			messageBrokerClient.stop()
+			return err
+		}
 	}
 
 	messageBrokerClient.status = Status.STARTED
 	return nil
 }
 
+func (messageBrokerClient *MessageBrokerClient) stop() {
+	close(messageBrokerClient.stopChannel)
+	messageBrokerClient.stopChannel = nil
+	messageBrokerClient.waitGroup.Wait()
+	messageBrokerClient.status = Status.STOPPED
+}
 func (messageBrokerClient *MessageBrokerClient) Stop() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
 	if messageBrokerClient.status != Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-
 	messageBrokerClient.status = Status.PENDING
-
-	close(messageBrokerClient.stopChannel)
-	messageBrokerClient.stopChannel = nil
-	messageBrokerClient.waitGroup.Wait()
-
-	messageBrokerClient.status = Status.STOPPED
+	messageBrokerClient.stop()
 	return nil
 }
 
@@ -224,6 +230,18 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 
 	go func() {
 		err := messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to resolve connection", err).Error())
+			}
+			if messageBrokerClient.mailer != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to resolve connection", err).Error())); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					}
+				}
+			}
+		}
 	}()
 	return nil
 }
@@ -231,7 +249,7 @@ func (messageBrokerClient *MessageBrokerClient) startResolutionAttempt(topic str
 func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) error {
 	defer messageBrokerClient.finishResolutionAttempt(resolutionAttempt, stopChannel)
 
-	endpoint, err := messageBrokerClient.resolveBrokerEndpoint(resolutionAttempt.topic)
+	endpoints, err := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic)
 	if err != nil {
 		return Error.New("Failed to resolve broker endpoint", err)
 	}
@@ -262,12 +280,24 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 func (messageBrokerClient *MessageBrokerClient) finishResolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
 	if resolutionAttempt.result == nil {
 		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
-			// will let other goroutines waiting until the resolution attempt for this topic is finished as of now
-			// could result in a suboptimal situation when the client is trying to message the broker responsible for this topic
 			select {
 			default:
+				close(resolutionAttempt.ongoing)
+				resolutionAttempt.ongoing = make(chan bool)
 				go func() {
 					err := messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
+					if err != nil {
+						if messageBrokerClient.errorLogger != nil {
+							messageBrokerClient.errorLogger.Log(Error.New("Failed to resolve connection", err).Error())
+						}
+						if messageBrokerClient.mailer != nil {
+							if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to resolve connection", err).Error())); err != nil {
+								if messageBrokerClient.errorLogger != nil {
+									messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+								}
+							}
+						}
+					}
 				}()
 				return
 			case <-stopChannel:
@@ -377,7 +407,9 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
 			err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
+			if err != nil {
 
+			}
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
 			err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
@@ -398,7 +430,8 @@ func (messageBrokerClient *MessageBrokerClient) handleConnectionLifetime(connect
 	}
 }
 
-func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic string) (*Config.TcpEndpoint, error) {
+func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoints(topic string) ([]*Config.TcpEndpoint, error) {
+	endpoints := []*Config.TcpEndpoint{}
 	for _, resolverEndpoint := range messageBrokerclient.config.ResolverEndpoints {
 		resolverConnection, err := SystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
@@ -428,9 +461,9 @@ func (messageBrokerclient *MessageBrokerClient) resolveBrokerEndpoint(topic stri
 			}
 			continue
 		}
-		return endpoint, nil
+		endpoints = append(endpoints, endpoint)
 	}
-	return nil, Error.New("Failed to resolve broker endpoint", nil)
+	return endpoints, nil
 }
 
 func (MessageBrokerClient *MessageBrokerClient) subscribeToTopic(connection *connection, topic string, sync bool) error {
