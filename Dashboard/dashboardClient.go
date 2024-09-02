@@ -15,7 +15,7 @@ import (
 
 type DashboardClient struct {
 	config             *Config.DashboardClient
-	systemgeConnection *TcpConnection.TcpConnection
+	systemgeConnection SystemgeConnection.SystemgeConnection
 
 	startFunc      func() error
 	stopFunc       func() error

@@ -2,12 +2,12 @@ package SystemgeListener
 
 import (
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/TcpConnection"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SystemgeListener interface {
-	AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (*TcpConnection.TcpConnection, error)
+	AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (SystemgeConnection.SystemgeConnection, error)
 	Close()
 	GetAcceptedConnections() uint64
 	GetBlacklist() *Tools.AccessControlList

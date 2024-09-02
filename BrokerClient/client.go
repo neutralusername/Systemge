@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -46,7 +45,7 @@ type MessageBrokerClient struct {
 }
 
 type connection struct {
-	connection             *TcpConnection.TcpConnection
+	connection             SystemgeConnection.SystemgeConnection
 	endpoint               *Config.TcpEndpoint
 	responsibleAsyncTopics map[string]bool
 	responsibleSyncTopics  map[string]bool

@@ -7,11 +7,12 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (*TcpConnection.TcpConnection, error) {
+func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId

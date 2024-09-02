@@ -8,12 +8,11 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
-	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/TcpListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type OnConnectHandler func(*TcpConnection.TcpConnection) error
+type OnConnectHandler func(SystemgeConnection.SystemgeConnection) error
 type OnDisconnectHandler func(string, string)
 
 type SystemgeServer struct {
@@ -28,7 +27,7 @@ type SystemgeServer struct {
 	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
 	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
 
-	clients     map[string]*TcpConnection.TcpConnection // name -> connection
+	clients     map[string]SystemgeConnection.SystemgeConnection // name -> connection
 	mutex       sync.Mutex
 	stopChannel chan bool
 
@@ -60,7 +59,7 @@ func New(name string, config *Config.SystemgeServer, onConnectHandler func(Syste
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 
-		clients: make(map[string]*TcpConnection.TcpConnection),
+		clients: make(map[string]SystemgeConnection.SystemgeConnection),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)

@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -150,7 +151,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 	}
 }
 
-func (client *SystemgeClient) handleDisconnect(connection *TcpConnection.TcpConnection, endpointConfig *Config.TcpEndpoint) {
+func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpEndpoint) {
 	<-connection.GetCloseChannel()
 
 	if infoLogger := client.infoLogger; infoLogger != nil {

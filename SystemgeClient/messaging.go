@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -15,7 +16,7 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 		return Error.New("Client stopped", nil)
 	}
 	client.mutex.Lock()
-	connections := make([]*TcpConnection.TcpConnection, 0)
+	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range client.nameConnections {
 			connections = append(connections, connection)
@@ -69,7 +70,7 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 		return nil, nil
 	}
 	client.mutex.Lock()
-	connections := make([]*TcpConnection.TcpConnection, 0)
+	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range client.nameConnections {
 			connections = append(connections, connection)

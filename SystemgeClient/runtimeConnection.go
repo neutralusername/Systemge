@@ -4,6 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
@@ -73,7 +74,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	return Error.New("connection not found", nil)
 }
 
-func (client *SystemgeClient) GetConnectionByName(name string) *TcpConnection.TcpConnection {
+func (client *SystemgeClient) GetConnectionByName(name string) SystemgeConnection.SystemgeConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -86,7 +87,7 @@ func (client *SystemgeClient) GetConnectionByName(name string) *TcpConnection.Tc
 	return client.nameConnections[name]
 }
 
-func (client *SystemgeClient) GetConnectionByAddress(address string) *TcpConnection.TcpConnection {
+func (client *SystemgeClient) GetConnectionByAddress(address string) SystemgeConnection.SystemgeConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
