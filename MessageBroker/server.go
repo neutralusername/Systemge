@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
@@ -16,9 +15,6 @@ import (
 )
 
 type MessageBrokerServer struct {
-	status      int
-	statusMutex sync.Mutex
-
 	config         *Config.MessageBrokerServer
 	systemgeServer *SystemgeServer.SystemgeServer
 
@@ -314,17 +310,18 @@ func (server *MessageBrokerServer) handleSyncPropagate(connection *SystemgeConne
 			responseChannels = append(responseChannels, responseChannel)
 		}
 	}
-	responses := []string{}
+	responses := []*Message.Message{}
 	for _, responseChannel := range responseChannels {
 		response := <-responseChannel
 		if response != nil {
-			responses = append(responses, string(response.Serialize()))
+			responses = append(responses, response)
 		}
 	}
 	if len(responses) == 0 {
 		return "", Error.New("no responses", nil)
 	}
-	return Helpers.StringsToJsonObjectArray(responses), nil
+
+	return Message.SerializeMessages(responses), nil
 }
 
 func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConnection.SystemgeConnection) error {

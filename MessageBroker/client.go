@@ -503,3 +503,64 @@ func getASyncString(async bool) string {
 	}
 	return "sync"
 }
+
+func (messageBrokerClient *MessageBrokerClient) AsyncMessage(topic string, payload string) {
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
+
+	for _, connection := range messageBrokerClient.topicResolutions[topic] {
+		err := connection.connection.AsyncMessage(topic, payload)
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to send async message", err).Error())
+			}
+			if messageBrokerClient.mailer != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send async message", err).Error())); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					}
+				}
+			}
+		}
+	}
+}
+
+func (messageBrokerClient *MessageBrokerClient) SyncMessage(topic string, payload string) []*Message.Message {
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
+
+	responses := []*Message.Message{}
+	for _, connection := range messageBrokerClient.topicResolutions[topic] {
+		response, err := connection.connection.SyncRequestBlocking(topic, payload)
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to send sync message", err).Error())
+			}
+			if messageBrokerClient.mailer != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send sync message", err).Error())); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					}
+				}
+			}
+			continue
+		}
+		responseMessages, err := Message.DeserializeMessages([]byte(response.GetPayload()))
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to deserialize response", err).Error())
+			}
+			if messageBrokerClient.mailer != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to deserialize response", err).Error())); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					}
+				}
+			}
+			continue
+		}
+		responses = append(responses, responseMessages...)
+	}
+	return responses
+
+}

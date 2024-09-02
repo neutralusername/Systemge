@@ -2,6 +2,8 @@ package Message
 
 import (
 	"encoding/json"
+
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 type Message struct {
@@ -125,4 +127,37 @@ func Deserialize(bytes []byte, origin string) (*Message, error) {
 		response:  messageData.Response,
 		origin:    origin,
 	}, nil
+}
+
+func DeserializeMessages(bytes []byte) ([]*Message, error) {
+	var messageData []struct {
+		Topic     string `json:"topic"`
+		SyncToken string `json:"syncToken"`
+		Response  bool   `json:"response"`
+		Payload   string `json:"payload"`
+		Origin    string `json:"origin"`
+	}
+	err := json.Unmarshal(bytes, &messageData)
+	if err != nil {
+		return nil, err
+	}
+	messages := make([]*Message, len(messageData))
+	for i, data := range messageData {
+		messages[i] = &Message{
+			topic:     data.Topic,
+			syncToken: data.SyncToken,
+			payload:   data.Payload,
+			response:  data.Response,
+			origin:    data.Origin,
+		}
+	}
+	return messages, nil
+}
+
+func SerializeMessages(messages []*Message) string {
+	messagesSerialized := make([]string, len(messages))
+	for _, message := range messages {
+		messagesSerialized = append(messagesSerialized, string(message.Serialize()))
+	}
+	return Helpers.StringsToJsonObjectArray(messagesSerialized)
 }
