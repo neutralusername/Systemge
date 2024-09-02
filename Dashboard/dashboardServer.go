@@ -201,7 +201,7 @@ func (app *DashboardServer) Stop() error {
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {
+func (app *DashboardServer) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
 	response, err := connection.SyncRequestBlocking(Message.TOPIC_GET_INTRODUCTION, "")
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeDisconnectHandler(connection *SystemgeConnection.SystemgeConnection) {
+func (app *DashboardServer) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
 	if client, ok := app.clients[connection.GetName()]; ok {
 		delete(app.clients, connection.GetName())

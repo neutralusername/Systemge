@@ -27,11 +27,11 @@ type MessageBrokerServer struct {
 	messageHandler  SystemgeConnection.MessageHandler
 	dashboardClient *Dashboard.DashboardClient
 
-	asyncConnectionSubscriptions map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
-	syncConnectionSubscriptions  map[*SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	asyncConnectionSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	syncConnectionSubscriptions  map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 
-	asyncTopicSubscriptions map[string]map[*SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
-	syncTopicSubscriptions  map[string]map[*SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
+	asyncTopicSubscriptions map[string]map[SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
+	syncTopicSubscriptions  map[string]map[SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
 
 	mutex sync.Mutex
 
@@ -59,11 +59,11 @@ func New(name string, config *Config.MessageBrokerServer) *MessageBrokerServer {
 		name:   name,
 		config: config,
 
-		asyncTopicSubscriptions: make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
-		syncTopicSubscriptions:  make(map[string]map[*SystemgeConnection.SystemgeConnection]bool),
+		asyncTopicSubscriptions: make(map[string]map[SystemgeConnection.SystemgeConnection]bool),
+		syncTopicSubscriptions:  make(map[string]map[SystemgeConnection.SystemgeConnection]bool),
 
-		asyncConnectionSubscriptions: make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
-		syncConnectionSubscriptions:  make(map[*SystemgeConnection.SystemgeConnection]map[string]bool),
+		asyncConnectionSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
+		syncConnectionSubscriptions:  make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)

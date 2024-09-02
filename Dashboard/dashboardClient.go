@@ -10,11 +10,12 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
 type DashboardClient struct {
 	config             *Config.DashboardClient
-	systemgeConnection *SystemgeConnection.SystemgeConnection
+	systemgeConnection *TcpConnection.TcpConnection
 
 	startFunc      func() error
 	stopFunc       func() error
@@ -56,7 +57,7 @@ func (app *DashboardClient) Start() error {
 	if app.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-	connection, err := SystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, app.config.MaxServerNameLength)
+	connection, err := TcpConnection.EstablishConnection(app.config.ConnectionConfig, app.config.EndpointConfig, app.config.Name, app.config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
@@ -88,7 +89,7 @@ func (app *DashboardClient) Stop() error {
 	return nil
 }
 
-func (app *DashboardClient) getIntroductionHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *DashboardClient) getIntroductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	commands := make(map[string]bool)
 	for command := range app.commands {
 		commands[command] = true
@@ -113,14 +114,14 @@ func (app *DashboardClient) getIntroductionHandler(connection *SystemgeConnectio
 	}), nil
 }
 
-func (app *DashboardClient) getStatusHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *DashboardClient) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.getStatusFunc == nil {
 		return "", Error.New("No status available", nil)
 	}
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *DashboardClient) getMetricsHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *DashboardClient) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.getMetricsFunc == nil {
 		return "", Error.New("No metrics available", nil)
 	}
@@ -131,7 +132,7 @@ func (app *DashboardClient) getMetricsHandler(connection *SystemgeConnection.Sys
 	return Helpers.JsonMarshal(metrics), nil
 }
 
-func (app *DashboardClient) startHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *DashboardClient) startHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.startFunc == nil {
 		return "", Error.New("No start function available", nil)
 	}
@@ -142,7 +143,7 @@ func (app *DashboardClient) startHandler(connection *SystemgeConnection.Systemge
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *DashboardClient) stopHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *DashboardClient) stopHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.stopFunc == nil {
 		return "", Error.New("No stop function available", nil)
 	}
@@ -153,7 +154,7 @@ func (app *DashboardClient) stopHandler(connection *SystemgeConnection.SystemgeC
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *DashboardClient) executeCommandHandler(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *DashboardClient) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.commands == nil {
 		return "", nil
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (resolver *Resolver) resolveAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (resolver *Resolver) resolveAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	if resolution, ok := resolver.asyncTopicEndpoints[message.GetTopic()]; ok {
@@ -17,7 +17,7 @@ func (resolver *Resolver) resolveAsync(connection *SystemgeConnection.SystemgeCo
 	}
 }
 
-func (resolver *Resolver) resolveSync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (resolver *Resolver) resolveSync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	if resolution, ok := resolver.syncTopicEndpoints[message.GetTopic()]; ok {
@@ -27,7 +27,7 @@ func (resolver *Resolver) resolveSync(connection *SystemgeConnection.SystemgeCon
 	}
 }
 
-func (resolver *Resolver) onConnect(connection *SystemgeConnection.SystemgeConnection) error {
+func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnection) error {
 	message, err := connection.GetNextMessage()
 	if err != nil {
 		resolver.failedResolutions.Add(1)

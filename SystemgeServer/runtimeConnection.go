@@ -3,7 +3,7 @@ package SystemgeServer
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
 func (server *SystemgeServer) RemoveConnection(name string) error {
@@ -40,7 +40,7 @@ func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string
 	return names
 }
 
-func (server *SystemgeServer) GetConnection(name string) *SystemgeConnection.SystemgeConnection {
+func (server *SystemgeServer) GetConnection(name string) *TcpConnection.TcpConnection {
 	server.statusMutex.RLock()
 	server.mutex.Lock()
 	defer func() {

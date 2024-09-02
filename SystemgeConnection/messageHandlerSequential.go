@@ -30,7 +30,7 @@ type queueStruct struct {
 	message             *Message.Message
 	syncResponseChannel chan *syncResponseStruct
 	asyncErrorChannel   chan error
-	connection          *SystemgeConnection
+	connection          SystemgeConnection
 }
 
 type syncResponseStruct struct {
@@ -109,7 +109,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection *SystemgeConnection, message *Message.Message) error {
+func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	response := make(chan error)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -123,7 +123,7 @@ func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection *S
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection *SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{

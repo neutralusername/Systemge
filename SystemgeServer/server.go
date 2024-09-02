@@ -7,11 +7,12 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeListener"
+	"github.com/neutralusername/Systemge/TcpConnection"
+	"github.com/neutralusername/Systemge/TcpListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type OnConnectHandler func(*SystemgeConnection.SystemgeConnection) error
+type OnConnectHandler func(*TcpConnection.TcpConnection) error
 type OnDisconnectHandler func(string, string)
 
 type SystemgeServer struct {
@@ -21,12 +22,12 @@ type SystemgeServer struct {
 	statusMutex sync.RWMutex
 
 	config   *Config.SystemgeServer
-	listener *SystemgeListener.SystemgeListener
+	listener *TcpListener.SystemgeListener
 
-	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
+	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
+	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
 
-	clients     map[string]*SystemgeConnection.SystemgeConnection // name -> connection
+	clients     map[string]*TcpConnection.TcpConnection // name -> connection
 	mutex       sync.Mutex
 	stopChannel chan bool
 
@@ -38,7 +39,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(name string, config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeServer {
+func New(name string, config *Config.SystemgeServer, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -58,7 +59,7 @@ func New(name string, config *Config.SystemgeServer, onConnectHandler func(*Syst
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 
-		clients: make(map[string]*SystemgeConnection.SystemgeConnection),
+		clients: make(map[string]*TcpConnection.TcpConnection),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
@@ -85,7 +86,7 @@ func (server *SystemgeServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
-	listener, err := SystemgeListener.New(server.config.ListenerConfig)
+	listener, err := TcpListener.New(server.config.ListenerConfig)
 	if err != nil {
 		server.status = Status.STOPPED
 		return Error.New("failed to create listener", err)

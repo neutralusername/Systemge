@@ -1,4 +1,4 @@
-package SystemgeConnection
+package TcpConnection
 
 import (
 	"net"
@@ -6,10 +6,11 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*SystemgeConnection, error) {
+func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*TcpConnection, error) {
 	if config == nil {
 		return nil, Error.New("Config is nil", nil)
 	}
@@ -25,7 +26,7 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	return connection, nil
 }
 
-func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
+func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
 	connection := New("", config, netConn)
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
@@ -39,8 +40,8 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}
 	name := ""
-	NewConcurrentMessageHandler(AsyncMessageHandlers{
-		Message.TOPIC_NAME: func(connection *SystemgeConnection, message *Message.Message) {
+	SystemgeConnection.NewConcurrentMessageHandler(SystemgeConnection.AsyncMessageHandlers{
+		Message.TOPIC_NAME: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) {
 			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
 				return
 			}

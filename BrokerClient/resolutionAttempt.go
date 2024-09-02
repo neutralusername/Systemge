@@ -2,7 +2,7 @@ package BrokerClient
 
 import (
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -61,7 +61,7 @@ func (messageBrokerClient *MessageBrokerClient) resolutionAttempt(resolutionAtte
 	for _, endpoint := range endpoints {
 		conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
 		if conn == nil {
-			systemgeConnection, err := SystemgeConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+			systemgeConnection, err := TcpConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 			if err != nil {
 				if messageBrokerClient.errorLogger != nil {
 					messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())

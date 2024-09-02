@@ -4,12 +4,12 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
 // AddConnection adds an active connection to the client.
 // if reconnectEndpointConfig is not nil, the connection will attempt to reconnect
-func (client *SystemgeClient) AddConnection(connection *SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) AddConnection(connection *TcpConnection.TcpConnection, reconnectEndpointConfig *Config.TcpEndpoint) error {
 	if connection == nil {
 		return Error.New("connection is nil", nil)
 	}
@@ -73,7 +73,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	return Error.New("connection not found", nil)
 }
 
-func (client *SystemgeClient) GetConnectionByName(name string) *SystemgeConnection.SystemgeConnection {
+func (client *SystemgeClient) GetConnectionByName(name string) *TcpConnection.TcpConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -86,7 +86,7 @@ func (client *SystemgeClient) GetConnectionByName(name string) *SystemgeConnecti
 	return client.nameConnections[name]
 }
 
-func (client *SystemgeClient) GetConnectionByAddress(address string) *SystemgeConnection.SystemgeConnection {
+func (client *SystemgeClient) GetConnectionByAddress(address string) *TcpConnection.TcpConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {

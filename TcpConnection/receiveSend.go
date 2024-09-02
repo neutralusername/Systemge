@@ -1,11 +1,11 @@
-package SystemgeConnection
+package TcpConnection
 
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *SystemgeConnection) receive() ([]byte, error) {
+func (connection *TcpConnection) receive() ([]byte, error) {
 	connection.receiveMutex.Lock()
 	defer connection.receiveMutex.Unlock()
 
@@ -34,7 +34,7 @@ func (connection *SystemgeConnection) receive() ([]byte, error) {
 	}
 }
 
-func (connection *SystemgeConnection) send(bytes []byte) error {
+func (connection *TcpConnection) send(bytes []byte) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
 	bytesSent, err := Tcp.Send(connection.netConn, bytes, connection.config.TcpSendTimeoutMs)

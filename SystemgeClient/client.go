@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -19,13 +19,13 @@ type SystemgeClient struct {
 
 	config *Config.SystemgeClient
 
-	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
+	onConnectHandler    func(*TcpConnection.TcpConnection) error
+	onDisconnectHandler func(*TcpConnection.TcpConnection)
 
 	mutex                 sync.RWMutex
-	addressConnections    map[string]*SystemgeConnection.SystemgeConnection // address -> connection
-	nameConnections       map[string]*SystemgeConnection.SystemgeConnection // name -> connection
-	connectionAttemptsMap map[string]*ConnectionAttempt                     // address -> connection attempt
+	addressConnections    map[string]*TcpConnection.TcpConnection // address -> connection
+	nameConnections       map[string]*TcpConnection.TcpConnection // name -> connection
+	connectionAttemptsMap map[string]*ConnectionAttempt           // address -> connection attempt
 
 	stopChannel chan bool
 
@@ -44,7 +44,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint64
 }
 
-func New(name string, config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeClient {
+func New(name string, config *Config.SystemgeClient, onConnectHandler func(*TcpConnection.TcpConnection) error, onDisconnectHandler func(*TcpConnection.TcpConnection)) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -59,8 +59,8 @@ func New(name string, config *Config.SystemgeClient, onConnectHandler func(*Syst
 		name:   name,
 		config: config,
 
-		addressConnections:    make(map[string]*SystemgeConnection.SystemgeConnection),
-		nameConnections:       make(map[string]*SystemgeConnection.SystemgeConnection),
+		addressConnections:    make(map[string]*TcpConnection.TcpConnection),
+		nameConnections:       make(map[string]*TcpConnection.TcpConnection),
 		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
 
 		onConnectHandler:    onConnectHandler,

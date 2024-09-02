@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *MessageBrokerServer) subscribeAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) subscribeAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -29,7 +29,7 @@ func (server *MessageBrokerServer) subscribeAsync(connection *SystemgeConnection
 	return "", nil
 }
 
-func (server *MessageBrokerServer) subscribeSync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) subscribeSync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -49,7 +49,7 @@ func (server *MessageBrokerServer) subscribeSync(connection *SystemgeConnection.
 	return "", nil
 }
 
-func (server *MessageBrokerServer) unsubscribeAsync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) unsubscribeAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -70,7 +70,7 @@ func (server *MessageBrokerServer) unsubscribeAsync(connection *SystemgeConnecti
 	return "", nil
 }
 
-func (server *MessageBrokerServer) unsubscribeSync(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) unsubscribeSync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	topics := []string{}
 	err := json.Unmarshal([]byte(message.GetPayload()), &topics)
 	if err != nil {
@@ -91,7 +91,7 @@ func (server *MessageBrokerServer) unsubscribeSync(connection *SystemgeConnectio
 	return "", nil
 }
 
-func (server *MessageBrokerServer) handleAsyncPropagate(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) {
+func (server *MessageBrokerServer) handleAsyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for client := range server.asyncTopicSubscriptions[message.GetTopic()] {
@@ -101,7 +101,7 @@ func (server *MessageBrokerServer) handleAsyncPropagate(connection *SystemgeConn
 	}
 }
 
-func (server *MessageBrokerServer) handleSyncPropagate(connection *SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (server *MessageBrokerServer) handleSyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	responseChannels := []<-chan *Message.Message{}
@@ -131,7 +131,7 @@ func (server *MessageBrokerServer) handleSyncPropagate(connection *SystemgeConne
 	return Message.SerializeMessages(responses), nil
 }
 
-func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConnection.SystemgeConnection) error {
+func (server *MessageBrokerServer) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
 	server.asyncConnectionSubscriptions[connection] = make(map[string]bool)
 	server.syncConnectionSubscriptions[connection] = make(map[string]bool)
@@ -140,7 +140,7 @@ func (server *MessageBrokerServer) onSystemgeConnection(connection *SystemgeConn
 	return nil
 }
 
-func (server *MessageBrokerServer) onSystemgeDisconnection(connection *SystemgeConnection.SystemgeConnection) {
+func (server *MessageBrokerServer) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
 	connection.StopProcessingLoop()
 	server.mutex.Lock()
 	for topic := range server.asyncConnectionSubscriptions[connection] {

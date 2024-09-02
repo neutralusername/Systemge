@@ -1,4 +1,4 @@
-package SystemgeConnection
+package TcpConnection
 
 import (
 	"github.com/neutralusername/Systemge/Error"
@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *SystemgeConnection) receiveLoop() {
+func (connection *TcpConnection) receiveLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
@@ -105,7 +105,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 	}
 }
 
-func (connection *SystemgeConnection) validateMessage(message *Message.Message) error {
+func (connection *TcpConnection) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}

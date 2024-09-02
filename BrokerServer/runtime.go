@@ -1,6 +1,8 @@
 package BrokerServer
 
-import "github.com/neutralusername/Systemge/SystemgeConnection"
+import (
+	"github.com/neutralusername/Systemge/SystemgeConnection"
+)
 
 func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
 	server.mutex.Lock()
@@ -8,7 +10,7 @@ func (server *MessageBrokerServer) AddAsyncTopics(topics []string) {
 	for _, topic := range topics {
 		server.messageHandler.AddAsyncMessageHandler(topic, server.handleAsyncPropagate)
 		if server.asyncTopicSubscriptions[topic] == nil {
-			server.asyncTopicSubscriptions[topic] = make(map[*SystemgeConnection.SystemgeConnection]bool)
+			server.asyncTopicSubscriptions[topic] = make(map[SystemgeConnection.SystemgeConnection]bool)
 		}
 	}
 }
@@ -19,7 +21,7 @@ func (server *MessageBrokerServer) AddSyncTopics(topics []string) {
 	for _, topic := range topics {
 		server.messageHandler.AddSyncMessageHandler(topic, server.handleSyncPropagate)
 		if server.syncTopicSubscriptions[topic] == nil {
-			server.syncTopicSubscriptions[topic] = make(map[*SystemgeConnection.SystemgeConnection]bool)
+			server.syncTopicSubscriptions[topic] = make(map[SystemgeConnection.SystemgeConnection]bool)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package SystemgeListener
+package TcpListener
 
 func (listener *SystemgeListener) GetConnectionAttempts() uint64 {
 	return listener.connectionAttempts.Load()

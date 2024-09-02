@@ -2,7 +2,7 @@ package SystemgeServer
 
 import (
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
 func (server *SystemgeServer) handleConnections() {
@@ -57,7 +57,7 @@ func (server *SystemgeServer) handleConnections() {
 	}
 }
 
-func (server *SystemgeServer) acceptNextConnection() (*SystemgeConnection.SystemgeConnection, error) {
+func (server *SystemgeServer) acceptNextConnection() (*TcpConnection.TcpConnection, error) {
 	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
 	if err != nil {
 		return nil, Error.New("failed to accept connection", err)
