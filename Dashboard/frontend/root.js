@@ -131,7 +131,6 @@ export class root extends React.Component {
 
     handleMessage(event) {
         let message = JSON.parse(event.data);
-        console.log(message)
         switch (message.topic) {
             case "error":
             case "responseMessage":
