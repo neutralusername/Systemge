@@ -22,7 +22,7 @@ func (server *SystemgeServer) handleConnections() {
 		default:
 			connection, err := server.acceptNextConnection()
 			if err != nil {
-				// the issue when stopping lies here. once the listener is closed, it fails, reduces the waitgroup to nil.
+				// the issue when stopping lies here. once the listener is closed, it fails, reduces the waitgroup to 0.
 				// what can then happen is, that the .Stop goroutine proceeds further until stopChannel and listener are set to nil.
 				// when the loop in this function then continues to the next iteration, stopChannel will be nil and so default case will be selected again which then causes the panic
 				server.waitGroup.Done()
