@@ -33,7 +33,8 @@ type Client struct {
 
 	dashboardClient *Dashboard.DashboardClient
 
-	ongoingTopicResolutions map[string]*resolutionAttempt
+	ongoingTopicResolutions     map[string]*resolutionAttempt
+	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
 
 	brokerConnections map[string]*connection            // endpointString -> connection
 	topicResolutions  map[string]map[string]*connection // topic -> [endpointString -> connection]
@@ -74,6 +75,8 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		topicResolutions: make(map[string]map[string]*connection),
 
 		brokerConnections: make(map[string]*connection),
+
+		ongoingGetBrokerConnections: make(map[string]*getBrokerConnectionAttempt),
 
 		subscribedAsyncTopics: make(map[string]bool),
 		subscribedSyncTopics:  make(map[string]bool),
