@@ -12,8 +12,6 @@ type resolutionAttempt struct {
 	connections map[string]*connection
 }
 
-var counter int
-
 func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) (*resolutionAttempt, error) {
 	if stopChannel != messageBrokerClient.stopChannel {
 		return nil, Error.New("Aborted because resolution attempt belongs to outdated session", nil)
@@ -21,7 +19,6 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
 
-	counter++
 	if resolutionAttempt := messageBrokerClient.ongoingTopicResolutions[topic]; resolutionAttempt != nil {
 		return resolutionAttempt, nil
 	}
@@ -94,7 +91,6 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 	close(resolutionAttempt.ongoing)
 	messageBrokerClient.mutex.Unlock()
 	messageBrokerClient.waitGroup.Done()
-	counter--
 
 	go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.topic, resolutionAttempt.isSyncTopic, stopChannel)
 }
