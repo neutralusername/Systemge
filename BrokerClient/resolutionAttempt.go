@@ -86,16 +86,17 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to get connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to get connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
 					}
 				}
 			}
 		}
+		//unsafe
 		if resolutionAttempt.isSyncTopic {
 			conn.responsibleSyncTopics[resolutionAttempt.topic] = true
 		} else {
