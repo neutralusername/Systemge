@@ -51,15 +51,19 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 					}
 				}
 			}
+			continue
 		}
-		//unsafe
+		messageBrokerClient.mutex.Lock()
 		if resolutionAttempt.isSyncTopic {
 			conn.responsibleSyncTopics[resolutionAttempt.topic] = true
 		} else {
 			conn.responsibleAsyncTopics[resolutionAttempt.topic] = true
 		}
 		connections[getEndpointString(endpoint)] = conn
-		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
+		isSubscribeTopic := (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic])
+		messageBrokerClient.mutex.Unlock()
+
+		if isSubscribeTopic {
 			messageBrokerClient.subscribeToTopic(conn, resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 		}
 	}
