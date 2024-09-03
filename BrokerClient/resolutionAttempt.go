@@ -50,7 +50,7 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	return nil
 }
 
-func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClient) (*connection, error) {
+func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClient, stopChannel chan bool) (*connection, error) {
 	// bug -> connection to the same endpoint may be established multiple times concurrently as of now
 	messageBrokerClient.mutex.Lock()
 	conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
@@ -66,6 +66,10 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 			responsibleAsyncTopics: make(map[string]bool),
 			responsibleSyncTopics:  make(map[string]bool),
 		}
+		messageBrokerClient.mutex.Lock()
+		messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
+		go messageBrokerClient.handleConnectionLifetime(conn, stopChannel)
+		messageBrokerClient.mutex.Unlock()
 	}
 	return conn, nil
 }
@@ -79,7 +83,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 	}
 	connections := map[string]*connection{}
 	for _, endpoint := range endpoints {
-		conn, err := messageBrokerClient.getBrokerConnection(endpoint)
+		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
@@ -92,7 +96,6 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 				}
 			}
 		}
-
 		if resolutionAttempt.isSyncTopic {
 			conn.responsibleSyncTopics[resolutionAttempt.topic] = true
 		} else {
@@ -102,12 +105,6 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 		if (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic]) {
 			messageBrokerClient.subscribeToTopic(conn, resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 		}
-		messageBrokerClient.mutex.Lock()
-		if messageBrokerClient.brokerConnections[getEndpointString(endpoint)] == nil {
-			messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
-			go messageBrokerClient.handleConnectionLifetime(conn, stopChannel)
-		}
-		messageBrokerClient.mutex.Unlock()
 	}
 
 	messageBrokerClient.mutex.Lock()
