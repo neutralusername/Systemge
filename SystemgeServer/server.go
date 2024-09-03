@@ -93,7 +93,7 @@ func (server *SystemgeServer) Start() error {
 	}
 	server.listener = listener
 	server.stopChannel = make(chan bool)
-	go server.handleConnections()
+	go server.handleConnections(server.stopChannel)
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server started")
@@ -115,16 +115,15 @@ func (server *SystemgeServer) Stop() error {
 
 	close(server.stopChannel)
 	server.listener.Close()
+	server.waitGroup.Wait()
+	server.stopChannel = nil
+	server.listener = nil
 
 	server.mutex.Lock()
 	for _, connection := range server.clients {
 		connection.Close()
 	}
 	server.mutex.Unlock()
-
-	server.waitGroup.Wait()
-	server.stopChannel = nil
-	server.listener = nil
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server stopped")

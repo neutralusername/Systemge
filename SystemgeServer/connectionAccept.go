@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) handleConnections() {
+func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("connection handler started")
 	}
@@ -13,7 +13,7 @@ func (server *SystemgeServer) handleConnections() {
 	for {
 		server.waitGroup.Add(1)
 		select {
-		case <-server.stopChannel:
+		case <-stopChannel:
 			if server.infoLogger != nil {
 				server.infoLogger.Log("connection handler stopped")
 			}
@@ -22,9 +22,6 @@ func (server *SystemgeServer) handleConnections() {
 		default:
 			connection, err := server.acceptNextConnection()
 			if err != nil {
-				// the issue when stopping lies here. once the listener is closed, it fails, reduces the waitgroup to 0.
-				// what can then happen is, that the .Stop goroutine proceeds further until stopChannel and listener are set to nil.
-				// when the loop in this function then continues to the next iteration, stopChannel will be nil and so default case will be selected again which then causes the panic
 				server.waitGroup.Done()
 				if server.warningLogger != nil {
 					server.warningLogger.Log(err.Error())
