@@ -155,7 +155,6 @@ func (messageBrokerClient *Client) Start() error {
 		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 		<-resolutionAttempt.ongoing
 	}
-
 	messageBrokerClient.status = Status.STARTED
 	return nil
 }
