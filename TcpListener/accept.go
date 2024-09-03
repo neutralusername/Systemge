@@ -48,9 +48,16 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 }
 
 func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
-	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
+	tcpBufferBytes := connectionConfig.TcpBufferBytes
+	if tcpBufferBytes == 0 {
+		tcpBufferBytes = 1024 * 4
+	}
+	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, tcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	if len(messageBytes) == 0 {
+		return nil, Error.New("Received empty message", nil)
 	}
 	messageBytes = messageBytes[:len(messageBytes)-1]
 	message, err := Message.Deserialize(messageBytes, "")

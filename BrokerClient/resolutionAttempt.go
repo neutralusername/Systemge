@@ -1,6 +1,7 @@
 package BrokerClient
 
 import (
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
@@ -49,39 +50,49 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	return nil
 }
 
+func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClient) (*connection, error) {
+	// bug -> connection to the same endpoint may be established multiple times concurrently as of now
+	messageBrokerClient.mutex.Lock()
+	conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
+	messageBrokerClient.mutex.Unlock()
+	if conn == nil {
+		systemgeConnection, err := TcpConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+		if err != nil {
+			return nil, err
+		}
+		conn = &connection{
+			connection:             systemgeConnection,
+			endpoint:               endpoint,
+			responsibleAsyncTopics: make(map[string]bool),
+			responsibleSyncTopics:  make(map[string]bool),
+		}
+	}
+	return conn, nil
+}
+
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
 
-	endpoints, err := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic)
+	endpoints, err := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 	if err != nil {
 		resolutionAttempt.err = Error.New("Failed to resolve broker endpoints", err)
 		return
 	}
-
 	connections := map[string]*connection{}
 	for _, endpoint := range endpoints {
-		conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]
-		if conn == nil {
-			systemgeConnection, err := TcpConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
-			if err != nil {
-				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
-				}
-				if messageBrokerClient.mailer != nil {
-					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
-						if messageBrokerClient.errorLogger != nil {
-							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-						}
+		conn, err := messageBrokerClient.getBrokerConnection(endpoint)
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
+			}
+			if messageBrokerClient.mailer != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to establish connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
+					if messageBrokerClient.errorLogger != nil {
+						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
 					}
 				}
-				continue
-			}
-			conn = &connection{
-				connection:             systemgeConnection,
-				endpoint:               endpoint,
-				responsibleAsyncTopics: make(map[string]bool),
-				responsibleSyncTopics:  make(map[string]bool),
 			}
 		}
+
 		if resolutionAttempt.isSyncTopic {
 			conn.responsibleSyncTopics[resolutionAttempt.topic] = true
 		} else {
