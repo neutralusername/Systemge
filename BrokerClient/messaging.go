@@ -7,10 +7,9 @@ import (
 )
 
 func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
-	messageBrokerClient.mutex.Lock()
-	defer messageBrokerClient.mutex.Unlock()
+	connections, err := messageBrokerClient.getTopicResolutions(topic)
 
-	for _, connection := range messageBrokerClient.topicResolutions[topic] {
+	for _, connection := range connections {
 		err := connection.connection.AsyncMessage(topic, payload)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
@@ -28,11 +27,10 @@ func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 }
 
 func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*Message.Message {
-	messageBrokerClient.mutex.Lock()
-	defer messageBrokerClient.mutex.Unlock()
+	connections, err := messageBrokerClient.getTopicResolutions(topic)
 
 	responses := []*Message.Message{}
-	for _, connection := range messageBrokerClient.topicResolutions[topic] {
+	for _, connection := range connections {
 		response, err := connection.connection.SyncRequestBlocking(topic, payload)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
