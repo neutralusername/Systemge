@@ -153,13 +153,13 @@ func (app *DashboardServer) Start() error {
 	}
 
 	app.status = Status.STARTED
+	if app.config.StatusUpdateIntervalMs > 0 {
+		app.waitGroup.Add(1)
+		go app.statusUpdateRoutine()
+	}
 	if app.config.GoroutineUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
 		app.waitGroup.Add(1)
 		go app.goroutineUpdateRoutine()
-	}
-	if app.config.StatusUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
-		app.waitGroup.Add(1)
-		go app.statusUpdateRoutine()
 	}
 	if app.config.HeapUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
 		app.waitGroup.Add(1)
