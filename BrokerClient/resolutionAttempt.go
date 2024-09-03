@@ -41,6 +41,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 	for _, endpoint := range endpoints {
 		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
 		if err != nil {
+			// fix situation where connection to subscribe topic broker fails and is never re-attempted
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to get connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
 			}
