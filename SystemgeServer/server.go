@@ -115,15 +115,16 @@ func (server *SystemgeServer) Stop() error {
 
 	close(server.stopChannel)
 	server.listener.Close()
-	server.waitGroup.Wait()
-	server.stopChannel = nil
-	server.listener = nil
 
 	server.mutex.Lock()
 	for _, connection := range server.clients {
 		connection.Close()
 	}
 	server.mutex.Unlock()
+
+	server.waitGroup.Wait()
+	server.stopChannel = nil
+	server.listener = nil
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server stopped")
