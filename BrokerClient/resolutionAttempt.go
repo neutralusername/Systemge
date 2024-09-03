@@ -9,19 +9,18 @@ type resolutionAttempt struct {
 	topic       string
 	isSyncTopic bool
 	ongoing     chan bool
-	err         error
+	connections map[string]*connection
 }
 
-func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) error {
+func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) (*resolutionAttempt, error) {
 	if stopChannel != messageBrokerClient.stopChannel {
-		return Error.New("Aborted because resolution attempt is from previous session", nil)
+		return nil, Error.New("Aborted because resolution attempt belongs to outdated session", nil)
 	}
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
 	messageBrokerClient.waitGroup.Add(1)
 	if resolutionAttempt := messageBrokerClient.ongoingTopicResolutions[topic]; resolutionAttempt != nil {
-		<-resolutionAttempt.ongoing
-		return resolutionAttempt.err
+		return resolutionAttempt, nil
 	}
 	resolutionAttempt := &resolutionAttempt{
 		ongoing:     make(chan bool),
@@ -32,28 +31,12 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 
 	go func() {
 		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
-		if resolutionAttempt.err != nil {
-			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to resolve connection", resolutionAttempt.err).Error())
-			}
-			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to resolve connection", resolutionAttempt.err).Error())); err != nil {
-					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-					}
-				}
-			}
-		}
 	}()
-	return nil
+	return resolutionAttempt, nil
 }
 
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
-	endpoints, err := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
-	if err != nil {
-		resolutionAttempt.err = Error.New("Failed to resolve broker endpoints", err)
-		return
-	}
+	endpoints := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 	connections := map[string]*connection{}
 	for _, endpoint := range endpoints {
 		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
@@ -96,6 +79,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 		}
 	}
 	messageBrokerClient.topicResolutions[resolutionAttempt.topic] = connections
+	resolutionAttempt.connections = connections
 
 	delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 	close(resolutionAttempt.ongoing)

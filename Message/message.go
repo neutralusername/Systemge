@@ -155,7 +155,7 @@ func DeserializeMessages(bytes []byte) ([]*Message, error) {
 }
 
 func SerializeMessages(messages []*Message) string {
-	messagesSerialized := make([]string, len(messages))
+	messagesSerialized := make([]string, 0)
 	for _, message := range messages {
 		messagesSerialized = append(messagesSerialized, string(message.Serialize()))
 	}

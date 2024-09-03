@@ -38,6 +38,7 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 
 		return nil, err
 	}
+	systemgeConnection.StartProcessingLoopConcurrently(messageBrokerClient.messageHandler)
 	conn := &connection{
 		connection:             systemgeConnection,
 		endpoint:               endpoint,

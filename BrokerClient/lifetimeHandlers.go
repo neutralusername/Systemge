@@ -3,9 +3,7 @@ package BrokerClient
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (messageBrokerClient *Client) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
@@ -37,34 +35,10 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 			return
 		}
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
-			err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
-			if err != nil {
-				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to restart resolution attempt for topic \""+topic+"\"", err).Error())
-				}
-				if messageBrokerClient.mailer != nil {
-					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to restart resolution attempt", err).Error())); err != nil {
-						if messageBrokerClient.errorLogger != nil {
-							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-						}
-					}
-				}
-			}
+			messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
-			err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
-			if err != nil {
-				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to restart resolution attempt for topic \""+topic+"\"", err).Error())
-				}
-				if messageBrokerClient.mailer != nil {
-					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to restart resolution attempt", err).Error())); err != nil {
-						if messageBrokerClient.errorLogger != nil {
-							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-						}
-					}
-				}
-			}
+			messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 		}
 		messageBrokerClient.statusMutex.Unlock()
 	case <-stopChannel:
@@ -95,19 +69,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 				messageBrokerClient.statusMutex.Unlock()
 				return
 			}
-			err := messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel)
-			if err != nil {
-				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to restart resolution attempt for topic \""+topic+"\"", err).Error())
-				}
-				if messageBrokerClient.mailer != nil {
-					if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to restart resolution attempt", err).Error())); err != nil {
-						if messageBrokerClient.errorLogger != nil {
-							messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-						}
-					}
-				}
-			}
+			messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel)
 			messageBrokerClient.statusMutex.Unlock()
 		} else {
 			messageBrokerClient.mutex.Lock()

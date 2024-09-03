@@ -14,7 +14,6 @@ func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConne
 	if err != nil {
 		return "", err
 	}
-
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
@@ -102,8 +101,9 @@ func (server *Server) handleAsyncPropagate(connection SystemgeConnection.Systemg
 }
 
 func (server *Server) handleSyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+
 	server.mutex.Lock()
-	defer server.mutex.Unlock()
+	// todo: fix mutex hogging
 	responseChannels := []<-chan *Message.Message{}
 	for client := range server.syncTopicSubscriptions[message.GetTopic()] {
 		if client != connection {
@@ -117,6 +117,8 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 			responseChannels = append(responseChannels, responseChannel)
 		}
 	}
+	server.mutex.Unlock()
+
 	responses := []*Message.Message{}
 	for _, responseChannel := range responseChannels {
 		response := <-responseChannel
@@ -127,7 +129,6 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 	if len(responses) == 0 {
 		return "", Error.New("no responses", nil)
 	}
-
 	return Message.SerializeMessages(responses), nil
 }
 

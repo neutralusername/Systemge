@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTopic bool) ([]*Config.TcpClient, error) {
+func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTopic bool) []*Config.TcpClient {
 	endpoints := []*Config.TcpClient{}
 	for _, resolverEndpoint := range messageBrokerclient.config.ResolverClientConfigs {
 		resolverConnection, err := TcpConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
@@ -48,5 +48,5 @@ func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTo
 		}
 		endpoints = append(endpoints, endpoint)
 	}
-	return endpoints, nil
+	return endpoints
 }

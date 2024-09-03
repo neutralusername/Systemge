@@ -148,18 +148,12 @@ func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.stopChannel = stopChannel
 
 	for topic := range messageBrokerClient.subscribedAsyncTopics {
-		err := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
-		if err != nil {
-			messageBrokerClient.stop()
-			return err
-		}
+		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
+		<-resolutionAttempt.ongoing
 	}
 	for topic := range messageBrokerClient.subscribedSyncTopics {
-		err := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
-		if err != nil {
-			messageBrokerClient.stop()
-			return err
-		}
+		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
+		<-resolutionAttempt.ongoing
 	}
 
 	messageBrokerClient.status = Status.STARTED
