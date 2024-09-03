@@ -215,6 +215,9 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection SystemgeConnecti
 	app.mutex.Lock()
 	app.registerModuleHttpHandlers(client)
 	app.clients[client.Name] = client
+	if client.Metrics == nil {
+		client.Metrics = map[string]uint64{}
+	}
 	app.mutex.Unlock()
 	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
