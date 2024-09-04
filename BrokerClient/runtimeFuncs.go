@@ -42,45 +42,29 @@ func (messageBrokerClient *Client) ResolveTopic(topic string) error {
 }
 
 func (messageBrokerClient *Client) AddAsyncSubscribeTopic(topic string) error {
-	messageBrokerClient.statusMutex.Lock()
-	if messageBrokerClient.status != Status.STARTED {
-		messageBrokerClient.statusMutex.Unlock()
-		return Error.New("Client is not started", nil)
-	}
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
 	messageBrokerClient.subscribedAsyncTopics[topic] = true
-	messageBrokerClient.statusMutex.Unlock()
 	return nil
 }
 
 func (messageBrokerClient *Client) AddSyncSubscribeTopic(topic string) error {
-	messageBrokerClient.statusMutex.Lock()
-	if messageBrokerClient.status != Status.STARTED {
-		messageBrokerClient.statusMutex.Unlock()
-		return Error.New("Client is not started", nil)
-	}
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
 	messageBrokerClient.subscribedSyncTopics[topic] = true
-	messageBrokerClient.statusMutex.Unlock()
 	return nil
 }
 
 func (messageBrokerClient *Client) RemoveAsyncSubscribeTopic(topic string) error {
-	messageBrokerClient.statusMutex.Lock()
-	if messageBrokerClient.status != Status.STARTED {
-		messageBrokerClient.statusMutex.Unlock()
-		return Error.New("Client is not started", nil)
-	}
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
 	delete(messageBrokerClient.subscribedAsyncTopics, topic)
-	messageBrokerClient.statusMutex.Unlock()
 	return nil
 }
 
 func (messageBrokerClient *Client) RemoveSyncSubscribeTopic(topic string) error {
-	messageBrokerClient.statusMutex.Lock()
-	if messageBrokerClient.status != Status.STARTED {
-		messageBrokerClient.statusMutex.Unlock()
-		return Error.New("Client is not started", nil)
-	}
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
 	delete(messageBrokerClient.subscribedSyncTopics, topic)
-	messageBrokerClient.statusMutex.Unlock()
 	return nil
 }
