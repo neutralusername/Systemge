@@ -103,33 +103,24 @@ func (server *Server) handleAsyncPropagate(connection SystemgeConnection.Systemg
 func (server *Server) handleSyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 
 	server.mutex.Lock()
+	// todo: fix mutex hogging
 	responseChannels := []<-chan *Message.Message{}
-	done := make(chan bool)
 	for client := range server.syncTopicSubscriptions[message.GetTopic()] {
 		if client != connection {
-			go func(client SystemgeConnection.SystemgeConnection) {
-				responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
-				if err != nil {
-					if server.warningLogger != nil {
-						server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
-					}
-					responseChannels = append(responseChannels, nil)
+			responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
+			if err != nil {
+				if server.warningLogger != nil {
+					server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
 				}
-				responseChannels = append(responseChannels, responseChannel)
-				if len(responseChannels) == len(server.syncTopicSubscriptions[message.GetTopic()])-1 {
-					done <- true
-				}
-			}(client)
+				continue
+			}
+			responseChannels = append(responseChannels, responseChannel)
 		}
 	}
 	server.mutex.Unlock()
-	<-done
 
 	responses := []*Message.Message{}
 	for _, responseChannel := range responseChannels {
-		if responseChannel == nil {
-			continue
-		}
 		response := <-responseChannel
 		if response != nil {
 			responses = append(responses, response)
