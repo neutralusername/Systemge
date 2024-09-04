@@ -1,3 +1,3 @@
 find exact reason for the ram spikes (something todo w restarting) - DONE - reason was, i never closed the connection when the client stopped...
 
-there is some other or related issue that causes ram spikes more rarely - issue can be replicated by repeated brokerServer restarts (previously by brokerClient restarts and more frequently)
+there is some other or related issue that causes ram spikes more rarely
