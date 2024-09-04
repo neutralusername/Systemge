@@ -110,17 +110,16 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 		if client != connection {
 			waitgroup.Add(1)
 			go func(client SystemgeConnection.SystemgeConnection) {
+				defer waitgroup.Done()
 				responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
 				if err != nil {
 					if server.warningLogger != nil {
 						server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
 					}
 					responseChannels = append(responseChannels, nil)
-					waitgroup.Done()
 					return
 				}
 				responseChannels = append(responseChannels, responseChannel)
-				waitgroup.Done()
 			}(client)
 		}
 	}
