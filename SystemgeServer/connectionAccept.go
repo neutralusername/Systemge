@@ -30,11 +30,9 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			}
 			go func() {
 				<-connection.GetCloseChannel()
-
 				server.mutex.Lock()
 				delete(server.clients, connection.GetName())
 				server.mutex.Unlock()
-
 				if server.onDisconnectHandler != nil {
 					server.onDisconnectHandler(connection)
 				}

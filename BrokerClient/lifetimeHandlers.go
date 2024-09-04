@@ -43,6 +43,7 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 		}
 		messageBrokerClient.statusMutex.Unlock()
 	case <-stopChannel:
+		connection.connection.Close()
 		connection.connection.StopProcessingLoop()
 		messageBrokerClient.mutex.Lock()
 		for topic := range connection.responsibleAsyncTopics {
