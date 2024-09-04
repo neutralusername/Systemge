@@ -2,6 +2,7 @@ package BrokerServer
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
@@ -103,24 +104,34 @@ func (server *Server) handleAsyncPropagate(connection SystemgeConnection.Systemg
 func (server *Server) handleSyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 
 	server.mutex.Lock()
-	// todo: fix mutex hogging
 	responseChannels := []<-chan *Message.Message{}
+	waitgroup := sync.WaitGroup{}
 	for client := range server.syncTopicSubscriptions[message.GetTopic()] {
 		if client != connection {
-			responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
-			if err != nil {
-				if server.warningLogger != nil {
-					server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
+			waitgroup.Add(1)
+			go func(client SystemgeConnection.SystemgeConnection) {
+				responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
+				if err != nil {
+					if server.warningLogger != nil {
+						server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
+					}
+					responseChannels = append(responseChannels, nil)
+					waitgroup.Done()
+					return
 				}
-				continue
-			}
-			responseChannels = append(responseChannels, responseChannel)
+				responseChannels = append(responseChannels, responseChannel)
+				waitgroup.Done()
+			}(client)
 		}
 	}
 	server.mutex.Unlock()
+	waitgroup.Wait()
 
 	responses := []*Message.Message{}
 	for _, responseChannel := range responseChannels {
+		if responseChannel == nil {
+			continue
+		}
 		response := <-responseChannel
 		if response != nil {
 			responses = append(responses, response)
