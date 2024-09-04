@@ -116,7 +116,6 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 					if server.warningLogger != nil {
 						server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
 					}
-					responseChannels = append(responseChannels, nil)
 					return
 				}
 				responseChannels = append(responseChannels, responseChannel)
@@ -128,9 +127,6 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 
 	responses := []*Message.Message{}
 	for _, responseChannel := range responseChannels {
-		if responseChannel == nil {
-			continue
-		}
 		response := <-responseChannel
 		if response != nil {
 			responses = append(responses, response)
@@ -154,6 +150,7 @@ func (server *Server) onSystemgeConnection(connection SystemgeConnection.Systemg
 func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
 	connection.StopProcessingLoop()
 	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	for topic := range server.asyncConnectionSubscriptions[connection] {
 		delete(server.asyncTopicSubscriptions[topic], connection)
 	}
@@ -162,5 +159,5 @@ func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.Syst
 		delete(server.syncTopicSubscriptions[topic], connection)
 	}
 	delete(server.syncConnectionSubscriptions, connection)
-	server.mutex.Unlock()
+
 }
