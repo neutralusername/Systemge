@@ -122,6 +122,7 @@ func (server *SystemgeServer) Stop() error {
 	}
 	server.mutex.Unlock()
 
+	// rare race condition that causes panic code line below - panic: sync: WaitGroup is reused before previous Wait has returned
 	server.waitGroup.Wait()
 	server.stopChannel = nil
 	server.listener = nil

@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func EstablishConnection(config *Config.TcpConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
@@ -27,7 +28,7 @@ func EstablishConnection(config *Config.TcpConnection, endpointConfig *Config.Tc
 }
 
 func clientHandshake(config *Config.TcpConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
-	connection := New("", config, netConn)
+	connection := New(clientName+"_connectionAttempt", config, netConn)
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
@@ -52,5 +53,14 @@ func clientHandshake(config *Config.TcpConnection, clientName string, maxServerN
 		return nil, Error.New("Server did not respond with a name", nil)
 	}
 	connection.name = name
+	if config.InfoLoggerPath != "" {
+		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		connection.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		connection.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
+	}
 	return connection, nil
 }
