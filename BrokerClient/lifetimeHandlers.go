@@ -36,10 +36,10 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 			return
 		}
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
-			messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
+			messageBrokerClient.startResolutionAttempt(topic, false, stopChannel, true)
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
-			messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
+			messageBrokerClient.startResolutionAttempt(topic, true, stopChannel, true)
 		}
 		messageBrokerClient.statusMutex.Unlock()
 	case <-stopChannel:
@@ -72,7 +72,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 				messageBrokerClient.statusMutex.Unlock()
 				return
 			}
-			messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel)
+			messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel, true)
 			messageBrokerClient.statusMutex.Unlock()
 		} else {
 			messageBrokerClient.mutex.Lock()

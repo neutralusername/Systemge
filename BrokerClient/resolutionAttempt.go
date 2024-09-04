@@ -12,7 +12,7 @@ type resolutionAttempt struct {
 	connections map[string]*connection
 }
 
-func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) (*resolutionAttempt, error) {
+func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool, subscribe bool) (*resolutionAttempt, error) {
 	if stopChannel != messageBrokerClient.stopChannel {
 		return nil, Error.New("Aborted because resolution attempt belongs to outdated session", nil)
 	}
@@ -30,18 +30,17 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	go func() {
-		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
+		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel, subscribe)
 	}()
 	return resolutionAttempt, nil
 }
 
-func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
+func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool, subscribe bool) {
 	endpoints := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 	connections := map[string]*connection{}
 	for _, endpoint := range endpoints {
 		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
 		if err != nil {
-			// fix situation where connection to subscribe topic broker fails and is never re-attempted
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to get connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
 			}
@@ -61,10 +60,9 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 			conn.responsibleAsyncTopics[resolutionAttempt.topic] = true
 		}
 		connections[getEndpointString(endpoint)] = conn
-		isSubscribeTopic := (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic])
 		messageBrokerClient.mutex.Unlock()
 
-		if isSubscribeTopic {
+		if subscribe {
 			messageBrokerClient.subscribeToTopic(conn, resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 		}
 	}
