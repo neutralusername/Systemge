@@ -163,13 +163,17 @@ func (server *Server) GetStatus() int {
 
 func (server *Server) GetMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
-	metrics["asyncMessagesReceived"] = server.RetrieveAsyncMessagesPropagated()
-	metrics["asyncMessagesPropagated"] = server.RetrieveAsyncMessagesPropagated()
-	metrics["syncRequestsReceived"] = server.RetrieveSyncRequestsReceived()
-	metrics["syncRequestsPropagated"] = server.RetrieveSyncRequestsPropagated()
-	metrics["connectionCount"] = uint64(len(server.connectionAsyncSubscriptions))
-	metrics["asyncTopicCount"] = uint64(len(server.asyncTopicSubscriptions))
-	metrics["syncTopicCount"] = uint64(len(server.syncTopicSubscriptions))
+	metrics["async_messages_received"] = server.RetrieveAsyncMessagesPropagated()
+	metrics["async_messages_propagated"] = server.RetrieveAsyncMessagesPropagated()
+	metrics["sync_requests_received"] = server.RetrieveSyncRequestsReceived()
+	metrics["sync_requests_propagated"] = server.RetrieveSyncRequestsPropagated()
+	metrics["connection_count"] = uint64(len(server.connectionAsyncSubscriptions))
+	metrics["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
+	metrics["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
+	systemgeServerMetrics := server.systemgeServer.GetMetrics()
+	for key, value := range systemgeServerMetrics {
+		metrics[key] = value
+	}
 	return metrics
 }
 
