@@ -1,6 +1,6 @@
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
-integrate "password" in some form into the dashboard#
+integrate "password" in some form into the dashboard
 
 add access control commands to broker structs
 
@@ -11,3 +11,4 @@ consider adding PipeConnection and PipeListener as more performant alternative f
 
 add some functionality that supports running systemge-apps in the background while allowing to execute commands through the terminal 
 
+add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
