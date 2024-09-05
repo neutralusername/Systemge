@@ -27,20 +27,19 @@ type MessageBrokerClient struct {
 
 	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *optional* (it is a valid choice to leave this nil and initialize your own DashboardClient)
 
-	ResolverClientConfigs []*TcpClient `json:"resolverClientConfigs"` // *required*
+	ResolverClientConfigs []*TcpClient `json:"resolverClientConfigs"`
 
 	TopicResolutionLifetimeMs uint64 `json:"outTopicResolutionLifetimeMs"` // default: 0 == until disconnect
 
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxServerNameLength int `json:"maxServerNameLength"` // *required*
+	MaxServerNameLength int `json:"maxServerNameLength"` // *optional*
 
-	AsyncTopics []string `json:"asyncTopics"` // *required*
-	SyncTopics  []string `json:"syncTopics"`  // *required*
-
+	AsyncTopics []string `json:"asyncTopics"`
+	SyncTopics  []string `json:"syncTopics"`
 }
 
 func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
