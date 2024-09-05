@@ -4,19 +4,20 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 type TokenSemaphore struct {
 	acquiredTokens map[string]bool // token -> isAcquired
 	channel        chan string
 	mutex          sync.Mutex
+	randomizer     *Randomizer
 }
 
-func NewTokenSemaphore(poolSize int) *TokenSemaphore {
+func NewTokenSemaphore(poolSize int, randomizerSeed int64) *TokenSemaphore {
+	randomizer := NewRandomizer(randomizerSeed)
 	tokens := make([]string, poolSize)
 	for i := 0; i < poolSize; i++ {
-		tokens[i] = GenerateRandomString(18, Tools.ALPHA_NUMERIC)
+		tokens[i] = randomizer.GenerateRandomString(18, ALPHA_NUMERIC)
 	}
 	channel := make(chan string, poolSize)
 	for _, token := range tokens {
@@ -25,6 +26,7 @@ func NewTokenSemaphore(poolSize int) *TokenSemaphore {
 	return &TokenSemaphore{
 		acquiredTokens: make(map[string]bool),
 		channel:        channel,
+		randomizer:     randomizer,
 	}
 }
 
@@ -44,6 +46,6 @@ func (s *TokenSemaphore) ReturnToken(token string) error {
 		return Error.New("Token is not valid", nil)
 	}
 	delete(s.acquiredTokens, token)
-	s.channel <- GenerateRandomString(18, Tools.ALPHA_NUMERIC)
+	s.channel <- s.randomizer.GenerateRandomString(18, ALPHA_NUMERIC)
 	return nil
 }
