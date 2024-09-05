@@ -49,7 +49,7 @@ func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer 
 		whitelist: Tools.NewAccessControlList(config.TcpServerConfig.Whitelist),
 	}
 	for pattern, handler := range handlers {
-		server.mux.AddRoute(pattern, server.httpRequestWrapper(handler))
+		server.AddRoute(pattern, handler)
 	}
 	if config.ErrorLoggerPath != "" {
 		file := Helpers.OpenFileAppend(config.ErrorLoggerPath)
@@ -156,7 +156,7 @@ func (server *HTTPServer) GetHTTPRequestCounter() uint64 {
 }
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
-	server.mux.AddRoute(pattern, handlerFunc)
+	server.mux.AddRoute(pattern, server.httpRequestWrapper(handlerFunc))
 }
 
 func (server *HTTPServer) RemoveRoute(pattern string) {
