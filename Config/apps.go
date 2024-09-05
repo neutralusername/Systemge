@@ -51,6 +51,4 @@ func UnmarshalCommandClient(data string) *RemoteCommand {
 
 type CommandServer struct {
 	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
-
-	MaxClientNameLength int `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }

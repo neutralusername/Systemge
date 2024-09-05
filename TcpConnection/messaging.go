@@ -9,7 +9,14 @@ import (
 )
 
 func (connection *TcpConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
-
+	var response *Message.Message
+	if success {
+		response = message.NewSuccessResponse(payload)
+	} else {
+		response = message.NewFailureResponse(payload)
+	}
+	connection.asyncMessagesSent.Add(1)
+	return connection.send(response.Serialize())
 }
 
 func (connection *TcpConnection) AsyncMessage(topic, payload string) error {
