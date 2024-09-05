@@ -9,6 +9,12 @@ import (
 )
 
 func (connection *TcpConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
+	if message == nil {
+		return Error.New("Message is nil", nil)
+	}
+	if message.GetSyncToken() == "" {
+		return Error.New("SyncToken is empty", nil)
+	}
 	var response *Message.Message
 	if success {
 		response = message.NewSuccessResponse(payload)
