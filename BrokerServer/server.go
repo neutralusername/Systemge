@@ -170,7 +170,7 @@ func (server *Server) GetMetrics() map[string]uint64 {
 	metrics["connection_count"] = uint64(len(server.connectionAsyncSubscriptions))
 	metrics["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
 	metrics["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
-	systemgeServerMetrics := server.systemgeServer.GetMetrics()
+	systemgeServerMetrics := server.systemgeServer.RetrieveMetrics()
 	for key, value := range systemgeServerMetrics {
 		metrics[key] = value
 	}

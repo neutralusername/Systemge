@@ -208,7 +208,7 @@ func (resolver *Resolver) GetMetrics() map[string]uint64 {
 	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
 	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
 	resolver.mutex.Unlock()
-	serverMetrics := resolver.systemgeServer.GetMetrics()
+	serverMetrics := resolver.systemgeServer.RetrieveMetrics()
 	for key, value := range serverMetrics {
 		metrics[key] = value
 	}
