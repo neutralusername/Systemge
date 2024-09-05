@@ -6,13 +6,13 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 )
 
-type Semaphore struct {
+type TokenSemaphore struct {
 	tokens  map[string]bool // token -> isAcquired
 	channel chan string
 	mutex   sync.Mutex
 }
 
-func NewSemaphore(pool []string) *Semaphore {
+func NewTokenSemaphore(pool []string) *TokenSemaphore {
 	tokenMap := make(map[string]bool)
 	for _, token := range pool {
 		tokenMap[token] = false
@@ -21,13 +21,13 @@ func NewSemaphore(pool []string) *Semaphore {
 	for _, token := range pool {
 		channel <- token
 	}
-	return &Semaphore{
+	return &TokenSemaphore{
 		tokens:  tokenMap,
 		channel: channel,
 	}
 }
 
-func (s *Semaphore) AcquireToken() string {
+func (s *TokenSemaphore) AcquireToken() string {
 	token := <-s.channel
 	s.mutex.Lock()
 	s.tokens[token] = true
@@ -35,7 +35,7 @@ func (s *Semaphore) AcquireToken() string {
 	return token
 }
 
-func (s *Semaphore) ReturnToken(token string) error {
+func (s *TokenSemaphore) ReturnToken(token string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	isAcquired, exists := s.tokens[token]
