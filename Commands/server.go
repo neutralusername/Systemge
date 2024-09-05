@@ -14,6 +14,7 @@ type CommandServer struct {
 	SystemgeServer  *SystemgeServer.SystemgeServer
 }
 
+// essentially a remote procedure call (RPC) server
 func NewCommandServer(name string, config *Config.CommandServer, commands Handlers) *CommandServer {
 	if config == nil {
 		panic("Config is required")
