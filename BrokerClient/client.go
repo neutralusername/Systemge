@@ -236,7 +236,6 @@ func (messageBrokerClient *Client) GetMetrics() map[string]uint64 {
 	for _, connection := range messageBrokerClient.brokerConnections {
 		metrics := connection.connection.RetrieveMetrics()
 		for key, value := range metrics {
-			println(key, value)
 			m[key] += value
 		}
 	}
