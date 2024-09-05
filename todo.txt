@@ -3,3 +3,5 @@ re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer
 integrate "password" in some form into the dashboard#
 
 add access control commands to broker structs
+
+add command scheduling in some form (to the dashboard)
