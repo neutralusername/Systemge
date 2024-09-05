@@ -34,6 +34,8 @@ func NewTokenSemaphore(poolSize int, tokenSize uint32, randomizerSeed int64) *To
 	}
 }
 
+// AcquireToken returns a token from the pool.
+// If the pool is empty, it will block until a token is available.
 func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 	token := <-tokenSemaphore.channel
 	tokenSemaphore.mutex.Lock()
@@ -42,6 +44,8 @@ func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 	return token
 }
 
+// ReturnToken returns a token to the pool.
+// If the token is not valid, it will return an error.
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
 	tokenSemaphore.mutex.Lock()
 	defer tokenSemaphore.mutex.Unlock()
