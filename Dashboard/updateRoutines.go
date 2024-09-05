@@ -70,7 +70,8 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 					} else {
 						client.Metrics = metrics.Metrics
 					}
-					app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(client.Metrics)))
+					metrics.Name = client.Name
+					app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
 				}
 			}()
 		}
