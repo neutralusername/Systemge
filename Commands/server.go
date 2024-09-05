@@ -81,3 +81,6 @@ func (commandServer *CommandServer) GetStatus() int {
 func (commandServer *CommandServer) GetMetrics() map[string]uint64 {
 	return commandServer.SystemgeServerConfig.GetMetrics()
 }
+func (commandServer *CommandServer) RetrieveMetrics() map[string]uint64 {
+	return commandServer.SystemgeServerConfig.RetrieveMetrics()
+}
