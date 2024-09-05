@@ -56,6 +56,8 @@ func (commandServer *CommandServer) onConnect(connection SystemgeConnection.Syst
 		return Error.New("Command failed", err)
 	}
 	connection.SyncResponse(message, true, result)
+	//problem here - as of now i can not make sure that the message has been received before closing the connection
+	connection.Close()
 	return nil
 }
 
