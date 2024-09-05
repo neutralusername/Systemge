@@ -132,6 +132,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 			return "success", messageBrokerClient.RemoveSyncSubscribeTopic(args[0])
 		}
 		for key, value := range dashboardCommands {
+			// may override the default commands
 			dashboardCommandHandler[key] = value
 		}
 		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommandHandler)
