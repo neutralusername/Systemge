@@ -11,13 +11,14 @@ type TokenSemaphore struct {
 	channel        chan string
 	mutex          sync.Mutex
 	randomizer     *Randomizer
+	tokenSize      uint32
 }
 
-func NewTokenSemaphore(poolSize int, randomizerSeed int64) *TokenSemaphore {
+func NewTokenSemaphore(poolSize int, tokenSize uint32, randomizerSeed int64) *TokenSemaphore {
 	randomizer := NewRandomizer(randomizerSeed)
 	tokens := make([]string, poolSize)
 	for i := 0; i < poolSize; i++ {
-		tokens[i] = randomizer.GenerateRandomString(18, ALPHA_NUMERIC)
+		tokens[i] = randomizer.GenerateRandomString(tokenSize, ALPHA_NUMERIC)
 	}
 	channel := make(chan string, poolSize)
 	for _, token := range tokens {
@@ -30,22 +31,22 @@ func NewTokenSemaphore(poolSize int, randomizerSeed int64) *TokenSemaphore {
 	}
 }
 
-func (s *TokenSemaphore) AcquireToken() string {
-	token := <-s.channel
-	s.mutex.Lock()
-	s.acquiredTokens[token] = true
-	s.mutex.Unlock()
+func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
+	token := <-tokenSemaphore.channel
+	tokenSemaphore.mutex.Lock()
+	tokenSemaphore.acquiredTokens[token] = true
+	tokenSemaphore.mutex.Unlock()
 	return token
 }
 
-func (s *TokenSemaphore) ReturnToken(token string) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	_, exists := s.acquiredTokens[token]
+func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
+	tokenSemaphore.mutex.Lock()
+	defer tokenSemaphore.mutex.Unlock()
+	_, exists := tokenSemaphore.acquiredTokens[token]
 	if !exists {
 		return Error.New("Token is not valid", nil)
 	}
-	delete(s.acquiredTokens, token)
-	s.channel <- s.randomizer.GenerateRandomString(18, ALPHA_NUMERIC)
+	delete(tokenSemaphore.acquiredTokens, token)
+	tokenSemaphore.channel <- tokenSemaphore.randomizer.GenerateRandomString(tokenSemaphore.tokenSize, ALPHA_NUMERIC)
 	return nil
 }
