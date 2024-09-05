@@ -8,3 +8,5 @@ add command scheduling in some form (to the dashboard)
 
 add ChannelConnection and channelListener as more performant alternative for systems within a single process
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
+
+add some functionality that supports running systemge-apps in the background while allowing to execute commands through the terminal (no concrete plan yet)
