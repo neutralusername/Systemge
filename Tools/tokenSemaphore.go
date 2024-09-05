@@ -15,6 +15,9 @@ type TokenSemaphore struct {
 }
 
 func NewTokenSemaphore(poolSize int, tokenSize uint32, randomizerSeed int64) *TokenSemaphore {
+	if poolSize <= 0 {
+		panic("Pool size must be greater than 0")
+	}
 	randomizer := NewRandomizer(randomizerSeed)
 	tokens := make([]string, poolSize)
 	for i := 0; i < poolSize; i++ {
