@@ -10,12 +10,12 @@ import (
 )
 
 type RPCServer struct {
-	config          *Config.CommandServer
+	config          *Config.RPCServer
 	commandHandlers Commands.Handlers
 	SystemgeServer  *SystemgeServer.SystemgeServer
 }
 
-func NewRPCServer(name string, config *Config.CommandServer, commands Commands.Handlers) *RPCServer {
+func NewRPCServer(name string, config *Config.RPCServer, commands Commands.Handlers) *RPCServer {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -29,15 +29,15 @@ func NewRPCServer(name string, config *Config.CommandServer, commands Commands.H
 		panic("TcpServerConfig is required")
 	}
 
-	commandServer := &RPCServer{
+	rpcServer := &RPCServer{
 		config:          config,
 		commandHandlers: commands,
 	}
-	commandServer.SystemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, commandServer.onConnect, nil)
-	return commandServer
+	rpcServer.SystemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, rpcServer.onConnect, nil)
+	return rpcServer
 }
 
-func (commandServer *RPCServer) onConnect(connection SystemgeConnection.SystemgeConnection) error {
+func (rpcServer *RPCServer) onConnect(connection SystemgeConnection.SystemgeConnection) error {
 	message, err := connection.GetNextMessage()
 	if err != nil {
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
@@ -52,7 +52,7 @@ func (commandServer *RPCServer) onConnect(connection SystemgeConnection.Systemge
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
 		return Error.New("Invalid command", nil)
 	}
-	handler := commandServer.commandHandlers[command.Command]
+	handler := rpcServer.commandHandlers[command.Command]
 	if handler == nil {
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
 		return Error.New("Command not found", nil)
@@ -67,21 +67,21 @@ func (commandServer *RPCServer) onConnect(connection SystemgeConnection.Systemge
 	return nil
 }
 
-func (commandServer *RPCServer) Start() error {
-	return commandServer.SystemgeServer.Start()
+func (rpcServer *RPCServer) Start() error {
+	return rpcServer.SystemgeServer.Start()
 }
 
-func (commandServer *RPCServer) Stop() error {
-	return commandServer.SystemgeServer.Stop()
+func (rpcServer *RPCServer) Stop() error {
+	return rpcServer.SystemgeServer.Stop()
 }
 
-func (commandServer *RPCServer) GetStatus() int {
-	return commandServer.SystemgeServer.GetStatus()
+func (rpcServer *RPCServer) GetStatus() int {
+	return rpcServer.SystemgeServer.GetStatus()
 }
 
-func (commandServer *RPCServer) GetMetrics() map[string]uint64 {
-	return commandServer.SystemgeServer.GetMetrics()
+func (rpcServer *RPCServer) GetMetrics() map[string]uint64 {
+	return rpcServer.SystemgeServer.GetMetrics()
 }
-func (commandServer *RPCServer) RetrieveMetrics() map[string]uint64 {
-	return commandServer.SystemgeServer.RetrieveMetrics()
+func (rpcServer *RPCServer) RetrieveMetrics() map[string]uint64 {
+	return rpcServer.SystemgeServer.RetrieveMetrics()
 }

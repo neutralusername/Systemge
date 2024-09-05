@@ -49,6 +49,6 @@ func UnmarshalCommandClient(data string) *RemoteCommand {
 	return &commandClient
 }
 
-type CommandServer struct {
+type RPCServer struct {
 	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
 }
