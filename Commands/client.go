@@ -25,7 +25,7 @@ func UnmarshalCommandStruct(data string) *commandStruct {
 	return &command
 }
 
-func RemoteCommandRequest(name string, config *Config.CommandClient, command string, args ...string) (string, error) {
+func RemoteCommandRequest(name string, config *Config.RemoteCommand, command string, args ...string) (string, error) {
 	connection, err := TcpConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return "", Error.New("Failed to establish connection", err)

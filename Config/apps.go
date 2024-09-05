@@ -34,14 +34,14 @@ func UnmarshalOauth2(data string) *Oauth2 {
 	return &oauth2
 }
 
-type CommandClient struct {
+type RemoteCommand struct {
 	TcpConnectionConfig *TcpConnection `json:"tcpConnectionConfig"` // *required*
 	TcpClientConfig     *TcpClient     `json:"tcpClientConfig"`     // *required*
 	MaxServerNameLength int            `json:"maxServerLength"`     // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
-func UnmarshalCommandClient(data string) *CommandClient {
-	var commandClient CommandClient
+func UnmarshalCommandClient(data string) *RemoteCommand {
+	var commandClient RemoteCommand
 	err := json.Unmarshal([]byte(data), &commandClient)
 	if err != nil {
 		return nil
