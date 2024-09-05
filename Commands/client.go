@@ -30,15 +30,21 @@ func NewCommandClient(name string, config *Config.CommandClient, command string,
 	if err != nil {
 		return "", Error.New("Failed to establish connection", err)
 	}
-	response, err := connection.SyncRequestBlocking("command", Helpers.JsonMarshal(commandStruct{
+	err = connection.AsyncMessage("command", Helpers.JsonMarshal(commandStruct{
 		Command: command,
 		Args:    args,
 	}))
 	if err != nil {
 		return "", Error.New("Failed to send command", err)
 	}
-	if response.GetTopic() == Message.TOPIC_FAILURE {
-		return "", Error.New("Command requestFailed", errors.New((response.GetPayload())))
+	message, err := connection.GetNextMessage()
+	if err != nil {
+		return "", Error.New("Failed to get response", err)
 	}
-	return response.GetPayload(), nil
+	if message.GetTopic() != Message.TOPIC_SUCCESS {
+		return "", Error.New("Command requestFailed", errors.New(message.GetPayload()))
+	}
+	connection.SyncResponse(message, true, "ack")
+	connection.Close()
+	return message.GetPayload(), nil
 }

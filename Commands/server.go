@@ -3,6 +3,7 @@ package Commands
 import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 )
@@ -38,25 +39,29 @@ func NewCommandServer(name string, config *Config.CommandServer, commands Handle
 func (commandServer *CommandServer) onConnect(connection SystemgeConnection.SystemgeConnection) error {
 	message, err := connection.GetNextMessage()
 	if err != nil {
+		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
 		return err
 	}
 	if message.GetTopic() != "command" {
-		connection.SyncResponse(message, false, "Invalid topic")
+		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
 		return Error.New("Invalid topic", nil)
 	}
 	command := UnmarshalCommandStruct(message.GetPayload())
+	if command == nil {
+		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
+		return Error.New("Invalid command", nil)
+	}
 	handler := commandServer.commandHandlers[command.Command]
 	if handler == nil {
-		connection.SyncResponse(message, false, "Command not found")
+		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
 		return Error.New("Command not found", nil)
 	}
 	result, err := handler(command.Args)
 	if err != nil {
-		connection.SyncResponse(message, false, err.Error())
+		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
 		return Error.New("Command failed", err)
 	}
-	connection.SyncResponse(message, true, result)
-	//problem here - as of now i can not make sure that the message has been received before closing the connection
+	connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
 	connection.Close()
 	return nil
 }
