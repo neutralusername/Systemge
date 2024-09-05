@@ -14,7 +14,10 @@ type Mailer struct {
 
 func UnmarshalMailer(data string) *Mailer {
 	var mailer Mailer
-	json.Unmarshal([]byte(data), &mailer)
+	err := json.Unmarshal([]byte(data), &mailer)
+	if err != nil {
+		return nil
+	}
 	return &mailer
 }
 
@@ -26,9 +29,12 @@ type TokenBucketRateLimiter struct {
 }
 
 func UnmarshalRateLimiter(data string) *TokenBucketRateLimiter {
-	var rateLimiter TokenBucketRateLimiter
-	json.Unmarshal([]byte(data), &rateLimiter)
-	return &rateLimiter
+	var rateLimiterConfig TokenBucketRateLimiter
+	err := json.Unmarshal([]byte(data), &rateLimiterConfig)
+	if err != nil {
+		return nil
+	}
+	return &rateLimiterConfig
 }
 
 type IpRateLimiter struct {
@@ -39,6 +45,9 @@ type IpRateLimiter struct {
 
 func UnmarshalIpRateLimiter(data string) *IpRateLimiter {
 	var ipRateLimiterConfig IpRateLimiter
-	json.Unmarshal([]byte(data), &ipRateLimiterConfig)
+	err := json.Unmarshal([]byte(data), &ipRateLimiterConfig)
+	if err != nil {
+		return nil
+	}
 	return &ipRateLimiterConfig
 }

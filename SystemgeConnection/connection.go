@@ -1,151 +1,101 @@
 package SystemgeConnection
 
 import (
-	"net"
-	"sync"
-	"sync/atomic"
-
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
-type messageInProcess struct {
-	message *Message.Message
-	id      uint64
+type SystemgeConnection interface {
+	AbortSyncRequest(syncToken string) error
+	AsyncMessage(topic string, payload string) error
+	Close() error
+	GetAddress() string
+	GetAsyncMessagesSent() uint64
+	GetByteRateLimiterExceeded() uint64
+	GetBytesReceived() uint64
+	GetBytesSent() uint64
+	GetCloseChannel() <-chan bool
+	GetInvalidMessagesReceived() uint64
+	GetInvalidSyncResponsesReceived() uint64
+	GetMessageRateLimiterExceeded() uint64
+	GetMetrics() map[string]uint64
+	GetName() string
+	GetNextMessage() (*Message.Message, error)
+	GetNoSyncResponseReceived() uint64
+	GetStatus() int
+	GetSyncFailureResponsesReceived() uint64
+	GetSyncRequestsSent() uint64
+	GetSyncSuccessResponsesReceived() uint64
+	GetValidMessagesReceived() uint64
+	ProcessMessage(message *Message.Message, messageHandler MessageHandler) error
+	RetrieveAsyncMessagesSent() uint64
+	RetrieveByteRateLimiterExceeded() uint64
+	RetrieveBytesReceived() uint64
+	RetrieveBytesSent() uint64
+	RetrieveInvalidMessagesReceived() uint64
+	RetrieveInvalidSyncResponsesReceived() uint64
+	RetrieveMessageRateLimiterExceeded() uint64
+	RetrieveMetrics() map[string]uint64
+	RetrieveNoSyncResponseReceived() uint64
+	RetrieveSyncFailureResponsesReceived() uint64
+	RetrieveSyncRequestsSent() uint64
+	RetrieveSyncSuccessResponsesReceived() uint64
+	RetrieveValidMessagesReceived() uint64
+	StartProcessingLoopConcurrently(messageHandler MessageHandler) error
+	StartProcessingLoopSequentially(messageHandler MessageHandler) error
+	StopProcessingLoop() error
+	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)
+	SyncRequestBlocking(topic string, payload string) (*Message.Message, error)
+	UnprocessedMessagesCount() int64
 }
 
-type SystemgeConnection struct {
-	name       string
-	config     *Config.SystemgeConnection
-	netConn    net.Conn
-	randomizer *Tools.Randomizer
+type AsyncMessageHandler func(SystemgeConnection, *Message.Message)
+type AsyncMessageHandlers map[string]AsyncMessageHandler
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+type SyncMessageHandler func(SystemgeConnection, *Message.Message) (string, error)
+type SyncMessageHandlers map[string]SyncMessageHandler
 
-	sendMutex    sync.Mutex
-	receiveMutex sync.Mutex
-
-	closed      bool
-	closedMutex sync.Mutex
-
-	tcpBuffer []byte
-
-	syncRequests map[string]*syncRequestStruct
-	syncMutex    sync.Mutex
-
-	closeChannel chan bool
-
-	processMutex              sync.Mutex
-	processingChannel         chan *messageInProcess
-	processingLoopStopChannel chan bool
-	unprocessedMessages       atomic.Int64
-
-	rateLimiterBytes    *Tools.TokenBucketRateLimiter
-	rateLimiterMessages *Tools.TokenBucketRateLimiter
-
-	messageId uint64
-
-	// metrics
-	bytesSent     atomic.Uint64
-	bytesReceived atomic.Uint64
-
-	asyncMessagesSent atomic.Uint64
-	syncRequestsSent  atomic.Uint64
-
-	syncSuccessResponsesReceived atomic.Uint64
-	syncFailureResponsesReceived atomic.Uint64
-	noSyncResponseReceived       atomic.Uint64
-	invalidSyncResponsesReceived atomic.Uint64
-
-	invalidMessagesReceived atomic.Uint64
-	validMessagesReceived   atomic.Uint64
-
-	messageRateLimiterExceeded atomic.Uint64
-	byteRateLimiterExceeded    atomic.Uint64
+func NewAsyncMessageHandlers() AsyncMessageHandlers {
+	return make(AsyncMessageHandlers)
 }
 
-func New(config *Config.SystemgeConnection, netConn net.Conn, name string) *SystemgeConnection {
-	connection := &SystemgeConnection{
-		name:              name,
-		config:            config,
-		netConn:           netConn,
-		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
-		closeChannel:      make(chan bool),
-		syncRequests:      make(map[string]*syncRequestStruct),
-		processingChannel: make(chan *messageInProcess, config.ProcessingChannelCapacity),
-	}
-	if config.InfoLoggerPath != "" {
-		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
-	}
-	if config.WarningLoggerPath != "" {
-		connection.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		connection.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
-	}
-	if config.MailerConfig != nil {
-		connection.mailer = Tools.NewMailer(config.MailerConfig)
-	}
-	if config.RateLimiterBytes != nil {
-		connection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
-	}
-	if config.RateLimiterMessages != nil {
-		connection.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
-	}
-	go connection.receiveLoop()
-	return connection
-}
-
-func (connection *SystemgeConnection) Close() error {
-	connection.closedMutex.Lock()
-	defer connection.closedMutex.Unlock()
-
-	if connection.closed {
-		return Error.New("Connection already closed", nil)
-	}
-
-	connection.closed = true
-	close(connection.closeChannel)
-	connection.netConn.Close()
-
-	if connection.rateLimiterBytes != nil {
-		connection.rateLimiterBytes.Close()
-		connection.rateLimiterBytes = nil
-	}
-	if connection.rateLimiterMessages != nil {
-		connection.rateLimiterMessages.Close()
-		connection.rateLimiterMessages = nil
-	}
-	return nil
-}
-
-func (connection *SystemgeConnection) GetStatus() int {
-	connection.closedMutex.Lock()
-	defer connection.closedMutex.Unlock()
-	if connection.closed {
-		return Status.STOPPED
-	} else {
-		return Status.STARTED
+func (map1 AsyncMessageHandlers) Merge(map2 AsyncMessageHandlers) {
+	for key, value := range map2 {
+		map1[key] = value
 	}
 }
 
-func (connection *SystemgeConnection) GetName() string {
-	return connection.name
+func (map1 AsyncMessageHandlers) Add(key string, value AsyncMessageHandler) {
+	map1[key] = value
 }
 
-// GetCloseChannel returns a channel that will be closed when the connection is closed.
-// Blocks until the connection is closed.
-// This can be used to trigger an event when the connection is closed.
-func (connection *SystemgeConnection) GetCloseChannel() <-chan bool {
-	return connection.closeChannel
+func (map1 AsyncMessageHandlers) Remove(key string) {
+	delete(map1, key)
 }
 
-func (connection *SystemgeConnection) GetAddress() string {
-	return connection.netConn.RemoteAddr().String()
+func (map1 AsyncMessageHandlers) Get(key string) (AsyncMessageHandler, bool) {
+	value, ok := map1[key]
+	return value, ok
+}
+
+func NewSyncMessageHandlers() SyncMessageHandlers {
+	return make(SyncMessageHandlers)
+}
+
+func (map1 SyncMessageHandlers) Merge(map2 SyncMessageHandlers) {
+	for key, value := range map2 {
+		map1[key] = value
+	}
+}
+
+func (map1 SyncMessageHandlers) Add(key string, value SyncMessageHandler) {
+	map1[key] = value
+}
+
+func (map1 SyncMessageHandlers) Remove(key string) {
+	delete(map1, key)
+}
+
+func (map1 SyncMessageHandlers) Get(key string) (SyncMessageHandler, bool) {
+	value, ok := map1[key]
+	return value, ok
 }

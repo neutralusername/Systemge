@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 )
 
-func NewClient(config *Config.TcpEndpoint) (net.Conn, error) {
+func NewClient(config *Config.TcpClient) (net.Conn, error) {
 	if config.TlsCert == "" {
 		return net.Dial("tcp", config.Address)
 	}

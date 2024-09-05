@@ -22,11 +22,19 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 }
 
 type MessageBrokerClient struct {
-	Name string `json:"name"` // *required*
+	ConnectionConfig         *TcpConnection `json:"outConnectionConfig"`      // *required*
+	ResolverConnectionConfig *TcpConnection `json:"resolverConnectionConfig"` // *required*
 
-	ConnectionConfig      *SystemgeConnection `json:"connectionConfig"`      // *required*
-	EndpointConfig        *TcpEndpoint        `json:"endpointConfig"`        // *required*
-	DashboardClientConfig *DashboardClient    `json:"dashboardClientConfig"` // *required*
+	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
+
+	ResolverClientConfigs []*TcpClient `json:"resolverClientConfigs"` // *required*
+
+	TopicResolutionLifetimeMs uint64 `json:"outTopicResolutionLifetimeMs"` // default: 0 == until disconnect
+
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
 
 	MaxServerNameLength int `json:"maxServerNameLength"` // *required*
 
@@ -39,4 +47,19 @@ func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
 	var messageBroker MessageBrokerClient
 	json.Unmarshal([]byte(data), &messageBroker)
 	return &messageBroker
+}
+
+type MessageBrokerResolver struct {
+	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
+	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
+
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
+
+	MaxClientNameLength int `json:"maxClientNameLength"` // *required*
+
+	AsyncTopicClientConfigs map[string]*TcpClient `json:"asyncTopicClientConfigs"` // *required*
+	SyncTopicClientConfigs  map[string]*TcpClient `json:"syncTopicClientConfigs"`  // *required*
 }

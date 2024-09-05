@@ -40,7 +40,7 @@ func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string
 	return names
 }
 
-func (server *SystemgeServer) GetConnection(name string) *SystemgeConnection.SystemgeConnection {
+func (server *SystemgeServer) GetConnection(name string) SystemgeConnection.SystemgeConnection {
 	server.statusMutex.RLock()
 	server.mutex.Lock()
 	defer func() {

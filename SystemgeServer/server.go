@@ -8,23 +8,26 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
+	"github.com/neutralusername/Systemge/TcpListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type OnConnectHandler func(*SystemgeConnection.SystemgeConnection) error
+type OnConnectHandler func(SystemgeConnection.SystemgeConnection) error
 type OnDisconnectHandler func(string, string)
 
 type SystemgeServer struct {
+	name string
+
 	status      int
 	statusMutex sync.RWMutex
 
 	config   *Config.SystemgeServer
-	listener *SystemgeListener.SystemgeListener
+	listener SystemgeListener.SystemgeListener
 
-	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
+	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
+	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
 
-	clients     map[string]*SystemgeConnection.SystemgeConnection // name -> connection
+	clients     map[string]SystemgeConnection.SystemgeConnection // name -> connection
 	mutex       sync.Mutex
 	stopChannel chan bool
 
@@ -36,7 +39,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeServer {
+func New(name string, config *Config.SystemgeServer, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -46,18 +49,17 @@ func New(config *Config.SystemgeServer, onConnectHandler func(*SystemgeConnectio
 	if config.ListenerConfig == nil {
 		panic("listener is nil")
 	}
-	if config.ListenerConfig.TcpListenerConfig == nil {
+	if config.ListenerConfig.TcpServerConfig == nil {
 		panic("listener.ListenerConfig is nil")
 	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
+
 	server := &SystemgeServer{
+		name:                name,
 		config:              config,
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 
-		clients: make(map[string]*SystemgeConnection.SystemgeConnection),
+		clients: make(map[string]SystemgeConnection.SystemgeConnection),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
@@ -84,14 +86,14 @@ func (server *SystemgeServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
-	listener, err := SystemgeListener.New(server.config.ListenerConfig)
+	listener, err := TcpListener.New(server.config.ListenerConfig)
 	if err != nil {
 		server.status = Status.STOPPED
 		return Error.New("failed to create listener", err)
 	}
 	server.listener = listener
 	server.stopChannel = make(chan bool)
-	go server.handleConnections()
+	go server.handleConnections(server.stopChannel)
 
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server started")
@@ -120,6 +122,7 @@ func (server *SystemgeServer) Stop() error {
 	}
 	server.mutex.Unlock()
 
+	// rare race condition that causes panic code line below - panic: sync: WaitGroup is reused before previous Wait has returned
 	server.waitGroup.Wait()
 	server.stopChannel = nil
 	server.listener = nil
@@ -132,7 +135,7 @@ func (server *SystemgeServer) Stop() error {
 }
 
 func (server *SystemgeServer) GetName() string {
-	return server.config.Name
+	return server.name
 }
 
 func (server *SystemgeServer) GetStatus() int {

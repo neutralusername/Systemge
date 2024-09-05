@@ -2,6 +2,8 @@ package Message
 
 import (
 	"encoding/json"
+
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 type Message struct {
@@ -29,12 +31,15 @@ const TOPIC_START = "start_service"
 const TOPIC_STOP = "stop_service"
 const TOPIC_EXECUTE_COMMAND = "execute_command"
 
-const TOPIC_ADD_ASYNC_TOPICS = "add_async_topics"
-const TOPIC_ADD_SYNC_TOPICS = "add_sync_topics"
-const TOPIC_REMOVE_ASYNC_TOPICS = "remove_async_topics"
-const TOPIC_REMOVE_SYNC_TOPICS = "remove_sync_topics"
+const TOPIC_SUBSCRIBE_ASYNC = "add_async_topics"
+const TOPIC_SUBSCRIBE_SYNC = "add_sync_topics"
+const TOPIC_UNSUBSCRIBE_ASYNC = "remove_async_topics"
+const TOPIC_UNSUBSCRIBE_SYNC = "remove_sync_topics"
 
 const TOPIC_NAME = "name"
+
+const TOPIC_RESOLVE_ASYNC = "resolve_async"
+const TOPIC_RESOLVE_SYNC = "resolve_sync"
 
 func (message *Message) GetTopic() string {
 	return message.topic
@@ -122,4 +127,37 @@ func Deserialize(bytes []byte, origin string) (*Message, error) {
 		response:  messageData.Response,
 		origin:    origin,
 	}, nil
+}
+
+func DeserializeMessages(bytes []byte) ([]*Message, error) {
+	var messageData []struct {
+		Topic     string `json:"topic"`
+		SyncToken string `json:"syncToken"`
+		Response  bool   `json:"response"`
+		Payload   string `json:"payload"`
+		Origin    string `json:"origin"`
+	}
+	err := json.Unmarshal(bytes, &messageData)
+	if err != nil {
+		return nil, err
+	}
+	messages := make([]*Message, len(messageData))
+	for i, data := range messageData {
+		messages[i] = &Message{
+			topic:     data.Topic,
+			syncToken: data.SyncToken,
+			payload:   data.Payload,
+			response:  data.Response,
+			origin:    data.Origin,
+		}
+	}
+	return messages, nil
+}
+
+func SerializeMessages(messages []*Message) string {
+	messagesSerialized := make([]string, 0)
+	for _, message := range messages {
+		messagesSerialized = append(messagesSerialized, string(message.Serialize()))
+	}
+	return Helpers.StringsToJsonObjectArray(messagesSerialized)
 }

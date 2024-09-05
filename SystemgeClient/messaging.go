@@ -15,7 +15,7 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 		return Error.New("Client stopped", nil)
 	}
 	client.mutex.Lock()
-	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
+	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range client.nameConnections {
 			connections = append(connections, connection)
@@ -69,7 +69,7 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 		return nil, nil
 	}
 	client.mutex.Lock()
-	connections := make([]*SystemgeConnection.SystemgeConnection, 0)
+	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range client.nameConnections {
 			connections = append(connections, connection)

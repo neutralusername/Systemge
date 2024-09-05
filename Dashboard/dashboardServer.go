@@ -19,6 +19,8 @@ import (
 )
 
 type DashboardServer struct {
+	name string
+
 	statusMutex sync.Mutex
 	status      int
 
@@ -42,14 +44,14 @@ type DashboardServer struct {
 	mailer        *Tools.Mailer
 }
 
-func NewServer(config *Config.DashboardServer) *DashboardServer {
+func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	if config == nil {
 		panic("config is nil")
 	}
 	if config.HTTPServerConfig == nil {
 		panic("config.HTTPServerConfig is nil")
 	}
-	if config.HTTPServerConfig.TcpListenerConfig == nil {
+	if config.HTTPServerConfig.TcpServerConfig == nil {
 		panic("config.HTTPServerConfig.ServerConfig is nil")
 	}
 	if config.WebsocketServerConfig == nil {
@@ -58,7 +60,7 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 	if config.WebsocketServerConfig.Pattern == "" {
 		panic("config.WebsocketServerConfig.Pattern is empty")
 	}
-	if config.WebsocketServerConfig.TcpListenerConfig == nil {
+	if config.WebsocketServerConfig.TcpServerConfig == nil {
 		panic("config.WebsocketServerConfig.ServerConfig is nil")
 	}
 	if config.SystemgeServerConfig == nil {
@@ -67,25 +69,23 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 	if config.SystemgeServerConfig.ListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ListenerConfig.TcpListenerConfig == nil {
+	if config.SystemgeServerConfig.ListenerConfig.TcpServerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
 	if config.SystemgeServerConfig.ConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
-	if config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes == 0 {
-		config.SystemgeServerConfig.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
 
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
 	Helpers.CreateFile(frontendPath+"configs.js",
-		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpListenerConfig.Port)+";"+
+		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpServerConfig.Port)+";"+
 			"export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";"+
 			"export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";",
 	)
 
 	app := &DashboardServer{
+		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
 		clients: make(map[string]*client),
@@ -105,14 +105,14 @@ func NewServer(config *Config.DashboardServer) *DashboardServer {
 		app.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	app.systemgeServer = SystemgeServer.New(app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
-	app.websocketServer = WebsocketServer.New(app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
+	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer", app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
+	app.websocketServer = WebsocketServer.New(name+"_websocketServer", app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
 		"start":   app.startHandler,
 		"stop":    app.stopHandler,
 		"command": app.commandHandler,
 		"gc":      app.gcHandler,
 	}, app.onWebsocketConnectHandler, nil)
-	app.httpServer = HTTPServer.New(app.config.HTTPServerConfig, nil)
+	app.httpServer = HTTPServer.New(name+"_httpServer", app.config.HTTPServerConfig, nil)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
 	return app
@@ -153,19 +153,19 @@ func (app *DashboardServer) Start() error {
 	}
 
 	app.status = Status.STARTED
-	if app.config.GoroutineUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
-		app.waitGroup.Add(1)
-		go app.goroutineUpdateRoutine()
-	}
-	if app.config.StatusUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
+	if app.config.StatusUpdateIntervalMs > 0 {
 		app.waitGroup.Add(1)
 		go app.statusUpdateRoutine()
 	}
-	if app.config.HeapUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
+	if app.config.GoroutineUpdateIntervalMs > 0 {
+		app.waitGroup.Add(1)
+		go app.goroutineUpdateRoutine()
+	}
+	if app.config.HeapUpdateIntervalMs > 0 {
 		app.waitGroup.Add(1)
 		go app.heapUpdateRoutine()
 	}
-	if app.config.MetricsUpdateIntervalMs > 0 && app.config.MaxChartEntries > 0 {
+	if app.config.MetricsUpdateIntervalMs > 0 {
 		app.waitGroup.Add(1)
 		go app.metricsUpdateRoutine()
 	}
@@ -201,7 +201,7 @@ func (app *DashboardServer) Stop() error {
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnection.SystemgeConnection) error {
+func (app *DashboardServer) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
 	response, err := connection.SyncRequestBlocking(Message.TOPIC_GET_INTRODUCTION, "")
 	if err != nil {
 		return err
@@ -215,12 +215,15 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection *SystemgeConnect
 	app.mutex.Lock()
 	app.registerModuleHttpHandlers(client)
 	app.clients[client.Name] = client
+	if client.Metrics == nil {
+		client.Metrics = map[string]uint64{}
+	}
 	app.mutex.Unlock()
 	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeDisconnectHandler(connection *SystemgeConnection.SystemgeConnection) {
+func (app *DashboardServer) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
 	if client, ok := app.clients[connection.GetName()]; ok {
 		delete(app.clients, connection.GetName())
@@ -231,7 +234,9 @@ func (app *DashboardServer) onSystemgeDisconnectHandler(connection *SystemgeConn
 }
 
 func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
-	app.httpServer.AddRoute("/"+client.Name, HTTPServer.SendDirectory(app.frontendPath))
+	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
+	})
 	app.httpServer.AddRoute("/"+client.Name+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)

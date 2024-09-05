@@ -19,7 +19,7 @@ type client struct {
 	HasStopFunc    bool              `json:"hasStopFunc"`
 	HasMetricsFunc bool              `json:"hasMetricsFunc"`
 
-	connection *SystemgeConnection.SystemgeConnection
+	connection SystemgeConnection.SystemgeConnection
 }
 
 func unmarshalClient(data string) (*client, error) {

@@ -1,4 +1,4 @@
-package SystemgeListener
+package TcpListener
 
 import (
 	"net"
@@ -9,9 +9,10 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (listener *SystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.SystemgeConnection) (*SystemgeConnection.SystemgeConnection, error) {
+func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpConnection) (SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -46,10 +47,17 @@ func (listener *SystemgeListener) AcceptConnection(serverName string, connection
 	return connection, nil
 }
 
-func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.SystemgeConnection, serverName string, netConn net.Conn) (*SystemgeConnection.SystemgeConnection, error) {
-	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
+func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
+	tcpBufferBytes := connectionConfig.TcpBufferBytes
+	if tcpBufferBytes == 0 {
+		tcpBufferBytes = 1024 * 4
+	}
+	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, tcpBufferBytes)
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
+	}
+	if len(messageBytes) == 0 {
+		return nil, Error.New("Received empty message", nil)
 	}
 	messageBytes = messageBytes[:len(messageBytes)-1]
 	message, err := Message.Deserialize(messageBytes, "")
@@ -69,5 +77,5 @@ func (listener *SystemgeListener) serverHandshake(connectionConfig *Config.Syste
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return SystemgeConnection.New(connectionConfig, netConn, message.GetPayload()), nil
+	return TcpConnection.New(message.GetPayload(), connectionConfig, netConn), nil
 }

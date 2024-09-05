@@ -1,62 +1,22 @@
 package SystemgeListener
 
 import (
-	"sync/atomic"
-
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type SystemgeListener struct {
-	config        *Config.SystemgeListener
-	tcpListener   *Tcp.Listener
-	ipRateLimiter *Tools.IpRateLimiter
-
-	connectionId uint32
-
-	// metrics
-
-	connectionAttempts  atomic.Uint64
-	failedConnections   atomic.Uint64
-	rejectedConnections atomic.Uint64
-	acceptedConnections atomic.Uint64
-}
-
-func New(config *Config.SystemgeListener) (*SystemgeListener, error) {
-	if config == nil {
-		return nil, Error.New("config is nil", nil)
-	}
-	if config.TcpListenerConfig == nil {
-		return nil, Error.New("listener is nil", nil)
-	}
-	tcpListener, err := Tcp.NewListener(config.TcpListenerConfig)
-	if err != nil {
-		return nil, Error.New("failed to create listener", err)
-	}
-	listener := &SystemgeListener{
-		config:      config,
-		tcpListener: tcpListener,
-	}
-	if config.IpRateLimiter != nil {
-		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
-	}
-	return listener, nil
-}
-
-// closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *SystemgeListener) Close() {
-	listener.tcpListener.GetListener().Close()
-	if listener.ipRateLimiter != nil {
-		listener.ipRateLimiter.Close()
-	}
-}
-
-func (listener *SystemgeListener) GetBlacklist() *Tools.AccessControlList {
-	return listener.tcpListener.GetBlacklist()
-}
-
-func (listener *SystemgeListener) GetWhitelist() *Tools.AccessControlList {
-	return listener.tcpListener.GetWhitelist()
+type SystemgeListener interface {
+	AcceptConnection(serverName string, connectionConfig *Config.TcpConnection) (SystemgeConnection.SystemgeConnection, error)
+	Close()
+	GetAcceptedConnections() uint64
+	GetBlacklist() *Tools.AccessControlList
+	GetConnectionAttempts() uint64
+	GetFailedConnections() uint64
+	GetRejectedConnections() uint64
+	GetWhitelist() *Tools.AccessControlList
+	RetrieveAcceptedConnections() uint64
+	RetrieveConnectionAttempts() uint64
+	RetrieveFailedConnections() uint64
+	RetrieveRejectedConnections() uint64
 }

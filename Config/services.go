@@ -7,9 +7,7 @@ import (
 )
 
 type HTTPServer struct {
-	Name string `json:"name"` // *required*
-
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
 	InfoLoggerPath    string `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string `json:"warningLoggerPath"` // *optional*
@@ -23,15 +21,16 @@ type HTTPServer struct {
 
 func UnmarshalHTTPServer(data string) *HTTPServer {
 	var http HTTPServer
-	json.Unmarshal([]byte(data), &http)
+	err := json.Unmarshal([]byte(data), &http)
+	if err != nil {
+		return nil
+	}
 	return &http
 }
 
 type WebsocketServer struct {
-	Name string `json:"name"` // *required*
-
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
-	Pattern           string       `json:"pattern"`           // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
+	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
@@ -53,7 +52,10 @@ type WebsocketServer struct {
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
-	var websocket WebsocketServer
-	json.Unmarshal([]byte(data), &websocket)
-	return &websocket
+	var ws WebsocketServer
+	err := json.Unmarshal([]byte(data), &ws)
+	if err != nil {
+		return nil
+	}
+	return &ws
 }

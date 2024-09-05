@@ -1,4 +1,4 @@
-package SystemgeConnection
+package TcpConnection
 
 import (
 	"time"
@@ -6,14 +6,15 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *SystemgeConnection) UnprocessedMessagesCount() int64 {
+func (connection *TcpConnection) UnprocessedMessagesCount() int64 {
 	return connection.unprocessedMessages.Load()
 }
 
-func (connection *SystemgeConnection) GetNextMessage() (*Message.Message, error) {
+func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 	connection.processMutex.Lock()
 	defer connection.processMutex.Unlock()
 	if connection.processingLoopStopChannel != nil {
@@ -35,7 +36,7 @@ func (connection *SystemgeConnection) GetNextMessage() (*Message.Message, error)
 	}
 }
 
-func (connection *SystemgeConnection) StopProcessingLoop() error {
+func (connection *TcpConnection) StopProcessingLoop() error {
 	connection.processMutex.Lock()
 	defer connection.processMutex.Unlock()
 	if connection.processingLoopStopChannel == nil {
@@ -47,7 +48,7 @@ func (connection *SystemgeConnection) StopProcessingLoop() error {
 }
 
 // A started loop will run indefinitely until StopProcessingLoop is called.
-func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHandler MessageHandler) error {
+func (connection *TcpConnection) StartProcessingLoopSequentially(messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("No message handler set", nil)
 	}
@@ -96,7 +97,7 @@ func (connection *SystemgeConnection) StartProcessingLoopSequentially(messageHan
 }
 
 // A started loop will run indefinitely until StopProcessingLoop is called.
-func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHandler MessageHandler) error {
+func (connection *TcpConnection) StartProcessingLoopConcurrently(messageHandler SystemgeConnection.MessageHandler) error {
 	connection.processMutex.Lock()
 	if connection.processingLoopStopChannel != nil {
 		connection.processMutex.Unlock()
@@ -143,7 +144,7 @@ func (connection *SystemgeConnection) StartProcessingLoopConcurrently(messageHan
 	return nil
 }
 
-func (connection *SystemgeConnection) ProcessMessage(message *Message.Message, messageHandler MessageHandler) error {
+func (connection *TcpConnection) ProcessMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("no message handler set", nil)
 	}

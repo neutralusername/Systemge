@@ -9,7 +9,7 @@ import (
 
 // AddConnection adds an active connection to the client.
 // if reconnectEndpointConfig is not nil, the connection will attempt to reconnect
-func (client *SystemgeClient) AddConnection(connection *SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpClient) error {
 	if connection == nil {
 		return Error.New("connection is nil", nil)
 	}
@@ -33,7 +33,7 @@ func (client *SystemgeClient) AddConnection(connection *SystemgeConnection.Syste
 }
 
 // AddConnectionAttempt attempts to connect to a server and add it to the client
-func (client *SystemgeClient) AddConnectionAttempt(endpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) AddConnectionAttempt(endpointConfig *Config.TcpClient) error {
 	if endpointConfig == nil {
 		return Error.New("endpointConfig is nil", nil)
 	}
@@ -73,7 +73,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	return Error.New("connection not found", nil)
 }
 
-func (client *SystemgeClient) GetConnection(name string) *SystemgeConnection.SystemgeConnection {
+func (client *SystemgeClient) GetConnectionByName(name string) SystemgeConnection.SystemgeConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -83,12 +83,20 @@ func (client *SystemgeClient) GetConnection(name string) *SystemgeConnection.Sys
 	if client.status != Status.STARTED {
 		return nil
 	}
-	for _, connection := range client.addressConnections {
-		if connection.GetName() == name {
-			return connection
-		}
+	return client.nameConnections[name]
+}
+
+func (client *SystemgeClient) GetConnectionByAddress(address string) SystemgeConnection.SystemgeConnection {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status != Status.STARTED {
+		return nil
 	}
-	return nil
+	return client.addressConnections[address]
 }
 
 func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string {

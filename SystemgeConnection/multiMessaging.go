@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection) <-chan error {
+func MultiAsyncMessage(topic, payload string, connections ...SystemgeConnection) <-chan error {
 	errorChannel := make(chan error, len(connections))
 	for _, connection := range connections {
 		err := connection.AsyncMessage(topic, payload)
@@ -19,7 +19,7 @@ func MultiAsyncMessage(topic, payload string, connections ...*SystemgeConnection
 	return errorChannel
 }
 
-func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection) (<-chan *Message.Message, <-chan error) {
+func MultiSyncRequest(topic, payload string, connections ...SystemgeConnection) (<-chan *Message.Message, <-chan error) {
 	responsesChannel := make(chan *Message.Message, len(connections))
 	errorChannel := make(chan error, len(connections))
 	waitGroup := sync.WaitGroup{}
@@ -29,7 +29,7 @@ func MultiSyncRequest(topic, payload string, connections ...*SystemgeConnection)
 			errorChannel <- Error.New("Failed to send SyncRequest to \""+connection.GetName()+"\"", err)
 		} else {
 			waitGroup.Add(1)
-			go func(connection *SystemgeConnection, responseChannel <-chan *Message.Message) {
+			go func(connection SystemgeConnection, responseChannel <-chan *Message.Message) {
 				responseMessage := <-responseChannel
 				if responseMessage == nil {
 					errorChannel <- Error.New("Failed to receive response from \""+connection.GetName()+"\"", nil)

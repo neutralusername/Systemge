@@ -1,4 +1,4 @@
-package SystemgeConnection
+package TcpConnection
 
 import (
 	"net"
@@ -6,10 +6,12 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Config.TcpEndpoint, clientName string, maxServerNameLength int) (*SystemgeConnection, error) {
+func EstablishConnection(config *Config.TcpConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
 	if config == nil {
 		return nil, Error.New("Config is nil", nil)
 	}
@@ -25,8 +27,8 @@ func EstablishConnection(config *Config.SystemgeConnection, endpointConfig *Conf
 	return connection, nil
 }
 
-func clientHandshake(config *Config.SystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*SystemgeConnection, error) {
-	connection := New(config, netConn, "")
+func clientHandshake(config *Config.TcpConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
+	connection := New(clientName+"_connectionAttempt", config, netConn)
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
@@ -39,8 +41,8 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}
 	name := ""
-	NewConcurrentMessageHandler(AsyncMessageHandlers{
-		Message.TOPIC_NAME: func(connection *SystemgeConnection, message *Message.Message) {
+	SystemgeConnection.NewConcurrentMessageHandler(SystemgeConnection.AsyncMessageHandlers{
+		Message.TOPIC_NAME: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) {
 			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
 				return
 			}
@@ -51,5 +53,14 @@ func clientHandshake(config *Config.SystemgeConnection, clientName string, maxSe
 		return nil, Error.New("Server did not respond with a name", nil)
 	}
 	connection.name = name
+	if config.InfoLoggerPath != "" {
+		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		connection.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		connection.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
+	}
 	return connection, nil
 }

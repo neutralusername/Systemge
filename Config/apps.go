@@ -7,7 +7,7 @@ import (
 )
 
 type Oauth2 struct {
-	TcpListenerConfig *TcpListener `json:"tcpListenerConfig"` // *required*
+	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
 	InfoLoggerPath    string `json:"infoLoggerPath"`    // *required*
 	WarningLoggerPath string `json:"warningLoggerPath"` // *required*
@@ -27,6 +27,9 @@ type Oauth2 struct {
 
 func UnmarshalOauth2(data string) *Oauth2 {
 	var oauth2 Oauth2
-	json.Unmarshal([]byte(data), &oauth2)
+	err := json.Unmarshal([]byte(data), &oauth2)
+	if err != nil {
+		return nil
+	}
 	return &oauth2
 }

@@ -1,4 +1,4 @@
-package SystemgeConnection
+package TcpConnection
 
 import (
 	"github.com/neutralusername/Systemge/Error"
@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *SystemgeConnection) receiveLoop() {
+func (connection *TcpConnection) receiveLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
@@ -93,6 +93,9 @@ func (connection *SystemgeConnection) receiveLoop() {
 						connection.warningLogger.Log("Processing channel capacity reached for message #" + Helpers.Uint64ToString(messageId))
 					}
 				}
+				// todo: fix situation where processing channel is full (i.e. stuck in the code line below)
+				// and connection closes which causes the connection to not auto-close
+				// (i.e. .GetCloseChannel() doesn't fire) (disconnect is recognized on message reception)
 				connection.processingChannel <- &messageInProcess{
 					message: message,
 					id:      messageId,
@@ -102,7 +105,7 @@ func (connection *SystemgeConnection) receiveLoop() {
 	}
 }
 
-func (connection *SystemgeConnection) validateMessage(message *Message.Message) error {
+func (connection *TcpConnection) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}

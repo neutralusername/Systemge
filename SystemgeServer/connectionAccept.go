@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) handleConnections() {
+func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("connection handler started")
 	}
@@ -13,7 +13,7 @@ func (server *SystemgeServer) handleConnections() {
 	for {
 		server.waitGroup.Add(1)
 		select {
-		case <-server.stopChannel:
+		case <-stopChannel:
 			if server.infoLogger != nil {
 				server.infoLogger.Log("connection handler stopped")
 			}
@@ -30,11 +30,9 @@ func (server *SystemgeServer) handleConnections() {
 			}
 			go func() {
 				<-connection.GetCloseChannel()
-
 				server.mutex.Lock()
 				delete(server.clients, connection.GetName())
 				server.mutex.Unlock()
-
 				if server.onDisconnectHandler != nil {
 					server.onDisconnectHandler(connection)
 				}
@@ -57,7 +55,8 @@ func (server *SystemgeServer) handleConnections() {
 	}
 }
 
-func (server *SystemgeServer) acceptNextConnection() (*SystemgeConnection.SystemgeConnection, error) {
+func (server *SystemgeServer) acceptNextConnection() (SystemgeConnection.SystemgeConnection, error) {
+	// theres an edge case in the line below where the listener can be null which can cause a panic
 	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
 	if err != nil {
 		return nil, Error.New("failed to accept connection", err)

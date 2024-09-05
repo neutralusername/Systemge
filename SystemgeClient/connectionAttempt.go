@@ -8,17 +8,18 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type ConnectionAttempt struct {
 	attempts       uint32
-	endpointConfig *Config.TcpEndpoint
+	endpointConfig *Config.TcpClient
 
 	isAborted bool
 }
 
-func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpEndpoint) error {
+func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.TcpClient) error {
 	normalizedAddress, err := Helpers.NormalizeAddress(endpointConfig.Address)
 	if err != nil {
 		return Error.New("failed normalizing address", err)
@@ -99,7 +100,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			if attempt.attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
-			connection, err := SystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
+			connection, err := TcpConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
 			attempt.attempts++
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)
@@ -130,7 +131,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))
 			}
 
-			var endpointConfig *Config.TcpEndpoint
+			var endpointConfig *Config.TcpClient
 			if client.config.Reconnect {
 				endpointConfig = attempt.endpointConfig
 			}
@@ -150,7 +151,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 	}
 }
 
-func (client *SystemgeClient) handleDisconnect(connection *SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpEndpoint) {
+func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpClient) {
 	<-connection.GetCloseChannel()
 
 	if infoLogger := client.infoLogger; infoLogger != nil {

@@ -12,18 +12,20 @@ import (
 )
 
 type SystemgeClient struct {
+	name string
+
 	status      int
 	statusMutex sync.RWMutex
 
 	config *Config.SystemgeClient
 
-	onConnectHandler    func(*SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)
+	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
+	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
 
 	mutex                 sync.RWMutex
-	addressConnections    map[string]*SystemgeConnection.SystemgeConnection // address -> connection
-	nameConnections       map[string]*SystemgeConnection.SystemgeConnection // name -> connection
-	connectionAttemptsMap map[string]*ConnectionAttempt                     // address -> connection attempt
+	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
+	nameConnections       map[string]SystemgeConnection.SystemgeConnection // name -> connection
+	connectionAttemptsMap map[string]*ConnectionAttempt                    // address -> connection attempt
 
 	stopChannel chan bool
 
@@ -42,24 +44,23 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint64
 }
 
-func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(*SystemgeConnection.SystemgeConnection)) *SystemgeClient {
+func New(name string, config *Config.SystemgeClient, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.EndpointConfigs == nil {
+	if config.ClientConfigs == nil {
 		panic("config.EndpointConfigs is nil")
 	}
 	if config.ConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.ConnectionConfig.TcpBufferBytes == 0 {
-		config.ConnectionConfig.TcpBufferBytes = 1024 * 4
-	}
+
 	client := &SystemgeClient{
+		name:   name,
 		config: config,
 
-		addressConnections:    make(map[string]*SystemgeConnection.SystemgeConnection),
-		nameConnections:       make(map[string]*SystemgeConnection.SystemgeConnection),
+		addressConnections:    make(map[string]SystemgeConnection.SystemgeConnection),
+		nameConnections:       make(map[string]SystemgeConnection.SystemgeConnection),
 		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
 
 		onConnectHandler:    onConnectHandler,
@@ -81,7 +82,7 @@ func New(config *Config.SystemgeClient, onConnectHandler func(*SystemgeConnectio
 }
 
 func (client *SystemgeClient) GetName() string {
-	return client.config.Name
+	return client.name
 }
 
 func (client *SystemgeClient) GetStatus() int {
@@ -101,7 +102,7 @@ func (client *SystemgeClient) Start() error {
 
 	client.stopChannel = make(chan bool)
 
-	for _, endpointConfig := range client.config.EndpointConfigs {
+	for _, endpointConfig := range client.config.ClientConfigs {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error())
