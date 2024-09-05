@@ -36,7 +36,7 @@ type MessageBrokerClient struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == no limit
+	MaxServerNameLength int `json:"maxServerNameLength"` // default: <=0 == no limit
 
 	AsyncTopics []string `json:"asyncTopics"`
 	SyncTopics  []string `json:"syncTopics"`
@@ -57,7 +57,7 @@ type MessageBrokerResolver struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxClientNameLength int `json:"maxClientNameLength"` // default: 0 == no limit
+	MaxClientNameLength int `json:"maxClientNameLength"` // default: <=0 == no limit
 
 	AsyncTopicClientConfigs map[string]*TcpClient `json:"asyncTopicClientConfigs"`
 	SyncTopicClientConfigs  map[string]*TcpClient `json:"syncTopicClientConfigs"`
