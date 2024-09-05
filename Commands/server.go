@@ -11,7 +11,7 @@ import (
 type CommandServer struct {
 	config          *Config.CommandServer
 	commandHandlers Handlers
-	SystemgeServer  *SystemgeServer.SystemgeServer `json:"systemgeServerConfig"` // *required*
+	SystemgeServer  *SystemgeServer.SystemgeServer
 }
 
 func NewCommandServer(name string, config *Config.CommandServer, commands Handlers) *CommandServer {
