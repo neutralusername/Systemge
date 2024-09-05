@@ -25,7 +25,7 @@ type MessageBrokerClient struct {
 	ConnectionConfig         *TcpConnection `json:"outConnectionConfig"`      // *required*
 	ResolverConnectionConfig *TcpConnection `json:"resolverConnectionConfig"` // *required*
 
-	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
+	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required* (it is a valid choice to leave this nil and initialize your own DashboardClient)
 
 	ResolverClientConfigs []*TcpClient `json:"resolverClientConfigs"` // *required*
 
