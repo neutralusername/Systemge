@@ -10,3 +10,5 @@ add ChannelConnection and channelListener as more performant alternative for sys
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
 add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
+
+add "syncResponsesSent" metrics to connection
