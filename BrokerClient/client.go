@@ -97,6 +97,43 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	}
 
 	if config.DashboardClientConfig != nil {
+		dashboardCommandHandler := Commands.Handlers{}
+		dashboardCommandHandler["resolveTopic"] = func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("Invalid number of arguments", nil)
+			}
+			return "success", messageBrokerClient.ResolveTopic(args[0])
+		}
+		dashboardCommandHandler["resolveSubscribeTopic"] = func(args []string) (string, error) {
+			return "success", messageBrokerClient.ResolveSubscribeTopics()
+		}
+		dashboardCommandHandler["addAsyncSubscribeTopic"] = func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("Invalid number of arguments", nil)
+			}
+			return "success", messageBrokerClient.AddAsyncSubscribeTopic(args[0])
+		}
+		dashboardCommandHandler["addSyncSubscribeTopic"] = func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("Invalid number of arguments", nil)
+			}
+			return "success", messageBrokerClient.AddSyncSubscribeTopic(args[0])
+		}
+		dashboardCommandHandler["removeAsyncSubscribeTopic"] = func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("Invalid number of arguments", nil)
+			}
+			return "success", messageBrokerClient.RemoveAsyncSubscribeTopic(args[0])
+		}
+		dashboardCommandHandler["removeSyncSubscribeTopic"] = func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("Invalid number of arguments", nil)
+			}
+			return "success", messageBrokerClient.RemoveSyncSubscribeTopic(args[0])
+		}
+		for key, value := range dashboardCommands {
+			dashboardCommandHandler[key] = value
+		}
 		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.GetMetrics, messageBrokerClient.GetStatus, dashboardCommands)
 		if err := messageBrokerClient.StartDashboardClient(); err != nil {
 			if messageBrokerClient.errorLogger != nil {
