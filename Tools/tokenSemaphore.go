@@ -4,33 +4,34 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type TokenSemaphore struct {
-	tokens  map[string]bool // token -> isAcquired
-	channel chan string
-	mutex   sync.Mutex
+	acquiredTokens map[string]bool // token -> isAcquired
+	channel        chan string
+	mutex          sync.Mutex
 }
 
-func NewTokenSemaphore(pool []string) *TokenSemaphore {
-	tokenMap := make(map[string]bool)
-	for _, token := range pool {
-		tokenMap[token] = false
+func NewTokenSemaphore(poolSize int) *TokenSemaphore {
+	tokens := make([]string, poolSize)
+	for i := 0; i < poolSize; i++ {
+		tokens[i] = GenerateRandomString(18, Tools.ALPHA_NUMERIC)
 	}
-	channel := make(chan string, len(pool))
-	for _, token := range pool {
+	channel := make(chan string, poolSize)
+	for _, token := range tokens {
 		channel <- token
 	}
 	return &TokenSemaphore{
-		tokens:  tokenMap,
-		channel: channel,
+		acquiredTokens: make(map[string]bool),
+		channel:        channel,
 	}
 }
 
 func (s *TokenSemaphore) AcquireToken() string {
 	token := <-s.channel
 	s.mutex.Lock()
-	s.tokens[token] = true
+	s.acquiredTokens[token] = true
 	s.mutex.Unlock()
 	return token
 }
@@ -38,14 +39,11 @@ func (s *TokenSemaphore) AcquireToken() string {
 func (s *TokenSemaphore) ReturnToken(token string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	isAcquired, exists := s.tokens[token]
+	_, exists := s.acquiredTokens[token]
 	if !exists {
 		return Error.New("Token is not valid", nil)
 	}
-	if !isAcquired {
-		return Error.New("Token is already returned", nil)
-	}
-	s.tokens[token] = false
-	s.channel <- token
+	delete(s.acquiredTokens, token)
+	s.channel <- GenerateRandomString(18, Tools.ALPHA_NUMERIC)
 	return nil
 }
