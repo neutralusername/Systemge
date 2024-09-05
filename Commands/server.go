@@ -9,9 +9,9 @@ import (
 )
 
 type CommandServer struct {
-	config               *Config.CommandServer
-	commandHandlers      Handlers
-	SystemgeServerConfig *SystemgeServer.SystemgeServer `json:"systemgeServerConfig"` // *required*
+	config          *Config.CommandServer
+	commandHandlers Handlers
+	SystemgeServer  *SystemgeServer.SystemgeServer `json:"systemgeServerConfig"` // *required*
 }
 
 func NewCommandServer(name string, config *Config.CommandServer, commands Handlers) *CommandServer {
@@ -32,7 +32,7 @@ func NewCommandServer(name string, config *Config.CommandServer, commands Handle
 		config:          config,
 		commandHandlers: commands,
 	}
-	commandServer.SystemgeServerConfig = SystemgeServer.New(name, config.SystemgeServerConfig, commandServer.onConnect, nil)
+	commandServer.SystemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, commandServer.onConnect, nil)
 	return commandServer
 }
 
@@ -67,20 +67,20 @@ func (commandServer *CommandServer) onConnect(connection SystemgeConnection.Syst
 }
 
 func (commandServer *CommandServer) Start() error {
-	return commandServer.SystemgeServerConfig.Start()
+	return commandServer.SystemgeServer.Start()
 }
 
 func (commandServer *CommandServer) Stop() error {
-	return commandServer.SystemgeServerConfig.Stop()
+	return commandServer.SystemgeServer.Stop()
 }
 
 func (commandServer *CommandServer) GetStatus() int {
-	return commandServer.SystemgeServerConfig.GetStatus()
+	return commandServer.SystemgeServer.GetStatus()
 }
 
 func (commandServer *CommandServer) GetMetrics() map[string]uint64 {
-	return commandServer.SystemgeServerConfig.GetMetrics()
+	return commandServer.SystemgeServer.GetMetrics()
 }
 func (commandServer *CommandServer) RetrieveMetrics() map[string]uint64 {
-	return commandServer.SystemgeServerConfig.RetrieveMetrics()
+	return commandServer.SystemgeServer.RetrieveMetrics()
 }
