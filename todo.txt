@@ -1,0 +1,2 @@
+re-create "nodes"
+nodes consist of messageBrokerClient, httpServer, websocketServer and dashboardClient
