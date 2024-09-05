@@ -66,10 +66,9 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 						return
 					}
 					if metrics.Metrics == nil {
-						client.Metrics = map[string]uint64{}
-					} else {
-						client.Metrics = metrics.Metrics
+						metrics.Metrics = map[string]uint64{}
 					}
+					client.Metrics = metrics.Metrics
 					metrics.Name = client.Name
 					app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
 				}
