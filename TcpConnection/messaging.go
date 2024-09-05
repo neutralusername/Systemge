@@ -21,8 +21,12 @@ func (connection *TcpConnection) SyncResponse(message *Message.Message, success 
 	} else {
 		response = message.NewFailureResponse(payload)
 	}
+	err := connection.send(response.Serialize())
+	if err != nil {
+		return err
+	}
 	connection.asyncMessagesSent.Add(1)
-	return connection.send(response.Serialize())
+	return nil
 }
 
 func (connection *TcpConnection) AsyncMessage(topic, payload string) error {
