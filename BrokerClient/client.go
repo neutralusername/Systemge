@@ -2,6 +2,7 @@ package BrokerClient
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
@@ -46,6 +47,13 @@ type Client struct {
 	subscribedSyncTopics  map[string]bool
 
 	// metrics
+
+	asyncMessagesSent atomic.Uint64
+
+	syncRequestsSent      atomic.Uint64
+	syncResponsesReceived atomic.Uint64
+
+	resolutionAttempts atomic.Uint64
 }
 
 type connection struct {
@@ -233,8 +241,12 @@ func (messageBrokerClient *Client) GetMetrics() map[string]uint64 {
 	m := map[string]uint64{}
 	messageBrokerClient.mutex.Lock()
 	m["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
-	m["broker_connection_count"] = uint64(len(messageBrokerClient.brokerConnections))
-	m["topic_resolution_count"] = uint64(len(messageBrokerClient.topicResolutions))
+	m["broker_connections"] = uint64(len(messageBrokerClient.brokerConnections))
+	m["topic_resolutions"] = uint64(len(messageBrokerClient.topicResolutions))
+	m["resolution_attempts"] = messageBrokerClient.resolutionAttempts.Load()
+	m["async_messages_sent"] = messageBrokerClient.asyncMessagesSent.Load()
+	m["sync_requests_sent"] = messageBrokerClient.syncRequestsSent.Load()
+	m["sync_responses_received"] = messageBrokerClient.syncResponsesReceived.Load()
 	for _, connection := range messageBrokerClient.brokerConnections {
 		metrics := connection.connection.RetrieveMetrics()
 		for key, value := range metrics {

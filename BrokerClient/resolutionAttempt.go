@@ -29,6 +29,7 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 		isSyncTopic: syncTopic,
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
+	messageBrokerClient.resolutionAttempts.Add(1)
 	go func() {
 		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel, subscribe)
 	}()

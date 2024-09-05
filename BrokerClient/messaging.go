@@ -36,6 +36,8 @@ func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 					}
 				}
 			}
+		} else {
+			messageBrokerClient.asyncMessagesSent.Add(1)
 		}
 	}
 }
@@ -71,6 +73,8 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 				}
 			}
 			continue
+		} else {
+			messageBrokerClient.syncRequestsSent.Add(1)
 		}
 		if response.GetTopic() == Message.TOPIC_FAILURE {
 			if messageBrokerClient.errorLogger != nil {
@@ -99,6 +103,7 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 			}
 			continue
 		}
+		messageBrokerClient.syncResponsesReceived.Add(uint64(len(responseMessages)))
 		responses = append(responses, responseMessages...)
 	}
 	return responses
