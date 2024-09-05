@@ -232,9 +232,9 @@ func (messageBrokerClient *Client) GetStatus() int {
 func (messageBrokerClient *Client) GetMetrics() map[string]uint64 {
 	m := map[string]uint64{}
 	messageBrokerClient.mutex.Lock()
-	m["ongoingTopicResolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
-	m["brokerConnections"] = uint64(len(messageBrokerClient.brokerConnections))
-	m["topicResolutions"] = uint64(len(messageBrokerClient.topicResolutions))
+	m["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
+	m["broker_connection_count"] = uint64(len(messageBrokerClient.brokerConnections))
+	m["topic_resolution_count"] = uint64(len(messageBrokerClient.topicResolutions))
 	for _, connection := range messageBrokerClient.brokerConnections {
 		metrics := connection.connection.RetrieveMetrics()
 		for key, value := range metrics {
