@@ -154,7 +154,6 @@ export class root extends React.Component {
                 this.handleStatusUpdate(JSON.parse(message.payload));
                 break;
             case "metricsUpdate":
-                console.log(message.payload);
                 this.handleMetricUpdate(JSON.parse(message.payload));
                 break;
             default:
