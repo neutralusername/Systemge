@@ -28,6 +28,8 @@ func (resolver *Resolver) resolveSync(connection SystemgeConnection.SystemgeConn
 }
 
 func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnection) error {
+	resolver.ongoingResolutions.Add(1)
+	defer resolver.ongoingResolutions.Add(-1)
 	message, err := connection.GetNextMessage()
 	if err != nil {
 		resolver.failedResolutions.Add(1)

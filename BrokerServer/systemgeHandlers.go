@@ -24,7 +24,7 @@ func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConne
 	}
 	for _, topic := range topics {
 		server.asyncTopicSubscriptions[topic][connection] = true
-		server.asyncConnectionSubscriptions[connection][topic] = true
+		server.connectionAsyncSubscriptions[connection][topic] = true
 	}
 	return "", nil
 }
@@ -44,7 +44,7 @@ func (server *Server) subscribeSync(connection SystemgeConnection.SystemgeConnec
 	}
 	for _, topic := range topics {
 		server.syncTopicSubscriptions[topic][connection] = true
-		server.syncConnectionSubscriptions[connection][topic] = true
+		server.connectionsSyncSubscriptions[connection][topic] = true
 	}
 	return "", nil
 }
@@ -65,7 +65,7 @@ func (server *Server) unsubscribeAsync(connection SystemgeConnection.SystemgeCon
 	}
 	for _, topic := range topics {
 		delete(server.asyncTopicSubscriptions[topic], connection)
-		delete(server.asyncConnectionSubscriptions[connection], topic)
+		delete(server.connectionAsyncSubscriptions[connection], topic)
 	}
 	return "", nil
 }
@@ -86,28 +86,37 @@ func (server *Server) unsubscribeSync(connection SystemgeConnection.SystemgeConn
 	}
 	for _, topic := range topics {
 		delete(server.syncTopicSubscriptions[topic], connection)
-		delete(server.syncConnectionSubscriptions[connection], topic)
+		delete(server.connectionsSyncSubscriptions[connection], topic)
 	}
 	return "", nil
 }
 
-func (server *Server) handleAsyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) {
+func (server *Server) handleAsyncPropagate(sendingConnection SystemgeConnection.SystemgeConnection, message *Message.Message) {
+	server.asyncMessagesReceived.Add(1)
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	for client := range server.asyncTopicSubscriptions[message.GetTopic()] {
-		if client != connection {
-			client.AsyncMessage(message.GetTopic(), message.GetPayload())
+	for connection := range server.asyncTopicSubscriptions[message.GetTopic()] {
+		if connection != sendingConnection {
+			err := connection.AsyncMessage(message.GetTopic(), message.GetPayload())
+			if err != nil {
+				if server.warningLogger != nil {
+					server.warningLogger.Log(Error.New("failed to send async message to client \""+connection.GetName(), nil).Error())
+				}
+			} else {
+				server.asyncMessagesPropagated.Add(1)
+			}
 		}
 	}
 }
 
 func (server *Server) handleSyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-
+	server.syncRequestsReceived.Add(1)
 	server.mutex.Lock()
 	responseChannels := []<-chan *Message.Message{}
 	waitgroup := sync.WaitGroup{}
 	for client := range server.syncTopicSubscriptions[message.GetTopic()] {
 		if client != connection {
+			server.syncRequestsPropagated.Add(1)
 			waitgroup.Add(1)
 			go func(client SystemgeConnection.SystemgeConnection) {
 				defer waitgroup.Done()
@@ -116,9 +125,10 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 					if server.warningLogger != nil {
 						server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
 					}
-					return
+				} else {
+					responseChannels = append(responseChannels, responseChannel)
+					server.syncRequestsPropagated.Add(1)
 				}
-				responseChannels = append(responseChannels, responseChannel)
 			}(client)
 		}
 	}
@@ -140,8 +150,8 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 
 func (server *Server) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
-	server.asyncConnectionSubscriptions[connection] = make(map[string]bool)
-	server.syncConnectionSubscriptions[connection] = make(map[string]bool)
+	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
+	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
 	server.mutex.Unlock()
 	connection.StartProcessingLoopSequentially(server.messageHandler)
 	return nil
@@ -151,13 +161,13 @@ func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.Syst
 	connection.StopProcessingLoop()
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	for topic := range server.asyncConnectionSubscriptions[connection] {
+	for topic := range server.connectionAsyncSubscriptions[connection] {
 		delete(server.asyncTopicSubscriptions[topic], connection)
 	}
-	delete(server.asyncConnectionSubscriptions, connection)
-	for topic := range server.syncConnectionSubscriptions[connection] {
+	delete(server.connectionAsyncSubscriptions, connection)
+	for topic := range server.connectionsSyncSubscriptions[connection] {
 		delete(server.syncTopicSubscriptions[topic], connection)
 	}
-	delete(server.syncConnectionSubscriptions, connection)
+	delete(server.connectionsSyncSubscriptions, connection)
 
 }

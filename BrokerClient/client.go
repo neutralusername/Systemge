@@ -44,6 +44,8 @@ type Client struct {
 
 	subscribedAsyncTopics map[string]bool
 	subscribedSyncTopics  map[string]bool
+
+	// metrics
 }
 
 type connection struct {

@@ -35,6 +35,8 @@ type Resolver struct {
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
 
+	ongoingResolutions atomic.Int64
+
 	// metrics
 
 	sucessfulAsyncResolutions atomic.Uint64
@@ -201,5 +203,10 @@ func (resolver *Resolver) GetMetrics() map[string]uint64 {
 	metrics["sucessful_async_resolutions"] = resolver.RetrieveSucessfulAsyncResolutions()
 	metrics["sucessful_sync_resolutions"] = resolver.RetrieveSucessfulSyncResolutions()
 	metrics["failed_resolutions"] = resolver.RetrieveFailedResolutions()
+	metrics["ongoing_resolutions"] = uint64(resolver.ongoingResolutions.Load())
+	resolver.mutex.Lock()
+	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
+	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
+	resolver.mutex.Unlock()
 	return metrics
 }

@@ -2,6 +2,7 @@ package BrokerServer
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
@@ -27,8 +28,8 @@ type Server struct {
 	messageHandler  SystemgeConnection.MessageHandler
 	dashboardClient *Dashboard.DashboardClient
 
-	asyncConnectionSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
-	syncConnectionSubscriptions  map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
+	connectionsSyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 
 	asyncTopicSubscriptions map[string]map[SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
 	syncTopicSubscriptions  map[string]map[SystemgeConnection.SystemgeConnection]bool // topic -> connection -> true
@@ -36,6 +37,12 @@ type Server struct {
 	mutex sync.Mutex
 
 	// metrics
+
+	asyncMessagesReceived   atomic.Uint64
+	asyncMessagesPropagated atomic.Uint64
+
+	syncRequestsReceived   atomic.Uint64
+	syncRequestsPropagated atomic.Uint64
 }
 
 func New(name string, config *Config.MessageBrokerServer) *Server {
@@ -62,8 +69,8 @@ func New(name string, config *Config.MessageBrokerServer) *Server {
 		asyncTopicSubscriptions: make(map[string]map[SystemgeConnection.SystemgeConnection]bool),
 		syncTopicSubscriptions:  make(map[string]map[SystemgeConnection.SystemgeConnection]bool),
 
-		asyncConnectionSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
-		syncConnectionSubscriptions:  make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
+		connectionAsyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
+		connectionsSyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)
@@ -155,8 +162,15 @@ func (server *Server) GetStatus() int {
 }
 
 func (server *Server) GetMetrics() map[string]uint64 {
-	// TODO: gather metrics
-	return nil
+	metrics := map[string]uint64{}
+	metrics["asyncMessagesReceived"] = server.RetrieveAsyncMessagesPropagated()
+	metrics["asyncMessagesPropagated"] = server.RetrieveAsyncMessagesPropagated()
+	metrics["syncRequestsReceived"] = server.RetrieveSyncRequestsReceived()
+	metrics["syncRequestsPropagated"] = server.RetrieveSyncRequestsPropagated()
+	metrics["connectionCount"] = uint64(len(server.connectionAsyncSubscriptions))
+	metrics["asyncTopicCount"] = uint64(len(server.asyncTopicSubscriptions))
+	metrics["syncTopicCount"] = uint64(len(server.syncTopicSubscriptions))
+	return metrics
 }
 
 func (server *Server) GetName() string {
