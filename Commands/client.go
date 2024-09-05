@@ -42,7 +42,7 @@ func NewCommandClient(name string, config *Config.CommandClient, command string,
 		return "", Error.New("Failed to get response", err)
 	}
 	if message.GetTopic() != Message.TOPIC_SUCCESS {
-		return "", Error.New("Command requestFailed", errors.New(message.GetPayload()))
+		return "", Error.New("Command failed", errors.New(message.GetPayload()))
 	}
 	connection.SyncResponse(message, true, "ack")
 	connection.Close()

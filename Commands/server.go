@@ -39,26 +39,26 @@ func NewCommandServer(name string, config *Config.CommandServer, commands Handle
 func (commandServer *CommandServer) onConnect(connection SystemgeConnection.SystemgeConnection) error {
 	message, err := connection.GetNextMessage()
 	if err != nil {
-		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
 		return err
 	}
 	if message.GetTopic() != "command" {
-		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
 		return Error.New("Invalid topic", nil)
 	}
 	command := UnmarshalCommandStruct(message.GetPayload())
 	if command == nil {
-		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
 		return Error.New("Invalid command", nil)
 	}
 	handler := commandServer.commandHandlers[command.Command]
 	if handler == nil {
-		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
 		return Error.New("Command not found", nil)
 	}
 	result, err := handler(command.Args)
 	if err != nil {
-		_, err = connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
 		return Error.New("Command failed", err)
 	}
 	connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
