@@ -7,12 +7,12 @@ type DashboardServer struct {
 	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
 	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
 
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *required*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *required*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *required*
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *required*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxChartEntries uint32 `json:"maxChartEntries"` // default: <=0 = disabled
+	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
 
 	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
 	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
