@@ -27,11 +27,15 @@ func (semaphore *Semaphore) TryAcquire() bool {
 	}
 }
 
-func (semaphore *Semaphore) Release() bool {
+func (semaphore *Semaphore) TryRelease() bool {
 	select {
 	case semaphore.channel <- struct{}{}:
 		return true
 	default:
 		return false
 	}
+}
+
+func (semaphore *Semaphore) ReleaseBlocking() {
+	semaphore.channel <- struct{}{}
 }
