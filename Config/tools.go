@@ -9,7 +9,7 @@ type Mailer struct {
 	SmtpPort       uint16   `json:"smtpPort"`       // *required*
 	SenderEmail    string   `json:"senderEmail"`    // *required*
 	SenderPassword string   `json:"senderPassword"` // *required*
-	Recipients     []string `json:"recipients"`     // *required*
+	Recipients     []string `json:"recipients"`
 }
 
 func UnmarshalMailer(data string) *Mailer {

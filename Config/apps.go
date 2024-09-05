@@ -9,10 +9,10 @@ import (
 type Oauth2 struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
-	InfoLoggerPath    string `json:"infoLoggerPath"`    // *required*
-	WarningLoggerPath string `json:"warningLoggerPath"` // *required*
+	InfoLoggerPath    string `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string `json:"warningLoggerPath"` // *optional*
 
-	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
+	RandomizerSeed int64 `json:"randomizerSeed"` // default: 0
 
 	AuthPath                   string                                                                      `json:"authPath"`                   // *required*
 	AuthCallbackPath           string                                                                      `json:"authCallbackPath"`           // *required*
