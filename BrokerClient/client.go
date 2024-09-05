@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
@@ -106,6 +107,14 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		}
 		dashboardCommandHandler["resolveSubscribeTopic"] = func(args []string) (string, error) {
 			return "success", messageBrokerClient.ResolveSubscribeTopics()
+		}
+		dashboardCommandHandler["getAsyncSubscribeTopics"] = func(args []string) (string, error) {
+			topics := messageBrokerClient.GetAsyncSubscribeTopics()
+			return Helpers.JsonMarshal(topics), nil
+		}
+		dashboardCommandHandler["getSyncSubscribeTopics"] = func(args []string) (string, error) {
+			topics := messageBrokerClient.GetSyncSubscribeTopics()
+			return Helpers.JsonMarshal(topics), nil
 		}
 		dashboardCommandHandler["addAsyncSubscribeTopic"] = func(args []string) (string, error) {
 			if len(args) != 1 {

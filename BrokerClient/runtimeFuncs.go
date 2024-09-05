@@ -41,6 +41,26 @@ func (messageBrokerClient *Client) ResolveTopic(topic string) error {
 	return nil
 }
 
+func (messageBrokerClient *Client) GetAsyncSubscribeTopics() []string {
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
+	topics := []string{}
+	for topic := range messageBrokerClient.subscribedAsyncTopics {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
+func (messageBrokerClient *Client) GetSyncSubscribeTopics() []string {
+	messageBrokerClient.mutex.Lock()
+	defer messageBrokerClient.mutex.Unlock()
+	topics := []string{}
+	for topic := range messageBrokerClient.subscribedSyncTopics {
+		topics = append(topics, topic)
+	}
+	return topics
+}
+
 func (messageBrokerClient *Client) AddAsyncSubscribeTopic(topic string) error {
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
