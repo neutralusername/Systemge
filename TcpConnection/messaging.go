@@ -8,6 +8,10 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+func (connection *TcpConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
+
+}
+
 func (connection *TcpConnection) AsyncMessage(topic, payload string) error {
 	err := connection.send(Message.NewAsync(topic, payload).Serialize())
 	if err != nil {

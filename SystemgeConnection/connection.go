@@ -45,6 +45,7 @@ type SystemgeConnection interface {
 	StopProcessingLoop() error
 	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)
 	SyncRequestBlocking(topic string, payload string) (*Message.Message, error)
+	SyncResponse(message *Message.Message, success bool, payload string) error
 	UnprocessedMessagesCount() int64
 }
 

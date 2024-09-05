@@ -33,3 +33,24 @@ func UnmarshalOauth2(data string) *Oauth2 {
 	}
 	return &oauth2
 }
+
+type CommandClient struct {
+	TcpConnectionConfig *TcpConnection `json:"tcpConnectionConfig"` // *required*
+	TcpClientConfig     *TcpClient     `json:"tcpClientConfig"`     // *required*
+	MaxServerNameLength int            `json:"maxServerLength"`     // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
+}
+
+func UnmarshalCommandClient(data string) *CommandClient {
+	var commandClient CommandClient
+	err := json.Unmarshal([]byte(data), &commandClient)
+	if err != nil {
+		return nil
+	}
+	return &commandClient
+}
+
+type CommandServer struct {
+	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
+
+	MaxClientNameLength int `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
+}
