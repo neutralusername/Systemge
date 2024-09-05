@@ -1,1 +1,0 @@
-fix the dashboard urls of clients - currently only routes that try to serve a directory with path "/" are working. idk why yet

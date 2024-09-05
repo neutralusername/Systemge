@@ -234,7 +234,9 @@ func (app *DashboardServer) onSystemgeDisconnectHandler(connection SystemgeConne
 }
 
 func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
-	app.httpServer.AddRoute("/"+client.Name, HTTPServer.SendDirectory(app.frontendPath))
+	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
+	})
 	app.httpServer.AddRoute("/"+client.Name+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
