@@ -188,10 +188,10 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) GetWhiteList() *Tools.AccessControlList {
+func (server *WebsocketServer) GetWhitelist() *Tools.AccessControlList {
 	return server.httpServer.GetWhitelist()
 }
 
-func (server *WebsocketServer) GetBlackList() *Tools.AccessControlList {
+func (server *WebsocketServer) GetBlacklist() *Tools.AccessControlList {
 	return server.httpServer.GetBlacklist()
 }
