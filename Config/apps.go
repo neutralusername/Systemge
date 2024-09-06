@@ -50,5 +50,6 @@ func UnmarshalCommandClient(data string) *SingleRequestClient {
 }
 
 type SingleRequestServer struct {
-	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
+	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
+	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
 }

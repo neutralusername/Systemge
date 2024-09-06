@@ -18,7 +18,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-type DashboardServer struct {
+type Server struct {
 	name string
 
 	statusMutex sync.Mutex
@@ -44,7 +44,7 @@ type DashboardServer struct {
 	mailer        *Tools.Mailer
 }
 
-func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
+func NewServer(name string, config *Config.DashboardServer) *Server {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -84,7 +84,7 @@ func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 			"export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";",
 	)
 
-	app := &DashboardServer{
+	app := &Server{
 		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
@@ -118,7 +118,7 @@ func NewServer(name string, config *Config.DashboardServer) *DashboardServer {
 	return app
 }
 
-func (app *DashboardServer) Start() error {
+func (app *Server) Start() error {
 	app.statusMutex.Lock()
 	defer app.statusMutex.Unlock()
 	if app.status == Status.STARTED {
@@ -172,7 +172,7 @@ func (app *DashboardServer) Start() error {
 	return nil
 }
 
-func (app *DashboardServer) Stop() error {
+func (app *Server) Stop() error {
 	app.statusMutex.Lock()
 	defer app.statusMutex.Unlock()
 	if app.status == Status.STOPPED {
@@ -201,7 +201,7 @@ func (app *DashboardServer) Stop() error {
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
+func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
 	response, err := connection.SyncRequestBlocking(Message.TOPIC_GET_INTRODUCTION, "")
 	if err != nil {
 		return err
@@ -223,7 +223,7 @@ func (app *DashboardServer) onSystemgeConnectHandler(connection SystemgeConnecti
 	return nil
 }
 
-func (app *DashboardServer) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
+func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
 	if client, ok := app.clients[connection.GetName()]; ok {
 		delete(app.clients, connection.GetName())
@@ -233,7 +233,7 @@ func (app *DashboardServer) onSystemgeDisconnectHandler(connection SystemgeConne
 	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
 
-func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
+func (app *Server) registerModuleHttpHandlers(client *client) {
 	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
@@ -272,7 +272,7 @@ func (app *DashboardServer) registerModuleHttpHandlers(client *client) {
 	})
 }
 
-func (app *DashboardServer) unregisterModuleHttpHandlers(clientName string) {
+func (app *Server) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName)
 	app.httpServer.RemoveRoute("/" + clientName + "/command/")
 	app.httpServer.RemoveRoute("/" + clientName + "/command")

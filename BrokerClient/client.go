@@ -33,7 +33,7 @@ type Client struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	dashboardClient *Dashboard.DashboardClient
+	dashboardClient *Dashboard.Client
 
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt

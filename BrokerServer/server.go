@@ -26,7 +26,7 @@ type Server struct {
 	mailer        *Tools.Mailer
 
 	messageHandler  SystemgeConnection.MessageHandler
-	dashboardClient *Dashboard.DashboardClient
+	dashboardClient *Dashboard.Client
 
 	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 	connectionsSyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true

@@ -22,7 +22,7 @@ type Resolver struct {
 
 	systemgeServer *SystemgeServer.SystemgeServer
 
-	dashboardClient *Dashboard.DashboardClient
+	dashboardClient *Dashboard.Client
 
 	asyncTopicEndpoints map[string]*Config.TcpClient
 	syncTopicEndpoints  map[string]*Config.TcpClient

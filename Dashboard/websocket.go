@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (app *DashboardServer) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (app *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	app.mutex.RLock()
 	client := app.clients[message.GetPayload()]
 	app.mutex.RUnlock()
@@ -31,7 +31,7 @@ func (app *DashboardServer) startHandler(websocketClient *WebsocketServer.Websoc
 	return nil
 }
 
-func (app *DashboardServer) stopHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (app *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	app.mutex.RLock()
 	client := app.clients[message.GetPayload()]
 	app.mutex.RUnlock()
@@ -53,12 +53,12 @@ func (app *DashboardServer) stopHandler(websocketClient *WebsocketServer.Websock
 	return nil
 }
 
-func (app *DashboardServer) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (app *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	runtime.GC()
 	return nil
 }
 
-func (app *DashboardServer) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	command, err := unmarshalCommand(message.GetPayload())
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (app *DashboardServer) commandHandler(websocketClient *WebsocketServer.Webs
 	return nil
 }
 
-func (app *DashboardServer) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
+func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
 	for _, client := range app.clients {

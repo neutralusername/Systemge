@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (app *DashboardServer) statusUpdateRoutine() {
+func (app *Server) statusUpdateRoutine() {
 	defer app.waitGroup.Done()
 	for app.status == Status.STARTED {
 		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
@@ -42,7 +42,7 @@ func (app *DashboardServer) statusUpdateRoutine() {
 	}
 }
 
-func (app *DashboardServer) metricsUpdateRoutine() {
+func (app *Server) metricsUpdateRoutine() {
 	defer app.waitGroup.Done()
 	for app.status == Status.STARTED {
 		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
@@ -78,7 +78,7 @@ func (app *DashboardServer) metricsUpdateRoutine() {
 	}
 }
 
-func (app *DashboardServer) goroutineUpdateRoutine() {
+func (app *Server) goroutineUpdateRoutine() {
 	defer app.waitGroup.Done()
 	for app.status == Status.STARTED {
 		time.Sleep(time.Duration(app.config.GoroutineUpdateIntervalMs) * time.Millisecond)
@@ -91,7 +91,7 @@ func (app *DashboardServer) goroutineUpdateRoutine() {
 	}
 }
 
-func (app *DashboardServer) heapUpdateRoutine() {
+func (app *Server) heapUpdateRoutine() {
 	defer app.waitGroup.Done()
 	for app.status == Status.STARTED {
 		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
