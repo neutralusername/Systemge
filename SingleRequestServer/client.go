@@ -41,10 +41,10 @@ func Command(name string, config *Config.SingleRequestClient, command string, ar
 	if err != nil {
 		return "", Error.New("Failed to get response", err)
 	}
+	connection.SyncResponse(message, true, "")
 	if message.GetTopic() != Message.TOPIC_SUCCESS {
 		return "", Error.New("Command failed", errors.New(message.GetPayload()))
 	}
-	connection.SyncResponse(message, true, "")
 	connection.Close()
 	return message.GetPayload(), nil
 }
@@ -62,10 +62,10 @@ func AsyncMessage(name string, config *Config.SingleRequestClient, topic string,
 	if err != nil {
 		return Error.New("Failed to get response", err)
 	}
+	connection.SyncResponse(message, true, "")
 	if message.GetTopic() != Message.TOPIC_SUCCESS {
 		return Error.New("Message failed", errors.New(message.GetPayload()))
 	}
-	connection.SyncResponse(message, true, "")
 	connection.Close()
 	return nil
 }
@@ -83,10 +83,10 @@ func SyncRequest(name string, config *Config.SingleRequestClient, topic string, 
 	if err != nil {
 		return "", Error.New("Failed to get response", err)
 	}
+	connection.SyncResponse(message, true, "")
 	if message.GetTopic() != Message.TOPIC_SUCCESS {
 		return "", Error.New("Request failed", errors.New(message.GetPayload()))
 	}
-	connection.SyncResponse(message, true, "")
 	connection.Close()
 	return message.GetPayload(), nil
 }
