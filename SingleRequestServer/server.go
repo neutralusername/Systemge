@@ -75,7 +75,7 @@ func (server *SingleRequestServer) onConnect(connection SystemgeConnection.Syste
 			server.failedCommands.Add(1)
 			return Error.New("No commands available on this server", nil)
 		}
-		command := UnmarshalCommandStruct(message.GetPayload())
+		command := unmarshalCommandStruct(message.GetPayload())
 		if command == nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
 			server.failedCommands.Add(1)

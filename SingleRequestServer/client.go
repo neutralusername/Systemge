@@ -16,7 +16,7 @@ type commandStruct struct {
 	Args    []string `json:"args"`
 }
 
-func UnmarshalCommandStruct(data string) *commandStruct {
+func unmarshalCommandStruct(data string) *commandStruct {
 	var command commandStruct
 	err := json.Unmarshal([]byte(data), &command)
 	if err != nil {
