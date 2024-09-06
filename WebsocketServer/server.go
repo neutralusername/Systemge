@@ -187,3 +187,11 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	delete(server.messageHandlers, topic)
 	server.messageHandlerMutex.Unlock()
 }
+
+func (server *WebsocketServer) GetWhiteList() *Tools.AccessControlList {
+	return server.httpServer.GetWhitelist()
+}
+
+func (server *WebsocketServer) GetBlackList() *Tools.AccessControlList {
+	return server.httpServer.GetBlacklist()
+}
