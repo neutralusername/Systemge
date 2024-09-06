@@ -10,13 +10,13 @@ import (
 )
 
 type SingleRequestServer struct {
-	config          *Config.RPCServer
+	config          *Config.SingleRequestServer
 	commandHandlers Commands.Handlers
 	messageHandler  SystemgeConnection.MessageHandler
 	SystemgeServer  *SystemgeServer.SystemgeServer
 }
 
-func NewSingleRequestServer(name string, config *Config.RPCServer, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *SingleRequestServer {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *SingleRequestServer {
 	if config == nil {
 		panic("Config is required")
 	}
