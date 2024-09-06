@@ -10,6 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SingleRequestServer struct {
@@ -158,6 +159,14 @@ func (server *SingleRequestServer) Stop() error {
 
 func (server *SingleRequestServer) GetStatus() int {
 	return server.systemgeServer.GetStatus()
+}
+
+func (server *SingleRequestServer) GetWhiteList() *Tools.AccessControlList {
+	return server.systemgeServer.GetWhitelist()
+}
+
+func (server *SingleRequestServer) GetBlackList() *Tools.AccessControlList {
+	return server.systemgeServer.GetBlacklist()
 }
 
 func (server *SingleRequestServer) GetMetrics() map[string]uint64 {

@@ -214,3 +214,11 @@ func (resolver *Resolver) GetMetrics() map[string]uint64 {
 	}
 	return metrics
 }
+
+func (server *Resolver) GetWhiteList() *Tools.AccessControlList {
+	return server.systemgeServer.GetWhitelist()
+}
+
+func (server *Resolver) GetBlackList() *Tools.AccessControlList {
+	return server.systemgeServer.GetBlacklist()
+}

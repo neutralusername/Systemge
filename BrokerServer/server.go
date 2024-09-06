@@ -180,3 +180,11 @@ func (server *Server) GetMetrics() map[string]uint64 {
 func (server *Server) GetName() string {
 	return server.name
 }
+
+func (server *Server) GetWhiteList() *Tools.AccessControlList {
+	return server.systemgeServer.GetWhitelist()
+}
+
+func (server *Server) GetBlackList() *Tools.AccessControlList {
+	return server.systemgeServer.GetBlacklist()
+}
