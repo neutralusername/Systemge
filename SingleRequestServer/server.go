@@ -161,8 +161,81 @@ func (server *SingleRequestServer) GetStatus() int {
 }
 
 func (server *SingleRequestServer) GetMetrics() map[string]uint64 {
-	return server.systemgeServer.GetMetrics()
+	metrics := map[string]uint64{}
+	metrics["invalidMessages"] = server.GetInvalidMessages()
+	metrics["succeededCommands"] = server.GetSucceededCommands()
+	metrics["failedCommands"] = server.GetFailedCommands()
+	metrics["succeededAsyncMessages"] = server.GetSucceededAsyncMessages()
+	metrics["failedAsyncMessages"] = server.GetFailedAsyncMessages()
+	metrics["succeededSyncMessages"] = server.GetSucceededSyncMessages()
+	metrics["failedSyncMessages"] = server.GetFailedSyncMessages()
+	serverMetrics := server.systemgeServer.GetMetrics()
+	for key, value := range serverMetrics {
+		metrics[key] = value
+	}
+	return metrics
 }
 func (server *SingleRequestServer) RetrieveMetrics() map[string]uint64 {
-	return server.systemgeServer.RetrieveMetrics()
+	metrics := map[string]uint64{}
+	metrics["invalidMessages"] = server.RetrieveInvalidMessages()
+	metrics["succeededCommands"] = server.RetrieveSucceededCommands()
+	metrics["failedCommands"] = server.RetrieveFailedCommands()
+	metrics["succeededAsyncMessages"] = server.RetrieveSucceededAsyncMessages()
+	metrics["failedAsyncMessages"] = server.RetrieveFailedAsyncMessages()
+	metrics["succeededSyncMessages"] = server.RetrieveSucceededSyncMessages()
+	metrics["failedSyncMessages"] = server.RetrieveFailedSyncMessages()
+	serverMetrics := server.systemgeServer.RetrieveMetrics()
+	for key, value := range serverMetrics {
+		metrics[key] = value
+	}
+	return metrics
+}
+
+func (server *SingleRequestServer) GetInvalidMessages() uint64 {
+	return server.invalidMessages.Load()
+}
+func (server *SingleRequestServer) RetrieveInvalidMessages() uint64 {
+	return server.invalidMessages.Swap(0)
+}
+
+func (server *SingleRequestServer) GetSucceededCommands() uint64 {
+	return server.succeededCommands.Load()
+}
+func (server *SingleRequestServer) RetrieveSucceededCommands() uint64 {
+	return server.succeededCommands.Swap(0)
+}
+
+func (server *SingleRequestServer) GetFailedCommands() uint64 {
+	return server.failedCommands.Load()
+}
+func (server *SingleRequestServer) RetrieveFailedCommands() uint64 {
+	return server.failedCommands.Swap(0)
+}
+
+func (server *SingleRequestServer) GetSucceededAsyncMessages() uint64 {
+	return server.succeededAsyncMessages.Load()
+}
+func (server *SingleRequestServer) RetrieveSucceededAsyncMessages() uint64 {
+	return server.succeededAsyncMessages.Swap(0)
+}
+
+func (server *SingleRequestServer) GetFailedAsyncMessages() uint64 {
+	return server.failedAsyncMessages.Load()
+}
+func (server *SingleRequestServer) RetrieveFailedAsyncMessages() uint64 {
+	return server.failedAsyncMessages.Swap(0)
+}
+
+func (server *SingleRequestServer) GetSucceededSyncMessages() uint64 {
+	return server.succeededSyncMessages.Load()
+}
+func (server *SingleRequestServer) RetrieveSucceededSyncMessages() uint64 {
+	return server.succeededSyncMessages.Swap(0)
+}
+
+func (server *SingleRequestServer) GetFailedSyncMessages() uint64 {
+	return server.failedSyncMessages.Load()
+}
+func (server *SingleRequestServer) RetrieveFailedSyncMessages() uint64 {
+	return server.failedSyncMessages.Swap(0)
 }
