@@ -25,7 +25,7 @@ func UnmarshalCommandStruct(data string) *commandStruct {
 	return &command
 }
 
-func RemoteCommandRequest(name string, config *Config.SingleRequestClient, command string, args ...string) (string, error) {
+func Command(name string, config *Config.SingleRequestClient, command string, args ...string) (string, error) {
 	connection, err := TcpConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return "", Error.New("Failed to establish connection", err)
@@ -49,7 +49,7 @@ func RemoteCommandRequest(name string, config *Config.SingleRequestClient, comma
 	return message.GetPayload(), nil
 }
 
-func RemoteAsyncMessage(name string, config *Config.SingleRequestClient, topic string, payload string) error {
+func AsyncMessage(name string, config *Config.SingleRequestClient, topic string, payload string) error {
 	connection, err := TcpConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
@@ -70,7 +70,7 @@ func RemoteAsyncMessage(name string, config *Config.SingleRequestClient, topic s
 	return nil
 }
 
-func RemoteSyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (string, error) {
+func SyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (string, error) {
 	connection, err := TcpConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return "", Error.New("Failed to establish connection", err)
