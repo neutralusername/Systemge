@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type SingleRequestServer struct {
+type Server struct {
 	config          *Config.SingleRequestServer
 	commandHandlers Commands.Handlers
 	messageHandler  SystemgeConnection.MessageHandler
@@ -33,7 +33,7 @@ type SingleRequestServer struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *SingleRequestServer {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -47,7 +47,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, com
 		panic("TcpServerConfig is required")
 	}
 
-	server := &SingleRequestServer{
+	server := &Server{
 		config:          config,
 		commandHandlers: commands,
 		messageHandler:  messageHandler,
@@ -63,7 +63,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, com
 	return server
 }
 
-func (server *SingleRequestServer) onConnect(connection SystemgeConnection.SystemgeConnection) error {
+func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection) error {
 	message, err := connection.GetNextMessage()
 	if err != nil {
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
@@ -149,27 +149,27 @@ func (server *SingleRequestServer) onConnect(connection SystemgeConnection.Syste
 	}
 }
 
-func (server *SingleRequestServer) Start() error {
+func (server *Server) Start() error {
 	return server.systemgeServer.Start()
 }
 
-func (server *SingleRequestServer) Stop() error {
+func (server *Server) Stop() error {
 	return server.systemgeServer.Stop()
 }
 
-func (server *SingleRequestServer) GetStatus() int {
+func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *SingleRequestServer) GetWhiteList() *Tools.AccessControlList {
+func (server *Server) GetWhiteList() *Tools.AccessControlList {
 	return server.systemgeServer.GetWhitelist()
 }
 
-func (server *SingleRequestServer) GetBlackList() *Tools.AccessControlList {
+func (server *Server) GetBlackList() *Tools.AccessControlList {
 	return server.systemgeServer.GetBlacklist()
 }
 
-func (server *SingleRequestServer) GetMetrics() map[string]uint64 {
+func (server *Server) GetMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
 	metrics["invalidMessages"] = server.GetInvalidMessages()
 	metrics["succeededCommands"] = server.GetSucceededCommands()
@@ -184,7 +184,7 @@ func (server *SingleRequestServer) GetMetrics() map[string]uint64 {
 	}
 	return metrics
 }
-func (server *SingleRequestServer) RetrieveMetrics() map[string]uint64 {
+func (server *Server) RetrieveMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
 	metrics["invalidMessages"] = server.RetrieveInvalidMessages()
 	metrics["succeededCommands"] = server.RetrieveSucceededCommands()
@@ -200,51 +200,51 @@ func (server *SingleRequestServer) RetrieveMetrics() map[string]uint64 {
 	return metrics
 }
 
-func (server *SingleRequestServer) GetInvalidMessages() uint64 {
+func (server *Server) GetInvalidMessages() uint64 {
 	return server.invalidMessages.Load()
 }
-func (server *SingleRequestServer) RetrieveInvalidMessages() uint64 {
+func (server *Server) RetrieveInvalidMessages() uint64 {
 	return server.invalidMessages.Swap(0)
 }
 
-func (server *SingleRequestServer) GetSucceededCommands() uint64 {
+func (server *Server) GetSucceededCommands() uint64 {
 	return server.succeededCommands.Load()
 }
-func (server *SingleRequestServer) RetrieveSucceededCommands() uint64 {
+func (server *Server) RetrieveSucceededCommands() uint64 {
 	return server.succeededCommands.Swap(0)
 }
 
-func (server *SingleRequestServer) GetFailedCommands() uint64 {
+func (server *Server) GetFailedCommands() uint64 {
 	return server.failedCommands.Load()
 }
-func (server *SingleRequestServer) RetrieveFailedCommands() uint64 {
+func (server *Server) RetrieveFailedCommands() uint64 {
 	return server.failedCommands.Swap(0)
 }
 
-func (server *SingleRequestServer) GetSucceededAsyncMessages() uint64 {
+func (server *Server) GetSucceededAsyncMessages() uint64 {
 	return server.succeededAsyncMessages.Load()
 }
-func (server *SingleRequestServer) RetrieveSucceededAsyncMessages() uint64 {
+func (server *Server) RetrieveSucceededAsyncMessages() uint64 {
 	return server.succeededAsyncMessages.Swap(0)
 }
 
-func (server *SingleRequestServer) GetFailedAsyncMessages() uint64 {
+func (server *Server) GetFailedAsyncMessages() uint64 {
 	return server.failedAsyncMessages.Load()
 }
-func (server *SingleRequestServer) RetrieveFailedAsyncMessages() uint64 {
+func (server *Server) RetrieveFailedAsyncMessages() uint64 {
 	return server.failedAsyncMessages.Swap(0)
 }
 
-func (server *SingleRequestServer) GetSucceededSyncMessages() uint64 {
+func (server *Server) GetSucceededSyncMessages() uint64 {
 	return server.succeededSyncMessages.Load()
 }
-func (server *SingleRequestServer) RetrieveSucceededSyncMessages() uint64 {
+func (server *Server) RetrieveSucceededSyncMessages() uint64 {
 	return server.succeededSyncMessages.Swap(0)
 }
 
-func (server *SingleRequestServer) GetFailedSyncMessages() uint64 {
+func (server *Server) GetFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Load()
 }
-func (server *SingleRequestServer) RetrieveFailedSyncMessages() uint64 {
+func (server *Server) RetrieveFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Swap(0)
 }
