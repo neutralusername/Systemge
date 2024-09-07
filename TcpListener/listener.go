@@ -10,7 +10,7 @@ import (
 )
 
 type TcpListener struct {
-	config        *Config.TcpListener
+	config        *Config.TcpSystemgeListener
 	tcpListener   *Tcp.Listener
 	ipRateLimiter *Tools.IpRateLimiter
 
@@ -24,7 +24,7 @@ type TcpListener struct {
 	acceptedConnections atomic.Uint64
 }
 
-func New(config *Config.TcpListener) (*TcpListener, error) {
+func New(config *Config.TcpSystemgeListener) (*TcpListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}

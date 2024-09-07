@@ -19,7 +19,7 @@ type messageInProcess struct {
 
 type TcpConnection struct {
 	name       string
-	config     *Config.TcpConnection
+	config     *Config.TcpSystemgeConnection
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
 
@@ -70,7 +70,7 @@ type TcpConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(name string, config *Config.TcpConnection, netConn net.Conn) *TcpConnection {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *TcpConnection {
 	connection := &TcpConnection{
 		name:              name,
 		config:            config,

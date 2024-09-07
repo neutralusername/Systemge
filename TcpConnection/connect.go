@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func EstablishConnection(config *Config.TcpConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
+func EstablishConnection(config *Config.TcpSystemgeConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
 	if config == nil {
 		return nil, Error.New("Config is nil", nil)
 	}
@@ -27,7 +27,7 @@ func EstablishConnection(config *Config.TcpConnection, endpointConfig *Config.Tc
 	return connection, nil
 }
 
-func clientHandshake(config *Config.TcpConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
+func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
 	connection := New(clientName+"_connectionAttempt", config, netConn)
 	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
 	if err != nil {

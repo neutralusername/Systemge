@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpConnection) (SystemgeConnection.SystemgeConnection, error) {
+func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
@@ -47,7 +47,7 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 	return connection, nil
 }
 
-func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
+func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
 	tcpBufferBytes := connectionConfig.TcpBufferBytes
 	if tcpBufferBytes == 0 {
 		tcpBufferBytes = 1024 * 4
