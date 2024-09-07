@@ -62,23 +62,23 @@ func AsyncMessage(name string, config *Config.SingleRequestClient, topic string,
 	return nil
 }
 
-func SyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (string, error) {
+func SyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (*Message.Message, error) {
 	connection, err := TcpConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
-		return "", Error.New("Failed to establish connection", err)
+		return nil, Error.New("Failed to establish connection", err)
 	}
 	err = connection.AsyncMessage("sync", string(Message.NewAsync(topic, payload).Serialize()))
 	if err != nil {
-		return "", Error.New("Failed to send request", err)
+		return nil, Error.New("Failed to send request", err)
 	}
 	message, err := connection.GetNextMessage()
 	if err != nil {
-		return "", Error.New("Failed to get response", err)
+		return nil, Error.New("Failed to get response", err)
 	}
 	connection.SyncResponse(message, true, "")
 	if message.GetTopic() != Message.TOPIC_SUCCESS {
-		return "", Error.New("Request failed", errors.New(message.GetPayload()))
+		return nil, Error.New("Request failed", errors.New(message.GetPayload()))
 	}
 	connection.Close()
-	return message.GetPayload(), nil
+	return message, nil
 }
