@@ -76,9 +76,6 @@ func SyncRequest(name string, config *Config.SingleRequestClient, topic string, 
 		return nil, Error.New("Failed to get response", err)
 	}
 	connection.SyncResponse(message, true, "")
-	if message.GetTopic() != Message.TOPIC_SUCCESS {
-		return nil, Error.New("Request failed", errors.New(message.GetPayload()))
-	}
 	connection.Close()
 	return message, nil
 }
