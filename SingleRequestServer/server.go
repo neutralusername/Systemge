@@ -55,7 +55,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, com
 	server.systemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, server.onConnect, nil)
 	if config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, server.Start, server.Stop, server.RetrieveMetrics, server.GetStatus, commands)
-		err := server.dashboardClient.Start()
+		err := server.StartDashboard()
 		if err != nil {
 			panic(Error.New("Failed to start dashboard client", err))
 		}
@@ -155,6 +155,20 @@ func (server *Server) Start() error {
 
 func (server *Server) Stop() error {
 	return server.systemgeServer.Stop()
+}
+
+func (server *Server) StartDashboard() error {
+	if server.dashboardClient == nil {
+		return Error.New("No dashboard client available", nil)
+	}
+	return server.dashboardClient.Start()
+}
+
+func (server *Server) StopDashboard() error {
+	if server.dashboardClient == nil {
+		return Error.New("No dashboard client available", nil)
+	}
+	return server.dashboardClient.Stop()
 }
 
 func (server *Server) GetStatus() int {
