@@ -100,24 +100,20 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		return nil
 	case "async":
 		if server.messageHandler == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
 			server.failedAsyncMessages.Add(1)
 			return Error.New("No message handler available on this server", nil)
 		}
 		asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
 		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
 			server.failedAsyncMessages.Add(1)
 			return err
 		}
 		err = server.messageHandler.HandleAsyncMessage(connection, asyncMessage)
 		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
 			server.failedAsyncMessages.Add(1)
 			return Error.New("Message handler failed", err)
 		}
 		server.succeededAsyncMessages.Add(1)
-		connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, "")
 		connection.Close()
 		return nil
 	case "sync":

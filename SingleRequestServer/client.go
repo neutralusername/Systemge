@@ -58,14 +58,6 @@ func AsyncMessage(name string, config *Config.SingleRequestClient, topic string,
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
-	message, err := connection.GetNextMessage()
-	if err != nil {
-		return Error.New("Failed to get response", err)
-	}
-	connection.SyncResponse(message, true, "")
-	if message.GetTopic() != Message.TOPIC_SUCCESS {
-		return Error.New("Message failed", errors.New(message.GetPayload()))
-	}
 	connection.Close()
 	return nil
 }
