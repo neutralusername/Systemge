@@ -19,22 +19,7 @@ func (app *Server) statusUpdateRoutine() {
 		for _, client := range app.clients {
 			go func() {
 				if client.HasStatusFunc {
-					response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_STATUS, "")
-					if err != nil {
-						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to get status for client \"" + client.Name + "\": " + err.Error())
-						}
-						return
-					}
-					status, err := strconv.Atoi(response.GetPayload())
-					if err != nil {
-						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to parse status for client \"" + client.Name + "\": " + err.Error())
-						}
-						return
-					}
-					client.Status = status
-					app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: status})))
+					app.clientStatusUpdate(client)
 				}
 			}()
 		}
@@ -60,6 +45,25 @@ func (app *Server) metricsUpdateRoutine() {
 		}
 		app.mutex.RUnlock()
 	}
+}
+
+func (app *Server) clientStatusUpdate(client *client) {
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_STATUS, "")
+	if err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log("Failed to get status for client \"" + client.Name + "\": " + err.Error())
+		}
+		return
+	}
+	status, err := strconv.Atoi(response.GetPayload())
+	if err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log("Failed to parse status for client \"" + client.Name + "\": " + err.Error())
+		}
+		return
+	}
+	client.Status = status
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: status})))
 }
 
 func (app *Server) clientMetricsUpdate(client *client) {

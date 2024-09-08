@@ -115,6 +115,16 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 			app.clientMetricsUpdate(client)
 			return "success", nil
 		},
+		"statusUpdate": func(args []string) (string, error) {
+			app.mutex.RLock()
+			client, ok := app.clients[args[0]]
+			app.mutex.RUnlock()
+			if !ok {
+				return "", Error.New("Client not found", nil)
+			}
+			app.clientStatusUpdate(client)
+			return "success", nil
+		},
 	}
 
 	if config.InfoLoggerPath != "" {
