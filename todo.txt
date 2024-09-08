@@ -1,5 +1,7 @@
 add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
 
+implement dashboard commands and metrics
+
 improve logging (especially systemge and broker packages)
 
 add command scheduling in some form (to the dashboard)
