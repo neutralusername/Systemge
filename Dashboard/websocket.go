@@ -63,17 +63,27 @@ func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClie
 	if err != nil {
 		return err
 	}
-	app.mutex.RLock()
-	client := app.clients[command.Name]
-	app.mutex.RUnlock()
-	if client == nil {
-		return Error.New("Client not found", nil)
+
+	switch command.Name {
+	case "dashboard":
+		result, err := app.dashboardCommandHandler(command)
+		if err != nil {
+			return Error.New("Failed to execute command", err)
+		}
+		websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
+	default:
+		app.mutex.RLock()
+		client := app.clients[command.Name]
+		app.mutex.RUnlock()
+		if client == nil {
+			return Error.New("Client not found", nil)
+		}
+		result, err := client.executeCommand(command.Command, command.Args)
+		if err != nil {
+			return Error.New("Failed to execute command", err)
+		}
+		websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
 	}
-	result, err := client.executeCommand(command.Command, command.Args)
-	if err != nil {
-		return Error.New("Failed to execute command: "+err.Error(), nil)
-	}
-	websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
 	return nil
 }
 
@@ -85,5 +95,10 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(client)).Serialize())
 		}()
 	}
+	commands := []string{}
+	for command := range app.commandHandlers {
+		commands = append(commands, command)
+	}
+	websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
 	return nil
 }

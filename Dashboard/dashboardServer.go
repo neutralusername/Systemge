@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
@@ -31,6 +32,8 @@ type Server struct {
 	frontendPath string
 
 	config *Config.DashboardServer
+
+	commandHandlers Commands.Handlers
 
 	waitGroup sync.WaitGroup
 
@@ -92,6 +95,28 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 
 		frontendPath: frontendPath,
 	}
+
+	app.commandHandlers = Commands.Handlers{
+		"dashboardMetricsUpdate": func(args []string) (string, error) {
+			app.dashboardMetricsUpdate()
+			return "success", nil
+
+		},
+		"clientMetricsUpdate": func(args []string) (string, error) {
+			if len(args) == 0 {
+				return "", Error.New("No client name", nil)
+			}
+			app.mutex.RLock()
+			client, ok := app.clients[args[0]]
+			app.mutex.RUnlock()
+			if !ok {
+				return "", Error.New("Client not found", nil)
+			}
+			app.clientMetricsUpdate(client)
+			return "success", nil
+		},
+	}
+
 	if config.InfoLoggerPath != "" {
 		app.infoLogger = Tools.NewLogger("[Info: \"DashboardServer\"] ", config.InfoLoggerPath)
 	}
@@ -289,6 +314,14 @@ func (app *Server) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName)
 	app.httpServer.RemoveRoute("/" + clientName + "/command/")
 	app.httpServer.RemoveRoute("/" + clientName + "/command")
+}
+
+func (app *Server) dashboardCommandHandler(command *Command) (string, error) {
+	commandHandler, _ := app.commandHandlers.Get(command.Command)
+	if commandHandler == nil {
+		return "", Error.New("Command not found", nil)
+	}
+	return commandHandler(command.Args)
 }
 
 func (server *Server) GetSystemgeMetrics() map[string]uint64 {

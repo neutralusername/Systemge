@@ -32,6 +32,7 @@ export class root extends React.Component {
             heapUpdates: {},
             goroutineUpdates: {},
             dashboardMetrics: {},
+            dashboardCommands: [],
         };
 
         document.body.style.background = "#222426"
@@ -156,6 +157,11 @@ export class root extends React.Component {
                 break;
             case "metricsUpdate":
                 this.handleMetricUpdate(JSON.parse(message.payload));
+                break;
+            case "dashboardCommands":
+                this.setState({
+                    dashboardCommands: JSON.parse(message.payload),
+                });
                 break;
             case "dashboardSystemgeMetrics":
             case "dashboardHttpMetrics":
@@ -324,6 +330,14 @@ export class root extends React.Component {
             Object.keys(this.state.dashboardMetrics).forEach((metricName) => {
                 multiLineGraphs.push(this.getMultiLineGraph(metricName, this.state.dashboardMetrics[metricName].metricNames, this.state.dashboardMetrics[metricName].metrics));
             });
+            commandsComponent = React.createElement(
+                commands, {
+                    commands: this.state.dashboardCommands,
+                    name: "dashboard",
+                    WS_CONNECTION: this.WS_CONNECTION,
+                    constructMessage: this.constructMessage,
+                },
+            );
             buttons.push(
                 React.createElement(
                     "button", {
@@ -366,7 +380,8 @@ export class root extends React.Component {
                 multiLineGraphs.push(this.getMultiLineGraph(moduleName, this.state.modules[moduleName].metricNames, this.state.modules[moduleName].metrics));
                 commandsComponent = React.createElement(
                     commands, {
-                        module: this.state.modules[moduleName],
+                        commands: this.state.modules[moduleName].commands,
+                        name: this.state.modules[moduleName].name,
                         WS_CONNECTION: this.WS_CONNECTION,
                         constructMessage: this.constructMessage,
                     },
@@ -397,12 +412,16 @@ export class root extends React.Component {
             React.createElement(
                 "div", {
                     style: {
+                        zIndex: "-1",
                         position: "fixed",
                         top: "0",
-                        right: "0",
+                        left: "0",
                         padding: "10px",
-                        width: "30%",
-                        textAlign: "right",
+                        whiteSpace: "pre-wrap",
+                        width: "80%",
+                        overflow: "hidden", // Hide any overflow
+                        wordWrap: "break-word", // Force long words to break
+                        wordBreak: "break-word", // Ensure long words are broken properly
                     },
                 },
                 responseMessages,
@@ -437,8 +456,8 @@ export class root extends React.Component {
                 "close",
             ),
             statuses,
-            commandsComponent,
             buttons,
+            commandsComponent,
             multiLineGraphs,
             Object.keys(this.state.heapUpdates).length > 0 ? React.createElement(
                 lineGraph, {

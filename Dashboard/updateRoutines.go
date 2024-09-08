@@ -51,43 +51,49 @@ func (app *Server) metricsUpdateRoutine() {
 		for _, client := range app.clients {
 			go func() {
 				if client.HasMetricsFunc {
-					response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_METRICS, "")
-					if err != nil {
-						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to get metrics for client \"" + client.Name + "\": " + err.Error())
-						}
-						return
-					}
-					metrics, err := unmarshalMetrics(response.GetPayload())
-					if err != nil {
-						if app.errorLogger != nil {
-							app.errorLogger.Log("Failed to parse metrics for client \"" + client.Name + "\": " + err.Error())
-						}
-						return
-					}
-					if metrics.Metrics == nil {
-						metrics.Metrics = map[string]uint64{}
-					}
-					client.Metrics = metrics.Metrics
-					metrics.Name = client.Name
-					app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
+					app.clientMetricsUpdate(client)
 				}
 			}()
 		}
 		if app.config.DashboardMetrics {
-			go func() {
-				systemgeMetrics := app.RetrieveSystemgeMetrics()
-				app.websocketServer.Broadcast(Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
-
-				websocketMetrics := app.RetrieveWebsocketMetrics()
-				app.websocketServer.Broadcast(Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
-
-				httpMetrics := app.RetrieveHttpMetrics()
-				app.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
-			}()
+			go app.dashboardMetricsUpdate()
 		}
 		app.mutex.RUnlock()
 	}
+}
+
+func (app *Server) clientMetricsUpdate(client *client) {
+	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_METRICS, "")
+	if err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log("Failed to get metrics for client \"" + client.Name + "\": " + err.Error())
+		}
+		return
+	}
+	metrics, err := unmarshalMetrics(response.GetPayload())
+	if err != nil {
+		if app.errorLogger != nil {
+			app.errorLogger.Log("Failed to parse metrics for client \"" + client.Name + "\": " + err.Error())
+		}
+		return
+	}
+	if metrics.Metrics == nil {
+		metrics.Metrics = map[string]uint64{}
+	}
+	client.Metrics = metrics.Metrics
+	metrics.Name = client.Name
+	app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
+}
+
+func (app *Server) dashboardMetricsUpdate() {
+	systemgeMetrics := app.RetrieveSystemgeMetrics()
+	app.websocketServer.Broadcast(Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
+
+	websocketMetrics := app.RetrieveWebsocketMetrics()
+	app.websocketServer.Broadcast(Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
+
+	httpMetrics := app.RetrieveHttpMetrics()
+	app.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
 }
 
 func (app *Server) goroutineUpdateRoutine() {
