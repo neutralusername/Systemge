@@ -18,6 +18,7 @@ func (server *SystemgeServer) GetMetrics() map[string]uint64 {
 		"invalid_messages_received":       server.GetInvalidMessagesReceived(),
 		"message_rate_limiter_exceeded":   server.GetMessageRateLimiterExceeded(),
 		"byte_rate_limiter_exceeded":      server.GetByteRateLimiterExceeded(),
+		"connection_count":                uint64(server.GetConnectionCount()),
 	}
 }
 
@@ -37,6 +38,7 @@ func (server *SystemgeServer) RetrieveMetrics() map[string]uint64 {
 		"invalid_messages_received":       server.RetrieveInvalidMessagesReceived(),
 		"message_rate_limiter_exceeded":   server.RetrieveMessageRateLimiterExceeded(),
 		"byte_rate_limiter_exceeded":      server.RetrieveByteRateLimiterExceeded(),
+		"connection_count":                uint64(server.GetConnectionCount()),
 	}
 }
 
