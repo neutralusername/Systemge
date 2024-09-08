@@ -1,4 +1,4 @@
-package TcpConnection
+package TcpSystemgeConnection
 
 import (
 	"encoding/json"
@@ -259,11 +259,11 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		}
 		return "success", nil
 	}
-	rateLimiterBytesCommands := connection.rateLimiterBytes.GetCommands()
+	rateLimiterBytesCommands := connection.rateLimiterBytes.GetDefaultCommands()
 	for key, value := range rateLimiterBytesCommands {
 		commands["rateLimiterBytes_"+key] = value
 	}
-	rateLimiterMessagesCommands := connection.rateLimiterMessages.GetCommands()
+	rateLimiterMessagesCommands := connection.rateLimiterMessages.GetDefaultCommands()
 	for key, value := range rateLimiterMessagesCommands {
 		commands["rateLimiterMessages_"+key] = value
 	}

@@ -1,4 +1,4 @@
-package TcpListener
+package TcpSystemgeListener
 
 import (
 	"net"
@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
-	"github.com/neutralusername/Systemge/TcpConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
 func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
@@ -47,7 +47,7 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 	return connection, nil
 }
 
-func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpConnection.TcpConnection, error) {
+func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpSystemgeConnection.TcpConnection, error) {
 	tcpBufferBytes := connectionConfig.TcpBufferBytes
 	if tcpBufferBytes == 0 {
 		tcpBufferBytes = 1024 * 4
@@ -77,5 +77,5 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return TcpConnection.New(message.GetPayload(), connectionConfig, netConn), nil
+	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn), nil
 }

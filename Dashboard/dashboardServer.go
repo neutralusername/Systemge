@@ -44,7 +44,7 @@ type Server struct {
 	mailer        *Tools.Mailer
 }
 
-func NewServer(name string, config *Config.DashboardServer) *Server {
+func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -105,14 +105,23 @@ func NewServer(name string, config *Config.DashboardServer) *Server {
 		app.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer", app.config.SystemgeServerConfig, app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler)
-	app.websocketServer = WebsocketServer.New(name+"_websocketServer", app.config.WebsocketServerConfig, map[string]WebsocketServer.MessageHandler{
-		"start":   app.startHandler,
-		"stop":    app.stopHandler,
-		"command": app.commandHandler,
-		"gc":      app.gcHandler,
-	}, app.onWebsocketConnectHandler, nil)
-	app.httpServer = HTTPServer.New(name+"_httpServer", app.config.HTTPServerConfig, nil)
+	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+		app.config.SystemgeServerConfig,
+		whitelist, blacklist,
+		app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler,
+	)
+	app.websocketServer = WebsocketServer.New(name+"_websocketServer",
+		app.config.WebsocketServerConfig,
+		whitelist, blacklist,
+		map[string]WebsocketServer.MessageHandler{
+			"start":   app.startHandler,
+			"stop":    app.stopHandler,
+			"command": app.commandHandler,
+			"gc":      app.gcHandler,
+		},
+		app.onWebsocketConnectHandler, nil,
+	)
+	app.httpServer = HTTPServer.New(name+"_httpServer", app.config.HTTPServerConfig, whitelist, blacklist, nil)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
 	return app

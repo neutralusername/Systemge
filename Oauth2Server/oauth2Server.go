@@ -31,7 +31,7 @@ type Server struct {
 	mutex sync.Mutex
 }
 
-func New(name string, config *Config.Oauth2) *Server {
+func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
 	if config.TokenHandler == nil {
 		panic("TokenHandler is required")
 	}
@@ -49,12 +49,16 @@ func New(name string, config *Config.Oauth2) *Server {
 
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 	}
-	server.httpServer = HTTPServer.New(name+"_httpServer", &Config.HTTPServer{
-		TcpServerConfig: config.TcpServerConfig,
-	}, map[string]http.HandlerFunc{
-		server.config.AuthPath:         server.oauth2Auth(),
-		server.config.AuthCallbackPath: server.oauth2AuthCallback(),
-	})
+	server.httpServer = HTTPServer.New(name+"_httpServer",
+		&Config.HTTPServer{
+			TcpServerConfig: config.TcpServerConfig,
+		},
+		whitelist, blacklist,
+		map[string]http.HandlerFunc{
+			server.config.AuthPath:         server.oauth2Auth(),
+			server.config.AuthCallbackPath: server.oauth2AuthCallback(),
+		},
+	)
 	return server
 }
 

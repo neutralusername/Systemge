@@ -1,4 +1,4 @@
-package TcpListener
+package TcpSystemgeListener
 
 import (
 	"encoding/json"
@@ -31,14 +31,14 @@ type TcpListener struct {
 	acceptedConnections atomic.Uint64
 }
 
-func New(config *Config.TcpSystemgeListener) (*TcpListener, error) {
+func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}
 	if config.TcpServerConfig == nil {
 		return nil, Error.New("listener is nil", nil)
 	}
-	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
+	tcpListener, err := Tcp.NewListener(config.TcpServerConfig, whitelist, blacklist)
 	if err != nil {
 		return nil, Error.New("failed to create listener", err)
 	}
@@ -85,8 +85,8 @@ func (listener *TcpListener) GetWhitelist() *Tools.AccessControlList {
 }
 
 func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := listener.tcpListener.GetBlacklist().GetCommands()
-	whitelistCommands := listener.tcpListener.GetWhitelist().GetCommands()
+	blacklistCommands := listener.tcpListener.GetBlacklist().GetDefaultCommands()
+	whitelistCommands := listener.tcpListener.GetWhitelist().GetDefaultCommands()
 	commands := Commands.Handlers{}
 	for key, value := range blacklistCommands {
 		commands["blacklist_"+key] = value

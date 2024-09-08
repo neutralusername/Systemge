@@ -35,7 +35,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -54,7 +54,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, com
 		commandHandlers: commands,
 		messageHandler:  messageHandler,
 	}
-	server.systemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, server.onConnect, nil)
+	server.systemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, server.onConnect, nil)
 	if config.DashboardClientConfig != nil {
 		defaultCommands := server.GetDefaultCommands()
 		for key, value := range commands {
@@ -269,25 +269,25 @@ func (server *Server) RetrieveFailedSyncMessages() uint64 {
 }
 
 func (server *Server) GetDefaultCommands() Commands.Handlers {
-	commands := server.systemgeServer.GetDefaultCommands()
-	commands["start"] = func(args []string) (string, error) {
+	commands := Commands.Handlers{}
+	commands["start"] = func(args []string) (string, error) { //overriding the start command from the systemgeServer
 		err := server.Start()
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["stop"] = func(args []string) (string, error) {
+	commands["stop"] = func(args []string) (string, error) { //overriding the stop command from the systemgeServer
 		err := server.Stop()
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["getStatus"] = func(args []string) (string, error) {
+	commands["getStatus"] = func(args []string) (string, error) { //overriding the getStatus command from the systemgeServer
 		return Status.ToString(server.GetStatus()), nil
 	}
-	commands["getMetrics"] = func(args []string) (string, error) {
+	commands["getMetrics"] = func(args []string) (string, error) { //overriding the getMetrics command from the systemgeServer
 		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
@@ -295,7 +295,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) {
+	commands["retrieveMetrics"] = func(args []string) (string, error) { //overriding the retrieveMetrics command from the systemgeServer
 		metrics := server.RetrieveMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {

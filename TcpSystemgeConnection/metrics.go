@@ -1,4 +1,4 @@
-package TcpConnection
+package TcpSystemgeConnection
 
 func (connection *TcpConnection) GetMetrics() map[string]uint64 {
 	return map[string]uint64{

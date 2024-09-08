@@ -1,4 +1,4 @@
-package TcpConnection
+package TcpSystemgeConnection
 
 import (
 	"github.com/neutralusername/Systemge/Error"

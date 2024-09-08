@@ -99,7 +99,7 @@ func (rateLimiter *TokenBucketRateLimiter) SetMaxBucketSize(size uint64) {
 	rateLimiter.maxBucketSize = size
 }
 
-func (rateLimiter *TokenBucketRateLimiter) GetCommands() Commands.Handlers {
+func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{}
 	commands["consume"] = func(args []string) (string, error) {
 		if len(args) != 1 {

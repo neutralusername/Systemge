@@ -46,7 +46,7 @@ type Resolver struct {
 	failedResolutions         atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerResolver) *Resolver {
+func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Resolver {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -102,7 +102,11 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 		Message.TOPIC_RESOLVE_SYNC:  resolver.resolveSync,
 	}, nil, nil)
 
-	resolver.systemgeServer = SystemgeServer.New(name+"_systemgeServer", config.SystemgeServerConfig, resolver.onConnect, nil)
+	resolver.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+		config.SystemgeServerConfig,
+		whitelist, blacklist,
+		resolver.onConnect, nil,
+	)
 
 	if config.DashboardClientConfig != nil {
 		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, resolver.GetDefaultCommands())

@@ -38,7 +38,7 @@ type HTTPServer struct {
 	requestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer {
+func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handlers Handlers) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -49,8 +49,8 @@ func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer 
 		name:      name,
 		mux:       NewCustomMux(),
 		config:    config,
-		blacklist: Tools.NewAccessControlList(config.TcpServerConfig.Blacklist),
-		whitelist: Tools.NewAccessControlList(config.TcpServerConfig.Whitelist),
+		blacklist: blacklist,
+		whitelist: whitelist,
 	}
 	for pattern, handler := range handlers {
 		server.AddRoute(pattern, handler)
@@ -184,8 +184,8 @@ func (server *HTTPServer) GetStatus() int {
 }
 
 func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := server.blacklist.GetCommands()
-	whitelistCommands := server.whitelist.GetCommands()
+	blacklistCommands := server.blacklist.GetDefaultCommands()
+	whitelistCommands := server.whitelist.GetDefaultCommands()
 	commands := Commands.Handlers{}
 	for key, value := range blacklistCommands {
 		commands["blacklist_"+key] = value

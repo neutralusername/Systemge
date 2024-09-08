@@ -17,7 +17,7 @@ type Listener struct {
 	whitelist *Tools.AccessControlList
 }
 
-func NewListener(config *Config.TcpServer) (*Listener, error) {
+func NewListener(config *Config.TcpServer, blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList) (*Listener, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {
@@ -26,29 +26,30 @@ func NewListener(config *Config.TcpServer) (*Listener, error) {
 		server := &Listener{
 			config:    config,
 			listener:  listener,
-			blacklist: Tools.NewAccessControlList(config.Blacklist),
-			whitelist: Tools.NewAccessControlList(config.Whitelist),
+			blacklist: blacklist,
+			whitelist: whitelist,
+		}
+		return server, nil
+	} else {
+		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
+		if err != nil {
+			return nil, Error.New("Failed to load TLS certificate: ", err)
+		}
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
+		if err != nil {
+			return nil, Error.New("Failed to listen on port: ", err)
+		}
+		server := &Listener{
+			config:    config,
+			listener:  listener,
+			blacklist: blacklist,
+			whitelist: whitelist,
 		}
 		return server, nil
 	}
-	cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
-	if err != nil {
-		return nil, Error.New("Failed to load TLS certificate: ", err)
-	}
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-	listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
-	if err != nil {
-		return nil, Error.New("Failed to listen on port: ", err)
-	}
-	server := &Listener{
-		config:    config,
-		listener:  listener,
-		blacklist: Tools.NewAccessControlList(config.Blacklist),
-		whitelist: Tools.NewAccessControlList(config.Whitelist),
-	}
-	return server, nil
 }
 
 func (server *Listener) GetWhitelist() *Tools.AccessControlList {

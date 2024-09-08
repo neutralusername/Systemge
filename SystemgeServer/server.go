@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
-	"github.com/neutralusername/Systemge/TcpListener"
+	"github.com/neutralusername/Systemge/TcpSystemgeListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -23,6 +23,9 @@ type SystemgeServer struct {
 
 	status      int
 	statusMutex sync.RWMutex
+
+	whitelist *Tools.AccessControlList
+	blacklist *Tools.AccessControlList
 
 	config   *Config.SystemgeServer
 	listener SystemgeListener.SystemgeListener
@@ -42,7 +45,7 @@ type SystemgeServer struct {
 	mailer        *Tools.Mailer
 }
 
-func New(name string, config *Config.SystemgeServer, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) *SystemgeServer {
+func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) *SystemgeServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -61,6 +64,9 @@ func New(name string, config *Config.SystemgeServer, onConnectHandler func(Syste
 		config:              config,
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
+
+		whitelist: whitelist,
+		blacklist: blacklist,
 
 		clients: make(map[string]SystemgeConnection.SystemgeConnection),
 	}
@@ -89,7 +95,7 @@ func (server *SystemgeServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
-	listener, err := TcpListener.New(server.config.ListenerConfig)
+	listener, err := TcpSystemgeListener.New(server.config.ListenerConfig, server.whitelist, server.blacklist)
 	if err != nil {
 		server.status = Status.STOPPED
 		return Error.New("failed to create listener", err)
@@ -146,21 +152,11 @@ func (server *SystemgeServer) GetStatus() int {
 }
 
 func (server *SystemgeServer) GetBlacklist() *Tools.AccessControlList {
-	server.statusMutex.RLock()
-	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
-		return nil
-	}
-	return server.listener.GetBlacklist()
+	return server.blacklist
 }
 
 func (server *SystemgeServer) GetWhitelist() *Tools.AccessControlList {
-	server.statusMutex.RLock()
-	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
-		return nil
-	}
-	return server.listener.GetWhitelist()
+	return server.whitelist
 }
 
 func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {

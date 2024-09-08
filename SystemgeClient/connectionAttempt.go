@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -100,7 +100,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			if attempt.attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
-			connection, err := TcpConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
+			connection, err := TcpSystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
 			attempt.attempts++
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)

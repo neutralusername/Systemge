@@ -47,7 +47,7 @@ type Server struct {
 	syncRequestsPropagated atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerServer) *Server {
+func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -87,7 +87,11 @@ func New(name string, config *Config.MessageBrokerServer) *Server {
 		server.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer", server.config.SystemgeServerConfig, server.onSystemgeConnection, server.onSystemgeDisconnection)
+	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+		server.config.SystemgeServerConfig,
+		whitelist, blacklist,
+		server.onSystemgeConnection, server.onSystemgeDisconnection,
+	)
 
 	if server.config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",

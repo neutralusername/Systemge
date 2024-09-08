@@ -13,7 +13,7 @@ type AccessControlList struct {
 	mutex sync.Mutex
 }
 
-func (acl *AccessControlList) GetCommands() Commands.Handlers {
+func (acl *AccessControlList) GetDefaultCommands() Commands.Handlers {
 	return Commands.Handlers{
 		"add": func(args []string) (string, error) {
 			acl.Add(args[0])

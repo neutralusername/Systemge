@@ -56,7 +56,7 @@ type WebsocketServer struct {
 }
 
 // onConnectHandler, onDisconnectHandler may be nil.
-func New(name string, config *Config.WebsocketServer, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -93,6 +93,19 @@ func New(name string, config *Config.WebsocketServer, messageHandlers MessageHan
 		mailer:              Tools.NewMailer(config.MailerConfig),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
+	httpServer := HTTPServer.New(server.name+"_httpServer",
+		&Config.HTTPServer{
+			TcpServerConfig: server.config.TcpServerConfig,
+		},
+		whitelist, blacklist,
+		map[string]http.HandlerFunc{
+			server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
+		},
+	)
+	if server.config.IpRateLimiter != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
+	}
+	server.httpServer = httpServer
 	return server
 }
 
@@ -107,16 +120,8 @@ func (server *WebsocketServer) Start() error {
 	}
 	server.status = Status.PENDING
 
-	httpServer := HTTPServer.New(server.name+"_httpServer", &Config.HTTPServer{
-		TcpServerConfig: server.config.TcpServerConfig,
-	}, map[string]http.HandlerFunc{
-		server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
-	})
-	if server.config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
-	}
 	server.connectionChannel = make(chan *websocket.Conn)
-	err := httpServer.Start()
+	err := server.httpServer.Start()
 	if err != nil {
 		server.ipRateLimiter.Close()
 		server.ipRateLimiter = nil
@@ -125,7 +130,6 @@ func (server *WebsocketServer) Start() error {
 		server.status = Status.STOPPED
 		return Error.New("failed starting websocket handshake handler", err)
 	}
-	server.httpServer = httpServer
 	go server.handleWebsocketConnections()
 
 	if server.infoLogger != nil {
@@ -201,14 +205,10 @@ func (server *WebsocketServer) GetBlacklist() *Tools.AccessControlList {
 }
 
 func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := server.httpServer.GetBlacklist().GetCommands()
-	whitelistCommands := server.httpServer.GetWhitelist().GetCommands()
+	httpCommands := server.httpServer.GetDefaultCommands()
 	commands := Commands.Handlers{}
-	for key, value := range blacklistCommands {
-		commands["blacklist_"+key] = value
-	}
-	for key, value := range whitelistCommands {
-		commands["whitelist_"+key] = value
+	for key, value := range httpCommands {
+		commands["http_"+key] = value
 	}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()
