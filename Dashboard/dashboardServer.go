@@ -96,6 +96,42 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 		frontendPath: frontendPath,
 	}
 
+	if config.InfoLoggerPath != "" {
+		app.infoLogger = Tools.NewLogger("[Info: \"DashboardServer\"] ", config.InfoLoggerPath)
+	}
+	if config.WarningLoggerPath != "" {
+		app.warningLogger = Tools.NewLogger("[Warning: \"DashboardServer\"] ", config.WarningLoggerPath)
+	}
+	if config.ErrorLoggerPath != "" {
+		app.errorLogger = Tools.NewLogger("[Error: \"DashboardServer\"] ", config.ErrorLoggerPath)
+	}
+	if config.MailerConfig != nil {
+		app.mailer = Tools.NewMailer(config.MailerConfig)
+	}
+
+	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+		app.config.SystemgeServerConfig,
+		whitelist, blacklist,
+		app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler,
+	)
+	app.websocketServer = WebsocketServer.New(name+"_websocketServer",
+		app.config.WebsocketServerConfig,
+		whitelist, blacklist,
+		map[string]WebsocketServer.MessageHandler{
+			"start":   app.startHandler,
+			"stop":    app.stopHandler,
+			"command": app.commandHandler,
+			"gc":      app.gcHandler,
+		},
+		app.onWebsocketConnectHandler, nil,
+	)
+	app.httpServer = HTTPServer.New(name+"_httpServer",
+		app.config.HTTPServerConfig,
+		whitelist, blacklist,
+		nil,
+	)
+	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
+
 	app.commandHandlers = Commands.Handlers{
 		"dashboardMetricsUpdate": func(args []string) (string, error) {
 			app.dashboardMetricsUpdate()
@@ -135,42 +171,10 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 			return "success", nil
 		},
 	}
-
-	if config.InfoLoggerPath != "" {
-		app.infoLogger = Tools.NewLogger("[Info: \"DashboardServer\"] ", config.InfoLoggerPath)
+	systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
+	for command, handler := range systemgeDefaultCommands {
+		app.commandHandlers["systemgeServer_"+command] = handler
 	}
-	if config.WarningLoggerPath != "" {
-		app.warningLogger = Tools.NewLogger("[Warning: \"DashboardServer\"] ", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		app.errorLogger = Tools.NewLogger("[Error: \"DashboardServer\"] ", config.ErrorLoggerPath)
-	}
-	if config.MailerConfig != nil {
-		app.mailer = Tools.NewMailer(config.MailerConfig)
-	}
-
-	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
-		app.config.SystemgeServerConfig,
-		whitelist, blacklist,
-		app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler,
-	)
-	app.websocketServer = WebsocketServer.New(name+"_websocketServer",
-		app.config.WebsocketServerConfig,
-		whitelist, blacklist,
-		map[string]WebsocketServer.MessageHandler{
-			"start":   app.startHandler,
-			"stop":    app.stopHandler,
-			"command": app.commandHandler,
-			"gc":      app.gcHandler,
-		},
-		app.onWebsocketConnectHandler, nil,
-	)
-	app.httpServer = HTTPServer.New(name+"_httpServer",
-		app.config.HTTPServerConfig,
-		whitelist, blacklist,
-		nil,
-	)
-	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
 	return app
 }
