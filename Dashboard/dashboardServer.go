@@ -129,13 +129,9 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 			if len(args) == 0 {
 				return "", Error.New("No client name", nil)
 			}
-			app.mutex.RLock()
-			client, ok := app.clients[args[0]]
-			app.mutex.RUnlock()
-			if !ok {
-				return "", Error.New("Client not found", nil)
+			if err := app.DisconnectClient(args[0]); err != nil {
+				return "", err
 			}
-			client.connection.Close()
 			return "success", nil
 		},
 	}
