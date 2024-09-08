@@ -286,27 +286,3 @@ func (app *Server) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName + "/command/")
 	app.httpServer.RemoveRoute("/" + clientName + "/command")
 }
-
-func (server *Server) GetSystemgeWhiteList() *Tools.AccessControlList {
-	return server.systemgeServer.GetWhitelist()
-}
-
-func (server *Server) GetSystemgeBlackList() *Tools.AccessControlList {
-	return server.systemgeServer.GetBlacklist()
-}
-
-func (server *Server) GetWebsocketWhiteList() *Tools.AccessControlList {
-	return server.websocketServer.GetWhitelist()
-}
-
-func (server *Server) GetWebsocketBlackList() *Tools.AccessControlList {
-	return server.websocketServer.GetBlacklist()
-}
-
-func (server *Server) GetHttpWhiteList() *Tools.AccessControlList {
-	return server.httpServer.GetWhitelist()
-}
-
-func (server *Server) GetHttpBlackList() *Tools.AccessControlList {
-	return server.httpServer.GetBlacklist()
-}

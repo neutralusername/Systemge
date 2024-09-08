@@ -155,14 +155,6 @@ func (server *Server) GetName() string {
 	return server.name
 }
 
-func (server *Server) GetWhiteList() *Tools.AccessControlList {
-	return server.systemgeServer.GetWhitelist()
-}
-
-func (server *Server) GetBlackList() *Tools.AccessControlList {
-	return server.systemgeServer.GetBlacklist()
-}
-
 func (server *Server) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{
 		"start": func(args []string) (string, error) {

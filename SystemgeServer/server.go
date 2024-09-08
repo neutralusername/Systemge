@@ -151,14 +151,6 @@ func (server *SystemgeServer) GetStatus() int {
 	return server.status
 }
 
-func (server *SystemgeServer) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *SystemgeServer) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
 func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 	serverCommands := Commands.Handlers{}
 	if server.blacklist != nil {

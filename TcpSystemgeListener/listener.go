@@ -76,14 +76,6 @@ func (listener *TcpListener) GetStatus() int {
 	return Status.STARTED
 }
 
-func (listener *TcpListener) GetBlacklist() *Tools.AccessControlList {
-	return listener.tcpListener.GetBlacklist()
-}
-
-func (listener *TcpListener) GetWhitelist() *Tools.AccessControlList {
-	return listener.tcpListener.GetWhitelist()
-}
-
 func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
 	blacklistCommands := listener.tcpListener.GetBlacklist().GetDefaultCommands()
 	whitelistCommands := listener.tcpListener.GetWhitelist().GetDefaultCommands()

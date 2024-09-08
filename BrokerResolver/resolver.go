@@ -162,14 +162,6 @@ func (resolver *Resolver) GetName() string {
 	return resolver.name
 }
 
-func (server *Resolver) GetWhiteList() *Tools.AccessControlList {
-	return server.systemgeServer.GetWhitelist()
-}
-
-func (server *Resolver) GetBlackList() *Tools.AccessControlList {
-	return server.systemgeServer.GetBlacklist()
-}
-
 func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{
 		"start": func(args []string) (string, error) {

@@ -180,14 +180,6 @@ func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *Server) GetWhiteList() *Tools.AccessControlList {
-	return server.systemgeServer.GetWhitelist()
-}
-
-func (server *Server) GetBlackList() *Tools.AccessControlList {
-	return server.systemgeServer.GetBlacklist()
-}
-
 func (server *Server) GetMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
 	metrics["invalid_messages"] = server.GetInvalidMessages()
