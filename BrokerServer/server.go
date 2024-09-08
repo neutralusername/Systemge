@@ -93,24 +93,7 @@ func New(name string, config *Config.MessageBrokerServer) *Server {
 		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
 			server.config.DashboardClientConfig,
 			server.systemgeServer.Start, server.systemgeServer.Stop, server.RetrieveMetrics, server.systemgeServer.GetStatus,
-			Commands.Handlers{
-				Message.TOPIC_SUBSCRIBE_ASYNC: func(args []string) (string, error) {
-					server.AddAsyncTopics(args)
-					return "success", nil
-				},
-				Message.TOPIC_SUBSCRIBE_SYNC: func(args []string) (string, error) {
-					server.AddSyncTopics(args)
-					return "success", nil
-				},
-				Message.TOPIC_UNSUBSCRIBE_ASYNC: func(args []string) (string, error) {
-					server.RemoveAsyncTopics(args)
-					return "success", nil
-				},
-				Message.TOPIC_UNSUBSCRIBE_SYNC: func(args []string) (string, error) {
-					server.RemoveSyncTopics(args)
-					return "success", nil
-				},
-			},
+			server.GetDefaultCommands(),
 		)
 
 		if err := server.StartDashboardClient(); err != nil {

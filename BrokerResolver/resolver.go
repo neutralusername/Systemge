@@ -105,54 +105,7 @@ func New(name string, config *Config.MessageBrokerResolver) *Resolver {
 	resolver.systemgeServer = SystemgeServer.New(name+"_systemgeServer", config.SystemgeServerConfig, resolver.onConnect, nil)
 
 	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, Commands.Handlers{
-			"add_async_resolution": func(args []string) (string, error) {
-				if len(args) != 2 {
-					return "", Error.New("Invalid number of arguments (expected 1)", nil)
-				}
-				endpoint := Config.UnmarshalTcpClient(args[1])
-				if endpoint == nil {
-					return "", Error.New("Invalid endpoint in json format provided", nil)
-				}
-				normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
-				if err != nil {
-					return "", err
-				}
-				endpoint.Address = normalizedAddress
-				resolver.AddAsyncResolution(args[0], endpoint)
-				return "Success", nil
-			},
-			"add_sync_resolution": func(args []string) (string, error) {
-				if len(args) != 2 {
-					return "", Error.New("Invalid number of arguments (expected 1)", nil)
-				}
-				endpoint := Config.UnmarshalTcpClient(args[1])
-				if endpoint == nil {
-					return "", Error.New("Invalid endpoint in json format provided", nil)
-				}
-				normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
-				if err != nil {
-					return "", err
-				}
-				endpoint.Address = normalizedAddress
-				resolver.AddSyncResolution(args[0], endpoint)
-				return "Success", nil
-			},
-			"remove_async_resolution": func(args []string) (string, error) {
-				if len(args) != 1 {
-					return "", Error.New("Invalid number of arguments (expected 1)", nil)
-				}
-				resolver.RemoveAsyncResolution(args[0])
-				return "Success", nil
-			},
-			"remove_sync_resolution": func(args []string) (string, error) {
-				if len(args) != 1 {
-					return "", Error.New("Invalid number of arguments (expected 1)", nil)
-				}
-				resolver.RemoveSyncResolution(args[0])
-				return "Success", nil
-			},
-		})
+		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, resolver.GetDefaultCommands())
 		if err := resolver.StartDashboardClient(); err != nil {
 			if resolver.errorLogger != nil {
 				resolver.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())
