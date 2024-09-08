@@ -175,6 +175,14 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 	for command, handler := range systemgeDefaultCommands {
 		app.commandHandlers["systemgeServer_"+command] = handler
 	}
+	httpDefaultCommands := app.httpServer.GetDefaultCommands()
+	for command, handler := range httpDefaultCommands {
+		app.commandHandlers["httpServer_"+command] = handler
+	}
+	webSocketDefaultCommands := app.websocketServer.GetDefaultCommands()
+	for command, handler := range webSocketDefaultCommands {
+		app.commandHandlers["websocketServer_"+command] = handler
+	}
 
 	return app
 }
