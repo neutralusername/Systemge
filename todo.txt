@@ -1,8 +1,5 @@
 add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
 
-implement dashboard commands
-fix dashboard command-response text (the text can be cut off due to css)
-
 add mechanism to systemgeServer that allows blacklist/whitelist entries to persist during restarts
 
 improve logging (especially systemge and broker packages)
