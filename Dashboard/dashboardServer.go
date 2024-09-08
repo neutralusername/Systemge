@@ -315,13 +315,3 @@ func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
 		"http_request_count": server.httpServer.RetrieveHTTPRequestCounter(),
 	}
 }
-
-func (server *Server) GetMetrics() map[string]uint64 {
-	server.mutex.RLock()
-	defer server.mutex.RUnlock()
-	metrics := map[string]uint64{
-		"client_count": uint64(len(server.clients)),
-	}
-
-	return metrics
-}

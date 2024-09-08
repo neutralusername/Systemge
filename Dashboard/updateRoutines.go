@@ -84,9 +84,6 @@ func (app *Server) metricsUpdateRoutine() {
 
 				httpMetrics := app.RetrieveHttpMetrics()
 				app.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
-
-				metrics := app.GetMetrics()
-				app.websocketServer.Broadcast(Message.NewAsync("dashboardMetrics", Helpers.JsonMarshal(metrics)))
 			}()
 		}
 		app.mutex.RUnlock()

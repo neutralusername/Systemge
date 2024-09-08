@@ -157,7 +157,6 @@ export class root extends React.Component {
             case "metricsUpdate":
                 this.handleMetricUpdate(JSON.parse(message.payload));
                 break;
-            case "dashboardMetrics":
             case "dashboardSystemgeMetrics":
             case "dashboardHttpMetrics":
             case "dashboardWebsocketMetrics":
