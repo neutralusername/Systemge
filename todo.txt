@@ -20,3 +20,5 @@ make websocketServer stop-operation cleaner
 update oauth2server (add dashboard client etc.)
 
 allow some kind of grouping of metrics on dashboards (no concrete ideas yet, probably further in the future)
+
+update readme
