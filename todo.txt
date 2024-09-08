@@ -3,6 +3,8 @@ add heartbeat mechanic to tcpConnections in order to not rely on sending/receivi
 implement dashboard commands and metrics
 add mechanism for dashboard to change commands during runtime
 
+add mechanism to systemgeServer that allows blacklist/whitelist entries to persist during restarts
+
 improve logging (especially systemge and broker packages)
 
 add command scheduling in some form (to the dashboard)
