@@ -96,7 +96,8 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 	if server.config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
 			server.config.DashboardClientConfig,
-			server.systemgeServer.Start, server.systemgeServer.Stop, server.RetrieveMetrics, server.systemgeServer.GetStatus,
+			server.systemgeServer.Start, server.systemgeServer.Stop,
+			server.RetrieveMetrics, server.systemgeServer.GetStatus,
 			server.GetDefaultCommands(),
 		)
 

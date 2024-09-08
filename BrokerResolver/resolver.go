@@ -109,7 +109,12 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 	)
 
 	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, resolver.systemgeServer.Start, resolver.systemgeServer.Stop, resolver.GetMetrics, resolver.systemgeServer.GetStatus, resolver.GetDefaultCommands())
+		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
+			config.DashboardClientConfig,
+			resolver.systemgeServer.Start, resolver.systemgeServer.Stop,
+			resolver.GetMetrics, resolver.systemgeServer.GetStatus,
+			resolver.GetDefaultCommands(),
+		)
 		if err := resolver.StartDashboardClient(); err != nil {
 			if resolver.errorLogger != nil {
 				resolver.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())

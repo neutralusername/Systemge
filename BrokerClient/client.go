@@ -114,7 +114,12 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 			// may override the default commands
 			defaultCommands[key] = value
 		}
-		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, messageBrokerClient.Start, messageBrokerClient.Stop, messageBrokerClient.RetrieveMetrics, messageBrokerClient.GetStatus, defaultCommands)
+		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
+			config.DashboardClientConfig,
+			messageBrokerClient.Start, messageBrokerClient.Stop,
+			messageBrokerClient.RetrieveMetrics, messageBrokerClient.GetStatus,
+			defaultCommands,
+		)
 		if err := messageBrokerClient.StartDashboardClient(); err != nil {
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())
