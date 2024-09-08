@@ -40,7 +40,7 @@ func (app *Server) metricsUpdateRoutine() {
 				}
 			}()
 		}
-		if app.config.DashboardMetrics {
+		if app.config.Metrics {
 			go app.dashboardMetricsUpdate()
 		}
 		app.mutex.RUnlock()

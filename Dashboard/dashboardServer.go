@@ -132,56 +132,64 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 	)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
-	app.commandHandlers = Commands.Handlers{
-		"dashboardMetricsUpdate": func(args []string) (string, error) {
-			app.dashboardMetricsUpdate()
-			return "success", nil
+	if app.config.Commands {
+		app.commandHandlers = Commands.Handlers{
+			"dashboardMetricsUpdate": func(args []string) (string, error) {
+				app.dashboardMetricsUpdate()
+				return "success", nil
 
-		},
-		"clientMetricsUpdate": func(args []string) (string, error) {
-			if len(args) == 0 {
-				return "", Error.New("No client name", nil)
-			}
-			app.mutex.RLock()
-			client, ok := app.clients[args[0]]
-			app.mutex.RUnlock()
-			if !ok {
-				return "", Error.New("Client not found", nil)
-			}
-			app.clientMetricsUpdate(client)
-			return "success", nil
-		},
-		"statusUpdate": func(args []string) (string, error) {
-			app.mutex.RLock()
-			client, ok := app.clients[args[0]]
-			app.mutex.RUnlock()
-			if !ok {
-				return "", Error.New("Client not found", nil)
-			}
-			app.clientStatusUpdate(client)
-			return "success", nil
-		},
-		"disconnectClient": func(args []string) (string, error) {
-			if len(args) == 0 {
-				return "", Error.New("No client name", nil)
-			}
-			if err := app.DisconnectClient(args[0]); err != nil {
-				return "", err
-			}
-			return "success", nil
-		},
+			},
+			"clientMetricsUpdate": func(args []string) (string, error) {
+				if len(args) == 0 {
+					return "", Error.New("No client name", nil)
+				}
+				app.mutex.RLock()
+				client, ok := app.clients[args[0]]
+				app.mutex.RUnlock()
+				if !ok {
+					return "", Error.New("Client not found", nil)
+				}
+				app.clientMetricsUpdate(client)
+				return "success", nil
+			},
+			"statusUpdate": func(args []string) (string, error) {
+				app.mutex.RLock()
+				client, ok := app.clients[args[0]]
+				app.mutex.RUnlock()
+				if !ok {
+					return "", Error.New("Client not found", nil)
+				}
+				app.clientStatusUpdate(client)
+				return "success", nil
+			},
+			"disconnectClient": func(args []string) (string, error) {
+				if len(args) == 0 {
+					return "", Error.New("No client name", nil)
+				}
+				if err := app.DisconnectClient(args[0]); err != nil {
+					return "", err
+				}
+				return "success", nil
+			},
+		}
 	}
-	systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
-	for command, handler := range systemgeDefaultCommands {
-		app.commandHandlers["systemgeServer_"+command] = handler
+	if app.config.SystemgeCommands {
+		systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
+		for command, handler := range systemgeDefaultCommands {
+			app.commandHandlers["systemgeServer_"+command] = handler
+		}
 	}
-	httpDefaultCommands := app.httpServer.GetDefaultCommands()
-	for command, handler := range httpDefaultCommands {
-		app.commandHandlers["httpServer_"+command] = handler
+	if app.config.WebsocketCommands {
+		httpDefaultCommands := app.httpServer.GetDefaultCommands()
+		for command, handler := range httpDefaultCommands {
+			app.commandHandlers["httpServer_"+command] = handler
+		}
 	}
-	webSocketDefaultCommands := app.websocketServer.GetDefaultCommands()
-	for command, handler := range webSocketDefaultCommands {
-		app.commandHandlers["websocketServer_"+command] = handler
+	if app.config.HttpCommands {
+		webSocketDefaultCommands := app.websocketServer.GetDefaultCommands()
+		for command, handler := range webSocketDefaultCommands {
+			app.commandHandlers["websocketServer_"+command] = handler
+		}
 	}
 
 	return app
