@@ -163,12 +163,11 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 	serverCommands := Commands.Handlers{}
 	blacklistCommands := server.GetBlacklist().GetDefaultCommands()
 	whitelistCommands := server.GetWhitelist().GetDefaultCommands()
-	commands := Commands.Handlers{}
 	for key, value := range blacklistCommands {
-		commands["blacklist_"+key] = value
+		serverCommands["blacklist_"+key] = value
 	}
 	for key, value := range whitelistCommands {
-		commands["whitelist_"+key] = value
+		serverCommands["whitelist_"+key] = value
 	}
 	serverCommands["start"] = func(args []string) (string, error) {
 		err := server.Start()
