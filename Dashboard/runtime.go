@@ -10,6 +10,5 @@ func (app *Server) DisconnectClient(name string) error {
 		return Error.New("Client not found", nil)
 	}
 	client.connection.Close()
-	delete(app.clients, name)
 	return nil
 }
