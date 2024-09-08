@@ -153,6 +153,9 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 				return "success", nil
 			},
 			"statusUpdate": func(args []string) (string, error) {
+				if len(args) == 0 {
+					return "", Error.New("No client name", nil)
+				}
 				app.mutex.RLock()
 				client, ok := app.clients[args[0]]
 				app.mutex.RUnlock()
