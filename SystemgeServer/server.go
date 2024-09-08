@@ -161,11 +161,15 @@ func (server *SystemgeServer) GetWhitelist() *Tools.AccessControlList {
 
 func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 	serverCommands := Commands.Handlers{}
-
-	/* listenerCommands := server.listener.GetDefaultCommands()
-	for key, value := range listenerCommands {
-		serverCommands["listener_"+key] = value
-	} */
+	blacklistCommands := server.GetBlacklist().GetDefaultCommands()
+	whitelistCommands := server.GetWhitelist().GetDefaultCommands()
+	commands := Commands.Handlers{}
+	for key, value := range blacklistCommands {
+		commands["blacklist_"+key] = value
+	}
+	for key, value := range whitelistCommands {
+		commands["whitelist_"+key] = value
+	}
 	serverCommands["start"] = func(args []string) (string, error) {
 		err := server.Start()
 		if err != nil {
