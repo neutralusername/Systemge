@@ -22,4 +22,4 @@ add "syncResponsesSent" metrics to connection
 
 make websocketServer stop-operation cleaner
 
-allow some kind of grouping of metrics (no concrete ideas yet, probably further in the future)
+allow some kind of grouping of metrics on dashboards (no concrete ideas yet, probably further in the future)
