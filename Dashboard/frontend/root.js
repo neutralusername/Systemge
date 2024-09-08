@@ -31,6 +31,7 @@ export class root extends React.Component {
             modules: {},
             heapUpdates: {},
             goroutineUpdates: {},
+            dashboardMetrics: {},
         };
 
         document.body.style.background = "#222426"
@@ -156,6 +157,32 @@ export class root extends React.Component {
             case "metricsUpdate":
                 this.handleMetricUpdate(JSON.parse(message.payload));
                 break;
+            case "dashboardMetrics":
+            case "dashboardSystemgeMetrics":
+            case "dashboardHttpMetrics":
+            case "dashboardWebsocketMetrics":
+                let existingMetrics = this.state.dashboardMetrics[message.topic] 
+                let metrics = JSON.parse(message.payload);
+                if (!existingMetrics) {
+                    existingMetrics = {
+                        metricNames: [],
+                        metrics: {},
+                    };
+                    Object.keys(metrics).forEach((key) => {
+                        existingMetrics.metricNames.push(key);
+                    });
+                }
+                existingMetrics.metrics[new Date().valueOf()] = JSON.parse(message.payload);
+                if (Object.keys(existingMetrics.metrics).length > MAX_CHART_ENTRIES) {
+                    delete existingMetrics.metrics[Object.keys(existingMetrics.metrics)[0]];
+                }
+                this.setState({
+                    dashboardMetrics: {
+                        ...this.state.dashboardMetrics,
+                        [message.topic]: existingMetrics,
+                    },
+                });
+                break;
             default:
                 console.log("Unknown message topic: " + event.data);
                 break;
@@ -200,20 +227,6 @@ export class root extends React.Component {
         });
     }
 
-    handleStatusUpdate(status) {
-        if (this.state.modules[status.name]) {
-            this.setState({
-                modules: {
-                    ...this.state.modules,
-                    [status.name]: {
-                        ...this.state.modules[status.name],
-                        status: status.status,
-                    },
-                },
-            });
-        }
-    }
-
     handleMetricUpdate(metrics) {
         let module = this.state.modules[metrics.name];
         if (!module) {
@@ -229,6 +242,50 @@ export class root extends React.Component {
                 [metrics.name]: module,
             },
         });
+    }
+
+    getMultiLineGraph(chartName, metricNames, metrics) {
+        let dataSet = {};
+        let colors = this.getRandomDistinctColors(metricNames);
+        let legend = metricNames;
+        let labels = [];
+        Object.keys(metrics).forEach((dateTime) => {
+            labels.push(new Date(Number(dateTime)).toLocaleTimeString());
+            let m = metrics[dateTime];
+            Object.keys(m).forEach((metric) => {
+                if (dataSet[metric] === undefined) {
+                    dataSet[metric] = [];
+                }
+                dataSet[metric].push(m[metric]);
+            });
+        });
+        
+        return React.createElement(
+            multiLineGraph, {
+                title: chartName,
+                chartName: `${chartName}`,
+                dataLabels: legend,
+                dataSet: dataSet,
+                labels : labels,
+                colors,
+                height: "400px",
+                width: "1200px",
+            },
+        );
+    }
+
+    handleStatusUpdate(status) {
+        if (this.state.modules[status.name]) {
+            this.setState({
+                modules: {
+                    ...this.state.modules,
+                    [status.name]: {
+                        ...this.state.modules[status.name],
+                        status: status.status,
+                    },
+                },
+            });
+        }
     }
 
     handleClose() {
@@ -247,49 +304,12 @@ export class root extends React.Component {
         setTimeout(myLoop, 1000 * 60 * 1);
     }
 
-    renderMultiLineGraph(moduleName) {
-        let module = this.state.modules[moduleName];
-        let dataSet = {};
-        let colors = this.getRandomDistinctColors(module.metricNames);
-        let legend = module.metricNames;
-        let labels = [];
-        Object.keys(module.metrics).forEach((dateTime) => {
-            labels.push(new Date(Number(dateTime)).toLocaleTimeString());
-            let metrics = module.metrics[dateTime];
-            Object.keys(metrics).forEach((metric) => {
-                if (dataSet[metric] === undefined) {
-                    dataSet[metric] = [];
-                }
-                dataSet[metric].push(metrics[metric]);
-            });
-        });
-        
-        return React.createElement(
-            multiLineGraph, {
-                title: "metrics",
-                chartName: `${moduleName}`,
-                dataLabels: legend,
-                dataSet: dataSet,
-                labels : labels,
-                colors,
-                height: "400px",
-                width: "1200px",
-            },
-        );
-    }
-
     render() {
         let urlPath = window.location.pathname;
         let statuses = [];
         let buttons = [];
         let multiLineGraphs = [];
         let commandsComponent = null;
-
-
-
-        const renderGraphsForModule = (modulekey) => {
-            multiLineGraphs.push(this.renderMultiLineGraph(modulekey));
-        };
 
         if (urlPath === "/") {
             for (let moduleName in this.state.modules) {
@@ -302,9 +322,9 @@ export class root extends React.Component {
                     },
                 ));
             }
-            if (this.state.modules.dashboard) {
-                renderGraphsForModule("dashboard");
-            }
+            Object.keys(this.state.dashboardMetrics).forEach((metricName) => {
+                multiLineGraphs.push(this.getMultiLineGraph(metricName, this.state.dashboardMetrics[metricName].metricNames, this.state.dashboardMetrics[metricName].metrics));
+            });
             buttons.push(
                 React.createElement(
                     "button", {
@@ -344,7 +364,7 @@ export class root extends React.Component {
                         constructMessage: this.constructMessage,
                     },
                 ));
-                renderGraphsForModule(moduleName);
+                multiLineGraphs.push(this.getMultiLineGraph(moduleName, this.state.modules[moduleName].metricNames, this.state.modules[moduleName].metrics));
                 commandsComponent = React.createElement(
                     commands, {
                         module: this.state.modules[moduleName],

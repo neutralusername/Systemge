@@ -121,7 +121,11 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 		},
 		app.onWebsocketConnectHandler, nil,
 	)
-	app.httpServer = HTTPServer.New(name+"_httpServer", app.config.HTTPServerConfig, whitelist, blacklist, nil)
+	app.httpServer = HTTPServer.New(name+"_httpServer",
+		app.config.HTTPServerConfig,
+		whitelist, blacklist,
+		nil,
+	)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
 	return app
@@ -285,4 +289,39 @@ func (app *Server) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName)
 	app.httpServer.RemoveRoute("/" + clientName + "/command/")
 	app.httpServer.RemoveRoute("/" + clientName + "/command")
+}
+
+func (server *Server) GetSystemgeMetrics() map[string]uint64 {
+	return server.systemgeServer.GetMetrics()
+}
+func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
+	return server.systemgeServer.RetrieveMetrics()
+}
+
+func (server *Server) GetWebsocketMetrics() map[string]uint64 {
+	return server.websocketServer.GetMetrics()
+}
+func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
+	return server.websocketServer.RetrieveMetrics()
+}
+
+func (server *Server) GetHttpMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"http_request_count": server.httpServer.GetHTTPRequestCounter(),
+	}
+}
+func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"http_request_count": server.httpServer.RetrieveHTTPRequestCounter(),
+	}
+}
+
+func (server *Server) GetMetrics() map[string]uint64 {
+	server.mutex.RLock()
+	defer server.mutex.RUnlock()
+	metrics := map[string]uint64{
+		"client_count": uint64(len(server.clients)),
+	}
+
+	return metrics
 }

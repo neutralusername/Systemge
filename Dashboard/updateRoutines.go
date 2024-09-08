@@ -74,6 +74,21 @@ func (app *Server) metricsUpdateRoutine() {
 				}
 			}()
 		}
+		if app.config.DashboardMetrics {
+			go func() {
+				systemgeMetrics := app.RetrieveSystemgeMetrics()
+				app.websocketServer.Broadcast(Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
+
+				websocketMetrics := app.RetrieveWebsocketMetrics()
+				app.websocketServer.Broadcast(Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
+
+				httpMetrics := app.RetrieveHttpMetrics()
+				app.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
+
+				metrics := app.GetMetrics()
+				app.websocketServer.Broadcast(Message.NewAsync("dashboardMetrics", Helpers.JsonMarshal(metrics)))
+			}()
+		}
 		app.mutex.RUnlock()
 	}
 }

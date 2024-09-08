@@ -30,11 +30,13 @@ func (server *Server) RetrieveMetrics() map[string]uint64 {
 	metrics["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
 	systemgeServerMetrics := server.systemgeServer.RetrieveMetrics()
 	for key, value := range systemgeServerMetrics {
-		metrics[key] = value
+		metrics["systemgeServer_"+key] = value
 	}
-	messageHandlerMetrics := server.messageHandler.RetrieveMetrics()
-	for key, value := range messageHandlerMetrics {
-		metrics[key] = value
+	if server.messageHandler != nil {
+		messageHandlerMetrics := server.messageHandler.RetrieveMetrics()
+		for key, value := range messageHandlerMetrics {
+			metrics["messageHandler_"+key] = value
+		}
 	}
 	return metrics
 }
