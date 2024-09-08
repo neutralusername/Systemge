@@ -1,10 +1,41 @@
 package Tools
 
-import "sync"
+import (
+	"strings"
+	"sync"
+
+	"github.com/neutralusername/Systemge/Commands"
+	"github.com/neutralusername/Systemge/Helpers"
+)
 
 type AccessControlList struct {
 	list  map[string]bool
 	mutex sync.Mutex
+}
+
+func (acl *AccessControlList) GetCommands() Commands.Handlers {
+	return Commands.Handlers{
+		"add": func(args []string) (string, error) {
+			acl.Add(args[0])
+			return "success", nil
+		},
+		"remove": func(args []string) (string, error) {
+			acl.Remove(args[0])
+			return "success", nil
+		},
+		"contains": func(args []string) (string, error) {
+			if acl.Contains(args[0]) {
+				return "true", nil
+			}
+			return "false", nil
+		},
+		"elementCount": func(args []string) (string, error) {
+			return Helpers.IntToString(acl.ElementCount()), nil
+		},
+		"getElements": func(args []string) (string, error) {
+			return strings.Join(acl.GetElements(), "\n"), nil
+		},
+	}
 }
 
 func NewAccessControlList(entries []string) *AccessControlList {

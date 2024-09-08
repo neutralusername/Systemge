@@ -116,6 +116,40 @@ func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string
 	return names
 }
 
+func (client *SystemgeClient) GetConnectionName(address string) string {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status != Status.STARTED {
+		return ""
+	}
+	connection, ok := client.addressConnections[address]
+	if !ok {
+		return ""
+	}
+	return connection.GetName()
+}
+
+func (client *SystemgeClient) GetConnectionAddress(name string) string {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+	if client.status != Status.STARTED {
+		return ""
+	}
+	connection, ok := client.nameConnections[name]
+	if !ok {
+		return ""
+	}
+	return connection.GetAddress()
+}
+
 func (client *SystemgeClient) GetConnectionCount() int {
 	client.statusMutex.RLock()
 	client.mutex.Lock()

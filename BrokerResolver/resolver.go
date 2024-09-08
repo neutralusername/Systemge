@@ -1,6 +1,7 @@
 package BrokerResolver
 
 import (
+	"encoding/json"
 	"sync"
 	"sync/atomic"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -198,27 +200,89 @@ func (resolver *Resolver) GetName() string {
 	return resolver.name
 }
 
-func (resolver *Resolver) GetMetrics() map[string]uint64 {
-	metrics := resolver.systemgeServer.RetrieveMetrics()
-	metrics["sucessful_async_resolutions"] = resolver.RetrieveSucessfulAsyncResolutions()
-	metrics["sucessful_sync_resolutions"] = resolver.RetrieveSucessfulSyncResolutions()
-	metrics["failed_resolutions"] = resolver.RetrieveFailedResolutions()
-	metrics["ongoing_resolutions"] = uint64(resolver.ongoingResolutions.Load())
-	resolver.mutex.Lock()
-	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
-	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
-	resolver.mutex.Unlock()
-	serverMetrics := resolver.systemgeServer.RetrieveMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
-	}
-	return metrics
-}
-
 func (server *Resolver) GetWhiteList() *Tools.AccessControlList {
 	return server.systemgeServer.GetWhitelist()
 }
 
 func (server *Resolver) GetBlackList() *Tools.AccessControlList {
 	return server.systemgeServer.GetBlacklist()
+}
+
+func (server *Resolver) GetDefaultCommands() Commands.Handlers {
+	commands := Commands.Handlers{
+		"start": func(args []string) (string, error) {
+			err := server.Start()
+			if err != nil {
+				return "", Error.New("failed to start message broker server", err)
+			}
+			return "success", nil
+		},
+		"stop": func(args []string) (string, error) {
+			err := server.Stop()
+			if err != nil {
+				return "", Error.New("failed to stop message broker server", err)
+			}
+			return "success", nil
+		},
+		"getStatus": func(args []string) (string, error) {
+			return Status.ToString(server.GetStatus()), nil
+		},
+		"getMetrics": func(args []string) (string, error) {
+			metrics := server.GetMetrics()
+			json, err := json.Marshal(metrics)
+			if err != nil {
+				return "", Error.New("failed to marshal metrics to json", err)
+			}
+			return string(json), nil
+		},
+		"retrieveMetrics": func(args []string) (string, error) {
+			metrics := server.RetrieveMetrics()
+			json, err := json.Marshal(metrics)
+			if err != nil {
+				return "", Error.New("failed to marshal metrics to json", err)
+			}
+			return string(json), nil
+		},
+		"addAsyncResolution": func(args []string) (string, error) {
+			if len(args) != 2 {
+				return "", Error.New("expected 2 arguments", nil)
+			}
+			endpointConfig := Config.UnmarshalTcpClient(args[1])
+			if endpointConfig == nil {
+				return "", Error.New("failed unmarshalling endpointConfig", nil)
+			}
+			server.AddAsyncResolution(args[0], endpointConfig)
+			return "success", nil
+		},
+		"removeAsyncResolution": func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("expected 1 argument", nil)
+			}
+			server.RemoveAsyncResolution(args[0])
+			return "success", nil
+		},
+		"addSyncResolution": func(args []string) (string, error) {
+			if len(args) != 2 {
+				return "", Error.New("expected 2 arguments", nil)
+			}
+			endpointConfig := Config.UnmarshalTcpClient(args[1])
+			if endpointConfig == nil {
+				return "", Error.New("failed unmarshalling endpointConfig", nil)
+			}
+			server.AddSyncResolution(args[0], endpointConfig)
+			return "success", nil
+		},
+		"removeSyncResolution": func(args []string) (string, error) {
+			if len(args) != 1 {
+				return "", Error.New("expected 1 argument", nil)
+			}
+			server.RemoveSyncResolution(args[0])
+			return "success", nil
+		},
+	}
+	systemgeServerCommands := server.systemgeServer.GetDefaultCommands()
+	for key, value := range systemgeServerCommands {
+		commands["systemgeServer_"+key] = value
+	}
+	return commands
 }

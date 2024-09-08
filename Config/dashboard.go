@@ -14,6 +14,8 @@ type DashboardServer struct {
 
 	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
 
+	DashboardMetrics bool `json:"dashboardMetrics"` // default: false
+
 	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
 	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
 	StatusUpdateIntervalMs    uint64 `json:"serviceStatusUpdateIntervalMs"` // default: 0 = disabled

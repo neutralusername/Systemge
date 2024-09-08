@@ -2,9 +2,9 @@ package WebsocketServer
 
 import "github.com/neutralusername/Systemge/Error"
 
-// AddClientToGroup adds websocket clients to a group.
+// AddClientsToGroup adds websocket clients to a group.
 // Returns an error if either of the websocket clients does not exist or is already in the group.
-func (server *WebsocketServer) AddClientToGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 	for _, websocketId := range websocketIds {
@@ -25,9 +25,9 @@ func (server *WebsocketServer) AddClientToGroup(groupId string, websocketIds ...
 	return nil
 }
 
-// AddClientToGroup_ adds websocket clients to a group.
+// AttemptToAddClientsToGroup adds websocket clients to a group.
 // Proceeds even if either of the websocket clients does not exist or is already in the group.
-func (server *WebsocketServer) AddClientToGroup_(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 	if server.groups[groupId] == nil {
@@ -37,26 +37,10 @@ func (server *WebsocketServer) AddClientToGroup_(groupId string, websocketIds ..
 		if server.clients[websocketId] != nil {
 			server.groups[groupId][websocketId] = server.clients[websocketId]
 			server.clientGroups[websocketId][groupId] = true
-		}
-	}
-	return nil
-}
-
-// RemoveClientFromGroup_ removes websocket clients from a group.
-// proceeds even if either of the websocket clients does not exist or is not in the group.
-// Returns an error if the group does not exist.
-func (server *WebsocketServer) RemoveClientFromGroup_(groupId string, websocketIds ...string) error {
-	server.clientMutex.Lock()
-	defer server.clientMutex.Unlock()
-	if server.groups[groupId] == nil {
-		return Error.New("group with id "+groupId+" does not exist", nil)
-	}
-	for _, websocketId := range websocketIds {
-		if server.clients[websocketId] != nil {
-			delete(server.clientGroups[websocketId], groupId)
-		}
-		if server.groups[groupId] != nil {
-			delete(server.groups[groupId], websocketId)
+		} else {
+			if server.warningLogger != nil {
+				server.warningLogger.Log("failed to add client \"" + websocketId + "\" to group \"" + groupId + "\" because the client does not exist")
+			}
 		}
 	}
 	if len(server.groups[groupId]) == 0 {
@@ -65,10 +49,10 @@ func (server *WebsocketServer) RemoveClientFromGroup_(groupId string, websocketI
 	return nil
 }
 
-// RemoveClientFromGroup removes websocket clients from a group.
+// RemoveClientsFromGroup removes websocket clients from a group.
 // Returns an error if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *WebsocketServer) RemoveClientFromGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 	if server.groups[groupId] == nil {
@@ -84,6 +68,31 @@ func (server *WebsocketServer) RemoveClientFromGroup(groupId string, websocketId
 	}
 	for _, websocketId := range websocketIds {
 		delete(server.clientGroups[websocketId], groupId)
+		delete(server.groups[groupId], websocketId)
+	}
+	if len(server.groups[groupId]) == 0 {
+		delete(server.groups, groupId)
+	}
+	return nil
+}
+
+// AttemptToRemoveClientsFromGroup removes websocket clients from a group.
+// proceeds even if either of the websocket clients does not exist or is not in the group.
+// Returns an error if the group does not exist.
+func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, websocketIds ...string) error {
+	server.clientMutex.Lock()
+	defer server.clientMutex.Unlock()
+	if server.groups[groupId] == nil {
+		return Error.New("group with id "+groupId+" does not exist", nil)
+	}
+	for _, websocketId := range websocketIds {
+		if server.clients[websocketId] != nil {
+			delete(server.clientGroups[websocketId], groupId)
+		} else {
+			if server.warningLogger != nil {
+				server.warningLogger.Log("failed to remove client \"" + websocketId + "\" from group \"" + groupId + "\" because the client does not exist")
+			}
+		}
 		delete(server.groups[groupId], websocketId)
 	}
 	if len(server.groups[groupId]) == 0 {
@@ -121,7 +130,24 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) []string {
 	return groups
 }
 
-func (server *WebsocketServer) IsInWebsocketGroup(groupId string, websocketId string) bool {
+// GetGroupCount returns the number of groups.
+func (server *WebsocketServer) GetGroupCount() int {
+	server.clientMutex.RLock()
+	defer server.clientMutex.RUnlock()
+	return len(server.groups)
+}
+
+func (server *WebsocketServer) GetGroups() []string {
+	server.clientMutex.RLock()
+	defer server.clientMutex.RUnlock()
+	groups := make([]string, 0)
+	for groupId := range server.groups {
+		groups = append(groups, groupId)
+	}
+	return groups
+}
+
+func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId string) bool {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 	if server.groups[groupId] == nil {

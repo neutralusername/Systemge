@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
@@ -25,13 +26,16 @@ type HTTPServer struct {
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 
-	config         *Config.HTTPServer
-	httpServer     *http.Server
-	blacklist      *Tools.AccessControlList
-	whitelist      *Tools.AccessControlList
-	requestCounter atomic.Uint64
+	config     *Config.HTTPServer
+	httpServer *http.Server
+	blacklist  *Tools.AccessControlList
+	whitelist  *Tools.AccessControlList
 
 	mux *CustomMux
+
+	// metrics
+
+	requestCounter atomic.Uint64
 }
 
 func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer {
@@ -177,4 +181,42 @@ func (server *HTTPServer) GetName() string {
 
 func (server *HTTPServer) GetStatus() int {
 	return server.status
+}
+
+func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
+	blacklistCommands := server.blacklist.GetCommands()
+	whitelistCommands := server.whitelist.GetCommands()
+	commands := Commands.Handlers{}
+	for key, value := range blacklistCommands {
+		commands["blacklist_"+key] = value
+	}
+	for key, value := range whitelistCommands {
+		commands["whitelist_"+key] = value
+	}
+	commands["start"] = func(args []string) (string, error) {
+		err := server.Start()
+		if err != nil {
+			return "", Error.New("failed to start http server", err)
+		}
+		return "success", nil
+	}
+	commands["stop"] = func(args []string) (string, error) {
+		err := server.Stop()
+		if err != nil {
+			return "", Error.New("failed to stop http server", err)
+		}
+		return "success", nil
+	}
+	commands["getStatus"] = func(args []string) (string, error) {
+		return Status.ToString(server.GetStatus()), nil
+	}
+	commands["getMetrics"] = func(args []string) (string, error) {
+		metrics := server.RetrieveHTTPRequestCounter()
+		return Helpers.IntToString(int(metrics)), nil
+	}
+	commands["retrieveMetrics"] = func(args []string) (string, error) {
+		metrics := server.RetrieveHTTPRequestCounter()
+		return Helpers.IntToString(int(metrics)), nil
+	}
+	return commands
 }

@@ -1,14 +1,18 @@
+add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
+
+improve logging (especially systemge and broker packages)
+
+add command scheduling in some form (to the dashboard)
+
+fix rare race condition on systemgeServer (waitGroup)
+
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
 integrate "password" in some form into the dashboard
 
-add access control commands to broker structs
-
-add command scheduling in some form (to the dashboard)
-
 add ChannelConnection and channelListener as more performant alternative for systems within a single process
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
-add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
-
 add "syncResponsesSent" metrics to connection
+
+make websocketServer stop-operation cleaner

@@ -1,6 +1,7 @@
 package SingleRequestServer
 
 import (
+	"encoding/json"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Commands"
@@ -8,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -184,13 +186,13 @@ func (server *Server) GetBlackList() *Tools.AccessControlList {
 
 func (server *Server) GetMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
-	metrics["invalidMessages"] = server.GetInvalidMessages()
-	metrics["succeededCommands"] = server.GetSucceededCommands()
-	metrics["failedCommands"] = server.GetFailedCommands()
-	metrics["succeededAsyncMessages"] = server.GetSucceededAsyncMessages()
-	metrics["failedAsyncMessages"] = server.GetFailedAsyncMessages()
-	metrics["succeededSyncMessages"] = server.GetSucceededSyncMessages()
-	metrics["failedSyncMessages"] = server.GetFailedSyncMessages()
+	metrics["invalid_messages"] = server.GetInvalidMessages()
+	metrics["succeeded_commands"] = server.GetSucceededCommands()
+	metrics["failed_commands"] = server.GetFailedCommands()
+	metrics["succeeded_async_messages"] = server.GetSucceededAsyncMessages()
+	metrics["failed_async_messages"] = server.GetFailedAsyncMessages()
+	metrics["succeeded_sync_messages"] = server.GetSucceededSyncMessages()
+	metrics["failed_sync_messages"] = server.GetFailedSyncMessages()
 	serverMetrics := server.systemgeServer.GetMetrics()
 	for key, value := range serverMetrics {
 		metrics[key] = value
@@ -199,13 +201,13 @@ func (server *Server) GetMetrics() map[string]uint64 {
 }
 func (server *Server) RetrieveMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
-	metrics["invalidMessages"] = server.RetrieveInvalidMessages()
-	metrics["succeededCommands"] = server.RetrieveSucceededCommands()
-	metrics["failedCommands"] = server.RetrieveFailedCommands()
-	metrics["succeededAsyncMessages"] = server.RetrieveSucceededAsyncMessages()
-	metrics["failedAsyncMessages"] = server.RetrieveFailedAsyncMessages()
-	metrics["succeededSyncMessages"] = server.RetrieveSucceededSyncMessages()
-	metrics["failedSyncMessages"] = server.RetrieveFailedSyncMessages()
+	metrics["invalid_messages"] = server.RetrieveInvalidMessages()
+	metrics["succeeded_commands"] = server.RetrieveSucceededCommands()
+	metrics["failed_commands"] = server.RetrieveFailedCommands()
+	metrics["succeeded_async_messages"] = server.RetrieveSucceededAsyncMessages()
+	metrics["failed_async_messages"] = server.RetrieveFailedAsyncMessages()
+	metrics["succeeded_sync_messages"] = server.RetrieveSucceededSyncMessages()
+	metrics["failed_sync_messages"] = server.RetrieveFailedSyncMessages()
 	serverMetrics := server.systemgeServer.RetrieveMetrics()
 	for key, value := range serverMetrics {
 		metrics[key] = value
@@ -260,4 +262,46 @@ func (server *Server) GetFailedSyncMessages() uint64 {
 }
 func (server *Server) RetrieveFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Swap(0)
+}
+
+func (server *Server) GetDefaultCommands() Commands.Handlers {
+	commands := server.systemgeServer.GetDefaultCommands()
+	commands["start"] = func(args []string) (string, error) {
+		err := server.Start()
+		if err != nil {
+			return "", err
+		}
+		return "success", nil
+	}
+	commands["stop"] = func(args []string) (string, error) {
+		err := server.Stop()
+		if err != nil {
+			return "", err
+		}
+		return "success", nil
+	}
+	commands["getStatus"] = func(args []string) (string, error) {
+		return Status.ToString(server.GetStatus()), nil
+	}
+	commands["getMetrics"] = func(args []string) (string, error) {
+		metrics := server.GetMetrics()
+		json, err := json.Marshal(metrics)
+		if err != nil {
+			return "", Error.New("Failed to marshal metrics to json", err)
+		}
+		return string(json), nil
+	}
+	commands["retrieveMetrics"] = func(args []string) (string, error) {
+		metrics := server.RetrieveMetrics()
+		json, err := json.Marshal(metrics)
+		if err != nil {
+			return "", Error.New("Failed to marshal metrics to json", err)
+		}
+		return string(json), nil
+	}
+	serverCommands := server.systemgeServer.GetDefaultCommands()
+	for key, value := range serverCommands {
+		commands["systemgeServer_"+key] = value
+	}
+	return commands
 }

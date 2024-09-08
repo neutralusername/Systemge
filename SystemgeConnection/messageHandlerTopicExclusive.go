@@ -313,6 +313,21 @@ func (messageHandler *TopicExclusiveMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
+func (messageHandler *TopicExclusiveMessageHandler) GetMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
+		"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
+		"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+	}
+}
+func (messageHandler *TopicExclusiveMessageHandler) RetrieveMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"async_messages_handled":  messageHandler.RetrieveAsyncMessagesHandled(),
+		"sync_requests_handled":   messageHandler.RetrieveSyncRequestsHandled(),
+		"unknown_topics_received": messageHandler.RetrieveUnknownTopicsReceived(),
+	}
+}
+
 func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }

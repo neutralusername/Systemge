@@ -161,6 +161,16 @@ func (connection *TcpConnection) AbortSyncRequest(syncToken string) error {
 	return Error.New("No response channel found", nil)
 }
 
+func (connection *TcpConnection) GetOpenSyncRequests() []string {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	syncTokens := make([]string, 0, len(connection.syncRequests))
+	for k := range connection.syncRequests {
+		syncTokens = append(syncTokens, k)
+	}
+	return syncTokens
+}
+
 func (connection *TcpConnection) removeSyncRequest(syncToken string) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()

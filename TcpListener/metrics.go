@@ -1,5 +1,22 @@
 package TcpListener
 
+func (listener *TcpListener) GetMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"connection_attempts":  listener.GetConnectionAttempts(),
+		"failed_connections":   listener.GetFailedConnections(),
+		"rejected_connections": listener.GetRejectedConnections(),
+		"accepted_connections": listener.GetAcceptedConnections(),
+	}
+}
+func (listener *TcpListener) RetrieveMetrics() map[string]uint64 {
+	return map[string]uint64{
+		"connection_attempts":  listener.RetrieveConnectionAttempts(),
+		"failed_connections":   listener.RetrieveFailedConnections(),
+		"rejected_connections": listener.RetrieveRejectedConnections(),
+		"accepted_connections": listener.RetrieveAcceptedConnections(),
+	}
+}
+
 func (listener *TcpListener) GetConnectionAttempts() uint64 {
 	return listener.connectionAttempts.Load()
 }

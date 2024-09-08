@@ -1,10 +1,13 @@
 package SystemgeServer
 
 import (
+	"encoding/json"
 	"sync"
 
+	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
@@ -158,4 +161,94 @@ func (server *SystemgeServer) GetWhitelist() *Tools.AccessControlList {
 		return nil
 	}
 	return server.listener.GetWhitelist()
+}
+
+func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
+	listenerCommands := server.listener.GetDefaultCommands()
+	serverCommands := Commands.Handlers{}
+	for key, value := range listenerCommands {
+		serverCommands["listener_"+key] = value
+	}
+	serverCommands["start"] = func(args []string) (string, error) {
+		err := server.Start()
+		if err != nil {
+			return "", err
+		}
+		return "success", nil
+	}
+	serverCommands["stop"] = func(args []string) (string, error) {
+		err := server.Stop()
+		if err != nil {
+			return "", err
+		}
+		return "success", nil
+	}
+	serverCommands["removeConnection"] = func(args []string) (string, error) {
+		if len(args) != 1 {
+			return "", Error.New("expected 1 argument", nil)
+		}
+		err := server.RemoveConnection(args[0])
+		if err != nil {
+			return "", err
+		}
+		return "success", nil
+	}
+	serverCommands["getConnectionNamesAndAddresses"] = func(args []string) (string, error) {
+		names := server.GetConnectionNamesAndAddresses()
+		json, err := json.Marshal(names)
+		if err != nil {
+			return "", Error.New("failed to marshal map to json", err)
+		}
+		return string(json), nil
+	}
+	serverCommands["getConnectionCount"] = func(args []string) (string, error) {
+		return Helpers.IntToString(server.GetConnectionCount()), nil
+	}
+	serverCommands["asyncMessage"] = func(args []string) (string, error) {
+		if len(args) < 2 {
+			return "", Error.New("expected at least 2 arguments", nil)
+		}
+		topic := args[0]
+		payload := args[1]
+		clientNames := args[2:]
+		err := server.AsyncMessage(topic, payload, clientNames...)
+		if err != nil {
+			return "", err
+		}
+		return "success", nil
+	}
+	serverCommands["syncRequest"] = func(args []string) (string, error) {
+		if len(args) < 2 {
+			return "", Error.New("expected at least 2 arguments", nil)
+		}
+		topic := args[0]
+		payload := args[1]
+		clientNames := args[2:]
+		messages, err := server.SyncRequestBlocking(topic, payload, clientNames...)
+		if err != nil {
+			return "", err
+		}
+		json, err := json.Marshal(messages)
+		if err != nil {
+			return "", Error.New("failed to marshal messages to json", err)
+		}
+		return string(json), nil
+	}
+	serverCommands["getMetrics"] = func(args []string) (string, error) {
+		metrics := server.GetMetrics()
+		json, err := json.Marshal(metrics)
+		if err != nil {
+			return "", Error.New("failed to marshal metrics to json", err)
+		}
+		return string(json), nil
+	}
+	serverCommands["retrieveMetrics"] = func(args []string) (string, error) {
+		metrics := server.RetrieveMetrics()
+		json, err := json.Marshal(metrics)
+		if err != nil {
+			return "", Error.New("failed to marshal metrics to json", err)
+		}
+		return string(json), nil
+	}
+	return serverCommands
 }

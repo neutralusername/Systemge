@@ -1,6 +1,7 @@
 package SystemgeConnection
 
 import (
+	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Message"
 )
 
@@ -14,6 +15,7 @@ type SystemgeConnection interface {
 	GetBytesReceived() uint64
 	GetBytesSent() uint64
 	GetCloseChannel() <-chan bool
+	GetDefaultCommands() Commands.Handlers
 	GetInvalidMessagesReceived() uint64
 	GetInvalidSyncResponsesReceived() uint64
 	GetMessageRateLimiterExceeded() uint64

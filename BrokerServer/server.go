@@ -1,6 +1,7 @@
 package BrokerServer
 
 import (
+	"encoding/json"
 	"sync"
 	"sync/atomic"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -90,7 +92,7 @@ func New(name string, config *Config.MessageBrokerServer) *Server {
 	if server.config.DashboardClientConfig != nil {
 		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
 			server.config.DashboardClientConfig,
-			server.systemgeServer.Start, server.systemgeServer.Stop, server.GetMetrics, server.systemgeServer.GetStatus,
+			server.systemgeServer.Start, server.systemgeServer.Stop, server.RetrieveMetrics, server.systemgeServer.GetStatus,
 			Commands.Handlers{
 				Message.TOPIC_SUBSCRIBE_ASYNC: func(args []string) (string, error) {
 					server.AddAsyncTopics(args)
@@ -161,22 +163,6 @@ func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *Server) GetMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_received"] = server.RetrieveAsyncMessagesPropagated()
-	metrics["async_messages_propagated"] = server.RetrieveAsyncMessagesPropagated()
-	metrics["sync_requests_received"] = server.RetrieveSyncRequestsReceived()
-	metrics["sync_requests_propagated"] = server.RetrieveSyncRequestsPropagated()
-	metrics["connection_count"] = uint64(len(server.connectionAsyncSubscriptions))
-	metrics["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
-	metrics["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
-	systemgeServerMetrics := server.systemgeServer.RetrieveMetrics()
-	for key, value := range systemgeServerMetrics {
-		metrics[key] = value
-	}
-	return metrics
-}
-
 func (server *Server) GetName() string {
 	return server.name
 }
@@ -187,4 +173,63 @@ func (server *Server) GetWhiteList() *Tools.AccessControlList {
 
 func (server *Server) GetBlackList() *Tools.AccessControlList {
 	return server.systemgeServer.GetBlacklist()
+}
+
+func (server *Server) GetDefaultCommands() Commands.Handlers {
+	commands := Commands.Handlers{
+		"start": func(args []string) (string, error) {
+			err := server.Start()
+			if err != nil {
+				return "", Error.New("failed to start message broker server", err)
+			}
+			return "success", nil
+		},
+		"stop": func(args []string) (string, error) {
+			err := server.Stop()
+			if err != nil {
+				return "", Error.New("failed to stop message broker server", err)
+			}
+			return "success", nil
+		},
+		"getStatus": func(args []string) (string, error) {
+			return Status.ToString(server.GetStatus()), nil
+		},
+		"getMetrics": func(args []string) (string, error) {
+			metrics := server.GetMetrics()
+			json, err := json.Marshal(metrics)
+			if err != nil {
+				return "", Error.New("failed to marshal metrics to json", err)
+			}
+			return string(json), nil
+		},
+		"retrieveMetrics": func(args []string) (string, error) {
+			metrics := server.RetrieveMetrics()
+			json, err := json.Marshal(metrics)
+			if err != nil {
+				return "", Error.New("failed to marshal metrics to json", err)
+			}
+			return string(json), nil
+		},
+		"addAsyncTopics": func(args []string) (string, error) {
+			server.AddAsyncTopics(args)
+			return "success", nil
+		},
+		"removeAsyncTopics": func(args []string) (string, error) {
+			server.RemoveAsyncTopics(args)
+			return "success", nil
+		},
+		"addSyncTopics": func(args []string) (string, error) {
+			server.AddSyncTopics(args)
+			return "success", nil
+		},
+		"removeSyncTopics": func(args []string) (string, error) {
+			server.RemoveSyncTopics(args)
+			return "success", nil
+		},
+	}
+	systemgeServerCommands := server.systemgeServer.GetDefaultCommands()
+	for key, value := range systemgeServerCommands {
+		commands["systemgeServer_"+key] = value
+	}
+	return commands
 }

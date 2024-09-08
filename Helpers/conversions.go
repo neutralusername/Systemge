@@ -77,6 +77,10 @@ func IntToString(i int) string {
 	return strconv.Itoa(i)
 }
 
+func Int64ToString(i int64) string {
+	return strconv.FormatInt(i, 10)
+}
+
 func Float64ToString(f float64) string {
 	return strconv.FormatFloat(f, 'f', 6, 64)
 }

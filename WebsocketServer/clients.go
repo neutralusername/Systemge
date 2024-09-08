@@ -22,13 +22,6 @@ func (server *WebsocketServer) GetClientCount() int {
 	return len(server.clients)
 }
 
-// GetGroupCount returns the number of groups.
-func (server *WebsocketServer) GetGroupCount() int {
-	server.clientMutex.RLock()
-	defer server.clientMutex.RUnlock()
-	return len(server.groups)
-}
-
 func (server *WebsocketServer) removeClient(client *WebsocketClient) {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
