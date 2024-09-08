@@ -27,12 +27,12 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to rate limiting", nil)
 	}
-	if listener.tcpListener.GetBlacklist().Contains(ip) {
+	if listener.tcpListener.GetBlacklist() != nil && listener.tcpListener.GetBlacklist().Contains(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to blacklist", nil)
 	}
-	if listener.tcpListener.GetWhitelist().ElementCount() > 0 && !listener.tcpListener.GetWhitelist().Contains(ip) {
+	if listener.tcpListener.GetWhitelist() != nil && listener.tcpListener.GetWhitelist().ElementCount() > 0 && !listener.tcpListener.GetWhitelist().Contains(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
