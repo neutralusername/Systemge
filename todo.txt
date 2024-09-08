@@ -21,3 +21,5 @@ consider adding PipeConnection and PipeListener as more performant alternative f
 add "syncResponsesSent" metrics to connection
 
 make websocketServer stop-operation cleaner
+
+allow some kind of grouping of metrics (no concrete ideas yet, probably further in the future)
