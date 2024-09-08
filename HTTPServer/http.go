@@ -184,14 +184,18 @@ func (server *HTTPServer) GetStatus() int {
 }
 
 func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := server.blacklist.GetDefaultCommands()
-	whitelistCommands := server.whitelist.GetDefaultCommands()
 	commands := Commands.Handlers{}
-	for key, value := range blacklistCommands {
-		commands["blacklist_"+key] = value
+	if server.blacklist != nil {
+		blacklistCommands := server.blacklist.GetDefaultCommands()
+		for key, value := range blacklistCommands {
+			commands["blacklist_"+key] = value
+		}
 	}
-	for key, value := range whitelistCommands {
-		commands["whitelist_"+key] = value
+	if server.whitelist != nil {
+		whitelistCommands := server.whitelist.GetDefaultCommands()
+		for key, value := range whitelistCommands {
+			commands["whitelist_"+key] = value
+		}
 	}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()
