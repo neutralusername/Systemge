@@ -440,21 +440,7 @@ export class root extends React.Component {
                     },
                 },
                 "back",
-            ) :  React.createElement(
-                "button", {
-                    style: {
-                        position: "fixed",
-                        top: "0",
-                        right: "0",
-                        width: "100px",
-                        height: "30px",
-                    },
-                    onClick: () => {
-                        this.WS_CONNECTION.send(this.constructMessage("close"));
-                    },
-                },
-                "close",
-            ),
+            ) :null,
             statuses,
             buttons,
             commandsComponent,
