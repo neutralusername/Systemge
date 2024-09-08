@@ -414,6 +414,9 @@ export class root extends React.Component {
                 "div", {
                     style: {
                         position: "fixed",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
                         top: "0",
                         left: "0",
                         padding: "10px",
