@@ -397,6 +397,7 @@ export class root extends React.Component {
                 this.state.responseMessages[responseId],
             ),
         );
+        responseMessages.reverse();
 
         return React.createElement(
             "div", {
@@ -412,16 +413,17 @@ export class root extends React.Component {
             React.createElement(
                 "div", {
                     style: {
-                        zIndex: "-1",
                         position: "fixed",
                         top: "0",
                         left: "0",
                         padding: "10px",
                         whiteSpace: "pre-wrap",
-                        width: "80%",
-                        overflow: "hidden", // Hide any overflow
-                        wordWrap: "break-word", // Force long words to break
-                        wordBreak: "break-word", // Ensure long words are broken properly
+                        width: "33%",
+                        height : "27%",
+                        overflow: "hidden",
+                        overflowY: "scroll",
+                        wordWrap: "break-word",
+                        wordBreak: "break-word",
                     },
                 },
                 responseMessages,
