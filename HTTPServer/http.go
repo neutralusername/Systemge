@@ -151,14 +151,6 @@ func (server *HTTPServer) Stop() error {
 	return nil
 }
 
-func (server *HTTPServer) RetrieveHTTPRequestCounter() uint64 {
-	return server.requestCounter.Swap(0)
-}
-
-func (server *HTTPServer) GetHTTPRequestCounter() uint64 {
-	return server.requestCounter.Load()
-}
-
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
 	server.mux.AddRoute(pattern, server.httpRequestWrapper(handlerFunc))
 }
@@ -215,12 +207,12 @@ func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(server.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := server.RetrieveHTTPRequestCounter()
-		return Helpers.IntToString(int(metrics)), nil
+		metrics := server.GetMetrics()
+		return Helpers.JsonMarshal(metrics), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := server.RetrieveHTTPRequestCounter()
-		return Helpers.IntToString(int(metrics)), nil
+		metrics := server.RetrieveMetrics()
+		return Helpers.JsonMarshal(metrics), nil
 	}
 	return commands
 }
