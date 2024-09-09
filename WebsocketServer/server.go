@@ -151,7 +151,6 @@ func (server *WebsocketServer) Stop() error {
 	server.status = Status.PENDING
 
 	server.httpServer.Stop()
-	server.httpServer = nil
 	close(server.connectionChannel)
 	if server.ipRateLimiter != nil {
 		server.ipRateLimiter.Close()

@@ -56,7 +56,6 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 }
 
 func (server *SystemgeServer) acceptNextConnection() (SystemgeConnection.SystemgeConnection, error) {
-	// theres an edge case in the line below where the listener can be null which can cause a panic
 	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.ConnectionConfig)
 	if err != nil {
 		return nil, Error.New("failed to accept connection", err)
