@@ -11,25 +11,28 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 	}
 
 	for {
-		server.waitGroup.Add(1)
 		select {
 		case <-stopChannel:
 			if server.infoLogger != nil {
 				server.infoLogger.Log("connection handler stopped")
 			}
-			server.waitGroup.Done()
 			return
 		default:
+			server.waitGroup.Add(1)
 			connection, err := server.acceptNextConnection()
 			if err != nil {
-				server.waitGroup.Done()
 				if server.warningLogger != nil {
 					server.warningLogger.Log(err.Error())
 				}
+				server.waitGroup.Done()
 				continue
 			}
 			go func() {
-				<-connection.GetCloseChannel()
+				select {
+				case <-connection.GetCloseChannel():
+				case <-stopChannel:
+					connection.Close()
+				}
 				server.mutex.Lock()
 				delete(server.clients, connection.GetName())
 				server.mutex.Unlock()

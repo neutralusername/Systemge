@@ -1,7 +1,5 @@
 integrate "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
-fix rare race condition on systemgeServer (waitGroup)
-
 improve logging (especially systemge and broker packages)
 
 make websocketServer stop-operation cleaner

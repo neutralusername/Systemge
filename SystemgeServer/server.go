@@ -125,13 +125,6 @@ func (server *SystemgeServer) Stop() error {
 	close(server.stopChannel)
 	server.listener.Close()
 
-	server.mutex.Lock()
-	for _, connection := range server.clients {
-		connection.Close()
-	}
-	server.mutex.Unlock()
-
-	// rare race condition that causes panic code line below - panic: sync: WaitGroup is reused before previous Wait has returned
 	server.waitGroup.Wait()
 	server.stopChannel = nil
 	server.listener = nil
