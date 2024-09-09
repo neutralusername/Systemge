@@ -74,6 +74,8 @@ type TcpSystemgeConnection struct {
 	TcpReceiveTimeoutMs  uint64 `json:"tcpReceiveTimeoutMs"`  // default: 0 == block forever
 	TcpSendTimeoutMs     uint64 `json:"tcpSendTimeoutMs"`     // default: 0 == block forever
 
+	HeartbeatIntervalMs uint64 `json:"heartbeatIntervalMs"` // default: 0 == no heartbeat (can prevent disconnect from being detected)
+
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 

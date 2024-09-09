@@ -93,9 +93,6 @@ func (connection *TcpConnection) receiveLoop() {
 						connection.warningLogger.Log("Processing channel capacity reached for message #" + Helpers.Uint64ToString(messageId))
 					}
 				}
-				// todo: fix situation where processing channel is full (i.e. stuck in the code line below)
-				// and connection closes which causes the connection to not auto-close
-				// (i.e. .GetCloseChannel() doesn't fire) (disconnect is recognized on message reception)
 				connection.processingChannel <- &messageInProcess{
 					message: message,
 					id:      messageId,

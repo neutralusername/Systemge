@@ -74,6 +74,7 @@ func (app *Client) Start() error {
 			Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
 		}, nil, nil),
 	)
+
 	app.status = Status.STARTED
 	return nil
 }

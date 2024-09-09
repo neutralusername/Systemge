@@ -59,8 +59,17 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	if len(messageBytes) == 0 {
 		return nil, Error.New("Received empty message", nil)
 	}
-	messageBytes = messageBytes[:len(messageBytes)-1]
-	message, err := Message.Deserialize(messageBytes, "")
+	filteresMessageBytes := []byte{}
+	for _, b := range messageBytes {
+		if b == Tcp.HEARTBEAT {
+			continue
+		}
+		if b == Tcp.ENDOFMESSAGE {
+			continue
+		}
+		filteresMessageBytes = append(filteresMessageBytes, b)
+	}
+	message, err := Message.Deserialize(filteresMessageBytes, "")
 	if err != nil {
 		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
 	}

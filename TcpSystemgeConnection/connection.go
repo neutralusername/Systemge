@@ -105,6 +105,9 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 		config.TcpBufferBytes = 1024 * 4
 	}
 	go connection.receiveLoop()
+	if config.HeartbeatIntervalMs > 0 {
+		go connection.heartbeatLoop()
+	}
 	return connection
 }
 

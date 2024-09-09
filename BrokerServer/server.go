@@ -114,6 +114,7 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 			}
 		}
 	}
+
 	server.messageHandler = SystemgeConnection.NewSequentialMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
 		Message.TOPIC_SUBSCRIBE_ASYNC:   server.subscribeAsync,
 		Message.TOPIC_UNSUBSCRIBE_ASYNC: server.unsubscribeAsync,
@@ -122,6 +123,7 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 	}, nil, nil, 100000)
 	server.AddAsyncTopics(server.config.AsyncTopics)
 	server.AddSyncTopics(server.config.SyncTopics)
+
 	return server
 }
 

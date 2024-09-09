@@ -1,3 +1,1 @@
-tcp connection will not automatically close, if its message-buffer is full (too many unprocessed messages that prevents it from receiving further messages which in turn prevents the connection from recognizing it is closed)
-
 rare race condition that causes panic in systemgeServer

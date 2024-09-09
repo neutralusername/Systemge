@@ -12,6 +12,7 @@ import (
 )
 
 const ENDOFMESSAGE = '\x04'
+const HEARTBEAT = '\x05'
 
 func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {
 	if netConn == nil {
@@ -27,6 +28,22 @@ func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {
 		return 0, err
 	}
 	return uint64(bytesSend), nil
+}
+
+func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
+	if netConn == nil {
+		return Error.New("net.Conn is nil", nil)
+	}
+	if timeoutMs > 0 {
+		netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
+	} else {
+		netConn.SetWriteDeadline(time.Time{})
+	}
+	_, err := netConn.Write([]byte{HEARTBEAT})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func Receive(netConn net.Conn, timeoutMs uint64, bufferSize uint32) ([]byte, int, error) {

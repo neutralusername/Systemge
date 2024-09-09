@@ -15,16 +15,19 @@ func (connection *TcpConnection) receive() ([]byte, error) {
 			return nil, Error.New("Incoming message byte limit exceeded", nil)
 		}
 		for i, b := range connection.tcpBuffer {
+			if b == Tcp.HEARTBEAT {
+				continue
+			}
 			if b == Tcp.ENDOFMESSAGE {
-				completedMsgBytes = append(completedMsgBytes, connection.tcpBuffer[:i]...)
 				connection.tcpBuffer = connection.tcpBuffer[i+1:]
 				if connection.config.IncomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > connection.config.IncomingMessageByteLimit {
+					// i am considering removing this error case and just returning the message instead, even though the limit is exceeded, but only by less than the buffer size
 					return nil, Error.New("Incoming message byte limit exceeded", nil)
 				}
 				return completedMsgBytes, nil
 			}
+			completedMsgBytes = append(completedMsgBytes, b)
 		}
-		completedMsgBytes = append(completedMsgBytes, connection.tcpBuffer...)
 		receivedMessageBytes, _, err := Tcp.Receive(connection.netConn, connection.config.TcpReceiveTimeoutMs, connection.config.TcpBufferBytes)
 		if err != nil {
 			return nil, err

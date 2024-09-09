@@ -1,8 +1,4 @@
-add heartbeat mechanic to tcpConnections in order to not rely on sending/receiving to detect a closed connection
-
 improve logging (especially systemge and broker packages)
-
-add command scheduling in some form (to the dashboard)
 
 fix rare race condition on systemgeServer (waitGroup)
 
