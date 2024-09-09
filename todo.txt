@@ -1,6 +1,14 @@
+fix rare race condition on systemgeServer (waitGroup)
+
 improve logging (especially systemge and broker packages)
 
-fix rare race condition on systemgeServer (waitGroup)
+make websocketServer stop-operation cleaner
+
+add "syncResponsesSent" metrics to connection
+
+update oauth2server (add dashboard client etc.)
+
+update readme
 
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
@@ -9,12 +17,4 @@ integrate "password" in some form into the dashboard
 add ChannelConnection and channelListener as more performant alternative for systems within a single process
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
-add "syncResponsesSent" metrics to connection
-
-make websocketServer stop-operation cleaner
-
-update oauth2server (add dashboard client etc.)
-
 allow some kind of grouping of metrics on dashboards (no concrete ideas yet, probably further in the future)
-
-update readme
