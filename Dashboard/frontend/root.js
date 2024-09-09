@@ -224,6 +224,7 @@ export class root extends React.Component {
         addModule.metrics = {
             [new Date().valueOf()]: metrics,
         }
+        addModule.commands = Object.keys(addModule.commands);
         this.setState({
             modules: {
                 ...this.state.modules,
