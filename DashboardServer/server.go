@@ -289,7 +289,7 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 	if err != nil {
 		return err
 	}
-	client, err := DashboardUtilities.UnmarshalClient(response.GetPayload())
+	client, err := DashboardUtilities.UnmarshalCustomClient(response.GetPayload())
 	if err != nil {
 		return err
 	}
