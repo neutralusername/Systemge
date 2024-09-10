@@ -64,7 +64,7 @@ func (app *Server) clientStatusUpdate(client *DashboardUtilities.Client) {
 		return
 	}
 	client.Status = status
-	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: status})))
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardUtilities.StatusUpdate{Name: client.Name, Status: status})))
 }
 
 func (app *Server) clientMetricsUpdate(client *DashboardUtilities.Client) {

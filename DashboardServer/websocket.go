@@ -28,7 +28,7 @@ func (app *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient
 		return Error.New(response.GetPayload(), nil)
 	}
 	client.Status = Helpers.StringToInt(response.GetPayload())
-	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: client.Status})))
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardUtilities.StatusUpdate{Name: client.Name, Status: client.Status})))
 	return nil
 }
 
@@ -50,7 +50,7 @@ func (app *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient,
 		return Error.New(response.GetPayload(), nil)
 	}
 	client.Status = Helpers.StringToInt(response.GetPayload())
-	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(statusUpdate{Name: client.Name, Status: client.Status})))
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardUtilities.StatusUpdate{Name: client.Name, Status: client.Status})))
 	return nil
 }
 
