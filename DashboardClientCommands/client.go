@@ -90,7 +90,7 @@ func (app *CustomClient) introductionHandler(connection SystemgeConnection.Syste
 			app.name,
 			app.commands.GetKeys(),
 		),
-		DashboardUtilities.CLIENT_CUSTOM_SERVICE,
+		DashboardUtilities.CLIENT_COMMAND,
 	).Marshal()), nil
 }
 
