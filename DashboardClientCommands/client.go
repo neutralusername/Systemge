@@ -44,7 +44,7 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 		config:   config,
 		commands: commands,
 	}
-	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler( // currently every instance of a dashboard client will be a memory leak because this is never closed
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
