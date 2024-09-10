@@ -15,12 +15,8 @@ func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
 }
 
 func (server *Server) GetHttpMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"http_request_count": server.httpServer.GetHTTPRequestCounter(),
-	}
+	return server.httpServer.GetMetrics()
 }
 func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"http_request_count": server.httpServer.RetrieveHTTPRequestCounter(),
-	}
+	return server.httpServer.RetrieveMetrics()
 }
