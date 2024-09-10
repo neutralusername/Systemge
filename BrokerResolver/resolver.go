@@ -109,7 +109,7 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 	)
 
 	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient",
+		resolver.dashboardClient = DashboardClientCustom.New(name+"_dashboardClient",
 			config.DashboardClientConfig,
 			resolver.systemgeServer.Start, resolver.systemgeServer.Stop,
 			resolver.GetMetrics, resolver.systemgeServer.GetStatus,

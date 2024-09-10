@@ -60,7 +60,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 		for key, value := range commands {
 			defaultCommands[key] = value
 		}
-		server.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient", config.DashboardClientConfig, server.Start, server.Stop, server.RetrieveMetrics, server.GetStatus, defaultCommands)
+		server.dashboardClient = DashboardClientCustom.New(name+"_dashboardClient", config.DashboardClientConfig, server.Start, server.Stop, server.RetrieveMetrics, server.GetStatus, defaultCommands)
 		err := server.StartDashboard()
 		if err != nil {
 			panic(Error.New("Failed to start dashboard client", err))

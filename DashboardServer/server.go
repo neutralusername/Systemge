@@ -48,7 +48,7 @@ type Server struct {
 	mailer        *Tools.Mailer
 }
 
-func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
+func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
 	if config == nil {
 		panic("config is nil")
 	}

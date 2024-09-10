@@ -114,7 +114,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 			// may override the default commands
 			defaultCommands[key] = value
 		}
-		messageBrokerClient.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient",
+		messageBrokerClient.dashboardClient = DashboardClientCustom.New(name+"_dashboardClient",
 			config.DashboardClientConfig,
 			messageBrokerClient.Start, messageBrokerClient.Stop,
 			messageBrokerClient.RetrieveMetrics, messageBrokerClient.GetStatus,

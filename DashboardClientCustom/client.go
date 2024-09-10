@@ -29,7 +29,7 @@ type Client struct {
 	mutex  sync.Mutex
 }
 
-func NewClient(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *Client {
+func New(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *Client {
 	if config == nil {
 		panic("config is nil")
 	}
