@@ -15,6 +15,20 @@ func (client *CustomServiceClient) GetClientType() int {
 	return CLIENT_CUSTOM_SERVICE
 }
 
+func MarshalCustomClient(name string, commands []string, status int, metrics map[string]uint64) []byte {
+	client := CustomServiceClient{
+		Name:     name,
+		Status:   status,
+		Commands: commands,
+		Metrics:  metrics,
+	}
+	bytes, err := json.Marshal(client)
+	if err != nil {
+		panic(err)
+	}
+	return bytes
+}
+
 func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 	var client CustomServiceClient
 	err := json.Unmarshal(bytes, &client)

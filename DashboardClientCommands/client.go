@@ -1,7 +1,6 @@
 package DashboardClientCommands
 
 import (
-	"encoding/json"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Commands"
@@ -87,17 +86,15 @@ func (app *CustomClient) Stop() error {
 }
 
 func (app *CustomClient) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	clientJson, err := json.Marshal(DashboardUtilities.CommandClient{
-		Name:     app.name,
-		Commands: app.commands.GetKeys(),
-	})
-	if err != nil {
-		return "", err
-	}
-	return Helpers.JsonMarshal(&DashboardUtilities.Introduction{
-		ClientJson: clientJson,
-		ClientType: DashboardUtilities.CLIENT_COMMAND,
-	}), nil
+	return Helpers.JsonMarshal(
+		DashboardUtilities.NewIntroduction(
+			DashboardUtilities.MarshalCommandClient(
+				app.name,
+				app.commands.GetKeys(),
+			),
+			DashboardUtilities.CLIENT_COMMAND,
+		),
+	), nil
 }
 
 func (app *CustomClient) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

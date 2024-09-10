@@ -11,6 +11,13 @@ const (
 	CLIENT_CUSTOM_SERVICE
 )
 
+func NewIntroduction(clientJson []byte, clientType int) Introduction {
+	return Introduction{
+		ClientJson: clientJson,
+		ClientType: clientType,
+	}
+}
+
 type Introduction struct {
 	ClientJson []byte `json:"clientJson"`
 	ClientType int    `json:"clientType"`
