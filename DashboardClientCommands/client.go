@@ -58,10 +58,14 @@ func (app *CustomClient) Start() error {
 	}
 	app.systemgeConnection = connection
 	app.systemgeConnection.StartProcessingLoopSequentially(
-		SystemgeConnection.NewConcurrentMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
-			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
-		}, nil, nil),
+		SystemgeConnection.NewConcurrentMessageHandler(
+			nil,
+			SystemgeConnection.SyncMessageHandlers{
+				Message.TOPIC_INTRODUCTION:    app.introductionHandler,
+				Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
+			},
+			nil, nil,
+		),
 	)
 
 	app.status = Status.STARTED

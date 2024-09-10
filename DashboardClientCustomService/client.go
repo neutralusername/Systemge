@@ -106,15 +106,17 @@ func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeCon
 	for command := range app.commands {
 		commands = append(commands, command)
 	}
-	return Helpers.JsonMarshal(&DashboardUtilities.Introduction{
-		Client: &DashboardUtilities.CustomServiceClient{
-			Name:     app.name,
-			Status:   app.customService.GetStatus(),
-			Metrics:  app.customService.GetMetrics(),
-			Commands: commands,
+	return Helpers.JsonMarshal(
+		&DashboardUtilities.Introduction{
+			Client: &DashboardUtilities.CustomServiceClient{
+				Name:     app.name,
+				Status:   app.customService.GetStatus(),
+				Metrics:  app.customService.GetMetrics(),
+				Commands: commands,
+			},
+			ClientType: DashboardUtilities.CLIENT_CUSTOM_SERVICE,
 		},
-		ClientType: DashboardUtilities.CLIENT_CUSTOM_SERVICE,
-	}), nil
+	), nil
 }
 
 func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
