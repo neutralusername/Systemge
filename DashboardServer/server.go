@@ -314,38 +314,39 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 	if err != nil {
 		return err
 	}
-	client, err := DashboardHelpers.UnmarshalCustomClient(response.GetPayload())
+	client, err := DashboardHelpers.UnmarshalIntroduction([]byte(response.GetPayload()))
 	if err != nil {
 		return err
 	}
-	client.Connection = connection
+	connectedClient := &connectedClient{
+		connection: connection,
+		client:     client,
+	}
 
 	app.mutex.Lock()
-	app.registerModuleHttpHandlers(client)
-	app.connectedClients[client.Name] = client
-	if client.Metrics == nil {
-		client.Metrics = map[string]uint64{}
-	}
+	app.registerModuleHttpHandlers(connectedClient)
+	app.connectedClients[connection.GetName()] = connectedClient
 	app.mutex.Unlock()
+
 	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
 }
 
 func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
-	if client, ok := app.connectedClients[connection.GetName()]; ok {
+	if _, ok := app.connectedClients[connection.GetName()]; ok {
 		delete(app.connectedClients, connection.GetName())
-		app.unregisterModuleHttpHandlers(client.Name)
+		app.unregisterModuleHttpHandlers(connection.GetName())
 	}
 	app.mutex.Unlock()
 	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
 
-func (app *Server) registerModuleHttpHandlers(client *DashboardHelpers.Introduction) {
-	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
+func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
+	app.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
-	app.httpServer.AddRoute("/"+client.Name+"/command", func(w http.ResponseWriter, r *http.Request) {
+	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
 		if err != nil {
@@ -357,21 +358,21 @@ func (app *Server) registerModuleHttpHandlers(client *DashboardHelpers.Introduct
 			http.Error(w, "No command", http.StatusBadRequest)
 			return
 		}
-		result, err := client.ExecuteCommand(args[0], args[1:])
+		result, err := connectedClient.ExecuteCommand(args[0], args[1:])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.Write([]byte(result))
 	})
-	app.httpServer.AddRoute("/"+client.Name+"/command/", func(w http.ResponseWriter, r *http.Request) {
-		args := r.URL.Path[len("/"+client.Name+"/command/"):]
+	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/", func(w http.ResponseWriter, r *http.Request) {
+		args := r.URL.Path[len("/"+connectedClient.connection.GetName()+"/command/"):]
 		argsSplit := strings.Split(args, " ")
 		if len(argsSplit) == 0 {
 			http.Error(w, "No command", http.StatusBadRequest)
 			return
 		}
-		result, err := client.ExecuteCommand(argsSplit[0], argsSplit[1:])
+		result, err := connectedClient.ExecuteCommand(argsSplit[0], argsSplit[1:])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

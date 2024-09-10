@@ -56,11 +56,20 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		if commandClient.Commands == nil {
+			commandClient.Commands = []string{}
+		}
 		return commandClient, nil
 	case CLIENT_CUSTOM_SERVICE:
 		customServiceClient, err := UnmarshalCustomClient(client.ClientStruct.([]byte))
 		if err != nil {
 			return nil, err
+		}
+		if customServiceClient.Commands == nil {
+			customServiceClient.Commands = []string{}
+		}
+		if customServiceClient.Metrics == nil {
+			customServiceClient.Metrics = make(map[string]uint64)
 		}
 		return customServiceClient, nil
 	default:
