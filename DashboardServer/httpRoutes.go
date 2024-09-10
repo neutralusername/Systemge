@@ -11,6 +11,9 @@ func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) 
 	app.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
+
+	// todo keep track on which url the client is right now and only propagate required data
+
 	// create a route for each command to avoid command requests for non-existing commands
 	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
