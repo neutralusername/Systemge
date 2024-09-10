@@ -42,6 +42,8 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
+	websocketClientLocations map[string]string
+
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger

@@ -14,7 +14,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-type Client struct {
+type CustomClient struct {
 	name               string
 	config             *Config.DashboardClient
 	systemgeConnection SystemgeConnection.SystemgeConnection
@@ -29,7 +29,7 @@ type Client struct {
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getMetricsFunc func() map[string]uint64, getStatusFunc func() int, commands Commands.Handlers) *Client {
+func New(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]uint64, commands Commands.Handlers) *CustomClient {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -42,7 +42,7 @@ func New(name string, config *Config.DashboardClient, startFunc func() error, st
 	if config.ClientConfig == nil {
 		panic("config.EndpointConfig is nil")
 	}
-	app := &Client{
+	app := &CustomClient{
 		name:           name,
 		config:         config,
 		startFunc:      startFunc,
@@ -54,7 +54,7 @@ func New(name string, config *Config.DashboardClient, startFunc func() error, st
 	return app
 }
 
-func (app *Client) Start() error {
+func (app *CustomClient) Start() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 	if app.status == Status.STARTED {
@@ -80,7 +80,7 @@ func (app *Client) Start() error {
 	return nil
 }
 
-func (app *Client) Stop() error {
+func (app *CustomClient) Stop() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 	if app.status == Status.STOPPED {
@@ -93,7 +93,7 @@ func (app *Client) Stop() error {
 	return nil
 }
 
-func (app *Client) getIntroductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) getIntroductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	commands := make(map[string]bool)
 	for command := range app.commands {
 		commands[command] = true
@@ -118,14 +118,14 @@ func (app *Client) getIntroductionHandler(connection SystemgeConnection.Systemge
 	}), nil
 }
 
-func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.getStatusFunc == nil {
 		return "", Error.New("No status available", nil)
 	}
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.getMetricsFunc == nil {
 		return "", Error.New("No metrics available", nil)
 	}
@@ -136,7 +136,7 @@ func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConne
 	return Helpers.JsonMarshal(metrics), nil
 }
 
-func (app *Client) startHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) startHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.startFunc == nil {
 		return "", Error.New("No start function available", nil)
 	}
@@ -147,7 +147,7 @@ func (app *Client) startHandler(connection SystemgeConnection.SystemgeConnection
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *Client) stopHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) stopHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.stopFunc == nil {
 		return "", Error.New("No stop function available", nil)
 	}
@@ -158,7 +158,7 @@ func (app *Client) stopHandler(connection SystemgeConnection.SystemgeConnection,
 	return Helpers.IntToString(app.getStatusFunc()), nil
 }
 
-func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	if app.commands == nil {
 		return "", nil
 	}

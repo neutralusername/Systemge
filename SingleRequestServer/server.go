@@ -6,7 +6,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardClientCustom"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -20,7 +19,6 @@ type Server struct {
 	commandHandlers Commands.Handlers
 	messageHandler  SystemgeConnection.MessageHandler
 	systemgeServer  *SystemgeServer.SystemgeServer
-	dashboardClient *DashboardClientCustom.Client
 
 	// metrics
 	invalidMessages atomic.Uint64
@@ -55,17 +53,6 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 		messageHandler:  messageHandler,
 	}
 	server.systemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, server.onConnect, nil)
-	if config.DashboardClientConfig != nil {
-		defaultCommands := server.GetDefaultCommands()
-		for key, value := range commands {
-			defaultCommands[key] = value
-		}
-		server.dashboardClient = DashboardClientCustom.New(name+"_dashboardClient", config.DashboardClientConfig, server.Start, server.Stop, server.RetrieveMetrics, server.GetStatus, defaultCommands)
-		err := server.StartDashboard()
-		if err != nil {
-			panic(Error.New("Failed to start dashboard client", err))
-		}
-	}
 	return server
 }
 
@@ -160,20 +147,6 @@ func (server *Server) Start() error {
 
 func (server *Server) Stop() error {
 	return server.systemgeServer.Stop()
-}
-
-func (server *Server) StartDashboard() error {
-	if server.dashboardClient == nil {
-		return Error.New("No dashboard client available", nil)
-	}
-	return server.dashboardClient.Start()
-}
-
-func (server *Server) StopDashboard() error {
-	if server.dashboardClient == nil {
-		return Error.New("No dashboard client available", nil)
-	}
-	return server.dashboardClient.Stop()
 }
 
 func (server *Server) GetStatus() int {
