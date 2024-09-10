@@ -38,6 +38,9 @@ func (map1 Handlers) GetKeys() []string {
 }
 
 func (handlers *Handlers) Execute(key string, args []string) (string, error) {
+	if handlers == nil {
+		return "", Error.New("Handlers is nil", nil)
+	}
 	handler, ok := (*handlers)[key]
 	if !ok {
 		return "", Error.New("Command not found", nil)

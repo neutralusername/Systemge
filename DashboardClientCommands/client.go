@@ -95,9 +95,6 @@ func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeCon
 }
 
 func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	if app.commands == nil {
-		return "", nil
-	}
 	command, err := DashboardUtilities.UnmarshalCommand(message.GetPayload())
 	if err != nil {
 		return "", err
