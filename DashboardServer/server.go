@@ -94,7 +94,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
-		clients: make(map[string]*DashboardUtilities.Client),
+		clients: make(map[string]DashboardUtilities.Client),
 
 		frontendPath: frontendPath,
 	}
