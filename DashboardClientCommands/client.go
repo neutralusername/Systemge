@@ -44,15 +44,6 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 		config:   config,
 		commands: commands,
 	}
-	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler( // currently every instance of a dashboard client will be a memory leak because this is never closed
-		nil,
-		SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
-			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
-		},
-		nil, nil,
-		100,
-	)
 	return app
 }
 
@@ -67,6 +58,15 @@ func (app *Client) Start() error {
 		return Error.New("Failed to establish connection", err)
 	}
 	app.systemgeConnection = connection
+	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+		nil,
+		SystemgeConnection.SyncMessageHandlers{
+			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
+			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
+		},
+		nil, nil,
+		100,
+	)
 	app.systemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
 	app.status = Status.STARTED
 	return nil
@@ -79,6 +79,8 @@ func (app *Client) Stop() error {
 		return Error.New("Already stopped", nil)
 	}
 	app.systemgeConnection.StopProcessingLoop()
+	app.messageHandler.Close()
+	app.messageHandler = nil
 	app.systemgeConnection.Close()
 	app.systemgeConnection = nil
 	app.status = Status.STOPPED
