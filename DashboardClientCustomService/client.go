@@ -22,6 +22,8 @@ type Client struct {
 	customService CustomService
 	commands      Commands.Handlers
 
+	messageHandler *SystemgeConnection.TopicExclusiveMessageHandler
+
 	status int
 	mutex  sync.Mutex
 }
@@ -55,6 +57,19 @@ func New(name string, config *Config.DashboardClient, customService CustomServic
 		customService: customService,
 		commands:      commands,
 	}
+	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+		nil,
+		SystemgeConnection.SyncMessageHandlers{
+			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
+			Message.TOPIC_GET_STATUS:      app.getStatusHandler,
+			Message.TOPIC_GET_METRICS:     app.getMetricsHandler,
+			Message.TOPIC_START:           app.startHandler,
+			Message.TOPIC_STOP:            app.stopHandler,
+			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
+		},
+		nil, nil,
+		100,
+	)
 	return app
 }
 
@@ -69,21 +84,7 @@ func (app *Client) Start() error {
 		return Error.New("Failed to establish connection", err)
 	}
 	app.systemgeConnection = connection
-	app.systemgeConnection.StartProcessingLoopSequentially(
-		SystemgeConnection.NewTopicExclusiveMessageHandler(
-			nil,
-			SystemgeConnection.SyncMessageHandlers{
-				Message.TOPIC_INTRODUCTION:    app.introductionHandler,
-				Message.TOPIC_GET_STATUS:      app.getStatusHandler,
-				Message.TOPIC_GET_METRICS:     app.getMetricsHandler,
-				Message.TOPIC_START:           app.startHandler,
-				Message.TOPIC_STOP:            app.stopHandler,
-				Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
-			},
-			nil, nil,
-			100,
-		),
-	)
+	app.systemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
 
 	app.status = Status.STARTED
 	return nil
