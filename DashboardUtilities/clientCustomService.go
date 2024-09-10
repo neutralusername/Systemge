@@ -36,7 +36,9 @@ func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 	return &client, nil
 }
 
-/* func (client *Client) ExecuteCommand(command string, args []string) (string, error) {
+/* server code
+
+func (client *Client) ExecuteCommand(command string, args []string) (string, error) {
 	if !client.Commands[command] {
 		return "", Error.New("Command \""+command+"\" not found", nil)
 	}

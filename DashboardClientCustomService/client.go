@@ -85,7 +85,6 @@ func (app *Client) Start() error {
 	}
 	app.systemgeConnection = connection
 	app.systemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
-
 	app.status = Status.STARTED
 	return nil
 }
