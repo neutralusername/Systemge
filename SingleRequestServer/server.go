@@ -6,7 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
+	"github.com/neutralusername/Systemge/DashboardClientCustom"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -20,7 +20,7 @@ type Server struct {
 	commandHandlers Commands.Handlers
 	messageHandler  SystemgeConnection.MessageHandler
 	systemgeServer  *SystemgeServer.SystemgeServer
-	dashboardClient *Dashboard.Client
+	dashboardClient *DashboardClientCustom.Client
 
 	// metrics
 	invalidMessages atomic.Uint64
@@ -60,7 +60,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 		for key, value := range commands {
 			defaultCommands[key] = value
 		}
-		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient", config.DashboardClientConfig, server.Start, server.Stop, server.RetrieveMetrics, server.GetStatus, defaultCommands)
+		server.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient", config.DashboardClientConfig, server.Start, server.Stop, server.RetrieveMetrics, server.GetStatus, defaultCommands)
 		err := server.StartDashboard()
 		if err != nil {
 			panic(Error.New("Failed to start dashboard client", err))

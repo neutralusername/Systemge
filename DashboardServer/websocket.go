@@ -1,8 +1,9 @@
-package Dashboard
+package DashboardServer
 
 import (
 	"runtime"
 
+	"github.com/neutralusername/Systemge/DashboardUtilities"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -19,7 +20,7 @@ func (app *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient
 	if !client.HasStartFunc {
 		return Error.New("Client has no start function", nil)
 	}
-	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_START, "")
+	response, err := client.Connection.SyncRequestBlocking(Message.TOPIC_START, "")
 	if err != nil {
 		return Error.New("Failed to send start request to client \""+client.Name+"\": "+err.Error(), nil)
 	}
@@ -41,7 +42,7 @@ func (app *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient,
 	if !client.HasStopFunc {
 		return Error.New("Client has no stop function", nil)
 	}
-	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
+	response, err := client.Connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
 	if err != nil {
 		return Error.New("Failed to send stop request to client \""+client.Name+"\": "+err.Error(), nil)
 	}
@@ -59,7 +60,7 @@ func (app *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, m
 }
 
 func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	command, err := unmarshalCommand(message.GetPayload())
+	command, err := DashboardUtilities.UnmarshalCommand(message.GetPayload())
 	if err != nil {
 		return err
 	}
@@ -78,7 +79,7 @@ func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClie
 		if client == nil {
 			return Error.New("Client not found", nil)
 		}
-		result, err := client.executeCommand(command.Command, command.Args)
+		result, err := client.ExecuteCommand(command.Command, command.Args)
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}

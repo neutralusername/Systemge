@@ -1,4 +1,4 @@
-package Dashboard
+package DashboardUtilities
 
 import "encoding/json"
 
@@ -8,7 +8,7 @@ type Command struct {
 	Args    []string `json:"args"`
 }
 
-func unmarshalCommand(data string) (*Command, error) {
+func UnmarshalCommand(data string) (*Command, error) {
 	var r Command
 	err := json.Unmarshal([]byte(data), &r)
 	return &r, err

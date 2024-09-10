@@ -1,10 +1,11 @@
-package Dashboard
+package DashboardClientCustom
 
 import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/DashboardUtilities"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -105,7 +106,7 @@ func (app *Client) getIntroductionHandler(connection SystemgeConnection.Systemge
 	if app.getMetricsFunc != nil {
 		metrics = app.getMetricsFunc()
 	}
-	return Helpers.JsonMarshal(&client{
+	return Helpers.JsonMarshal(&DashboardUtilities.Client{
 		Name:           app.name,
 		Status:         status,
 		Metrics:        metrics,
@@ -128,7 +129,7 @@ func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConne
 	if app.getMetricsFunc == nil {
 		return "", Error.New("No metrics available", nil)
 	}
-	metrics := metrics{
+	metrics := DashboardUtilities.Metrics{
 		Metrics: app.getMetricsFunc(),
 		Name:    app.name,
 	}
@@ -161,7 +162,7 @@ func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeC
 	if app.commands == nil {
 		return "", nil
 	}
-	command, err := unmarshalCommand(message.GetPayload())
+	command, err := DashboardUtilities.UnmarshalCommand(message.GetPayload())
 	if err != nil {
 		return "", err
 	}

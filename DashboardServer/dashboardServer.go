@@ -1,4 +1,4 @@
-package Dashboard
+package DashboardServer
 
 import (
 	"net/http"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/DashboardUtilities"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
@@ -27,7 +28,7 @@ type Server struct {
 
 	mutex sync.RWMutex
 
-	clients map[string]*client
+	clients map[string]*DashboardUtilities.Client
 
 	frontendPath string
 
@@ -91,7 +92,7 @@ func NewServer(name string, config *Config.DashboardServer, whitelist *Tools.Acc
 		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
-		clients: make(map[string]*client),
+		clients: make(map[string]*DashboardUtilities.Client),
 
 		frontendPath: frontendPath,
 	}
@@ -286,11 +287,11 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 	if err != nil {
 		return err
 	}
-	client, err := unmarshalClient(response.GetPayload())
+	client, err := DashboardUtilities.UnmarshalClient(response.GetPayload())
 	if err != nil {
 		return err
 	}
-	client.connection = connection
+	client.Connection = connection
 
 	app.mutex.Lock()
 	app.registerModuleHttpHandlers(client)
@@ -313,7 +314,7 @@ func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.Sys
 	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
 
-func (app *Server) registerModuleHttpHandlers(client *client) {
+func (app *Server) registerModuleHttpHandlers(client *DashboardUtilities.Client) {
 	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
@@ -329,7 +330,7 @@ func (app *Server) registerModuleHttpHandlers(client *client) {
 			http.Error(w, "No command", http.StatusBadRequest)
 			return
 		}
-		result, err := client.executeCommand(args[0], args[1:])
+		result, err := client.ExecuteCommand(args[0], args[1:])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -343,7 +344,7 @@ func (app *Server) registerModuleHttpHandlers(client *client) {
 			http.Error(w, "No command", http.StatusBadRequest)
 			return
 		}
-		result, err := client.executeCommand(argsSplit[0], argsSplit[1:])
+		result, err := client.ExecuteCommand(argsSplit[0], argsSplit[1:])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -358,7 +359,7 @@ func (app *Server) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName + "/command")
 }
 
-func (app *Server) dashboardCommandHandler(command *Command) (string, error) {
+func (app *Server) dashboardCommandHandler(command *DashboardUtilities.Command) (string, error) {
 	commandHandler, _ := app.commandHandlers.Get(command.Command)
 	if commandHandler == nil {
 		return "", Error.New("Command not found", nil)

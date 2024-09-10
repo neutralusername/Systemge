@@ -1,4 +1,4 @@
-package Dashboard
+package DashboardUtilities
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-type client struct {
+type Client struct {
 	Name           string            `json:"name"`
 	Status         int               `json:"status"`
 	Commands       map[string]bool   `json:"commands"`
@@ -19,11 +19,12 @@ type client struct {
 	HasStopFunc    bool              `json:"hasStopFunc"`
 	HasMetricsFunc bool              `json:"hasMetricsFunc"`
 
-	connection SystemgeConnection.SystemgeConnection
+	Connection           SystemgeConnection.SystemgeConnection
+	visitingWebsocketIds map[string]bool
 }
 
-func unmarshalClient(data string) (*client, error) {
-	var client client
+func UnmarshalClient(data string) (*Client, error) {
+	var client Client
 	err := json.Unmarshal([]byte(data), &client)
 	if err != nil {
 		return nil, err
@@ -31,11 +32,11 @@ func unmarshalClient(data string) (*client, error) {
 	return &client, nil
 }
 
-func (client *client) executeCommand(command string, args []string) (string, error) {
+func (client *Client) ExecuteCommand(command string, args []string) (string, error) {
 	if !client.Commands[command] {
 		return "", Error.New("Command \""+command+"\" not found", nil)
 	}
-	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
+	response, err := client.Connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
 		Command: command,
 		Args:    args,
 	}))

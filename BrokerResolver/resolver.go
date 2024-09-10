@@ -7,7 +7,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
+	"github.com/neutralusername/Systemge/DashboardClientCustom"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -24,7 +24,7 @@ type Resolver struct {
 
 	systemgeServer *SystemgeServer.SystemgeServer
 
-	dashboardClient *Dashboard.Client
+	dashboardClient *DashboardClientCustom.Client
 
 	asyncTopicEndpoints map[string]*Config.TcpClient
 	syncTopicEndpoints  map[string]*Config.TcpClient
@@ -109,7 +109,7 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 	)
 
 	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
+		resolver.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient",
 			config.DashboardClientConfig,
 			resolver.systemgeServer.Start, resolver.systemgeServer.Stop,
 			resolver.GetMetrics, resolver.systemgeServer.GetStatus,

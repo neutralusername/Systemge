@@ -7,7 +7,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
+	"github.com/neutralusername/Systemge/DashboardClientCustom"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -28,7 +28,7 @@ type Server struct {
 	mailer        *Tools.Mailer
 
 	messageHandler  SystemgeConnection.MessageHandler
-	dashboardClient *Dashboard.Client
+	dashboardClient *DashboardClientCustom.Client
 
 	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 	connectionsSyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
@@ -94,7 +94,7 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 	)
 
 	if server.config.DashboardClientConfig != nil {
-		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
+		server.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient",
 			server.config.DashboardClientConfig,
 			server.systemgeServer.Start, server.systemgeServer.Stop,
 			server.RetrieveMetrics, server.systemgeServer.GetStatus,

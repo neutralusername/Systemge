@@ -7,7 +7,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
+	"github.com/neutralusername/Systemge/DashboardClientCustom"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
@@ -34,7 +34,7 @@ type Client struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	dashboardClient *Dashboard.Client
+	dashboardClient *DashboardClientCustom.Client
 
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
@@ -114,7 +114,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 			// may override the default commands
 			defaultCommands[key] = value
 		}
-		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
+		messageBrokerClient.dashboardClient = DashboardClientCustom.NewClient(name+"_dashboardClient",
 			config.DashboardClientConfig,
 			messageBrokerClient.Start, messageBrokerClient.Stop,
 			messageBrokerClient.RetrieveMetrics, messageBrokerClient.GetStatus,

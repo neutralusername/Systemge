@@ -1,4 +1,4 @@
-package Dashboard
+package DashboardServer
 
 type statusUpdate struct {
 	Name   string `json:"name"`

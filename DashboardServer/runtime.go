@@ -1,4 +1,4 @@
-package Dashboard
+package DashboardServer
 
 import "github.com/neutralusername/Systemge/Error"
 
@@ -9,6 +9,6 @@ func (app *Server) DisconnectClient(name string) error {
 	if !ok {
 		return Error.New("Client not found", nil)
 	}
-	client.connection.Close()
+	client.Connection.Close()
 	return nil
 }
