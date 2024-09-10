@@ -102,17 +102,15 @@ func (app *Client) Stop() error {
 }
 
 func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return Helpers.JsonMarshal(
-		DashboardUtilities.NewIntroduction(
-			DashboardUtilities.MarshalCustomClient(
-				app.name,
-				app.commands.GetKeys(),
-				app.customService.GetStatus(),
-				app.customService.GetMetrics(),
-			),
-			DashboardUtilities.CLIENT_CUSTOM_SERVICE,
+	return string(DashboardUtilities.NewIntroduction(
+		DashboardUtilities.MarshalCustomClient(
+			app.name,
+			app.commands.GetKeys(),
+			app.customService.GetStatus(),
+			app.customService.GetMetrics(),
 		),
-	), nil
+		DashboardUtilities.CLIENT_CUSTOM_SERVICE,
+	).Marshal()), nil
 }
 
 func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

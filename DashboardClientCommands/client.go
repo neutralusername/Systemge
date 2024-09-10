@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardUtilities"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -86,15 +85,13 @@ func (app *CustomClient) Stop() error {
 }
 
 func (app *CustomClient) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return Helpers.JsonMarshal(
-		DashboardUtilities.NewIntroduction(
-			DashboardUtilities.MarshalCommandClient(
-				app.name,
-				app.commands.GetKeys(),
-			),
-			DashboardUtilities.CLIENT_COMMAND,
+	return string(DashboardUtilities.NewIntroduction(
+		DashboardUtilities.MarshalCommandClient(
+			app.name,
+			app.commands.GetKeys(),
 		),
-	), nil
+		DashboardUtilities.CLIENT_COMMAND,
+	).Marshal()), nil
 }
 
 func (app *CustomClient) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

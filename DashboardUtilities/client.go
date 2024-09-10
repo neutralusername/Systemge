@@ -11,11 +11,19 @@ const (
 	CLIENT_CUSTOM_SERVICE
 )
 
-func NewIntroduction(clientJson []byte, clientType int) Introduction {
-	return Introduction{
+func NewIntroduction(clientJson []byte, clientType int) *Introduction {
+	return &Introduction{
 		ClientJson: clientJson,
 		ClientType: clientType,
 	}
+}
+
+func (introduction *Introduction) Marshal() []byte {
+	bytes, err := json.Marshal(introduction)
+	if err != nil {
+		panic(err)
+	}
+	return bytes
 }
 
 type Introduction struct {
