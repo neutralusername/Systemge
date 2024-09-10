@@ -20,7 +20,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-type client struct {
+type connectedClinet struct {
 	connection SystemgeConnection.SystemgeConnection
 	client     DashboardUtilities.Client
 }
@@ -33,7 +33,7 @@ type Server struct {
 
 	mutex sync.RWMutex
 
-	clients map[string]*client
+	clients map[string]*connectedClinet
 
 	frontendPath string
 
@@ -99,7 +99,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
-		clients: make(map[string]*client),
+		clients: make(map[string]*connectedClinet),
 
 		frontendPath: frontendPath,
 	}
