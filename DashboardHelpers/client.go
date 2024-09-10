@@ -1,4 +1,4 @@
-package DashboardUtilities
+package DashboardHelpers
 
 import "encoding/json"
 

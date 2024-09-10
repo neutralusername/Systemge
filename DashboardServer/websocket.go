@@ -3,7 +3,7 @@ package DashboardServer
 import (
 	"runtime"
 
-	"github.com/neutralusername/Systemge/DashboardUtilities"
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -28,7 +28,7 @@ func (app *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient
 		return Error.New(response.GetPayload(), nil)
 	}
 	client.Status = Helpers.StringToInt(response.GetPayload())
-	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardUtilities.StatusUpdate{Name: client.Name, Status: client.Status})))
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardHelpers.StatusUpdate{Name: client.Name, Status: client.Status})))
 	return nil
 }
 
@@ -50,7 +50,7 @@ func (app *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient,
 		return Error.New(response.GetPayload(), nil)
 	}
 	client.Status = Helpers.StringToInt(response.GetPayload())
-	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardUtilities.StatusUpdate{Name: client.Name, Status: client.Status})))
+	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(DashboardHelpers.StatusUpdate{Name: client.Name, Status: client.Status})))
 	return nil
 }
 
@@ -60,7 +60,7 @@ func (app *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, m
 }
 
 func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	command, err := DashboardUtilities.UnmarshalCommand(message.GetPayload())
+	command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 	if err != nil {
 		return err
 	}

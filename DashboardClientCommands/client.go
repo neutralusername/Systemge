@@ -5,7 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardUtilities"
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -86,17 +86,17 @@ func (app *Client) Stop() error {
 }
 
 func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return string(DashboardUtilities.NewClient(
-		DashboardUtilities.NewCommandClient(
+	return string(DashboardHelpers.NewClient(
+		DashboardHelpers.NewCommandClient(
 			app.name,
 			app.commands.GetKeys(),
 		),
-		DashboardUtilities.CLIENT_COMMAND,
+		DashboardHelpers.CLIENT_COMMAND,
 	).Marshal()), nil
 }
 
 func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	command, err := DashboardUtilities.UnmarshalCommand(message.GetPayload())
+	command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 	if err != nil {
 		return "", err
 	}

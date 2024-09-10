@@ -8,7 +8,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardUtilities"
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
@@ -42,7 +42,7 @@ func (client *Client) ExecuteCommand(command string, args []string) (string, err
 
 type connectedClient struct {
 	connection SystemgeConnection.SystemgeConnection
-	client     DashboardUtilities.Client
+	client     DashboardHelpers.Client
 }
 
 type Server struct {
@@ -314,7 +314,7 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 	if err != nil {
 		return err
 	}
-	client, err := DashboardUtilities.UnmarshalCustomClient(response.GetPayload())
+	client, err := DashboardHelpers.UnmarshalCustomClient(response.GetPayload())
 	if err != nil {
 		return err
 	}
@@ -341,7 +341,7 @@ func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.Sys
 	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
 
-func (app *Server) registerModuleHttpHandlers(client *DashboardUtilities.Client) {
+func (app *Server) registerModuleHttpHandlers(client *DashboardHelpers.Client) {
 	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
@@ -386,7 +386,7 @@ func (app *Server) unregisterModuleHttpHandlers(clientName string) {
 	app.httpServer.RemoveRoute("/" + clientName + "/command")
 }
 
-func (app *Server) dashboardCommandHandler(command *DashboardUtilities.Command) (string, error) {
+func (app *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
 	commandHandler, _ := app.commandHandlers.Get(command.Command)
 	if commandHandler == nil {
 		return "", Error.New("Command not found", nil)
