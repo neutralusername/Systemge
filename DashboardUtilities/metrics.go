@@ -12,3 +12,11 @@ func UnmarshalMetrics(data string) (Metrics, error) {
 	err := json.Unmarshal([]byte(data), &m)
 	return m, err
 }
+
+func (m Metrics) Marshal() string {
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return string(bytes)
+}
