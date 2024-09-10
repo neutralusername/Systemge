@@ -11,6 +11,10 @@ type CustomServiceClient struct {
 	Metrics  map[string]uint64 `json:"metrics"`
 }
 
+func (client *CustomServiceClient) GetClientType() int {
+	return CLIENT_CUSTOM_SERVICE
+}
+
 func UnmarshalCustomClient(data string) (*CustomServiceClient, error) {
 	var client CustomServiceClient
 	err := json.Unmarshal([]byte(data), &client)

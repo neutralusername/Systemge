@@ -28,7 +28,7 @@ type Server struct {
 
 	mutex sync.RWMutex
 
-	clients map[string]*DashboardUtilities.Client
+	clients map[string]DashboardUtilities.Client
 
 	frontendPath string
 
