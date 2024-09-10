@@ -86,14 +86,10 @@ func (app *CustomClient) Stop() error {
 }
 
 func (app *CustomClient) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	commands := []string{}
-	for command := range app.commands {
-		commands = append(commands, command)
-	}
 	return Helpers.JsonMarshal(&DashboardUtilities.Introduction{
 		Client: &DashboardUtilities.CommandClient{
 			Name:     app.name,
-			Commands: commands,
+			Commands: app.commands.GetKeys(),
 		},
 		ClientType: DashboardUtilities.CLIENT_COMMAND,
 	}), nil

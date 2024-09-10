@@ -26,3 +26,11 @@ func (map1 Handlers) Get(key string) (Handler, bool) {
 	value, ok := map1[key]
 	return value, ok
 }
+
+func (map1 Handlers) GetKeys() []string {
+	keys := make([]string, 0, len(map1))
+	for key := range map1 {
+		keys = append(keys, key)
+	}
+	return keys
+}

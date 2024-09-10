@@ -102,17 +102,13 @@ func (app *Client) Stop() error {
 }
 
 func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	commands := []string{}
-	for command := range app.commands {
-		commands = append(commands, command)
-	}
 	return Helpers.JsonMarshal(
 		&DashboardUtilities.Introduction{
 			Client: &DashboardUtilities.CustomServiceClient{
 				Name:     app.name,
 				Status:   app.customService.GetStatus(),
 				Metrics:  app.customService.GetMetrics(),
-				Commands: commands,
+				Commands: app.commands.GetKeys(),
 			},
 			ClientType: DashboardUtilities.CLIENT_CUSTOM_SERVICE,
 		},
