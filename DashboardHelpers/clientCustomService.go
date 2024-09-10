@@ -6,12 +6,12 @@ import (
 
 type CustomServiceClient struct {
 	Name     string            `json:"name"`
-	Commands map[string]bool   `json:"commands"`
+	Commands []string          `json:"commands"`
 	Status   int               `json:"status"`
 	Metrics  map[string]uint64 `json:"metrics"`
 }
 
-func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics map[string]uint64) *CustomServiceClient {
+func NewCustomServiceClient(name string, commands []string, status int, metrics map[string]uint64) *CustomServiceClient {
 	return &CustomServiceClient{
 		Name:     name,
 		Commands: commands,

@@ -108,7 +108,7 @@ func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeCon
 	return string(DashboardHelpers.NewIntroduction(
 		DashboardHelpers.NewCustomServiceClient(
 			app.name,
-			app.commands.GetKeyBoolMap(),
+			app.commands.GetKeys(),
 			app.customService.GetStatus(),
 			app.systemgeConnection.GetMetrics(),
 		),
