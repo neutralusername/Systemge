@@ -118,10 +118,7 @@ func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnec
 }
 
 func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return DashboardUtilities.Metrics{
-		Metrics: app.customService.GetMetrics(),
-		Name:    app.name,
-	}.Marshal(), nil
+	return DashboardUtilities.NewMetrics(app.name, app.customService.GetMetrics()).Marshal(), nil
 }
 
 func (app *Client) startHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

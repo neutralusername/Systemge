@@ -7,6 +7,13 @@ type Metrics struct {
 	Name    string            `json:"name"`
 }
 
+func NewMetrics(name string, metrics map[string]uint64) Metrics {
+	return Metrics{
+		Name:    name,
+		Metrics: metrics,
+	}
+}
+
 func UnmarshalMetrics(data string) (Metrics, error) {
 	var m Metrics
 	err := json.Unmarshal([]byte(data), &m)
