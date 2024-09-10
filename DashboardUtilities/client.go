@@ -11,6 +11,11 @@ const (
 	CLIENT_CUSTOM_SERVICE
 )
 
+type Introduction struct {
+	ClientJson []byte `json:"clientJson"`
+	ClientType int    `json:"clientType"`
+}
+
 func NewIntroduction(clientJson []byte, clientType int) *Introduction {
 	return &Introduction{
 		ClientJson: clientJson,
@@ -24,11 +29,6 @@ func (introduction *Introduction) Marshal() []byte {
 		panic(err)
 	}
 	return bytes
-}
-
-type Introduction struct {
-	ClientJson []byte `json:"clientJson"`
-	ClientType int    `json:"clientType"`
 }
 
 func UnmarshalIntroduction(data []byte) (Client, error) {
