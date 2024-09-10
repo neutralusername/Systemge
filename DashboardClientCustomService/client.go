@@ -73,12 +73,12 @@ func (app *Client) Start() error {
 		SystemgeConnection.NewConcurrentMessageHandler(
 			nil,
 			SystemgeConnection.SyncMessageHandlers{
-				Message.TOPIC_GET_INTRODUCTION: app.getIntroductionHandler,
-				Message.TOPIC_GET_STATUS:       app.getStatusHandler,
-				Message.TOPIC_GET_METRICS:      app.getMetricsHandler,
-				Message.TOPIC_START:            app.startHandler,
-				Message.TOPIC_STOP:             app.stopHandler,
-				Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
+				Message.TOPIC_INTRODUCTION:    app.introductionHandler,
+				Message.TOPIC_GET_STATUS:      app.getStatusHandler,
+				Message.TOPIC_GET_METRICS:     app.getMetricsHandler,
+				Message.TOPIC_START:           app.startHandler,
+				Message.TOPIC_STOP:            app.stopHandler,
+				Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
 			},
 			nil, nil,
 		),
@@ -101,7 +101,7 @@ func (app *Client) Stop() error {
 	return nil
 }
 
-func (app *Client) getIntroductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	commands := []string{}
 	for command := range app.commands {
 		commands = append(commands, command)

@@ -59,8 +59,8 @@ func (app *CustomClient) Start() error {
 	app.systemgeConnection = connection
 	app.systemgeConnection.StartProcessingLoopSequentially(
 		SystemgeConnection.NewConcurrentMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_GET_INTRODUCTION: app.getIntroductionHandler,
-			Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
+			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
+			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
 		}, nil, nil),
 	)
 
@@ -81,7 +81,7 @@ func (app *CustomClient) Stop() error {
 	return nil
 }
 
-func (app *CustomClient) getIntroductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *CustomClient) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	commands := []string{}
 	for command := range app.commands {
 		commands = append(commands, command)

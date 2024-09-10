@@ -290,7 +290,7 @@ func (app *Server) Stop() error {
 }
 
 func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
-	response, err := connection.SyncRequestBlocking(Message.TOPIC_GET_INTRODUCTION, "")
+	response, err := connection.SyncRequestBlocking(Message.TOPIC_INTRODUCTION, "")
 	if err != nil {
 		return err
 	}
