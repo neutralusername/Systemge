@@ -37,6 +37,14 @@ func (map1 Handlers) GetKeys() []string {
 	return keys
 }
 
+func (map1 Handlers) GetKeyBoolMap() map[string]bool {
+	keyBoolMap := make(map[string]bool)
+	for key := range map1 {
+		keyBoolMap[key] = true
+	}
+	return keyBoolMap
+}
+
 func (handlers *Handlers) Execute(key string, args []string) (string, error) {
 	if handlers == nil {
 		return "", Error.New("Handlers is nil", nil)

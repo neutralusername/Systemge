@@ -91,7 +91,7 @@ func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeCon
 	return string(DashboardHelpers.NewIntroduction(
 		DashboardHelpers.NewCommandClient(
 			app.name,
-			app.commands.GetKeys(),
+			app.commands.GetKeyBoolMap(),
 		),
 		DashboardHelpers.CLIENT_COMMAND,
 	).Marshal()), nil

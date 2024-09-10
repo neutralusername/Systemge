@@ -5,11 +5,11 @@ import (
 )
 
 type CommandClient struct {
-	Name     string   `json:"name"`
-	Commands []string `json:"commands"`
+	Name     string          `json:"name"`
+	Commands map[string]bool `json:"commands"`
 }
 
-func NewCommandClient(name string, commands []string) *CommandClient {
+func NewCommandClient(name string, commands map[string]bool) *CommandClient {
 	return &CommandClient{
 		Name:     name,
 		Commands: commands,

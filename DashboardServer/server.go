@@ -20,25 +20,19 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-/* server code
-
-func (client *Client) ExecuteCommand(command string, args []string) (string, error) {
-	if !client.Commands[command] {
-		return "", Error.New("Command \""+command+"\" not found", nil)
-	}
-	response, err := client.Connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
+func (connectedClient *connectedClient) ExecuteCommand(command string, args []string) (string, error) {
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&DashboardHelpers.Command{
 		Command: command,
 		Args:    args,
 	}))
 	if err != nil {
-		return "", Error.New("Failed to send command \""+command+"\" to client \""+client.Name+"\"", err)
+		return "", Error.New("Failed to send command \""+command+"\" to client \""+connectedClient.connection.GetName()+"\"", err)
 	}
 	if response.GetTopic() == Message.TOPIC_FAILURE {
 		return "", Error.New(response.GetPayload(), nil)
 	}
 	return response.GetPayload(), nil
 }
-*/
 
 type connectedClient struct {
 	connection SystemgeConnection.SystemgeConnection
@@ -346,6 +340,7 @@ func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) 
 	app.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
+	// create a route for each command to avoid command requests for non-existing commands
 	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
@@ -365,6 +360,7 @@ func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) 
 		}
 		w.Write([]byte(result))
 	})
+	// create a route for each command to avoid command requests for non-existing commands
 	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/", func(w http.ResponseWriter, r *http.Request) {
 		args := r.URL.Path[len("/"+connectedClient.connection.GetName()+"/command/"):]
 		argsSplit := strings.Split(args, " ")
