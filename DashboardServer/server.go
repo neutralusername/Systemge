@@ -20,7 +20,27 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-type connectedClinet struct {
+/* server code
+
+func (client *Client) ExecuteCommand(command string, args []string) (string, error) {
+	if !client.Commands[command] {
+		return "", Error.New("Command \""+command+"\" not found", nil)
+	}
+	response, err := client.Connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
+		Command: command,
+		Args:    args,
+	}))
+	if err != nil {
+		return "", Error.New("Failed to send command \""+command+"\" to client \""+client.Name+"\"", err)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return "", Error.New(response.GetPayload(), nil)
+	}
+	return response.GetPayload(), nil
+}
+*/
+
+type connectedClient struct {
 	connection SystemgeConnection.SystemgeConnection
 	client     DashboardUtilities.Client
 }
@@ -33,7 +53,7 @@ type Server struct {
 
 	mutex sync.RWMutex
 
-	clients map[string]*connectedClinet
+	clients map[string]*connectedClient
 
 	frontendPath string
 
@@ -99,7 +119,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		name:    name,
 		mutex:   sync.RWMutex{},
 		config:  config,
-		clients: make(map[string]*connectedClinet),
+		clients: make(map[string]*connectedClient),
 
 		frontendPath: frontendPath,
 	}

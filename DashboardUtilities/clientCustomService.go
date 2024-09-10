@@ -35,23 +35,3 @@ func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 	}
 	return &client, nil
 }
-
-/* server code
-
-func (client *Client) ExecuteCommand(command string, args []string) (string, error) {
-	if !client.Commands[command] {
-		return "", Error.New("Command \""+command+"\" not found", nil)
-	}
-	response, err := client.Connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&Command{
-		Command: command,
-		Args:    args,
-	}))
-	if err != nil {
-		return "", Error.New("Failed to send command \""+command+"\" to client \""+client.Name+"\"", err)
-	}
-	if response.GetTopic() == Message.TOPIC_FAILURE {
-		return "", Error.New(response.GetPayload(), nil)
-	}
-	return response.GetPayload(), nil
-}
-*/
