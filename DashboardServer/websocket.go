@@ -103,3 +103,11 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 	websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
 	return nil
 }
+
+func (app *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
+	commandHandler, _ := app.commandHandlers.Get(command.Command)
+	if commandHandler == nil {
+		return "", Error.New("Command not found", nil)
+	}
+	return commandHandler(command.Args)
+}

@@ -1,43 +1,19 @@
 package DashboardServer
 
 import (
-	"net/http"
 	"runtime"
-	"strings"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
-
-func (connectedClient *connectedClient) ExecuteCommand(command string, args []string) (string, error) {
-	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_EXECUTE_COMMAND, Helpers.JsonMarshal(&DashboardHelpers.Command{
-		Command: command,
-		Args:    args,
-	}))
-	if err != nil {
-		return "", Error.New("Failed to send command \""+command+"\" to client \""+connectedClient.connection.GetName()+"\"", err)
-	}
-	if response.GetTopic() == Message.TOPIC_FAILURE {
-		return "", Error.New(response.GetPayload(), nil)
-	}
-	return response.GetPayload(), nil
-}
-
-type connectedClient struct {
-	connection SystemgeConnection.SystemgeConnection
-	client     interface{}
-}
 
 type Server struct {
 	name string
@@ -301,117 +277,4 @@ func (app *Server) Stop() error {
 
 	app.status = Status.STOPPED
 	return nil
-}
-
-func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
-	response, err := connection.SyncRequestBlocking(Message.TOPIC_INTRODUCTION, "")
-	if err != nil {
-		return err
-	}
-	client, err := DashboardHelpers.UnmarshalIntroduction([]byte(response.GetPayload()))
-	if err != nil {
-		return err
-	}
-	connectedClient := &connectedClient{
-		connection: connection,
-		client:     client,
-	}
-
-	app.mutex.Lock()
-	app.registerModuleHttpHandlers(connectedClient)
-	app.connectedClients[connection.GetName()] = connectedClient
-	app.mutex.Unlock()
-
-	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
-	return nil
-}
-
-func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
-	app.mutex.Lock()
-	if _, ok := app.connectedClients[connection.GetName()]; ok {
-		delete(app.connectedClients, connection.GetName())
-		app.unregisterModuleHttpHandlers(connection.GetName())
-	}
-	app.mutex.Unlock()
-	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
-}
-
-func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
-	app.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
-	})
-	// create a route for each command to avoid command requests for non-existing commands
-	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
-		body := make([]byte, r.ContentLength)
-		_, err := r.Body.Read(body)
-		if err != nil {
-			http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
-			return
-		}
-		args := strings.Split(string(body), " ")
-		if len(args) == 0 {
-			http.Error(w, "No command", http.StatusBadRequest)
-			return
-		}
-		result, err := connectedClient.ExecuteCommand(args[0], args[1:])
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write([]byte(result))
-	})
-	// create a route for each command to avoid command requests for non-existing commands
-	app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/", func(w http.ResponseWriter, r *http.Request) {
-		args := r.URL.Path[len("/"+connectedClient.connection.GetName()+"/command/"):]
-		argsSplit := strings.Split(args, " ")
-		if len(argsSplit) == 0 {
-			http.Error(w, "No command", http.StatusBadRequest)
-			return
-		}
-		result, err := connectedClient.ExecuteCommand(argsSplit[0], argsSplit[1:])
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write([]byte(result))
-	})
-}
-
-func (app *Server) unregisterModuleHttpHandlers(clientName string) {
-	app.httpServer.RemoveRoute("/" + clientName)
-	app.httpServer.RemoveRoute("/" + clientName + "/command/")
-	app.httpServer.RemoveRoute("/" + clientName + "/command")
-}
-
-func (app *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
-	commandHandler, _ := app.commandHandlers.Get(command.Command)
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	return commandHandler(command.Args)
-}
-
-func (server *Server) GetSystemgeMetrics() map[string]uint64 {
-	return server.systemgeServer.GetMetrics()
-}
-func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
-	return server.systemgeServer.RetrieveMetrics()
-}
-
-func (server *Server) GetWebsocketMetrics() map[string]uint64 {
-	return server.websocketServer.GetMetrics()
-}
-func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
-	return server.websocketServer.RetrieveMetrics()
-}
-
-func (server *Server) GetHttpMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"http_request_count": server.httpServer.GetHTTPRequestCounter(),
-	}
-}
-func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"http_request_count": server.httpServer.RetrieveHTTPRequestCounter(),
-	}
 }
