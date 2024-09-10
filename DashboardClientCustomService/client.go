@@ -106,7 +106,7 @@ func (app *Client) getIntroductionHandler(connection SystemgeConnection.Systemge
 	for command := range app.commands {
 		commands = append(commands, command)
 	}
-	return Helpers.JsonMarshal(&DashboardUtilities.CustomClient{
+	return Helpers.JsonMarshal(&DashboardUtilities.CustomServiceClient{
 		Name:     app.name,
 		Status:   app.customService.GetStatus(),
 		Metrics:  app.customService.GetMetrics(),

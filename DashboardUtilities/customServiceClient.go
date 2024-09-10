@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 )
 
-type CustomClient struct {
+type CustomServiceClient struct {
 	Name     string            `json:"name"`
 	Status   int               `json:"status"`
 	Commands []string          `json:"commands"`
 	Metrics  map[string]uint64 `json:"metrics"`
 }
 
-func UnmarshalCustomClient(data string) (*CustomClient, error) {
-	var client CustomClient
+func UnmarshalCustomClient(data string) (*CustomServiceClient, error) {
+	var client CustomServiceClient
 	err := json.Unmarshal([]byte(data), &client)
 	if err != nil {
 		return nil, err
