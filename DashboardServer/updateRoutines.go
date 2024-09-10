@@ -17,9 +17,9 @@ func (app *Server) statusUpdateRoutine() {
 		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
 
 		app.mutex.RLock()
-		for _, client := range app.clients {
-			if DashboardHelpers.HasStatus(client.client.ClientType) {
-				go app.clientStatusUpdate(client)
+		for _, connectedClient := range app.connectedClients {
+			if DashboardHelpers.HasStatus(connectedClient.client) {
+				go app.clientStatusUpdate(connectedClient)
 			}
 		}
 		app.mutex.RUnlock()
@@ -32,9 +32,9 @@ func (app *Server) metricsUpdateRoutine() {
 		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
 
 		app.mutex.RLock()
-		for _, client := range app.clients {
-			if DashboardHelpers.HasMetrics(client.client.ClientType) {
-				go app.clientMetricsUpdate(client)
+		for _, connectedClient := range app.connectedClients {
+			if DashboardHelpers.HasMetrics(connectedClient.client) {
+				go app.clientMetricsUpdate(connectedClient)
 			}
 		}
 		if app.config.Metrics {
@@ -44,50 +44,56 @@ func (app *Server) metricsUpdateRoutine() {
 	}
 }
 
-func (app *Server) clientStatusUpdate(client *connectedClient) {
-	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_STATUS, "")
+func (app *Server) clientStatusUpdate(connectedClient *connectedClient) {
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_GET_STATUS, "")
 	if err != nil {
 		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to get status for client \"" + client.connection.GetName() + "\": " + err.Error())
+			app.errorLogger.Log("Failed to get status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
 	status, err := strconv.Atoi(response.GetPayload())
 	if err != nil {
 		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to parse status for client \"" + client.connection.GetName() + "\": " + err.Error())
+			app.errorLogger.Log("Failed to parse status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
-	client.client.Client.(*DashboardHelpers.CustomServiceClient).Status = status // generalize this
+	switch connectedClient.client.(type) {
+	case *DashboardHelpers.CustomServiceClient:
+		connectedClient.client.(*DashboardHelpers.CustomServiceClient).Status = status
+	}
 	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
 		DashboardHelpers.StatusUpdate{
-			Name:   client.connection.GetName(),
+			Name:   connectedClient.connection.GetName(),
 			Status: status,
 		},
 	)))
 }
 
-func (app *Server) clientMetricsUpdate(client *connectedClient) {
-	response, err := client.connection.SyncRequestBlocking(Message.TOPIC_GET_METRICS, "")
+func (app *Server) clientMetricsUpdate(connectedClient *connectedClient) {
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_GET_METRICS, "")
 	if err != nil {
 		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to get metrics for client \"" + client.connection.GetName() + "\": " + err.Error())
+			app.errorLogger.Log("Failed to get metrics for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
 	metrics, err := DashboardHelpers.UnmarshalMetrics(response.GetPayload())
 	if err != nil {
 		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to parse metrics for client \"" + client.connection.GetName() + "\": " + err.Error())
+			app.errorLogger.Log("Failed to parse metrics for client \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
 	if metrics.Metrics == nil {
 		metrics.Metrics = map[string]uint64{}
 	}
-	client.client.Client.(*DashboardHelpers.CustomServiceClient).Metrics = metrics.Metrics // generalize this
-	metrics.Name = client.connection.GetName()
+	switch connectedClient.client.(type) {
+	case *DashboardHelpers.CustomServiceClient:
+		connectedClient.client.(*DashboardHelpers.CustomServiceClient).Metrics = metrics.Metrics
+	}
+	metrics.Name = connectedClient.connection.GetName()
 	app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
 }
 

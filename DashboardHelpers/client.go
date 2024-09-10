@@ -2,9 +2,9 @@ package DashboardHelpers
 
 import "encoding/json"
 
-type Client struct {
-	Client     interface{} `json:"client"`
-	ClientType int         `json:"clientType"`
+type Introduction struct {
+	ClientStruct interface{} `json:"client"`
+	ClientType   int         `json:"clientType"`
 }
 
 const (
@@ -12,7 +12,25 @@ const (
 	CLIENT_CUSTOM_SERVICE
 )
 
-func NewClient(client interface{}, clientType int) *Client {
+func HasMetrics(client interface{}) bool {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return true
+	default:
+		return false
+	}
+}
+
+func HasStatus(client interface{}) bool {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return true
+	default:
+		return false
+	}
+}
+
+func NewIntroduction(client interface{}, clientType int) *Introduction {
 	switch clientType {
 	case CLIENT_COMMAND:
 		if _, ok := client.(*CommandClient); !ok {
@@ -25,20 +43,20 @@ func NewClient(client interface{}, clientType int) *Client {
 	default:
 		panic("Unknown client type")
 	}
-	return &Client{
-		Client:     client,
-		ClientType: clientType,
+	return &Introduction{
+		ClientStruct: client,
+		ClientType:   clientType,
 	}
 }
 
-func (client *Client) Marshal() []byte {
-	marshalClient := Client{}
-	marshalClient.ClientType = client.ClientType
-	switch client.ClientType {
+func (introduction *Introduction) Marshal() []byte {
+	marshalClient := Introduction{}
+	marshalClient.ClientType = introduction.ClientType
+	switch introduction.ClientType {
 	case CLIENT_COMMAND:
-		marshalClient.Client = client.Client.(*CommandClient).Marshal()
+		marshalClient.ClientStruct = introduction.ClientStruct.(*CommandClient).Marshal()
 	case CLIENT_CUSTOM_SERVICE:
-		marshalClient.Client = client.Client.(*CustomServiceClient).Marshal()
+		marshalClient.ClientStruct = introduction.ClientStruct.(*CustomServiceClient).Marshal()
 	default:
 		panic("Unknown client type")
 	}
@@ -49,25 +67,25 @@ func (client *Client) Marshal() []byte {
 	return bytes
 }
 
-func UnmarshalClient(data []byte) (*Client, error) {
-	var client Client
+func UnmarshalClient(data []byte) (*Introduction, error) {
+	var client Introduction
 	err := json.Unmarshal(data, &client)
 	if err != nil {
 		return nil, err
 	}
 	switch client.ClientType {
 	case CLIENT_COMMAND:
-		commandClient, err := UnmarshalCommandClient(client.Client.([]byte))
+		commandClient, err := UnmarshalCommandClient(client.ClientStruct.([]byte))
 		if err != nil {
 			return nil, err
 		}
-		return NewClient(commandClient, CLIENT_COMMAND), nil
+		return NewIntroduction(commandClient, CLIENT_COMMAND), nil
 	case CLIENT_CUSTOM_SERVICE:
-		customServiceClient, err := UnmarshalCustomClient(client.Client.([]byte))
+		customServiceClient, err := UnmarshalCustomClient(client.ClientStruct.([]byte))
 		if err != nil {
 			return nil, err
 		}
-		return NewClient(customServiceClient, CLIENT_CUSTOM_SERVICE), nil
+		return NewIntroduction(customServiceClient, CLIENT_CUSTOM_SERVICE), nil
 	default:
 		return nil, nil
 	}

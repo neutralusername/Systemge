@@ -88,7 +88,7 @@ func (app *Client) Stop() error {
 }
 
 func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return string(DashboardHelpers.NewClient(
+	return string(DashboardHelpers.NewIntroduction(
 		DashboardHelpers.NewCommandClient(
 			app.name,
 			app.commands.GetKeys(),

@@ -42,7 +42,7 @@ func (client *Client) ExecuteCommand(command string, args []string) (string, err
 
 type connectedClient struct {
 	connection SystemgeConnection.SystemgeConnection
-	client     DashboardHelpers.Client
+	client     interface{}
 }
 
 type Server struct {
@@ -53,7 +53,7 @@ type Server struct {
 
 	mutex sync.RWMutex
 
-	clients map[string]*connectedClient
+	connectedClients map[string]*connectedClient
 
 	frontendPath string
 
@@ -116,10 +116,10 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	)
 
 	app := &Server{
-		name:    name,
-		mutex:   sync.RWMutex{},
-		config:  config,
-		clients: make(map[string]*connectedClient),
+		name:             name,
+		mutex:            sync.RWMutex{},
+		config:           config,
+		connectedClients: make(map[string]*connectedClient),
 
 		frontendPath: frontendPath,
 	}
@@ -172,7 +172,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 					return "", Error.New("No client name", nil)
 				}
 				app.mutex.RLock()
-				client, ok := app.clients[args[0]]
+				client, ok := app.connectedClients[args[0]]
 				app.mutex.RUnlock()
 				if !ok {
 					return "", Error.New("Client not found", nil)
@@ -185,7 +185,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 					return "", Error.New("No client name", nil)
 				}
 				app.mutex.RLock()
-				client, ok := app.clients[args[0]]
+				client, ok := app.connectedClients[args[0]]
 				app.mutex.RUnlock()
 				if !ok {
 					return "", Error.New("Client not found", nil)
@@ -322,7 +322,7 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 
 	app.mutex.Lock()
 	app.registerModuleHttpHandlers(client)
-	app.clients[client.Name] = client
+	app.connectedClients[client.Name] = client
 	if client.Metrics == nil {
 		client.Metrics = map[string]uint64{}
 	}
@@ -333,15 +333,15 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 
 func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
-	if client, ok := app.clients[connection.GetName()]; ok {
-		delete(app.clients, connection.GetName())
+	if client, ok := app.connectedClients[connection.GetName()]; ok {
+		delete(app.connectedClients, connection.GetName())
 		app.unregisterModuleHttpHandlers(client.Name)
 	}
 	app.mutex.Unlock()
 	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
 
-func (app *Server) registerModuleHttpHandlers(client *DashboardHelpers.Client) {
+func (app *Server) registerModuleHttpHandlers(client *DashboardHelpers.Introduction) {
 	app.httpServer.AddRoute("/"+client.Name, func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/"+client.Name, http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
 	})
