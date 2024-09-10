@@ -13,9 +13,9 @@ func (client *CommandClient) GetClientType() int {
 	return CLIENT_COMMAND
 }
 
-func UnmarshalCommandClient(data string) (*CommandClient, error) {
+func UnmarshalCommandClient(bytes []byte) (*CommandClient, error) {
 	var client CommandClient
-	err := json.Unmarshal([]byte(data), &client)
+	err := json.Unmarshal(bytes, &client)
 	if err != nil {
 		return nil, err
 	}

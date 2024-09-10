@@ -15,9 +15,9 @@ func (client *CustomServiceClient) GetClientType() int {
 	return CLIENT_CUSTOM_SERVICE
 }
 
-func UnmarshalCustomClient(data string) (*CustomServiceClient, error) {
+func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 	var client CustomServiceClient
-	err := json.Unmarshal([]byte(data), &client)
+	err := json.Unmarshal(bytes, &client)
 	if err != nil {
 		return nil, err
 	}
