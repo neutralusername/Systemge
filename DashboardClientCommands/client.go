@@ -85,12 +85,12 @@ func (app *CustomClient) Stop() error {
 }
 
 func (app *CustomClient) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return string(DashboardUtilities.NewIntroduction(
-		DashboardUtilities.MarshalCommandClient(
+	return string(DashboardUtilities.NewClient(
+		DashboardUtilities.NewCommandClient(
 			app.name,
 			app.commands.GetKeys(),
 		),
-		DashboardUtilities.CLIENT_COMMAND,
+		DashboardUtilities.CLIENT_CUSTOM_SERVICE,
 	).Marshal()), nil
 }
 

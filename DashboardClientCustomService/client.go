@@ -102,12 +102,12 @@ func (app *Client) Stop() error {
 }
 
 func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return string(DashboardUtilities.NewIntroduction(
-		DashboardUtilities.MarshalCustomClient(
+	return string(DashboardUtilities.NewClient(
+		DashboardUtilities.NewCustomServiceClient(
 			app.name,
 			app.commands.GetKeys(),
 			app.customService.GetStatus(),
-			app.customService.GetMetrics(),
+			app.systemgeConnection.GetMetrics(),
 		),
 		DashboardUtilities.CLIENT_CUSTOM_SERVICE,
 	).Marshal()), nil

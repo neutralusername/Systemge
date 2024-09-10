@@ -9,15 +9,14 @@ type CommandClient struct {
 	Commands []string `json:"commands"`
 }
 
-func (client *CommandClient) GetClientType() int {
-	return CLIENT_COMMAND
-}
-
-func MarshalCommandClient(name string, commands []string) []byte {
-	client := CommandClient{
+func NewCommandClient(name string, commands []string) *CommandClient {
+	return &CommandClient{
 		Name:     name,
 		Commands: commands,
 	}
+}
+
+func (client *CommandClient) Marshal() []byte {
 	bytes, err := json.Marshal(client)
 	if err != nil {
 		panic(err)

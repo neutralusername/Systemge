@@ -6,22 +6,20 @@ import (
 
 type CustomServiceClient struct {
 	Name     string            `json:"name"`
-	Status   int               `json:"status"`
 	Commands []string          `json:"commands"`
+	Status   int               `json:"status"`
 	Metrics  map[string]uint64 `json:"metrics"`
 }
 
-func (client *CustomServiceClient) GetClientType() int {
-	return CLIENT_CUSTOM_SERVICE
-}
-
-func MarshalCustomClient(name string, commands []string, status int, metrics map[string]uint64) []byte {
-	client := CustomServiceClient{
+func NewCustomServiceClient(name string, commands []string, status int, metrics map[string]uint64) *CustomServiceClient {
+	return &CustomServiceClient{
 		Name:     name,
-		Status:   status,
 		Commands: commands,
+		Status:   status,
 		Metrics:  metrics,
 	}
+}
+func (client *CustomServiceClient) Marshal() []byte {
 	bytes, err := json.Marshal(client)
 	if err != nil {
 		panic(err)
