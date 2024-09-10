@@ -86,9 +86,12 @@ func (app *CustomClient) getIntroductionHandler(connection SystemgeConnection.Sy
 	for command := range app.commands {
 		commands = append(commands, command)
 	}
-	return Helpers.JsonMarshal(&DashboardUtilities.CommandClient{
-		Name:     app.name,
-		Commands: commands,
+	return Helpers.JsonMarshal(&DashboardUtilities.Introduction{
+		Client: &DashboardUtilities.CommandClient{
+			Name:     app.name,
+			Commands: commands,
+		},
+		ClientType: DashboardUtilities.CLIENT_COMMAND,
 	}), nil
 }
 
