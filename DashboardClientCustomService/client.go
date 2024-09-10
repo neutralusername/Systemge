@@ -145,9 +145,5 @@ func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeC
 	if err != nil {
 		return "", err
 	}
-	commandFunc, ok := app.commands[command.Command]
-	if !ok {
-		return "", Error.New("Command not found", nil)
-	}
-	return commandFunc(command.Args)
+	return app.commands.Execute(command.Command, command.Args)
 }

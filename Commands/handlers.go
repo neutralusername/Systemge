@@ -1,5 +1,7 @@
 package Commands
 
+import "github.com/neutralusername/Systemge/Error"
+
 type Handler func([]string) (string, error)
 type Handlers map[string]Handler
 
@@ -33,4 +35,12 @@ func (map1 Handlers) GetKeys() []string {
 		keys = append(keys, key)
 	}
 	return keys
+}
+
+func (handlers *Handlers) Execute(key string, args []string) (string, error) {
+	handler, ok := (*handlers)[key]
+	if !ok {
+		return "", Error.New("Command not found", nil)
+	}
+	return handler(args)
 }
