@@ -124,11 +124,17 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			"changeLocation": func(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
 				app.mutex.Lock()
 				defer app.mutex.Unlock()
-				if _, ok := app.connectedClients[message.GetPayload()]; !ok {
-					return Error.New("Client not found", nil)
+				connectedClient := app.connectedClients[message.GetPayload()]
+				if connectedClient != nil || message.GetPayload() == "" {
+					return Error.New("Invalid location", nil)
 				}
 				app.websocketClientLocations[client.GetId()] = message.GetPayload()
-				// propagate required data to client
+				if message.GetPayload() == "" {
+					app.propagateDashboardData(client)
+				} else {
+					// propagate required data to client
+				}
+				return
 			},
 			"gc": app.gcHandler,
 		},

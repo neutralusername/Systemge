@@ -93,7 +93,11 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 	defer app.mutex.Unlock()
 
 	app.websocketClientLocations[websocketClient.GetId()] = ""
+	app.propagateDashboardData(websocketClient)
+	return nil
+}
 
+func (app *Server) propagateDashboardData(websocketClient *WebsocketServer.WebsocketClient) {
 	for _, connectedClient := range app.connectedClients {
 		go func() {
 			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
@@ -104,7 +108,6 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 		commands = append(commands, command)
 	}
 	go websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
-	return nil
 }
 
 func (app *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
