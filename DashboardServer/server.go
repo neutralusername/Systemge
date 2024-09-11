@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -118,25 +117,11 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		app.config.WebsocketServerConfig,
 		whitelist, blacklist,
 		map[string]WebsocketServer.MessageHandler{
-			"start":   app.startHandler,
-			"stop":    app.stopHandler,
-			"command": app.commandHandler,
-			"changeLocation": func(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
-				app.mutex.Lock()
-				defer app.mutex.Unlock()
-				connectedClient := app.connectedClients[message.GetPayload()]
-				if connectedClient != nil || message.GetPayload() == "" {
-					return Error.New("Invalid location", nil)
-				}
-				app.websocketClientLocations[client.GetId()] = message.GetPayload()
-				if message.GetPayload() == "" {
-					app.propagateDashboardData(client)
-				} else {
-					// propagate required data to client
-				}
-				return
-			},
-			"gc": app.gcHandler,
+			"start":          app.startHandler,
+			"stop":           app.stopHandler,
+			"command":        app.commandHandler,
+			"changeLocation": app.changeWebsocketClientLocation,
+			"gc":             app.gcHandler,
 		},
 		app.onWebsocketConnectHandler, app.onWebsocketDisconnectHandler,
 	)
@@ -213,85 +198,85 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	return app
 }
 
-func (app *Server) Start() error {
-	app.statusMutex.Lock()
-	defer app.statusMutex.Unlock()
-	if app.status == Status.STARTED {
+func (server *Server) Start() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
 
-	if err := app.systemgeServer.Start(); err != nil {
+	if err := server.systemgeServer.Start(); err != nil {
 		return err
 	}
 
-	if err := app.websocketServer.Start(); err != nil {
-		if err := app.systemgeServer.Stop(); err != nil {
-			if app.errorLogger != nil {
-				app.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
+	if err := server.websocketServer.Start(); err != nil {
+		if err := server.systemgeServer.Stop(); err != nil {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
 			}
 		}
 		return err
 	}
 
-	if err := app.httpServer.Start(); err != nil {
-		if err := app.systemgeServer.Stop(); err != nil {
-			if app.errorLogger != nil {
-				app.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
+	if err := server.httpServer.Start(); err != nil {
+		if err := server.systemgeServer.Stop(); err != nil {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
 			}
 		}
-		if err := app.websocketServer.Stop(); err != nil {
-			if app.errorLogger != nil {
-				app.errorLogger.Log(Error.New("Failed to stop Websocket server after failed start", err).Error())
+		if err := server.websocketServer.Stop(); err != nil {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(Error.New("Failed to stop Websocket server after failed start", err).Error())
 			}
 		}
 		return err
 	}
 
-	app.status = Status.STARTED
-	if app.config.StatusUpdateIntervalMs > 0 {
-		app.waitGroup.Add(1)
-		go app.statusUpdateRoutine()
+	server.status = Status.STARTED
+	if server.config.StatusUpdateIntervalMs > 0 {
+		server.waitGroup.Add(1)
+		go server.statusUpdateRoutine()
 	}
-	if app.config.GoroutineUpdateIntervalMs > 0 {
-		app.waitGroup.Add(1)
-		go app.goroutineUpdateRoutine()
+	if server.config.GoroutineUpdateIntervalMs > 0 {
+		server.waitGroup.Add(1)
+		go server.goroutineUpdateRoutine()
 	}
-	if app.config.HeapUpdateIntervalMs > 0 {
-		app.waitGroup.Add(1)
-		go app.heapUpdateRoutine()
+	if server.config.HeapUpdateIntervalMs > 0 {
+		server.waitGroup.Add(1)
+		go server.heapUpdateRoutine()
 	}
-	if app.config.MetricsUpdateIntervalMs > 0 {
-		app.waitGroup.Add(1)
-		go app.metricsUpdateRoutine()
+	if server.config.MetricsUpdateIntervalMs > 0 {
+		server.waitGroup.Add(1)
+		go server.metricsUpdateRoutine()
 	}
 	return nil
 }
 
-func (app *Server) Stop() error {
-	app.statusMutex.Lock()
-	defer app.statusMutex.Unlock()
-	if app.status == Status.STOPPED {
+func (server *Server) Stop() error {
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
+	if server.status == Status.STOPPED {
 		return Error.New("Already stopped", nil)
 	}
-	app.status = Status.PENDING
-	app.waitGroup.Wait()
+	server.status = Status.PENDING
+	server.waitGroup.Wait()
 
-	if err := app.systemgeServer.Stop(); err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log(Error.New("Failed to stop Systemge server", err).Error())
+	if err := server.systemgeServer.Stop(); err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log(Error.New("Failed to stop Systemge server", err).Error())
 		}
 	}
-	if err := app.websocketServer.Stop(); err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log(Error.New("Failed to stop Websocket server", err).Error())
+	if err := server.websocketServer.Stop(); err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log(Error.New("Failed to stop Websocket server", err).Error())
 		}
 	}
-	if err := app.httpServer.Stop(); err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log(Error.New("Failed to stop HTTP server", err).Error())
+	if err := server.httpServer.Stop(); err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log(Error.New("Failed to stop HTTP server", err).Error())
 		}
 	}
 
-	app.status = Status.STOPPED
+	server.status = Status.STOPPED
 	return nil
 }

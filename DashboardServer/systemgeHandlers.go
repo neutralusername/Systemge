@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
+func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
 	response, err := connection.SyncRequestBlocking(Message.TOPIC_INTRODUCTION, "")
 	if err != nil {
 		return err
@@ -21,21 +21,21 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 		client:     client,
 	}
 
-	app.mutex.Lock()
-	app.registerModuleHttpHandlers(connectedClient)
-	app.connectedClients[connection.GetName()] = connectedClient
-	app.mutex.Unlock()
+	server.mutex.Lock()
+	server.registerModuleHttpHandlers(connectedClient)
+	server.connectedClients[connection.GetName()] = connectedClient
+	server.mutex.Unlock()
 
-	app.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
+	server.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
 }
 
-func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
-	app.mutex.Lock()
-	if connectedClient, ok := app.connectedClients[connection.GetName()]; ok {
-		delete(app.connectedClients, connection.GetName())
-		app.unregisterModuleHttpHandlers(connectedClient)
+func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
+	server.mutex.Lock()
+	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
+		delete(server.connectedClients, connection.GetName())
+		server.unregisterModuleHttpHandlers(connectedClient)
 	}
-	app.mutex.Unlock()
-	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
+	server.mutex.Unlock()
+	server.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }

@@ -11,51 +11,51 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (app *Server) statusUpdateRoutine() {
-	defer app.waitGroup.Done()
-	for app.status == Status.STARTED {
-		time.Sleep(time.Duration(app.config.StatusUpdateIntervalMs) * time.Millisecond)
+func (server *Server) statusUpdateRoutine() {
+	defer server.waitGroup.Done()
+	for server.status == Status.STARTED {
+		time.Sleep(time.Duration(server.config.StatusUpdateIntervalMs) * time.Millisecond)
 
-		app.mutex.RLock()
-		for _, connectedClient := range app.connectedClients {
+		server.mutex.RLock()
+		for _, connectedClient := range server.connectedClients {
 			if DashboardHelpers.HasStatus(connectedClient.client) {
-				go app.clientStatusUpdate(connectedClient)
+				go server.clientStatusUpdate(connectedClient)
 			}
 		}
-		app.mutex.RUnlock()
+		server.mutex.RUnlock()
 	}
 }
 
-func (app *Server) metricsUpdateRoutine() {
-	defer app.waitGroup.Done()
-	for app.status == Status.STARTED {
-		time.Sleep(time.Duration(app.config.MetricsUpdateIntervalMs) * time.Millisecond)
+func (server *Server) metricsUpdateRoutine() {
+	defer server.waitGroup.Done()
+	for server.status == Status.STARTED {
+		time.Sleep(time.Duration(server.config.MetricsUpdateIntervalMs) * time.Millisecond)
 
-		app.mutex.RLock()
-		for _, connectedClient := range app.connectedClients {
+		server.mutex.RLock()
+		for _, connectedClient := range server.connectedClients {
 			if DashboardHelpers.HasMetrics(connectedClient.client) {
-				go app.clientMetricsUpdate(connectedClient)
+				go server.clientMetricsUpdate(connectedClient)
 			}
 		}
-		if app.config.Metrics {
-			go app.dashboardMetricsUpdate()
+		if server.config.Metrics {
+			go server.dashboardMetricsUpdate()
 		}
-		app.mutex.RUnlock()
+		server.mutex.RUnlock()
 	}
 }
 
-func (app *Server) clientStatusUpdate(connectedClient *connectedClient) {
+func (server *Server) clientStatusUpdate(connectedClient *connectedClient) {
 	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_GET_STATUS, "")
 	if err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to get status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to get status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
 	status, err := strconv.Atoi(response.GetPayload())
 	if err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to parse status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to parse status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
@@ -63,7 +63,7 @@ func (app *Server) clientStatusUpdate(connectedClient *connectedClient) {
 	case *DashboardHelpers.CustomServiceClient:
 		connectedClient.client.(*DashboardHelpers.CustomServiceClient).Status = status
 	}
-	app.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
+	server.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
 		DashboardHelpers.StatusUpdate{
 			Name:   connectedClient.connection.GetName(),
 			Status: status,
@@ -71,18 +71,18 @@ func (app *Server) clientStatusUpdate(connectedClient *connectedClient) {
 	)))
 }
 
-func (app *Server) clientMetricsUpdate(connectedClient *connectedClient) {
+func (server *Server) clientMetricsUpdate(connectedClient *connectedClient) {
 	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_GET_METRICS, "")
 	if err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to get metrics for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to get metrics for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
 	metrics, err := DashboardHelpers.UnmarshalMetrics(response.GetPayload())
 	if err != nil {
-		if app.errorLogger != nil {
-			app.errorLogger.Log("Failed to parse metrics for client \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to parse metrics for client \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
@@ -94,43 +94,43 @@ func (app *Server) clientMetricsUpdate(connectedClient *connectedClient) {
 		connectedClient.client.(*DashboardHelpers.CustomServiceClient).Metrics = metrics.Metrics
 	}
 	metrics.Name = connectedClient.connection.GetName()
-	app.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
+	server.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
 }
 
-func (app *Server) dashboardMetricsUpdate() {
-	systemgeMetrics := app.RetrieveSystemgeMetrics()
-	app.websocketServer.Broadcast(Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
+func (server *Server) dashboardMetricsUpdate() {
+	systemgeMetrics := server.RetrieveSystemgeMetrics()
+	server.websocketServer.Broadcast(Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
 
-	websocketMetrics := app.RetrieveWebsocketMetrics()
-	app.websocketServer.Broadcast(Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
+	websocketMetrics := server.RetrieveWebsocketMetrics()
+	server.websocketServer.Broadcast(Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
 
-	httpMetrics := app.RetrieveHttpMetrics()
-	app.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
+	httpMetrics := server.RetrieveHttpMetrics()
+	server.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
 }
 
-func (app *Server) goroutineUpdateRoutine() {
-	defer app.waitGroup.Done()
-	for app.status == Status.STARTED {
-		time.Sleep(time.Duration(app.config.GoroutineUpdateIntervalMs) * time.Millisecond)
+func (server *Server) goroutineUpdateRoutine() {
+	defer server.waitGroup.Done()
+	for server.status == Status.STARTED {
+		time.Sleep(time.Duration(server.config.GoroutineUpdateIntervalMs) * time.Millisecond)
 
 		goroutineCount := runtime.NumGoroutine()
-		go app.websocketServer.Broadcast(Message.NewAsync("goroutineCount", strconv.Itoa(goroutineCount)))
-		if infoLogger := app.infoLogger; infoLogger != nil {
+		go server.websocketServer.Broadcast(Message.NewAsync("goroutineCount", strconv.Itoa(goroutineCount)))
+		if infoLogger := server.infoLogger; infoLogger != nil {
 			infoLogger.Log("goroutine update routine: \"" + strconv.Itoa(goroutineCount) + "\"")
 		}
 	}
 }
 
-func (app *Server) heapUpdateRoutine() {
-	defer app.waitGroup.Done()
-	for app.status == Status.STARTED {
-		time.Sleep(time.Duration(app.config.HeapUpdateIntervalMs) * time.Millisecond)
+func (server *Server) heapUpdateRoutine() {
+	defer server.waitGroup.Done()
+	for server.status == Status.STARTED {
+		time.Sleep(time.Duration(server.config.HeapUpdateIntervalMs) * time.Millisecond)
 
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
 		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
-		go app.websocketServer.Broadcast(Message.NewAsync("heapStatus", heapSize))
-		if infoLogger := app.infoLogger; infoLogger != nil {
+		go server.websocketServer.Broadcast(Message.NewAsync("heapStatus", heapSize))
+		if infoLogger := server.infoLogger; infoLogger != nil {
 			infoLogger.Log("heap update routine: \"" + heapSize + "\"")
 		}
 	}

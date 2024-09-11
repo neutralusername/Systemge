@@ -8,19 +8,19 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 )
 
-func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
-	app.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(app.frontendPath))).ServeHTTP(w, r)
+func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
+	server.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
 	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
 	if err != nil {
-		app.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		return
 	}
 
 	for _, command := range commands {
-		app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
+		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
 			body := make([]byte, r.ContentLength)
 			_, err := r.Body.Read(body)
 			if err != nil {
@@ -39,7 +39,7 @@ func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) 
 			}
 			w.Write([]byte(result))
 		})
-		app.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command+"/", func(w http.ResponseWriter, r *http.Request) {
+		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command+"/", func(w http.ResponseWriter, r *http.Request) {
 			args := r.URL.Path[len("/"+connectedClient.connection.GetName()+"/command/"):]
 			argsSplit := strings.Split(args, " ")
 			if len(argsSplit) == 0 {
@@ -56,16 +56,16 @@ func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) 
 	}
 }
 
-func (app *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
-	app.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
+func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
+	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
 
 	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
 	if err != nil {
-		app.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		return
 	}
 	for _, command := range commands {
-		app.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
-		app.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
+		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
+		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
 	}
 }
