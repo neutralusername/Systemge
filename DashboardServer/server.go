@@ -86,10 +86,11 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	)
 
 	app := &Server{
-		name:             name,
-		mutex:            sync.RWMutex{},
-		config:           config,
-		connectedClients: make(map[string]*connectedClient),
+		name:                     name,
+		mutex:                    sync.RWMutex{},
+		config:                   config,
+		connectedClients:         make(map[string]*connectedClient),
+		websocketClientLocations: make(map[string]string),
 
 		frontendPath: frontendPath,
 	}
