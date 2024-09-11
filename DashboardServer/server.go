@@ -16,28 +16,25 @@ import (
 )
 
 type Server struct {
+	config *Config.DashboardServer
+
 	name string
 
 	statusMutex sync.Mutex
 	status      int
 
-	mutex sync.RWMutex
-
-	connectedClients map[string]*connectedClient
-
-	frontendPath string
-
-	config *Config.DashboardServer
-
+	frontendPath    string
 	commandHandlers Commands.Handlers
 
 	waitGroup sync.WaitGroup
+	mutex     sync.RWMutex
+
+	connectedClients         map[string]*connectedClient
+	websocketClientLocations map[string]string // websocketId -> location ("" == dashboard/landing page)
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
-
-	websocketClientLocations map[string]string // websocketId -> location ("" == dashboard/landing page)
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger

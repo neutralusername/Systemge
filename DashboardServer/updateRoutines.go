@@ -59,9 +59,12 @@ func (server *Server) clientStatusUpdate(connectedClient *connectedClient) {
 		}
 		return
 	}
-	switch connectedClient.client.(type) {
-	case *DashboardHelpers.CustomServiceClient:
-		connectedClient.client.(*DashboardHelpers.CustomServiceClient).Status = status
+	err = DashboardHelpers.UpdateStatus(connectedClient.client, status)
+	if err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to update status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		}
+		return
 	}
 	server.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
 		DashboardHelpers.StatusUpdate{
@@ -89,9 +92,12 @@ func (server *Server) clientMetricsUpdate(connectedClient *connectedClient) {
 	if metrics.Metrics == nil {
 		metrics.Metrics = map[string]uint64{}
 	}
-	switch connectedClient.client.(type) {
-	case *DashboardHelpers.CustomServiceClient:
-		connectedClient.client.(*DashboardHelpers.CustomServiceClient).Metrics = metrics.Metrics
+	err = DashboardHelpers.UpdateMetrics(connectedClient.client, metrics.Metrics)
+	if err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to update metrics for client \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		}
+		return
 	}
 	metrics.Name = connectedClient.connection.GetName()
 	server.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))

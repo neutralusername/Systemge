@@ -37,3 +37,23 @@ func GetCommands(client interface{}) ([]string, error) {
 	}
 	return commands, nil
 }
+
+func UpdateMetrics(client interface{}, metrics map[string]uint64) error {
+	switch client.(type) {
+	case *CustomServiceClient:
+		client.(*CustomServiceClient).Metrics = metrics
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+	return nil
+}
+
+func UpdateStatus(client interface{}, status int) error {
+	switch client.(type) {
+	case *CustomServiceClient:
+		client.(*CustomServiceClient).Status = status
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+	return nil
+}
