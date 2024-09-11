@@ -1,3 +1,5 @@
+consider changing the systemge-EstablishConnection function in such a way, that it blocks until the onStart is completed
+
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 
 integrate "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)

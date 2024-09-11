@@ -12,10 +12,12 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	if err != nil {
 		return err
 	}
+
 	client, err := DashboardHelpers.UnmarshalIntroduction([]byte(response.GetPayload()))
 	if err != nil {
 		return err
 	}
+
 	connectedClient := &connectedClient{
 		connection: connection,
 		client:     client,

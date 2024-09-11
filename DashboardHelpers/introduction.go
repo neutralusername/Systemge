@@ -31,9 +31,9 @@ func (introduction *Introduction) Marshal() []byte {
 	marshalClient.ClientType = introduction.ClientType
 	switch introduction.ClientType {
 	case CLIENT_COMMAND:
-		marshalClient.ClientStruct = introduction.ClientStruct.(*CommandClient).Marshal()
+		marshalClient.ClientStruct = string(introduction.ClientStruct.(*CommandClient).Marshal())
 	case CLIENT_CUSTOM_SERVICE:
-		marshalClient.ClientStruct = introduction.ClientStruct.(*CustomServiceClient).Marshal()
+		marshalClient.ClientStruct = string(introduction.ClientStruct.(*CustomServiceClient).Marshal())
 	default:
 		panic("Unknown client type")
 	}
@@ -52,7 +52,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 	}
 	switch client.ClientType {
 	case CLIENT_COMMAND:
-		commandClient, err := UnmarshalCommandClient(client.ClientStruct.([]byte))
+		commandClient, err := UnmarshalCommandClient([]byte(client.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 		}
 		return commandClient, nil
 	case CLIENT_CUSTOM_SERVICE:
-		customServiceClient, err := UnmarshalCustomClient(client.ClientStruct.([]byte))
+		customServiceClient, err := UnmarshalCustomClient([]byte(client.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
 		}

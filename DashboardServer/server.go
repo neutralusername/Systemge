@@ -75,7 +75,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	}
 
 	_, callerPath, _, _ := runtime.Caller(0)
-	frontendPath := callerPath[:len(callerPath)-len("dashboardServer.go")] + "frontend/"
+	frontendPath := callerPath[:len(callerPath)-len("server.go")] + "frontend/"
 	Helpers.CreateFile(frontendPath+"configs.js",
 		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpServerConfig.Port)+";"+
 			"export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";"+

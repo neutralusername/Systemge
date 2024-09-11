@@ -133,7 +133,7 @@ func (app *Client) startHandler(connection SystemgeConnection.SystemgeConnection
 }
 
 func (app *Client) stopHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.customService.Start()
+	err := app.customService.Stop()
 	if err != nil {
 		return "", err
 	}

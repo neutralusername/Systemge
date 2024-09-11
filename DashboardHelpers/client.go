@@ -46,10 +46,10 @@ func HasStop(client interface{}) bool {
 func GetCommands(client interface{}) ([]string, error) {
 	commands := []string{}
 	switch client.(type) {
-	case CommandClient:
-		commands = append(commands, client.(CommandClient).Commands...)
-	case CustomServiceClient:
-		commands = append(commands, client.(CustomServiceClient).Commands...)
+	case *CommandClient:
+		commands = append(commands, client.(*CommandClient).Commands...)
+	case *CustomServiceClient:
+		commands = append(commands, client.(*CustomServiceClient).Commands...)
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}

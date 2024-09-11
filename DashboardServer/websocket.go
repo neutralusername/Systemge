@@ -143,7 +143,7 @@ func (server *Server) propagateDashboardData(websocketClient *WebsocketServer.We
 }
 
 func (server *Server) propagateClientData(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) {
-
+	// TODO:
 }
 
 func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {

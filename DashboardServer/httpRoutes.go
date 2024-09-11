@@ -15,7 +15,10 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 
 	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
 	if err != nil {
-		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		println(err.Error())
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		}
 		return
 	}
 
