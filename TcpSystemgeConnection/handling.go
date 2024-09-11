@@ -25,9 +25,11 @@ func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)
 	}
 
-	// will block forever if no message is available and connection closes (in case of no timeout)
 	select {
 	case message := <-connection.processingChannel:
+		if message == nil {
+			return nil, Error.New("Connection closed and no remaining messages", nil)
+		}
 		if connection.infoLogger != nil {
 			connection.infoLogger.Log("Returned message # in GetNextMessage" + Helpers.Uint64ToString(message.id))
 		}
@@ -69,6 +71,13 @@ func (connection *TcpConnection) StartProcessingLoopSequentially(messageHandler 
 		for {
 			select {
 			case message := <-connection.processingChannel:
+				if message == nil {
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Reached end of messages. Stopping processing messages sequentially")
+					}
+					connection.StopProcessingLoop()
+					return
+				}
 				if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
 					if connection.errorLogger != nil {
 						connection.errorLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
@@ -115,6 +124,13 @@ func (connection *TcpConnection) StartProcessingLoopConcurrently(messageHandler 
 		for {
 			select {
 			case message := <-connection.processingChannel:
+				if message == nil {
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Reached end of messages. Stopping processing messages concurrently")
+					}
+					connection.StopProcessingLoop()
+					return
+				}
 				go func() {
 					if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
 						if connection.errorLogger != nil {

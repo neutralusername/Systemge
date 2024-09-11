@@ -131,6 +131,7 @@ func (connection *TcpConnection) Close() error {
 		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
+	connection.processingChannel <- nil
 	return nil
 }
 

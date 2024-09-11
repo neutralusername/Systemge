@@ -88,11 +88,6 @@ func (connection *TcpConnection) receiveLoop() {
 				continue
 			} else {
 				connection.validMessagesReceived.Add(1)
-				if connection.config.ProcessingChannelCapacity > 0 && len(connection.processingChannel) == cap(connection.processingChannel) {
-					if connection.warningLogger != nil {
-						connection.warningLogger.Log("Processing channel capacity reached for message #" + Helpers.Uint64ToString(messageId))
-					}
-				}
 				connection.processingChannel <- &messageInProcess{
 					message: message,
 					id:      messageId,
