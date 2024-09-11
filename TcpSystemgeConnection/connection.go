@@ -134,6 +134,7 @@ func (connection *TcpConnection) Close() error {
 
 	//i think this might cause a race condition where a last messages can be added to the channel after sending the nil message. check/fix
 	//if channel is full, this will block until the message is processed which is far from ideal
+	//closing the channel is problematic because the remaining message in the receive loop will cause a panic
 	connection.processingChannel <- nil
 	return nil
 }
