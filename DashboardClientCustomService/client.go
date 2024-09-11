@@ -66,13 +66,10 @@ func (app *Client) Start() error {
 	if app.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-	println("t1")
-	//sometimes stuck here which results in no client showing up
 	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.ClientConfig, app.name, app.config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
-	println("t2")
 	app.systemgeConnection = connection
 	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
 		nil,
