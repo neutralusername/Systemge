@@ -89,12 +89,10 @@ func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClie
 }
 
 func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
-	app.websocketLocationMutex.Lock()
-	app.websocketClientLocations[websocketClient.GetId()] = ""
-	app.websocketLocationMutex.Unlock()
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
 
-	app.mutex.RLock()
-	defer app.mutex.RUnlock()
+	app.websocketClientLocations[websocketClient.GetId()] = ""
 
 	/* for _, client := range app.clients {
 		go func() {
@@ -110,12 +108,9 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 }
 
 func (app *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
-	app.websocketLocationMutex.Lock()
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
 	delete(app.websocketClientLocations, websocketClient.GetId())
-	app.websocketLocationMutex.Unlock()
-
-	app.mutex.RLock()
-	defer app.mutex.RUnlock()
 }
 
 func (app *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {

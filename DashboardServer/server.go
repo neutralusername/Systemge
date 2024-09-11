@@ -38,7 +38,6 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
-	websocketLocationMutex   sync.Mutex
 	websocketClientLocations map[string]string // websocketId -> location ("" == dashboard/landing page)
 
 	infoLogger    *Tools.Logger
@@ -123,7 +122,13 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			"stop":    app.stopHandler,
 			"command": app.commandHandler,
 			"changeLocation": func(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
-
+				app.mutex.Lock()
+				defer app.mutex.Unlock()
+				if _, ok := app.connectedClients[message.GetPayload()]; !ok {
+					return Error.New("Client not found", nil)
+				}
+				app.websocketClientLocations[client.GetId()] = message.GetPayload()
+				// propagate required data to client
 			},
 			"gc": app.gcHandler,
 		},
