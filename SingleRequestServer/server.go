@@ -40,10 +40,10 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 	if config.SystemgeServerConfig == nil {
 		panic("SystemgeServerConfig is required")
 	}
-	if config.SystemgeServerConfig.ConnectionConfig == nil {
+	if config.SystemgeServerConfig.TcpSystemgeConnection == nil {
 		panic("ConnectionConfig is required")
 	}
-	if config.SystemgeServerConfig.ListenerConfig == nil {
+	if config.SystemgeServerConfig.TcpSystemgeListenerConfig == nil {
 		panic("TcpServerConfig is required")
 	}
 

@@ -49,13 +49,13 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.ConnectionConfig == nil {
+	if config.TcpSystemgeConnection == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.ListenerConfig == nil {
+	if config.TcpSystemgeListenerConfig == nil {
 		panic("listener is nil")
 	}
-	if config.ListenerConfig.TcpServerConfig == nil {
+	if config.TcpSystemgeListenerConfig.TcpServerConfig == nil {
 		panic("listener.ListenerConfig is nil")
 	}
 
@@ -95,7 +95,7 @@ func (server *SystemgeServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
-	listener, err := TcpSystemgeListener.New(server.config.ListenerConfig, server.whitelist, server.blacklist)
+	listener, err := TcpSystemgeListener.New(server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist)
 	if err != nil {
 		server.status = Status.STOPPED
 		return Error.New("failed to create listener", err)

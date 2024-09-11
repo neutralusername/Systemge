@@ -26,7 +26,7 @@ func unmarshalCommandStruct(data string) *commandStruct {
 }
 
 func Command(name string, config *Config.SingleRequestClient, command string, args ...string) (string, error) {
-	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return "", Error.New("Failed to establish connection", err)
 	}
@@ -50,7 +50,7 @@ func Command(name string, config *Config.SingleRequestClient, command string, ar
 }
 
 func AsyncMessage(name string, config *Config.SingleRequestClient, topic string, payload string) error {
-	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
@@ -64,7 +64,7 @@ func AsyncMessage(name string, config *Config.SingleRequestClient, topic string,
 }
 
 func SyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (*Message.Message, error) {
-	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
 	if err != nil {
 		return nil, Error.New("Failed to establish connection", err)
 	}

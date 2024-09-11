@@ -64,13 +64,13 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config.SystemgeServerConfig == nil {
 		panic("config.SystemgeServerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ListenerConfig == nil {
+	if config.SystemgeServerConfig.TcpSystemgeListenerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ListenerConfig.TcpServerConfig == nil {
+	if config.SystemgeServerConfig.TcpSystemgeListenerConfig.TcpServerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
-	if config.SystemgeServerConfig.ConnectionConfig == nil {
+	if config.SystemgeServerConfig.TcpSystemgeConnection == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
 

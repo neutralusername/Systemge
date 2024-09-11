@@ -28,7 +28,7 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 	messageBrokerClient.ongoingGetBrokerConnections[getEndpointString(endpoint)] = getBrokerAttempt
 	messageBrokerClient.mutex.Unlock()
 
-	systemgeConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerClient.config.ConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
+	systemgeConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerClient.config.ServerTcpSystemgeConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
 	if err != nil {
 		messageBrokerClient.mutex.Lock()
 		getBrokerAttempt.err = err

@@ -100,7 +100,7 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			if attempt.attempts > 0 {
 				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
 			}
-			connection, err := TcpSystemgeConnection.EstablishConnection(client.config.ConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
+			connection, err := TcpSystemgeConnection.EstablishConnection(client.config.TcpSystemgeConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
 			attempt.attempts++
 			if err != nil {
 				client.connectionAttemptsFailed.Add(1)

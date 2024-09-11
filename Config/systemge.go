@@ -8,14 +8,14 @@ type SystemgeClient struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	ConnectionConfig *TcpSystemgeConnection `json:"connectionConfig"` // *required*
-	ClientConfigs    []*TcpClient           `json:"clientConfigs"`
+	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfigs            []*TcpClient           `json:"tcpClientConfigs"`
 
 	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
 
-	Reconnect                bool   `json:"reconnect"`               // default: false (if true, the client will attempt to reconnect if the connection is lost)
-	ConnectionAttemptDelayMs uint64 `json:"reconnectAttemptDelayMs"` // default: 1000 (the delay between reconnection attempts in milliseconds)
-	MaxConnectionAttempts    uint32 `json:"maxReconnectAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+	Reconnect                bool   `json:"reconnect"`                // default: false (if true, the client will attempt to reconnect if the connection is lost)
+	ConnectionAttemptDelayMs uint64 `json:"connectionAttemptDelayMs"` // default: 1000 (the delay between reconnection attempts in milliseconds)
+	MaxConnectionAttempts    uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
 }
 
 func UnmarshalSystemgeClient(data string) *SystemgeClient {
@@ -33,8 +33,8 @@ type SystemgeServer struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	ListenerConfig   *TcpSystemgeListener   `json:"listenerConfig"`   // *required*
-	ConnectionConfig *TcpSystemgeConnection `json:"connectionConfig"` // *required*
+	TcpSystemgeListenerConfig *TcpSystemgeListener   `json:"tcpSystemgeListenerConfig"` // *required*
+	TcpSystemgeConnection     *TcpSystemgeConnection `json:"tcpSystemgeConnection"`     // *required*
 }
 
 func UnmarshalSystemgeServer(data string) *SystemgeServer {

@@ -11,8 +11,8 @@ import (
 
 func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTopic bool) []*Config.TcpClient {
 	endpoints := []*Config.TcpClient{}
-	for _, resolverEndpoint := range messageBrokerclient.config.ResolverClientConfigs {
-		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
+	for _, resolverEndpoint := range messageBrokerclient.config.ResolverTcpClientConfig {
+		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverSystemgeConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {
 				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())

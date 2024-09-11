@@ -50,7 +50,7 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 	if config.SystemgeServerConfig == nil {
 		panic("SystemgeServerConfig is required")
 	}
-	if config.SystemgeServerConfig.ConnectionConfig == nil {
+	if config.SystemgeServerConfig.TcpSystemgeConnection == nil {
 		panic("SystemgeServerConfig.ConnectionConfig is required")
 	}
 	if name == "" {

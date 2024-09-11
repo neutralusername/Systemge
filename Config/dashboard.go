@@ -36,9 +36,9 @@ func UnmarshalDashboardServer(data string) *DashboardServer {
 }
 
 type DashboardClient struct {
-	MaxServerNameLength int                    `json:"maxServerNameLength"` // default: <=0 == no limit
-	ConnectionConfig    *TcpSystemgeConnection `json:"connectionConfig"`    // *required*
-	ClientConfig        *TcpClient             `json:"clientConfig"`        // *required*
+	MaxServerNameLength         int                    `json:"maxServerNameLength"`         // default: <=0 == no limit
+	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
 }
 
 func UnmarshalDashboardClient(data string) *DashboardClient {

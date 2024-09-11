@@ -32,9 +32,9 @@ func UnmarshalOauth2(data string) *Oauth2 {
 }
 
 type SingleRequestClient struct {
-	TcpConnectionConfig *TcpSystemgeConnection `json:"tcpConnectionConfig"` // *required*
-	TcpClientConfig     *TcpClient             `json:"tcpClientConfig"`     // *required*
-	MaxServerNameLength int                    `json:"maxServerNameLength"` // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
+	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
+	MaxServerNameLength         int                    `json:"maxServerNameLength"`         // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 func UnmarshalCommandClient(data string) *SingleRequestClient {

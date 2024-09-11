@@ -42,10 +42,10 @@ func New(name string, config *Config.DashboardClient, customService CustomServic
 	if name == "" {
 		panic("config.Name is empty")
 	}
-	if config.ConnectionConfig == nil {
+	if config.TcpSystemgeConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
-	if config.ClientConfig == nil {
+	if config.TcpClientConfig == nil {
 		panic("config.EndpointConfig is nil")
 	}
 	if customService == nil {
@@ -66,7 +66,7 @@ func (app *Client) Start() error {
 	if app.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.ConnectionConfig, app.config.ClientConfig, app.name, app.config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength)
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
