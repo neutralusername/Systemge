@@ -65,7 +65,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
-	if config.ResolverSystemgeConnectionConfig == nil {
+	if config.ResolverTcpSystemgeConnectionConfig == nil {
 		panic(Error.New("ResolverConnectionConfig is required", nil))
 	}
 	if config.ServerTcpSystemgeConnectionConfig == nil {
