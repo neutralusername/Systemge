@@ -59,6 +59,12 @@ func (server *Server) clientStatusUpdate(connectedClient *connectedClient) {
 		}
 		return
 	}
+	if !Status.IsValidStatus(status) {
+		if server.errorLogger != nil {
+			server.errorLogger.Log("Invalid status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + strconv.Itoa(status))
+		}
+		return
+	}
 	err = DashboardHelpers.UpdateStatus(connectedClient.client, status)
 	if err != nil {
 		if server.errorLogger != nil {
