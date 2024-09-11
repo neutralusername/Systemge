@@ -28,7 +28,19 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 				close(connection.receiveLoopStopChannel)
 				return
 			case <-connection.processingChannelSemaphore.GetChannel():
-				if err := connection.addMessageToProcessingChannel(); err != nil {
+				messageBytes, err := connection.receive()
+				if err != nil {
+					if Tcp.IsConnectionClosed(err) {
+						close(connection.receiveLoopStopChannel)
+						connection.Close()
+						return
+					}
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
+					}
+					continue
+				}
+				if err := connection.addMessageToProcessingChannel(messageBytes); err != nil {
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
 					}
@@ -40,15 +52,7 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 	}
 }
 
-func (connection *TcpConnection) addMessageToProcessingChannel() error {
-	messageBytes, err := connection.receive()
-	if err != nil {
-		if Tcp.IsConnectionClosed(err) {
-			connection.Close()
-			// can cause repeated iterations which fail until the stop-method actually closed the stopChannel
-		}
-		return Error.New("failed to receive message", err)
-	}
+func (connection *TcpConnection) addMessageToProcessingChannel(messageBytes []byte) error {
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		connection.byteRateLimiterExceeded.Add(1)
 		return Error.New("byte rate limiter exceeded", nil)
