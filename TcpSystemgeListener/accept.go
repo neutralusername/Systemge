@@ -14,6 +14,8 @@ import (
 
 func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
+	println("accepting Conn")
+	//^this print statement reduces the chance of this race condition occuring which is a hint
 	listener.connectionId++
 	connectionId := listener.connectionId
 	listener.connectionAttempts.Add(1)
