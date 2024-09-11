@@ -44,7 +44,6 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 	messageBytes, err := connection.receive()
 	if err != nil {
 		if Tcp.IsConnectionClosed(err) {
-//deadlock here
 			connection.Close()
 		}
 		return Error.New("failed to receive message", err)

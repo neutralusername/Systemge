@@ -108,8 +108,9 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 }
 
 func (connection *TcpConnection) Close() error {
-	println("t1", connection.GetName())
-	connection.closedMutex.Lock()
+	if !connection.closedMutex.TryLock() {
+		return Error.New("Connection already closing", nil)
+	}
 	defer connection.closedMutex.Unlock()
 
 	if connection.closed {
@@ -129,7 +130,6 @@ func (connection *TcpConnection) Close() error {
 		connection.rateLimiterMessages = nil
 	}
 	<-connection.receiveLoopStopChannel
-	println("t2")
 	close(connection.processingChannel)
 	return nil
 }
