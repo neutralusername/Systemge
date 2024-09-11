@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func EstablishConnection(config *Config.TcpSystemgeConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
@@ -28,39 +27,40 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, endpointConfig *C
 }
 
 func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
-	connection := New(clientName+"_connectionAttempt", config, netConn)
-	err := connection.AsyncMessage(Message.TOPIC_NAME, clientName)
+	_, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, clientName).Serialize(), config.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	message, err := connection.GetNextMessage()
+	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, 4096)
 	if err != nil {
-		return nil, Error.New("Failed to get next message", err)
+		return nil, Error.New("Failed to receive response", err)
+	}
+	if len(messageBytes) == 0 {
+		return nil, Error.New("Received empty message", nil)
+	}
+	filteresMessageBytes := []byte{}
+	for _, b := range messageBytes {
+		if b == Tcp.HEARTBEAT {
+			continue
+		}
+		if b == Tcp.ENDOFMESSAGE {
+			continue
+		}
+		filteresMessageBytes = append(filteresMessageBytes, b)
+	}
+	message, err := Message.Deserialize(filteresMessageBytes, "")
+	if err != nil {
+		return nil, Error.New("Failed to deserialize response", err)
 	}
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}
-	name := ""
-	SystemgeConnection.NewConcurrentMessageHandler(SystemgeConnection.AsyncMessageHandlers{
-		Message.TOPIC_NAME: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) {
-			if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
-				return
-			}
-			name = message.GetPayload()
-		},
-	}, nil, nil, nil).HandleAsyncMessage(connection, message)
+	if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
+		return nil, Error.New("Server name is too long", nil)
+	}
+	name := message.GetPayload()
 	if name == "" {
 		return nil, Error.New("Server did not respond with a name", nil)
 	}
-	connection.name = name
-	if config.InfoLoggerPath != "" {
-		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
-	}
-	if config.WarningLoggerPath != "" {
-		connection.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		connection.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
-	}
-	return connection, nil
+	return New(clientName, config, netConn), nil
 }

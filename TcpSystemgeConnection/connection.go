@@ -44,10 +44,10 @@ type TcpConnection struct {
 
 	closeChannel chan bool
 
-	processMutex              sync.Mutex
-	processingChannel         chan *messageInProcess
-	processingLoopStopChannel chan bool
-	unprocessedMessages       atomic.Int64
+	processMutex               sync.Mutex
+	processingChannel          chan *messageInProcess
+	processingChannelSemaphore *Tools.Semaphore
+	processingLoopStopChannel  chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -75,13 +75,14 @@ type TcpConnection struct {
 
 func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *TcpConnection {
 	connection := &TcpConnection{
-		name:              name,
-		config:            config,
-		netConn:           netConn,
-		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
-		closeChannel:      make(chan bool),
-		syncRequests:      make(map[string]*syncRequestStruct),
-		processingChannel: make(chan *messageInProcess, config.ProcessingChannelCapacity),
+		name:                       name,
+		config:                     config,
+		netConn:                    netConn,
+		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
+		closeChannel:               make(chan bool),
+		syncRequests:               make(map[string]*syncRequestStruct),
+		processingChannel:          make(chan *messageInProcess, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
+		processingChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
 	}
 	if config.InfoLoggerPath != "" {
 		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
@@ -104,7 +105,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 	if config.TcpBufferBytes <= 0 {
 		config.TcpBufferBytes = 1024 * 4
 	}
-	go connection.receiveLoop()
+	go connection.addMessageToProcessingChannelLoop()
 	if config.HeartbeatIntervalMs > 0 {
 		go connection.heartbeatLoop()
 	}
@@ -132,10 +133,7 @@ func (connection *TcpConnection) Close() error {
 		connection.rateLimiterMessages = nil
 	}
 
-	//i think this might cause a race condition where a last messages can be added to the channel after sending the nil message. check/fix
-	//if channel is full, this will block until the message is processed which is far from ideal
-	//closing the channel is problematic because the remaining message in the receive loop will cause a panic
-	connection.processingChannel <- nil
+	close(connection.processingChannel)
 	return nil
 }
 
@@ -193,7 +191,7 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["unprocessedMessageCount"] = func(args []string) (string, error) {
-		return Helpers.Int64ToString(connection.unprocessedMessages.Load()), nil
+		return Helpers.Uint32ToString(connection.processingChannelSemaphore.AvailablePermits()), nil
 	}
 	commands["getNextMessage"] = func(args []string) (string, error) {
 		message, err := connection.GetNextMessage()

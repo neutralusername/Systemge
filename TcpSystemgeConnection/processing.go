@@ -10,8 +10,8 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *TcpConnection) UnprocessedMessagesCount() int64 {
-	return connection.unprocessedMessages.Load()
+func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
+	return connection.processingChannelSemaphore.AvailablePermits()
 }
 
 func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
@@ -30,10 +30,10 @@ func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 		if message == nil {
 			return nil, Error.New("Connection closed and no remaining messages", nil)
 		}
+		connection.processingChannelSemaphore.ReleaseBlocking()
 		if connection.infoLogger != nil {
 			connection.infoLogger.Log("Returned message # in GetNextMessage" + Helpers.Uint64ToString(message.id))
 		}
-		connection.unprocessedMessages.Add(-1)
 		return message.message, nil
 	case <-timeout:
 		return nil, Error.New("Timeout while waiting for message", nil)
@@ -78,6 +78,7 @@ func (connection *TcpConnection) StartProcessingLoopSequentially(messageHandler 
 					connection.StopProcessingLoop()
 					return
 				}
+				connection.processingChannelSemaphore.ReleaseBlocking()
 				if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
 					if connection.errorLogger != nil {
 						connection.errorLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
@@ -95,7 +96,6 @@ func (connection *TcpConnection) StartProcessingLoopSequentially(messageHandler 
 						infoLogger.Log("Processed message #" + Helpers.Uint64ToString(message.id))
 					}
 				}
-				connection.unprocessedMessages.Add(-1)
 			case <-processingLoopStopChannel:
 				if connection.infoLogger != nil {
 					connection.infoLogger.Log("Stopping processing messages sequentially")
@@ -131,6 +131,7 @@ func (connection *TcpConnection) StartProcessingLoopConcurrently(messageHandler 
 					connection.StopProcessingLoop()
 					return
 				}
+				connection.processingChannelSemaphore.ReleaseBlocking()
 				go func() {
 					if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
 						if connection.errorLogger != nil {
@@ -149,7 +150,6 @@ func (connection *TcpConnection) StartProcessingLoopConcurrently(messageHandler 
 							infoLogger.Log("Processed message #" + Helpers.Uint64ToString(message.id))
 						}
 					}
-					connection.unprocessedMessages.Add(-1)
 				}()
 			case <-processingLoopStopChannel:
 				if connection.infoLogger != nil {

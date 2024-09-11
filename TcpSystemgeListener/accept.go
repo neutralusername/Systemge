@@ -71,9 +71,6 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	}
 	message, err := Message.Deserialize(filteresMessageBytes, "")
 	if err != nil {
-		// cases in which no clients are added are caused by failing to deserialize.
-		// issue is caused by heartbeat message being received before the actual message.
-		println("Failed to deserialize", string(filteresMessageBytes))
 		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
 	}
 	if message.GetTopic() != Message.TOPIC_NAME {

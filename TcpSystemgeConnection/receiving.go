@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpConnection) receiveLoop() {
+func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
@@ -18,84 +18,73 @@ func (connection *TcpConnection) receiveLoop() {
 			if connection.infoLogger != nil {
 				connection.infoLogger.Log("Stopped receiving messages")
 			}
-			connection.Close()
 			return
 		default:
-			// block here until we can be sure that we can add a message to the processing channel
-			// which will allow us to close the channel in the .Close() method and prevent the race condition where a message is added after the channel is closed
-			connection.unprocessedMessages.Add(1)
-			messageBytes, err := connection.receive()
+			err := connection.addMessageToProcessingChannel()
 			if err != nil {
 				if connection.warningLogger != nil {
-					connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
-				}
-				connection.unprocessedMessages.Add(-1)
-				if Tcp.IsConnectionClosed(err) {
-					connection.Close()
-					return
-				}
-				continue
-			}
-			connection.messageId++
-			messageId := connection.messageId
-			if infoLogger := connection.infoLogger; infoLogger != nil {
-				infoLogger.Log("Received message #" + Helpers.Uint64ToString(messageId))
-			}
-			if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-				connection.byteRateLimiterExceeded.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log("Byte rate limiter exceeded for message #" + Helpers.Uint64ToString(messageId))
-				}
-				continue
-			}
-			if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
-				connection.messageRateLimiterExceeded.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log("Message rate limiter exceeded for message #" + Helpers.Uint64ToString(messageId))
-				}
-				continue
-			}
-			message, err := Message.Deserialize(messageBytes, connection.GetName())
-			if err != nil {
-				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if warningLogger := connection.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("failed to deserialize message #"+Helpers.Uint64ToString(messageId), err).Error())
-				}
-				continue
-			}
-			if err := connection.validateMessage(message); err != nil {
-				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if warningLogger := connection.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("failed to validate message #"+Helpers.Uint64ToString(messageId), err).Error())
-				}
-				continue
-			}
-			if infoLogger := connection.infoLogger; infoLogger != nil {
-				infoLogger.Log("queueing message #" + Helpers.Uint64ToString(messageId) + " for processing")
-			}
-			if message.IsResponse() {
-				if err := connection.addSyncResponse(message); err != nil {
-					connection.invalidSyncResponsesReceived.Add(1)
-					if warningLogger := connection.warningLogger; warningLogger != nil {
-						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
-					}
-				} else {
-					connection.validMessagesReceived.Add(1)
-				}
-				connection.unprocessedMessages.Add(-1)
-				continue
-			} else {
-				connection.validMessagesReceived.Add(1)
-				connection.processingChannel <- &messageInProcess{
-					message: message,
-					id:      messageId,
+					connection.warningLogger.Log(Error.New("Failed to receive message", err).Error())
 				}
 			}
 		}
+	}
+}
+
+func (connection *TcpConnection) addMessageToProcessingChannel() error {
+	messageBytes, err := connection.receive()
+	if err != nil {
+		if Tcp.IsConnectionClosed(err) {
+			connection.Close()
+		}
+		return Error.New("failed to receive message", err)
+	}
+	connection.messageId++
+	messageId := connection.messageId
+	if infoLogger := connection.infoLogger; infoLogger != nil {
+		infoLogger.Log("Received message #" + Helpers.Uint64ToString(messageId))
+	}
+	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+		connection.byteRateLimiterExceeded.Add(1)
+		return Error.New("byte rate limiter exceeded", nil)
+	}
+	if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
+		connection.messageRateLimiterExceeded.Add(1)
+		return Error.New("message rate limiter exceeded", nil)
+	}
+	message, err := Message.Deserialize(messageBytes, connection.GetName())
+	if err != nil {
+		connection.invalidMessagesReceived.Add(1)
+		return Error.New("failed to deserialize message", err)
+	}
+	if err := connection.validateMessage(message); err != nil {
+		connection.invalidMessagesReceived.Add(1)
+		return Error.New("failed to validate message", err)
+	}
+	if infoLogger := connection.infoLogger; infoLogger != nil {
+		infoLogger.Log("queueing message #" + Helpers.Uint64ToString(messageId) + " for processing")
+	}
+	if message.IsResponse() {
+		if err := connection.addSyncResponse(message); err != nil {
+			connection.invalidSyncResponsesReceived.Add(1)
+			return Error.New("failed to add sync response", err)
+		} else {
+			connection.validMessagesReceived.Add(1)
+		}
+		return nil
+	} else {
+		connection.processingChannelSemaphore.AcquireBlocking()
+		connection.closedMutex.Lock()
+		defer connection.closedMutex.Unlock()
+		if connection.closed {
+			connection.processingChannelSemaphore.ReleaseBlocking()
+			return Error.New("connection closed before message could be added to processing channel", nil)
+		}
+		connection.validMessagesReceived.Add(1)
+		connection.processingChannel <- &messageInProcess{
+			message: message,
+			id:      messageId,
+		}
+		return nil
 	}
 }
 
