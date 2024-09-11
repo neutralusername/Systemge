@@ -108,9 +108,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 }
 
 func (connection *TcpConnection) Close() error {
-	if !connection.closedMutex.TryLock() {
-		return Error.New("Connection already closing", nil)
-	}
+	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 
 	if connection.closed {
