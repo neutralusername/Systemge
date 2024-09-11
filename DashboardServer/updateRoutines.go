@@ -65,19 +65,21 @@ func (server *Server) clientStatusUpdate(connectedClient *connectedClient) {
 		}
 		return
 	}
-	err = DashboardHelpers.UpdateStatus(connectedClient.client, status)
-	if err != nil {
+	if err := DashboardHelpers.UpdateStatus(connectedClient.client, status); err != nil {
 		if server.errorLogger != nil {
 			server.errorLogger.Log("Failed to update status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
 		return
 	}
-	server.websocketServer.Multicast(server.getWebsocketClientsOfLocation(connectedClient.connection.GetName()), Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
-		DashboardHelpers.StatusUpdate{
-			Name:   connectedClient.connection.GetName(),
-			Status: status,
-		},
-	)))
+	server.websocketServer.Multicast(
+		server.getWebsocketClientsOfLocation(""),
+		Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
+			DashboardHelpers.StatusUpdate{
+				Name:   connectedClient.connection.GetName(),
+				Status: status,
+			},
+		)),
+	)
 }
 
 func (server *Server) clientMetricsUpdate(connectedClient *connectedClient) {
