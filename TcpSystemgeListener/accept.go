@@ -72,7 +72,6 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	message, err := Message.Deserialize(filteresMessageBytes, "")
 	if err != nil {
 		// cases in which no clients are added are caused by failing to deserialize.
-		// this is a significant issue because this should definitely cause the EstablishConnection function to throw an error instead of silently failing
 		println("Failed to deserialize", string(filteresMessageBytes))
 		return nil, Error.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
 	}

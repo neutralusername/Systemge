@@ -33,10 +33,7 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	println("t1")
-	// a response is never received
 	message, err := connection.GetNextMessage()
-	println("t2")
 	if err != nil {
 		return nil, Error.New("Failed to get next message", err)
 	}
