@@ -17,13 +17,25 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 			if connection.infoLogger != nil {
 				connection.infoLogger.Log("Stopped receiving messages")
 			}
+			close(connection.receiveLoopStopChannel)
 			return
 		default:
-			if err := connection.addMessageToProcessingChannel(); err != nil {
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
+			select {
+			case <-connection.closeChannel:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Stopped receiving messages")
+				}
+				close(connection.receiveLoopStopChannel)
+				return
+			case <-connection.processingChannelSemaphore.GetChannel():
+				if err := connection.addMessageToProcessingChannel(); err != nil {
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
+					}
+					connection.processingChannelSemaphore.ReleaseBlocking()
 				}
 			}
+
 		}
 	}
 }
@@ -57,18 +69,11 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 		if err := connection.addSyncResponse(message); err != nil {
 			connection.invalidSyncResponsesReceived.Add(1)
 			return Error.New("failed to add sync response", err)
-		} else {
-			connection.validMessagesReceived.Add(1)
 		}
+		connection.validMessagesReceived.Add(1)
+		connection.processingChannelSemaphore.ReleaseBlocking()
 		return nil
 	} else {
-		connection.processingChannelSemaphore.AcquireBlocking()
-		connection.closedMutex.Lock()
-		defer connection.closedMutex.Unlock()
-		if connection.closed {
-			connection.processingChannelSemaphore.ReleaseBlocking()
-			return Error.New("connection closed before message could be added to processing channel", nil)
-		}
 		connection.validMessagesReceived.Add(1)
 		connection.processingChannel <- message
 		if connection.infoLogger != nil {

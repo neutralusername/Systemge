@@ -29,6 +29,11 @@ func NewSemaphore(maxAvailableAcquires uint32, initialAvailableAcquires uint32) 
 	}
 }
 
+// receiving equals to AcquireBlocking and sending equals to ReleaseBlocking
+func (semaphore *Semaphore) GetChannel() chan struct{} {
+	return semaphore.channel
+}
+
 func (semaphore *Semaphore) AcquireBlocking() {
 	<-semaphore.channel
 }

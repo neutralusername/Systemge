@@ -58,9 +58,8 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
 		return nil, Error.New("Server name is too long", nil)
 	}
-	name := message.GetPayload()
-	if name == "" {
+	if message.GetPayload() == "" {
 		return nil, Error.New("Server did not respond with a name", nil)
 	}
-	return New(clientName, config, netConn), nil
+	return New(message.GetPayload(), config, netConn), nil
 }

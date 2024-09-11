@@ -43,6 +43,7 @@ type TcpConnection struct {
 	processingChannel          chan *Message.Message
 	processingChannelSemaphore *Tools.Semaphore
 	processingLoopStopChannel  chan bool
+	receiveLoopStopChannel     chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -76,6 +77,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 		syncRequests:               make(map[string]*syncRequestStruct),
 		processingChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		processingChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
+		receiveLoopStopChannel:     make(chan bool),
 	}
 	if config.InfoLoggerPath != "" {
 		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
@@ -106,6 +108,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 }
 
 func (connection *TcpConnection) Close() error {
+	println("t1", connection.GetName())
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 
@@ -125,7 +128,8 @@ func (connection *TcpConnection) Close() error {
 		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
-
+	<-connection.receiveLoopStopChannel
+	println("t2")
 	close(connection.processingChannel)
 	return nil
 }
