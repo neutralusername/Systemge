@@ -79,7 +79,7 @@ type TcpSystemgeConnection struct {
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 
-	ProcessingChannelCapacity uint32 `json:"processingChannelSize"` // default: 0 (how many messages can be received before being processed (n+1))
+	ProcessingChannelCapacity uint32 `json:"processingChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional*
 	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*

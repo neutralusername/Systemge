@@ -14,16 +14,16 @@ type DashboardServer struct {
 
 	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
 
-	Metrics           bool `json:"dashboardMetrics"`           // default: false
-	Commands          bool `json:"dashboardCommands"`          // default: false
-	SystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false
-	HttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
-	WebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
+	Metrics           bool `json:"metrics"`           // default: false
+	Commands          bool `json:"commands"`          // default: false
+	SystemgeCommands  bool `json:"systemgeCommands"`  // default: false
+	HttpCommands      bool `json:"httpCommands"`      // default: false
+	WebsocketCommands bool `json:"websocketCommands"` // default: false
 
-	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`          // default: 0 = disabled
-	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"`     // default: 0 = disabled
-	StatusUpdateIntervalMs    uint64 `json:"serviceStatusUpdateIntervalMs"` // default: 0 = disabled
-	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`       // default: 0 = disabled
+	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
+	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
+	StatusUpdateIntervalMs    uint64 `json:"statusUpdateIntervalMs"`    // default: 0 = disabled
+	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`   // default: 0 = disabled
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
