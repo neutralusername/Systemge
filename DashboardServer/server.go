@@ -70,7 +70,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config.SystemgeServerConfig.TcpSystemgeListenerConfig.TcpServerConfig == nil {
 		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
-	if config.SystemgeServerConfig.TcpSystemgeConnection == nil {
+	if config.SystemgeServerConfig.TcpSystemgeConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
 

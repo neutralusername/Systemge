@@ -33,8 +33,8 @@ type SystemgeServer struct {
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 
-	TcpSystemgeListenerConfig *TcpSystemgeListener   `json:"tcpSystemgeListenerConfig"` // *required*
-	TcpSystemgeConnection     *TcpSystemgeConnection `json:"tcpSystemgeConnection"`     // *required*
+	TcpSystemgeListenerConfig   *TcpSystemgeListener   `json:"tcpSystemgeListenerConfig"`   // *required*
+	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 
 func UnmarshalSystemgeServer(data string) *SystemgeServer {

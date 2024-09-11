@@ -59,7 +59,7 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 }
 
 func (server *SystemgeServer) acceptNextConnection() (SystemgeConnection.SystemgeConnection, error) {
-	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.TcpSystemgeConnection)
+	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.TcpSystemgeConnectionConfig)
 	if err != nil {
 		return nil, Error.New("failed to accept connection", err)
 	}

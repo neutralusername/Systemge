@@ -49,7 +49,7 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.TcpSystemgeConnection == nil {
+	if config.TcpSystemgeConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
 	}
 	if config.TcpSystemgeListenerConfig == nil {
