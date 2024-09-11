@@ -131,6 +131,8 @@ func (connection *TcpConnection) Close() error {
 		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
+
+	//i think this might cause a race condition where a last messages can be added to the channel after sending the nil message. check/fix
 	connection.processingChannel <- nil
 	return nil
 }
