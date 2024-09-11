@@ -91,7 +91,10 @@ func (app *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClie
 func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	app.mutex.RLock()
 	defer app.mutex.RUnlock()
-	for _, client := range app.clients {
+
+	app.websocketClientLocations[websocketClient.GetId()] = ""
+
+	/* for _, client := range app.clients {
 		go func() {
 			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(client)).Serialize())
 		}()
@@ -100,8 +103,12 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 	for command := range app.commandHandlers {
 		commands = append(commands, command)
 	}
-	websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
+	websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize()) */
 	return nil
+}
+
+func (app *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
+
 }
 
 func (app *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {

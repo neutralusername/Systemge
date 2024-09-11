@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
@@ -37,7 +38,7 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
-	websocketClientLocations map[string]string
+	websocketClientLocations map[string]string // websocketId -> location ("" == dashboard/landing page)
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
@@ -120,9 +121,12 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			"start":   app.startHandler,
 			"stop":    app.stopHandler,
 			"command": app.commandHandler,
-			"gc":      app.gcHandler,
+			"changeLocation": func(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
+
+			},
+			"gc": app.gcHandler,
 		},
-		app.onWebsocketConnectHandler, nil,
+		app.onWebsocketConnectHandler, app.onWebsocketDisconnectHandler,
 	)
 	app.httpServer = HTTPServer.New(name+"_httpServer",
 		app.config.HTTPServerConfig,
