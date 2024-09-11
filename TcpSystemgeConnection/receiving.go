@@ -7,98 +7,84 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpConnection) receiveLoop() {
+func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
-
 	for {
 		select {
 		case <-connection.closeChannel:
 			if connection.infoLogger != nil {
 				connection.infoLogger.Log("Stopped receiving messages")
 			}
-			connection.Close()
+			close(connection.receiveLoopStopChannel)
 			return
 		default:
-			connection.unprocessedMessages.Add(1)
-			messageBytes, err := connection.receive()
-			if err != nil {
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
+			select {
+			case <-connection.closeChannel:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Stopped receiving messages")
 				}
-				connection.unprocessedMessages.Add(-1)
-				if Tcp.IsConnectionClosed(err) {
-					connection.Close()
-					return
-				}
-				continue
-			}
-			connection.messageId++
-			messageId := connection.messageId
-			if infoLogger := connection.infoLogger; infoLogger != nil {
-				infoLogger.Log("Received message #" + Helpers.Uint64ToString(messageId))
-			}
-			if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-				connection.byteRateLimiterExceeded.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log("Byte rate limiter exceeded for message #" + Helpers.Uint64ToString(messageId))
-				}
-				continue
-			}
-			if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
-				connection.messageRateLimiterExceeded.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log("Message rate limiter exceeded for message #" + Helpers.Uint64ToString(messageId))
-				}
-				continue
-			}
-			message, err := Message.Deserialize(messageBytes, connection.GetName())
-			if err != nil {
-				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if warningLogger := connection.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("failed to deserialize message #"+Helpers.Uint64ToString(messageId), err).Error())
-				}
-				continue
-			}
-			if err := connection.validateMessage(message); err != nil {
-				connection.invalidMessagesReceived.Add(1)
-				connection.unprocessedMessages.Add(-1)
-				if warningLogger := connection.warningLogger; warningLogger != nil {
-					warningLogger.Log(Error.New("failed to validate message #"+Helpers.Uint64ToString(messageId), err).Error())
-				}
-				continue
-			}
-			if infoLogger := connection.infoLogger; infoLogger != nil {
-				infoLogger.Log("queueing message #" + Helpers.Uint64ToString(messageId) + " for processing")
-			}
-			if message.IsResponse() {
-				if err := connection.addSyncResponse(message); err != nil {
-					connection.invalidSyncResponsesReceived.Add(1)
-					if warningLogger := connection.warningLogger; warningLogger != nil {
-						warningLogger.Log(Error.New("failed to add sync response for message #"+Helpers.Uint64ToString(messageId), err).Error())
+				close(connection.receiveLoopStopChannel)
+				return
+			case <-connection.processingChannelSemaphore.GetChannel():
+				messageBytes, err := connection.receive()
+				if err != nil {
+					if Tcp.IsConnectionClosed(err) {
+						close(connection.receiveLoopStopChannel)
+						connection.Close()
+						return
 					}
-				} else {
-					connection.validMessagesReceived.Add(1)
-				}
-				connection.unprocessedMessages.Add(-1)
-				continue
-			} else {
-				connection.validMessagesReceived.Add(1)
-				if connection.config.ProcessingChannelCapacity > 0 && len(connection.processingChannel) == cap(connection.processingChannel) {
 					if connection.warningLogger != nil {
-						connection.warningLogger.Log("Processing channel capacity reached for message #" + Helpers.Uint64ToString(messageId))
+						connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
 					}
+					continue
 				}
-				connection.processingChannel <- &messageInProcess{
-					message: message,
-					id:      messageId,
+				if err := connection.addMessageToProcessingChannel(messageBytes); err != nil {
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
+					}
+					connection.processingChannelSemaphore.ReleaseBlocking()
 				}
 			}
+
 		}
+	}
+}
+
+func (connection *TcpConnection) addMessageToProcessingChannel(messageBytes []byte) error {
+	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+		connection.byteRateLimiterExceeded.Add(1)
+		return Error.New("byte rate limiter exceeded", nil)
+	}
+	if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
+		connection.messageRateLimiterExceeded.Add(1)
+		return Error.New("message rate limiter exceeded", nil)
+	}
+	message, err := Message.Deserialize(messageBytes, connection.GetName())
+	if err != nil {
+		connection.invalidMessagesReceived.Add(1)
+		return Error.New("failed to deserialize message", err)
+	}
+	if err := connection.validateMessage(message); err != nil {
+		connection.invalidMessagesReceived.Add(1)
+		return Error.New("failed to validate message", err)
+	}
+	if message.IsResponse() {
+		if err := connection.addSyncResponse(message); err != nil {
+			connection.invalidSyncResponsesReceived.Add(1)
+			return Error.New("failed to add sync response", err)
+		}
+		connection.validMessagesReceived.Add(1)
+		connection.processingChannelSemaphore.ReleaseBlocking()
+		return nil
+	} else {
+		connection.validMessagesReceived.Add(1)
+		connection.processingChannel <- message
+		if connection.infoLogger != nil {
+			connection.infoLogger.Log("Added message \"" + Helpers.GetPointerId(message) + "\" to processing channel")
+		}
+		return nil
 	}
 }
 

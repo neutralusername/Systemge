@@ -10,8 +10,8 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *TcpConnection) UnprocessedMessagesCount() int64 {
-	return connection.unprocessedMessages.Load()
+func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
+	return connection.processingChannelSemaphore.AvailableAcquires()
 }
 
 func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
@@ -24,13 +24,17 @@ func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 	if connection.config.TcpReceiveTimeoutMs > 0 {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)
 	}
+
 	select {
 	case message := <-connection.processingChannel:
-		if connection.infoLogger != nil {
-			connection.infoLogger.Log("Returned message # in GetNextMessage" + Helpers.Uint64ToString(message.id))
+		if message == nil {
+			return nil, Error.New("Connection closed and no remaining messages", nil)
 		}
-		connection.unprocessedMessages.Add(-1)
-		return message.message, nil
+		connection.processingChannelSemaphore.ReleaseBlocking()
+		if connection.infoLogger != nil {
+			connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
+		}
+		return message, nil
 	case <-timeout:
 		return nil, Error.New("Timeout while waiting for message", nil)
 	}
@@ -67,12 +71,23 @@ func (connection *TcpConnection) StartProcessingLoopSequentially(messageHandler 
 		for {
 			select {
 			case message := <-connection.processingChannel:
-				if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
+				if message == nil {
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Reached end of messages. Stopping processing messages sequentially")
+					}
+					connection.StopProcessingLoop()
+					return
+				}
+				connection.processingChannelSemaphore.ReleaseBlocking()
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in processing loop")
+				}
+				if err := connection.ProcessMessage(message, messageHandler); err != nil {
 					if connection.errorLogger != nil {
-						connection.errorLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
+						connection.errorLogger.Log(Error.New("Failed to process message \""+Helpers.GetPointerId(message)+"\"", err).Error())
 					}
 					if connection.mailer != nil {
-						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error()))
+						err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to process message \""+Helpers.GetPointerId(message)+"\"", err).Error()))
 						if err != nil {
 							if connection.errorLogger != nil {
 								connection.errorLogger.Log(Error.New("Failed to send mail", err).Error())
@@ -81,10 +96,9 @@ func (connection *TcpConnection) StartProcessingLoopSequentially(messageHandler 
 					}
 				} else {
 					if infoLogger := connection.infoLogger; infoLogger != nil {
-						infoLogger.Log("Processed message #" + Helpers.Uint64ToString(message.id))
+						infoLogger.Log("Successfully processed message \"" + Helpers.GetPointerId(message) + "\"")
 					}
 				}
-				connection.unprocessedMessages.Add(-1)
 			case <-processingLoopStopChannel:
 				if connection.infoLogger != nil {
 					connection.infoLogger.Log("Stopping processing messages sequentially")
@@ -113,13 +127,24 @@ func (connection *TcpConnection) StartProcessingLoopConcurrently(messageHandler 
 		for {
 			select {
 			case message := <-connection.processingChannel:
+				if message == nil {
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Reached end of messages. Stopping processing messages concurrently")
+					}
+					connection.StopProcessingLoop()
+					return
+				}
+				connection.processingChannelSemaphore.ReleaseBlocking()
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in processing loop")
+				}
 				go func() {
-					if err := connection.ProcessMessage(message.message, messageHandler); err != nil {
+					if err := connection.ProcessMessage(message, messageHandler); err != nil {
 						if connection.errorLogger != nil {
-							connection.errorLogger.Log(Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error())
+							connection.errorLogger.Log(Error.New("Failed to process message \""+Helpers.GetPointerId(message)+"\"", err).Error())
 						}
 						if connection.mailer != nil {
-							err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to process message #"+Helpers.Uint64ToString(message.id), err).Error()))
+							err := connection.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to process message \""+Helpers.GetPointerId(message)+"\"", err).Error()))
 							if err != nil {
 								if connection.errorLogger != nil {
 									connection.errorLogger.Log(Error.New("Failed to send mail", err).Error())
@@ -128,10 +153,9 @@ func (connection *TcpConnection) StartProcessingLoopConcurrently(messageHandler 
 						}
 					} else {
 						if infoLogger := connection.infoLogger; infoLogger != nil {
-							infoLogger.Log("Processed message #" + Helpers.Uint64ToString(message.id))
+							infoLogger.Log("Successfully processed message \"" + Helpers.GetPointerId(message) + "\"")
 						}
 					}
-					connection.unprocessedMessages.Add(-1)
 				}()
 			case <-processingLoopStopChannel:
 				if connection.infoLogger != nil {

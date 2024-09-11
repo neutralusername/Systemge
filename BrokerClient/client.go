@@ -7,7 +7,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
@@ -33,8 +32,6 @@ type Client struct {
 	stopChannel chan bool
 
 	messageHandler SystemgeConnection.MessageHandler
-
-	dashboardClient *Dashboard.Client
 
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
@@ -108,32 +105,6 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	if config.DashboardClientConfig != nil {
-		defaultCommands := messageBrokerClient.GetDefaultCommands()
-		for key, value := range dashboardCommands {
-			// may override the default commands
-			defaultCommands[key] = value
-		}
-		messageBrokerClient.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
-			config.DashboardClientConfig,
-			messageBrokerClient.Start, messageBrokerClient.Stop,
-			messageBrokerClient.RetrieveMetrics, messageBrokerClient.GetStatus,
-			defaultCommands,
-		)
-		if err := messageBrokerClient.StartDashboardClient(); err != nil {
-			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())
-			}
-			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to start dashboard client", err).Error())); err != nil {
-					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
-					}
-				}
-			}
-		}
-	}
-
 	for _, asyncTopic := range config.AsyncTopics {
 		messageBrokerClient.subscribedAsyncTopics[asyncTopic] = true
 		messageBrokerClient.topicResolutions[asyncTopic] = make(map[string]*connection)
@@ -143,20 +114,6 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		messageBrokerClient.topicResolutions[syncTopic] = make(map[string]*connection)
 	}
 	return messageBrokerClient
-}
-
-func (messageBrokerClient *Client) StartDashboardClient() error {
-	if messageBrokerClient.dashboardClient == nil {
-		return Error.New("Dashboard client is not configured", nil)
-	}
-	return messageBrokerClient.dashboardClient.Start()
-}
-
-func (messageBrokerClient *Client) StopDashboardClient() error {
-	if messageBrokerClient.dashboardClient == nil {
-		return Error.New("Dashboard client is not configured", nil)
-	}
-	return messageBrokerClient.dashboardClient.Stop()
 }
 
 func (messageBrokerClient *Client) Start() error {

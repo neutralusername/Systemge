@@ -21,3 +21,12 @@ func ToString(status int) string {
 		return "UNKNOWN"
 	}
 }
+
+func IsValidStatus(status int) bool {
+	switch status {
+	case NON_EXISTENT, STOPPED, PENDING, STARTED:
+		return true
+	default:
+		return false
+	}
+}

@@ -48,7 +48,7 @@ type SystemgeConnection interface {
 	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)
 	SyncRequestBlocking(topic string, payload string) (*Message.Message, error)
 	SyncResponse(message *Message.Message, success bool, payload string) error
-	UnprocessedMessagesCount() int64
+	UnprocessedMessagesCount() uint32
 }
 
 type AsyncMessageHandler func(SystemgeConnection, *Message.Message)

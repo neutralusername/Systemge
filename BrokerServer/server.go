@@ -7,7 +7,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -27,8 +26,7 @@ type Server struct {
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
 
-	messageHandler  SystemgeConnection.MessageHandler
-	dashboardClient *Dashboard.Client
+	messageHandler SystemgeConnection.MessageHandler
 
 	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 	connectionsSyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
@@ -93,28 +91,6 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 		server.onSystemgeConnection, server.onSystemgeDisconnection,
 	)
 
-	if server.config.DashboardClientConfig != nil {
-		server.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
-			server.config.DashboardClientConfig,
-			server.systemgeServer.Start, server.systemgeServer.Stop,
-			server.RetrieveMetrics, server.systemgeServer.GetStatus,
-			server.GetDefaultCommands(),
-		)
-
-		if err := server.StartDashboardClient(); err != nil {
-			if server.errorLogger != nil {
-				server.errorLogger.Log(Error.New("failed to start dashboard client", err).Error())
-			}
-			if server.mailer != nil {
-				if err := server.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed to start dashboard client", err).Error())); err != nil {
-					if server.errorLogger != nil {
-						server.errorLogger.Log(Error.New("failed to send mail", err).Error())
-					}
-				}
-			}
-		}
-	}
-
 	server.messageHandler = SystemgeConnection.NewSequentialMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
 		Message.TOPIC_SUBSCRIBE_ASYNC:   server.subscribeAsync,
 		Message.TOPIC_UNSUBSCRIBE_ASYNC: server.unsubscribeAsync,
@@ -125,20 +101,6 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 	server.AddSyncTopics(server.config.SyncTopics)
 
 	return server
-}
-
-func (server *Server) StartDashboardClient() error {
-	if server.dashboardClient == nil {
-		return Error.New("dashboard client is not enabled", nil)
-	}
-	return server.dashboardClient.Start()
-}
-
-func (server *Server) StopDashboardClient() error {
-	if server.dashboardClient == nil {
-		return Error.New("dashboard client is not enabled", nil)
-	}
-	return server.dashboardClient.Stop()
 }
 
 func (server *Server) Start() error {

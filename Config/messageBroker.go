@@ -3,8 +3,7 @@ package Config
 import "encoding/json"
 
 type MessageBrokerServer struct {
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
-	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *optional* (it is a valid choice to leave this nil and initialize your own DashboardClient)
+	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
 
 	AsyncTopics []string `json:"asyncTopics"`
 	SyncTopics  []string `json:"syncTopics"`
@@ -24,8 +23,6 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 type MessageBrokerClient struct {
 	ConnectionConfig         *TcpSystemgeConnection `json:"outConnectionConfig"`      // *required*
 	ResolverConnectionConfig *TcpSystemgeConnection `json:"resolverConnectionConfig"` // *required*
-
-	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *optional* (it is a valid choice to leave this nil and initialize your own DashboardClient)
 
 	ResolverClientConfigs []*TcpClient `json:"resolverClientConfigs"`
 
@@ -49,8 +46,7 @@ func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
 }
 
 type MessageBrokerResolver struct {
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
-	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *optional* (it is a valid choice to leave this nil and initialize your own DashboardClient)
+	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*

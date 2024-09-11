@@ -7,7 +7,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Dashboard"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -23,8 +22,6 @@ type Resolver struct {
 	config *Config.MessageBrokerResolver
 
 	systemgeServer *SystemgeServer.SystemgeServer
-
-	dashboardClient *Dashboard.Client
 
 	asyncTopicEndpoints map[string]*Config.TcpClient
 	syncTopicEndpoints  map[string]*Config.TcpClient
@@ -108,27 +105,6 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 		resolver.onConnect, nil,
 	)
 
-	if config.DashboardClientConfig != nil {
-		resolver.dashboardClient = Dashboard.NewClient(name+"_dashboardClient",
-			config.DashboardClientConfig,
-			resolver.systemgeServer.Start, resolver.systemgeServer.Stop,
-			resolver.GetMetrics, resolver.systemgeServer.GetStatus,
-			resolver.GetDefaultCommands(),
-		)
-		if err := resolver.StartDashboardClient(); err != nil {
-			if resolver.errorLogger != nil {
-				resolver.errorLogger.Log(Error.New("Failed to start dashboard client", err).Error())
-			}
-			if resolver.mailer != nil {
-				if err := resolver.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to start dashboard client", err).Error())); err != nil {
-					if resolver.errorLogger != nil {
-						resolver.errorLogger.Log(Error.New("Failed to send email", err).Error())
-					}
-				}
-			}
-		}
-	}
-
 	return resolver
 }
 
@@ -138,20 +114,6 @@ func (resolver *Resolver) Start() error {
 
 func (resolver *Resolver) Stop() error {
 	return resolver.systemgeServer.Stop()
-}
-
-func (resolver *Resolver) StartDashboardClient() error {
-	if resolver.dashboardClient == nil {
-		return Error.New("Dashboard client is not configured", nil)
-	}
-	return resolver.dashboardClient.Start()
-}
-
-func (resolver *Resolver) StopDashboardClient() error {
-	if resolver.dashboardClient == nil {
-		return Error.New("Dashboard client is not configured", nil)
-	}
-	return resolver.dashboardClient.Stop()
 }
 
 func (resolver *Resolver) GetStatus() int {

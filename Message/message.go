@@ -24,7 +24,7 @@ type messageData struct {
 const TOPIC_SUCCESS = "success"
 const TOPIC_FAILURE = "failure"
 
-const TOPIC_GET_INTRODUCTION = "get_introduction"
+const TOPIC_INTRODUCTION = "get_introduction"
 const TOPIC_GET_STATUS = "get_service_status"
 const TOPIC_GET_METRICS = "get_metrics"
 const TOPIC_START = "start_service"
