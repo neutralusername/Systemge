@@ -71,7 +71,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	if config.ServerTcpSystemgeConnectionConfig == nil {
 		panic(Error.New("ConnectionConfig is required", nil))
 	}
-	if len(config.ResolverTcpClientConfig) == 0 {
+	if len(config.ResolverTcpClientConfigs) == 0 {
 		panic(Error.New("At least one ResolverEndpoint is required", nil))
 	}
 

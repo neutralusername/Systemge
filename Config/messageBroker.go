@@ -24,7 +24,7 @@ type MessageBrokerClient struct {
 	ServerTcpSystemgeConnectionConfig   *TcpSystemgeConnection `json:"serverTcpSystemgeConnectionConfig"`   // *required*
 	ResolverTcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"resolverTcpSystemgeConnectionConfig"` // *required*
 
-	ResolverTcpClientConfig []*TcpClient `json:"resolverTcpClientConfig"`
+	ResolverTcpClientConfigs []*TcpClient `json:"resolverTcpClientConfigs"`
 
 	TopicResolutionLifetimeMs uint64 `json:"topicResolutionLifetimeMs"` // default: 0 == until disconnect
 

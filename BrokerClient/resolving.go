@@ -11,7 +11,7 @@ import (
 
 func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTopic bool) []*Config.TcpClient {
 	endpoints := []*Config.TcpClient{}
-	for _, resolverEndpoint := range messageBrokerclient.config.ResolverTcpClientConfig {
+	for _, resolverEndpoint := range messageBrokerclient.config.ResolverTcpClientConfigs {
 		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {
