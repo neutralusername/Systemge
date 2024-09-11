@@ -1,0 +1,2 @@
+sometimes no dashboard clients are added to the dashboard server on start up (of chat sample)
+sometimes individual clients won't start when ordered
