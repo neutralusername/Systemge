@@ -38,6 +38,7 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
+	websocketLocationMutex   sync.Mutex
 	websocketClientLocations map[string]string // websocketId -> location ("" == dashboard/landing page)
 
 	infoLogger    *Tools.Logger
