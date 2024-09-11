@@ -224,7 +224,7 @@ export class root extends React.Component {
         addModule.metrics = {
             [new Date().valueOf()]: metrics,
         }
-        addModule.commands = Object.keys(addModule.commands);
+        addModule.commands
         this.setState({
             modules: {
                 ...this.state.modules,
@@ -303,6 +303,7 @@ export class root extends React.Component {
     }
 
     handleOpen() {
+        this.WS_CONNECTION.send(this.constructMessage("changeLocation", window.location.pathname.slice(1)));
         let myLoop = () => {
             this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
             setTimeout(myLoop, 1000 * 60 * 1);

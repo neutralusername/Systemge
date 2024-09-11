@@ -104,26 +104,15 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 	return nil
 }
 
-func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-
-	server.websocketClientLocations[websocketClient.GetId()] = ""
-	server.propagateDashboardData(websocketClient)
-	return nil
-}
-
 func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	connectedClient := server.connectedClients[message.GetPayload()]
-	if connectedClient != nil || message.GetPayload() == "" {
-		return Error.New("Invalid location", nil)
-	}
-	server.websocketClientLocations[client.GetId()] = message.GetPayload()
 	if message.GetPayload() == "" {
+		server.websocketClientLocations[client.GetId()] = message.GetPayload()
 		server.propagateDashboardData(client)
-	} else {
+	} else if connectedClient != nil {
+		server.websocketClientLocations[client.GetId()] = message.GetPayload()
 		server.propagateClientData(client, connectedClient)
 	}
 	return nil
@@ -143,7 +132,14 @@ func (server *Server) propagateDashboardData(websocketClient *WebsocketServer.We
 }
 
 func (server *Server) propagateClientData(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) {
-	// TODO:
+	go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
+}
+
+func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	server.websocketClientLocations[websocketClient.GetId()] = ""
+	return nil
 }
 
 func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
