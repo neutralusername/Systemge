@@ -36,10 +36,10 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	println("t1")
 	// a response is never received
 	message, err := connection.GetNextMessage()
+	println("t2")
 	if err != nil {
 		return nil, Error.New("Failed to get next message", err)
 	}
-	println("t2")
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
 	}

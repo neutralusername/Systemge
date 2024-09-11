@@ -82,12 +82,9 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	if message.GetPayload() == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	println("t1")
-	// sending operation blocking indefinitely
 	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	println("t2")
 	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn), nil
 }
