@@ -56,8 +56,16 @@ func (app *Server) registerModuleHttpHandlers(connectedClient *connectedClient) 
 	}
 }
 
-func (app *Server) unregisterModuleHttpHandlers(clientName string) {
-	app.httpServer.RemoveRoute("/" + clientName)
-	app.httpServer.RemoveRoute("/" + clientName + "/command/")
-	app.httpServer.RemoveRoute("/" + clientName + "/command")
+func (app *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
+	app.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
+
+	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
+	if err != nil {
+		app.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+		return
+	}
+	for _, command := range commands {
+		app.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
+		app.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
+	}
 }

@@ -32,9 +32,9 @@ func (app *Server) onSystemgeConnectHandler(connection SystemgeConnection.System
 
 func (app *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	app.mutex.Lock()
-	if _, ok := app.connectedClients[connection.GetName()]; ok {
+	if connectedClient, ok := app.connectedClients[connection.GetName()]; ok {
 		delete(app.connectedClients, connection.GetName())
-		app.unregisterModuleHttpHandlers(connection.GetName())
+		app.unregisterModuleHttpHandlers(connectedClient)
 	}
 	app.mutex.Unlock()
 	app.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
