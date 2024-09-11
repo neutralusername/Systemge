@@ -37,7 +37,7 @@ func (server *Server) metricsUpdateRoutine() {
 				go server.clientMetricsUpdate(connectedClient)
 			}
 		}
-		if server.config.Metrics {
+		if server.config.DashboardMetrics {
 			go server.dashboardMetricsUpdate()
 		}
 		server.mutex.RUnlock()

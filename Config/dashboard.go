@@ -14,11 +14,11 @@ type DashboardServer struct {
 
 	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
 
-	Metrics           bool `json:"metrics"`           // default: false
-	Commands          bool `json:"commands"`          // default: false
-	SystemgeCommands  bool `json:"systemgeCommands"`  // default: false
-	HttpCommands      bool `json:"httpCommands"`      // default: false
-	WebsocketCommands bool `json:"websocketCommands"` // default: false
+	DashboardMetrics           bool `json:"dashboardMetrics"`           // default: false
+	DashboardCommands          bool `json:"dashboardCommands"`          // default: false
+	DashboardSystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false
+	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
+	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
 	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
 	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled

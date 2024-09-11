@@ -129,7 +129,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
-	if app.config.Commands {
+	if app.config.DashboardCommands {
 		app.commandHandlers = Commands.Handlers{
 			"dashboardMetricsUpdate": func(args []string) (string, error) {
 				app.dashboardMetricsUpdate()
@@ -173,19 +173,19 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			},
 		}
 	}
-	if app.config.SystemgeCommands {
+	if app.config.DashboardSystemgeCommands {
 		systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
 		for command, handler := range systemgeDefaultCommands {
 			app.commandHandlers["systemgeServer_"+command] = handler
 		}
 	}
-	if app.config.WebsocketCommands {
+	if app.config.DashboardWebsocketCommands {
 		httpDefaultCommands := app.httpServer.GetDefaultCommands()
 		for command, handler := range httpDefaultCommands {
 			app.commandHandlers["httpServer_"+command] = handler
 		}
 	}
-	if app.config.HttpCommands {
+	if app.config.DashboardHttpCommands {
 		webSocketDefaultCommands := app.websocketServer.GetDefaultCommands()
 		for command, handler := range webSocketDefaultCommands {
 			app.commandHandlers["websocketServer_"+command] = handler
