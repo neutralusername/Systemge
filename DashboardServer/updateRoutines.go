@@ -72,7 +72,7 @@ func (server *Server) clientStatusUpdate(connectedClient *connectedClient) {
 		}
 		return
 	}
-	server.websocketServer.Broadcast(Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
+	server.websocketServer.Multicast(server.getWebsocketClientsOfLocation(connectedClient.connection.GetName()), Message.NewAsync("statusUpdate", Helpers.JsonMarshal(
 		DashboardHelpers.StatusUpdate{
 			Name:   connectedClient.connection.GetName(),
 			Status: status,
@@ -106,18 +106,18 @@ func (server *Server) clientMetricsUpdate(connectedClient *connectedClient) {
 		return
 	}
 	metrics.Name = connectedClient.connection.GetName()
-	server.websocketServer.Broadcast(Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
+	server.websocketServer.Multicast(server.getWebsocketClientsOfLocation(connectedClient.connection.GetName()), Message.NewAsync("metricsUpdate", Helpers.JsonMarshal(metrics)))
 }
 
 func (server *Server) dashboardMetricsUpdate() {
 	systemgeMetrics := server.RetrieveSystemgeMetrics()
-	server.websocketServer.Broadcast(Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
+	server.websocketServer.Multicast(server.getWebsocketClientsOfLocation(""), Message.NewAsync("dashboardSystemgeMetrics", Helpers.JsonMarshal(systemgeMetrics)))
 
 	websocketMetrics := server.RetrieveWebsocketMetrics()
-	server.websocketServer.Broadcast(Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
+	server.websocketServer.Multicast(server.getWebsocketClientsOfLocation(""), Message.NewAsync("dashboardWebsocketMetrics", Helpers.JsonMarshal(websocketMetrics)))
 
 	httpMetrics := server.RetrieveHttpMetrics()
-	server.websocketServer.Broadcast(Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
+	server.websocketServer.Multicast(server.getWebsocketClientsOfLocation(""), Message.NewAsync("dashboardHttpMetrics", Helpers.JsonMarshal(httpMetrics)))
 }
 
 func (server *Server) goroutineUpdateRoutine() {

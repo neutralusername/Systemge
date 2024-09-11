@@ -42,6 +42,18 @@ type Server struct {
 	mailer        *Tools.Mailer
 }
 
+func (server *Server) getWebsocketClientsOfLocation(location string) []string {
+	clients := []string{}
+	server.mutex.RLock()
+	defer server.mutex.RUnlock()
+	for websocketId, loc := range server.websocketClientLocations {
+		if loc == location {
+			clients = append(clients, websocketId)
+		}
+	}
+	return clients
+}
+
 func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
 	if config == nil {
 		panic("config is nil")
