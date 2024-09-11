@@ -24,6 +24,8 @@ func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 	if connection.config.TcpReceiveTimeoutMs > 0 {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)
 	}
+
+	// will block forever if no message is available and connection closes (in case of no timeout)
 	select {
 	case message := <-connection.processingChannel:
 		if connection.infoLogger != nil {
