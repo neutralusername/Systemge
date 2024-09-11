@@ -113,14 +113,14 @@ func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.Webs
 	return nil
 }
 
-func (app *Server) propagateDashboardData(websocketClient *WebsocketServer.WebsocketClient) {
-	for _, connectedClient := range app.connectedClients {
+func (server *Server) propagateDashboardData(websocketClient *WebsocketServer.WebsocketClient) {
+	for _, connectedClient := range server.connectedClients {
 		go func() {
 			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
 		}()
 	}
 	commands := []string{}
-	for command := range app.commandHandlers {
+	for command := range server.commandHandlers {
 		commands = append(commands, command)
 	}
 	go websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
