@@ -73,7 +73,6 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 		return nil
 	} else {
 		connection.processingChannelSemaphore.AcquireBlocking()
-		//i don't like the fact, that acquiring (any) mutex is neccessary here. will (try to) find a better solution. i think this reduces performance by about 5%
 		connection.closedMutex.Lock()
 		defer connection.closedMutex.Unlock()
 		if connection.closed {
