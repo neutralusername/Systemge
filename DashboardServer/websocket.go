@@ -94,16 +94,16 @@ func (app *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.We
 
 	app.websocketClientLocations[websocketClient.GetId()] = ""
 
-	/* for _, client := range app.clients {
+	for _, connectedClient := range app.connectedClients {
 		go func() {
-			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(client)).Serialize())
+			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
 		}()
 	}
 	commands := []string{}
 	for command := range app.commandHandlers {
 		commands = append(commands, command)
 	}
-	websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize()) */
+	go websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
 	return nil
 }
 
