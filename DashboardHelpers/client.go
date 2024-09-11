@@ -25,6 +25,24 @@ func HasStatus(client interface{}) bool {
 	}
 }
 
+func HasStart(client interface{}) bool {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return true
+	default:
+		return false
+	}
+}
+
+func HasStop(client interface{}) bool {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return true
+	default:
+		return false
+	}
+}
+
 func GetCommands(client interface{}) ([]string, error) {
 	commands := []string{}
 	switch client.(type) {

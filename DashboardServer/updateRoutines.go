@@ -147,3 +147,15 @@ func (server *Server) heapUpdateRoutine() {
 		}
 	}
 }
+
+func (server *Server) getWebsocketClientsOfLocation(location string) []string {
+	clients := []string{}
+	server.mutex.RLock()
+	defer server.mutex.RUnlock()
+	for websocketId, loc := range server.websocketClientLocations {
+		if loc == location {
+			clients = append(clients, websocketId)
+		}
+	}
+	return clients
+}

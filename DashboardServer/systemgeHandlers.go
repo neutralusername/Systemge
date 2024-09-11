@@ -37,5 +37,6 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 		server.unregisterModuleHttpHandlers(connectedClient)
 	}
 	server.mutex.Unlock()
+
 	server.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
 }
