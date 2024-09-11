@@ -15,11 +15,6 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type messageInProcess struct {
-	message *Message.Message
-	id      uint64
-}
-
 type TcpConnection struct {
 	name       string
 	config     *Config.TcpSystemgeConnection
@@ -45,14 +40,12 @@ type TcpConnection struct {
 	closeChannel chan bool
 
 	processMutex               sync.Mutex
-	processingChannel          chan *messageInProcess
+	processingChannel          chan *Message.Message
 	processingChannelSemaphore *Tools.Semaphore
 	processingLoopStopChannel  chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
-
-	messageId uint64
 
 	// metrics
 	bytesSent     atomic.Uint64
@@ -81,7 +74,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *T
 		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:               make(chan bool),
 		syncRequests:               make(map[string]*syncRequestStruct),
-		processingChannel:          make(chan *messageInProcess, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
+		processingChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		processingChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
 	}
 	if config.InfoLoggerPath != "" {

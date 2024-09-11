@@ -11,7 +11,6 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
-
 	for {
 		select {
 		case <-connection.closeChannel:
@@ -20,10 +19,9 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 			}
 			return
 		default:
-			err := connection.addMessageToProcessingChannel()
-			if err != nil {
+			if err := connection.addMessageToProcessingChannel(); err != nil {
 				if connection.warningLogger != nil {
-					connection.warningLogger.Log(Error.New("Failed to receive message", err).Error())
+					connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
 				}
 			}
 		}
@@ -37,11 +35,6 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 			connection.Close()
 		}
 		return Error.New("failed to receive message", err)
-	}
-	connection.messageId++
-	messageId := connection.messageId
-	if infoLogger := connection.infoLogger; infoLogger != nil {
-		infoLogger.Log("Received message #" + Helpers.Uint64ToString(messageId))
 	}
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		connection.byteRateLimiterExceeded.Add(1)
@@ -60,9 +53,6 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 		connection.invalidMessagesReceived.Add(1)
 		return Error.New("failed to validate message", err)
 	}
-	if infoLogger := connection.infoLogger; infoLogger != nil {
-		infoLogger.Log("queueing message #" + Helpers.Uint64ToString(messageId) + " for processing")
-	}
 	if message.IsResponse() {
 		if err := connection.addSyncResponse(message); err != nil {
 			connection.invalidSyncResponsesReceived.Add(1)
@@ -80,9 +70,9 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 			return Error.New("connection closed before message could be added to processing channel", nil)
 		}
 		connection.validMessagesReceived.Add(1)
-		connection.processingChannel <- &messageInProcess{
-			message: message,
-			id:      messageId,
+		connection.processingChannel <- message
+		if connection.infoLogger != nil {
+			connection.infoLogger.Log("Added message \"" + Helpers.GetPointerId(message) + "\" to processing channel")
 		}
 		return nil
 	}
