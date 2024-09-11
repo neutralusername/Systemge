@@ -191,7 +191,7 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["unprocessedMessageCount"] = func(args []string) (string, error) {
-		return Helpers.Uint32ToString(connection.processingChannelSemaphore.AvailablePermits()), nil
+		return Helpers.Uint32ToString(connection.processingChannelSemaphore.AvailableAcquires()), nil
 	}
 	commands["getNextMessage"] = func(args []string) (string, error) {
 		message, err := connection.GetNextMessage()

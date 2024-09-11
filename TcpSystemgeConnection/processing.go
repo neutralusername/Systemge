@@ -11,7 +11,7 @@ import (
 )
 
 func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
-	return connection.processingChannelSemaphore.AvailablePermits()
+	return connection.processingChannelSemaphore.AvailableAcquires()
 }
 
 func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {

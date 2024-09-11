@@ -4,7 +4,7 @@ type Semaphore struct {
 	channel chan struct{}
 }
 
-func (semaphore *Semaphore) AvailablePermits() uint32 {
+func (semaphore *Semaphore) AvailableAcquires() uint32 {
 	return uint32(cap(semaphore.channel)) - uint32(len(semaphore.channel))
 }
 
