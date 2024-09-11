@@ -45,7 +45,7 @@ func (connection *TcpConnection) addMessageToProcessingChannel() error {
 	if err != nil {
 		if Tcp.IsConnectionClosed(err) {
 			connection.Close()
-			// can cause repeated iterations which fail until the stop-method actually closed the netConn
+			// can cause repeated iterations which fail until the stop-method actually closed the stopChannel
 		}
 		return Error.New("failed to receive message", err)
 	}
