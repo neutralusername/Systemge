@@ -22,6 +22,7 @@ func (connection *TcpConnection) receiveLoop() {
 			return
 		default:
 			// block here until we can be sure that we can add a message to the processing channel
+			// which will allow us to close the channel in the .Close() method and prevent the race condition where a message is added after the channel is closed
 			connection.unprocessedMessages.Add(1)
 			messageBytes, err := connection.receive()
 			if err != nil {
