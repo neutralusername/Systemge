@@ -14,8 +14,6 @@ import (
 
 func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
 	netConn, err := listener.tcpListener.GetListener().Accept()
-	println("accepting Conn")
-	//^this print statement reduces the chance of this race condition occuring which is a hint
 	listener.connectionId++
 	connectionId := listener.connectionId
 	listener.connectionAttempts.Add(1)
@@ -84,9 +82,12 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	if message.GetPayload() == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
+	println("t1")
+	// sending operation blocking indefinitely
 	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
+	println("t2")
 	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn), nil
 }
