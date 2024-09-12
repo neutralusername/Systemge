@@ -36,102 +36,56 @@ export class root extends React.Component {
            
             pageType : PAGE_NULL,
             pageData : null,
+
+            setStateRoot : (state) => {
+                this.setState(state);
+            },
+
+            distinctColors : [
+                "#556b2f",
+                "#7f0000",
+                "#483d8b",
+                "#008000",
+                "#b8860b",
+                "#008b8b",
+                "#00008b",  
+                "#32cd32",
+                "#7f007f",
+                "#8fbc8f",
+                "#b03060",
+                "#ff0000",
+                "#ff8c00",
+                "#00ff00",
+                "#8a2be2",
+                "#dc143c",
+                "#00ffff",
+                "#00bfff",
+                "#0000ff",
+                "#adff2f",
+                "#da70d6",
+                "#ff00ff",
+                "#1e90ff",
+                "#f0e68c",
+                "#fa8072",
+                "#ffff54",
+                "#b0e0e6",
+                "#90ee90",
+                "#ff1493",
+                "#7b68ee",
+                "#ffb6c1",
+            ],
+            generateRandomDistinctColors: this.getRandomDistinctColors,
+            constructMessage: this.constructMessage,
+            getMultiLineGraph: this.getMultiLineGraph,
         };
 
         document.body.style.background = "#222426"
         document.body.style.color = "#ffffff"
+		Chart.defaults.color = "#ffffff";
         this.WS_CONNECTION = GetWebsocketConnection(WS_PORT, WS_PATTERN);
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
-		Chart.defaults.color = "#ffffff";
-        this.distinctColors = [
-            "#556b2f",
-            "#7f0000",
-            "#483d8b",
-            "#008000",
-            "#b8860b",
-            "#008b8b",
-            "#00008b",  
-            "#32cd32",
-            "#7f007f",
-            "#8fbc8f",
-            "#b03060",
-            "#ff0000",
-            "#ff8c00",
-            "#00ff00",
-            "#8a2be2",
-            "#dc143c",
-            "#00ffff",
-            "#00bfff",
-            "#0000ff",
-            "#adff2f",
-            "#da70d6",
-            "#ff00ff",
-            "#1e90ff",
-            "#f0e68c",
-            "#fa8072",
-            "#ffff54",
-            "#b0e0e6",
-            "#90ee90",
-            "#ff1493",
-            "#7b68ee",
-            "#ffb6c1",
-        ];
-    }
-
-    constructMessage(topic, payload) {
-        return JSON.stringify({
-            topic: topic,
-            payload: payload,
-        });
-    }
-
-    setStateRoot(state) {
-        this.setState(state);
-    }
-
-    generateHash(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length && i < 30; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0; // Convert to 32bit integer
-        }
-        return Math.abs(hash);
-    }
-
-    getRandomDistinctColors(strings) {
-        let colors = [];
-        strings.forEach(str => {
-            const hash = this.generateHash(str);
-            const colorIndex = hash % this.distinctColors.length;
-            colors.push(this.distinctColors[colorIndex]);
-        });
-
-        return colors;
-    }
-
-    setResponseMessage(message) {
-        let responseId = GenerateRandomAlphaNumericString(10);
-        let responseMessages = this.state.responseMessages;
-        responseMessages[responseId] = message;
-        let responseMessageTimeouts = this.state.responseMessageTimeouts;
-        if (responseMessageTimeouts[responseId] !== undefined) {
-            clearTimeout(responseMessageTimeouts[responseId]);
-        }
-        responseMessageTimeouts[responseId] = setTimeout(() => {
-            delete responseMessages[responseId];
-            delete responseMessageTimeouts[responseId];
-            this.setState({
-                responseMessages: responseMessages,
-                responseMessageTimeouts: responseMessageTimeouts,
-            });
-        }, 10000);
-        this.setState({
-            responseMessages: responseMessages,
-            responseMessageTimeouts: responseMessageTimeouts,
-        });
     }
 
     handleMessage(event) {
@@ -164,6 +118,72 @@ export class root extends React.Component {
         }
     }
 
+    handleClose() {
+        setTimeout(() => {
+            if (this.WS_CONNECTION.readyState === WebSocket.CLOSED) {
+                window.location.reload();
+            }
+        }, 2000);
+    }
+
+    handleOpen() {
+        this.WS_CONNECTION.send(this.constructMessage("changeLocation", window.location.pathname.slice(1)));
+        let myLoop = () => {
+            this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
+            setTimeout(myLoop, 1000 * 60 * 1);
+        };
+        setTimeout(myLoop, 1000 * 60 * 1);
+    }
+
+    constructMessage(topic, payload) {
+        return JSON.stringify({
+            topic: topic,
+            payload: payload,
+        });
+    }
+
+    generateHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length && i < 30; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return Math.abs(hash);
+    }
+
+    getRandomDistinctColors(strings) {
+        let colors = [];
+        strings.forEach(str => {
+            const hash = this.generateHash(str);
+            const colorIndex = hash % this.state.distinctColors.length;
+            colors.push(this.state.distinctColors[colorIndex]);
+        });
+
+        return colors;
+    }
+
+    setResponseMessage(message) {
+        let responseId = GenerateRandomAlphaNumericString(10);
+        let responseMessages = this.state.responseMessages;
+        responseMessages[responseId] = message;
+        let responseMessageTimeouts = this.state.responseMessageTimeouts;
+        if (responseMessageTimeouts[responseId] !== undefined) {
+            clearTimeout(responseMessageTimeouts[responseId]);
+        }
+        responseMessageTimeouts[responseId] = setTimeout(() => {
+            delete responseMessages[responseId];
+            delete responseMessageTimeouts[responseId];
+            this.setState({
+                responseMessages: responseMessages,
+                responseMessageTimeouts: responseMessageTimeouts,
+            });
+        }, 10000);
+        this.setState({
+            responseMessages: responseMessages,
+            responseMessageTimeouts: responseMessageTimeouts,
+        });
+    }
 
     getMultiLineGraph(chartName, metricNames, metrics) {
         let dataSet = {};
@@ -195,70 +215,25 @@ export class root extends React.Component {
         );
     }
 
-    handleClose() {
-        setTimeout(() => {
-            if (this.WS_CONNECTION.readyState === WebSocket.CLOSED) {
-                window.location.reload();
-            }
-        }, 2000);
-    }
-
-    handleOpen() {
-        this.WS_CONNECTION.send(this.constructMessage("changeLocation", window.location.pathname.slice(1)));
-        let myLoop = () => {
-            this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
-            setTimeout(myLoop, 1000 * 60 * 1);
-        };
-        setTimeout(myLoop, 1000 * 60 * 1);
-    }
-
     getContent() {
         switch(this.state.pageType) {
         case PAGE_NULL:
             return null;   
         case PAGE_DASHBOARD:
             return React.createElement(
-                Dashboard, {
-                    pageData: this.state.pageData,
-                    setStateRoot: this.setStateRoot.bind(this),
-                    WS_CONNECTION: this.WS_CONNECTION,
-                    setResponseMessage: this.setResponseMessage.bind(this),
-                    getMultiLineGraph: this.getMultiLineGraph.bind(this),
-                    handleStatusUpdate: this.handleStatusUpdate.bind(this),
-                },
+                SystemGeConnection, this.state,
             );
         case PAGE_CUSTOMSERVICE:
             return React.createElement(
-                CustomService, {
-                    pageData: this.state.pageData,
-                    setStateRoot: this.setStateRoot.bind(this),
-                    WS_CONNECTION: this.WS_CONNECTION,
-                    setResponseMessage: this.setResponseMessage.bind(this),
-                    getMultiLineGraph: this.getMultiLineGraph.bind(this),
-                    handleStatusUpdate: this.handleStatusUpdate.bind(this),
-                },
+                SystemGeConnection, this.state,
             );
         case PAGE_COMMAND:
             return React.createElement(
-                Command, {
-                    pageData: this.state.pageData,
-                    setStateRoot: this.setStateRoot.bind(this),
-                    WS_CONNECTION: this.WS_CONNECTION,
-                    setResponseMessage: this.setResponseMessage.bind(this),
-                    getMultiLineGraph: this.getMultiLineGraph.bind(this),
-                    handleStatusUpdate: this.handleStatusUpdate.bind(this),
-                },
+                SystemGeConnection, this.state,
             );
         case PAGE_SYSTEMGECONNECTION:
             return React.createElement(
-                SystemGeConnection, {
-                    pageData: this.state.pageData,
-                    setStateRoot: this.setStateRoot.bind(this),
-                    WS_CONNECTION: this.WS_CONNECTION,
-                    setResponseMessage: this.setResponseMessage.bind(this),
-                    getMultiLineGraph: this.getMultiLineGraph.bind(this),
-                    handleStatusUpdate: this.handleStatusUpdate.bind(this),
-                },
+                SystemGeConnection, this.state,
             );
         }
     }
