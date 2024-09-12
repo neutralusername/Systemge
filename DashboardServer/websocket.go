@@ -132,7 +132,10 @@ func (server *Server) propagateDashboardData(websocketClient *WebsocketServer.We
 }
 
 func (server *Server) propagateClientData(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) {
-	go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
+	switch connectedClient.client.(type) {
+	case *DashboardHelpers.CustomServiceClient:
+		go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
+	}
 }
 
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
