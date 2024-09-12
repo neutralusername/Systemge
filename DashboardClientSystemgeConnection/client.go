@@ -102,7 +102,7 @@ func (app *Client) Start() error {
 			Message.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				return "", Error.New("Cannot stop processing loop", nil)
 			},
-			Message.HANDLE_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+			Message.PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				return "", Error.New("Cannot handle next message", nil)
 			},
 			Message.UNPROCESSED_MESSAGES_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
