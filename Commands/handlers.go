@@ -10,10 +10,11 @@ func NewHandlers() Handlers {
 }
 
 // handlers of map2 will be merged into map1 and overwrite existing duplicate keys.
-func (map1 Handlers) Merge(map2 Handlers) {
+func (map1 Handlers) Merge(map2 Handlers) Handlers {
 	for key, value := range map2 {
 		map1[key] = value
 	}
+	return map1
 }
 
 func (map1 Handlers) Add(key string, value Handler) {
