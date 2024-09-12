@@ -25,17 +25,14 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		return Error.New("failed normalizing address", err)
 	}
 	endpointConfig.Address = normalizedAddress
-	client.waitGroup.Add(1)
 
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
 
 	if client.addressConnections[endpointConfig.Address] != nil {
-		client.waitGroup.Done()
 		return Error.New("Connection already exists", nil)
 	}
 	if client.connectionAttemptsMap[endpointConfig.Address] != nil {
-		client.waitGroup.Done()
 		return Error.New("Connection attempt already in progress", nil)
 	}
 	attempt := &ConnectionAttempt{
@@ -44,14 +41,10 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	}
 	client.connectionAttemptsMap[endpointConfig.Address] = attempt
 
+	client.waitGroup.Add(1)
+
 	go func() {
-		defer client.waitGroup.Done()
-
-		val := client.ongoingConnectionAttempts.Add(1)
-		if val == 1 {
-			client.status = Status.PENDING
-		}
-
+		client.status = Status.PENDING
 		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed connection attempts to \""+attempt.endpointConfig.Address+"\"", err).Error())
@@ -65,10 +58,11 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 				}
 			}
 		}
-		val = client.ongoingConnectionAttempts.Add(-1)
+		val := client.ongoingConnectionAttempts.Add(-1)
 		if val == 0 {
 			client.status = Status.STARTED
 		}
+		client.waitGroup.Done()
 	}()
 	return nil
 }
