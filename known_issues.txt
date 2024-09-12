@@ -1,0 +1,1 @@
+when starting a dashboard client and this client has a duplicate name on the server, the function won't throw an error as would be intuitive
