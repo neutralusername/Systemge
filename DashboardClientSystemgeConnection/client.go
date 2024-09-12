@@ -15,17 +15,15 @@ import (
 )
 
 type Client struct {
-	name                     string
-	config                   *Config.DashboardClient
-	serverSystemgeConnection SystemgeConnection.SystemgeConnection
+	name                              string
+	config                            *Config.DashboardClient
+	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
+	dashboardClientMessageHandler     *SystemgeConnection.TopicExclusiveMessageHandler
 
-	clientSystemgeConnection SystemgeConnection.SystemgeConnection
+	systemgeConnection SystemgeConnection.SystemgeConnection
+	messageHandler     SystemgeConnection.MessageHandler
 
 	commands Commands.Handlers
-
-	dashboardClientMessageHandler *SystemgeConnection.TopicExclusiveMessageHandler
-
-	messageHandler SystemgeConnection.MessageHandler
 
 	status int
 	mutex  sync.Mutex
@@ -48,11 +46,11 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 		panic("customService is nil")
 	}
 	app := &Client{
-		name:                     name,
-		config:                   config,
-		clientSystemgeConnection: systemgeConnection,
-		commands:                 commands,
-		messageHandler:           messageHandler,
+		name:               name,
+		config:             config,
+		systemgeConnection: systemgeConnection,
+		commands:           commands,
+		messageHandler:     messageHandler,
 	}
 	return app
 }
@@ -67,7 +65,7 @@ func (app *Client) Start() error {
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
-	app.serverSystemgeConnection = connection
+	app.dashboardServerSystemgeConnection = connection
 
 	message, err := connection.GetNextMessage()
 	if err != nil {
@@ -107,7 +105,7 @@ func (app *Client) Start() error {
 		nil, nil,
 		100,
 	)
-	app.serverSystemgeConnection.StartProcessingLoopSequentially(app.dashboardClientMessageHandler)
+	app.dashboardServerSystemgeConnection.StartProcessingLoopSequentially(app.dashboardClientMessageHandler)
 	app.status = Status.STARTED
 	return nil
 }
@@ -121,15 +119,15 @@ func (app *Client) introductionHandler() (string, error) {
 		DashboardHelpers.NewCustomServiceClient(
 			app.name,
 			app.commands.GetKeys(),
-			app.clientSystemgeConnection.GetStatus(),
-			app.clientSystemgeConnection.GetMetrics(),
+			app.systemgeConnection.GetStatus(),
+			app.systemgeConnection.GetMetrics(),
 		),
 		DashboardHelpers.CLIENT_CUSTOM_SERVICE,
 	).Marshal()), nil
 }
 
 func (app *Client) closeConnectionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.clientSystemgeConnection.Close()
+	err := app.systemgeConnection.Close()
 	if err != nil {
 		return "", err
 	}
@@ -137,11 +135,11 @@ func (app *Client) closeConnectionHandler(connection SystemgeConnection.Systemge
 }
 
 func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return Helpers.IntToString(app.clientSystemgeConnection.GetStatus()), nil
+	return Helpers.IntToString(app.systemgeConnection.GetStatus()), nil
 }
 
 func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return DashboardHelpers.NewMetrics(app.name, app.clientSystemgeConnection.GetMetrics()).Marshal(), nil
+	return DashboardHelpers.NewMetrics(app.name, app.systemgeConnection.GetMetrics()).Marshal(), nil
 }
 
 func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -153,7 +151,7 @@ func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeC
 }
 
 func (app *Client) startProcessingLoopSequentially(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.clientSystemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
+	err := app.systemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
 	if err != nil {
 		return "", err
 	}
@@ -161,7 +159,7 @@ func (app *Client) startProcessingLoopSequentially(connection SystemgeConnection
 }
 
 func (app *Client) startProcessingLoopConcurrently(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.clientSystemgeConnection.StartProcessingLoopConcurrently(app.messageHandler)
+	err := app.systemgeConnection.StartProcessingLoopConcurrently(app.messageHandler)
 	if err != nil {
 		return "", err
 	}
@@ -169,7 +167,7 @@ func (app *Client) startProcessingLoopConcurrently(connection SystemgeConnection
 }
 
 func (app *Client) stopProcessingLoop(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.clientSystemgeConnection.StopProcessingLoop()
+	err := app.systemgeConnection.StopProcessingLoop()
 	if err != nil {
 		return "", err
 	}
@@ -177,24 +175,24 @@ func (app *Client) stopProcessingLoop(connection SystemgeConnection.SystemgeConn
 }
 
 func (app *Client) processNextMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	message, err := app.clientSystemgeConnection.GetNextMessage()
+	message, err := app.systemgeConnection.GetNextMessage()
 	if err != nil {
 		return "", Error.New("Failed to get next message", err)
 	}
 	if message.GetSyncToken() == "" {
-		err := app.messageHandler.HandleAsyncMessage(app.clientSystemgeConnection, message)
+		err := app.messageHandler.HandleAsyncMessage(app.systemgeConnection, message)
 		if err != nil {
 			return "", Error.New("Failed to handle async message with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\"", err)
 		}
 		return "Handled async message with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\"", nil
 	}
-	if responsePayload, err := app.messageHandler.HandleSyncRequest(app.clientSystemgeConnection, message); err != nil {
-		if err := app.clientSystemgeConnection.SyncResponse(message, false, err.Error()); err != nil {
+	if responsePayload, err := app.messageHandler.HandleSyncRequest(app.systemgeConnection, message); err != nil {
+		if err := app.systemgeConnection.SyncResponse(message, false, err.Error()); err != nil {
 			return "", Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\" and failed to send failure response \""+err.Error()+"\"", err)
 		}
 		return "Failed to handle sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent failure response \"" + err.Error() + "\"", nil
 	} else {
-		if err := app.clientSystemgeConnection.SyncResponse(message, true, responsePayload); err != nil {
+		if err := app.systemgeConnection.SyncResponse(message, true, responsePayload); err != nil {
 			return "", Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\" and failed to send success response \""+responsePayload+"\"", err)
 		}
 		return "Handled sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent success response \"" + responsePayload + "\"", nil
@@ -202,7 +200,7 @@ func (app *Client) processNextMessage(connection SystemgeConnection.SystemgeConn
 }
 
 func (app *Client) unprocessedMessagesCount(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return Helpers.Uint32ToString(app.clientSystemgeConnection.UnprocessedMessagesCount()), nil
+	return Helpers.Uint32ToString(app.systemgeConnection.UnprocessedMessagesCount()), nil
 }
 
 func (app *Client) syncRequestHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -210,7 +208,7 @@ func (app *Client) syncRequestHandler(connection SystemgeConnection.SystemgeConn
 	if err != nil {
 		return "", Error.New("Failed to deserialize message", err)
 	}
-	response, err := app.clientSystemgeConnection.SyncRequestBlocking(message.GetTopic(), message.GetPayload())
+	response, err := app.systemgeConnection.SyncRequestBlocking(message.GetTopic(), message.GetPayload())
 	if err != nil {
 		return "", Error.New("Failed to complete sync request", err)
 	}
@@ -222,7 +220,7 @@ func (app *Client) asyncMessageHandler(connection SystemgeConnection.SystemgeCon
 	if err != nil {
 		return "", Error.New("Failed to deserialize message", err)
 	}
-	err = app.clientSystemgeConnection.AsyncMessage(message.GetTopic(), message.GetPayload())
+	err = app.systemgeConnection.AsyncMessage(message.GetTopic(), message.GetPayload())
 	if err != nil {
 		return "", Error.New("Failed to handle async message", err)
 	}
