@@ -99,6 +99,21 @@ func (app *Client) Start() error {
 			Message.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				return "", Error.New("Cannot start processing loop concurrently", nil)
 			},
+			Message.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return "", Error.New("Cannot stop processing loop", nil)
+			},
+			Message.HANDLE_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return "", Error.New("Cannot handle next message", nil)
+			},
+			Message.UNPROCESSED_MESSAGES_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return "", Error.New("Cannot get unprocessed messages count", nil)
+			},
+			Message.SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return "", Error.New("Cannot sync request", nil)
+			},
+			Message.ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return "", Error.New("Cannot handle async message", nil)
+			},
 		},
 		nil, nil,
 		100,
