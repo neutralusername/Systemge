@@ -35,9 +35,7 @@ export class root extends React.Component {
             responseMessageTimeouts: {},
            
             pageType : PAGE_NULL,
-            pageData : {
-
-            }
+            pageData : null,
         };
 
         document.body.style.background = "#222426"
