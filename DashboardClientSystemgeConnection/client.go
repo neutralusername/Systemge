@@ -115,11 +115,12 @@ func (app *Client) SetMessageHandler(messageHandler SystemgeConnection.MessageHa
 
 func (app *Client) introductionHandler() (string, error) {
 	return string(DashboardHelpers.NewIntroduction(
-		DashboardHelpers.NewCustomServiceClient(
+		DashboardHelpers.NewSystemgeConnectionClient(
 			app.name,
 			app.commands.GetKeys(),
 			app.systemgeConnection.GetStatus(),
 			app.systemgeConnection.GetMetrics(),
+			app.systemgeConnection.UnprocessedMessagesCount(),
 		),
 		DashboardHelpers.CLIENT_CUSTOM_SERVICE,
 	).Marshal()), nil
