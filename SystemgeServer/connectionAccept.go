@@ -54,6 +54,7 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 					continue
 				}
 			}
+			// i want the clients EstablishConnection to return a nil error past this point
 		}
 	}
 }
