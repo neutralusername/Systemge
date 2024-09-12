@@ -68,7 +68,7 @@ func (app *Client) Start() error {
 		connection.Close()
 		return Error.New("Expected introduction message", nil)
 	}
-	response, err := app.introductionHandler(connection, message)
+	response, err := app.introductionHandler()
 	if err != nil {
 		connection.Close()
 		return Error.New("Failed to handle introduction message", err)
@@ -107,7 +107,7 @@ func (app *Client) Stop() error {
 	return nil
 }
 
-func (app *Client) introductionHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (app *Client) introductionHandler() (string, error) {
 	return string(DashboardHelpers.NewIntroduction(
 		DashboardHelpers.NewCommandClient(
 			app.name,
