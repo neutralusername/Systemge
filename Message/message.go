@@ -29,6 +29,7 @@ const TOPIC_GET_STATUS = "get_service_status"
 const TOPIC_GET_METRICS = "get_metrics"
 const TOPIC_START = "start_service"
 const TOPIC_STOP = "stop_service"
+const TOPIC_CLOSE_CONNECTION = "close_connection"
 const TOPIC_EXECUTE_COMMAND = "execute_command"
 
 const TOPIC_SUBSCRIBE_ASYNC = "add_async_topics"
