@@ -181,20 +181,6 @@ export class root extends React.Component {
         );
     }
 
-    handleStatusUpdate(status) {
-        if (this.state.modules[status.name]) {
-            this.setState({
-                modules: {
-                    ...this.state.modules,
-                    [status.name]: {
-                        ...this.state.modules[status.name],
-                        status: status.status,
-                    },
-                },
-            });
-        }
-    }
-
     handleClose() {
         setTimeout(() => {
             if (this.WS_CONNECTION.readyState === WebSocket.CLOSED) {
