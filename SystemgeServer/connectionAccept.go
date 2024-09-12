@@ -67,6 +67,7 @@ func (server *SystemgeServer) acceptNextConnection() (SystemgeConnection.Systemg
 		server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
 	}
 
+	//systemge server recognizes duplicate names here. the client already returned a nil error in the EstablishConnection function
 	server.mutex.Lock()
 	if _, ok := server.clients[connection.GetName()]; ok {
 		server.mutex.Unlock()
