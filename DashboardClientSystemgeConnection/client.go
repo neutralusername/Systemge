@@ -29,7 +29,7 @@ type Client struct {
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, commands Commands.Handlers) *Client {
+func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, commands Commands.Handlers) *Client {
 	if config == nil {
 		panic("config is nil")
 	}
