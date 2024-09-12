@@ -92,31 +92,17 @@ func (app *Client) Start() error {
 	app.dashboardClientMessageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_GET_STATUS:       app.getStatusHandler,
-			Message.TOPIC_GET_METRICS:      app.getMetricsHandler,
-			Message.TOPIC_CLOSE_CONNECTION: app.closeConnectionHandler,
-			Message.TOPIC_EXECUTE_COMMAND:  app.executeCommandHandler,
-			Message.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot start processing loop sequentially", nil)
-			},
-			Message.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot start processing loop concurrently", nil)
-			},
-			Message.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot stop processing loop", nil)
-			},
-			Message.PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot handle next message", nil)
-			},
-			Message.UNPROCESSED_MESSAGES_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot get unprocessed messages count", nil)
-			},
-			Message.SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot sync request", nil)
-			},
-			Message.ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return "", Error.New("Cannot handle async message", nil)
-			},
+			Message.TOPIC_GET_STATUS:                        app.getStatusHandler,
+			Message.TOPIC_GET_METRICS:                       app.getMetricsHandler,
+			Message.TOPIC_CLOSE_CONNECTION:                  app.closeConnectionHandler,
+			Message.TOPIC_EXECUTE_COMMAND:                   app.executeCommandHandler,
+			Message.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: app.startProcessingLoopSequentially,
+			Message.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: app.startProcessingLoopConcurrently,
+			Message.TOPIC_STOP_PROCESSINGLOOP:               app.stopProcessingLoop,
+			Message.TOPIC_PROCESS_NEXT_MESSAGE:              app.processNextMessage,
+			Message.TOPIC_UNPROCESSED_MESSAGES_COUNT:        app.unprocessedMessagesCount,
+			Message.TOPIC_SYNC_REQUEST:                      app.syncRequestHandler,
+			Message.TOPIC_ASYNC_MESSAGE:                     app.asyncMessageHandler,
 		},
 		nil, nil,
 		100,
@@ -164,4 +150,81 @@ func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeC
 		return "", err
 	}
 	return app.commands.Execute(command.Command, command.Args)
+}
+
+func (app *Client) startProcessingLoopSequentially(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	err := app.clientSystemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
+	if err != nil {
+		return "", err
+	}
+	return "", nil
+}
+
+func (app *Client) startProcessingLoopConcurrently(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	err := app.clientSystemgeConnection.StartProcessingLoopConcurrently(app.messageHandler)
+	if err != nil {
+		return "", err
+	}
+	return "", nil
+}
+
+func (app *Client) stopProcessingLoop(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	err := app.clientSystemgeConnection.StopProcessingLoop()
+	if err != nil {
+		return "", err
+	}
+	return "", nil
+}
+
+func (app *Client) processNextMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	message, err := app.clientSystemgeConnection.GetNextMessage()
+	if err != nil {
+		return "", Error.New("Failed to get next message", err)
+	}
+	if message.GetSyncToken() == "" {
+		err := app.messageHandler.HandleAsyncMessage(connection, message)
+		if err != nil {
+			return "", Error.New("Failed to handle async message with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\"", err)
+		}
+		return "Handled async message with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\"", nil
+	}
+	if responsePayload, err := app.messageHandler.HandleSyncRequest(connection, message); err != nil {
+		if err := connection.SyncResponse(message, false, err.Error()); err != nil {
+			return "", Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\" and failed to send failure response \""+err.Error()+"\"", err)
+		}
+		return "Failed to handle sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent failure response \"" + err.Error() + "\"", nil
+	} else {
+		if err := connection.SyncResponse(message, true, responsePayload); err != nil {
+			return "", Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\" and failed to send success response \""+responsePayload+"\"", err)
+		}
+		return "Handled sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent success response \"" + responsePayload + "\"", nil
+	}
+}
+
+func (app *Client) unprocessedMessagesCount(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	return Helpers.Uint32ToString(app.clientSystemgeConnection.UnprocessedMessagesCount()), nil
+}
+
+func (app *Client) syncRequestHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
+	if err != nil {
+		return "", Error.New("Failed to deserialize message", err)
+	}
+	response, err := app.clientSystemgeConnection.SyncRequestBlocking(message.GetTopic(), message.GetPayload())
+	if err != nil {
+		return "", Error.New("Failed to complete sync request", err)
+	}
+	return string(response.Serialize()), nil
+}
+
+func (app *Client) asyncMessageHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
+	if err != nil {
+		return "", Error.New("Failed to deserialize message", err)
+	}
+	err = app.clientSystemgeConnection.AsyncMessage(message.GetTopic(), message.GetPayload())
+	if err != nil {
+		return "", Error.New("Failed to handle async message", err)
+	}
+	return "", nil
 }
