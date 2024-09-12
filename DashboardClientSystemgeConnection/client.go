@@ -22,8 +22,7 @@ type Client struct {
 
 	systemgeConnection SystemgeConnection.SystemgeConnection
 	messageHandler     SystemgeConnection.MessageHandler
-
-	commands Commands.Handlers
+	commands           Commands.Handlers
 
 	status int
 	mutex  sync.Mutex
