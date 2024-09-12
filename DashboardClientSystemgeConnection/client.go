@@ -110,6 +110,21 @@ func (app *Client) Start() error {
 	return nil
 }
 
+func (app *Client) Stop() error {
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+	if app.status == Status.STOPPED {
+		return Error.New("Already stopped", nil)
+	}
+	app.dashboardClientMessageHandler.Close()
+	app.dashboardClientMessageHandler = nil
+	app.dashboardServerSystemgeConnection.StopProcessingLoop()
+	app.dashboardServerSystemgeConnection.Close()
+	app.dashboardServerSystemgeConnection = nil
+	app.status = Status.STOPPED
+	return nil
+}
+
 func (app *Client) SetMessageHandler(messageHandler SystemgeConnection.MessageHandler) {
 	app.messageHandler = messageHandler
 }
