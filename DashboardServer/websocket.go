@@ -139,6 +139,8 @@ func (server *Server) propagateClientData(websocketClient *WebsocketServer.Webso
 	switch connectedClient.client.(type) {
 	case *DashboardHelpers.CustomServiceClient:
 		go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
+	case *DashboardHelpers.CommandClient:
+		go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
 	}
 }
 
