@@ -30,23 +30,3 @@ func UnmarshalOauth2(data string) *Oauth2 {
 	}
 	return &oauth2
 }
-
-type SingleRequestClient struct {
-	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
-	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
-	MaxServerNameLength         int                    `json:"maxServerNameLength"`         // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
-}
-
-func UnmarshalCommandClient(data string) *SingleRequestClient {
-	var commandClient SingleRequestClient
-	err := json.Unmarshal([]byte(data), &commandClient)
-	if err != nil {
-		return nil
-	}
-	return &commandClient
-}
-
-type SingleRequestServer struct {
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
-	DashboardClientConfig *DashboardClient `json:"dashboardClientConfig"` // *required*
-}
