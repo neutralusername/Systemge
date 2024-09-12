@@ -24,6 +24,7 @@ type SystemgeConnection interface {
 	GetNextMessage() (*Message.Message, error)
 	GetNoSyncResponseReceived() uint64
 	GetStatus() int
+	IsProcessingLoopRunning() bool
 	GetSyncFailureResponsesReceived() uint64
 	GetSyncRequestsSent() uint64
 	GetSyncSuccessResponsesReceived() uint64

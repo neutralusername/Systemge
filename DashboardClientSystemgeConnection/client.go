@@ -90,6 +90,7 @@ func (app *Client) Start() error {
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			Message.TOPIC_GET_STATUS:                        app.getStatusHandler,
+			Message.TOPIC_IS_PROCESSING_LOOP_RUNNING:        app.isProcessingLoopRunningHandler,
 			Message.TOPIC_GET_METRICS:                       app.getMetricsHandler,
 			Message.TOPIC_CLOSE_CONNECTION:                  app.closeConnectionHandler,
 			Message.TOPIC_EXECUTE_COMMAND:                   app.executeCommandHandler,
@@ -136,6 +137,10 @@ func (app *Client) closeConnectionHandler(connection SystemgeConnection.Systemge
 
 func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	return Helpers.IntToString(app.systemgeConnection.GetStatus()), nil
+}
+
+func (app *Client) isProcessingLoopRunningHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	return Helpers.BoolToString(app.systemgeConnection.IsProcessingLoopRunning()), nil
 }
 
 func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

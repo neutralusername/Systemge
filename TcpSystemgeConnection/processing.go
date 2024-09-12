@@ -14,6 +14,12 @@ func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
 	return connection.processingChannelSemaphore.AvailableAcquires()
 }
 
+func (connection *TcpConnection) IsProcessingLoopRunning() bool {
+	connection.processMutex.Lock()
+	defer connection.processMutex.Unlock()
+	return connection.processingLoopStopChannel != nil
+}
+
 func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 	connection.processMutex.Lock()
 	defer connection.processMutex.Unlock()
