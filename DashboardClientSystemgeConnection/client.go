@@ -90,13 +90,13 @@ func (app *Client) Start() error {
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			Message.TOPIC_GET_STATUS:                        app.getStatusHandler,
-			Message.TOPIC_IS_PROCESSING_LOOP_RUNNING:        app.isProcessingLoopRunningHandler,
 			Message.TOPIC_GET_METRICS:                       app.getMetricsHandler,
 			Message.TOPIC_CLOSE_CONNECTION:                  app.closeConnectionHandler,
 			Message.TOPIC_EXECUTE_COMMAND:                   app.executeCommandHandler,
 			Message.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: app.startProcessingLoopSequentially,
 			Message.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: app.startProcessingLoopConcurrently,
 			Message.TOPIC_STOP_PROCESSINGLOOP:               app.stopProcessingLoop,
+			Message.TOPIC_IS_PROCESSING_LOOP_RUNNING:        app.isProcessingLoopRunningHandler,
 			Message.TOPIC_PROCESS_NEXT_MESSAGE:              app.processNextMessage,
 			Message.TOPIC_UNPROCESSED_MESSAGES_COUNT:        app.unprocessedMessagesCount,
 			Message.TOPIC_SYNC_REQUEST:                      app.syncRequestHandler,
@@ -139,10 +139,6 @@ func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnec
 	return Helpers.IntToString(app.systemgeConnection.GetStatus()), nil
 }
 
-func (app *Client) isProcessingLoopRunningHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return Helpers.BoolToString(app.systemgeConnection.IsProcessingLoopRunning()), nil
-}
-
 func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	return DashboardHelpers.NewMetrics(app.name, app.systemgeConnection.GetMetrics()).Marshal(), nil
 }
@@ -177,6 +173,10 @@ func (app *Client) stopProcessingLoop(connection SystemgeConnection.SystemgeConn
 		return "", err
 	}
 	return "", nil
+}
+
+func (app *Client) isProcessingLoopRunningHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+	return Helpers.BoolToString(app.systemgeConnection.IsProcessingLoopRunning()), nil
 }
 
 func (app *Client) processNextMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
