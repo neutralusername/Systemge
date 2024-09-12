@@ -95,22 +95,27 @@ export class root extends React.Component {
             case "responseMessage":
                 this.setResponseMessage(message.payload || "\u00A0");
                 break;
-            case "updatePage":
-                let page = JSON.parse(message.payload);
-                this.setState({
-                    pageType: page.type,
-                    pageData: page.Data,
-                });
+            case "changePage": {
+                    let page = JSON.parse(message.payload);
+                    this.setState({
+                        pageType: page.type,
+                        pageData: page.data,
+                    });
+                }
                 break;
-            case "updatePageData":
-                let updatePageData = JSON.parse(message.payload);
-                let pageData = this.state.pageData;
-                Object.keys(updatePageData).forEach((key) => {
-                    pageData[key] = updatePageData[key];
-                });
-                this.setState({
-                    pageData: pageData,
-                });
+            case "updatePage": {
+                    let page = JSON.parse(message.payload);
+                    if (page.type !== this.state.pageType) {
+                        return;
+                    }
+                    let pageData = this.state.pageData;
+                    Object.keys(page.data).forEach((key) => {
+                        pageData[key] = page[key];
+                    });
+                    this.setState({
+                        pageData: pageData,
+                    });
+                }
                 break;
             default:
                 console.log("Unknown message topic: " + event.data);
@@ -221,15 +226,15 @@ export class root extends React.Component {
             return null;   
         case PAGE_DASHBOARD:
             return React.createElement(
-                SystemGeConnection, this.state,
+                Dashboard, this.state,
             );
         case PAGE_CUSTOMSERVICE:
             return React.createElement(
-                SystemGeConnection, this.state,
+                CustomService, this.state,
             );
         case PAGE_COMMAND:
             return React.createElement(
-                SystemGeConnection, this.state,
+                Command, this.state,
             );
         case PAGE_SYSTEMGECONNECTION:
             return React.createElement(
