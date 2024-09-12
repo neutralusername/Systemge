@@ -82,7 +82,6 @@ func (app *Client) Start() error {
 	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
 			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
 		},
 		nil, nil,
