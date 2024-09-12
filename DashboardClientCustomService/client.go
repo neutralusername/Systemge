@@ -196,7 +196,6 @@ func (app *Client) introductionHandler() (string, error) {
 			app.customService.GetStatus(),
 			app.customService.GetMetrics(),
 		),
-		DashboardHelpers.CLIENT_CUSTOM_SERVICE,
 	).Marshal()), nil
 }
 

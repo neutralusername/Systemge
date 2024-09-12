@@ -138,7 +138,6 @@ func (app *Client) introductionHandler() (string, error) {
 			app.systemgeConnection.GetMetrics(),
 			app.systemgeConnection.UnprocessedMessagesCount(),
 		),
-		DashboardHelpers.CLIENT_CUSTOM_SERVICE,
 	).Marshal()), nil
 }
 

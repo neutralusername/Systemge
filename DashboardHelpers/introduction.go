@@ -7,16 +7,15 @@ type Introduction struct {
 	ClientType   int         `json:"clientType"`
 }
 
-func NewIntroduction(client interface{}, clientType int) *Introduction {
-	switch clientType {
-	case CLIENT_COMMAND:
-		if _, ok := client.(*CommandClient); !ok {
-			panic("Invalid client type")
-		}
-	case CLIENT_CUSTOM_SERVICE:
-		if _, ok := client.(*CustomServiceClient); !ok {
-			panic("Invalid client type")
-		}
+func NewIntroduction(client interface{}) *Introduction {
+	clientType := -1
+	switch client.(type) {
+	case *CommandClient:
+		clientType = CLIENT_COMMAND
+	case *CustomServiceClient:
+		clientType = CLIENT_CUSTOM_SERVICE
+	case *SystemgeConnectionClient:
+		clientType = CLIENT_SYSTEMGE_CONNECTION
 	default:
 		panic("Unknown client type")
 	}
@@ -34,6 +33,8 @@ func (introduction *Introduction) Marshal() []byte {
 		marshalClient.ClientStruct = string(introduction.ClientStruct.(*CommandClient).Marshal())
 	case CLIENT_CUSTOM_SERVICE:
 		marshalClient.ClientStruct = string(introduction.ClientStruct.(*CustomServiceClient).Marshal())
+	case CLIENT_SYSTEMGE_CONNECTION:
+		marshalClient.ClientStruct = string(introduction.ClientStruct.(*SystemgeConnectionClient).Marshal())
 	default:
 		panic("Unknown client type")
 	}
@@ -72,6 +73,18 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 			customServiceClient.Metrics = make(map[string]uint64)
 		}
 		return customServiceClient, nil
+	case CLIENT_SYSTEMGE_CONNECTION:
+		systemgeConnectionClient, err := UnmarshalSystemgeConnectionClient([]byte(client.ClientStruct.(string)))
+		if err != nil {
+			return nil, err
+		}
+		if systemgeConnectionClient.Commands == nil {
+			systemgeConnectionClient.Commands = []string{}
+		}
+		if systemgeConnectionClient.Metrics == nil {
+			systemgeConnectionClient.Metrics = make(map[string]uint64)
+		}
+		return systemgeConnectionClient, nil
 	default:
 		return nil, nil
 	}

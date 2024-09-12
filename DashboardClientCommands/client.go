@@ -113,7 +113,6 @@ func (app *Client) introductionHandler() (string, error) {
 			app.name,
 			app.commands.GetKeys(),
 		),
-		DashboardHelpers.CLIENT_COMMAND,
 	).Marshal()), nil
 }
 

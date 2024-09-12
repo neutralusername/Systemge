@@ -2,7 +2,7 @@ package DashboardHelpers
 
 import "encoding/json"
 
-type SystemgeServerClient struct {
+type SystemgeConnectionClient struct {
 	Name                string            `json:"name"`
 	Commands            []string          `json:"commands"`
 	Status              int               `json:"status"`
@@ -10,8 +10,8 @@ type SystemgeServerClient struct {
 	UnprocessedMessages uint32            `json:"unprocessedMessages"`
 }
 
-func NewSystemgeConnectionClient(name string, commands []string, status int, metrics map[string]uint64, unprocessedMessages uint32) *SystemgeServerClient {
-	return &SystemgeServerClient{
+func NewSystemgeConnectionClient(name string, commands []string, status int, metrics map[string]uint64, unprocessedMessages uint32) *SystemgeConnectionClient {
+	return &SystemgeConnectionClient{
 		Name:                name,
 		Commands:            commands,
 		Status:              status,
@@ -19,7 +19,7 @@ func NewSystemgeConnectionClient(name string, commands []string, status int, met
 		UnprocessedMessages: unprocessedMessages,
 	}
 }
-func (client *SystemgeServerClient) Marshal() []byte {
+func (client *SystemgeConnectionClient) Marshal() []byte {
 	bytes, err := json.Marshal(client)
 	if err != nil {
 		panic(err)
@@ -27,8 +27,8 @@ func (client *SystemgeServerClient) Marshal() []byte {
 	return bytes
 }
 
-func UnmarshalSystemgeConnectionClient(bytes []byte) (*SystemgeServerClient, error) {
-	var client SystemgeServerClient
+func UnmarshalSystemgeConnectionClient(bytes []byte) (*SystemgeConnectionClient, error) {
+	var client SystemgeConnectionClient
 	err := json.Unmarshal(bytes, &client)
 	if err != nil {
 		return nil, err

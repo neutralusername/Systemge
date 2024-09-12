@@ -5,13 +5,14 @@ import "github.com/neutralusername/Systemge/Error"
 const (
 	CLIENT_COMMAND = iota
 	CLIENT_CUSTOM_SERVICE
+	CLIENT_SYSTEMGE_CONNECTION
 )
 
 func HasMetrics(client interface{}) bool {
 	switch client.(type) {
 	case *CustomServiceClient:
 		return true
-	case *SystemgeServerClient:
+	case *SystemgeConnectionClient:
 		return true
 	default:
 		return false
@@ -22,7 +23,7 @@ func HasStatus(client interface{}) bool {
 	switch client.(type) {
 	case *CustomServiceClient:
 		return true
-	case *SystemgeServerClient:
+	case *SystemgeConnectionClient:
 		return true
 	default:
 		return false
@@ -63,8 +64,8 @@ func GetCommands(client interface{}) ([]string, error) {
 		commands = append(commands, client.(*CommandClient).Commands...)
 	case *CustomServiceClient:
 		commands = append(commands, client.(*CustomServiceClient).Commands...)
-	case *SystemgeServerClient:
-		commands = append(commands, client.(*SystemgeServerClient).Commands...)
+	case *SystemgeConnectionClient:
+		commands = append(commands, client.(*SystemgeConnectionClient).Commands...)
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
@@ -75,8 +76,8 @@ func UpdateMetrics(client interface{}, metrics map[string]uint64) error {
 	switch client.(type) {
 	case *CustomServiceClient:
 		client.(*CustomServiceClient).Metrics = metrics
-	case *SystemgeServerClient:
-		client.(*SystemgeServerClient).Metrics = metrics
+	case *SystemgeConnectionClient:
+		client.(*SystemgeConnectionClient).Metrics = metrics
 	default:
 		return Error.New("Unknown client type", nil)
 	}
@@ -87,8 +88,8 @@ func UpdateStatus(client interface{}, status int) error {
 	switch client.(type) {
 	case *CustomServiceClient:
 		client.(*CustomServiceClient).Status = status
-	case *SystemgeServerClient:
-		client.(*SystemgeServerClient).Status = status
+	case *SystemgeConnectionClient:
+		client.(*SystemgeConnectionClient).Status = status
 	default:
 		return Error.New("Unknown client type", nil)
 	}
