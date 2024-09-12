@@ -160,8 +160,10 @@ func (messageHandler *TopicExclusiveMessageHandler) Close() {
 		close(handler.messageQueue)
 		delete(messageHandler.asyncMessageHandlers, key)
 	}
-	close(messageHandler.unknownAsyncTopicHandler.messageQueue)
-	messageHandler.unknownAsyncTopicHandler = nil
+	if messageHandler.unknownAsyncTopicHandler != nil {
+		close(messageHandler.unknownAsyncTopicHandler.messageQueue)
+		messageHandler.unknownAsyncTopicHandler = nil
+	}
 	messageHandler.asyncMutex.Unlock()
 
 	messageHandler.syncMutex.Lock()
@@ -169,8 +171,10 @@ func (messageHandler *TopicExclusiveMessageHandler) Close() {
 		close(handler.messageQueue)
 		delete(messageHandler.syncMessageHandlers, key)
 	}
-	close(messageHandler.unknownSyncTopicHandler.messageQueue)
-	messageHandler.unknownSyncTopicHandler = nil
+	if messageHandler.unknownSyncTopicHandler != nil {
+		close(messageHandler.unknownSyncTopicHandler.messageQueue)
+		messageHandler.unknownSyncTopicHandler = nil
+	}
 	messageHandler.syncMutex.Unlock()
 }
 
