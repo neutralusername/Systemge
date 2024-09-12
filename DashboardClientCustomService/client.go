@@ -135,10 +135,30 @@ func (app *Client) Start() error {
 		return Error.New("Failed to establish connection", err)
 	}
 	app.systemgeConnection = connection
+
+	message, err := connection.GetNextMessage()
+	if err != nil {
+		connection.Close()
+		return Error.New("Failed to get introduction message", err)
+	}
+	if message.GetTopic() != Message.TOPIC_INTRODUCTION {
+		connection.Close()
+		return Error.New("Expected introduction message", nil)
+	}
+	response, err := app.introductionHandler(connection, message)
+	if err != nil {
+		connection.Close()
+		return Error.New("Failed to handle introduction message", err)
+	}
+	err = connection.SyncResponse(message, true, response)
+	if err != nil {
+		connection.Close()
+		return Error.New("Failed to send introduction response", err)
+	}
+
 	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_INTRODUCTION:    app.introductionHandler,
 			Message.TOPIC_GET_STATUS:      app.getStatusHandler,
 			Message.TOPIC_GET_METRICS:     app.getMetricsHandler,
 			Message.TOPIC_START:           app.startHandler,

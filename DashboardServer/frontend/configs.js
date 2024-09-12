@@ -1,1 +1,1 @@
-export const WS_PORT = 8444;export const WS_PATTERN = "/ws";export const MAX_CHART_ENTRIES = 0;
+export const WS_PORT = 8444;export const WS_PATTERN = "/ws";export const MAX_CHART_ENTRIES = 100;

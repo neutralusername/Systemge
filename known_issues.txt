@@ -1,2 +1,2 @@
-when starting a dashboard client and this client has a duplicate name on the server, the function won't throw an error as would be intuitive
+
 systemgeServers onStop is triggered even if the onStart failed, which is in my opinion not ideal (also change this on systemgeClient)
