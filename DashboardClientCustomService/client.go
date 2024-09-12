@@ -72,16 +72,16 @@ func New_(name string, config *Config.DashboardClient, startFunc func() error, s
 		panic("config.EndpointConfig is nil")
 	}
 	if startFunc == nil {
-		panic("customService is nil")
+		panic("startFunc is nil")
 	}
 	if stopFunc == nil {
-		panic("customService is nil")
+		panic("stopFunc is nil")
 	}
 	if getStatusFunc == nil {
-		panic("customService is nil")
+		panic("getStatusFunc is nil")
 	}
 	if getMetricsFunc == nil {
-		panic("customService is nil")
+		panic("getMetricsFunc is nil")
 	}
 	customService := &customServiceStruct{
 		startFunc:      startFunc,
