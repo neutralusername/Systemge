@@ -141,13 +141,15 @@ export class root extends React.Component {
             case "responseMessage":
                 this.setResponseMessage(message.payload || "\u00A0");
                 break;
-            case "updatePageType":
+            case "updatePage":
+                let page = JSON.parse(message.payload);
                 this.setState({
-                    pageType: Number(message.payload),
+                    pageType: page.type,
+                    pageData: page.Data,
                 });
                 break;
             case "updatePageData":
-               let updatePageData = JSON.parse(message.payload);
+                let updatePageData = JSON.parse(message.payload);
                 let pageData = this.state.pageData;
                 Object.keys(updatePageData).forEach((key) => {
                     pageData[key] = updatePageData[key];
