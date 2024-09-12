@@ -107,11 +107,15 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	connectedClient := server.connectedClients[message.GetPayload()]
+
 	if message.GetPayload() == "" {
 		server.websocketClientLocations[client.GetId()] = message.GetPayload()
 		server.propagateDashboardData(client)
-	} else if connectedClient != nil {
+	} else {
+		connectedClient := server.connectedClients[message.GetPayload()]
+		if connectedClient == nil {
+			return Error.New("Client not found", nil)
+		}
 		server.websocketClientLocations[client.GetId()] = message.GetPayload()
 		server.propagateClientData(client, connectedClient)
 	}
