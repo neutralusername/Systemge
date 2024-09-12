@@ -147,7 +147,6 @@ export class root extends React.Component {
                 });
                 break;
             case "updatePageData":
-                // receiving an object with 1 to n key-value pairs. update the fields in the state with the same key
                let updatePageData = JSON.parse(message.payload);
                 let pageData = this.state.pageData;
                 Object.keys(updatePageData).forEach((key) => {
