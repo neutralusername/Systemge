@@ -23,7 +23,9 @@ type Client struct {
 
 	commands Commands.Handlers
 
-	messageHandler *SystemgeConnection.TopicExclusiveMessageHandler
+	dashboardClientMessageHandler *SystemgeConnection.TopicExclusiveMessageHandler
+
+	messageHandler SystemgeConnection.MessageHandler
 
 	status int
 	mutex  sync.Mutex
@@ -50,6 +52,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 		config:                   config,
 		clientSystemgeConnection: systemgeConnection,
 		commands:                 commands,
+		messageHandler:           messageHandler,
 	}
 	return app
 }
@@ -86,7 +89,7 @@ func (app *Client) Start() error {
 		return Error.New("Failed to send introduction response", err)
 	}
 
-	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+	app.dashboardClientMessageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			Message.TOPIC_GET_STATUS:       app.getStatusHandler,
@@ -118,9 +121,13 @@ func (app *Client) Start() error {
 		nil, nil,
 		100,
 	)
-	app.serverSystemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
+	app.serverSystemgeConnection.StartProcessingLoopSequentially(app.dashboardClientMessageHandler)
 	app.status = Status.STARTED
 	return nil
+}
+
+func (app *Client) SetMessageHandler(messageHandler SystemgeConnection.MessageHandler) {
+	app.messageHandler = messageHandler
 }
 
 func (app *Client) introductionHandler() (string, error) {
