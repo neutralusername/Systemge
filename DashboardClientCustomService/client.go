@@ -35,6 +35,69 @@ type CustomService interface {
 	GetMetrics() map[string]uint64
 }
 
+type CustomServiceStruct struct {
+	startFunc      func() error
+	stopFunc       func() error
+	getStatusFunc  func() int
+	getMetricsFunc func() map[string]uint64
+}
+
+func (customService *CustomServiceStruct) Start() error {
+	return customService.startFunc()
+}
+
+func (customService *CustomServiceStruct) Stop() error {
+	return customService.stopFunc()
+}
+
+func (customService *CustomServiceStruct) GetStatus() int {
+	return customService.getStatusFunc()
+}
+
+func (customService *CustomServiceStruct) GetMetrics() map[string]uint64 {
+	return customService.getMetricsFunc()
+}
+
+func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]uint64, commands Commands.Handlers) *Client {
+	if config == nil {
+		panic("config is nil")
+	}
+	if name == "" {
+		panic("config.Name is empty")
+	}
+	if config.TcpSystemgeConnectionConfig == nil {
+		panic("config.ConnectionConfig is nil")
+	}
+	if config.TcpClientConfig == nil {
+		panic("config.EndpointConfig is nil")
+	}
+	if startFunc == nil {
+		panic("customService is nil")
+	}
+	if stopFunc == nil {
+		panic("customService is nil")
+	}
+	if getStatusFunc == nil {
+		panic("customService is nil")
+	}
+	if getMetricsFunc == nil {
+		panic("customService is nil")
+	}
+	customService := &CustomServiceStruct{
+		startFunc:      startFunc,
+		stopFunc:       stopFunc,
+		getStatusFunc:  getStatusFunc,
+		getMetricsFunc: getMetricsFunc,
+	}
+	app := &Client{
+		name:          name,
+		config:        config,
+		customService: customService,
+		commands:      commands,
+	}
+	return app
+}
+
 func New(name string, config *Config.DashboardClient, customService CustomService, commands Commands.Handlers) *Client {
 	if config == nil {
 		panic("config is nil")
