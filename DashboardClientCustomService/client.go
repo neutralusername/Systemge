@@ -19,7 +19,7 @@ type Client struct {
 	config             *Config.DashboardClient
 	systemgeConnection SystemgeConnection.SystemgeConnection
 
-	customService CustomService
+	customService customService
 	commands      Commands.Handlers
 
 	messageHandler *SystemgeConnection.TopicExclusiveMessageHandler
@@ -28,33 +28,33 @@ type Client struct {
 	mutex  sync.Mutex
 }
 
-type CustomService interface {
+type customService interface {
 	Start() error
 	Stop() error
 	GetStatus() int
 	GetMetrics() map[string]uint64
 }
 
-type CustomServiceStruct struct {
+type customServiceStruct struct {
 	startFunc      func() error
 	stopFunc       func() error
 	getStatusFunc  func() int
 	getMetricsFunc func() map[string]uint64
 }
 
-func (customService *CustomServiceStruct) Start() error {
+func (customService *customServiceStruct) Start() error {
 	return customService.startFunc()
 }
 
-func (customService *CustomServiceStruct) Stop() error {
+func (customService *customServiceStruct) Stop() error {
 	return customService.stopFunc()
 }
 
-func (customService *CustomServiceStruct) GetStatus() int {
+func (customService *customServiceStruct) GetStatus() int {
 	return customService.getStatusFunc()
 }
 
-func (customService *CustomServiceStruct) GetMetrics() map[string]uint64 {
+func (customService *customServiceStruct) GetMetrics() map[string]uint64 {
 	return customService.getMetricsFunc()
 }
 
@@ -83,7 +83,7 @@ func New_(name string, config *Config.DashboardClient, startFunc func() error, s
 	if getMetricsFunc == nil {
 		panic("customService is nil")
 	}
-	customService := &CustomServiceStruct{
+	customService := &customServiceStruct{
 		startFunc:      startFunc,
 		stopFunc:       stopFunc,
 		getStatusFunc:  getStatusFunc,
@@ -96,9 +96,10 @@ func New_(name string, config *Config.DashboardClient, startFunc func() error, s
 		commands:      commands,
 	}
 	return app
+
 }
 
-func New(name string, config *Config.DashboardClient, customService CustomService, commands Commands.Handlers) *Client {
+func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers) *Client {
 	if config == nil {
 		panic("config is nil")
 	}
