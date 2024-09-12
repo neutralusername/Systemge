@@ -1,2 +1,0 @@
-
-systemgeServers onStop is triggered even if the onStart failed, which is in my opinion not ideal (also change this on systemgeClient)

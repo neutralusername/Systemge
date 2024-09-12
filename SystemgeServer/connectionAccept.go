@@ -2,7 +2,6 @@ package SystemgeServer
 
 import (
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
@@ -19,14 +18,50 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 			return
 		default:
 			server.waitGroup.Add(1)
-			connection, err := server.acceptNextConnection()
+
+			connection, err := server.listener.AcceptConnection(server.GetName(), server.config.TcpSystemgeConnectionConfig)
 			if err != nil {
-				if server.warningLogger != nil {
-					server.warningLogger.Log(err.Error())
-				}
 				server.waitGroup.Done()
+				if server.warningLogger != nil {
+					server.warningLogger.Log(Error.New("failed to accept connection", err).Error())
+				}
 				continue
 			}
+
+			server.mutex.Lock()
+			if _, ok := server.clients[connection.GetName()]; ok {
+				server.mutex.Unlock()
+
+				connection.Close()
+				server.waitGroup.Done()
+				if server.warningLogger != nil {
+					server.warningLogger.Log("connection \"" + connection.GetName() + "\" already exists")
+				}
+				continue
+			}
+			server.clients[connection.GetName()] = connection
+			server.mutex.Unlock()
+
+			if server.onConnectHandler != nil {
+				if err := server.onConnectHandler(connection); err != nil {
+					connection.Close()
+					server.waitGroup.Done()
+
+					server.mutex.Lock()
+					delete(server.clients, connection.GetName())
+					server.mutex.Unlock()
+
+					if server.warningLogger != nil {
+						server.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
+					}
+					continue
+				}
+			}
+
+			if server.infoLogger != nil {
+				server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
+			}
+
 			go func() {
 				select {
 				case <-connection.GetCloseChannel():
@@ -45,38 +80,6 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 					server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
 				}
 			}()
-			if server.onConnectHandler != nil {
-				if err := server.onConnectHandler(connection); err != nil {
-					connection.Close()
-					if server.warningLogger != nil {
-						server.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
-					}
-					continue
-				}
-			}
-			// i want the clients EstablishConnection to return a nil error past this point
 		}
 	}
-}
-
-func (server *SystemgeServer) acceptNextConnection() (SystemgeConnection.SystemgeConnection, error) {
-	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.TcpSystemgeConnectionConfig)
-	if err != nil {
-		return nil, Error.New("failed to accept connection", err)
-	}
-	if server.infoLogger != nil {
-		server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
-	}
-
-	//systemge server recognizes duplicate names here. the client already returned a nil error in the EstablishConnection function
-	server.mutex.Lock()
-	if _, ok := server.clients[connection.GetName()]; ok {
-		server.mutex.Unlock()
-		connection.Close()
-		return nil, Error.New("connection \""+connection.GetName()+"\" already exists", nil)
-	}
-	server.clients[connection.GetName()] = connection
-	server.mutex.Unlock()
-
-	return connection, nil
 }

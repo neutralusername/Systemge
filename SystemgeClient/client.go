@@ -134,11 +134,6 @@ func (client *SystemgeClient) Stop() error {
 		client.infoLogger.Log("stopping client")
 	}
 	close(client.stopChannel)
-	client.mutex.Lock()
-	for _, connection := range client.addressConnections {
-		connection.Close()
-	}
-	client.mutex.Unlock()
 	client.waitGroup.Wait()
 	client.stopChannel = nil
 	if client.infoLogger != nil {
