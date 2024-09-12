@@ -133,7 +133,7 @@ func (app *Client) closeConnectionHandler(connection SystemgeConnection.Systemge
 	if err != nil {
 		return "", err
 	}
-	return "", nil
+	return Helpers.IntToString(Status.STOPPED), nil
 }
 
 func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
