@@ -141,7 +141,22 @@ export class root extends React.Component {
             case "responseMessage":
                 this.setResponseMessage(message.payload || "\u00A0");
                 break;
-            
+            case "updatePageType":
+                this.setState({
+                    pageType: Number(message.payload),
+                });
+                break;
+            case "updatePageData":
+                // receiving an object with 1 to n key-value pairs. update the fields in the state with the same key
+               let updatePageData = JSON.parse(message.payload);
+                let pageData = this.state.pageData;
+                Object.keys(updatePageData).forEach((key) => {
+                    pageData[key] = updatePageData[key];
+                });
+                this.setState({
+                    pageData: pageData,
+                });
+                break;
             default:
                 console.log("Unknown message topic: " + event.data);
                 break;
