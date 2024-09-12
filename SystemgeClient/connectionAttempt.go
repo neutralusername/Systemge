@@ -44,6 +44,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	client.waitGroup.Add(1)
 
 	go func() {
+		client.ongoingConnectionAttempts.Add(1)
 		client.status = Status.PENDING
 		if err := client.connectionAttempts(attempt); err != nil {
 			if client.errorLogger != nil {
