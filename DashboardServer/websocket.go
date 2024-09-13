@@ -9,14 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
-	commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	return commandHandler(command.Args)
-}
-
 /* func (server *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.RLock()
 	connectedClient := server.connectedClients[message.GetPayload()]
@@ -115,24 +107,54 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	server.mutex.RLock()
 	currentPage := server.websocketClientLocations[websocketClient]
 	server.mutex.RUnlock()
+
 	if currentPage == "" {
 		return Error.New("No location", nil)
 	}
+
 	request, err := Message.Deserialize([]byte(message.GetPayload()), websocketClient.GetId())
 	if err != nil {
 		return Error.New("Failed to deserialize request", err)
 	}
+
 	switch request.GetTopic() {
-	case "command":
+	case DashboardHelpers.REQUEST_COMMAND:
 		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 		if err != nil {
 			return Error.New("Failed to parse command", err)
 		}
-		switch currentPage {
-		case "/":
+		err = server.handleCommandRequest(websocketClient, currentPage, command)
+	default:
+		return Error.New("Unknown topic", nil)
+	}
+	return nil
+}
 
-		default:
+func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, command *DashboardHelpers.Command) error {
+	switch page {
+	case "/":
+		commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
+		if commandHandler == nil {
+			return Error.New("Command not found", nil)
 		}
+		resultPayload, err := commandHandler(command.Args)
+		if err != nil {
+			return Error.New("Failed to execute command", err)
+		}
+		websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
+	default:
+		server.mutex.RLock()
+		connectedClient := server.connectedClients[page]
+		server.mutex.RUnlock()
+
+		if connectedClient == nil {
+			return Error.New("Client not found", nil)
+		}
+		resultPayload, err := connectedClient.executeCommand(command.Command, command.Args)
+		if err != nil {
+			return Error.New("Failed to execute command", err)
+		}
+		websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
 	}
 	return nil
 }

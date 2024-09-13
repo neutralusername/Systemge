@@ -35,7 +35,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 				http.Error(w, "No command", http.StatusBadRequest)
 				return
 			}
-			result, err := connectedClient.ExecuteCommand(args[0], args[1:])
+			result, err := connectedClient.executeCommand(args[0], args[1:])
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -49,7 +49,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 				http.Error(w, "No command", http.StatusBadRequest)
 				return
 			}
-			result, err := connectedClient.ExecuteCommand(argsSplit[0], argsSplit[1:])
+			result, err := connectedClient.executeCommand(argsSplit[0], argsSplit[1:])
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

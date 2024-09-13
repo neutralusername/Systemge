@@ -23,7 +23,7 @@ func newConnectedClient(connection SystemgeConnection.SystemgeConnection, client
 	}
 }
 
-func (connectedClient *connectedClient) ExecuteCommand(command string, args []string) (string, error) {
+func (connectedClient *connectedClient) executeCommand(command string, args []string) (string, error) {
 	response, err := connectedClient.connection.SyncRequestBlocking(
 		Message.TOPIC_EXECUTE_COMMAND,
 		Helpers.JsonMarshal(

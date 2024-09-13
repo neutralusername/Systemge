@@ -2,6 +2,8 @@ package DashboardHelpers
 
 import "encoding/json"
 
+const REQUEST_COMMAND = "command"
+
 type Command struct {
 	Command string   `json:"command"`
 	Args    []string `json:"args"`
