@@ -25,7 +25,13 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.connectedClients[connection.GetName()] = connectedClient
 	server.mutex.Unlock()
 
-	server.websocketServer.Multicast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
+	server.websocketServer.Multicast(
+
+		Message.NewAsync(
+			"addModule",
+			Helpers.JsonMarshal(client),
+		),
+	)
 	return nil
 }
 
@@ -40,5 +46,12 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	}
 	server.mutex.Unlock()
 
-	server.websocketServer.Multicast(Message.NewAsync("removeModule", connection.GetName()))
+	server.websocketServer.Multicast(
+
+		Message.NewAsync(
+			"removeModule",
+			connection.GetName(),
+		),
+	)
+	return
 }

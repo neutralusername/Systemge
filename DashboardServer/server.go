@@ -129,18 +129,16 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	)
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
-	if app.config.DashboardCommands {
-		app.dashboardCommandHandlers = Commands.Handlers{
-			"disconnectClient": func(args []string) (string, error) {
-				if len(args) == 0 {
-					return "", Error.New("No client name", nil)
-				}
-				if err := app.DisconnectClient(args[0]); err != nil {
-					return "", err
-				}
-				return "success", nil
-			},
-		}
+	app.dashboardCommandHandlers = Commands.Handlers{
+		"disconnectClient": func(args []string) (string, error) {
+			if len(args) == 0 {
+				return "", Error.New("No client name", nil)
+			}
+			if err := app.DisconnectClient(args[0]); err != nil {
+				return "", err
+			}
+			return "success", nil
+		},
 	}
 	if app.config.DashboardSystemgeCommands {
 		systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
@@ -170,11 +168,9 @@ func (server *Server) Start() error {
 	if server.status == Status.STARTED {
 		return Error.New("Already started", nil)
 	}
-
 	if err := server.systemgeServer.Start(); err != nil {
 		return err
 	}
-
 	if err := server.websocketServer.Start(); err != nil {
 		if err := server.systemgeServer.Stop(); err != nil {
 			if server.errorLogger != nil {
@@ -183,7 +179,6 @@ func (server *Server) Start() error {
 		}
 		return err
 	}
-
 	if err := server.httpServer.Start(); err != nil {
 		if err := server.systemgeServer.Stop(); err != nil {
 			if server.errorLogger != nil {
@@ -197,7 +192,6 @@ func (server *Server) Start() error {
 		}
 		return err
 	}
-
 	server.status = Status.STARTED
 	return nil
 }
@@ -210,7 +204,6 @@ func (server *Server) Stop() error {
 	}
 	server.status = Status.PENDING
 	server.waitGroup.Wait()
-
 	if err := server.systemgeServer.Stop(); err != nil {
 		if server.errorLogger != nil {
 			server.errorLogger.Log(Error.New("Failed to stop Systemge server", err).Error())
@@ -226,7 +219,6 @@ func (server *Server) Stop() error {
 			server.errorLogger.Log(Error.New("Failed to stop HTTP server", err).Error())
 		}
 	}
-
 	server.status = Status.STOPPED
 	return nil
 }

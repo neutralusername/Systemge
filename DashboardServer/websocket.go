@@ -48,6 +48,10 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 
 	case DashboardHelpers.REQUEST_STATUS:
 
+	case DashboardHelpers.REQUEST_HEAPUSAGE:
+
+	case DashboardHelpers.REQUEST_GOROUTINECOUNT:
+
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
@@ -109,15 +113,18 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Multicast(Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
-			DashboardHelpers.NewPage(
-				map[string]interface{}{
-					"status": newStatus,
-				},
-				DashboardHelpers.GetPageType(connectedClient.client),
-			).Marshal(),
-		))
+		server.websocketServer.Multicast(
+
+			Message.NewAsync(
+				DashboardHelpers.TOPIC_UPDATE_PAGE,
+				DashboardHelpers.NewPage(
+					map[string]interface{}{
+						"status": newStatus,
+					},
+					DashboardHelpers.GetPageType(connectedClient.client),
+				).Marshal(),
+			),
+		)
 		return nil
 	}
 }
@@ -140,15 +147,18 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Multicast(Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
-			DashboardHelpers.NewPage(
-				map[string]interface{}{
-					"status": newStatus,
-				},
-				DashboardHelpers.GetPageType(connectedClient.client),
-			).Marshal(),
-		))
+		server.websocketServer.Multicast(
+
+			Message.NewAsync(
+				DashboardHelpers.TOPIC_UPDATE_PAGE,
+				DashboardHelpers.NewPage(
+					map[string]interface{}{
+						"status": newStatus,
+					},
+					DashboardHelpers.GetPageType(connectedClient.client),
+				).Marshal(),
+			),
+		)
 		return nil
 	}
 }
