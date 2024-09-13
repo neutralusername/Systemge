@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	TOPIC_PAGE_REQUEST     = "pageRequest"
 	TOPIC_CHANGE_PAGE      = "changePage"
 	TOPIC_UPDATE_PAGE      = "updatePage"
 	TOPIC_RESPONSE_MESSAGE = "responseMessage"

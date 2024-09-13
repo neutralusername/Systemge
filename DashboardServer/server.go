@@ -6,6 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
@@ -116,8 +117,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		app.config.WebsocketServerConfig,
 		whitelist, blacklist,
 		map[string]WebsocketServer.MessageHandler{
-			"pageRequest":    app.pageRequestHandler,
-			"changeLocation": app.changeWebsocketClientLocation,
+			DashboardHelpers.TOPIC_PAGE_REQUEST: app.pageRequestHandler,
+			DashboardHelpers.TOPIC_CHANGE_PAGE:  app.handleChangePage,
 		},
 		app.onWebsocketConnectHandler, app.onWebsocketDisconnectHandler,
 	)

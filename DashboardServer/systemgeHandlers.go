@@ -25,7 +25,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.connectedClients[connection.GetName()] = connectedClient
 	server.mutex.Unlock()
 
-	server.websocketServer.Broadcast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
+	server.websocketServer.Multicast(Message.NewAsync("addModule", Helpers.JsonMarshal(client)))
 	return nil
 }
 
@@ -33,12 +33,12 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
 		for websocketClient := range connectedClient.websocketClients {
-			server.changeWebsocketClientLocation(websocketClient, "/")
+			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, "/"))
 		}
 		delete(server.connectedClients, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
 	}
 	server.mutex.Unlock()
 
-	server.websocketServer.Broadcast(Message.NewAsync("removeModule", connection.GetName()))
+	server.websocketServer.Multicast(Message.NewAsync("removeModule", connection.GetName()))
 }

@@ -158,10 +158,11 @@ func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient
 	}
 }
 
-func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketServer.WebsocketClient, locationAfterChange string) error {
+func (server *Server) handleChangePage(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	locationBeforeChange := server.websocketClientLocations[websocketClient]
+	locationAfterChange := message.GetPayload()
 
 	if locationBeforeChange == locationAfterChange {
 		return Error.New("Location is already "+locationAfterChange, nil)
