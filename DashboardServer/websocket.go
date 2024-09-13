@@ -93,68 +93,68 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 
 func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.REQUEST_COMMAND:
+	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 
-	case DashboardHelpers.REQUEST_COLLECTGARBAGE:
+	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
 
-	case DashboardHelpers.REQUEST_GOROUTINECOUNT:
+	case DashboardHelpers.TOPIC_GOROUTINE_COUNT:
 
-	case DashboardHelpers.REQUEST_METRICS:
+	case DashboardHelpers.TOPIC_GET_METRICS:
 
-	case DashboardHelpers.REQUEST_HEAPUSAGE:
+	case DashboardHelpers.TOPIC_HEAP_USAGE:
 
-	case DashboardHelpers.REQUEST_STOP:
+	case DashboardHelpers.TOPIC_STOP:
 
 	}
 }
 
 func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.REQUEST_COMMAND:
+	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 
 	}
 }
 
 func (server *Server) handleCustomServiceClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.REQUEST_COMMAND:
+	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 
-	case DashboardHelpers.REQUEST_START:
+	case DashboardHelpers.TOPIC_START:
 
-	case DashboardHelpers.REQUEST_STOP:
+	case DashboardHelpers.TOPIC_STOP:
 
-	case DashboardHelpers.REQUEST_METRICS:
+	case DashboardHelpers.TOPIC_GET_METRICS:
 
-	case DashboardHelpers.REQUEST_STATUS:
+	case DashboardHelpers.TOPIC_GET_STATUS:
 
 	}
 }
 
 func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.REQUEST_COMMAND:
+	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 
-	case DashboardHelpers.REQUEST_STATUS:
+	case DashboardHelpers.TOPIC_START:
 
-	case DashboardHelpers.REQUEST_METRICS:
+	case DashboardHelpers.TOPIC_GET_METRICS:
 
-	case DashboardHelpers.REQUEST_STOP:
+	case DashboardHelpers.TOPIC_STOP:
 
-	case DashboardHelpers.REQUEST_START_PROCESSINGLOOP_SEQUENTIALLY:
+	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
 
-	case DashboardHelpers.REQUEST_START_PROCESSINGLOOP_CONCURRENTLY:
+	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
 
-	case DashboardHelpers.REQUEST_STOP_PROCESSINGLOOP:
+	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP:
 
-	case DashboardHelpers.REQUEST_IS_PROCESSING_LOOP_RUNNING:
+	case DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING:
 
-	case DashboardHelpers.REQUEST_PROCESS_NEXT_MESSAGE:
+	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE:
 
-	case DashboardHelpers.REQUEST_UNPROCESSED_MESSAGES_COUNT:
+	case DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT:
 
-	case DashboardHelpers.REQUEST_SYNC_REQUEST:
+	case DashboardHelpers.TOPIC_SYNC_REQUEST:
 
-	case DashboardHelpers.REQUEST_ASYNC_MESSAGE:
+	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:
 
 	}
 }
@@ -327,7 +327,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		delete(connectedClient.websocketClients, websocketClient)
 	}
 	go websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_CHANGE_PAGE,
+		DashboardHelpers.CHANGE_PAGE,
 		page.Marshal(),
 	).Serialize())
 	return nil

@@ -90,7 +90,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 						return "Handled sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent success response \"" + responsePayload + "\"", nil
 					}
 				},
-				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGES_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.Uint32ToString(systemgeConnection.UnprocessedMessagesCount()), nil
 				},
 				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
