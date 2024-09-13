@@ -9,11 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	runtime.GC()
-	return nil
-}
-
 func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.RLock()
 	currentPage := server.websocketClientLocations[websocketClient]
@@ -44,7 +39,11 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to handle stop request", err)
 		}
-
+	case DashboardHelpers.REQUEST_COLLECTGARBAGE:
+		err := server.gcHandler(websocketClient, currentPage)
+		if err != nil {
+			return Error.New("Failed to handle garbage collection request", err)
+		}
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
@@ -148,6 +147,15 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 			).Marshal(),
 		))
 		return nil
+	}
+}
+func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, page string) error {
+	switch page {
+	case "/":
+		runtime.GC()
+		return nil
+	default:
+		return Error.New("Cannot collect garbage from client page", nil)
 	}
 }
 

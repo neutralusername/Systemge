@@ -118,7 +118,6 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		map[string]WebsocketServer.MessageHandler{
 			"pageRequest":    app.pageRequestHandler,
 			"changeLocation": app.changeWebsocketClientLocation,
-			"gc":             app.gcHandler,
 		},
 		app.onWebsocketConnectHandler, app.onWebsocketDisconnectHandler,
 	)
