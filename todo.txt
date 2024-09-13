@@ -2,6 +2,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
 -systemgeConnectionDashboard
 -systemgeServerDashboard
+-brokerResolverDashboard
 -brokerClientDashboard
 -brokerServerDashboard
 -singleRequestServerDashboard
