@@ -10,6 +10,11 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
+func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	runtime.GC()
+	return nil
+}
+
 func (server *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.RLock()
 	connectedClient := server.connectedClients[message.GetPayload()]
@@ -70,11 +75,6 @@ func (server *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClie
 	return nil
 }
 
-func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	runtime.GC()
-	return nil
-}
-
 func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 	if err != nil {
@@ -82,7 +82,7 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 	}
 
 	switch command.Name {
-	case "dashboard":
+	case "":
 		result, err := server.dashboardCommandHandler(command)
 		if err != nil {
 			return Error.New("Failed to execute command", err)
@@ -103,23 +103,12 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 	}
 	return nil
 }
-
-func (server *Server) getDashboardData() map[string]interface{} {
-	dashboardData := map[string]interface{}{}
-	clientsSlice := []interface{}{}
-	dashboardData["clients"] = clientsSlice
-	for _, connectedClient := range server.connectedClients {
-		dashboardData["clients"] = append(clientsSlice, connectedClient.client)
+func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
+	commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
+	if commandHandler == nil {
+		return "", Error.New("Command not found", nil)
 	}
-	dashboardCommandsSlice := []string{}
-	dashboardData["commands"] = dashboardCommandsSlice
-	for command := range server.dashboardCommandHandlers {
-		dashboardData["commands"] = append(dashboardCommandsSlice, command)
-	}
-	dashboardData["systemgeMetrics"] = server.RetrieveSystemgeMetrics()
-	dashboardData["websocketMetrics"] = server.RetrieveWebsocketMetrics()
-	dashboardData["httpMetrics"] = server.RetrieveHttpMetrics()
-	return dashboardData
+	return commandHandler(command.Args)
 }
 
 func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
@@ -165,6 +154,23 @@ func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.Webs
 	server.websocketClientLocations[client.GetId()] = message.GetPayload()
 	return nil
 }
+func (server *Server) getDashboardData() map[string]interface{} {
+	dashboardData := map[string]interface{}{}
+	clientsSlice := []interface{}{}
+	dashboardData["clients"] = clientsSlice
+	for _, connectedClient := range server.connectedClients {
+		dashboardData["clients"] = append(clientsSlice, connectedClient.client)
+	}
+	dashboardCommandsSlice := []string{}
+	dashboardData["commands"] = dashboardCommandsSlice
+	for command := range server.dashboardCommandHandlers {
+		dashboardData["commands"] = append(dashboardCommandsSlice, command)
+	}
+	dashboardData["systemgeMetrics"] = server.RetrieveSystemgeMetrics()
+	dashboardData["websocketMetrics"] = server.RetrieveWebsocketMetrics()
+	dashboardData["httpMetrics"] = server.RetrieveHttpMetrics()
+	return dashboardData
+}
 
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	server.mutex.Lock()
@@ -172,17 +178,8 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 	server.websocketClientLocations[websocketClient.GetId()] = ""
 	return nil
 }
-
 func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	delete(server.websocketClientLocations, websocketClient.GetId())
-}
-
-func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
-	commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	return commandHandler(command.Args)
 }
