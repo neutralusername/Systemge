@@ -8,7 +8,7 @@ import (
 )
 
 func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.SystemgeConnection) error {
-	response, err := connection.SyncRequestBlocking(Message.TOPIC_INTRODUCTION, "")
+	response, err := connection.SyncRequestBlocking(DashboardHelpers.TOPIC_INTRODUCTION, "")
 	if err != nil {
 		return err
 	}

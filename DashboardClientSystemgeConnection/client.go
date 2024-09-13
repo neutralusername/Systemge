@@ -22,51 +22,51 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 		SystemgeConnection.NewTopicExclusiveMessageHandler(
 			nil,
 			SystemgeConnection.SyncMessageHandlers{
-				Message.TOPIC_EXECUTE_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_EXECUTE_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 					if err != nil {
 						return "", err
 					}
 					return commands.Execute(command.Command, command.Args)
 				},
-				Message.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.IntToString(systemgeConnection.GetStatus()), nil
 				},
-				Message.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return DashboardHelpers.NewMetrics(name, systemgeConnection.GetMetrics()).Marshal(), nil
 				},
-				Message.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
 					if err != nil {
 						return "", err
 					}
 					return Helpers.IntToString(Status.STOPPED), nil
 				},
-				Message.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.StartProcessingLoopSequentially(messageHandler)
 					if err != nil {
 						return "", err
 					}
 					return "", nil
 				},
-				Message.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.StartProcessingLoopConcurrently(messageHandler)
 					if err != nil {
 						return "", err
 					}
 					return "", nil
 				},
-				Message.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.StopProcessingLoop()
 					if err != nil {
 						return "", err
 					}
 					return "", nil
 				},
-				Message.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.BoolToString(systemgeConnection.IsProcessingLoopRunning()), nil
 				},
-				Message.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := systemgeConnection.GetNextMessage()
 					if err != nil {
 						return "", Error.New("Failed to get next message", err)
@@ -90,10 +90,10 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 						return "Handled sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent success response \"" + responsePayload + "\"", nil
 					}
 				},
-				Message.TOPIC_UNPROCESSED_MESSAGES_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGES_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.Uint32ToString(systemgeConnection.UnprocessedMessagesCount()), nil
 				},
-				Message.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
@@ -104,7 +104,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					}
 					return string(response.Serialize()), nil
 				},
-				Message.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)

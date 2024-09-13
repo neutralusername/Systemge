@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
@@ -65,7 +65,7 @@ func (app *Client) Start() error {
 		connection.Close()
 		return Error.New("Failed to get introduction message", err)
 	}
-	if message.GetTopic() != Message.TOPIC_INTRODUCTION {
+	if message.GetTopic() != DashboardHelpers.TOPIC_INTRODUCTION {
 		connection.Close()
 		return Error.New("Expected introduction message", nil)
 	}
