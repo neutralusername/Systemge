@@ -109,7 +109,7 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Broadcast(Message.NewAsync(
+		server.websocketServer.Multicast(Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{},
@@ -138,7 +138,7 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Broadcast(Message.NewAsync(
+		server.websocketServer.Multicast(Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{},
@@ -158,11 +158,10 @@ func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient
 	}
 }
 
-func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketServer.WebsocketClient, locationAfterChange string) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	locationBeforeChange := server.websocketClientLocations[websocketClient]
-	locationAfterChange := message.GetPayload()
 
 	if locationBeforeChange == locationAfterChange {
 		return Error.New("Location is already "+locationAfterChange, nil)

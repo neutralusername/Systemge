@@ -33,7 +33,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
 		for websocketClient := range connectedClient.websocketClients {
-
+			server.changeWebsocketClientLocation(websocketClient, "/")
 		}
 		delete(server.connectedClients, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
