@@ -12,7 +12,8 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
+	MaxChartEntries             uint32 `json:"maxChartEntries"`             // default: 0 = disabled
+	FrontendHeartbeatIntervalMs uint64 `json:"frontendHeartbeatIntervalMs"` // default: 0 = disabled
 
 	DashboardMetrics           bool `json:"dashboardMetrics"`           // default: false
 	DashboardCommands          bool `json:"dashboardCommands"`          // default: false

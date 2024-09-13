@@ -79,7 +79,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	Helpers.CreateFile(frontendPath+"configs.js",
 		"export const WS_PORT = "+Helpers.Uint16ToString(config.WebsocketServerConfig.TcpServerConfig.Port)+";"+
 			"export const WS_PATTERN = \""+config.WebsocketServerConfig.Pattern+"\";"+
-			"export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";",
+			"export const MAX_CHART_ENTRIES = "+Helpers.Uint32ToString(config.MaxChartEntries)+";"+
+			"export const FRONTEND_HEARTBEAT_INTERVAL_MS = "+Helpers.Uint64ToString(config.FrontendHeartbeatIntervalMs)+";",
 	)
 
 	app := &Server{
