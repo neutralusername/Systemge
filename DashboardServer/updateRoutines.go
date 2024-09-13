@@ -1,16 +1,8 @@
 package DashboardServer
 
-import (
-	"runtime"
-	"strconv"
-	"time"
+// todo: request updates from client-side (allow to change update interval throguh configs for automated update-requests)
 
-	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Status"
-)
-
+/*
 // might split this up later for individual update intervals but for now i'm not sure enough of the requirements
 // TODO: add mechanism to make sure, websocket clients are not on locations that don't exist anymore (e.g. after a client disconnects)
 func (server *Server) updateRoutine() {
@@ -181,3 +173,4 @@ func (server *Server) getWebsocketClientsOfLocation(location string) []string {
 	}
 	return clients
 }
+*/

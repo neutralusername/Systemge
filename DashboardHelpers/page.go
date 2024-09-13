@@ -20,6 +20,13 @@ func (pageUpdate *PageUpdate) Marshal() string {
 	return Helpers.JsonMarshal(pageUpdate)
 }
 
+func NewPageUpdate(update map[string]interface{}, updateType int) *PageUpdate {
+	return NewPage(
+		update,
+		updateType,
+	)
+}
+
 func GetPage(client interface{}) *PageUpdate {
 	switch client.(type) {
 	case *CustomServiceClient:

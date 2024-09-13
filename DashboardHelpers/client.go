@@ -9,6 +9,8 @@ const REQUEST_COMMAND = "command"
 const REQUEST_START = "start"
 const REQUEST_STOP = "stop"
 const REQUEST_COLLECTGARBAGE = "collectGarbage"
+const REQUEST_METRICS = "metrics"
+const REQUEST_STATUS = "status"
 
 func HasStatus(client interface{}) bool {
 	switch client.(type) {
