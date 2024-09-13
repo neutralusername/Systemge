@@ -23,14 +23,15 @@ type Server struct {
 	statusMutex sync.Mutex
 	status      int
 
-	frontendPath             string
-	dashboardCommandHandlers Commands.Handlers
+	frontendPath              string
+	dashboardCommandHandlers  Commands.Handlers
+	dashboardWebsocketClients map[*WebsocketServer.WebsocketClient]bool
 
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
 
 	connectedClients         map[string]*connectedClient
-	websocketClientLocations map[string]string // websocketId -> location ("" == dashboard/landing page)
+	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("" == dashboard/landing page)
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
@@ -88,7 +89,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		mutex:                    sync.RWMutex{},
 		config:                   config,
 		connectedClients:         make(map[string]*connectedClient),
-		websocketClientLocations: make(map[string]string),
+		websocketClientLocations: make(map[*WebsocketServer.WebsocketClient]string),
 
 		frontendPath: frontendPath,
 	}

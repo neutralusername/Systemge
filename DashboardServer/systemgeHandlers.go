@@ -18,10 +18,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 		return err
 	}
 
-	connectedClient := &connectedClient{
-		connection: connection,
-		client:     client,
-	}
+	connectedClient := newConnectedClient(connection, client)
 
 	server.mutex.Lock()
 	server.registerModuleHttpHandlers(connectedClient)
