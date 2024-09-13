@@ -80,14 +80,14 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 	if err != nil {
 		return err
 	}
-
+	resultPayload := ""
 	switch command.Name {
 	case "":
 		result, err := server.dashboardCommandHandler(command)
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
+		resultPayload = result
 	default:
 		server.mutex.RLock()
 		client := server.connectedClients[command.Name]
@@ -99,8 +99,9 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		websocketClient.Send(Message.NewAsync("responseMessage", result).Serialize())
+		resultPayload = result
 	}
+	websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
 	return nil
 }
 func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
