@@ -112,7 +112,9 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		server.websocketServer.Multicast(Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
-				map[string]interface{}{},
+				map[string]interface{}{
+					"status": newStatus,
+				},
 				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
 		))
@@ -141,7 +143,9 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		server.websocketServer.Multicast(Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
-				map[string]interface{}{},
+				map[string]interface{}{
+					"status": newStatus,
+				},
 				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
 		))
