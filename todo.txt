@@ -9,6 +9,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -websocketServerDashboard
 -httpServerDashboard
 -oauth2ServerDashboard
+-dashboardClientDashboardClient
 
 integrate "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
