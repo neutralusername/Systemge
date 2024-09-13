@@ -11,7 +11,7 @@ import (
 
 type connectedClient struct {
 	connection       SystemgeConnection.SystemgeConnection
-	websocketClients map[*WebsocketServer.WebsocketClient]bool
+	websocketClients map[*WebsocketServer.WebsocketClient]bool // websocketClient -> true (websocketClients that are currently on this client's page)
 	client           interface{}
 }
 

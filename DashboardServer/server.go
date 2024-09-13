@@ -25,13 +25,13 @@ type Server struct {
 
 	frontendPath              string
 	dashboardCommandHandlers  Commands.Handlers
-	dashboardWebsocketClients map[*WebsocketServer.WebsocketClient]bool
+	dashboardWebsocketClients map[*WebsocketServer.WebsocketClient]bool // websocketClient -> true (websocketClients that are currently on the dashboard page)
 
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
 
 	connectedClients         map[string]*connectedClient
-	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("" == dashboard/landing page)
+	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer

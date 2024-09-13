@@ -80,15 +80,17 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 		return err
 	}
 	resultPayload := ""
-	switch command.Name {
+	switch command.Page {
 	case "":
+		return Error.New("No location", nil)
+	case "/":
 		resultPayload, err = server.dashboardCommandHandler(command)
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
 	default:
 		server.mutex.RLock()
-		client := server.connectedClients[command.Name]
+		client := server.connectedClients[command.Page]
 		server.mutex.RUnlock()
 		if client == nil {
 			return Error.New("Client not found", nil)
@@ -109,47 +111,61 @@ func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command)
 	return commandHandler(command.Args)
 }
 
-func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
+	var pageUpdate *DashboardHelpers.PageUpdate
+	var connectedClient *connectedClient
 	switch message.GetPayload() {
 	case "":
-		go client.Send(
-			Message.NewAsync("changePage",
-				DashboardHelpers.NewPageUpdate(
-					server.getDashboardData(),
-					DashboardHelpers.PAGE_DASHBOARD,
-				).Marshal(),
-			).Serialize(),
+		pageUpdate = DashboardHelpers.NewPageUpdate(
+			map[string]interface{}{},
+			DashboardHelpers.PAGE_NULL,
+		)
+	case "/":
+		pageUpdate = DashboardHelpers.NewPageUpdate(
+			server.getDashboardData(),
+			DashboardHelpers.PAGE_DASHBOARD,
 		)
 	default:
-		connectedClient := server.connectedClients[message.GetPayload()]
+		connectedClient = server.connectedClients[message.GetPayload()]
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
 		switch connectedClient.client.(type) {
 		case *DashboardHelpers.CustomServiceClient:
-			go client.Send(
-				Message.NewAsync("changePage",
-					DashboardHelpers.NewPageUpdate(
-						connectedClient.client,
-						DashboardHelpers.PAGE_CUSTOMSERVICE,
-					).Marshal(),
-				).Serialize(),
+			pageUpdate = DashboardHelpers.NewPageUpdate(
+				connectedClient.client,
+				DashboardHelpers.PAGE_CUSTOMSERVICE,
 			)
 		case *DashboardHelpers.CommandClient:
-			go client.Send(
-				Message.NewAsync("changePage",
-					DashboardHelpers.NewPageUpdate(
-						connectedClient.client,
-						DashboardHelpers.PAGE_COMMAND,
-					).Marshal(),
-				).Serialize(),
+			pageUpdate = DashboardHelpers.NewPageUpdate(
+				connectedClient.client,
+				DashboardHelpers.PAGE_COMMAND,
 			)
 		}
 	}
-	server.websocketClientLocations[client.GetId()] = message.GetPayload()
+	switch server.websocketClientLocations[websocketClient] { // location before change
+	case "":
+	case "/":
+		delete(server.dashboardWebsocketClients, websocketClient)
+	default:
+		delete(connectedClient.websocketClients, websocketClient)
+	}
+	server.websocketClientLocations[websocketClient] = message.GetPayload()
+	switch message.GetPayload() { // location after change
+	case "":
+	case "/":
+		server.dashboardWebsocketClients[websocketClient] = true
+	default:
+		connectedClient.websocketClients[websocketClient] = true
+	}
+	go websocketClient.Send(
+		Message.NewAsync("changePage",
+			pageUpdate.Marshal(),
+		).Serialize(),
+	)
 	return nil
 }
 func (server *Server) getDashboardData() map[string]interface{} {
@@ -173,11 +189,11 @@ func (server *Server) getDashboardData() map[string]interface{} {
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	server.websocketClientLocations[websocketClient.GetId()] = ""
+	server.websocketClientLocations[websocketClient] = ""
 	return nil
 }
 func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	delete(server.websocketClientLocations, websocketClient.GetId())
+	delete(server.websocketClientLocations, websocketClient)
 }

@@ -3,7 +3,7 @@ package DashboardHelpers
 import "encoding/json"
 
 type Command struct {
-	Name    string   `json:"name"`
+	Page    string   `json:"name"`
 	Command string   `json:"command"`
 	Args    []string `json:"args"`
 }
