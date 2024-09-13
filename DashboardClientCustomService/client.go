@@ -10,13 +10,6 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-type customService interface {
-	Start() error
-	Stop() error
-	GetStatus() int
-	GetMetrics() map[string]uint64
-}
-
 func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers) *DashboardClient.Client {
 	if config == nil {
 		panic("config is nil")

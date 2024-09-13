@@ -1,5 +1,12 @@
 package DashboardClientCustomService
 
+type customService interface {
+	Start() error
+	Stop() error
+	GetStatus() int
+	GetMetrics() map[string]uint64
+}
+
 type customServiceStruct struct {
 	startFunc      func() error
 	stopFunc       func() error
