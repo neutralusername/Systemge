@@ -97,6 +97,16 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 	}
 }
 
+func (server *Server) getHeapUsage() uint64 {
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+	return memStats.HeapSys
+}
+
+func (server *Server) getGoroutineCount() int {
+	return runtime.NumGoroutine()
+}
+
 func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
@@ -316,27 +326,10 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		delete(connectedClient.websocketClients, websocketClient)
 	}
 	go websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.CHANGE_PAGE,
+		DashboardHelpers.TOPIC_CHANGE_PAGE,
 		page.Marshal(),
 	).Serialize())
 	return nil
-}
-func (server *Server) getDashboardData() map[string]interface{} {
-	dashboardData := map[string]interface{}{}
-	clientStatus := map[string]int{}
-	dashboardData["clientStatuses"] = clientStatus
-	for _, connectedClient := range server.connectedClients {
-		clientStatus[connectedClient.connection.GetName()] = DashboardHelpers.GetStatus(connectedClient.client)
-	}
-	dashboardCommandsSlice := []string{}
-	dashboardData["commands"] = dashboardCommandsSlice
-	for command := range server.dashboardCommandHandlers {
-		dashboardData["commands"] = append(dashboardCommandsSlice, command)
-	}
-	dashboardData["systemgeMetrics"] = server.RetrieveSystemgeMetrics()
-	dashboardData["websocketMetrics"] = server.RetrieveWebsocketMetrics()
-	dashboardData["httpMetrics"] = server.RetrieveHttpMetrics()
-	return dashboardData
 }
 
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
