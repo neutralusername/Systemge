@@ -88,12 +88,12 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 	case DashboardHelpers.TOPIC_HEAP_USAGE:
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
-		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
+		heapUsage := strconv.FormatUint(memStats.HeapSys, 10)
 		websocketClient.Send(Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"heapSize": heapSize,
+					"heapUsage": heapUsage,
 				},
 				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),
