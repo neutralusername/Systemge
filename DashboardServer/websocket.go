@@ -125,7 +125,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		}
 		err = server.handleCommandRequest(websocketClient, currentPage, command)
 	default:
-		return Error.New("Unknown topic", nil)
+		return Error.New("Unknown request topic", nil)
 	}
 	return nil
 }
