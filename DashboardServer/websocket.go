@@ -100,9 +100,25 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_GET_METRICS:
-
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{
+					DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.GetSystemgeMetrics(),
+					DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS: server.GetWebsocketMetrics(),
+					DASHBOARD_CLIENT_FIELD_HTTP_METRICS:      server.GetHttpMetrics(),
+				},
+				DashboardHelpers.PAGE_DASHBOARD,
+			).Marshal(),
+		).Serialize())
+		return nil
 	case DashboardHelpers.TOPIC_STOP:
-
+		if err := server.systemgeServer.Stop(); err != nil {
+			return Error.New("Failed to stop systemge server", err)
+		}
+		return nil
+	default:
+		return Error.New("Unknown topic", nil)
 	}
 }
 
@@ -314,7 +330,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		)
 	case "/":
 		page = DashboardHelpers.NewPage(
-			server.getDashboardData(),
+			server.getDashboarClient(),
 			DashboardHelpers.PAGE_DASHBOARD,
 		)
 		server.dashboardWebsocketClients[websocketClient] = true

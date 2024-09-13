@@ -24,7 +24,7 @@ type dashboardClient struct {
 	GoroutineCount   int               `json:"goroutineCount"`
 }
 
-func (server *Server) getDashboardData() *dashboardClient {
+func (server *Server) getDashboarClient() *dashboardClient {
 	dashboardData := &dashboardClient{
 		Name:             "dashboard",
 		ClientStatuses:   server.getClientStatuses(),
