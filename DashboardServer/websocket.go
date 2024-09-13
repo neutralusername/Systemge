@@ -44,7 +44,6 @@ func (server *Server) startHandler(websocketClient *WebsocketServer.WebsocketCli
 	))
 	return nil
 }
-
 func (server *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.RLock()
 	connectedClient := server.connectedClients[message.GetPayload()]

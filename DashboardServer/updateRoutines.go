@@ -11,6 +11,15 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
+// might split this up later for individual update intervals but for now i'm not sure enough of the requirements
+func (server *Server) updateRoutine() {
+	defer server.waitGroup.Done()
+	for server.status == Status.STARTED {
+		time.Sleep(time.Duration(server.config.UpdateIntervalMs) * time.Millisecond)
+
+	}
+}
+
 func (server *Server) statusUpdateRoutine() {
 	defer server.waitGroup.Done()
 	for server.status == Status.STARTED {

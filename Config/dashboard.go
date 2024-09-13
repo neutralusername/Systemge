@@ -21,10 +21,7 @@ type DashboardServer struct {
 	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
-	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
-	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
-	StatusUpdateIntervalMs    uint64 `json:"statusUpdateIntervalMs"`    // default: 0 = disabled
-	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`   // default: 0 = disabled
+	UpdateIntervalMs uint64 `json:"updateIntervalMs"` // default: 1000
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
