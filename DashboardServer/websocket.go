@@ -103,6 +103,8 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 
 	case DashboardHelpers.REQUEST_HEAPUSAGE:
 
+	case DashboardHelpers.REQUEST_STOP:
+
 	}
 }
 
