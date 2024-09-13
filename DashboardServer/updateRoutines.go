@@ -12,6 +12,7 @@ import (
 )
 
 // might split this up later for individual update intervals but for now i'm not sure enough of the requirements
+// TODO: add mechanism to make sure, websocket clients are not on locations that don't exist anymore (e.g. after a client disconnects)
 func (server *Server) updateRoutine() {
 	defer server.waitGroup.Done()
 	for server.status == Status.STARTED {
@@ -19,7 +20,13 @@ func (server *Server) updateRoutine() {
 
 		server.mutex.RLock()
 		for websocketId, location := range server.websocketClientLocations {
+			switch location {
+			case "":
 
+			default:
+				connectedClient := server.connectedClients[location]
+
+			}
 		}
 	}
 }
