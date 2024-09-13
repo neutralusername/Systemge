@@ -114,10 +114,16 @@ func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command)
 func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	locationBeforeChange := server.websocketClientLocations[websocketClient]
+	locationAfterChange := message.GetPayload()
+
+	if locationBeforeChange == locationAfterChange {
+		return Error.New("Location is already "+locationAfterChange, nil)
+	}
 
 	var pageUpdate *DashboardHelpers.PageUpdate
 	var connectedClient *connectedClient
-	switch message.GetPayload() {
+	switch locationAfterChange {
 	case "":
 		pageUpdate = DashboardHelpers.NewPageUpdate(
 			map[string]interface{}{},
@@ -129,7 +135,7 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 			DashboardHelpers.PAGE_DASHBOARD,
 		)
 	default:
-		connectedClient = server.connectedClients[message.GetPayload()]
+		connectedClient = server.connectedClients[locationAfterChange]
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
@@ -146,15 +152,15 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 			)
 		}
 	}
-	switch server.websocketClientLocations[websocketClient] { // location before change
+	switch locationBeforeChange {
 	case "":
 	case "/":
 		delete(server.dashboardWebsocketClients, websocketClient)
 	default:
 		delete(connectedClient.websocketClients, websocketClient)
 	}
-	server.websocketClientLocations[websocketClient] = message.GetPayload()
-	switch message.GetPayload() { // location after change
+	server.websocketClientLocations[websocketClient] = locationAfterChange
+	switch locationAfterChange {
 	case "":
 	case "/":
 		server.dashboardWebsocketClients[websocketClient] = true
