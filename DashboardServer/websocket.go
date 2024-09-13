@@ -130,6 +130,29 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 
 func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
+	case DashboardHelpers.REQUEST_COMMAND:
+
+	case DashboardHelpers.REQUEST_STATUS:
+
+	case DashboardHelpers.REQUEST_METRICS:
+
+	case DashboardHelpers.REQUEST_STOP:
+
+	case DashboardHelpers.REQUEST_START_PROCESSINGLOOP_SEQUENTIALLY:
+
+	case DashboardHelpers.REQUEST_START_PROCESSINGLOOP_CONCURRENTLY:
+
+	case DashboardHelpers.REQUEST_STOP_PROCESSINGLOOP:
+
+	case DashboardHelpers.REQUEST_IS_PROCESSING_LOOP_RUNNING:
+
+	case DashboardHelpers.REQUEST_PROCESS_NEXT_MESSAGE:
+
+	case DashboardHelpers.REQUEST_UNPROCESSED_MESSAGES_COUNT:
+
+	case DashboardHelpers.REQUEST_SYNC_REQUEST:
+
+	case DashboardHelpers.REQUEST_ASYNC_MESSAGE:
 
 	}
 }
