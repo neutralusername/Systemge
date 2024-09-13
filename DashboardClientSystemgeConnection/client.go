@@ -35,7 +35,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 				Message.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return DashboardHelpers.NewMetrics(name, systemgeConnection.GetMetrics()).Marshal(), nil
 				},
-				Message.TOPIC_CLOSE_CONNECTION: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				Message.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
 					if err != nil {
 						return "", err

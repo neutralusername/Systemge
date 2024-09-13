@@ -99,6 +99,10 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to handle command request", err)
 		}
+	case DashboardHelpers.REQUEST_START:
+
+	case DashboardHelpers.REQUEST_STOP:
+
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
