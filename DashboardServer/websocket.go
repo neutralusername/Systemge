@@ -161,7 +161,7 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 func (server *Server) getDashboardData() map[string]interface{} {
 	dashboardData := map[string]interface{}{}
 	clientStatus := map[string]int{}
-	dashboardData["clientStatus"] = clientStatus
+	dashboardData["clientStatuses"] = clientStatus
 	for _, connectedClient := range server.connectedClients {
 		clientStatus[connectedClient.connection.GetName()] = DashboardHelpers.GetStatus(connectedClient.client)
 	}
