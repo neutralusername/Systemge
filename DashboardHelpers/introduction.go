@@ -77,11 +77,11 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 	}
 	commands := GetCommands(client)
 	if commands == nil {
-		SetCommands(client, map[string]bool{}) // might return an error if client has no commands, but that's fine
+		SetCommands(client, map[string]bool{})
 	}
 	metrics := GetMetrics(client)
 	if metrics == nil {
-		SetMetrics(client, map[string]uint64{}) // might return an error if client has no metrics, but that's fine
+		SetMetrics(client, map[string]map[string]uint64{})
 	}
 	return client, nil
 }

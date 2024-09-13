@@ -3,14 +3,14 @@ package DashboardHelpers
 import "encoding/json"
 
 type SystemgeConnectionClient struct {
-	Name                string            `json:"name"`
-	Commands            map[string]bool   `json:"commands"`
-	Status              int               `json:"status"`
-	Metrics             map[string]uint64 `json:"metrics"`
-	UnprocessedMessages uint32            `json:"unprocessedMessages"`
+	Name                string                       `json:"name"`
+	Commands            map[string]bool              `json:"commands"`
+	Status              int                          `json:"status"`
+	Metrics             map[string]map[string]uint64 `json:"metrics"`
+	UnprocessedMessages uint32                       `json:"unprocessedMessages"`
 }
 
-func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, metrics map[string]uint64, unprocessedMessages uint32) *SystemgeConnectionClient {
+func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, metrics map[string]map[string]uint64, unprocessedMessages uint32) *SystemgeConnectionClient {
 	return &SystemgeConnectionClient{
 		Name:                name,
 		Commands:            commands,

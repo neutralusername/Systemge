@@ -64,7 +64,7 @@ func SetCommands(client interface{}, commands map[string]bool) error {
 	return nil
 }
 
-func GetMetrics(client interface{}) map[string]uint64 {
+func GetMetrics(client interface{}) map[string]map[string]uint64 {
 	switch client.(type) {
 	case *CustomServiceClient:
 		return client.(*CustomServiceClient).Metrics
@@ -75,7 +75,7 @@ func GetMetrics(client interface{}) map[string]uint64 {
 	}
 }
 
-func SetMetrics(client interface{}, metrics map[string]uint64) error {
+func SetMetrics(client interface{}, metrics map[string]map[string]uint64) error {
 	if metrics == nil {
 		return Error.New("Metrics is nil", nil)
 	}

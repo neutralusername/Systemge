@@ -69,7 +69,9 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					name,
 					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
-					customService.GetMetrics(),
+					map[string]map[string]uint64{
+						"customServiceMetrics": customService.GetMetrics(),
+					},
 				),
 			).Marshal()), nil
 		},
