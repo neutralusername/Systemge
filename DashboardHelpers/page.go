@@ -5,8 +5,8 @@ import (
 )
 
 type PageUpdate struct {
-	Data interface{}
-	Type int
+	Data interface{} `json:"data"`
+	Type int         `json:"type"`
 }
 
 func NewPageUpdate(data interface{}, updateType int) *PageUpdate {
