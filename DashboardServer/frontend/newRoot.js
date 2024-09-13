@@ -1,9 +1,6 @@
 import { commands } from "./commands.js";
 import {
-    MAX_CHART_ENTRIES,
-    WS_PATTERN, 
-    WS_PORT,
-    FRONTEND_HEARTBEAT_INTERVAL_MS,
+   configs
 } from "./configs.js";
 import { 
     lineGraph 
@@ -83,7 +80,7 @@ export class root extends React.Component {
         document.body.style.background = "#222426"
         document.body.style.color = "#ffffff"
 		Chart.defaults.color = "#ffffff";
-        this.WS_CONNECTION = GetWebsocketConnection(WS_PORT, WS_PATTERN);
+        this.WS_CONNECTION = GetWebsocketConnection(configs.WS_PORT, configs.WS_PATTERN);
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
@@ -136,9 +133,9 @@ export class root extends React.Component {
         this.WS_CONNECTION.send(this.constructMessage("changeLocation", window.location.pathname.slice(1)));
         let myLoop = () => {
             this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
-            setTimeout(myLoop, FRONTEND_HEARTBEAT_INTERVAL_MS);
+            setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
         };
-        setTimeout(myLoop, FRONTEND_HEARTBEAT_INTERVAL_MS);
+        setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
     }
 
     constructMessage(topic, payload) {
