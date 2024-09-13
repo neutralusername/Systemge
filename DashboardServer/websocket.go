@@ -72,13 +72,6 @@ func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.Webs
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		commands := DashboardHelpers.GetCommands(connectedClient.client)
-		if commands == nil {
-			return Error.New("Client has no commands", nil)
-		}
-		if !commands[command.Command] {
-			return Error.New("Command not found", nil)
-		}
 		resultPayload, err := connectedClient.executeCommand(command.Command, command.Args)
 		if err != nil {
 			return Error.New("Failed to execute command", err)
@@ -97,9 +90,6 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		server.mutex.RUnlock()
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
-		}
-		if !DashboardHelpers.HasStart(connectedClient.client) {
-			return Error.New("Client has no start function", nil)
 		}
 		newStatus, err := connectedClient.executeStart()
 		if err != nil {
@@ -128,9 +118,6 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		server.mutex.RUnlock()
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
-		}
-		if !DashboardHelpers.HasStop(connectedClient.client) {
-			return Error.New("Client has no stop function", nil)
 		}
 		newStatus, err := connectedClient.executeStop()
 		if err != nil {

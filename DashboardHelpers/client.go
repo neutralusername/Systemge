@@ -39,15 +39,6 @@ func HasStop(client interface{}) bool {
 	}
 }
 
-func HasClose(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
 func GetCommands(client interface{}) map[string]bool {
 	switch client.(type) {
 	case *CommandClient:
