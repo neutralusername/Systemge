@@ -99,10 +99,10 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Broadcast(Message.NewAsync("statusUpdate",
-			DashboardHelpers.NewStatusUpdate(
-				connectedClient.connection.GetName(),
-				newStatus,
+		server.websocketServer.Broadcast(Message.NewAsync("updatePage",
+			DashboardHelpers.NewPage(
+				map[string]interface{}{},
+				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
 		))
 		return nil
@@ -127,10 +127,10 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Broadcast(Message.NewAsync("statusUpdate",
-			DashboardHelpers.NewStatusUpdate(
-				connectedClient.connection.GetName(),
-				newStatus,
+		server.websocketServer.Broadcast(Message.NewAsync(DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{},
+				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
 		))
 		return nil
@@ -187,7 +187,7 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 		delete(connectedClient.websocketClients, websocketClient)
 	}
 	go websocketClient.Send(
-		Message.NewAsync("changePage",
+		Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE,
 			page.Marshal(),
 		).Serialize(),
 	)

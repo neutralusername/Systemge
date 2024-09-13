@@ -11,14 +11,6 @@ type Introduction struct {
 	ClientType   int         `json:"clientType"`
 }
 
-const (
-	PAGE_NULL = iota
-	PAGE_DASHBOARD
-	PAGE_CUSTOMSERVICE
-	PAGE_COMMAND
-	PAGE_SYSTEMGECONNECTION
-)
-
 func NewIntroduction(client interface{}) *Introduction {
 	clientType := -1
 	switch client.(type) {

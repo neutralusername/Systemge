@@ -130,37 +130,6 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 
 	if app.config.DashboardCommands {
 		app.dashboardCommandHandlers = Commands.Handlers{
-			"dashboardMetricsUpdate": func(args []string) (string, error) {
-				app.dashboardMetricsUpdate()
-				return "success", nil
-
-			},
-			"clientMetricsUpdate": func(args []string) (string, error) {
-				if len(args) == 0 {
-					return "", Error.New("No client name", nil)
-				}
-				app.mutex.RLock()
-				client, ok := app.connectedClients[args[0]]
-				app.mutex.RUnlock()
-				if !ok {
-					return "", Error.New("Client not found", nil)
-				}
-				app.clientMetricsUpdate(client)
-				return "success", nil
-			},
-			"statusUpdate": func(args []string) (string, error) {
-				if len(args) == 0 {
-					return "", Error.New("No client name", nil)
-				}
-				app.mutex.RLock()
-				client, ok := app.connectedClients[args[0]]
-				app.mutex.RUnlock()
-				if !ok {
-					return "", Error.New("Client not found", nil)
-				}
-				app.clientStatusUpdate(client)
-				return "success", nil
-			},
 			"disconnectClient": func(args []string) (string, error) {
 				if len(args) == 0 {
 					return "", Error.New("No client name", nil)
@@ -229,10 +198,6 @@ func (server *Server) Start() error {
 	}
 
 	server.status = Status.STARTED
-	if server.config.UpdateIntervalMs > 0 {
-		server.waitGroup.Add(1)
-		go server.updateRoutine()
-	}
 	return nil
 }
 
