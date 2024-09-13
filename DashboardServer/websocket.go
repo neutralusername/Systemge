@@ -94,9 +94,26 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
-
+		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
+		if err != nil {
+			return Error.New("Failed to parse command", err)
+		}
+		commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
+		if commandHandler == nil {
+			return Error.New("Command not found", nil)
+		}
+		resultPayload, err := commandHandler(command.Args)
+		if err != nil {
+			return Error.New("Failed to execute command", err)
+		}
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			resultPayload,
+		).Serialize())
+		return nil
 	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
-
+		runtime.GC()
+		return nil
 	case DashboardHelpers.TOPIC_GOROUTINE_COUNT:
 
 	case DashboardHelpers.TOPIC_GET_METRICS:
