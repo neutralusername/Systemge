@@ -134,27 +134,22 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 			server.getDashboardData(),
 			DashboardHelpers.PAGE_DASHBOARD,
 		)
+		server.dashboardWebsocketClients[websocketClient] = true
 	default:
 		connectedClient = server.connectedClients[locationAfterChange]
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
 		page = DashboardHelpers.GetPage(connectedClient.client)
+		connectedClient.websocketClients[websocketClient] = true
 	}
+	server.websocketClientLocations[websocketClient] = locationAfterChange
 	switch locationBeforeChange {
 	case "":
 	case "/":
 		delete(server.dashboardWebsocketClients, websocketClient)
 	default:
 		delete(connectedClient.websocketClients, websocketClient)
-	}
-	server.websocketClientLocations[websocketClient] = locationAfterChange
-	switch locationAfterChange {
-	case "":
-	case "/":
-		server.dashboardWebsocketClients[websocketClient] = true
-	default:
-		connectedClient.websocketClients[websocketClient] = true
 	}
 	go websocketClient.Send(
 		Message.NewAsync("changePage",
