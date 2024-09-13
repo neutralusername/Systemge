@@ -116,9 +116,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		app.config.WebsocketServerConfig,
 		whitelist, blacklist,
 		map[string]WebsocketServer.MessageHandler{
-			"start":          app.startHandler,
-			"stop":           app.stopHandler,
-			"command":        app.commandHandler,
+			"pageRequest":    app.pageRequestHandler,
 			"changeLocation": app.changeWebsocketClientLocation,
 			"gc":             app.gcHandler,
 		},

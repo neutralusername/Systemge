@@ -9,72 +9,73 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	runtime.GC()
+func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
+	commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
+	if commandHandler == nil {
+		return "", Error.New("Command not found", nil)
+	}
+	return commandHandler(command.Args)
+}
+
+/* func (server *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	server.mutex.RLock()
+	connectedClient := server.connectedClients[message.GetPayload()]
+	server.mutex.RUnlock()
+	if connectedClient == nil {
+		return Error.New("Client not found", nil)
+	}
+	if !DashboardHelpers.HasStart(connectedClient.client) {
+		return Error.New("Client has no start function", nil)
+	}
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_START, "")
+	if err != nil {
+		return Error.New("Failed to send start request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return Error.New(response.GetPayload(), nil)
+	}
+	err = DashboardHelpers.UpdateStatus(connectedClient.client, Helpers.StringToInt(response.GetPayload()))
+	if err != nil {
+		return Error.New("Failed to update status", err)
+	}
+	server.websocketServer.Broadcast(Message.NewAsync("statusUpdate",
+		Helpers.JsonMarshal(DashboardHelpers.StatusUpdate{
+			Name:   connectedClient.connection.GetName(),
+			Status: Helpers.StringToInt(response.GetPayload()),
+		}),
+	))
 	return nil
 }
 
-/*
-	func (server *Server) startHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-		server.mutex.RLock()
-		connectedClient := server.connectedClients[message.GetPayload()]
-		server.mutex.RUnlock()
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		if !DashboardHelpers.HasStart(connectedClient.client) {
-			return Error.New("Client has no start function", nil)
-		}
-		response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_START, "")
-		if err != nil {
-			return Error.New("Failed to send start request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
-		}
-		if response.GetTopic() == Message.TOPIC_FAILURE {
-			return Error.New(response.GetPayload(), nil)
-		}
-		err = DashboardHelpers.UpdateStatus(connectedClient.client, Helpers.StringToInt(response.GetPayload()))
-		if err != nil {
-			return Error.New("Failed to update status", err)
-		}
-		server.websocketServer.Broadcast(Message.NewAsync("statusUpdate",
-			Helpers.JsonMarshal(DashboardHelpers.StatusUpdate{
-				Name:   connectedClient.connection.GetName(),
-				Status: Helpers.StringToInt(response.GetPayload()),
-			}),
-		))
-		return nil
+func (server *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	server.mutex.RLock()
+	connectedClient := server.connectedClients[message.GetPayload()]
+	server.mutex.RUnlock()
+	if connectedClient == nil {
+		return Error.New("Client not found", nil)
 	}
-
-	func (server *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-		server.mutex.RLock()
-		connectedClient := server.connectedClients[message.GetPayload()]
-		server.mutex.RUnlock()
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		if !DashboardHelpers.HasStop(connectedClient.client) {
-			return Error.New("Client has no start function", nil)
-		}
-		response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
-		if err != nil {
-			return Error.New("Failed to send stop request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
-		}
-		if response.GetTopic() == Message.TOPIC_FAILURE {
-			return Error.New(response.GetPayload(), nil)
-		}
-		err = DashboardHelpers.UpdateStatus(connectedClient.client, Helpers.StringToInt(response.GetPayload()))
-		if err != nil {
-			return Error.New("Failed to update status", err)
-		}
-		server.websocketServer.Broadcast(Message.NewAsync("statusUpdate",
-			Helpers.JsonMarshal(DashboardHelpers.StatusUpdate{
-				Name:   connectedClient.connection.GetName(),
-				Status: Helpers.StringToInt(response.GetPayload()),
-			}),
-		))
-		return nil
+	if !DashboardHelpers.HasStop(connectedClient.client) {
+		return Error.New("Client has no start function", nil)
 	}
-*/
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
+	if err != nil {
+		return Error.New("Failed to send stop request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return Error.New(response.GetPayload(), nil)
+	}
+	err = DashboardHelpers.UpdateStatus(connectedClient.client, Helpers.StringToInt(response.GetPayload()))
+	if err != nil {
+		return Error.New("Failed to update status", err)
+	}
+	server.websocketServer.Broadcast(Message.NewAsync("statusUpdate",
+		Helpers.JsonMarshal(DashboardHelpers.StatusUpdate{
+			Name:   connectedClient.connection.GetName(),
+			Status: Helpers.StringToInt(response.GetPayload()),
+		}),
+	))
+	return nil
+}
 func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 	if err != nil {
@@ -103,13 +104,16 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 	}
 	websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
 	return nil
+} */
+
+func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	runtime.GC()
+	return nil
 }
-func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
-	commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
-	if commandHandler == nil {
-		return "", Error.New("Command not found", nil)
-	}
-	return commandHandler(command.Args)
+
+func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+
+	return nil
 }
 
 func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
