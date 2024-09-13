@@ -79,7 +79,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"goroutineCount": goroutineCount,
+					DASHBOARD_CLIENT_FIELD_GOROUTINE_COUNT: goroutineCount,
 				},
 				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),
@@ -93,7 +93,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"heapUsage": heapUsage,
+					DASHBOARD_CLIENT_FIELD_HEAP_USAGE: heapUsage,
 				},
 				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),
