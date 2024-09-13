@@ -1,6 +1,10 @@
 package DashboardHelpers
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/neutralusername/Systemge/Error"
+)
 
 type Introduction struct {
 	ClientStruct interface{} `json:"client"`
@@ -54,46 +58,38 @@ func (introduction *Introduction) Marshal() []byte {
 }
 
 func UnmarshalIntroduction(data []byte) (interface{}, error) {
-	var client Introduction
-	err := json.Unmarshal(data, &client)
+	var introduction Introduction
+	err := json.Unmarshal(data, &introduction)
 	if err != nil {
 		return nil, err
 	}
-	switch client.ClientType {
+	var client interface{}
+	switch introduction.ClientType {
 	case PAGE_COMMAND:
-		commandClient, err := UnmarshalCommandClient([]byte(client.ClientStruct.(string)))
+		client, err = UnmarshalCommandClient([]byte(introduction.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
 		}
-		if commandClient.Commands == nil {
-			commandClient.Commands = map[string]bool{}
-		}
-		return commandClient, nil
 	case PAGE_CUSTOMSERVICE:
-		customServiceClient, err := UnmarshalCustomClient([]byte(client.ClientStruct.(string)))
+		client, err = UnmarshalCustomClient([]byte(introduction.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
 		}
-		if customServiceClient.Commands == nil {
-			customServiceClient.Commands = map[string]bool{}
-		}
-		if customServiceClient.Metrics == nil {
-			customServiceClient.Metrics = make(map[string]uint64)
-		}
-		return customServiceClient, nil
 	case PAGE_SYSTEMGECONNECTION:
-		systemgeConnectionClient, err := UnmarshalSystemgeConnectionClient([]byte(client.ClientStruct.(string)))
+		client, err = UnmarshalSystemgeConnectionClient([]byte(introduction.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
 		}
-		if systemgeConnectionClient.Commands == nil {
-			systemgeConnectionClient.Commands = map[string]bool{}
-		}
-		if systemgeConnectionClient.Metrics == nil {
-			systemgeConnectionClient.Metrics = make(map[string]uint64)
-		}
-		return systemgeConnectionClient, nil
 	default:
-		return nil, nil
+		return nil, Error.New("Unknown client type", nil)
 	}
+	commands := GetCommands(client)
+	if commands == nil {
+		SetCommands(client, map[string]bool{})
+	}
+	metrics := GetMetrics(client)
+	if metrics == nil {
+		SetMetrics(client, map[string]uint64{}) // might return an error if client has no metrics, but that's fine
+	}
+	return client, nil
 }

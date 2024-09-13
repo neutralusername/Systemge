@@ -13,11 +13,10 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
-	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
-	if err != nil {
-		println(err.Error())
+	commands := DashboardHelpers.GetCommands(connectedClient.client)
+	if commands == nil {
 		if server.errorLogger != nil {
-			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		}
 		return
 	}
@@ -62,9 +61,9 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
 	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
 
-	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
-	if err != nil {
-		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+	commands := DashboardHelpers.GetCommands(connectedClient.client)
+	if commands == nil {
+		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return
 	}
 	for command := range commands {

@@ -124,7 +124,11 @@ func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.Webs
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		if !DashboardHelpers.HasCommand(connectedClient.client, command.Command) {
+		commands := DashboardHelpers.GetCommands(connectedClient.client)
+		if commands == nil {
+			return Error.New("Client has no commands", nil)
+		}
+		if !commands[command.Command] {
 			return Error.New("Command not found", nil)
 		}
 		resultPayload, err := connectedClient.executeCommand(command.Command, command.Args)

@@ -5,17 +5,6 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func HasMetrics(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	case *SystemgeConnectionClient:
-		return true
-	default:
-		return false
-	}
-}
-
 func HasStatus(client interface{}) bool {
 	switch client.(type) {
 	case *CustomServiceClient:
@@ -24,17 +13,6 @@ func HasStatus(client interface{}) bool {
 		return true
 	default:
 		return false
-	}
-}
-
-func GetStatus(client interface{}) int {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return client.(*CustomServiceClient).Status
-	case *SystemgeConnectionClient:
-		return client.(*SystemgeConnectionClient).Status
-	default:
-		return Status.NON_EXISTENT
 	}
 }
 
@@ -65,28 +43,45 @@ func HasClose(client interface{}) bool {
 	}
 }
 
-func HasCommand(client interface{}, command string) bool {
-	commands, err := GetCommands(client)
-	if err != nil {
-		return false
-	}
-	return commands[command]
-}
-
-func GetCommands(client interface{}) (map[string]bool, error) {
+func GetCommands(client interface{}) map[string]bool {
 	switch client.(type) {
 	case *CommandClient:
-		return client.(*CommandClient).Commands, nil
+		return client.(*CommandClient).Commands
 	case *CustomServiceClient:
-		return client.(*CustomServiceClient).Commands, nil
+		return client.(*CustomServiceClient).Commands
 	case *SystemgeConnectionClient:
-		return client.(*SystemgeConnectionClient).Commands, nil
+		return client.(*SystemgeConnectionClient).Commands
 	default:
-		return nil, Error.New("Unknown client type", nil)
+		return nil
 	}
 }
 
-func UpdateMetrics(client interface{}, metrics map[string]uint64) error {
+func SetCommands(client interface{}, commands map[string]bool) error {
+	switch client.(type) {
+	case *CommandClient:
+		client.(*CommandClient).Commands = commands
+	case *CustomServiceClient:
+		client.(*CustomServiceClient).Commands = commands
+	case *SystemgeConnectionClient:
+		client.(*SystemgeConnectionClient).Commands = commands
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+	return nil
+}
+
+func GetMetrics(client interface{}) map[string]uint64 {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return client.(*CustomServiceClient).Metrics
+	case *SystemgeConnectionClient:
+		return client.(*SystemgeConnectionClient).Metrics
+	default:
+		return nil
+	}
+}
+
+func SetMetrics(client interface{}, metrics map[string]uint64) error {
 	switch client.(type) {
 	case *CustomServiceClient:
 		client.(*CustomServiceClient).Metrics = metrics
@@ -98,7 +93,18 @@ func UpdateMetrics(client interface{}, metrics map[string]uint64) error {
 	return nil
 }
 
-func UpdateStatus(client interface{}, status int) error {
+func GetStatus(client interface{}) int {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return client.(*CustomServiceClient).Status
+	case *SystemgeConnectionClient:
+		return client.(*SystemgeConnectionClient).Status
+	default:
+		return Status.NON_EXISTENT
+	}
+}
+
+func SetStatus(client interface{}, status int) error {
 	switch client.(type) {
 	case *CustomServiceClient:
 		client.(*CustomServiceClient).Status = status

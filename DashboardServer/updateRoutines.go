@@ -85,7 +85,7 @@ func (server *Server) clientStatusUpdate(connectedClient *connectedClient) {
 		}
 		return
 	}
-	if err := DashboardHelpers.UpdateStatus(connectedClient.client, status); err != nil {
+	if err := DashboardHelpers.SetStatus(connectedClient.client, status); err != nil {
 		if server.errorLogger != nil {
 			server.errorLogger.Log("Failed to update status for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		}
@@ -120,7 +120,7 @@ func (server *Server) clientMetricsUpdate(connectedClient *connectedClient) {
 	if metrics.Metrics == nil {
 		metrics.Metrics = map[string]uint64{}
 	}
-	err = DashboardHelpers.UpdateMetrics(connectedClient.client, metrics.Metrics)
+	err = DashboardHelpers.SetMetrics(connectedClient.client, metrics.Metrics)
 	if err != nil {
 		if server.errorLogger != nil {
 			server.errorLogger.Log("Failed to update metrics for client \"" + connectedClient.connection.GetName() + "\": " + err.Error())
