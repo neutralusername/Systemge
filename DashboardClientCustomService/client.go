@@ -36,7 +36,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					return Helpers.IntToString(customService.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return DashboardHelpers.NewMetrics(name, customService.GetMetrics()).Marshal(), nil
+					return Helpers.JsonMarshal(customService.GetMetrics()), nil
 				},
 				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := customService.Start()

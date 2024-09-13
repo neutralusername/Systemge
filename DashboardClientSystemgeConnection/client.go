@@ -33,7 +33,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return Helpers.IntToString(systemgeConnection.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return DashboardHelpers.NewMetrics(name, systemgeConnection.GetMetrics()).Marshal(), nil
+					return Helpers.JsonMarshal(systemgeConnection.GetMetrics()), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
