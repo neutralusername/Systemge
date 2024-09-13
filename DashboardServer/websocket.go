@@ -105,16 +105,18 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 }
 
 func (server *Server) getDashboardData() map[string]interface{} {
+	dashboardData := map[string]interface{}{}
+	clientsSlice := []interface{}{}
+	dashboardData["clients"] = clientsSlice
 	for _, connectedClient := range server.connectedClients {
-		go func() {
-			client.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
-		}()
+		dashboardData["clients"] = append(clientsSlice, connectedClient.client)
 	}
-	commands := []string{}
+	dashboardCommandsSlice := []string{}
+	dashboardData["commands"] = dashboardCommandsSlice
 	for command := range server.commandHandlers {
-		commands = append(commands, command)
+		dashboardData["commands"] = append(dashboardCommandsSlice, command)
 	}
-	go client.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
+	return dashboardData
 }
 
 func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
