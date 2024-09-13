@@ -104,36 +104,60 @@ func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketC
 	return nil
 }
 
+func (server *Server) getDashboardData() map[string]interface{} {
+	for _, connectedClient := range server.connectedClients {
+		go func() {
+			client.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
+		}()
+	}
+	commands := []string{}
+	for command := range server.commandHandlers {
+		commands = append(commands, command)
+	}
+	go client.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
+}
+
 func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
 	switch message.GetPayload() {
 	case "":
-		server.websocketClientLocations[client.GetId()] = ""
-		for _, connectedClient := range server.connectedClients {
-			go func() {
-				client.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
-			}()
-		}
-		commands := []string{}
-		for command := range server.commandHandlers {
-			commands = append(commands, command)
-		}
-		go client.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
+		go client.Send(
+			Message.NewAsync("changePage",
+				DashboardHelpers.NewPageUpdate(
+					server.getDashboardData(),
+					DashboardHelpers.PAGE_DASHBOARD,
+				).Marshal(),
+			).Serialize(),
+		)
 	default:
 		connectedClient := server.connectedClients[message.GetPayload()]
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		server.websocketClientLocations[client.GetId()] = message.GetPayload()
 		switch connectedClient.client.(type) {
 		case *DashboardHelpers.CustomServiceClient:
-			go client.Send(Message.NewAsync("changePage", DashboardHelpers.NewPageUpdate(connectedClient.client, DashboardHelpers.PAGE_CUSTOMSERVICE).Marshal()).Serialize())
+			go client.Send(
+				Message.NewAsync("changePage",
+					DashboardHelpers.NewPageUpdate(
+						connectedClient.client,
+						DashboardHelpers.PAGE_CUSTOMSERVICE,
+					).Marshal(),
+				).Serialize(),
+			)
 		case *DashboardHelpers.CommandClient:
-			go client.Send(Message.NewAsync("changePage", DashboardHelpers.NewPageUpdate(connectedClient.client, DashboardHelpers.PAGE_COMMAND).Marshal()).Serialize())
+			go client.Send(
+				Message.NewAsync("changePage",
+					DashboardHelpers.NewPageUpdate(
+						connectedClient.client,
+						DashboardHelpers.PAGE_COMMAND,
+					).Marshal(),
+				).Serialize(),
+			)
 		}
 	}
+	server.websocketClientLocations[client.GetId()] = message.GetPayload()
 	return nil
 }
 
