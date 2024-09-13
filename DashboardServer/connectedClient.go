@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
@@ -40,4 +41,26 @@ func (connectedClient *connectedClient) executeCommand(command string, args []st
 		return "", Error.New(response.GetPayload(), nil)
 	}
 	return response.GetPayload(), nil
+}
+
+func (connectedClient *connectedClient) executeStart() (int, error) {
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_START, "")
+	if err != nil {
+		return Status.NON_EXISTENT, Error.New("Failed to send start request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return Status.NON_EXISTENT, Error.New(response.GetPayload(), nil)
+	}
+	return Helpers.StringToInt(response.GetPayload()), nil
+}
+
+func (connectedClient *connectedClient) executeStop() (int, error) {
+	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
+	if err != nil {
+		return Status.NON_EXISTENT, Error.New("Failed to send stop request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return Status.NON_EXISTENT, Error.New(response.GetPayload(), nil)
+	}
+	return Helpers.StringToInt(response.GetPayload()), nil
 }
