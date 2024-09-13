@@ -10,18 +10,6 @@ import (
 )
 
 func New(name string, config *Config.DashboardClient, commands Commands.Handlers) *DashboardClient.Client {
-	if config == nil {
-		panic("config is nil")
-	}
-	if name == "" {
-		panic("config.Name is empty")
-	}
-	if config.TcpSystemgeConnectionConfig == nil {
-		panic("config.ConnectionConfig is nil")
-	}
-	if config.TcpClientConfig == nil {
-		panic("config.EndpointConfig is nil")
-	}
 	return DashboardClient.New(
 		name,
 		config,
