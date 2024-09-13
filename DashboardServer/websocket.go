@@ -113,8 +113,21 @@ func (server *Server) getDashboardData() map[string]interface{} {
 	}
 	dashboardCommandsSlice := []string{}
 	dashboardData["commands"] = dashboardCommandsSlice
-	for command := range server.commandHandlers {
+	for command := range server.dashboardCommandHandlers {
 		dashboardData["commands"] = append(dashboardCommandsSlice, command)
+	}
+	dasboardMetrics := map[string]uint64{}
+	systemgeMetrics := server.RetrieveSystemgeMetrics()
+	for key, value := range systemgeMetrics {
+		dasboardMetrics["systemge_"+key] = value
+	}
+	websocketMetrics := server.RetrieveWebsocketMetrics()
+	for key, value := range websocketMetrics {
+		dasboardMetrics["websocket_"+key] = value
+	}
+	httpMetrics := server.RetrieveHttpMetrics()
+	for key, value := range httpMetrics {
+		dasboardMetrics["http_"+key] = value
 	}
 	return dashboardData
 }
@@ -177,7 +190,7 @@ func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketSer
 }
 
 func (server *Server) dashboardCommandHandler(command *DashboardHelpers.Command) (string, error) {
-	commandHandler, _ := server.commandHandlers.Get(command.Command)
+	commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
 	if commandHandler == nil {
 		return "", Error.New("Command not found", nil)
 	}

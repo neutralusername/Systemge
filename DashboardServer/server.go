@@ -23,8 +23,8 @@ type Server struct {
 	statusMutex sync.Mutex
 	status      int
 
-	frontendPath    string
-	commandHandlers Commands.Handlers
+	frontendPath             string
+	dashboardCommandHandlers Commands.Handlers
 
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
@@ -131,7 +131,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
 
 	if app.config.DashboardCommands {
-		app.commandHandlers = Commands.Handlers{
+		app.dashboardCommandHandlers = Commands.Handlers{
 			"dashboardMetricsUpdate": func(args []string) (string, error) {
 				app.dashboardMetricsUpdate()
 				return "success", nil
@@ -177,19 +177,19 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if app.config.DashboardSystemgeCommands {
 		systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
 		for command, handler := range systemgeDefaultCommands {
-			app.commandHandlers["systemgeServer_"+command] = handler
+			app.dashboardCommandHandlers["systemgeServer_"+command] = handler
 		}
 	}
 	if app.config.DashboardWebsocketCommands {
 		httpDefaultCommands := app.httpServer.GetDefaultCommands()
 		for command, handler := range httpDefaultCommands {
-			app.commandHandlers["httpServer_"+command] = handler
+			app.dashboardCommandHandlers["httpServer_"+command] = handler
 		}
 	}
 	if app.config.DashboardHttpCommands {
 		webSocketDefaultCommands := app.websocketServer.GetDefaultCommands()
 		for command, handler := range webSocketDefaultCommands {
-			app.commandHandlers["websocketServer_"+command] = handler
+			app.dashboardCommandHandlers["websocketServer_"+command] = handler
 		}
 	}
 
