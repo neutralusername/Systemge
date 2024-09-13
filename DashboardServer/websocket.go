@@ -91,11 +91,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 
 	switch request.GetTopic() {
 	case DashboardHelpers.REQUEST_COMMAND:
-		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
-		if err != nil {
-			return Error.New("Failed to parse command", err)
-		}
-		err = server.handleCommandRequest(websocketClient, currentPage, command)
+		err = server.handleCommandRequest(websocketClient, currentPage, request.GetPayload())
 		if err != nil {
 			return Error.New("Failed to handle command request", err)
 		}
@@ -108,7 +104,11 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	}
 	return nil
 }
-func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, command *DashboardHelpers.Command) error {
+func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
+	command, err := DashboardHelpers.UnmarshalCommand(requestPayload)
+	if err != nil {
+		return Error.New("Failed to parse command", err)
+	}
 	switch page {
 	case "/":
 		commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
