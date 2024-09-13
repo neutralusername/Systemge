@@ -68,35 +68,7 @@ func (server *Server) stopHandler(websocketClient *WebsocketServer.WebsocketClie
 	))
 	return nil
 }
-func (server *Server) commandHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
-	if err != nil {
-		return err
-	}
-	resultPayload := ""
-	switch command.Page {
-	case "":
-		return Error.New("No location", nil)
-	case "/":
-		resultPayload, err = server.dashboardCommandHandler(command)
-		if err != nil {
-			return Error.New("Failed to execute command", err)
-		}
-	default:
-		server.mutex.RLock()
-		client := server.connectedClients[command.Page]
-		server.mutex.RUnlock()
-		if client == nil {
-			return Error.New("Client not found", nil)
-		}
-		resultPayload, err = client.ExecuteCommand(command.Command, command.Args)
-		if err != nil {
-			return Error.New("Failed to execute command", err)
-		}
-	}
-	websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
-	return nil
-} */
+*/
 
 func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	runtime.GC()
@@ -132,7 +104,6 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	}
 	return nil
 }
-
 func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, command *DashboardHelpers.Command) error {
 	switch page {
 	case "/":
@@ -152,6 +123,9 @@ func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.Webs
 
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
+		}
+		if !DashboardHelpers.HasCommand(connectedClient.client, command.Command) {
+			return Error.New("Command not found", nil)
 		}
 		resultPayload, err := connectedClient.executeCommand(command.Command, command.Args)
 		if err != nil {

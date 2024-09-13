@@ -22,7 +22,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		return
 	}
 
-	for _, command := range commands {
+	for command := range commands {
 		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
 			body := make([]byte, r.ContentLength)
 			_, err := r.Body.Read(body)
@@ -67,7 +67,7 @@ func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedCli
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
 		return
 	}
-	for _, command := range commands {
+	for command := range commands {
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
 	}

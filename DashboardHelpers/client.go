@@ -65,19 +65,25 @@ func HasClose(client interface{}) bool {
 	}
 }
 
-func GetCommands(client interface{}) ([]string, error) {
-	commands := []string{}
+func HasCommand(client interface{}, command string) bool {
+	commands, err := GetCommands(client)
+	if err != nil {
+		return false
+	}
+	return commands[command]
+}
+
+func GetCommands(client interface{}) (map[string]bool, error) {
 	switch client.(type) {
 	case *CommandClient:
-		commands = append(commands, client.(*CommandClient).Commands...)
+		return client.(*CommandClient).Commands, nil
 	case *CustomServiceClient:
-		commands = append(commands, client.(*CustomServiceClient).Commands...)
+		return client.(*CustomServiceClient).Commands, nil
 	case *SystemgeConnectionClient:
-		commands = append(commands, client.(*SystemgeConnectionClient).Commands...)
+		return client.(*SystemgeConnectionClient).Commands, nil
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
-	return commands, nil
 }
 
 func UpdateMetrics(client interface{}, metrics map[string]uint64) error {

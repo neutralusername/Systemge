@@ -123,7 +123,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			return string(DashboardHelpers.NewIntroduction(
 				DashboardHelpers.NewSystemgeConnectionClient(
 					name,
-					commands.GetKeys(),
+					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
 					systemgeConnection.GetMetrics(),
 					systemgeConnection.UnprocessedMessagesCount(),

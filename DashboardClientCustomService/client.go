@@ -67,7 +67,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 			return string(DashboardHelpers.NewIntroduction(
 				DashboardHelpers.NewCustomServiceClient(
 					name,
-					commands.GetKeys(),
+					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
 					customService.GetMetrics(),
 				),

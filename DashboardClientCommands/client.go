@@ -31,7 +31,7 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 			return string(DashboardHelpers.NewIntroduction(
 				DashboardHelpers.NewCommandClient(
 					name,
-					commands.GetKeys(),
+					commands.GetKeyBoolMap(),
 				),
 			).Marshal()), nil
 		},

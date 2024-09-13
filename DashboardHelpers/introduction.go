@@ -66,7 +66,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 			return nil, err
 		}
 		if commandClient.Commands == nil {
-			commandClient.Commands = []string{}
+			commandClient.Commands = map[string]bool{}
 		}
 		return commandClient, nil
 	case PAGE_CUSTOMSERVICE:
@@ -75,7 +75,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 			return nil, err
 		}
 		if customServiceClient.Commands == nil {
-			customServiceClient.Commands = []string{}
+			customServiceClient.Commands = map[string]bool{}
 		}
 		if customServiceClient.Metrics == nil {
 			customServiceClient.Metrics = make(map[string]uint64)
@@ -87,7 +87,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 			return nil, err
 		}
 		if systemgeConnectionClient.Commands == nil {
-			systemgeConnectionClient.Commands = []string{}
+			systemgeConnectionClient.Commands = map[string]bool{}
 		}
 		if systemgeConnectionClient.Metrics == nil {
 			systemgeConnectionClient.Metrics = make(map[string]uint64)
