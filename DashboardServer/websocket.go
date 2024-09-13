@@ -113,7 +113,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_STOP:
-		if err := server.systemgeServer.Stop(); err != nil {
+		if err := server.Stop(); err != nil {
 			return Error.New("Failed to stop systemge server", err)
 		}
 		return nil
