@@ -116,8 +116,7 @@ func (server *Server) getDashboardData() map[string]interface{} {
 	for command := range server.dashboardCommandHandlers {
 		dashboardData["commands"] = append(dashboardCommandsSlice, command)
 	}
-	systemgeMetrics := server.RetrieveSystemgeMetrics()
-	dashboardData["systemgeMetrics"] = systemgeMetrics
+	dashboardData["systemgeMetrics"] = server.RetrieveSystemgeMetrics()
 	dashboardData["websocketMetrics"] = server.RetrieveWebsocketMetrics()
 	dashboardData["httpMetrics"] = server.RetrieveHttpMetrics()
 	return dashboardData
