@@ -122,16 +122,6 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 	}
 }
 
-func (server *Server) getHeapUsage() uint64 {
-	var memStats runtime.MemStats
-	runtime.ReadMemStats(&memStats)
-	return memStats.HeapSys
-}
-
-func (server *Server) getGoroutineCount() int {
-	return runtime.NumGoroutine()
-}
-
 func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
@@ -288,15 +278,7 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		return nil
 	}
 }
-func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient, page string) error {
-	switch page {
-	case "/":
-		runtime.GC()
-		return nil
-	default:
-		return Error.New("Cannot collect garbage from client page", nil)
-	}
-}
+
 func (server *Server) handleMetricsRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
 
 }
