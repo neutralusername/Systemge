@@ -2,7 +2,6 @@ package DashboardServer
 
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -23,13 +22,22 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.mutex.Lock()
 	server.registerModuleHttpHandlers(connectedClient)
 	server.connectedClients[connection.GetName()] = connectedClient
+	clientStatus := map[string]int{}
+	for _, connectedClient := range server.connectedClients {
+		clientStatus[connectedClient.connection.GetName()] = DashboardHelpers.GetStatus(connectedClient.client)
+	}
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
-		// propagate the new clientStatus to all websocket clients on the dashboard-page
+		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
-			"addModule",
-			Helpers.JsonMarshal(client),
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{
+					"clientStatuses": clientStatus,
+				},
+				DashboardHelpers.PAGE_DASHBOARD,
+			).Marshal(),
 		),
 	)
 	return nil
@@ -44,13 +52,22 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 		delete(server.connectedClients, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
 	}
+	clientStatus := map[string]int{}
+	for _, connectedClient := range server.connectedClients {
+		clientStatus[connectedClient.connection.GetName()] = DashboardHelpers.GetStatus(connectedClient.client)
+	}
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
-		// propagate the removed clientStatus to all websocket clients on the dashboard-page
+		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
-			"removeModule",
-			connection.GetName(),
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{
+					"clientStatuses": clientStatus,
+				},
+				DashboardHelpers.PAGE_DASHBOARD,
+			).Marshal(),
 		),
 	)
 	return

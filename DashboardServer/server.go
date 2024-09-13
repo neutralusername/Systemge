@@ -96,13 +96,13 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	}
 
 	if config.InfoLoggerPath != "" {
-		app.infoLogger = Tools.NewLogger("[Info: \"DashboardServer\"] ", config.InfoLoggerPath)
+		app.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		app.warningLogger = Tools.NewLogger("[Warning: \"DashboardServer\"] ", config.WarningLoggerPath)
+		app.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		app.errorLogger = Tools.NewLogger("[Error: \"DashboardServer\"] ", config.ErrorLoggerPath)
+		app.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
 		app.mailer = Tools.NewMailer(config.MailerConfig)
@@ -221,4 +221,25 @@ func (server *Server) Stop() error {
 	}
 	server.status = Status.STOPPED
 	return nil
+}
+
+func (server *Server) GetWebsocketClientIdsOnPage(page string) []string {
+	server.mutex.RLock()
+	defer server.mutex.RUnlock()
+	clients := make([]string, 0)
+	switch page {
+	case "":
+	case "/":
+		for client := range server.dashboardWebsocketClients {
+			clients = append(clients, client.GetId())
+		}
+	default:
+		connectedClient := server.connectedClients[page]
+		if connectedClient != nil {
+			for client := range connectedClient.websocketClients {
+				clients = append(clients, client.GetId())
+			}
+		}
+	}
+	return clients
 }
