@@ -108,12 +108,22 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 
 func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
+	case DashboardHelpers.REQUEST_COMMAND:
 
 	}
 }
 
 func (server *Server) handleCustomServiceClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
+	case DashboardHelpers.REQUEST_COMMAND:
+
+	case DashboardHelpers.REQUEST_START:
+
+	case DashboardHelpers.REQUEST_STOP:
+
+	case DashboardHelpers.REQUEST_METRICS:
+
+	case DashboardHelpers.REQUEST_STATUS:
 
 	}
 }
