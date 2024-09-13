@@ -7,15 +7,23 @@ type Introduction struct {
 	ClientType   int         `json:"clientType"`
 }
 
+const (
+	PAGE_NULL = iota
+	PAGE_DASHBOARD
+	PAGE_CUSTOMSERVICE
+	PAGE_COMMAND
+	PAGE_SYSTEMGECONNECTION
+)
+
 func NewIntroduction(client interface{}) *Introduction {
 	clientType := -1
 	switch client.(type) {
 	case *CommandClient:
-		clientType = CLIENT_COMMAND
+		clientType = PAGE_COMMAND
 	case *CustomServiceClient:
-		clientType = CLIENT_CUSTOM_SERVICE
+		clientType = PAGE_CUSTOMSERVICE
 	case *SystemgeConnectionClient:
-		clientType = CLIENT_SYSTEMGE_CONNECTION
+		clientType = PAGE_SYSTEMGECONNECTION
 	default:
 		panic("Unknown client type")
 	}
@@ -29,11 +37,11 @@ func (introduction *Introduction) Marshal() []byte {
 	marshalClient := Introduction{}
 	marshalClient.ClientType = introduction.ClientType
 	switch introduction.ClientType {
-	case CLIENT_COMMAND:
+	case PAGE_COMMAND:
 		marshalClient.ClientStruct = string(introduction.ClientStruct.(*CommandClient).Marshal())
-	case CLIENT_CUSTOM_SERVICE:
+	case PAGE_CUSTOMSERVICE:
 		marshalClient.ClientStruct = string(introduction.ClientStruct.(*CustomServiceClient).Marshal())
-	case CLIENT_SYSTEMGE_CONNECTION:
+	case PAGE_SYSTEMGECONNECTION:
 		marshalClient.ClientStruct = string(introduction.ClientStruct.(*SystemgeConnectionClient).Marshal())
 	default:
 		panic("Unknown client type")
@@ -52,7 +60,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 		return nil, err
 	}
 	switch client.ClientType {
-	case CLIENT_COMMAND:
+	case PAGE_COMMAND:
 		commandClient, err := UnmarshalCommandClient([]byte(client.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
@@ -61,7 +69,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 			commandClient.Commands = []string{}
 		}
 		return commandClient, nil
-	case CLIENT_CUSTOM_SERVICE:
+	case PAGE_CUSTOMSERVICE:
 		customServiceClient, err := UnmarshalCustomClient([]byte(client.ClientStruct.(string)))
 		if err != nil {
 			return nil, err
@@ -73,7 +81,7 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 			customServiceClient.Metrics = make(map[string]uint64)
 		}
 		return customServiceClient, nil
-	case CLIENT_SYSTEMGE_CONNECTION:
+	case PAGE_SYSTEMGECONNECTION:
 		systemgeConnectionClient, err := UnmarshalSystemgeConnectionClient([]byte(client.ClientStruct.(string)))
 		if err != nil {
 			return nil, err

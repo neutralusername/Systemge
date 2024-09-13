@@ -108,40 +108,33 @@ func (server *Server) changeWebsocketClientLocation(client *WebsocketServer.Webs
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
-	if message.GetPayload() == "" {
-		server.websocketClientLocations[client.GetId()] = message.GetPayload()
-		server.propagateDashboardData(client)
-	} else {
+	switch message.GetPayload() {
+	case "":
+		server.websocketClientLocations[client.GetId()] = ""
+		for _, connectedClient := range server.connectedClients {
+			go func() {
+				client.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
+			}()
+		}
+		commands := []string{}
+		for command := range server.commandHandlers {
+			commands = append(commands, command)
+		}
+		go client.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
+	default:
 		connectedClient := server.connectedClients[message.GetPayload()]
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
 		server.websocketClientLocations[client.GetId()] = message.GetPayload()
-		server.propagateClientData(client, connectedClient)
+		switch connectedClient.client.(type) {
+		case *DashboardHelpers.CustomServiceClient:
+			go client.Send(Message.NewAsync("changePage", DashboardHelpers.NewPageUpdate(connectedClient.client, DashboardHelpers.PAGE_CUSTOMSERVICE).Marshal()).Serialize())
+		case *DashboardHelpers.CommandClient:
+			go client.Send(Message.NewAsync("changePage", DashboardHelpers.NewPageUpdate(connectedClient.client, DashboardHelpers.PAGE_COMMAND).Marshal()).Serialize())
+		}
 	}
 	return nil
-}
-
-func (server *Server) propagateDashboardData(websocketClient *WebsocketServer.WebsocketClient) {
-	for _, connectedClient := range server.connectedClients {
-		go func() {
-			websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
-		}()
-	}
-	commands := []string{}
-	for command := range server.commandHandlers {
-		commands = append(commands, command)
-	}
-	go websocketClient.Send(Message.NewAsync("dashboardCommands", Helpers.JsonMarshal(commands)).Serialize())
-}
-
-func (server *Server) propagateClientData(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) {
-	switch connectedClient.client.(type) {
-	case *DashboardHelpers.CustomServiceClient:
-		go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
-	case *DashboardHelpers.CommandClient:
-		go websocketClient.Send(Message.NewAsync("addModule", Helpers.JsonMarshal(connectedClient.client)).Serialize())
-	}
 }
 
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {

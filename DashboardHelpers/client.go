@@ -2,12 +2,6 @@ package DashboardHelpers
 
 import "github.com/neutralusername/Systemge/Error"
 
-const (
-	CLIENT_COMMAND = iota
-	CLIENT_CUSTOM_SERVICE
-	CLIENT_SYSTEMGE_CONNECTION
-)
-
 func HasMetrics(client interface{}) bool {
 	switch client.(type) {
 	case *CustomServiceClient:

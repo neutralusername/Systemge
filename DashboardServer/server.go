@@ -76,13 +76,12 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("server.go")] + "frontend/"
-	configs := map[string]interface{}{
+	Helpers.CreateFile(frontendPath+"configs.js", "export const configs = "+Helpers.JsonMarshal(map[string]interface{}{
 		"WS_PORT":                     config.WebsocketServerConfig.TcpServerConfig.Port,
 		"WS_PATTERN":                  config.WebsocketServerConfig.Pattern,
 		"MAX_CHART_ENTRIES":           config.MaxChartEntries,
 		"FRONTEND_HEARTBEAT_INTERVAL": config.FrontendHeartbeatIntervalMs,
-	}
-	Helpers.CreateFile(frontendPath+"configs.js", "export const configs = "+Helpers.JsonMarshal(configs))
+	}))
 
 	app := &Server{
 		name:                     name,
