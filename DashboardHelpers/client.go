@@ -11,6 +11,8 @@ const REQUEST_STOP = "stop"
 const REQUEST_COLLECTGARBAGE = "collectGarbage"
 const REQUEST_METRICS = "metrics"
 const REQUEST_STATUS = "status"
+const REQUEST_HEAPUSAGE = "heapUsage"
+const REQUEST_GOROUTINECOUNT = "goroutineCount"
 
 func HasStatus(client interface{}) bool {
 	switch client.(type) {

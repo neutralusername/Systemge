@@ -45,13 +45,25 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 			return Error.New("Failed to handle garbage collection request", err)
 		}
 	case DashboardHelpers.REQUEST_METRICS:
-
+		err := server.handleMetricsRequest(websocketClient, currentPage, request.GetPayload())
+		if err != nil {
+			return Error.New("Failed to handle metrics request", err)
+		}
 	case DashboardHelpers.REQUEST_STATUS:
-
+		err := server.handleStatusRequest(websocketClient, currentPage, request.GetPayload())
+		if err != nil {
+			return Error.New("Failed to handle status request", err)
+		}
 	case DashboardHelpers.REQUEST_HEAPUSAGE:
-
+		err := server.handleHeapUsageRequest(websocketClient, currentPage)
+		if err != nil {
+			return Error.New("Failed to handle heap usage request", err)
+		}
 	case DashboardHelpers.REQUEST_GOROUTINECOUNT:
-
+		err := server.handleGoroutineCountRequest(websocketClient, currentPage)
+		if err != nil {
+			return Error.New("Failed to handle goroutine count request", err)
+		}
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
@@ -116,6 +128,7 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		server.websocketServer.Multicast(
 
 			Message.NewAsync(
+				// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
 				DashboardHelpers.TOPIC_UPDATE_PAGE,
 				DashboardHelpers.NewPage(
 					map[string]interface{}{
@@ -150,6 +163,7 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		server.websocketServer.Multicast(
 
 			Message.NewAsync(
+				// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
 				DashboardHelpers.TOPIC_UPDATE_PAGE,
 				DashboardHelpers.NewPage(
 					map[string]interface{}{
@@ -170,6 +184,18 @@ func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient
 	default:
 		return Error.New("Cannot collect garbage from client page", nil)
 	}
+}
+func (server *Server) handleMetricsRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
+
+}
+func (server *Server) handleStatusRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
+
+}
+func (server *Server) handleHeapUsageRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
+
+}
+func (server *Server) handleGoroutineCountRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
+
 }
 
 func (server *Server) handleChangePage(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
