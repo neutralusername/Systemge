@@ -231,21 +231,9 @@ func (server *Server) Start() error {
 	}
 
 	server.status = Status.STARTED
-	if server.config.StatusUpdateIntervalMs > 0 {
+	if server.config.UpdateIntervalMs > 0 {
 		server.waitGroup.Add(1)
-		go server.statusUpdateRoutine()
-	}
-	if server.config.GoroutineUpdateIntervalMs > 0 {
-		server.waitGroup.Add(1)
-		go server.goroutineUpdateRoutine()
-	}
-	if server.config.HeapUpdateIntervalMs > 0 {
-		server.waitGroup.Add(1)
-		go server.heapUpdateRoutine()
-	}
-	if server.config.MetricsUpdateIntervalMs > 0 {
-		server.waitGroup.Add(1)
-		go server.metricsUpdateRoutine()
+		go server.updateRoutine()
 	}
 	return nil
 }

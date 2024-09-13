@@ -17,6 +17,10 @@ func (server *Server) updateRoutine() {
 	for server.status == Status.STARTED {
 		time.Sleep(time.Duration(server.config.UpdateIntervalMs) * time.Millisecond)
 
+		server.mutex.RLock()
+		for websocketId, location := range server.websocketClientLocations {
+
+		}
 	}
 }
 
