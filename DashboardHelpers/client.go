@@ -5,6 +5,10 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
+const REQUEST_COMMAND = "command"
+const REQUEST_START = "start"
+const REQUEST_STOP = "stop"
+
 func HasStatus(client interface{}) bool {
 	switch client.(type) {
 	case *CustomServiceClient:
