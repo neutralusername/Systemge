@@ -112,7 +112,28 @@ func (server *Server) gcHandler(websocketClient *WebsocketServer.WebsocketClient
 }
 
 func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	server.mutex.RLock()
+	currentPage := server.websocketClientLocations[websocketClient]
+	server.mutex.RUnlock()
+	if currentPage == "" {
+		return Error.New("No location", nil)
+	}
+	request, err := Message.Deserialize([]byte(message.GetPayload()), websocketClient.GetId())
+	if err != nil {
+		return Error.New("Failed to deserialize request", err)
+	}
+	switch request.GetTopic() {
+	case "command":
+		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
+		if err != nil {
+			return Error.New("Failed to parse command", err)
+		}
+		switch currentPage {
+		case "/":
 
+		default:
+		}
+	}
 	return nil
 }
 
