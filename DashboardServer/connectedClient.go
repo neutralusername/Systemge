@@ -27,12 +27,10 @@ func newConnectedClient(connection SystemgeConnection.SystemgeConnection, client
 func (connectedClient *connectedClient) executeCommand(command string, args []string) (string, error) {
 	response, err := connectedClient.connection.SyncRequestBlocking(
 		Message.TOPIC_EXECUTE_COMMAND,
-		Helpers.JsonMarshal(
-			&DashboardHelpers.Command{
-				Command: command,
-				Args:    args,
-			},
-		),
+		DashboardHelpers.NewCommand(
+			command,
+			args,
+		).Marshal(),
 	)
 	if err != nil {
 		return "", Error.New("Failed to send command \""+command+"\" to client \""+connectedClient.connection.GetName()+"\"", err)
@@ -44,7 +42,10 @@ func (connectedClient *connectedClient) executeCommand(command string, args []st
 }
 
 func (connectedClient *connectedClient) executeStart() (int, error) {
-	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_START, "")
+	response, err := connectedClient.connection.SyncRequestBlocking(
+		Message.TOPIC_START,
+		"",
+	)
 	if err != nil {
 		return Status.NON_EXISTENT, Error.New("Failed to send start request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
 	}
@@ -55,7 +56,10 @@ func (connectedClient *connectedClient) executeStart() (int, error) {
 }
 
 func (connectedClient *connectedClient) executeStop() (int, error) {
-	response, err := connectedClient.connection.SyncRequestBlocking(Message.TOPIC_STOP, "")
+	response, err := connectedClient.connection.SyncRequestBlocking(
+		Message.TOPIC_STOP,
+		"",
+	)
 	if err != nil {
 		return Status.NON_EXISTENT, Error.New("Failed to send stop request to client \""+connectedClient.connection.GetName()+"\": "+err.Error(), nil)
 	}
