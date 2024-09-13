@@ -33,7 +33,7 @@ func (server *Server) getDashboarClient() *dashboardClient {
 		Name:           "dashboard",
 		ClientStatuses: server.getClientStatuses(),
 		Commands:       server.getDashboardClientCommands(),
-		Metrics: map[string]map[string]uint64{
+		Metrics: map[string]map[string]uint64{ // will check on frontend for metrics-updates and handle them accordingly
 			DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.RetrieveSystemgeMetrics(),
 			DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS: server.RetrieveWebsocketMetrics(),
 			DASHBOARD_CLIENT_FIELD_HTTP_METRICS:      server.RetrieveHttpMetrics(),
