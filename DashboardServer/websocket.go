@@ -124,6 +124,9 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 			return Error.New("Failed to parse command", err)
 		}
 		err = server.handleCommandRequest(websocketClient, currentPage, command)
+		if err != nil {
+			return Error.New("Failed to handle command request", err)
+		}
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
