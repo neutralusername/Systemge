@@ -121,16 +121,16 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 		return Error.New("Location is already "+locationAfterChange, nil)
 	}
 
-	var pageUpdate *DashboardHelpers.PageUpdate
+	var page *DashboardHelpers.PageUpdate
 	var connectedClient *connectedClient
 	switch locationAfterChange {
 	case "":
-		pageUpdate = DashboardHelpers.NewPageUpdate(
+		page = DashboardHelpers.NewPage(
 			map[string]interface{}{},
 			DashboardHelpers.PAGE_NULL,
 		)
 	case "/":
-		pageUpdate = DashboardHelpers.NewPageUpdate(
+		page = DashboardHelpers.NewPage(
 			server.getDashboardData(),
 			DashboardHelpers.PAGE_DASHBOARD,
 		)
@@ -139,18 +139,7 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		switch connectedClient.client.(type) {
-		case *DashboardHelpers.CustomServiceClient:
-			pageUpdate = DashboardHelpers.NewPageUpdate(
-				connectedClient.client,
-				DashboardHelpers.PAGE_CUSTOMSERVICE,
-			)
-		case *DashboardHelpers.CommandClient:
-			pageUpdate = DashboardHelpers.NewPageUpdate(
-				connectedClient.client,
-				DashboardHelpers.PAGE_COMMAND,
-			)
-		}
+		page = DashboardHelpers.GetPage(connectedClient.client)
 	}
 	switch locationBeforeChange {
 	case "":
@@ -169,7 +158,7 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 	}
 	go websocketClient.Send(
 		Message.NewAsync("changePage",
-			pageUpdate.Marshal(),
+			page.Marshal(),
 		).Serialize(),
 	)
 	return nil
