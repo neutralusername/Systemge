@@ -33,7 +33,6 @@ func New(name string, config *Config.DashboardClient, customService customServic
 	if customService == nil {
 		panic("customService is nil")
 	}
-
 	return DashboardClient.New(
 		name,
 		config,
@@ -97,17 +96,15 @@ func New_(name string, config *Config.DashboardClient, startFunc func() error, s
 	if getMetricsFunc == nil {
 		panic("getMetricsFunc is nil")
 	}
-	customService := &customServiceStruct{
-		startFunc:      startFunc,
-		stopFunc:       stopFunc,
-		getStatusFunc:  getStatusFunc,
-		getMetricsFunc: getMetricsFunc,
-	}
-
 	return New(
 		name,
 		config,
-		customService,
+		&customServiceStruct{
+			startFunc:      startFunc,
+			stopFunc:       stopFunc,
+			getStatusFunc:  getStatusFunc,
+			getMetricsFunc: getMetricsFunc,
+		},
 		commands,
 	)
 }
