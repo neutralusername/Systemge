@@ -33,7 +33,7 @@ export class root extends React.Component {
             responseMessageTimeouts: {},
            
             pageType : PAGE_NULL,
-            pageData : null,
+            pageData : {},
 
             setStateRoot : (state) => {
                 this.setState(state);
