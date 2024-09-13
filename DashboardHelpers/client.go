@@ -1,6 +1,9 @@
 package DashboardHelpers
 
-import "github.com/neutralusername/Systemge/Error"
+import (
+	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Status"
+)
 
 func HasMetrics(client interface{}) bool {
 	switch client.(type) {
@@ -21,6 +24,17 @@ func HasStatus(client interface{}) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func GetStatus(client interface{}) int {
+	switch client.(type) {
+	case *CustomServiceClient:
+		return client.(*CustomServiceClient).Status
+	case *SystemgeConnectionClient:
+		return client.(*SystemgeConnectionClient).Status
+	default:
+		return Status.NON_EXISTENT
 	}
 }
 
