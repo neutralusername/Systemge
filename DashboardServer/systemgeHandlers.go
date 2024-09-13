@@ -26,7 +26,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
-
+		// propagate the new clientStatus to all websocket clients on the dashboard-page
 		Message.NewAsync(
 			"addModule",
 			Helpers.JsonMarshal(client),
@@ -47,7 +47,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
-
+		// propagate the removed clientStatus to all websocket clients on the dashboard-page
 		Message.NewAsync(
 			"removeModule",
 			connection.GetName(),
