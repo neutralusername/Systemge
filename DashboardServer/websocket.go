@@ -2,58 +2,14 @@ package DashboardServer
 
 import (
 	"runtime"
+	"strconv"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
-
-/* switch request.GetTopic() {
-case DashboardHelpers.REQUEST_COMMAND:
-	err = server.handleCommandRequest(websocketClient, currentPage, request.GetPayload())
-	if err != nil {
-		return Error.New("Failed to handle command request", err)
-	}
-case DashboardHelpers.REQUEST_START:
-	err := server.handleStartRequest(websocketClient, currentPage)
-	if err != nil {
-		return Error.New("Failed to handle start request", err)
-	}
-case DashboardHelpers.REQUEST_STOP:
-	err := server.handleStopRequest(websocketClient, currentPage)
-	if err != nil {
-		return Error.New("Failed to handle stop request", err)
-	}
-case DashboardHelpers.REQUEST_COLLECTGARBAGE:
-	err := server.gcHandler(websocketClient, currentPage)
-	if err != nil {
-		return Error.New("Failed to handle garbage collection request", err)
-	}
-case DashboardHelpers.REQUEST_METRICS:
-	err := server.handleMetricsRequest(websocketClient, currentPage, request.GetPayload())
-	if err != nil {
-		return Error.New("Failed to handle metrics request", err)
-	}
-case DashboardHelpers.REQUEST_STATUS:
-	err := server.handleStatusRequest(websocketClient, currentPage, request.GetPayload())
-	if err != nil {
-		return Error.New("Failed to handle status request", err)
-	}
-case DashboardHelpers.REQUEST_HEAPUSAGE:
-	err := server.handleHeapUsageRequest(websocketClient, currentPage)
-	if err != nil {
-		return Error.New("Failed to handle heap usage request", err)
-	}
-case DashboardHelpers.REQUEST_GOROUTINECOUNT:
-	err := server.handleGoroutineCountRequest(websocketClient, currentPage)
-	if err != nil {
-		return Error.New("Failed to handle goroutine count request", err)
-	}
-default:
-	return Error.New("Unknown request topic", nil)
-}
-return nil */
 
 func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.RLock()
@@ -113,12 +69,28 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		return nil
 	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
 		runtime.GC()
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			"Garbage collected",
+		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_GOROUTINE_COUNT:
-
-	case DashboardHelpers.TOPIC_GET_METRICS:
-
+		goroutineCount := runtime.NumGoroutine()
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			Helpers.IntToString(goroutineCount),
+		).Serialize())
+		return nil
 	case DashboardHelpers.TOPIC_HEAP_USAGE:
+		var memStats runtime.MemStats
+		runtime.ReadMemStats(&memStats)
+		heapSize := strconv.FormatUint(memStats.HeapSys, 10)
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			heapSize,
+		).Serialize())
+		return nil
+	case DashboardHelpers.TOPIC_GET_METRICS:
 
 	case DashboardHelpers.TOPIC_STOP:
 
