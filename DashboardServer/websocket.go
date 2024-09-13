@@ -9,9 +9,14 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
+func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message) error {
+
+}
+
 func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.RLock()
 	currentPage := server.websocketClientLocations[websocketClient]
+	connectedClient := server.connectedClients[currentPage]
 	server.mutex.RUnlock()
 
 	if currentPage == "" {
@@ -23,7 +28,27 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		return Error.New("Failed to deserialize request", err)
 	}
 
-	switch request.GetTopic() {
+	if currentPage == "/" {
+		return server.handleDashboardRequest(websocketClient, request)
+	} else {
+		if connectedClient == nil {
+			// should never happen
+			return Error.New("Client not found", nil)
+		}
+		switch connectedClient.client.(type) {
+		case DashboardHelpers.CommandClient:
+			return server.handleCommandClientRequest(websocketClient, request, connectedClient)
+		case DashboardHelpers.CustomServiceClient:
+			return server.handleCustomServiceClientRequest(websocketClient, request, connectedClient)
+		case DashboardHelpers.SystemgeConnectionClient:
+			return server.handleSystemgeConnectionClientRequest(websocketClient, request, connectedClient)
+		default:
+			// should never happen
+			return Error.New("Unknown client type", nil)
+		}
+	}
+
+	/* switch request.GetTopic() {
 	case DashboardHelpers.REQUEST_COMMAND:
 		err = server.handleCommandRequest(websocketClient, currentPage, request.GetPayload())
 		if err != nil {
@@ -67,7 +92,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
-	return nil
+	return nil */
 }
 func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
 	command, err := DashboardHelpers.UnmarshalCommand(requestPayload)
@@ -126,9 +151,8 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 			return Error.New("Failed to update status", err)
 		}
 		server.websocketServer.Multicast(
-
+			// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
 			Message.NewAsync(
-				// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
 				DashboardHelpers.TOPIC_UPDATE_PAGE,
 				DashboardHelpers.NewPage(
 					map[string]interface{}{
@@ -161,9 +185,8 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 			return Error.New("Failed to update status", err)
 		}
 		server.websocketServer.Multicast(
-
+			// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
 			Message.NewAsync(
-				// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
 				DashboardHelpers.TOPIC_UPDATE_PAGE,
 				DashboardHelpers.NewPage(
 					map[string]interface{}{

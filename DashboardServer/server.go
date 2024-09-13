@@ -89,10 +89,9 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		name:                     name,
 		mutex:                    sync.RWMutex{},
 		config:                   config,
-		connectedClients:         make(map[string]*connectedClient),
-		websocketClientLocations: make(map[*WebsocketServer.WebsocketClient]string),
-
-		frontendPath: frontendPath,
+		connectedClients:         map[string]*connectedClient{},
+		websocketClientLocations: map[*WebsocketServer.WebsocketClient]string{},
+		frontendPath:             frontendPath,
 	}
 
 	if config.InfoLoggerPath != "" {
