@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	TOPIC_CHANGE_PAGE = "changePage"
-	TOPIC_UPDATE_PAGE = "updatePage"
+	TOPIC_CHANGE_PAGE      = "changePage"
+	TOPIC_UPDATE_PAGE      = "updatePage"
+	TOPIC_RESPONSE_MESSAGE = "responseMessage"
 )
 
 const (

@@ -44,6 +44,10 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to handle garbage collection request", err)
 		}
+	case DashboardHelpers.REQUEST_METRICS:
+
+	case DashboardHelpers.REQUEST_STATUS:
+
 	default:
 		return Error.New("Unknown request topic", nil)
 	}
@@ -64,7 +68,10 @@ func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.Webs
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			resultPayload,
+		).Serialize())
 	default:
 		server.mutex.RLock()
 		connectedClient := server.connectedClients[page]
@@ -76,7 +83,10 @@ func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.Webs
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		websocketClient.Send(Message.NewAsync("responseMessage", resultPayload).Serialize())
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			resultPayload,
+		).Serialize())
 	}
 	return nil
 }
@@ -99,7 +109,8 @@ func (server *Server) handleStartRequest(websocketClient *WebsocketServer.Websoc
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Broadcast(Message.NewAsync("updatePage",
+		server.websocketServer.Broadcast(Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{},
 				DashboardHelpers.GetPageType(connectedClient.client),
@@ -127,7 +138,8 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		if err != nil {
 			return Error.New("Failed to update status", err)
 		}
-		server.websocketServer.Broadcast(Message.NewAsync(DashboardHelpers.TOPIC_UPDATE_PAGE,
+		server.websocketServer.Broadcast(Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{},
 				DashboardHelpers.GetPageType(connectedClient.client),
@@ -186,11 +198,10 @@ func (server *Server) changeWebsocketClientLocation(websocketClient *WebsocketSe
 	default:
 		delete(connectedClient.websocketClients, websocketClient)
 	}
-	go websocketClient.Send(
-		Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE,
-			page.Marshal(),
-		).Serialize(),
-	)
+	go websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_CHANGE_PAGE,
+		page.Marshal(),
+	).Serialize())
 	return nil
 }
 func (server *Server) getDashboardData() map[string]interface{} {
