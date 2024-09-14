@@ -16,7 +16,7 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 		SystemgeConnection.NewTopicExclusiveMessageHandler(
 			nil,
 			SystemgeConnection.SyncMessageHandlers{
-				DashboardHelpers.TOPIC_EXECUTE_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 					if err != nil {
 						return "", err

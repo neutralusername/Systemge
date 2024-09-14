@@ -48,7 +48,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 
 func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
+	case DashboardHelpers.TOPIC_COMMAND:
 		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 		if err != nil {
 			return Error.New("Failed to parse command", err)
@@ -120,7 +120,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 
 func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
+	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	default:
 		return Error.New("Unknown topic", nil)
@@ -129,7 +129,7 @@ func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServe
 
 func (server *Server) handleCustomServiceClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
+	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
 		return server.handleClientStartRequest(websocketClient, connectedClient)
@@ -146,7 +146,7 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 
 func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
-	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
+	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(websocketClient, connectedClient)

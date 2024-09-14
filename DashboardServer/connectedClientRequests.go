@@ -3,20 +3,21 @@ package DashboardServer
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
 // handles a command request from a client and sends the result back to the client
 func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
-	command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
+	_, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to parse command", err)
 	}
 	if connectedClient == nil {
 		return Error.New("Client not found", nil)
 	}
-	resultPayload, err := connectedClient.executeCommand(command.Command, command.Args)
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to execute command", err)
 	}
@@ -29,11 +30,11 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 
 // starts the client and updates the status to everyone who should be informed
 func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
-	newStatus, err := connectedClient.executeStart()
+	newStatus, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START, "")
 	if err != nil {
 		return Error.New("Failed to start client", err)
 	}
-	err = DashboardHelpers.SetStatus(connectedClient.client, newStatus)
+	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(newStatus))
 	if err != nil {
 		return Error.New("Failed to update status", err)
 	}
@@ -54,11 +55,11 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 
 // stops the client and updates the status to everyone who should be informed
 func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
-	newStatus, err := connectedClient.executeStop()
+	newStatus, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP, "")
 	if err != nil {
 		return Error.New("Failed to stop client", err)
 	}
-	err = DashboardHelpers.SetStatus(connectedClient.client, newStatus)
+	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(newStatus))
 	if err != nil {
 		return Error.New("Failed to update status", err)
 	}

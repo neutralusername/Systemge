@@ -52,7 +52,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					}
 					return Helpers.IntToString(customService.GetStatus()), nil
 				},
-				DashboardHelpers.TOPIC_EXECUTE_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 					if err != nil {
 						return "", err
