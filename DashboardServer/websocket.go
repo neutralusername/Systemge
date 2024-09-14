@@ -15,18 +15,17 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	connectedClient := server.connectedClients[currentPage]
 	server.mutex.RUnlock()
 
-	if currentPage == "" {
-		return Error.New("No location", nil)
-	}
-
 	request, err := Message.Deserialize([]byte(message.GetPayload()), websocketClient.GetId())
 	if err != nil {
 		return Error.New("Failed to deserialize request", err)
 	}
 
-	if currentPage == DASHBOARD_CLIENT_NAME {
+	switch currentPage {
+	case "":
+		return Error.New("No location", nil)
+	case DASHBOARD_CLIENT_NAME:
 		return server.handleDashboardRequest(websocketClient, request)
-	} else {
+	default:
 		if connectedClient == nil {
 			// should never happen
 			return Error.New("Client not found", nil)
