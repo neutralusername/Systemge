@@ -161,12 +161,10 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			server.dashboardCommandHandlers["websocketServer_"+command] = handler
 		}
 	}
-	server.dashboardClient = &DashboardHelpers.DashboardClient{
-		Name:           DashboardHelpers.DASHBOARD_CLIENT_NAME,
-		ClientStatuses: map[string]int{},
-		Commands:       server.dashboardCommandHandlers.GetKeyBoolMap(),
-		Metrics:        map[string]map[string][]*DashboardHelpers.MetricsEntry{},
-	}
+	server.dashboardClient = DashboardHelpers.NewDashboardClient(
+		DashboardHelpers.DASHBOARD_CLIENT_NAME,
+		server.dashboardCommandHandlers.GetKeyBoolMap(),
+	)
 	return server
 }
 
