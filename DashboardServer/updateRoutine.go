@@ -113,7 +113,7 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	}
 	for metricsName, metricsKeyValuePairs := range metrics {
 		for key, value := range metricsKeyValuePairs {
-			err := connectedClient.page.AddCachedMetricsEntry(metricsName, key, value, server.config.MaxMetricsCacheValues)
+			err := connectedClient.page.AddCachedMetricsEntry(metricsName, key, value, server.config.MaxMetricEntries)
 			if err != nil {
 				return Error.New("Failed to add metrics entry", err)
 			}

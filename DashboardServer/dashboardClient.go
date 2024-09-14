@@ -39,7 +39,7 @@ func (server *Server) addMetricsToDashboardClient(metrics map[string]map[string]
 				Value: value,
 				Time:  time.Now(),
 			})
-			if len(server.dashboardClient.Metrics[metricsType][key]) > server.config.MaxMetricsCacheValues {
+			if len(server.dashboardClient.Metrics[metricsType][key]) > server.config.MaxMetricEntries {
 				server.dashboardClient.Metrics[metricsType][key] = server.dashboardClient.Metrics[metricsType][key][1:]
 			}
 		}
