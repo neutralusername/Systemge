@@ -36,6 +36,9 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
+	if page.Data == nil {
+		return nil, Error.New("Data field missing", nil)
+	}
 	pageDataMap := page.Data.(map[string]interface{})
 	switch page.Type {
 	case CLIENT_TYPE_COMMAND:
