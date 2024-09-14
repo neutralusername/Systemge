@@ -51,14 +51,14 @@ func (server *Server) GetResourceUsageMetrics() map[string]uint64 {
 }
 
 func (server *Server) GetSystemgeMetrics() map[string]uint64 {
-	metrics := server.systemgeServer.GetMetrics()
+	metrics := server.systemgeServer.GetMetrics_()
 	for _, value := range metrics {
 		return value
 	}
 	return nil
 }
 func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
-	metrics := server.systemgeServer.RetrieveMetrics()
+	metrics := server.systemgeServer.GetMetrics()
 	for _, value := range metrics {
 		return value
 	}
@@ -66,14 +66,14 @@ func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
 }
 
 func (server *Server) GetWebsocketMetrics() map[string]uint64 {
-	metrics := server.websocketServer.GetMetrics()
+	metrics := server.websocketServer.GetMetrics_()
 	for _, value := range metrics {
 		return value
 	}
 	return nil
 }
 func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
-	metrics := server.websocketServer.RetrieveMetrics()
+	metrics := server.websocketServer.GetMetrics()
 	for _, value := range metrics {
 		return value
 	}
@@ -81,14 +81,14 @@ func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
 }
 
 func (server *Server) GetHttpMetrics() map[string]uint64 {
-	metrics := server.httpServer.GetMetrics()
+	metrics := server.httpServer.GetMetrics_()
 	for _, value := range metrics {
 		return value
 	}
 	return nil
 }
 func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
-	metrics := server.httpServer.RetrieveMetrics()
+	metrics := server.httpServer.GetMetrics()
 	for _, value := range metrics {
 		return value
 	}

@@ -1,6 +1,6 @@
 package BrokerServer
 
-func (server *Server) GetMetrics() map[string]map[string]uint64 {
+func (server *Server) GetMetrics_() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["broker_server"] = map[string]uint64{}
 	server.mutex.Lock()
@@ -12,13 +12,13 @@ func (server *Server) GetMetrics() map[string]map[string]uint64 {
 	metrics["broker_server"]["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
 	metrics["broker_server"]["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
 	server.mutex.Unlock()
-	for systemgeName, systemgeMetrics := range server.systemgeServer.GetMetrics() {
+	for systemgeName, systemgeMetrics := range server.systemgeServer.GetMetrics_() {
 		metrics[systemgeName] = systemgeMetrics
 	}
 	metrics["message_handler"] = server.messageHandler.GetMetrics()
 	return metrics
 }
-func (server *Server) RetrieveMetrics() map[string]map[string]uint64 {
+func (server *Server) GetMetrics() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["broker_server"] = map[string]uint64{}
 	server.mutex.Lock()
@@ -30,7 +30,7 @@ func (server *Server) RetrieveMetrics() map[string]map[string]uint64 {
 	metrics["broker_server"]["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
 	metrics["broker_server"]["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
 	server.mutex.Unlock()
-	for systemgeName, systemgeMetrics := range server.systemgeServer.RetrieveMetrics() {
+	for systemgeName, systemgeMetrics := range server.systemgeServer.GetMetrics() {
 		metrics[systemgeName] = systemgeMetrics
 	}
 	metrics["message_handler"] = server.messageHandler.RetrieveMetrics()

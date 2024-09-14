@@ -170,7 +170,7 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(connection.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := connection.GetMetrics()
+		metrics := connection.GetMetrics_()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)
@@ -178,7 +178,7 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := connection.RetrieveMetrics()
+		metrics := connection.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)

@@ -1,6 +1,6 @@
 package TcpSystemgeListener
 
-func (listener *TcpListener) GetMetrics() map[string]uint64 {
+func (listener *TcpListener) GetMetrics_() map[string]uint64 {
 	return map[string]uint64{
 		"connection_attempts":  listener.GetConnectionAttempts(),
 		"failed_connections":   listener.GetFailedConnections(),
@@ -8,7 +8,7 @@ func (listener *TcpListener) GetMetrics() map[string]uint64 {
 		"accepted_connections": listener.GetAcceptedConnections(),
 	}
 }
-func (listener *TcpListener) RetrieveMetrics() map[string]uint64 {
+func (listener *TcpListener) GetMetrics() map[string]uint64 {
 	return map[string]uint64{
 		"connection_attempts":  listener.RetrieveConnectionAttempts(),
 		"failed_connections":   listener.RetrieveFailedConnections(),

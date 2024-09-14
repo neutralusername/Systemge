@@ -19,7 +19,7 @@ type SystemgeConnection interface {
 	GetInvalidMessagesReceived() uint64
 	GetInvalidSyncResponsesReceived() uint64
 	GetMessageRateLimiterExceeded() uint64
-	GetMetrics() map[string]map[string]uint64
+	GetMetrics_() map[string]map[string]uint64
 	GetName() string
 	GetNextMessage() (*Message.Message, error)
 	GetNoSyncResponseReceived() uint64
@@ -37,7 +37,7 @@ type SystemgeConnection interface {
 	RetrieveInvalidMessagesReceived() uint64
 	RetrieveInvalidSyncResponsesReceived() uint64
 	RetrieveMessageRateLimiterExceeded() uint64
-	RetrieveMetrics() map[string]map[string]uint64
+	GetMetrics() map[string]map[string]uint64
 	RetrieveNoSyncResponseReceived() uint64
 	RetrieveSyncFailureResponsesReceived() uint64
 	RetrieveSyncRequestsSent() uint64

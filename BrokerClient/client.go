@@ -187,7 +187,7 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			return Status.ToString(messageBrokerClient.GetStatus()), nil
 		},
 		"getMetrics": func(args []string) (string, error) {
-			metrics := messageBrokerClient.GetMetrics()
+			metrics := messageBrokerClient.GetMetrics_()
 			json, err := json.Marshal(metrics)
 			if err != nil {
 				return "", Error.New("Failed to marshal metrics to json", err)
@@ -195,7 +195,7 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			return string(json), nil
 		},
 		"retrieveMetrics": func(args []string) (string, error) {
-			metrics := messageBrokerClient.RetrieveMetrics()
+			metrics := messageBrokerClient.GetMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
 				return "", Error.New("Failed to marshal metrics to json", err)

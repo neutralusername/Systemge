@@ -1,8 +1,8 @@
 package BrokerResolver
 
-func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
+func (resolver *Resolver) GetMetrics_() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
-	for metricsType, metricsMap := range resolver.systemgeServer.GetMetrics() {
+	for metricsType, metricsMap := range resolver.systemgeServer.GetMetrics_() {
 		metrics[metricsType] = metricsMap
 	}
 	resolver.mutex.Lock()
@@ -17,9 +17,9 @@ func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
 	resolver.mutex.Unlock()
 	return metrics
 }
-func (resolver *Resolver) RetrieveMetrics() map[string]map[string]uint64 {
+func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
-	for metricsType, metricsMap := range resolver.systemgeServer.RetrieveMetrics() {
+	for metricsType, metricsMap := range resolver.systemgeServer.GetMetrics() {
 		metrics[metricsType] = metricsMap
 	}
 	resolver.mutex.Lock()

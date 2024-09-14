@@ -2,7 +2,7 @@ package SystemgeServer
 
 import "github.com/neutralusername/Systemge/Status"
 
-func (server *SystemgeServer) GetMetrics() map[string]map[string]uint64 {
+func (server *SystemgeServer) GetMetrics_() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"systemgeServer": {
 			"connection_attempts":             server.GetConnectionAttempts(),
@@ -24,7 +24,7 @@ func (server *SystemgeServer) GetMetrics() map[string]map[string]uint64 {
 	}
 }
 
-func (server *SystemgeServer) RetrieveMetrics() map[string]map[string]uint64 {
+func (server *SystemgeServer) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"systemgeServer": {
 			"connection_attempts":             server.RetrieveConnectionAttempts(),

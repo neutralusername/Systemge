@@ -1,6 +1,6 @@
 package BrokerClient
 
-func (messageBrokerClient *Client) GetMetrics() map[string]map[string]uint64 {
+func (messageBrokerClient *Client) GetMetrics_() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["broker_client"] = map[string]uint64{}
 	metrics["broker_client"]["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
@@ -12,7 +12,7 @@ func (messageBrokerClient *Client) GetMetrics() map[string]map[string]uint64 {
 	metrics["broker_client"]["sync_responses_received"] = messageBrokerClient.GetSyncResponsesReceived()
 	metrics["broker_connections"] = map[string]uint64{}
 	for _, connection := range messageBrokerClient.brokerConnections {
-		for _, metricsMap := range connection.connection.GetMetrics() {
+		for _, metricsMap := range connection.connection.GetMetrics_() {
 			for key, value := range metricsMap {
 				metrics["broker_connections"][key] += value
 			}
@@ -20,7 +20,7 @@ func (messageBrokerClient *Client) GetMetrics() map[string]map[string]uint64 {
 	}
 	return metrics
 }
-func (messageBrokerClient *Client) RetrieveMetrics() map[string]map[string]uint64 {
+func (messageBrokerClient *Client) GetMetrics() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["broker_client"] = map[string]uint64{}
 	metrics["broker_client"]["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
@@ -32,7 +32,7 @@ func (messageBrokerClient *Client) RetrieveMetrics() map[string]map[string]uint6
 	metrics["broker_client"]["sync_responses_received"] = messageBrokerClient.RetrieveSyncResponsesReceived()
 	metrics["broker_connections"] = map[string]uint64{}
 	for _, connection := range messageBrokerClient.brokerConnections {
-		for _, metricsMap := range connection.connection.RetrieveMetrics() {
+		for _, metricsMap := range connection.connection.GetMetrics() {
 			for key, value := range metricsMap {
 				metrics["broker_connections"][key] += value
 			}

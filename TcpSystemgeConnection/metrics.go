@@ -1,6 +1,6 @@
 package TcpSystemgeConnection
 
-func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
+func (connection *TcpConnection) GetMetrics_() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"tcp_systemge_connection_" + connection.GetName(): {
 			"bytes_sent":                      connection.GetBytesSent(),
@@ -19,7 +19,7 @@ func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
 	}
 }
 
-func (connection *TcpConnection) RetrieveMetrics() map[string]map[string]uint64 {
+func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"tcp_systemge_connection_" + connection.GetName(): {
 			"bytes_sent":                      connection.RetrieveBytesSent(),

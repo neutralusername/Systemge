@@ -153,7 +153,7 @@ func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *Server) GetMetrics() map[string]map[string]uint64 {
+func (server *Server) GetMetrics_() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["single_request_server"] = map[string]uint64{
 		"invalid_messages":         server.GetInvalidMessages(),
@@ -164,12 +164,12 @@ func (server *Server) GetMetrics() map[string]map[string]uint64 {
 		"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
 		"failed_sync_messages":     server.GetFailedSyncMessages(),
 	}
-	for metricsType, metricsMap := range server.systemgeServer.GetMetrics() {
+	for metricsType, metricsMap := range server.systemgeServer.GetMetrics_() {
 		metrics[metricsType] = metricsMap
 	}
 	return metrics
 }
-func (server *Server) RetrieveMetrics() map[string]map[string]uint64 {
+func (server *Server) GetMetrics() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["single_request_server"] = map[string]uint64{
 		"invalid_messages":         server.RetrieveInvalidMessages(),
@@ -180,7 +180,7 @@ func (server *Server) RetrieveMetrics() map[string]map[string]uint64 {
 		"succeeded_sync_messages":  server.RetrieveSucceededSyncMessages(),
 		"failed_sync_messages":     server.RetrieveFailedSyncMessages(),
 	}
-	for metricsType, metricsMap := range server.systemgeServer.RetrieveMetrics() {
+	for metricsType, metricsMap := range server.systemgeServer.GetMetrics() {
 		metrics[metricsType] = metricsMap
 	}
 	return metrics
@@ -255,7 +255,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(server.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) { //overriding the getMetrics command from the systemgeServer
-		metrics := server.GetMetrics()
+		metrics := server.GetMetrics_()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("Failed to marshal metrics to json", err)
@@ -263,7 +263,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) { //overriding the retrieveMetrics command from the systemgeServer
-		metrics := server.RetrieveMetrics()
+		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("Failed to marshal metrics to json", err)

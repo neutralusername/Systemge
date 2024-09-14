@@ -1,6 +1,6 @@
 package WebsocketServer
 
-func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
+func (server *WebsocketServer) GetMetrics_() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"websocketServer": {
 			"bytes_sent":         server.GetBytesSentCounter(),
@@ -12,7 +12,8 @@ func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
 	}
 }
 
-func (server *WebsocketServer) RetrieveMetrics() map[string]map[string]uint64 {
+// retrieve
+func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"websocketServer": {
 			"bytes_sent":         server.RetrieveBytesSentCounter(),

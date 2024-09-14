@@ -33,7 +33,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			}
 		}
 	}
-	systemgeConnectionMetrics := systemgeConnection.GetMetrics()
+	systemgeConnectionMetrics := systemgeConnection.GetMetrics_()
 	for metricName, metricValue := range systemgeConnectionMetrics {
 		if metrics[metricName] == nil {
 			metrics[metricName] = make(map[string]*DashboardHelpers.MetricsEntry)
@@ -62,7 +62,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return Helpers.IntToString(systemgeConnection.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.JsonMarshal(systemgeConnection.GetMetrics()), nil
+					return Helpers.JsonMarshal(systemgeConnection.GetMetrics_()), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()

@@ -207,11 +207,11 @@ func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(server.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := server.GetMetrics()
+		metrics := server.GetMetrics_()
 		return Helpers.JsonMarshal(metrics), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := server.RetrieveMetrics()
+		metrics := server.GetMetrics()
 		return Helpers.JsonMarshal(metrics), nil
 	}
 	return commands

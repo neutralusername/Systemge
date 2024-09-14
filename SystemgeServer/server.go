@@ -224,7 +224,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	serverCommands["getMetrics"] = func(args []string) (string, error) {
-		metrics := server.GetMetrics()
+		metrics := server.GetMetrics_()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)
@@ -232,7 +232,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	serverCommands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := server.RetrieveMetrics()
+		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)

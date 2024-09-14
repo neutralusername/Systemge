@@ -227,7 +227,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(server.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := server.GetMetrics()
+		metrics := server.GetMetrics_()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", err
@@ -235,7 +235,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := server.RetrieveMetrics()
+		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", err
