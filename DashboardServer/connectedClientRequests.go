@@ -14,9 +14,6 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 	if err != nil {
 		return Error.New("Failed to parse command", err)
 	}
-	if connectedClient == nil {
-		return Error.New("Client not found", nil)
-	}
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to execute command", err)
@@ -30,11 +27,11 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 
 // starts the client and updates the status to everyone who should be informed
 func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
-	newStatus, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START, "")
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START, "")
 	if err != nil {
 		return Error.New("Failed to start client", err)
 	}
-	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(newStatus))
+	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(resultPayload))
 	if err != nil {
 		return Error.New("Failed to update status", err)
 	}
@@ -44,7 +41,7 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"status": newStatus,
+					"status": resultPayload,
 				},
 				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
@@ -55,11 +52,11 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 
 // stops the client and updates the status to everyone who should be informed
 func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
-	newStatus, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP, "")
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP, "")
 	if err != nil {
 		return Error.New("Failed to stop client", err)
 	}
-	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(newStatus))
+	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(resultPayload))
 	if err != nil {
 		return Error.New("Failed to update status", err)
 	}
@@ -69,7 +66,7 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"status": newStatus,
+					"status": resultPayload,
 				},
 				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
@@ -98,10 +95,12 @@ func (server *Server) handleClientProcessNextMessageRequest(websocketClient *Web
 
 }
 
+// handles a outgoing message request from a client and sends the result back to the client
 func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
 
 }
 
+// handles a incoming message request from a client and sends the result back to the client
 func (server *Server) handleClientAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
 
 }

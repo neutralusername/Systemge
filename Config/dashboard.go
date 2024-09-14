@@ -18,6 +18,7 @@ type DashboardServer struct {
 	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
+	// TODO: consider individual update intervals for different things or alternate ways to handle updates (efficiently)
 	UpdateIntervalMs      uint64 `json:"updateIntervalMs"`      // default: 0
 	MaxMetricsCacheValues uint32 `json:"maxMetricsCacheValues"` // default: 0
 }
