@@ -87,9 +87,10 @@ export class root extends React.Component {
                 break;
             case "changePage": {
                     let page = JSON.parse(message.payload);
+                    let pageData = JSON.parse(page.data);
                     this.setState({
                         pageType: page.type,
-                        pageData: page.data,
+                        pageData: pageData,
                     });
                 }
                 break;
