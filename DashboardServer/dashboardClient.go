@@ -20,27 +20,15 @@ const (
 )
 
 type dashboardClient struct {
-	Name           string                       `json:"name"`
-	ClientStatuses map[string]int               `json:"clientStatuses"`
-	Commands       map[string]bool              `json:"commands"`
-	Metrics        map[string]map[string]uint64 `json:"metrics"`
-	HeapUsage      uint64                       `json:"heapUsage"`
-	GoroutineCount int                          `json:"goroutineCount"`
+	Name           string                                               `json:"name"`
+	ClientStatuses map[string]int                                       `json:"clientStatuses"`
+	Commands       map[string]bool                                      `json:"commands"`
+	Metrics        map[string]map[string]*DashboardHelpers.MetricsEntry `json:"metrics"`
+	HeapUsage      uint64                                               `json:"heapUsage"`
+	GoroutineCount int                                                  `json:"goroutineCount"`
 }
 
 // EXPECTS MUTEX TO BE LOCKED RN
-func (server *Server) getDashboarClient() *dashboardClient {
-	dashboardData := &dashboardClient{
-		Name:           "dashboard",
-		ClientStatuses: server.getClientStatuses(),
-		Commands:       server.getDashboardClientCommands(),
-		Metrics:        server.getDashboardClientMetrics(),
-		HeapUsage:      server.getHeapUsage(),
-		GoroutineCount: server.getGoroutineCount(),
-	}
-	return dashboardData
-}
-
 func (server *Server) getDashboardClientCommands() map[string]bool {
 	commands := map[string]bool{}
 	for command := range server.dashboardCommandHandlers {
@@ -49,6 +37,7 @@ func (server *Server) getDashboardClientCommands() map[string]bool {
 	return commands
 }
 
+// EXPECTS MUTEX TO BE LOCKED RN
 func (server *Server) getClientStatuses() map[string]int {
 	clientStatuses := map[string]int{}
 	for _, connectedClient := range server.connectedClients {
@@ -67,7 +56,6 @@ func (server *Server) getGoroutineCount() int {
 	return runtime.NumGoroutine()
 }
 
-// cache this somewhere or else it won't work properly with >1 websocket client
 func (server *Server) getDashboardClientMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.RetrieveSystemgeMetrics(),

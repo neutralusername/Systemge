@@ -5,8 +5,9 @@ import (
 )
 
 type CommandClient struct {
-	Name     string          `json:"name"`
-	Commands map[string]bool `json:"commands"`
+	Name     string                              `json:"name"`
+	Commands map[string]bool                     `json:"commands"`
+	Metrics  map[string]map[string]*MetricsEntry `json:"metrics"`
 }
 
 func NewCommandClient(name string, commands map[string]bool) *CommandClient {

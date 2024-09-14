@@ -5,9 +5,10 @@ import (
 )
 
 type CustomServiceClient struct {
-	Name     string          `json:"name"`
-	Commands map[string]bool `json:"commands"`
-	Status   int             `json:"status"` //periodically automatically updated by the server
+	Name     string                              `json:"name"`
+	Commands map[string]bool                     `json:"commands"`
+	Status   int                                 `json:"status"` //periodically automatically updated by the server
+	Metrics  map[string]map[string]*MetricsEntry `json:"metrics"`
 }
 
 func NewCustomServiceClient(name string, commands map[string]bool, status int) *CustomServiceClient {

@@ -147,7 +147,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		)
 	case "/":
 		page = DashboardHelpers.NewPage(
-			server.getDashboarClient(),
+			server.dashboardClient,
 			DashboardHelpers.PAGE_DASHBOARD,
 		)
 		server.dashboardWebsocketClients[websocketClient] = true

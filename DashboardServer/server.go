@@ -31,9 +31,9 @@ type Server struct {
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
 
-	metricsCache             map[string]map[string]map[string]DashboardHelpers.MetricsEntry // location -> metricsType -> metricKey -> metricsEntry
-	connectedClients         map[string]*connectedClient                                    // name/location -> connectedClient
-	websocketClientLocations map[*WebsocketServer.WebsocketClient]string                    // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
+	dashboardClient          *dashboardClient
+	connectedClients         map[string]*connectedClient                 // name/location -> connectedClient
+	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
