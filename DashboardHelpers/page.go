@@ -7,24 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-const (
-	CLIENT_FIELD_COMMANDS                   = "commands"
-	CLIENT_FIELD_NAME                       = "name"
-	CLIENT_FIELD_STATUS                     = "status"
-	CLIENT_FIELD_METRICS                    = "metrics"
-	CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING = "isProcessingLoopRunning"
-	CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT  = "unprocessedMessageCount"
-	CLIENT_FIELD_CLIENTSTATUSES             = "clientStatuses"
-)
-
-const (
-	CLIENT_TYPE_NULL = iota
-	CLIENT_TYPE_DASHBOARD
-	CLIENT_TYPE_CUSTOMSERVICE
-	CLIENT_TYPE_COMMAND
-	CLIENT_TYPE_SYSTEMGECONNECTION
-)
-
 type Page struct {
 	Data interface{} `json:"data"`
 	Type int         `json:"type"`
@@ -41,19 +23,6 @@ func NewPage(client interface{}, clientType int) *Page {
 	return &Page{
 		Data: client,
 		Type: clientType,
-	}
-}
-
-func GetClientType(client interface{}) int {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return CLIENT_TYPE_CUSTOMSERVICE
-	case *CommandClient:
-		return CLIENT_TYPE_COMMAND
-	case *SystemgeConnectionClient:
-		return CLIENT_TYPE_SYSTEMGECONNECTION
-	default:
-		return CLIENT_TYPE_NULL
 	}
 }
 
