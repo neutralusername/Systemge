@@ -137,7 +137,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		return Error.New("Location is already "+locationAfterChange, nil)
 	}
 
-	var page *DashboardHelpers.PageUpdate
+	var page *DashboardHelpers.Page
 	var connectedClient *connectedClient
 	switch locationAfterChange {
 	case "":

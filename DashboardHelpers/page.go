@@ -14,17 +14,33 @@ const (
 
 type PageUpdate struct {
 	Data interface{} `json:"data"`
+	Page string      `json:"page"`
+}
+
+type Page struct {
+	Data interface{} `json:"data"`
 	Type int         `json:"type"`
 }
 
-func NewPage(data interface{}, pageType int) *PageUpdate {
+func NewPageUpdate(data interface{}, page string) *PageUpdate {
 	return &PageUpdate{
+		Data: data,
+		Page: page,
+	}
+}
+
+func (pageUpdate *PageUpdate) Marshal() string {
+	return Helpers.JsonMarshal(pageUpdate)
+}
+
+func NewPage(data interface{}, pageType int) *Page {
+	return &Page{
 		Data: data,
 		Type: pageType,
 	}
 }
 
-func (pageUpdate *PageUpdate) Marshal() string {
+func (pageUpdate *Page) Marshal() string {
 	return Helpers.JsonMarshal(pageUpdate)
 }
 
@@ -41,7 +57,7 @@ func GetPageType(client interface{}) int {
 	}
 }
 
-func GetPage(client interface{}) *PageUpdate {
+func GetPage(client interface{}) *Page {
 	pageType := GetPageType(client)
 	switch pageType {
 	case PAGE_NULL:

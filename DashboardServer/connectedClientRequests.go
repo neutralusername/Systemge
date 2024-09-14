@@ -39,13 +39,13 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
-			DashboardHelpers.NewPage(
+			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					"clientStatuses": map[string]int{
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				DashboardHelpers.GetPageType(connectedClient.client),
+				"/",
 			).Marshal(),
 		),
 	)
@@ -53,11 +53,11 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
-			DashboardHelpers.NewPage(
+			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					"status": resultPayload,
 				},
-				DashboardHelpers.GetPageType(connectedClient.client),
+				connectedClient.connection.GetName(),
 			).Marshal(),
 		),
 	)
@@ -78,13 +78,13 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
-			DashboardHelpers.NewPage(
+			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					"clientStatuses": map[string]int{
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				DashboardHelpers.PAGE_DASHBOARD,
+				"/",
 			).Marshal(),
 		),
 	)
@@ -92,11 +92,11 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
-			DashboardHelpers.NewPage(
+			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					"status": resultPayload,
 				},
-				DashboardHelpers.GetPageType(connectedClient.client),
+				connectedClient.connection.GetName(),
 			).Marshal(),
 		),
 	)
