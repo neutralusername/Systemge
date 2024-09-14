@@ -15,6 +15,7 @@ func NewDashboardClient(name string, commands map[string]bool) *DashboardClient 
 		Name:           name,
 		Commands:       commands,
 		ClientStatuses: map[string]int{},
+		Metrics:        map[string]map[string][]*MetricsEntry{},
 	}
 }
 

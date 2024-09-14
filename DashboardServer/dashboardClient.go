@@ -27,9 +27,6 @@ func (server *Server) retrieveDashboardClientMetrics() map[string]map[string]uin
 }
 
 func (server *Server) addMetricsToDashboardClient(metrics map[string]map[string]uint64) {
-	if server.dashboardClient.Metrics == nil {
-		server.dashboardClient.Metrics = map[string]map[string][]*DashboardHelpers.MetricsEntry{}
-	}
 	for metricsType, metricsKeyValuePairs := range metrics {
 		if server.dashboardClient.Metrics[metricsType] == nil {
 			server.dashboardClient.Metrics[metricsType] = map[string][]*DashboardHelpers.MetricsEntry{}
