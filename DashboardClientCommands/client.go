@@ -10,6 +10,10 @@ import (
 )
 
 func New(name string, config *Config.DashboardClient, commands Commands.Handlers, getMetricsFunc func() map[string]map[string]*DashboardHelpers.MetricsEntry) *DashboardClient.Client {
+	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry
+	if getMetricsFunc != nil {
+		metrics = getMetricsFunc()
+	}
 	return DashboardClient.New(
 		name,
 		config,
@@ -27,11 +31,13 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 			nil, nil,
 			1000,
 		),
+
 		func() (string, error) {
 			pageMarshalled, err := DashboardHelpers.NewPage(
 				DashboardHelpers.NewCommandClient(
 					name,
 					commands.GetKeyBoolMap(),
+					metrics,
 				),
 				DashboardHelpers.CLIENT_TYPE_COMMAND,
 			).Marshal()
