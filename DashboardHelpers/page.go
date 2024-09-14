@@ -41,14 +41,14 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 		page.Data = CommandClient{
 			Name:     page.Data.(map[string]interface{})[CLIENT_FIELD_NAME].(string),
 			Commands: page.Data.(map[string]interface{})[CLIENT_FIELD_COMMANDS].(map[string]bool),
-			Metrics:  page.Data.(map[string]interface{})[CLIENT_FIELD_METRICS].(map[string]map[string]*MetricsEntry),
+			Metrics:  page.Data.(map[string]interface{})[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
 		}
 	case CLIENT_TYPE_CUSTOMSERVICE:
 		page.Data = CustomServiceClient{
 			Name:     page.Data.(map[string]interface{})[CLIENT_FIELD_NAME].(string),
 			Commands: page.Data.(map[string]interface{})[CLIENT_FIELD_COMMANDS].(map[string]bool),
 			Status:   page.Data.(map[string]interface{})[CLIENT_FIELD_STATUS].(int),
-			Metrics:  page.Data.(map[string]interface{})[CLIENT_FIELD_METRICS].(map[string]map[string]*MetricsEntry),
+			Metrics:  page.Data.(map[string]interface{})[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
 		}
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
 		page.Data = SystemgeConnectionClient{
@@ -57,7 +57,7 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 			Status:                  page.Data.(map[string]interface{})[CLIENT_FIELD_STATUS].(int),
 			IsProcessingLoopRunning: page.Data.(map[string]interface{})[CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING].(bool),
 			UnprocessedMessageCount: page.Data.(map[string]interface{})[CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT].(uint32),
-			Metrics:                 page.Data.(map[string]interface{})[CLIENT_FIELD_METRICS].(map[string]map[string]*MetricsEntry),
+			Metrics:                 page.Data.(map[string]interface{})[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
 		}
 	default:
 		return nil, Error.New("Unknown client type", nil)

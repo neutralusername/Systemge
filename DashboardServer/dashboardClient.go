@@ -14,12 +14,12 @@ const (
 )
 
 type dashboardClient struct {
-	Name           string                                               `json:"name"`
-	ClientStatuses map[string]int                                       `json:"clientStatuses"`
-	Commands       map[string]bool                                      `json:"commands"`
-	Metrics        map[string]map[string]*DashboardHelpers.MetricsEntry `json:"metrics"`
-	HeapUsage      uint64                                               `json:"heapUsage"`
-	GoroutineCount int                                                  `json:"goroutineCount"`
+	Name           string                                                 `json:"name"`
+	ClientStatuses map[string]int                                         `json:"clientStatuses"`
+	Commands       map[string]bool                                        `json:"commands"`
+	Metrics        map[string]map[string][]*DashboardHelpers.MetricsEntry `json:"metrics"`
+	HeapUsage      uint64                                                 `json:"heapUsage"`
+	GoroutineCount int                                                    `json:"goroutineCount"`
 }
 
 // EXPECTS MUTEX TO BE LOCKED RN
