@@ -56,6 +56,7 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 			Commands: pageDataMap[CLIENT_FIELD_COMMANDS].(map[string]bool),
 			Metrics:  pageDataMap[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
 		}
+		return &page, nil
 	case CLIENT_TYPE_CUSTOMSERVICE:
 		if pageDataMap[CLIENT_FIELD_NAME] == nil {
 			return nil, Error.New("Name field missing", nil)
@@ -75,6 +76,7 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 			Status:   pageDataMap[CLIENT_FIELD_STATUS].(int),
 			Metrics:  pageDataMap[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
 		}
+		return &page, nil
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
 		if pageDataMap[CLIENT_FIELD_NAME] == nil {
 			return nil, Error.New("Name field missing", nil)
@@ -102,8 +104,8 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 			UnprocessedMessageCount: pageDataMap[CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT].(uint32),
 			Metrics:                 pageDataMap[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
 		}
+		return &page, nil
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
-	return &page, nil
 }
