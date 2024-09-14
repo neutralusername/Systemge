@@ -28,6 +28,7 @@ type dashboardClient struct {
 	GoroutineCount int                          `json:"goroutineCount"`
 }
 
+// EXPECTS MUTEX TO BE LOCKED RN
 func (server *Server) getDashboarClient() *dashboardClient {
 	dashboardData := &dashboardClient{
 		Name:           "dashboard",

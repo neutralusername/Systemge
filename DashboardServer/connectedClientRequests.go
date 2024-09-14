@@ -36,7 +36,19 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 		return Error.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
-		// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
+		server.GetWebsocketClientIdsOnPage("/"),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{
+					"clientStatuses": server.getClientStatuses(), // awful - think off a generic way to update an individual client's status
+				},
+				DashboardHelpers.GetPageType(connectedClient.client),
+			).Marshal(),
+		),
+	)
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
@@ -61,7 +73,19 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 		return Error.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
-		// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
+		server.GetWebsocketClientIdsOnPage("/"),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{
+					"clientStatuses": server.getClientStatuses(), // awful - think off a generic way to update an individual client's status
+				},
+				DashboardHelpers.GetPageType(connectedClient.client),
+			).Marshal(),
+		),
+	)
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
