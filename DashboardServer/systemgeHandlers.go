@@ -14,8 +14,6 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 
 	page, err := DashboardHelpers.UnmarshalPage([]byte(response.GetPayload()))
 	if err != nil {
-		println(err.Error())
-		println(response.GetPayload())
 		return err
 	}
 	connectedClient := newConnectedClient(connection, page)

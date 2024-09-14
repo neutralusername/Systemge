@@ -26,21 +26,25 @@ func NewPage(client interface{}, clientType int) *Page {
 }
 
 func (page *Page) Marshal() ([]byte, error) {
+	data := ""
 	switch page.Type {
 	case CLIENT_TYPE_NULL:
-		page.Data = map[string]interface{}{}
+		data = "{}"
 	case CLIENT_TYPE_DASHBOARD:
-		page.Data = string(page.Data.(*DashboardClient).Marshal())
+		data = string(page.Data.(*DashboardClient).Marshal())
 	case CLIENT_TYPE_COMMAND:
-		page.Data = string(page.Data.(*CommandClient).Marshal())
+		data = string(page.Data.(*CommandClient).Marshal())
 	case CLIENT_TYPE_CUSTOMSERVICE:
-		page.Data = string(page.Data.(*CustomServiceClient).Marshal())
+		data = string(page.Data.(*CustomServiceClient).Marshal())
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		page.Data = string(page.Data.(*SystemgeConnectionClient).Marshal())
+		data = string(page.Data.(*SystemgeConnectionClient).Marshal())
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
-	bytes, err := json.Marshal(page)
+	bytes, err := json.Marshal(&Page{
+		Data: data,
+		Type: page.Type,
+	})
 	if err != nil {
 		return nil, err
 	}

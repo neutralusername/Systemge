@@ -146,11 +146,10 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		}
 		pageJson = string(page)
 	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
-		page := DashboardHelpers.NewPage(
+		pageMarshalled, err := DashboardHelpers.NewPage(
 			server.dashboardClient,
 			DashboardHelpers.CLIENT_TYPE_DASHBOARD,
-		)
-		pageMarshalled, err := page.Marshal()
+		).Marshal()
 		if err != nil {
 			return Error.New("Failed to marshal dashboard page", err)
 		}
@@ -161,8 +160,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		page := connectedClient.page
-		pageMarshalled, err := page.Marshal()
+		pageMarshalled, err := connectedClient.page.Marshal()
 		if err != nil {
 			return Error.New("Failed to marshal client page", err)
 		}
