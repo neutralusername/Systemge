@@ -1,16 +1,9 @@
-import { commands } from "./commands.js";
 import {
    configs
 } from "./configs.js";
 import { 
-    lineGraph 
-} from "./lineGraph.js";
-import { 
     multiLineGraph 
 } from "./multiLineGraph.js";
-import { 
-    status
-} from "./status.js";
 import { 
     GenerateRandomAlphaNumericString 
 } from "./randomizer.js";
@@ -23,7 +16,6 @@ const PAGE_DASHBOARD = 1
 const PAGE_CUSTOMSERVICE = 2
 const PAGE_COMMAND = 3
 const PAGE_SYSTEMGECONNECTION = 4
-
 
 export class root extends React.Component {
     constructor(props) {

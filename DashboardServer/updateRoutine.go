@@ -69,7 +69,12 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 	if err != nil {
 		return Error.New("Failed to execute get status request", err)
 	}
-	connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
+	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
+	if err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log(Error.New("Failed to set status", err).Error())
+		}
+	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
@@ -109,7 +114,12 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	metrics := DashboardHelpers.UnmarshalMetrics(resultPayload)
 	for metricsName, metricsKeyValuePairs := range metrics {
 		for key, value := range metricsKeyValuePairs {
-			connectedClient.page.AddCachedMetricsEntry(metricsName, key, value, server.config.MaxMetricsCacheValues)
+			err := connectedClient.page.AddCachedMetricsEntry(metricsName, key, value, server.config.MaxMetricsCacheValues)
+			if err != nil {
+				if server.errorLogger != nil {
+					server.errorLogger.Log(Error.New("Failed to add metrics entry to cache", err).Error())
+				}
+			}
 		}
 	}
 	server.websocketServer.Multicast(
@@ -128,11 +138,50 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 }
 
 func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClient *connectedClient) error {
-
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT, "")
+	if err != nil {
+		return Error.New("Failed to execute unprocessed message count request", err)
+	}
+	err = connectedClient.page.SetCachedUnprocessedMessageCount(Helpers.StringToUint32(resultPayload))
+	if err != nil {
+		if server.errorLogger != nil {
+			server.errorLogger.Log(Error.New("Failed to set unprocessed message count", err).Error())
+		}
+	}
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
+			DashboardHelpers.NewPageUpdate(
+				map[string]interface{}{
+					DashboardHelpers.CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
+				},
+				connectedClient.connection.GetName(),
+			).Marshal(),
+		),
+	)
+	return nil
 }
 
 func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClient *connectedClient) error {
-
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING, "")
+	if err != nil {
+		return Error.New("Failed to execute is processing loop running request", err)
+	}
+	connectedClient.page.SetCachedIsProcessingLoopRunning(Helpers.StringToBool(resultPayload))
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
+			DashboardHelpers.NewPageUpdate(
+				map[string]interface{}{
+					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: Helpers.StringToBool(resultPayload),
+				},
+				connectedClient.connection.GetName(),
+			).Marshal(),
+		),
+	)
+	return nil
 }
 
 func (server *Server) updateDashboardClientMetrics() error {
