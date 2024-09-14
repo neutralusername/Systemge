@@ -105,9 +105,5 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
-	commands := page.GetCachedCommands()
-	if commands == nil {
-		page.SetCachedCommands(map[string]bool{})
-	}
 	return &page, nil
 }
