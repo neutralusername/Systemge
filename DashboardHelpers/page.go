@@ -12,25 +12,9 @@ const (
 	PAGE_SYSTEMGECONNECTION
 )
 
-type PageUpdate struct {
-	Data interface{} `json:"data"`
-	Page string      `json:"page"`
-}
-
 type Page struct {
 	Data interface{} `json:"data"`
 	Type int         `json:"type"`
-}
-
-func NewPageUpdate(data interface{}, page string) *PageUpdate {
-	return &PageUpdate{
-		Data: data,
-		Page: page,
-	}
-}
-
-func (pageUpdate *PageUpdate) Marshal() string {
-	return Helpers.JsonMarshal(pageUpdate)
 }
 
 func NewPage(data interface{}, pageType int) *Page {

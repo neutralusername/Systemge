@@ -5,35 +5,6 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func HasStatus(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	case *SystemgeConnectionClient:
-		return true
-	default:
-		return false
-	}
-}
-
-func HasStart(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
-func HasStop(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
 func GetCommands(client interface{}) map[string]bool {
 	switch client.(type) {
 	case *CommandClient:
@@ -81,6 +52,16 @@ func SetStatus(client interface{}, status int) error {
 		client.(*CustomServiceClient).Status = status
 	case *SystemgeConnectionClient:
 		client.(*SystemgeConnectionClient).Status = status
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+	return nil
+}
+
+func SetIsProcessingLoopRunning(client interface{}, isProcessingLoopRunning bool) error {
+	switch client.(type) {
+	case *SystemgeConnectionClient:
+		client.(*SystemgeConnectionClient).IsProcessingLoopRunning = isProcessingLoopRunning
 	default:
 		return Error.New("Unknown client type", nil)
 	}
