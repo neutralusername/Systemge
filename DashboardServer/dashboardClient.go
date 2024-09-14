@@ -42,8 +42,8 @@ func (server *Server) retrieveDashboardClientMetrics() map[string]map[string]uin
 
 func (server *Server) GetResourceUsageMetrics() map[string]uint64 {
 	return map[string]uint64{
-		"heapUsage":      server.getHeapUsage(),
-		"goroutineCount": uint64(server.getGoroutineCount()),
+		"heap_usage":      server.getHeapUsage(),
+		"goroutine_count": uint64(server.getGoroutineCount()),
 	}
 }
 
