@@ -3,7 +3,7 @@ package DashboardHelpers
 const (
 	TOPIC_PAGE_REQUEST                      = "pageRequest"
 	TOPIC_CHANGE_PAGE                       = "changePage"
-	TOPIC_UPDATE_PAGE_APPEND                = "updatePageAppend"
+	TOPIC_UPDATE_PAGE_MERGE                 = "updatePageMerge"
 	TOPIC_UPDATE_PAGE_REPLACE               = "updatePageReplace"
 	TOPIC_RESPONSE_MESSAGE                  = "responseMessage"
 	TOPIC_INTRODUCTION                      = "get_introduction"

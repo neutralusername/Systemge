@@ -115,30 +115,13 @@ export class root extends React.Component {
                     });
                 }
                 break;
-            case "updatePageAppend": {
+            case "updatePageMerge": {
                     let page = JSON.parse(message.payload);
                     if (page.type !== this.state.pageType) {
                         return;
                     }
                     let pageData = this.state.pageData;
-                    Object.keys(page.data).forEach((key) => {
-                        let data = page.data[key];
-                        if (Array.isArray(data)) { // if data key is an array, add its elements to the existing array
-                            if (pageData[key] === undefined) {
-                                pageData[key] = [];
-                            }
-                            pageData[key].push(...data);
-                        } else if (typeof data === "object") { // if data key is an object, add its key-value pairs to the existing object
-                            if (pageData[key] === undefined) {
-                                pageData[key] = {};
-                            }
-                            Object.keys(data).forEach((k) => { 
-                                pageData[key][k] = data[k];
-                            });
-                        } else { // if data key is a primitive, replace the existing value
-                            pageData[key] = data; 
-                        }
-                    });
+                    mergeData(pageData, page.data);
                     this.setState({
                         pageData: pageData,
                     });
@@ -148,6 +131,25 @@ export class root extends React.Component {
                 console.log("Unknown message topic: " + event.data);
                 break;
         }
+    }
+
+    mergeData(target, source) {
+        Object.keys(source).forEach((key) => {
+            let data = source[key];
+            if (Array.isArray(data)) {
+                if (!Array.isArray(target[key])) {
+                    target[key] = [];
+                }
+                target[key].push(...data);
+            } else if (typeof data === "object" && data !== null) { 
+                if (typeof target[key] !== "object" || target[key] === null) {
+                    target[key] = {};
+                }
+                mergeData(target[key], data);
+            } else { 
+                target[key] = data; 
+            }
+        });
     }
 
     handleClose() {

@@ -19,8 +19,8 @@ type DashboardServer struct {
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
 	// TODO: consider individual update intervals for different things or alternate ways to handle updates (efficiently)
-	UpdateIntervalMs      uint64 `json:"updateIntervalMs"`      // default: 0
-	MaxMetricsCacheValues uint32 `json:"maxMetricsCacheValues"` // default: 0
+	UpdateIntervalMs      uint64 `json:"updateIntervalMs"`      // default: 0 == disabled
+	MaxMetricsCacheValues int    `json:"maxMetricsCacheValues"` // default: 0 == n => n+1 metric entries are stored
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {

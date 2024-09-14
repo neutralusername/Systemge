@@ -49,6 +49,9 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config == nil {
 		panic("config is nil")
 	}
+	if config.MaxMetricsCacheValues < 0 {
+		panic("config.MaxMetricsCacheValues must be >= 0")
+	}
 	if config.HTTPServerConfig == nil {
 		panic("config.HTTPServerConfig is nil")
 	}

@@ -37,7 +37,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: map[string]int{
@@ -51,10 +51,10 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_STATUS: resultPayload,
+					DashboardHelpers.CLIENT_FIELD_STATUS: Helpers.StringToInt(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -76,7 +76,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: map[string]int{
@@ -90,10 +90,10 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_STATUS: resultPayload,
+					DashboardHelpers.CLIENT_FIELD_STATUS: Helpers.StringToInt(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -193,7 +193,7 @@ func (server *Server) handleClientProcessNextMessageRequest(connectedClient *con
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT: resultPayload,
+					DashboardHelpers.CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
