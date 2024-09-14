@@ -11,13 +11,11 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	if err != nil {
 		return err
 	}
-
-	client, err := DashboardHelpers.UnmarshalPage([]byte(response.GetPayload()))
+	page, err := DashboardHelpers.UnmarshalPage([]byte(response.GetPayload()))
 	if err != nil {
 		return err
 	}
-
-	connectedClient := newConnectedClient(connection, client)
+	connectedClient := newConnectedClient(connection, page)
 
 	server.mutex.Lock()
 	server.registerModuleHttpHandlers(connectedClient)

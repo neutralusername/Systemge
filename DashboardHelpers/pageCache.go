@@ -18,6 +18,48 @@ func (page *Page) GetCachedCommands() map[string]bool {
 	}
 }
 
+func (page *Page) GetCachedStatus() int {
+	switch page.Type {
+	case CLIENT_TYPE_CUSTOMSERVICE:
+		return page.Data.(*CustomServiceClient).Status
+	case CLIENT_TYPE_SYSTEMGECONNECTION:
+		return page.Data.(*SystemgeConnectionClient).Status
+	default:
+		return Status.NON_EXISTENT
+	}
+}
+
+func (page *Page) GetCachedIsProcessingLoopRunning() bool {
+	switch page.Type {
+	case CLIENT_TYPE_SYSTEMGECONNECTION:
+		return page.Data.(*SystemgeConnectionClient).IsProcessingLoopRunning
+	default:
+		return false
+	}
+}
+
+func (page *Page) GetCachedUnprocessedMessageCount() uint32 {
+	switch page.Type {
+	case CLIENT_TYPE_SYSTEMGECONNECTION:
+		return page.Data.(*SystemgeConnectionClient).UnprocessedMessageCount
+	default:
+		return 0
+	}
+}
+
+func (page *Page) GetCachedMetrics() map[string]map[string][]*MetricsEntry {
+	switch page.Type {
+	case CLIENT_TYPE_COMMAND:
+		return page.Data.(*CommandClient).Metrics
+	case CLIENT_TYPE_CUSTOMSERVICE:
+		return page.Data.(*CustomServiceClient).Metrics
+	case CLIENT_TYPE_SYSTEMGECONNECTION:
+		return page.Data.(*SystemgeConnectionClient).Metrics
+	default:
+		return nil
+	}
+}
+
 func (page *Page) SetCachedCommands(commands map[string]bool) error {
 	if commands == nil {
 		return Error.New("Commands is nil", nil)
@@ -34,17 +76,6 @@ func (page *Page) SetCachedCommands(commands map[string]bool) error {
 		return nil
 	default:
 		return Error.New("Unknown client type", nil)
-	}
-}
-
-func (page *Page) GetCachedStatus() int {
-	switch page.Type {
-	case CLIENT_TYPE_CUSTOMSERVICE:
-		return page.Data.(*CustomServiceClient).Status
-	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		return page.Data.(*SystemgeConnectionClient).Status
-	default:
-		return Status.NON_EXISTENT
 	}
 }
 
@@ -78,4 +109,44 @@ func (page *Page) SetCachedUnprocessedMessageCount(unprocessedMessageCount uint3
 		return Error.New("Unknown client type", nil)
 	}
 	return nil
+}
+
+func (page *Page) SetCachedMetrics(metrics map[string]map[string][]*MetricsEntry) error {
+	if metrics == nil {
+		return Error.New("Metrics is nil", nil)
+	}
+	switch page.Type {
+	case CLIENT_TYPE_COMMAND:
+		page.Data.(*CommandClient).Metrics = metrics
+		return nil
+	case CLIENT_TYPE_CUSTOMSERVICE:
+		page.Data.(*CustomServiceClient).Metrics = metrics
+		return nil
+	case CLIENT_TYPE_SYSTEMGECONNECTION:
+		page.Data.(*SystemgeConnectionClient).Metrics = metrics
+		return nil
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+}
+
+func (page *Page) AddCachedMetricEntry(metricName string, metricType string, entry *MetricsEntry, maxEntries int) error {
+	if entry == nil {
+		return Error.New("Entry is nil", nil)
+	}
+	metrics := page.GetCachedMetrics()
+	if metrics == nil {
+		return Error.New("Metrics is nil", nil)
+	}
+	if metrics[metricName] == nil {
+		return Error.New("Metrics[metricName] is nil", nil)
+	}
+	if metrics[metricName][metricType] == nil {
+		return Error.New("Metrics[metricName][metricType] is nil", nil)
+	}
+	metrics[metricName][metricType] = append(metrics[metricName][metricType], entry)
+	if len(metrics[metricName][metricType]) > maxEntries {
+		metrics[metricName][metricType] = metrics[metricName][metricType][1:]
+	}
+	return page.SetCachedMetrics(metrics)
 }
