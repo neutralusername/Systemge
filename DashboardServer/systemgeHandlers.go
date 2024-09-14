@@ -26,13 +26,13 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
-			DashboardHelpers.NewPage(
+			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: map[string]int{
 						connection.GetName(): page.GetCachedStatus(),
 					},
 				},
-				DashboardHelpers.CLIENT_TYPE_DASHBOARD,
+				DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)
@@ -54,11 +54,11 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE, // it would be less awful to have a separate topic for removing keys in an object
-			DashboardHelpers.NewPage(
+			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: server.dashboardClient.ClientStatuses,
 				},
-				DashboardHelpers.CLIENT_TYPE_DASHBOARD,
+				DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)
