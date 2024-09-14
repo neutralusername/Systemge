@@ -55,8 +55,12 @@ func (server *Server) updateRoutine() {
 				}
 			}
 		}
-		server.updateDashboardClientMetrics()
-
+		err := server.updateDashboardClientMetrics()
+		if err != nil {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(Error.New("Failed to update metrics for dashboard client in updateRoutine", err).Error())
+			}
+		}
 		time.Sleep(time.Duration(server.config.UpdateIntervalMs) * time.Millisecond)
 	}
 }
