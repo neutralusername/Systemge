@@ -1,42 +1,44 @@
 package BrokerClient
 
-func (messageBrokerClient *Client) GetMetrics() map[string]uint64 {
-	m := map[string]uint64{}
-	messageBrokerClient.mutex.Lock()
-	m["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
-	m["broker_connections"] = uint64(len(messageBrokerClient.brokerConnections))
-	m["topic_resolutions"] = uint64(len(messageBrokerClient.topicResolutions))
-	m["resolution_attempts"] = messageBrokerClient.GetResolutionAttempts()
-	m["async_messages_sent"] = messageBrokerClient.GetAsyncMessagesSent()
-	m["sync_requests_sent"] = messageBrokerClient.GetSyncRequestsSent()
-	m["sync_responses_received"] = messageBrokerClient.GetSyncResponsesReceived()
+func (messageBrokerClient *Client) GetMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	metrics["broker_client"] = map[string]uint64{}
+	metrics["broker_client"]["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
+	metrics["broker_client"]["broker_connections"] = uint64(len(messageBrokerClient.brokerConnections))
+	metrics["broker_client"]["topic_resolutions"] = uint64(len(messageBrokerClient.topicResolutions))
+	metrics["broker_client"]["resolution_attempts"] = messageBrokerClient.GetResolutionAttempts()
+	metrics["broker_client"]["async_messages_sent"] = messageBrokerClient.GetAsyncMessagesSent()
+	metrics["broker_client"]["sync_requests_sent"] = messageBrokerClient.GetSyncRequestsSent()
+	metrics["broker_client"]["sync_responses_received"] = messageBrokerClient.GetSyncResponsesReceived()
+	metrics["broker_connections"] = map[string]uint64{}
 	for _, connection := range messageBrokerClient.brokerConnections {
-		metrics := connection.connection.GetMetrics()
-		for key, value := range metrics {
-			m[key] += value
+		for _, metricsMap := range connection.connection.GetMetrics() {
+			for key, value := range metricsMap {
+				metrics["broker_connections"][key] += value
+			}
 		}
 	}
-	messageBrokerClient.mutex.Unlock()
-	return m
+	return metrics
 }
-func (messageBrokerClient *Client) RetrieveMetrics() map[string]uint64 {
-	m := map[string]uint64{}
-	messageBrokerClient.mutex.Lock()
-	m["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
-	m["broker_connections"] = uint64(len(messageBrokerClient.brokerConnections))
-	m["topic_resolutions"] = uint64(len(messageBrokerClient.topicResolutions))
-	m["resolution_attempts"] = messageBrokerClient.RetrieveResolutionAttempts()
-	m["async_messages_sent"] = messageBrokerClient.RetrieveAsyncMessagesSent()
-	m["sync_requests_sent"] = messageBrokerClient.RetrieveSyncRequestsSent()
-	m["sync_responses_received"] = messageBrokerClient.RetrieveSyncResponsesReceived()
+func (messageBrokerClient *Client) RetrieveMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	metrics["broker_client"] = map[string]uint64{}
+	metrics["broker_client"]["ongoing_topic_resolutions"] = uint64(len(messageBrokerClient.ongoingTopicResolutions))
+	metrics["broker_client"]["broker_connections"] = uint64(len(messageBrokerClient.brokerConnections))
+	metrics["broker_client"]["topic_resolutions"] = uint64(len(messageBrokerClient.topicResolutions))
+	metrics["broker_client"]["resolution_attempts"] = messageBrokerClient.RetrieveResolutionAttempts()
+	metrics["broker_client"]["async_messages_sent"] = messageBrokerClient.RetrieveAsyncMessagesSent()
+	metrics["broker_client"]["sync_requests_sent"] = messageBrokerClient.RetrieveSyncRequestsSent()
+	metrics["broker_client"]["sync_responses_received"] = messageBrokerClient.RetrieveSyncResponsesReceived()
+	metrics["broker_connections"] = map[string]uint64{}
 	for _, connection := range messageBrokerClient.brokerConnections {
-		metrics := connection.connection.RetrieveMetrics()
-		for key, value := range metrics {
-			m[key] += value
+		for _, metricsMap := range connection.connection.RetrieveMetrics() {
+			for key, value := range metricsMap {
+				metrics["broker_connections"][key] += value
+			}
 		}
 	}
-	messageBrokerClient.mutex.Unlock()
-	return m
+	return metrics
 }
 
 func (messageBrokerClient *Client) GetAsyncMessagesSent() uint64 {

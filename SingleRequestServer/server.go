@@ -153,33 +153,35 @@ func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *Server) GetMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["invalid_messages"] = server.GetInvalidMessages()
-	metrics["succeeded_commands"] = server.GetSucceededCommands()
-	metrics["failed_commands"] = server.GetFailedCommands()
-	metrics["succeeded_async_messages"] = server.GetSucceededAsyncMessages()
-	metrics["failed_async_messages"] = server.GetFailedAsyncMessages()
-	metrics["succeeded_sync_messages"] = server.GetSucceededSyncMessages()
-	metrics["failed_sync_messages"] = server.GetFailedSyncMessages()
-	serverMetrics := server.systemgeServer.GetMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
+func (server *Server) GetMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	metrics["single_request_server"] = map[string]uint64{
+		"invalid_messages":         server.GetInvalidMessages(),
+		"succeeded_commands":       server.GetSucceededCommands(),
+		"failed_commands":          server.GetFailedCommands(),
+		"succeeded_async_messages": server.GetSucceededAsyncMessages(),
+		"failed_async_messages":    server.GetFailedAsyncMessages(),
+		"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
+		"failed_sync_messages":     server.GetFailedSyncMessages(),
+	}
+	for metricsType, metricsMap := range server.systemgeServer.GetMetrics() {
+		metrics[metricsType] = metricsMap
 	}
 	return metrics
 }
-func (server *Server) RetrieveMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["invalid_messages"] = server.RetrieveInvalidMessages()
-	metrics["succeeded_commands"] = server.RetrieveSucceededCommands()
-	metrics["failed_commands"] = server.RetrieveFailedCommands()
-	metrics["succeeded_async_messages"] = server.RetrieveSucceededAsyncMessages()
-	metrics["failed_async_messages"] = server.RetrieveFailedAsyncMessages()
-	metrics["succeeded_sync_messages"] = server.RetrieveSucceededSyncMessages()
-	metrics["failed_sync_messages"] = server.RetrieveFailedSyncMessages()
-	serverMetrics := server.systemgeServer.RetrieveMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
+func (server *Server) RetrieveMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	metrics["single_request_server"] = map[string]uint64{
+		"invalid_messages":         server.RetrieveInvalidMessages(),
+		"succeeded_commands":       server.RetrieveSucceededCommands(),
+		"failed_commands":          server.RetrieveFailedCommands(),
+		"succeeded_async_messages": server.RetrieveSucceededAsyncMessages(),
+		"failed_async_messages":    server.RetrieveFailedAsyncMessages(),
+		"succeeded_sync_messages":  server.RetrieveSucceededSyncMessages(),
+		"failed_sync_messages":     server.RetrieveFailedSyncMessages(),
+	}
+	for metricsType, metricsMap := range server.systemgeServer.RetrieveMetrics() {
+		metrics[metricsType] = metricsMap
 	}
 	return metrics
 }

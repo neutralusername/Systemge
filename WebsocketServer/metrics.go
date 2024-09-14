@@ -1,22 +1,26 @@
 package WebsocketServer
 
-func (server *WebsocketServer) GetMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"bytes_sent":         server.GetBytesSentCounter(),
-		"bytes_received":     server.GetBytesReceivedCounter(),
-		"incoming_messages":  uint64(server.GetIncomingMessageCounter()),
-		"outgoing_messages":  uint64(server.GetOutgoingMessageCounter()),
-		"active_connections": uint64(server.GetClientCount()),
+func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"websocketServer": {
+			"bytes_sent":         server.GetBytesSentCounter(),
+			"bytes_received":     server.GetBytesReceivedCounter(),
+			"incoming_messages":  uint64(server.GetIncomingMessageCounter()),
+			"outgoing_messages":  uint64(server.GetOutgoingMessageCounter()),
+			"active_connections": uint64(server.GetClientCount()),
+		},
 	}
 }
 
-func (server *WebsocketServer) RetrieveMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"bytes_sent":         server.RetrieveBytesSentCounter(),
-		"bytes_received":     server.RetrieveBytesReceivedCounter(),
-		"incoming_messages":  uint64(server.RetrieveIncomingMessageCounter()),
-		"outgoing_messages":  uint64(server.RetrieveOutgoingMessageCounter()),
-		"active_connections": uint64(server.GetClientCount()),
+func (server *WebsocketServer) RetrieveMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"websocketServer": {
+			"bytes_sent":         server.RetrieveBytesSentCounter(),
+			"bytes_received":     server.RetrieveBytesReceivedCounter(),
+			"incoming_messages":  uint64(server.RetrieveIncomingMessageCounter()),
+			"outgoing_messages":  uint64(server.RetrieveOutgoingMessageCounter()),
+			"active_connections": uint64(server.GetClientCount()),
+		},
 	}
 }
 

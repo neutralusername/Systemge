@@ -1,35 +1,37 @@
 package BrokerResolver
 
-func (resolver *Resolver) GetMetrics() map[string]uint64 {
-	metrics := resolver.systemgeServer.GetMetrics()
-	metrics["sucessful_async_resolutions"] = resolver.GetSucessfulAsyncResolutions()
-	metrics["sucessful_sync_resolutions"] = resolver.GetSucessfulSyncResolutions()
-	metrics["failed_resolutions"] = resolver.GetFailedResolutions()
-	metrics["ongoing_resolutions"] = uint64(resolver.ongoingResolutions.Load())
-	resolver.mutex.Lock()
-	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
-	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
-	resolver.mutex.Unlock()
-	serverMetrics := resolver.systemgeServer.GetMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
+func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	for metricsType, metricsMap := range resolver.systemgeServer.GetMetrics() {
+		metrics[metricsType] = metricsMap
 	}
+	resolver.mutex.Lock()
+	metrics["brokerResolverMetrics"] = map[string]uint64{
+		"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
+		"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
+		"failed_resolutions":          resolver.GetFailedResolutions(),
+		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Load()),
+		"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
+		"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
+	}
+	resolver.mutex.Unlock()
 	return metrics
 }
-func (resolver *Resolver) RetrieveMetrics() map[string]uint64 {
-	metrics := resolver.systemgeServer.RetrieveMetrics()
-	metrics["sucessful_async_resolutions"] = resolver.RetrieveSucessfulAsyncResolutions()
-	metrics["sucessful_sync_resolutions"] = resolver.RetrieveSucessfulSyncResolutions()
-	metrics["failed_resolutions"] = resolver.RetrieveFailedResolutions()
-	metrics["ongoing_resolutions"] = uint64(resolver.ongoingResolutions.Load())
-	resolver.mutex.Lock()
-	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
-	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
-	resolver.mutex.Unlock()
-	serverMetrics := resolver.systemgeServer.RetrieveMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
+func (resolver *Resolver) RetrieveMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	for metricsType, metricsMap := range resolver.systemgeServer.RetrieveMetrics() {
+		metrics[metricsType] = metricsMap
 	}
+	resolver.mutex.Lock()
+	metrics["brokerResolverMetrics"] = map[string]uint64{
+		"sucessful_async_resolutions": resolver.RetrieveSucessfulAsyncResolutions(),
+		"sucessful_sync_resolutions":  resolver.RetrieveSucessfulSyncResolutions(),
+		"failed_resolutions":          resolver.RetrieveFailedResolutions(),
+		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Swap(0)),
+		"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
+		"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
+	}
+	resolver.mutex.Unlock()
 	return metrics
 }
 

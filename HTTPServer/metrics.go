@@ -1,13 +1,17 @@
 package HTTPServer
 
-func (server *HTTPServer) GetMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"requestCounter": server.GetHTTPRequestCounter(),
+func (server *HTTPServer) GetMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"httpServer": {
+			"requestCounter": server.GetHTTPRequestCounter(),
+		},
 	}
 }
-func (server *HTTPServer) RetrieveMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"requestCounter": server.RetrieveHTTPRequestCounter(),
+func (server *HTTPServer) RetrieveMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"httpServer": {
+			"requestCounter": server.RetrieveHTTPRequestCounter(),
+		},
 	}
 }
 

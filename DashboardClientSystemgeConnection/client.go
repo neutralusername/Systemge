@@ -34,11 +34,15 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 		}
 	}
 	systemgeConnectionMetrics := systemgeConnection.GetMetrics()
-	metrics["systemgeConnection"] = make(map[string]*DashboardHelpers.MetricsEntry)
 	for metricName, metricValue := range systemgeConnectionMetrics {
-		metrics["systemgeConnection"][metricName] = &DashboardHelpers.MetricsEntry{
-			Value: metricValue,
-			Time:  time.Now(),
+		if metrics[metricName] == nil {
+			metrics[metricName] = make(map[string]*DashboardHelpers.MetricsEntry)
+		}
+		for metricKey, value := range metricValue {
+			metrics[metricName][metricKey] = &DashboardHelpers.MetricsEntry{
+				Value: value,
+				Time:  time.Now(),
+			}
 		}
 	}
 	return DashboardClient.New(
