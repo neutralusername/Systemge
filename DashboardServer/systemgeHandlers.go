@@ -20,6 +20,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.mutex.Lock()
 	server.registerModuleHttpHandlers(connectedClient)
 	server.connectedClients[connection.GetName()] = connectedClient
+	server.dashboardClient.ClientStatuses[connection.GetName()] = page.GetCachedStatus()
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
@@ -46,6 +47,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, DASHBOARD_CLIENT_NAME))
 		}
 		delete(server.connectedClients, connection.GetName())
+		delete(server.dashboardClient.ClientStatuses, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
 	}
 	server.mutex.Unlock()

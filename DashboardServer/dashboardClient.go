@@ -21,15 +21,6 @@ type dashboardClient struct {
 	Metrics        map[string]map[string][]*DashboardHelpers.MetricsEntry `json:"metrics"`        //periodically automatically updated by the server
 }
 
-// EXPECTS MUTEX TO BE LOCKED RN
-func (server *Server) getClientStatuses() map[string]int {
-	clientStatuses := map[string]int{}
-	for _, connectedClient := range server.connectedClients {
-		clientStatuses[connectedClient.connection.GetName()] = connectedClient.page.GetCachedStatus()
-	}
-	return clientStatuses
-}
-
 func (server *Server) getHeapUsage() uint64 {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
