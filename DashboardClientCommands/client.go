@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New(name string, config *Config.DashboardClient, commands Commands.Handlers, getMetricsFunc func() map[string]map[string]uint64) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
 	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
 	if getMetricsFunc != nil {
 		m := getMetricsFunc()
