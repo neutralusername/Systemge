@@ -25,7 +25,8 @@ func (server *Server) updateRoutine() {
 			case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
 				server.updateConnectedClientStatus(connectedClient)
 				server.updateConnectedClientMetrics(connectedClient)
-
+				server.updateConnectedClientUnprocessedMessageCount(connectedClient)
+				server.updateConnectedClientIsProcessingLoopRunning(connectedClient)
 			}
 		}
 		dashboardClient := server.dashboardClient
@@ -97,4 +98,12 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 			),
 		)
 	}
+}
+
+func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClient *connectedClient) {
+
+}
+
+func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClient *connectedClient) {
+
 }
