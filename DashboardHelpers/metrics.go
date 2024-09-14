@@ -3,6 +3,6 @@ package DashboardHelpers
 import "time"
 
 type MetricsEntry struct {
-	value uint64
-	time  time.Time
+	Value uint64    `json:"value"`
+	Time  time.Time `json:"time"`
 }

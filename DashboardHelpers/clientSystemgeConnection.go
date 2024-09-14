@@ -3,20 +3,18 @@ package DashboardHelpers
 import "encoding/json"
 
 type SystemgeConnectionClient struct {
-	Name                    string                       `json:"name"`
-	Commands                map[string]bool              `json:"commands"`
-	Status                  int                          `json:"status"`
-	IsProcessingLoopRunning bool                         `json:"isProcessingLoopRunning"`
-	Metrics                 map[string]map[string]uint64 `json:"metrics"`
-	UnprocessedMessages     uint32                       `json:"unprocessedMessages"`
+	Name                    string          `json:"name"`
+	Commands                map[string]bool `json:"commands"`
+	Status                  int             `json:"status"`                  //periodically automatically updated by the server
+	IsProcessingLoopRunning bool            `json:"isProcessingLoopRunning"` //periodically automatically updated by the server
+	UnprocessedMessages     uint32          `json:"unprocessedMessages"`     //periodically automatically updated by the server
 }
 
-func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, metrics map[string]map[string]uint64, unprocessedMessages uint32) *SystemgeConnectionClient {
+func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, unprocessedMessages uint32) *SystemgeConnectionClient {
 	return &SystemgeConnectionClient{
 		Name:                name,
 		Commands:            commands,
 		Status:              status,
-		Metrics:             metrics,
 		UnprocessedMessages: unprocessedMessages,
 	}
 }

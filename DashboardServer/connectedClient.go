@@ -27,7 +27,7 @@ func (connectedClient *connectedClient) executeRequest(topic, payload string) (s
 		payload,
 	)
 	if err != nil {
-		return "", Error.New("Failed to send request to client \""+connectedClient.connection.GetName()+"\"", err)
+		return "", Error.New("Failed to execute request", err)
 	}
 	if response.GetTopic() == Message.TOPIC_FAILURE {
 		return "", Error.New(response.GetPayload(), nil)

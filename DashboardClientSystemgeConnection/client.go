@@ -125,9 +125,6 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					name,
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
-					map[string]map[string]uint64{
-						"systemgeConnectionMetrics": systemgeConnection.GetMetrics(),
-					},
 					systemgeConnection.UnprocessedMessagesCount(),
 				),
 			).Marshal()), nil

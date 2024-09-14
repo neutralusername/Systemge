@@ -5,18 +5,16 @@ import (
 )
 
 type CustomServiceClient struct {
-	Name     string                       `json:"name"`
-	Commands map[string]bool              `json:"commands"`
-	Status   int                          `json:"status"`
-	Metrics  map[string]map[string]uint64 `json:"metrics"`
+	Name     string          `json:"name"`
+	Commands map[string]bool `json:"commands"`
+	Status   int             `json:"status"` //periodically automatically updated by the server
 }
 
-func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics map[string]map[string]uint64) *CustomServiceClient {
+func NewCustomServiceClient(name string, commands map[string]bool, status int) *CustomServiceClient {
 	return &CustomServiceClient{
 		Name:     name,
 		Commands: commands,
 		Status:   status,
-		Metrics:  metrics,
 	}
 }
 func (client *CustomServiceClient) Marshal() []byte {

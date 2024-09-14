@@ -64,32 +64,6 @@ func SetCommands(client interface{}, commands map[string]bool) error {
 	return nil
 }
 
-func GetMetrics(client interface{}) map[string]map[string]uint64 {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return client.(*CustomServiceClient).Metrics
-	case *SystemgeConnectionClient:
-		return client.(*SystemgeConnectionClient).Metrics
-	default:
-		return nil
-	}
-}
-
-func SetMetrics(client interface{}, metrics map[string]map[string]uint64) error {
-	if metrics == nil {
-		return Error.New("Metrics is nil", nil)
-	}
-	switch client.(type) {
-	case *CustomServiceClient:
-		client.(*CustomServiceClient).Metrics = metrics
-	case *SystemgeConnectionClient:
-		client.(*SystemgeConnectionClient).Metrics = metrics
-	default:
-		return Error.New("Unknown client type", nil)
-	}
-	return nil
-}
-
 func GetStatus(client interface{}) int {
 	switch client.(type) {
 	case *CustomServiceClient:

@@ -77,3 +77,31 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 	)
 	return nil
 }
+
+// starts the clients processing loop sequentially and updates the status to everyone who should be informed
+func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+
+}
+
+// starts the clients processing loop concurrently and updates the status to everyone who should be informed
+func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+
+}
+
+// stops the clients processing loop and updates the status to everyone who should be informed
+func (server *Server) handleClientStopProcessingLoopRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+
+}
+
+// processes the next message in the clients processing loop and sends the result back to the client - also receives an update on unprocessed messages count which is propagated to everyone who should be informed
+func (server *Server) handleClientProcessNextMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+
+}
+
+func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+
+}
