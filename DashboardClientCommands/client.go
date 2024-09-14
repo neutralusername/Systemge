@@ -1,6 +1,8 @@
 package DashboardClientCommands
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -10,10 +12,21 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New(name string, config *Config.DashboardClient, commands Commands.Handlers, getMetricsFunc func() map[string]map[string]*DashboardHelpers.MetricsEntry) *DashboardClient.Client {
-	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry
+func New(name string, config *Config.DashboardClient, commands Commands.Handlers, getMetricsFunc func() map[string]map[string]uint64) *DashboardClient.Client {
+	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
 	if getMetricsFunc != nil {
-		metrics = getMetricsFunc()
+		m := getMetricsFunc()
+		for metricType, metricMap := range m {
+			if metrics[metricType] == nil {
+				metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
+			}
+			for metricName, metricValue := range metricMap {
+				metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
+					Value: metricValue,
+					Time:  time.Now(),
+				}
+			}
+		}
 	}
 	return DashboardClient.New(
 		name,

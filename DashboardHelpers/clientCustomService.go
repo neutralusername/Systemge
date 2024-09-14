@@ -11,7 +11,7 @@ type CustomServiceClient struct {
 	Metrics  map[string]map[string][]*MetricsEntry `json:"metrics"` //periodically automatically updated by the server
 }
 
-func NewCustomServiceClient(name string, commands map[string]bool, status int) *CustomServiceClient {
+func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics map[string]map[string]*MetricsEntry) *CustomServiceClient {
 	return &CustomServiceClient{
 		Name:     name,
 		Commands: commands,

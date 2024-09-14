@@ -1,6 +1,8 @@
 package DashboardClientCustomService
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -10,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
+func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, commands Commands.Handlers, getMetricsFunc func() map[string]map[string]uint64) *DashboardClient.Client {
 	if startFunc == nil {
 		panic("startFunc is nil")
 	}
@@ -51,6 +53,19 @@ func New(name string, config *Config.DashboardClient, customService customServic
 	}
 	if customService == nil {
 		panic("customService is nil")
+	}
+	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
+	m := customService.GetMetrics()
+	for metricType, metricMap := range m {
+		if metrics[metricType] == nil {
+			metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
+		}
+		for metricName, metricValue := range metricMap {
+			metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
+				Value: metricValue,
+				Time:  time.Now(),
+			}
+		}
 	}
 	return DashboardClient.New(
 		name,
@@ -95,6 +110,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					name,
 					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
+					metrics,
 				),
 				DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE,
 			).Marshal()
