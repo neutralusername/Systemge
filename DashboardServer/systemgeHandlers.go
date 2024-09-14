@@ -67,5 +67,4 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 			).Marshal(),
 		),
 	)
-	return
 }
