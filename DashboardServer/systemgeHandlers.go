@@ -44,7 +44,6 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 }
 
 func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
-	// TODO: clean up metrics in cache
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
 		for websocketClient := range connectedClient.websocketClients {

@@ -84,7 +84,7 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				DashboardHelpers.GetPageType(connectedClient.client),
+				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),
 		),
 	)
