@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 )
 
@@ -33,7 +34,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 				http.Error(w, "No command", http.StatusBadRequest)
 				return
 			}
-			result, err := connectedClient.executeCommand(args[0], args[1:])
+			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(args[0], args[1:]).Marshal())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -47,7 +48,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 				http.Error(w, "No command", http.StatusBadRequest)
 				return
 			}
-			result, err := connectedClient.executeCommand(argsSplit[0], argsSplit[1:])
+			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(argsSplit[0], argsSplit[1:]).Marshal())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
