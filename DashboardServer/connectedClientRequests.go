@@ -211,10 +211,26 @@ func (server *Server) handleClientProcessNextMessageRequest(websocketClient *Web
 
 // handles a outgoing message request from a client and sends the result back to the client
 func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
-
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_SYNC_REQUEST, request.GetPayload())
+	if err != nil {
+		return Error.New("Failed to sync", err)
+	}
+	websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+		resultPayload,
+	).Serialize())
+	return nil
 }
 
 // handles a incoming message request from a client and sends the result back to the client
 func (server *Server) handleClientAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
-
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_ASYNC_MESSAGE, request.GetPayload())
+	if err != nil {
+		return Error.New("Failed to send async message", err)
+	}
+	websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+		"successfully sent async message",
+	).Serialize())
+	return nil
 }
