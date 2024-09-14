@@ -15,7 +15,6 @@ type DashboardServer struct {
 	MaxChartEntries             uint32 `json:"maxChartEntries"`             // default: 0 = disabled
 	FrontendHeartbeatIntervalMs uint64 `json:"frontendHeartbeatIntervalMs"` // default: 0 = disabled
 
-	DashboardMetrics           bool `json:"dashboardMetrics"`           // default: false
 	DashboardSystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false
 	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false

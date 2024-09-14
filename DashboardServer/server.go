@@ -31,8 +31,9 @@ type Server struct {
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
 
-	connectedClients         map[string]*connectedClient
-	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
+	metricsCache             map[string]map[string]map[string]DashboardHelpers.MetricsEntry // location -> metricsType -> metricKey -> metricsEntry
+	connectedClients         map[string]*connectedClient                                    // name/location -> connectedClient
+	websocketClientLocations map[*WebsocketServer.WebsocketClient]string                    // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
@@ -85,7 +86,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		"FRONTEND_HEARTBEAT_INTERVAL": config.FrontendHeartbeatIntervalMs,
 	}))
 
-	app := &Server{
+	server := &Server{
 		name:                     name,
 		mutex:                    sync.RWMutex{},
 		config:                   config,
@@ -95,70 +96,70 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	}
 
 	if config.InfoLoggerPath != "" {
-		app.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
+		server.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		app.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
+		server.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		app.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
+		server.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
-		app.mailer = Tools.NewMailer(config.MailerConfig)
+		server.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	app.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
-		app.config.SystemgeServerConfig,
+	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
-		app.onSystemgeConnectHandler, app.onSystemgeDisconnectHandler,
+		server.onSystemgeConnectHandler, server.onSystemgeDisconnectHandler,
 	)
-	app.websocketServer = WebsocketServer.New(name+"_websocketServer",
-		app.config.WebsocketServerConfig,
+	server.websocketServer = WebsocketServer.New(name+"_websocketServer",
+		server.config.WebsocketServerConfig,
 		whitelist, blacklist,
 		map[string]WebsocketServer.MessageHandler{
-			DashboardHelpers.TOPIC_PAGE_REQUEST: app.pageRequestHandler,
-			DashboardHelpers.TOPIC_CHANGE_PAGE:  app.handleChangePage,
+			DashboardHelpers.TOPIC_PAGE_REQUEST: server.pageRequestHandler,
+			DashboardHelpers.TOPIC_CHANGE_PAGE:  server.handleChangePage,
 		},
-		app.onWebsocketConnectHandler, app.onWebsocketDisconnectHandler,
+		server.onWebsocketConnectHandler, server.onWebsocketDisconnectHandler,
 	)
-	app.httpServer = HTTPServer.New(name+"_httpServer",
-		app.config.HTTPServerConfig,
+	server.httpServer = HTTPServer.New(name+"_httpServer",
+		server.config.HTTPServerConfig,
 		whitelist, blacklist,
 		nil,
 	)
-	app.httpServer.AddRoute("/", HTTPServer.SendDirectory(app.frontendPath))
+	server.httpServer.AddRoute("/", HTTPServer.SendDirectory(server.frontendPath))
 
-	app.dashboardCommandHandlers = Commands.Handlers{
+	server.dashboardCommandHandlers = Commands.Handlers{
 		"disconnectClient": func(args []string) (string, error) {
 			if len(args) == 0 {
 				return "", Error.New("No client name", nil)
 			}
-			if err := app.DisconnectClient(args[0]); err != nil {
+			if err := server.DisconnectClient(args[0]); err != nil {
 				return "", err
 			}
 			return "success", nil
 		},
 	}
-	if app.config.DashboardSystemgeCommands {
-		systemgeDefaultCommands := app.systemgeServer.GetDefaultCommands()
+	if server.config.DashboardSystemgeCommands {
+		systemgeDefaultCommands := server.systemgeServer.GetDefaultCommands()
 		for command, handler := range systemgeDefaultCommands {
-			app.dashboardCommandHandlers["systemgeServer_"+command] = handler
+			server.dashboardCommandHandlers["systemgeServer_"+command] = handler
 		}
 	}
-	if app.config.DashboardWebsocketCommands {
-		httpDefaultCommands := app.httpServer.GetDefaultCommands()
+	if server.config.DashboardWebsocketCommands {
+		httpDefaultCommands := server.httpServer.GetDefaultCommands()
 		for command, handler := range httpDefaultCommands {
-			app.dashboardCommandHandlers["httpServer_"+command] = handler
+			server.dashboardCommandHandlers["httpServer_"+command] = handler
 		}
 	}
-	if app.config.DashboardHttpCommands {
-		webSocketDefaultCommands := app.websocketServer.GetDefaultCommands()
+	if server.config.DashboardHttpCommands {
+		webSocketDefaultCommands := server.websocketServer.GetDefaultCommands()
 		for command, handler := range webSocketDefaultCommands {
-			app.dashboardCommandHandlers["websocketServer_"+command] = handler
+			server.dashboardCommandHandlers["websocketServer_"+command] = handler
 		}
 	}
 
-	return app
+	return server
 }
 
 func (server *Server) Start() error {
@@ -192,6 +193,13 @@ func (server *Server) Start() error {
 		return err
 	}
 	server.status = Status.STARTED
+
+	server.status = Status.STARTED
+	if server.config.UpdateIntervalMs > 0 {
+		server.waitGroup.Add(1)
+		go server.updateRoutine()
+	}
+
 	return nil
 }
 

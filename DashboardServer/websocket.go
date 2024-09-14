@@ -121,14 +121,16 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
-
+		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
+	default:
+		return Error.New("Unknown topic", nil)
 	}
 }
 
 func (server *Server) handleCustomServiceClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
-
+		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
 
 	case DashboardHelpers.TOPIC_STOP:
@@ -143,7 +145,7 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
-
+		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
 
 	case DashboardHelpers.TOPIC_GET_METRICS:
