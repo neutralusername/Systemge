@@ -71,9 +71,7 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 	}
 	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
 	if err != nil {
-		if server.errorLogger != nil {
-			server.errorLogger.Log(Error.New("Failed to set status", err).Error())
-		}
+		return Error.New("Failed to set status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
@@ -107,18 +105,17 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 func (server *Server) updateConnectedClientMetrics(connectedClient *connectedClient) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_GET_METRICS, "")
 	if err != nil {
-		if server.errorLogger != nil {
-			server.errorLogger.Log(Error.New("Failed to execute get metrics request", err).Error())
-		}
+		return Error.New("Failed to execute get metrics request", err)
 	}
-	metrics := DashboardHelpers.UnmarshalMetrics(resultPayload)
+	metrics, err := DashboardHelpers.UnmarshalMetrics(resultPayload)
+	if err != nil {
+		return Error.New("Failed to unmarshal metrics", err)
+	}
 	for metricsName, metricsKeyValuePairs := range metrics {
 		for key, value := range metricsKeyValuePairs {
 			err := connectedClient.page.AddCachedMetricsEntry(metricsName, key, value, server.config.MaxMetricsCacheValues)
 			if err != nil {
-				if server.errorLogger != nil {
-					server.errorLogger.Log(Error.New("Failed to add metrics entry to cache", err).Error())
-				}
+				return Error.New("Failed to add metrics entry", err)
 			}
 		}
 	}
@@ -144,9 +141,7 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 	}
 	err = connectedClient.page.SetCachedUnprocessedMessageCount(Helpers.StringToUint32(resultPayload))
 	if err != nil {
-		if server.errorLogger != nil {
-			server.errorLogger.Log(Error.New("Failed to set unprocessed message count", err).Error())
-		}
+		return Error.New("Failed to set unprocessed message count", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),

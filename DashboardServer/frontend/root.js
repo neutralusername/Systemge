@@ -109,6 +109,7 @@ export class root extends React.Component {
                 }
                 break;
             case "updatePageMerge": {
+                    console.log(message.payload);
                     let page = JSON.parse(message.payload);
                     if (page.type !== this.state.pageType) {
                         return;

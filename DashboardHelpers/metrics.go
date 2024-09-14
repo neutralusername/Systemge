@@ -10,11 +10,11 @@ type MetricsEntry struct {
 	Time  time.Time `json:"time"`
 }
 
-func UnmarshalMetrics(data string) map[string]map[string]*MetricsEntry {
+func UnmarshalMetrics(data string) (map[string]map[string]*MetricsEntry, error) {
 	var metrics map[string]map[string]*MetricsEntry
 	err := json.Unmarshal([]byte(data), &metrics)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return metrics
+	return metrics, nil
 }
