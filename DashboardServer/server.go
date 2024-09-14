@@ -157,6 +157,14 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			server.dashboardCommandHandlers["websocketServer_"+command] = handler
 		}
 	}
+	server.dashboardClient = &dashboardClient{
+		Name:           "dashboard",
+		ClientStatuses: map[string]int{},
+		Commands:       server.dashboardCommandHandlers.GetKeyBoolMap(),
+		Metrics:        map[string]map[string]*DashboardHelpers.MetricsEntry{},
+		HeapUsage:      server.getHeapUsage(),
+		GoroutineCount: server.getGoroutineCount(),
+	}
 
 	return server
 }
