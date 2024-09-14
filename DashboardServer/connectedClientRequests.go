@@ -56,7 +56,7 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"status": resultPayload,
+					DashboardHelpers.CLIENT_FIELD_STATUS: resultPayload,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -96,7 +96,7 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"status": resultPayload,
+					DashboardHelpers.CLIENT_FIELD_STATUS: resultPayload,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -122,7 +122,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(websock
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"isProcessingLoopRunning": true,
+					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: true,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -148,7 +148,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(websock
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"isProcessingLoopRunning": true,
+					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: true,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -174,7 +174,7 @@ func (server *Server) handleClientStopProcessingLoopRequest(websocketClient *Web
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"isProcessingLoopRunning": false,
+					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: false,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
