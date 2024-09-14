@@ -107,7 +107,7 @@ export class root extends React.Component {
                         return;
                     }
                     let pageData = this.state.pageData;
-                    Object.keys(page).forEach((key) => {
+                    Object.keys(page.data).forEach((key) => {
                         pageData[key] = page[key];
                     });
                     this.setState({
@@ -121,7 +121,7 @@ export class root extends React.Component {
                         return;
                     }
                     let pageData = this.state.pageData;
-                    Object.keys(page).forEach((key) => {
+                    Object.keys(page.data).forEach((key) => {
                         let data = page.data[key];
                         if (Array.isArray(data)) { // if data key is an array, add its elements to the existing array
                             if (pageData[key] === undefined) {
