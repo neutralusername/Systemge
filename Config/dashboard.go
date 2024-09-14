@@ -12,14 +12,14 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxChartEntries             uint32 `json:"maxChartEntries"`             // default: 0 = disabled
 	FrontendHeartbeatIntervalMs uint64 `json:"frontendHeartbeatIntervalMs"` // default: 0 = disabled
 
 	DashboardSystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false
 	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
-	UpdateIntervalMs uint64 `json:"updateIntervalMs"` // default: 1000
+	UpdateIntervalMs      uint64 `json:"updateIntervalMs"`      // default: 0
+	MaxMetricsCacheValues uint32 `json:"maxMetricsCacheValues"` // default: 0
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
