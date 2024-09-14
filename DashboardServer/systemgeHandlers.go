@@ -24,7 +24,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.connectedClients[connection.GetName()] = connectedClient
 	clientStatus := map[string]int{}
 	for _, connectedClient := range server.connectedClients {
-		clientStatus[connectedClient.connection.GetName()] = DashboardHelpers.GetCachedStatus(connectedClient.page)
+		clientStatus[connectedClient.connection.GetName()] = connectedClient.page.GetCachedStatus()
 	}
 	server.mutex.Unlock()
 

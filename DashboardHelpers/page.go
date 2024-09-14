@@ -30,6 +30,13 @@ type Page struct {
 	Type int         `json:"type"`
 }
 
+func GetNullPage() *Page {
+	return &Page{
+		Data: map[string]interface{}{},
+		Type: CLIENT_TYPE_NULL,
+	}
+}
+
 func NewPage(client interface{}, clientType int) *Page {
 	return &Page{
 		Data: client,

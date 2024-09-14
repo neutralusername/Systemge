@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 )
 
@@ -13,7 +12,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
-	commands := DashboardHelpers.GetCachedCommands(connectedClient.page)
+	commands := connectedClient.page.GetCachedCommands()
 	if commands == nil {
 		if server.errorLogger != nil {
 			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
@@ -61,7 +60,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
 	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
 
-	commands := DashboardHelpers.GetCachedCommands(connectedClient.page)
+	commands := connectedClient.page.GetCachedCommands()
 	if commands == nil {
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return

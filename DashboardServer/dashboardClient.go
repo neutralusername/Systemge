@@ -26,7 +26,7 @@ type dashboardClient struct {
 func (server *Server) getClientStatuses() map[string]int {
 	clientStatuses := map[string]int{}
 	for _, connectedClient := range server.connectedClients {
-		clientStatuses[connectedClient.connection.GetName()] = DashboardHelpers.GetCachedStatus(connectedClient.page)
+		clientStatuses[connectedClient.connection.GetName()] = connectedClient.page.GetCachedStatus()
 	}
 	return clientStatuses
 }

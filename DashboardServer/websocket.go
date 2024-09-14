@@ -141,10 +141,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 	var connectedClient *connectedClient
 	switch locationAfterChange {
 	case "":
-		page = DashboardHelpers.NewPage(
-			map[string]interface{}{},
-			DashboardHelpers.CLIENT_TYPE_NULL,
-		)
+		page = DashboardHelpers.GetNullPage()
 	case DASHBOARD_CLIENT_NAME:
 		page = DashboardHelpers.NewPage(
 			server.dashboardClient,
@@ -156,7 +153,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		page = DashboardHelpers.NewPage(connectedClient.page, DashboardHelpers.GetClientType(connectedClient.page))
+		page = connectedClient.page
 		connectedClient.websocketClients[websocketClient] = true
 	}
 	server.websocketClientLocations[websocketClient] = locationAfterChange
