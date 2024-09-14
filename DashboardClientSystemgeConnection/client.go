@@ -19,15 +19,17 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 		panic("customService is nil")
 	}
 	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
-	m := getMetricsFunc()
-	for metricType, metricMap := range m {
-		if metrics[metricType] == nil {
-			metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
-		}
-		for metricName, metricValue := range metricMap {
-			metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
-				Value: metricValue,
-				Time:  time.Now(),
+	if getMetricsFunc != nil {
+		m := getMetricsFunc()
+		for metricType, metricMap := range m {
+			if metrics[metricType] == nil {
+				metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
+			}
+			for metricName, metricValue := range metricMap {
+				metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
+					Value: metricValue,
+					Time:  time.Now(),
+				}
 			}
 		}
 	}
