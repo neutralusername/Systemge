@@ -158,14 +158,13 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		}
 	}
 	server.dashboardClient = &dashboardClient{
-		Name:           "dashboard",
+		Name:           "/",
 		ClientStatuses: map[string]int{},
 		Commands:       server.dashboardCommandHandlers.GetKeyBoolMap(),
 		Metrics:        map[string]map[string]*DashboardHelpers.MetricsEntry{},
 		HeapUsage:      server.getHeapUsage(),
 		GoroutineCount: server.getGoroutineCount(),
 	}
-
 	return server
 }
 

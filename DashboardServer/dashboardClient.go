@@ -20,7 +20,7 @@ const (
 )
 
 type dashboardClient struct {
-	Name           string                                               `json:"name"`
+	Name           string                                               `json:"name"` // always "/"
 	ClientStatuses map[string]int                                       `json:"clientStatuses"`
 	Commands       map[string]bool                                      `json:"commands"`
 	Metrics        map[string]map[string]*DashboardHelpers.MetricsEntry `json:"metrics"`
