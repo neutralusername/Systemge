@@ -33,11 +33,7 @@ func (server *Server) getDashboarClient() *dashboardClient {
 		Name:           "dashboard",
 		ClientStatuses: server.getClientStatuses(),
 		Commands:       server.getDashboardClientCommands(),
-		Metrics: map[string]map[string]uint64{ // will check on frontend for metrics-updates and handle them accordingly
-			DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.RetrieveSystemgeMetrics(),
-			DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS: server.RetrieveWebsocketMetrics(),
-			DASHBOARD_CLIENT_FIELD_HTTP_METRICS:      server.RetrieveHttpMetrics(),
-		},
+		Metrics:        server.getDashboardClientMetrics(),
 		HeapUsage:      server.getHeapUsage(),
 		GoroutineCount: server.getGoroutineCount(),
 	}
@@ -68,4 +64,13 @@ func (server *Server) getHeapUsage() uint64 {
 
 func (server *Server) getGoroutineCount() int {
 	return runtime.NumGoroutine()
+}
+
+// cache this somewhere or else it won't work properly with >1 websocket client
+func (server *Server) getDashboardClientMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.RetrieveSystemgeMetrics(),
+		DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS: server.RetrieveWebsocketMetrics(),
+		DASHBOARD_CLIENT_FIELD_HTTP_METRICS:      server.RetrieveHttpMetrics(),
+	}
 }

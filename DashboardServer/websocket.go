@@ -103,11 +103,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		websocketClient.Send(Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE,
 			DashboardHelpers.NewPage(
-				map[string]interface{}{
-					DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.GetSystemgeMetrics(),
-					DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS: server.GetWebsocketMetrics(),
-					DASHBOARD_CLIENT_FIELD_HTTP_METRICS:      server.GetHttpMetrics(),
-				},
+				server.getDashboardClientMetrics(),
 				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),
 		).Serialize())
@@ -173,6 +169,66 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	}
 }
 
+func (server *Server) handleChangePage(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	locationBeforeChange := server.websocketClientLocations[websocketClient]
+	locationAfterChange := message.GetPayload()
+
+	if locationBeforeChange == locationAfterChange {
+		return Error.New("Location is already "+locationAfterChange, nil)
+	}
+
+	var page *DashboardHelpers.PageUpdate
+	var connectedClient *connectedClient
+	switch locationAfterChange {
+	case "":
+		page = DashboardHelpers.NewPage(
+			map[string]interface{}{},
+			DashboardHelpers.PAGE_NULL,
+		)
+	case "/":
+		page = DashboardHelpers.NewPage(
+			server.getDashboarClient(),
+			DashboardHelpers.PAGE_DASHBOARD,
+		)
+		server.dashboardWebsocketClients[websocketClient] = true
+	default:
+		connectedClient = server.connectedClients[locationAfterChange]
+		if connectedClient == nil {
+			return Error.New("Client not found", nil)
+		}
+		page = DashboardHelpers.GetPage(connectedClient.client)
+		connectedClient.websocketClients[websocketClient] = true
+	}
+	server.websocketClientLocations[websocketClient] = locationAfterChange
+	switch locationBeforeChange {
+	case "":
+	case "/":
+		delete(server.dashboardWebsocketClients, websocketClient)
+	default:
+		delete(connectedClient.websocketClients, websocketClient)
+	}
+	go websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_CHANGE_PAGE,
+		page.Marshal(),
+	).Serialize())
+	return nil
+}
+
+func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	server.websocketClientLocations[websocketClient] = ""
+	return nil
+}
+func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	delete(server.websocketClientLocations, websocketClient)
+}
+
+/*
 func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
 	command, err := DashboardHelpers.UnmarshalCommand(requestPayload)
 	if err != nil {
@@ -278,7 +334,6 @@ func (server *Server) handleStopRequest(websocketClient *WebsocketServer.Websock
 		return nil
 	}
 }
-
 func (server *Server) handleMetricsRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
 
 }
@@ -290,63 +345,4 @@ func (server *Server) handleHeapUsageRequest(websocketClient *WebsocketServer.We
 }
 func (server *Server) handleGoroutineCountRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
 
-}
-
-func (server *Server) handleChangePage(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	locationBeforeChange := server.websocketClientLocations[websocketClient]
-	locationAfterChange := message.GetPayload()
-
-	if locationBeforeChange == locationAfterChange {
-		return Error.New("Location is already "+locationAfterChange, nil)
-	}
-
-	var page *DashboardHelpers.PageUpdate
-	var connectedClient *connectedClient
-	switch locationAfterChange {
-	case "":
-		page = DashboardHelpers.NewPage(
-			map[string]interface{}{},
-			DashboardHelpers.PAGE_NULL,
-		)
-	case "/":
-		page = DashboardHelpers.NewPage(
-			server.getDashboarClient(),
-			DashboardHelpers.PAGE_DASHBOARD,
-		)
-		server.dashboardWebsocketClients[websocketClient] = true
-	default:
-		connectedClient = server.connectedClients[locationAfterChange]
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		page = DashboardHelpers.GetPage(connectedClient.client)
-		connectedClient.websocketClients[websocketClient] = true
-	}
-	server.websocketClientLocations[websocketClient] = locationAfterChange
-	switch locationBeforeChange {
-	case "":
-	case "/":
-		delete(server.dashboardWebsocketClients, websocketClient)
-	default:
-		delete(connectedClient.websocketClients, websocketClient)
-	}
-	go websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_CHANGE_PAGE,
-		page.Marshal(),
-	).Serialize())
-	return nil
-}
-
-func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	server.websocketClientLocations[websocketClient] = ""
-	return nil
-}
-func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	delete(server.websocketClientLocations, websocketClient)
-}
+} */
