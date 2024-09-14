@@ -96,9 +96,9 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
-		return server.handleClientStartRequest(websocketClient, connectedClient)
+		return server.handleClientStartRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
-		return server.handleClientStopRequest(websocketClient, connectedClient)
+		return server.handleClientStopRequest(connectedClient)
 	default:
 		return Error.New("Unknown topic", nil)
 	}
@@ -109,15 +109,15 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
-		return server.handleClientStopRequest(websocketClient, connectedClient)
+		return server.handleClientStopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
-		return server.handleClientStartProcessingLoopSequentiallyRequest(websocketClient, connectedClient)
+		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
-		return server.handleClientStartProcessingLoopConcurrentlyRequest(websocketClient, connectedClient)
+		return server.handleClientStartProcessingLoopConcurrentlyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP:
-		return server.handleClientStopProcessingLoopRequest(websocketClient, connectedClient)
+		return server.handleClientStopProcessingLoopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE:
-		return server.handleClientProcessNextMessageRequest(websocketClient, connectedClient)
+		return server.handleClientProcessNextMessageRequest(connectedClient)
 	case DashboardHelpers.TOPIC_SYNC_REQUEST:
 		return server.handleClientSyncRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:

@@ -41,7 +41,7 @@ func (server *Server) getGoroutineCount() int {
 	return runtime.NumGoroutine()
 }
 
-func (server *Server) getDashboardClientMetrics() map[string]map[string]uint64 {
+func (server *Server) retrieveDashboardClientMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		DASHBOARD_METRICSTYPE_SYSTEMGE:  server.RetrieveSystemgeMetrics(),
 		DASHBOARD_METRICSTYPE_WEBSOCKET: server.RetrieveWebsocketMetrics(),
