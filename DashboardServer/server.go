@@ -161,7 +161,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		Name:           DASHBOARD_CLIENT_NAME,
 		ClientStatuses: map[string]int{},
 		Commands:       server.dashboardCommandHandlers.GetKeyBoolMap(),
-		Metrics:        map[string]map[string]*DashboardHelpers.MetricsEntry{},
+		Metrics:        map[string]map[string][]*DashboardHelpers.MetricsEntry{},
 		HeapUsage:      server.getHeapUsage(),
 		GoroutineCount: server.getGoroutineCount(),
 	}
