@@ -13,7 +13,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
-	commands := DashboardHelpers.GetCachedCommands(connectedClient.client)
+	commands := DashboardHelpers.GetCachedCommands(connectedClient.page)
 	if commands == nil {
 		if server.errorLogger != nil {
 			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
@@ -61,7 +61,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
 	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
 
-	commands := DashboardHelpers.GetCachedCommands(connectedClient.client)
+	commands := DashboardHelpers.GetCachedCommands(connectedClient.page)
 	if commands == nil {
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return

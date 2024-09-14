@@ -8,6 +8,16 @@ import (
 )
 
 const (
+	CLIENT_FIELD_COMMANDS                   = "commands"
+	CLIENT_FIELD_NAME                       = "name"
+	CLIENT_FIELD_STATUS                     = "status"
+	CLIENT_FIELD_METRICS                    = "metrics"
+	CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING = "isProcessingLoopRunning"
+	CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT  = "unprocessedMessageCount"
+	CLIENT_FIELD_CLIENTSTATUSES             = "clientStatuses"
+)
+
+const (
 	CLIENT_TYPE_NULL = iota
 	CLIENT_TYPE_DASHBOARD
 	CLIENT_TYPE_CUSTOMSERVICE
@@ -85,9 +95,9 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
-	commands := GetCachedCommands(page.Data)
+	commands := page.GetCachedCommands()
 	if commands == nil {
-		SetCachedCommands(page.Data, map[string]bool{})
+		page.SetCachedCommands(map[string]bool{})
 	}
 	return &page, nil
 }

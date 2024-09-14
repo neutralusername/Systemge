@@ -1,6 +1,7 @@
 package DashboardServer
 
 import (
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -10,14 +11,14 @@ import (
 type connectedClient struct {
 	connection       SystemgeConnection.SystemgeConnection
 	websocketClients map[*WebsocketServer.WebsocketClient]bool // websocketClient -> true (websocketClients that are currently on this client's page)
-	client           interface{}
+	page             *DashboardHelpers.Page
 }
 
-func newConnectedClient(connection SystemgeConnection.SystemgeConnection, client interface{}) *connectedClient {
+func newConnectedClient(connection SystemgeConnection.SystemgeConnection, page *DashboardHelpers.Page) *connectedClient {
 	return &connectedClient{
 		connection:       connection,
 		websocketClients: make(map[*WebsocketServer.WebsocketClient]bool),
-		client:           client,
+		page:             page,
 	}
 }
 
