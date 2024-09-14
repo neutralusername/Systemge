@@ -31,6 +31,10 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 			}
 		}
 	}
+	commands := page.GetCachedCommands()
+	if server.config.MaxCommands > 0 && len(commands) > server.config.MaxCommands {
+		return Error.New("Too many commands", nil)
+	}
 
 	connectedClient := newConnectedClient(connection, page)
 
