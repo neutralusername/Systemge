@@ -200,7 +200,7 @@ func (server *Server) handleClientProcessNextMessageRequest(websocketClient *Web
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"unprocessedMessagesCount": resultPayload,
+					DashboardHelpers.CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT: resultPayload,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
