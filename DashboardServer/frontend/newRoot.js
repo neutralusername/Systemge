@@ -121,7 +121,7 @@ export class root extends React.Component {
                         return;
                     }
                     let pageData = this.state.pageData;
-                    mergeData(pageData, page.data);
+                    this.mergeData(pageData, page.data);
                     this.setState({
                         pageData: pageData,
                     });
