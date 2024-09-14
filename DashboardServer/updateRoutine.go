@@ -20,9 +20,11 @@ func (server *Server) updateRoutine() {
 				server.updateConnectedClientMetrics(connectedClient)
 			case DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE:
 				server.updateConnectedClientStatus(connectedClient)
+				server.updateConnectedClientMetrics(connectedClient)
 
 			case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
 				server.updateConnectedClientStatus(connectedClient)
+				server.updateConnectedClientMetrics(connectedClient)
 
 			}
 		}
