@@ -20,19 +20,17 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.mutex.Lock()
 	server.registerModuleHttpHandlers(connectedClient)
 	server.connectedClients[connection.GetName()] = connectedClient
-	clientStatus := map[string]int{}
-	for _, connectedClient := range server.connectedClients {
-		clientStatus[connectedClient.connection.GetName()] = connectedClient.page.GetCachedStatus()
-	}
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatus,
+					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: map[string]int{
+						connection.GetName(): page.GetCachedStatus(),
+					},
 				},
 				DashboardHelpers.CLIENT_TYPE_DASHBOARD,
 			).Marshal(),
@@ -50,7 +48,6 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 		delete(server.connectedClients, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
 	}
-	clientStatuses := server.getClientStatuses()
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
@@ -59,7 +56,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE, // it would be less awful to have a separate topic for removing keys in an object
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatuses,
+					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: server.dashboardClient.ClientStatuses,
 				},
 				DashboardHelpers.CLIENT_TYPE_DASHBOARD,
 			).Marshal(),
