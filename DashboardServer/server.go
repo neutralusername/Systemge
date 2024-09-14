@@ -193,7 +193,6 @@ func (server *Server) Start() error {
 	}
 	server.status = Status.STARTED
 
-	server.status = Status.STARTED
 	if server.config.UpdateIntervalMs > 0 {
 		server.waitGroup.Add(1)
 		go server.updateRoutine()
