@@ -7,7 +7,7 @@ import (
 type CommandClient struct {
 	Name     string                                `json:"name"`
 	Commands map[string]bool                       `json:"commands"`
-	Metrics  map[string]map[string][]*MetricsEntry `json:"metrics"`
+	Metrics  map[string]map[string][]*MetricsEntry `json:"metrics"` //periodically automatically updated by the server
 }
 
 func NewCommandClient(name string, commands map[string]bool) *CommandClient {
