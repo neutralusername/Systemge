@@ -132,13 +132,15 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
-
+		return server.handleClientStartRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
-
+		return server.handleClientStopRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_GET_METRICS:
-
+		return server.handleClientMetricsRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_GET_STATUS:
-
+		return server.handleClientStatusRequest(websocketClient, connectedClient)
+	default:
+		return Error.New("Unknown topic", nil)
 	}
 }
 
@@ -146,28 +148,28 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
-	case DashboardHelpers.TOPIC_START:
-
 	case DashboardHelpers.TOPIC_GET_METRICS:
-
+		return server.handleClientMetricsRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
-
+		return server.handleClientStopRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
-
+		return server.handleClientStartProcessingLoopSequentiallyRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
-
+		return server.handleClientStartProcessingLoopConcurrentlyRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP:
-
+		return server.handleClientStopProcessingLoopRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING:
-
+		return server.handleClientIsProcessingLoopRunningRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE:
-
+		return server.handleClientProcessNextMessageRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT:
-
+		return server.handleClientUnprocessedMessageCountRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_SYNC_REQUEST:
-
+		return server.handleClientSyncRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:
-
+		return server.handleClientAsyncMessageRequest(websocketClient, connectedClient, request)
+	default:
+		return Error.New("Unknown topic", nil)
 	}
 }
 

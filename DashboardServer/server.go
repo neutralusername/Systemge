@@ -82,7 +82,6 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	Helpers.CreateFile(frontendPath+"configs.js", "export const configs = "+Helpers.JsonMarshal(map[string]interface{}{
 		"WS_PORT":                     config.WebsocketServerConfig.TcpServerConfig.Port,
 		"WS_PATTERN":                  config.WebsocketServerConfig.Pattern,
-		"MAX_CHART_ENTRIES":           config.MaxChartEntries,
 		"FRONTEND_HEARTBEAT_INTERVAL": config.FrontendHeartbeatIntervalMs,
 	}))
 

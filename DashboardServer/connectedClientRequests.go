@@ -25,3 +25,27 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 	).Serialize())
 	return nil
 }
+
+func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+	newStatus, err := connectedClient.executeStart()
+	if err != nil {
+		return Error.New("Failed to start client", err)
+	}
+	err = DashboardHelpers.SetStatus(connectedClient.client, newStatus)
+	if err != nil {
+		return Error.New("Failed to update status", err)
+	}
+	server.websocketServer.Multicast(
+		// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.NewPage(
+				map[string]interface{}{
+					"status": newStatus,
+				},
+				DashboardHelpers.GetPageType(connectedClient.client),
+			).Marshal(),
+		),
+	)
+	return nil
+}
