@@ -12,10 +12,18 @@ type CustomServiceClient struct {
 }
 
 func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics map[string]map[string]*MetricsEntry) *CustomServiceClient {
+	metricsMap := map[string]map[string][]*MetricsEntry{}
+	for key, value := range metrics {
+		metricsMap[key] = map[string][]*MetricsEntry{}
+		for key2, value2 := range value {
+			metricsMap[key][key2] = append(metricsMap[key][key2], value2)
+		}
+	}
 	return &CustomServiceClient{
 		Name:     name,
 		Commands: commands,
 		Status:   status,
+		Metrics:  metricsMap,
 	}
 }
 func (client *CustomServiceClient) Marshal() []byte {

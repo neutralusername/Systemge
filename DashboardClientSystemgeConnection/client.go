@@ -1,6 +1,8 @@
 package DashboardClientSystemgeConnection
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -12,9 +14,30 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
 	if systemgeConnection == nil {
 		panic("customService is nil")
+	}
+	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
+	m := getMetricsFunc()
+	for metricType, metricMap := range m {
+		if metrics[metricType] == nil {
+			metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
+		}
+		for metricName, metricValue := range metricMap {
+			metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
+				Value: metricValue,
+				Time:  time.Now(),
+			}
+		}
+	}
+	systemgeConnectionMetrics := systemgeConnection.GetMetrics()
+	metrics["systemgeConnection"] = make(map[string]*DashboardHelpers.MetricsEntry)
+	for metricName, metricValue := range systemgeConnectionMetrics {
+		metrics["systemgeConnection"][metricName] = &DashboardHelpers.MetricsEntry{
+			Value: metricValue,
+			Time:  time.Now(),
+		}
 	}
 	return DashboardClient.New(
 		name,
@@ -126,6 +149,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
 					systemgeConnection.UnprocessedMessagesCount(),
+					metrics,
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()

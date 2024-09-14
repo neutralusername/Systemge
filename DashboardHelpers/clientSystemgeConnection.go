@@ -11,12 +11,20 @@ type SystemgeConnectionClient struct {
 	Metrics                 map[string]map[string][]*MetricsEntry `json:"metrics"`                 //periodically automatically updated by the server
 }
 
-func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, unprocessedMessages uint32) *SystemgeConnectionClient {
+func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, unprocessedMessages uint32, metrics map[string]map[string]*MetricsEntry) *SystemgeConnectionClient {
+	metricsMap := map[string]map[string][]*MetricsEntry{}
+	for key, value := range metrics {
+		metricsMap[key] = map[string][]*MetricsEntry{}
+		for key2, value2 := range value {
+			metricsMap[key][key2] = append(metricsMap[key][key2], value2)
+		}
+	}
 	return &SystemgeConnectionClient{
 		Name:                    name,
 		Commands:                commands,
 		Status:                  status,
 		UnprocessedMessageCount: unprocessedMessages,
+		Metrics:                 metricsMap,
 	}
 }
 func (client *SystemgeConnectionClient) Marshal() []byte {
