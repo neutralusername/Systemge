@@ -32,5 +32,11 @@ func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 	if err != nil {
 		return nil, err
 	}
+	if client.Commands == nil {
+		client.Commands = map[string]bool{}
+	}
+	if client.Metrics == nil {
+		client.Metrics = map[string]map[string][]*MetricsEntry{}
+	}
 	return &client, nil
 }
