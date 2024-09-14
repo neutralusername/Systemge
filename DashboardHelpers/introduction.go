@@ -75,9 +75,9 @@ func UnmarshalIntroduction(data []byte) (interface{}, error) {
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
-	commands := GetCommands(client)
+	commands := GetCachedCommands(client)
 	if commands == nil {
-		SetCommands(client, map[string]bool{})
+		SetCachedCommands(client, map[string]bool{})
 	}
 	return client, nil
 }

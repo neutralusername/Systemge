@@ -41,7 +41,7 @@ func (server *Server) getDashboardClientCommands() map[string]bool {
 func (server *Server) getClientStatuses() map[string]int {
 	clientStatuses := map[string]int{}
 	for _, connectedClient := range server.connectedClients {
-		clientStatuses[connectedClient.connection.GetName()] = DashboardHelpers.GetStatus(connectedClient.client)
+		clientStatuses[connectedClient.connection.GetName()] = DashboardHelpers.GetCachedStatus(connectedClient.client)
 	}
 	return clientStatuses
 }

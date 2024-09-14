@@ -7,16 +7,16 @@ type SystemgeConnectionClient struct {
 	Commands                map[string]bool                     `json:"commands"`
 	Status                  int                                 `json:"status"`                  //periodically automatically updated by the server
 	IsProcessingLoopRunning bool                                `json:"isProcessingLoopRunning"` //periodically automatically updated by the server
-	UnprocessedMessages     uint32                              `json:"unprocessedMessages"`     //periodically automatically updated by the server
+	UnprocessedMessageCount uint32                              `json:"unprocessedMessageCount"` //periodically automatically updated by the server
 	Metrics                 map[string]map[string]*MetricsEntry `json:"metrics"`
 }
 
 func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, unprocessedMessages uint32) *SystemgeConnectionClient {
 	return &SystemgeConnectionClient{
-		Name:                name,
-		Commands:            commands,
-		Status:              status,
-		UnprocessedMessages: unprocessedMessages,
+		Name:                    name,
+		Commands:                commands,
+		Status:                  status,
+		UnprocessedMessageCount: unprocessedMessages,
 	}
 }
 func (client *SystemgeConnectionClient) Marshal() []byte {

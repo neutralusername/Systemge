@@ -31,7 +31,7 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 	if err != nil {
 		return Error.New("Failed to start client", err)
 	}
-	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(resultPayload))
+	err = DashboardHelpers.SetCachedStatus(connectedClient.client, Helpers.StringToInt(resultPayload))
 	if err != nil {
 		// should never happen
 		return Error.New("Failed to update status", err)
@@ -71,7 +71,7 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 	if err != nil {
 		return Error.New("Failed to stop client", err)
 	}
-	err = DashboardHelpers.SetStatus(connectedClient.client, Helpers.StringToInt(resultPayload))
+	err = DashboardHelpers.SetCachedStatus(connectedClient.client, Helpers.StringToInt(resultPayload))
 	if err != nil {
 		// should never happen
 		return Error.New("Failed to update status", err)
@@ -111,7 +111,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(websock
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
-	err = DashboardHelpers.SetIsProcessingLoopRunning(connectedClient.client, true)
+	err = DashboardHelpers.SetCachedIsProcessingLoopRunning(connectedClient.client, true)
 	if err != nil {
 		// should never happen
 		return Error.New("Failed to update processing loop status", err)
@@ -137,7 +137,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(websock
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
-	err = DashboardHelpers.SetIsProcessingLoopRunning(connectedClient.client, true)
+	err = DashboardHelpers.SetCachedIsProcessingLoopRunning(connectedClient.client, true)
 	if err != nil {
 		// should never happen
 		return Error.New("Failed to update processing loop status", err)
@@ -163,7 +163,7 @@ func (server *Server) handleClientStopProcessingLoopRequest(websocketClient *Web
 	if err != nil {
 		return Error.New("Failed to stop processing loop", err)
 	}
-	err = DashboardHelpers.SetIsProcessingLoopRunning(connectedClient.client, false)
+	err = DashboardHelpers.SetCachedIsProcessingLoopRunning(connectedClient.client, false)
 	if err != nil {
 		// should never happen
 		return Error.New("Failed to update processing loop status", err)
@@ -185,7 +185,28 @@ func (server *Server) handleClientStopProcessingLoopRequest(websocketClient *Web
 
 // processes the next message in the clients processing loop and sends the result back to the client - also receives an update on unprocessed messages count which is propagated to everyone who should be informed
 func (server *Server) handleClientProcessNextMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
-
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE, "")
+	if err != nil {
+		return Error.New("Failed to process next message", err)
+	}
+	err = DashboardHelpers.SetCachedUnprocessedMessageCount(connectedClient.client, Helpers.StringToUint32(resultPayload))
+	if err != nil {
+		// should never happen
+		return Error.New("Failed to update processing loop status", err)
+	}
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
+			DashboardHelpers.NewPageUpdate(
+				map[string]interface{}{
+					"unprocessedMessagesCount": resultPayload,
+				},
+				connectedClient.connection.GetName(),
+			).Marshal(),
+		),
+	)
+	return nil
 }
 
 // handles a outgoing message request from a client and sends the result back to the client

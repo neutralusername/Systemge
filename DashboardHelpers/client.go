@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func GetCommands(client interface{}) map[string]bool {
+func GetCachedCommands(client interface{}) map[string]bool {
 	switch client.(type) {
 	case *CommandClient:
 		return client.(*CommandClient).Commands
@@ -18,7 +18,7 @@ func GetCommands(client interface{}) map[string]bool {
 	}
 }
 
-func SetCommands(client interface{}, commands map[string]bool) error {
+func SetCachedCommands(client interface{}, commands map[string]bool) error {
 	if commands == nil {
 		return Error.New("Commands is nil", nil)
 	}
@@ -35,7 +35,7 @@ func SetCommands(client interface{}, commands map[string]bool) error {
 	return nil
 }
 
-func GetStatus(client interface{}) int {
+func GetCachedStatus(client interface{}) int {
 	switch client.(type) {
 	case *CustomServiceClient:
 		return client.(*CustomServiceClient).Status
@@ -46,7 +46,7 @@ func GetStatus(client interface{}) int {
 	}
 }
 
-func SetStatus(client interface{}, status int) error {
+func SetCachedStatus(client interface{}, status int) error {
 	switch client.(type) {
 	case *CustomServiceClient:
 		client.(*CustomServiceClient).Status = status
@@ -58,10 +58,20 @@ func SetStatus(client interface{}, status int) error {
 	return nil
 }
 
-func SetIsProcessingLoopRunning(client interface{}, isProcessingLoopRunning bool) error {
+func SetCachedIsProcessingLoopRunning(client interface{}, isProcessingLoopRunning bool) error {
 	switch client.(type) {
 	case *SystemgeConnectionClient:
 		client.(*SystemgeConnectionClient).IsProcessingLoopRunning = isProcessingLoopRunning
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+	return nil
+}
+
+func SetCachedUnprocessedMessageCount(client interface{}, unprocessedMessageCount uint32) error {
+	switch client.(type) {
+	case *SystemgeConnectionClient:
+		client.(*SystemgeConnectionClient).UnprocessedMessageCount = unprocessedMessageCount
 	default:
 		return Error.New("Unknown client type", nil)
 	}
