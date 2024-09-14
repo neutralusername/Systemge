@@ -148,10 +148,12 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_EXECUTE_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
-	case DashboardHelpers.TOPIC_GET_METRICS:
-		return server.handleClientMetricsRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(websocketClient, connectedClient)
+	case DashboardHelpers.TOPIC_GET_STATUS:
+		return server.handleClientStatusRequest(websocketClient, connectedClient)
+	case DashboardHelpers.TOPIC_GET_METRICS:
+		return server.handleClientMetricsRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
 		return server.handleClientStartProcessingLoopSequentiallyRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
@@ -231,122 +233,3 @@ func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketSer
 	defer server.mutex.Unlock()
 	delete(server.websocketClientLocations, websocketClient)
 }
-
-/*
-func (server *Server) handleCommandRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
-	command, err := DashboardHelpers.UnmarshalCommand(requestPayload)
-	if err != nil {
-		return Error.New("Failed to parse command", err)
-	}
-	switch page {
-	case "/":
-		commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
-		if commandHandler == nil {
-			return Error.New("Command not found", nil)
-		}
-		resultPayload, err := commandHandler(command.Args)
-		if err != nil {
-			return Error.New("Failed to execute command", err)
-		}
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-			resultPayload,
-		).Serialize())
-	default:
-		server.mutex.RLock()
-		connectedClient := server.connectedClients[page]
-		server.mutex.RUnlock()
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		resultPayload, err := connectedClient.executeCommand(command.Command, command.Args)
-		if err != nil {
-			return Error.New("Failed to execute command", err)
-		}
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-			resultPayload,
-		).Serialize())
-	}
-	return nil
-}
-func (server *Server) handleStartRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
-	switch page {
-	case "/":
-		return Error.New("Cannot start from dashboard", nil)
-	default:
-		server.mutex.RLock()
-		connectedClient := server.connectedClients[page]
-		server.mutex.RUnlock()
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		newStatus, err := connectedClient.executeStart()
-		if err != nil {
-			return Error.New("Failed to start client", err)
-		}
-		err = DashboardHelpers.SetStatus(connectedClient.client, newStatus)
-		if err != nil {
-			return Error.New("Failed to update status", err)
-		}
-		server.websocketServer.Multicast(
-			// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
-			Message.NewAsync(
-				DashboardHelpers.TOPIC_UPDATE_PAGE,
-				DashboardHelpers.NewPage(
-					map[string]interface{}{
-						"status": newStatus,
-					},
-					DashboardHelpers.GetPageType(connectedClient.client),
-				).Marshal(),
-			),
-		)
-		return nil
-	}
-}
-func (server *Server) handleStopRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
-	switch page {
-	case "/":
-		return Error.New("Cannot stop from dashboard", nil)
-	default:
-		server.mutex.RLock()
-		connectedClient := server.connectedClients[page]
-		server.mutex.RUnlock()
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		newStatus, err := connectedClient.executeStop()
-		if err != nil {
-			return Error.New("Failed to stop client", err)
-		}
-		err = DashboardHelpers.SetStatus(connectedClient.client, newStatus)
-		if err != nil {
-			return Error.New("Failed to update status", err)
-		}
-		server.websocketServer.Multicast(
-			// propagate the new clientStatus to all websocket clients on the dashboard-page and on this client-page
-			Message.NewAsync(
-				DashboardHelpers.TOPIC_UPDATE_PAGE,
-				DashboardHelpers.NewPage(
-					map[string]interface{}{
-						"status": newStatus,
-					},
-					DashboardHelpers.GetPageType(connectedClient.client),
-				).Marshal(),
-			),
-		)
-		return nil
-	}
-}
-func (server *Server) handleMetricsRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
-
-}
-func (server *Server) handleStatusRequest(websocketClient *WebsocketServer.WebsocketClient, page string, requestPayload string) error {
-
-}
-func (server *Server) handleHeapUsageRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
-
-}
-func (server *Server) handleGoroutineCountRequest(websocketClient *WebsocketServer.WebsocketClient, page string) error {
-
-} */
