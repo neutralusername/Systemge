@@ -33,9 +33,6 @@ func (connectedClient *connectedClient) executeCommand(command string, args []st
 }
 
 func (connectedClient *connectedClient) executeStart() (int, error) {
-	if !DashboardHelpers.HasStart(connectedClient.client) {
-		return Status.NON_EXISTENT, Error.New("Client has no start function", nil)
-	}
 	response, err := connectedClient.connection.SyncRequestBlocking(
 		DashboardHelpers.TOPIC_START,
 		"",
@@ -50,9 +47,6 @@ func (connectedClient *connectedClient) executeStart() (int, error) {
 }
 
 func (connectedClient *connectedClient) executeStop() (int, error) {
-	if !DashboardHelpers.HasStop(connectedClient.client) {
-		return Status.NON_EXISTENT, Error.New("Client has no stop function", nil)
-	}
 	response, err := connectedClient.connection.SyncRequestBlocking(
 		DashboardHelpers.TOPIC_STOP,
 		"",

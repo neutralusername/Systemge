@@ -135,10 +135,10 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 		return server.handleClientStartRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(websocketClient, connectedClient)
-	case DashboardHelpers.TOPIC_GET_METRICS:
-		return server.handleClientMetricsRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_GET_STATUS:
 		return server.handleClientStatusRequest(websocketClient, connectedClient)
+	case DashboardHelpers.TOPIC_GET_METRICS:
+		return server.handleClientMetricsRequest(websocketClient, connectedClient)
 	default:
 		return Error.New("Unknown topic", nil)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
+// handles a command request from a client and sends the result back to the client
 func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 	if err != nil {
@@ -26,6 +27,7 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 	return nil
 }
 
+// starts the client and updates the status to everyone who should be informed
 func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
 	newStatus, err := connectedClient.executeStart()
 	if err != nil {
@@ -50,6 +52,7 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 	return nil
 }
 
+// stops the client and updates the status to everyone who should be informed
 func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
 	newStatus, err := connectedClient.executeStop()
 	if err != nil {
