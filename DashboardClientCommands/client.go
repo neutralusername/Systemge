@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New(name string, config *Config.DashboardClient, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, commands Commands.Handlers, getMetricsFunc func() map[string]map[string]*DashboardHelpers.MetricsEntry) *DashboardClient.Client {
 	return DashboardClient.New(
 		name,
 		config,
