@@ -13,7 +13,6 @@ import (
 func (server *Server) updateRoutine() {
 	defer server.waitGroup.Done()
 	for server.status == Status.STARTED {
-		// update on all connected clients their statuses that may change over time and add the newest metrics to the cache/check number of entries in cache (also on dashboard)
 		for _, connectedClient := range server.connectedClients {
 			switch connectedClient.page.Type {
 			case DashboardHelpers.CLIENT_TYPE_COMMAND:
@@ -29,7 +28,7 @@ func (server *Server) updateRoutine() {
 				server.updateConnectedClientIsProcessingLoopRunning(connectedClient)
 			}
 		}
-		dashboardClient := server.dashboardClient
+		server.updateDashboardClientMetrics()
 
 		time.Sleep(time.Duration(server.config.UpdateIntervalMs) * time.Millisecond)
 	}
@@ -105,5 +104,9 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 }
 
 func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClient *connectedClient) {
+
+}
+
+func (server *Server) updateDashboardClientMetrics() {
 
 }
