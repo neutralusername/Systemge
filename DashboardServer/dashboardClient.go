@@ -7,34 +7,19 @@ import (
 )
 
 const (
-	DASHBOARD_CLIENT_FIELD_NAME            = "name"
-	DASHBOARD_CLIENT_FIELD_CLIENT_STATUSES = "clientStatuses"
-	DASHBOARD_CLIENT_FIELD_COMMANDS        = "commands"
-	DASHBOARD_CLIENT_FIELD_HEAP_USAGE      = "heapUsage"
-	DASHBOARD_CLIENT_FIELD_GOROUTINE_COUNT = "goroutineCount"
-	DASHBOARD_CLIENT_FIELD_METRICS         = "metrics"
-
-	DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS  = "systemgeMetrics"
-	DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS = "websocketMetrics"
-	DASHBOARD_CLIENT_FIELD_HTTP_METRICS      = "httpMetrics"
+	DASHBOARD_CLIENT_NAME           = "/"
+	DASHBOARD_METRICSTYPE_SYSTEMGE  = "systemgeMetrics"
+	DASHBOARD_METRICSTYPE_WEBSOCKET = "websocketMetrics"
+	DASHBOARD_METRICSTYPE_HTTP      = "httpMetrics"
 )
 
 type dashboardClient struct {
-	Name           string                                               `json:"name"` // always "/"
+	Name           string                                               `json:"name"`
 	ClientStatuses map[string]int                                       `json:"clientStatuses"`
 	Commands       map[string]bool                                      `json:"commands"`
 	Metrics        map[string]map[string]*DashboardHelpers.MetricsEntry `json:"metrics"`
 	HeapUsage      uint64                                               `json:"heapUsage"`
 	GoroutineCount int                                                  `json:"goroutineCount"`
-}
-
-// EXPECTS MUTEX TO BE LOCKED RN
-func (server *Server) getDashboardClientCommands() map[string]bool {
-	commands := map[string]bool{}
-	for command := range server.dashboardCommandHandlers {
-		commands[command] = true
-	}
-	return commands
 }
 
 // EXPECTS MUTEX TO BE LOCKED RN
@@ -58,8 +43,8 @@ func (server *Server) getGoroutineCount() int {
 
 func (server *Server) getDashboardClientMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		DASHBOARD_CLIENT_FIELD_SYSTEMGE_METRICS:  server.RetrieveSystemgeMetrics(),
-		DASHBOARD_CLIENT_FIELD_WEBSOCKET_METRICS: server.RetrieveWebsocketMetrics(),
-		DASHBOARD_CLIENT_FIELD_HTTP_METRICS:      server.RetrieveHttpMetrics(),
+		DASHBOARD_METRICSTYPE_SYSTEMGE:  server.RetrieveSystemgeMetrics(),
+		DASHBOARD_METRICSTYPE_WEBSOCKET: server.RetrieveWebsocketMetrics(),
+		DASHBOARD_METRICSTYPE_HTTP:      server.RetrieveHttpMetrics(),
 	}
 }

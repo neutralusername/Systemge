@@ -24,7 +24,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		return Error.New("Failed to deserialize request", err)
 	}
 
-	if currentPage == "/" {
+	if currentPage == DASHBOARD_CLIENT_NAME {
 		return server.handleDashboardRequest(websocketClient, request)
 	} else {
 		if connectedClient == nil {
@@ -145,7 +145,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 			map[string]interface{}{},
 			DashboardHelpers.PAGE_NULL,
 		)
-	case "/":
+	case DASHBOARD_CLIENT_NAME:
 		page = DashboardHelpers.NewPage(
 			server.dashboardClient,
 			DashboardHelpers.PAGE_DASHBOARD,
@@ -162,7 +162,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 	server.websocketClientLocations[websocketClient] = locationAfterChange
 	switch locationBeforeChange {
 	case "":
-	case "/":
+	case DASHBOARD_CLIENT_NAME:
 		delete(server.dashboardWebsocketClients, websocketClient)
 	default:
 		delete(connectedClient.websocketClients, websocketClient)

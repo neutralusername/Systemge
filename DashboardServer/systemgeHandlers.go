@@ -29,12 +29,12 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage("/"),
+		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"clientStatuses": clientStatus,
+					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatus,
 				},
 				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),
@@ -47,7 +47,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
 		for websocketClient := range connectedClient.websocketClients {
-			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, "/"))
+			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, DASHBOARD_CLIENT_NAME))
 		}
 		delete(server.connectedClients, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
@@ -56,12 +56,12 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage("/"),
+		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"clientStatuses": clientStatuses,
+					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatuses,
 				},
 				DashboardHelpers.PAGE_DASHBOARD,
 			).Marshal(),

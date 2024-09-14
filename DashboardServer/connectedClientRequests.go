@@ -37,16 +37,16 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 		return Error.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage("/"),
+		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"clientStatuses": map[string]int{
+					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: map[string]int{
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				"/",
+				DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)
@@ -77,16 +77,16 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 		return Error.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage("/"),
+		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					"clientStatuses": map[string]int{
+					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: map[string]int{
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				"/",
+				DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)
@@ -213,7 +213,7 @@ func (server *Server) handleClientProcessNextMessageRequest(websocketClient *Web
 func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_SYNC_REQUEST, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to sync", err)
+		return Error.New("Failed to send sync request", err)
 	}
 	websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,

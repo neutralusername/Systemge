@@ -10,6 +10,32 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
+func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
+	if startFunc == nil {
+		panic("startFunc is nil")
+	}
+	if stopFunc == nil {
+		panic("stopFunc is nil")
+	}
+	if getStatusFunc == nil {
+		panic("getStatusFunc is nil")
+	}
+	if getMetricsFunc == nil {
+		panic("getMetricsFunc is nil")
+	}
+	return New(
+		name,
+		config,
+		&customServiceStruct{
+			startFunc:      startFunc,
+			stopFunc:       stopFunc,
+			getStatusFunc:  getStatusFunc,
+			getMetricsFunc: getMetricsFunc,
+		},
+		commands,
+	)
+}
+
 func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers) *DashboardClient.Client {
 	if config == nil {
 		panic("config is nil")
@@ -72,31 +98,5 @@ func New(name string, config *Config.DashboardClient, customService customServic
 				),
 			).Marshal()), nil
 		},
-	)
-}
-
-func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
-	if startFunc == nil {
-		panic("startFunc is nil")
-	}
-	if stopFunc == nil {
-		panic("stopFunc is nil")
-	}
-	if getStatusFunc == nil {
-		panic("getStatusFunc is nil")
-	}
-	if getMetricsFunc == nil {
-		panic("getMetricsFunc is nil")
-	}
-	return New(
-		name,
-		config,
-		&customServiceStruct{
-			startFunc:      startFunc,
-			stopFunc:       stopFunc,
-			getStatusFunc:  getStatusFunc,
-			getMetricsFunc: getMetricsFunc,
-		},
-		commands,
 	)
 }

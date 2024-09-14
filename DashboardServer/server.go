@@ -158,7 +158,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		}
 	}
 	server.dashboardClient = &dashboardClient{
-		Name:           "/",
+		Name:           DASHBOARD_CLIENT_NAME,
 		ClientStatuses: map[string]int{},
 		Commands:       server.dashboardCommandHandlers.GetKeyBoolMap(),
 		Metrics:        map[string]map[string]*DashboardHelpers.MetricsEntry{},
@@ -241,7 +241,7 @@ func (server *Server) GetWebsocketClientIdsOnPage(page string) []string {
 	clients := make([]string, 0)
 	switch page {
 	case "":
-	case "/":
+	case DASHBOARD_CLIENT_NAME:
 		for client := range server.dashboardWebsocketClients {
 			clients = append(clients, client.GetId())
 		}
