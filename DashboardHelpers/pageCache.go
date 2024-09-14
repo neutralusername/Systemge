@@ -130,7 +130,7 @@ func (page *Page) SetCachedMetrics(metrics map[string]map[string][]*MetricsEntry
 	}
 }
 
-func (page *Page) AddCachedMetricEntry(metricName string, metricType string, entry *MetricsEntry, maxEntries int) error {
+func (page *Page) AddCachedMetricsEntry(metricName string, metricType string, entry *MetricsEntry, maxEntries int) error {
 	if entry == nil {
 		return Error.New("Entry is nil", nil)
 	}
