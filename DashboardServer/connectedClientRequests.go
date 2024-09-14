@@ -38,10 +38,12 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"clientStatuses": server.getClientStatuses(), // awful - think off a generic way to update an individual client's status
+					"clientStatuses": map[string]int{
+						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
+					},
 				},
 				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
@@ -50,7 +52,7 @@ func (server *Server) handleClientStartRequest(websocketClient *WebsocketServer.
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
 					"status": resultPayload,
@@ -75,10 +77,12 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
-					"clientStatuses": server.getClientStatuses(), // awful - think off a generic way to update an individual client's status
+					"clientStatuses": map[string]int{
+						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
+					},
 				},
 				DashboardHelpers.GetPageType(connectedClient.client),
 			).Marshal(),
@@ -87,7 +91,7 @@ func (server *Server) handleClientStopRequest(websocketClient *WebsocketServer.W
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_APPEND,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
 					"status": resultPayload,

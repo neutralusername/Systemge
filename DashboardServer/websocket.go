@@ -2,7 +2,6 @@ package DashboardServer
 
 import (
 	"runtime"
-	"strconv"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
@@ -71,41 +70,6 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		websocketClient.Send(Message.NewAsync(
 			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 			"Garbage collected",
-		).Serialize())
-		return nil
-	case DashboardHelpers.TOPIC_GOROUTINE_COUNT:
-		goroutineCount := runtime.NumGoroutine()
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
-			DashboardHelpers.NewPage(
-				map[string]interface{}{
-					DASHBOARD_CLIENT_FIELD_GOROUTINE_COUNT: goroutineCount,
-				},
-				DashboardHelpers.PAGE_DASHBOARD,
-			).Marshal(),
-		).Serialize())
-		return nil
-	case DashboardHelpers.TOPIC_HEAP_USAGE:
-		var memStats runtime.MemStats
-		runtime.ReadMemStats(&memStats)
-		heapUsage := strconv.FormatUint(memStats.HeapSys, 10)
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
-			DashboardHelpers.NewPage(
-				map[string]interface{}{
-					DASHBOARD_CLIENT_FIELD_HEAP_USAGE: heapUsage,
-				},
-				DashboardHelpers.PAGE_DASHBOARD,
-			).Marshal(),
-		).Serialize())
-		return nil
-	case DashboardHelpers.TOPIC_GET_METRICS:
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
-			DashboardHelpers.NewPage(
-				server.getDashboardClientMetrics(),
-				DashboardHelpers.PAGE_DASHBOARD,
-			).Marshal(),
 		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_STOP:

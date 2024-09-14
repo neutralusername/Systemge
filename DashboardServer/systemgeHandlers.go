@@ -31,7 +31,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
 					"clientStatuses": clientStatus,
@@ -62,7 +62,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage("/"),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
 					"clientStatuses": clientStatus,

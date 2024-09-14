@@ -101,7 +101,7 @@ export class root extends React.Component {
                     });
                 }
                 break;
-            case "updatePage": {
+            case "updatePageReplace": {
                     let page = JSON.parse(message.payload);
                     if (page.type !== this.state.pageType) {
                         return;
@@ -109,6 +109,35 @@ export class root extends React.Component {
                     let pageData = this.state.pageData;
                     Object.keys(page.data).forEach((key) => {
                         pageData[key] = page[key];
+                    });
+                    this.setState({
+                        pageData: pageData,
+                    });
+                }
+                break;
+            case "updatePageAppend": {
+                    let page = JSON.parse(message.payload);
+                    if (page.type !== this.state.pageType) {
+                        return;
+                    }
+                    let pageData = this.state.pageData;
+                    Object.keys(page.data).forEach((key) => {
+                        let data = page.data[key];
+                        if (Array.isArray(data)) { // if data key is an array, add its elements to the existing array
+                            if (pageData[key] === undefined) {
+                                pageData[key] = [];
+                            }
+                            pageData[key].push(...data);
+                        } else if (typeof data === "object") { // if data key is an object, add its key-value pairs to the existing object
+                            if (pageData[key] === undefined) {
+                                pageData[key] = {};
+                            }
+                            Object.keys(data).forEach((k) => { 
+                                pageData[key][k] = data[k];
+                            });
+                        } else { // if data key is a primitive, replace the existing value
+                            pageData[key] = data; 
+                        }
                     });
                     this.setState({
                         pageData: pageData,
