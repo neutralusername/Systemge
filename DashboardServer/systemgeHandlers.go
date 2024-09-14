@@ -56,7 +56,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
+			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE, // it would be less awful to have a separate topic for removing keys in an object
 			DashboardHelpers.NewPage(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatuses,
