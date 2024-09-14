@@ -1,13 +1,25 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Status"
 )
 
+func (connectedClient *connectedClient) executeConnectedClientRequest(topic, payload string) (string, error) {
+	response, err := connectedClient.connection.SyncRequestBlocking(
+		topic,
+		payload,
+	)
+	if err != nil {
+		return "", Error.New("Failed to send request to client \""+connectedClient.connection.GetName()+"\"", err)
+	}
+	if response.GetTopic() == Message.TOPIC_FAILURE {
+		return "", Error.New(response.GetPayload(), nil)
+	}
+	return response.GetPayload(), nil
+}
+
+/*
 func (connectedClient *connectedClient) executeCommand(command string, args []string) (string, error) {
 	commands := DashboardHelpers.GetCommands(connectedClient.client)
 	if commands == nil {
@@ -59,3 +71,4 @@ func (connectedClient *connectedClient) executeStop() (int, error) {
 	}
 	return Helpers.StringToInt(response.GetPayload()), nil
 }
+*/
