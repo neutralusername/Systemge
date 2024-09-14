@@ -28,11 +28,12 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 			1000,
 		),
 		func() (string, error) {
-			return string(DashboardHelpers.NewIntroduction(
+			return string(DashboardHelpers.NewPage(
 				DashboardHelpers.NewCommandClient(
 					name,
 					commands.GetKeyBoolMap(),
 				),
+				DashboardHelpers.CLIENT_TYPE_COMMAND,
 			).Marshal()), nil
 		},
 	)

@@ -90,12 +90,13 @@ func New(name string, config *Config.DashboardClient, customService customServic
 			1000,
 		),
 		func() (string, error) {
-			return string(DashboardHelpers.NewIntroduction(
+			return string(DashboardHelpers.NewPage(
 				DashboardHelpers.NewCustomServiceClient(
 					name,
 					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
 				),
+				DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE,
 			).Marshal()), nil
 		},
 	)

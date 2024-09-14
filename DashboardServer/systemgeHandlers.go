@@ -12,7 +12,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 		return err
 	}
 
-	client, err := DashboardHelpers.UnmarshalIntroduction([]byte(response.GetPayload()))
+	client, err := DashboardHelpers.UnmarshalPage([]byte(response.GetPayload()))
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatus,
 				},
-				DashboardHelpers.PAGE_DASHBOARD,
+				DashboardHelpers.CLIENT_TYPE_DASHBOARD,
 			).Marshal(),
 		),
 	)
@@ -63,7 +63,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: clientStatuses,
 				},
-				DashboardHelpers.PAGE_DASHBOARD,
+				DashboardHelpers.CLIENT_TYPE_DASHBOARD,
 			).Marshal(),
 		),
 	)

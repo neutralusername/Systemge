@@ -120,13 +120,14 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			1000,
 		),
 		func() (string, error) {
-			return string(DashboardHelpers.NewIntroduction(
+			return string(DashboardHelpers.NewPage(
 				DashboardHelpers.NewSystemgeConnectionClient(
 					name,
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
 					systemgeConnection.UnprocessedMessagesCount(),
 				),
+				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()), nil
 		},
 	)
