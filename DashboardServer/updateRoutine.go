@@ -17,11 +17,12 @@ func (server *Server) updateRoutine() {
 		for _, connectedClient := range server.connectedClients {
 			switch connectedClient.page.Type {
 			case DashboardHelpers.CLIENT_TYPE_COMMAND:
-				server.updateConnectedClientStatus(connectedClient)
 				server.updateConnectedClientMetrics(connectedClient)
 			case DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE:
+				server.updateConnectedClientStatus(connectedClient)
 
 			case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
+				server.updateConnectedClientStatus(connectedClient)
 
 			}
 		}
