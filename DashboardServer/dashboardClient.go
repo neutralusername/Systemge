@@ -7,21 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 )
 
-const (
-	DASHBOARD_CLIENT_NAME               = "/"
-	DASHBOARD_METRICSTYPE_SYSTEMGE      = "systemgeMetrics"
-	DASHBOARD_METRICSTYPE_WEBSOCKET     = "websocketMetrics"
-	DASHBOARD_METRICSTYPE_HTTP          = "httpMetrics"
-	DASHBOARD_METRICSTYPE_RESOURCEUSAGE = "resourceUsageMetrics"
-)
-
-type dashboardClient struct {
-	Name           string                                                 `json:"name"`
-	Commands       map[string]bool                                        `json:"commands"`
-	ClientStatuses map[string]int                                         `json:"clientStatuses"` //periodically automatically updated by the server
-	Metrics        map[string]map[string][]*DashboardHelpers.MetricsEntry `json:"metrics"`        //periodically automatically updated by the server
-}
-
 func (server *Server) getHeapUsage() uint64 {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
@@ -34,10 +19,10 @@ func (server *Server) getGoroutineCount() int {
 
 func (server *Server) retrieveDashboardClientMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		DASHBOARD_METRICSTYPE_SYSTEMGE:      server.RetrieveSystemgeMetrics(),
-		DASHBOARD_METRICSTYPE_WEBSOCKET:     server.RetrieveWebsocketMetrics(),
-		DASHBOARD_METRICSTYPE_HTTP:          server.RetrieveHttpMetrics(),
-		DASHBOARD_METRICSTYPE_RESOURCEUSAGE: server.GetResourceUsageMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_SYSTEMGE:      server.RetrieveSystemgeMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_WEBSOCKET:     server.RetrieveWebsocketMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_HTTP:          server.RetrieveHttpMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_RESOURCEUSAGE: server.GetResourceUsageMetrics(),
 	}
 }
 

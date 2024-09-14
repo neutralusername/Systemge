@@ -31,7 +31,7 @@ type Server struct {
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
 
-	dashboardClient          *dashboardClient
+	dashboardClient          *DashboardHelpers.DashboardClient
 	connectedClients         map[string]*connectedClient                 // name/location -> connectedClient
 	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
@@ -161,8 +161,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 			server.dashboardCommandHandlers["websocketServer_"+command] = handler
 		}
 	}
-	server.dashboardClient = &dashboardClient{
-		Name:           DASHBOARD_CLIENT_NAME,
+	server.dashboardClient = &DashboardHelpers.DashboardClient{
+		Name:           DashboardHelpers.DASHBOARD_CLIENT_NAME,
 		ClientStatuses: map[string]int{},
 		Commands:       server.dashboardCommandHandlers.GetKeyBoolMap(),
 		Metrics:        map[string]map[string][]*DashboardHelpers.MetricsEntry{},
@@ -243,7 +243,7 @@ func (server *Server) GetWebsocketClientIdsOnPage(page string) []string {
 	clients := make([]string, 0)
 	switch page {
 	case "":
-	case DASHBOARD_CLIENT_NAME:
+	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
 		for client := range server.dashboardWebsocketClients {
 			clients = append(clients, client.GetId())
 		}

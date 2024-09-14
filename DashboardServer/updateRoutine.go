@@ -76,7 +76,7 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 		}
 	}
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
+		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
@@ -85,7 +85,7 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				DASHBOARD_CLIENT_NAME,
+				DashboardHelpers.DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)
@@ -188,14 +188,14 @@ func (server *Server) updateDashboardClientMetrics() error {
 	newMetrics := server.retrieveDashboardClientMetrics()
 	server.addMetricsToDashboardClient(newMetrics)
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
+		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_METRICS: newMetrics,
 				},
-				DASHBOARD_CLIENT_NAME,
+				DashboardHelpers.DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)

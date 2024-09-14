@@ -120,7 +120,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			1000,
 		),
 		func() (string, error) {
-			return string(DashboardHelpers.NewPage(
+			pageMarshalled, err := DashboardHelpers.NewPage(
 				DashboardHelpers.NewSystemgeConnectionClient(
 					name,
 					commands.GetKeyBoolMap(),
@@ -128,7 +128,11 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					systemgeConnection.UnprocessedMessagesCount(),
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
-			).Marshal()), nil
+			).Marshal()
+			if err != nil {
+				panic(err)
+			}
+			return string(pageMarshalled), nil
 		},
 	)
 }

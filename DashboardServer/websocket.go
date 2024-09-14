@@ -23,7 +23,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	switch currentPage {
 	case "":
 		return Error.New("No location", nil)
-	case DASHBOARD_CLIENT_NAME:
+	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
 		return server.handleDashboardRequest(websocketClient, request)
 	default:
 		if connectedClient == nil {
@@ -136,36 +136,50 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 		return Error.New("Location is already "+locationAfterChange, nil)
 	}
 
-	var page *DashboardHelpers.Page
+	var pageJson string
 	var connectedClient *connectedClient
 	switch locationAfterChange {
 	case "":
-		page = DashboardHelpers.GetNullPage()
-	case DASHBOARD_CLIENT_NAME:
-		page = DashboardHelpers.NewPage(
+		page, err := DashboardHelpers.GetNullPage().Marshal()
+		if err != nil {
+			return Error.New("Failed to marshal null page", err)
+		}
+		pageJson = string(page)
+	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
+		page := DashboardHelpers.NewPage(
 			server.dashboardClient,
 			DashboardHelpers.CLIENT_TYPE_DASHBOARD,
 		)
+		pageMarshalled, err := page.Marshal()
+		if err != nil {
+			return Error.New("Failed to marshal dashboard page", err)
+		}
+		pageJson = string(pageMarshalled)
 		server.dashboardWebsocketClients[websocketClient] = true
 	default:
 		connectedClient = server.connectedClients[locationAfterChange]
 		if connectedClient == nil {
 			return Error.New("Client not found", nil)
 		}
-		page = connectedClient.page
+		page := connectedClient.page
+		pageMarshalled, err := page.Marshal()
+		if err != nil {
+			return Error.New("Failed to marshal client page", err)
+		}
+		pageJson = string(pageMarshalled)
 		connectedClient.websocketClients[websocketClient] = true
 	}
 	server.websocketClientLocations[websocketClient] = locationAfterChange
 	switch locationBeforeChange {
 	case "":
-	case DASHBOARD_CLIENT_NAME:
+	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
 		delete(server.dashboardWebsocketClients, websocketClient)
 	default:
 		delete(connectedClient.websocketClients, websocketClient)
 	}
 	go websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_CHANGE_PAGE,
-		page.Marshal(),
+		pageJson,
 	).Serialize())
 	return nil
 }

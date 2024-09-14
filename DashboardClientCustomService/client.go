@@ -90,14 +90,18 @@ func New(name string, config *Config.DashboardClient, customService customServic
 			1000,
 		),
 		func() (string, error) {
-			return string(DashboardHelpers.NewPage(
+			pageMarshalled, err := DashboardHelpers.NewPage(
 				DashboardHelpers.NewCustomServiceClient(
 					name,
 					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
 				),
 				DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE,
-			).Marshal()), nil
+			).Marshal()
+			if err != nil {
+				panic(err)
+			}
+			return string(pageMarshalled), nil
 		},
 	)
 }

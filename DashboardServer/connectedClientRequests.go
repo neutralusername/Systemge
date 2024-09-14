@@ -35,7 +35,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 		return Error.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
+		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
@@ -44,7 +44,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				DASHBOARD_CLIENT_NAME,
+				DashboardHelpers.DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)
@@ -74,7 +74,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 		return Error.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage(DASHBOARD_CLIENT_NAME),
+		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
@@ -83,7 +83,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 						connectedClient.connection.GetName(): Helpers.StringToInt(resultPayload),
 					},
 				},
-				DASHBOARD_CLIENT_NAME,
+				DashboardHelpers.DASHBOARD_CLIENT_NAME,
 			).Marshal(),
 		),
 	)

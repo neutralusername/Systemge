@@ -249,7 +249,7 @@ export class root extends React.Component {
         switch(this.state.pageType) {
         case PAGE_NULL:
             return null;   
-        case PAGE_DASHBOARD:
+       /*  case PAGE_DASHBOARD:
             return React.createElement(
                 Dashboard, this.state,
             );
@@ -264,7 +264,7 @@ export class root extends React.Component {
         case PAGE_SYSTEMGECONNECTION:
             return React.createElement(
                 SystemGeConnection, this.state,
-            );
+            ); */
         }
     }
 

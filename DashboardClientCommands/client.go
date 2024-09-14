@@ -28,13 +28,17 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 			1000,
 		),
 		func() (string, error) {
-			return string(DashboardHelpers.NewPage(
+			pageMarshalled, err := DashboardHelpers.NewPage(
 				DashboardHelpers.NewCommandClient(
 					name,
 					commands.GetKeyBoolMap(),
 				),
 				DashboardHelpers.CLIENT_TYPE_COMMAND,
-			).Marshal()), nil
+			).Marshal()
+			if err != nil {
+				panic(err)
+			}
+			return string(pageMarshalled), nil
 		},
 	)
 }

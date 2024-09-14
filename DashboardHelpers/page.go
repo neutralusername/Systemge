@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 )
 
 type Page struct {
@@ -26,8 +25,26 @@ func NewPage(client interface{}, clientType int) *Page {
 	}
 }
 
-func (page *Page) Marshal() string {
-	return Helpers.JsonMarshal(page)
+func (page *Page) Marshal() ([]byte, error) {
+	switch page.Type {
+	case CLIENT_TYPE_NULL:
+		page.Data = map[string]interface{}{}
+	case CLIENT_TYPE_DASHBOARD:
+		page.Data = string(page.Data.(*DashboardClient).Marshal())
+	case CLIENT_TYPE_COMMAND:
+		page.Data = string(page.Data.(*CommandClient).Marshal())
+	case CLIENT_TYPE_CUSTOMSERVICE:
+		page.Data = string(page.Data.(*CustomServiceClient).Marshal())
+	case CLIENT_TYPE_SYSTEMGECONNECTION:
+		page.Data = string(page.Data.(*SystemgeConnectionClient).Marshal())
+	default:
+		return nil, Error.New("Unknown client type", nil)
+	}
+	bytes, err := json.Marshal(page)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }
 
 func UnmarshalPage(pageData []byte) (*Page, error) {
@@ -36,76 +53,29 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	if page.Data == nil {
-		return nil, Error.New("Data field missing", nil)
+	if _, ok := page.Data.(string); !ok {
+		return nil, Error.New("Data field is not a string", nil)
 	}
-	pageDataMap := page.Data.(map[string]interface{})
+	var client interface{}
 	switch page.Type {
 	case CLIENT_TYPE_COMMAND:
-		if pageDataMap[CLIENT_FIELD_NAME] == nil {
-			return nil, Error.New("Name field missing", nil)
+		client, err = UnmarshalCommandClient([]byte(page.Data.(string)))
+		if err != nil {
+			return nil, err
 		}
-		if pageDataMap[CLIENT_FIELD_COMMANDS] == nil {
-			return nil, Error.New("Commands field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_METRICS] == nil {
-			return nil, Error.New("Metrics field missing", nil)
-		}
-		page.Data = CommandClient{
-			Name:     pageDataMap[CLIENT_FIELD_NAME].(string),
-			Commands: pageDataMap[CLIENT_FIELD_COMMANDS].(map[string]bool),
-			Metrics:  pageDataMap[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
-		}
-		return &page, nil
 	case CLIENT_TYPE_CUSTOMSERVICE:
-		if pageDataMap[CLIENT_FIELD_NAME] == nil {
-			return nil, Error.New("Name field missing", nil)
+		client, err = UnmarshalCustomClient([]byte(page.Data.(string)))
+		if err != nil {
+			return nil, err
 		}
-		if pageDataMap[CLIENT_FIELD_COMMANDS] == nil {
-			return nil, Error.New("Commands field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_STATUS] == nil {
-			return nil, Error.New("Status field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_METRICS] == nil {
-			return nil, Error.New("Metrics field missing", nil)
-		}
-		page.Data = CustomServiceClient{
-			Name:     pageDataMap[CLIENT_FIELD_NAME].(string),
-			Commands: pageDataMap[CLIENT_FIELD_COMMANDS].(map[string]bool),
-			Status:   pageDataMap[CLIENT_FIELD_STATUS].(int),
-			Metrics:  pageDataMap[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
-		}
-		return &page, nil
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		if pageDataMap[CLIENT_FIELD_NAME] == nil {
-			return nil, Error.New("Name field missing", nil)
+		client, err = UnmarshalSystemgeConnectionClient([]byte(page.Data.(string)))
+		if err != nil {
+			return nil, err
 		}
-		if pageDataMap[CLIENT_FIELD_COMMANDS] == nil {
-			return nil, Error.New("Commands field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_STATUS] == nil {
-			return nil, Error.New("Status field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING] == nil {
-			return nil, Error.New("IsProcessingLoopRunning field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT] == nil {
-			return nil, Error.New("UnprocessedMessageCount field missing", nil)
-		}
-		if pageDataMap[CLIENT_FIELD_METRICS] == nil {
-			return nil, Error.New("Metrics field missing", nil)
-		}
-		page.Data = SystemgeConnectionClient{
-			Name:                    pageDataMap[CLIENT_FIELD_NAME].(string),
-			Commands:                pageDataMap[CLIENT_FIELD_COMMANDS].(map[string]bool),
-			Status:                  pageDataMap[CLIENT_FIELD_STATUS].(int),
-			IsProcessingLoopRunning: pageDataMap[CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING].(bool),
-			UnprocessedMessageCount: pageDataMap[CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT].(uint32),
-			Metrics:                 pageDataMap[CLIENT_FIELD_METRICS].(map[string]map[string][]*MetricsEntry),
-		}
-		return &page, nil
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
+	page.Data = client
+	return &page, nil
 }
