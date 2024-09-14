@@ -115,7 +115,7 @@ export class root extends React.Component {
                         return;
                     }
                     let pageData = this.state.pageData;
-                    this.mergeData(pageData, page.data);
+                    this.mergeData(pageData, page.data); // currently keeps on growing forever ...
                     this.setState({
                         pageData: pageData,
                     });
