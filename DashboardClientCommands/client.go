@@ -42,6 +42,9 @@ func New(name string, config *Config.DashboardClient, commands Commands.Handlers
 					return commands.Execute(command.Command, command.Args)
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					if getMetricsFunc == nil {
+						return "", nil
+					}
 					return Helpers.JsonMarshal(getMetricsFunc()), nil
 				},
 			},

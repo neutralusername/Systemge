@@ -103,6 +103,10 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 }
 
 func (server *Server) updateConnectedClientMetrics(connectedClient *connectedClient) error {
+	m := connectedClient.page.GetCachedMetrics()
+	if len(m) == 0 {
+		return nil
+	}
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_GET_METRICS, "")
 	if err != nil {
 		return Error.New("Failed to execute get metrics request", err)
