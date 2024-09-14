@@ -31,12 +31,12 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 			// should never happen
 			return Error.New("Client not found", nil)
 		}
-		switch connectedClient.page.(type) {
-		case DashboardHelpers.CommandClient:
+		switch connectedClient.page.Type {
+		case DashboardHelpers.CLIENT_TYPE_COMMAND:
 			return server.handleCommandClientRequest(websocketClient, request, connectedClient)
-		case DashboardHelpers.CustomServiceClient:
+		case DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE:
 			return server.handleCustomServiceClientRequest(websocketClient, request, connectedClient)
-		case DashboardHelpers.SystemgeConnectionClient:
+		case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
 			return server.handleSystemgeConnectionClientRequest(websocketClient, request, connectedClient)
 		default:
 			// should never happen
