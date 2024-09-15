@@ -113,6 +113,8 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	}
 	metrics, err := DashboardHelpers.UnmarshalMetrics(resultPayload)
 	if err != nil {
+		println(err.Error())
+		println(resultPayload)
 		return Error.New("Failed to unmarshal metrics", err)
 	}
 	for metricsName, metricsKeyValuePairs := range metrics {
