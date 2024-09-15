@@ -10,7 +10,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
-crate more/smaller metric groups for systemge-structs
+crate more/smaller metric types for systemge-structs
 
 integrate "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
