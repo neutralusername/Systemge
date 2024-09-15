@@ -1,15 +1,21 @@
 import {
    configs
-} from "./configs.js";
+} from "../configs.js";
+import { 
+    customService 
+} from "../pages/customService.js";
+import { 
+    dashboard 
+} from "../pages/dashboard.js";
 import { 
     multiLineGraph 
-} from "./multiLineGraph.js";
+} from "../graphs/multiLineGraph.js";
 import { 
     GenerateRandomAlphaNumericString 
-} from "./randomizer.js";
+} from "../helpers/randomizer.js";
 import {
     GetWebsocketConnection,
-} from "./wsConnection.js";
+} from "../helpers/wsConnection.js";
 
 const PAGE_NULL = 0
 const PAGE_DASHBOARD = 1
@@ -264,13 +270,13 @@ export class root extends React.Component {
         switch(this.state.pageType) {
         case PAGE_NULL:
             return null;   
-       /*  case PAGE_DASHBOARD:
+        case PAGE_DASHBOARD:
             return React.createElement(
-                Dashboard, this.state,
+                dashboard, this.state,
             );
         case PAGE_CUSTOMSERVICE:
             return React.createElement(
-                CustomService, this.state,
+                customService, this.state,
             );
         case PAGE_COMMAND:
             return React.createElement(
@@ -279,7 +285,7 @@ export class root extends React.Component {
         case PAGE_SYSTEMGECONNECTION:
             return React.createElement(
                 SystemGeConnection, this.state,
-            ); */
+            );
         }
     }
 
