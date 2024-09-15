@@ -238,10 +238,10 @@ export class root extends React.Component {
     }
 
     getMultiLineGraph(chartName, metrics) {
-        // metrics = [{keyValuePairs:{key:value}, time:Date},...]
-        let dataSet = {}; // {key:[value1, value2, ...], ...}
+        // metrics = [{keyValuePairs:{key1:value1}, time:time1},...]
+        let dataSet = {}; // {key1:[value1, value2, ...], ...}
         let xLabels = []; // [time1, time2, ...]
-        let legend = [];
+        let legend = []; // [key1, key2, ...]
         metrics.forEach((metric) => {
             xLabels.push(new Date(metric.time).toLocaleTimeString());
             Object.keys(metric.keyValuePairs).forEach((key) => {
