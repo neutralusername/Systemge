@@ -158,7 +158,7 @@ export class root extends React.Component {
             } else if (typeof targetData === "object" && targetData !== null) { 
                this.mergeData(targetData, sourceData);
             } else { 
-                targetData = sourceData; 
+                target[key] = sourceData; 
             }
         });
     }

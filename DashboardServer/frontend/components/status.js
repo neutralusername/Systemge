@@ -33,7 +33,7 @@ export class status extends React.Component {
 				this.props.name !== "dashboard" && this.props.status === 0 ? React.createElement(	
 					"button", {
 						onClick: () => {
-							//this.props.WS_CONNECTION.send(this.props.pageRequest("start", this.props.name));
+							this.props.WS_CONNECTION.send(this.props.pageRequest("start", this.props.name));
 						},
 					},
 					"start",
@@ -41,7 +41,7 @@ export class status extends React.Component {
 				this.props.name !== "dashboard" && (this.props.status === 1 || this.props.status === 2) ? React.createElement(
 					"button", {
 						onClick: () => {
-							//this.props.WS_CONNECTION.send(this.props.pageRequest("stop", this.props.name));
+							this.props.WS_CONNECTION.send(this.props.pageRequest("stop", this.props.name));
 						},
 					},
 					"stop",
@@ -59,12 +59,11 @@ export class status extends React.Component {
 							},
 							href: this.props.name !== "/" ? `/${this.props.name}` : "",
 							onClick: (e) => {
-							/* 	e.preventDefault();
-								if (this.props.name !== "dashboard") {
-									//if not current page
+								e.preventDefault();
+								if (this.props.name != "/") {
 									if (window.location.pathname !== `/${this.props.name}`)
 										window.location.href = `/${this.props.name}`;
-								} */
+								}
 							},
 						},
 						this.props.name,
