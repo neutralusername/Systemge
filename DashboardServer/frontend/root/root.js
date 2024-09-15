@@ -7,6 +7,12 @@ import {
 import { 
     dashboard 
 } from "../pages/dashboard.js";
+import {
+    command
+} from "../pages/command.js";
+import {
+    systemgeConnection
+} from "../pages/systemGeConnection.js";
 import { 
     multiLineGraph 
 } from "../components/graphs/multiLineGraph.js";
@@ -284,7 +290,7 @@ export class root extends React.Component {
             );
         case PAGE_SYSTEMGECONNECTION:
             return React.createElement(
-                systemGeConnection, this.state,
+                systemgeConnection, this.state,
             );
         }
     }
