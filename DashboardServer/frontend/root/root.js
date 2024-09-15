@@ -75,7 +75,7 @@ export class root extends React.Component {
                 "#ffb6c1",
             ],
             generateRandomDistinctColors: this.generateRandomDistinctColors,
-            constructMessage: this.constructMessage,
+            pageRequest: this.pageRequest,
             getMultiLineGraph: this.getMultiLineGraph,
         };
         this.mergeData = this.mergeData.bind(this);
@@ -176,18 +176,28 @@ export class root extends React.Component {
         if (pathName != "/") {
             pathName = window.location.pathname.slice(1);
         }
-        this.state.WS_CONNECTION.send(this.constructMessage("changePage", pathName));
+        this.state.WS_CONNECTION.send(this.changePage(pathName));
         let myLoop = () => {
-            this.state.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
+            this.state.WS_CONNECTION.send(this.pageRequest("heartbeat", ""));
             setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
         };
         setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
     }
 
-    constructMessage = (topic, payload) => {
+    pageRequest = (topic, payload) => {
         return JSON.stringify({
-            topic: topic,
-            payload: payload,
+            topic : "pageRequest",
+            payload : {
+                topic: topic,
+                payload: payload,
+            },
+        })
+    }
+
+    changePage = (pathName) => {
+        return JSON.stringify({
+            topic : "changePage",
+            payload : pathName,
         });
     }
 

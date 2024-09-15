@@ -4,7 +4,7 @@ import { status } from "./status.js";
 
 // expects props:
 // WS_CONNECTION
-// constructMessage
+// pageRequest
 // clientStatuses = {name: status}
 export class clientStatuses extends React.Component {
 	constructor(props) {
@@ -20,7 +20,7 @@ export class clientStatuses extends React.Component {
 				React.createElement(
 					status, {
 						WS_CONNECTION: this.props.WS_CONNECTION,
-						constructMessage: this.props.constructMessage,
+						pageRequest: this.props.pageRequest,
 						name: name,
 						status: this.props.clientStatuses[name],
 					},

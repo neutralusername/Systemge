@@ -44,7 +44,7 @@ export class customService extends React.Component {
 			React.createElement(
 				status, {
 					WS_CONNECTION: this.props.WS_CONNECTION,
-					constructMessage: this.props.constructMessage,
+					pageRequest: this.props.pageRequest,
 					name: this.props.pageData.name,
 					status: this.props.pageData.status,
 				}
@@ -52,7 +52,7 @@ export class customService extends React.Component {
 			React.createElement(
 				commands, {
 					WS_CONNECTION: this.props.WS_CONNECTION,
-					constructMessage: this.props.constructMessage,
+					pageRequest: this.props.pageRequest,
 					commands: this.props.pageData.commands,
 				},
 			),

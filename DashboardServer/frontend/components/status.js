@@ -1,7 +1,7 @@
 
 // expects props:
 // WS_CONNECTION
-// constructMessage
+// pageRequest
 // name
 // status
 export class status extends React.Component {
@@ -33,7 +33,7 @@ export class status extends React.Component {
 				this.props.name !== "dashboard" && this.props.status === 0 ? React.createElement(	
 					"button", {
 						onClick: () => {
-							//this.props.WS_CONNECTION.send(this.props.constructMessage("start", this.props.name));
+							//this.props.WS_CONNECTION.send(this.props.pageRequest("start", this.props.name));
 						},
 					},
 					"start",
@@ -41,7 +41,7 @@ export class status extends React.Component {
 				this.props.name !== "dashboard" && (this.props.status === 1 || this.props.status === 2) ? React.createElement(
 					"button", {
 						onClick: () => {
-							//this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.name));
+							//this.props.WS_CONNECTION.send(this.props.pageRequest("stop", this.props.name));
 						},
 					},
 					"stop",

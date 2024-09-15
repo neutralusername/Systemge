@@ -38,14 +38,14 @@ export class dashboard extends React.Component {
 			React.createElement(
 				clientStatuses, {
 					WS_CONNECTION: this.props.WS_CONNECTION,
-					constructMessage: this.props.constructMessage,
+					pageRequest: this.props.pageRequest,
 					clientStatuses: this.props.pageData.clientStatuses,
 				}
 			),
 			React.createElement(
 				commands, {
 					WS_CONNECTION: this.props.WS_CONNECTION,
-					constructMessage: this.props.constructMessage,
+					pageRequest: this.props.pageRequest,
 					commands: this.props.pageData.commands,
 				},
 			),
