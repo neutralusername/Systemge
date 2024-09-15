@@ -49,9 +49,6 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config == nil {
 		panic("config is nil")
 	}
-	if config.MaxMetricEntries < 0 {
-		panic("config.MaxMetricsCacheValues must be >= 0")
-	}
 	if config.HTTPServerConfig == nil {
 		panic("config.HTTPServerConfig is nil")
 	}
@@ -78,6 +75,9 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	}
 	if config.SystemgeServerConfig.TcpSystemgeConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
+	}
+	if config.MaxMetricEntries <= 0 {
+		config.MaxMetricEntries = 100
 	}
 
 	_, callerPath, _, _ := runtime.Caller(0)

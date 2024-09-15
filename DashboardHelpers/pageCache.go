@@ -143,7 +143,7 @@ func (page *Page) AddCachedMetricsEntry(metricType string, metrics *Metrics.Metr
 		return Error.New("Metrics[metricName] is nil", nil)
 	}
 	cachedMetrics[metricType] = append(cachedMetrics[metricType], metrics)
-	if len(cachedMetrics[metricType]) > maxEntries {
+	if maxEntries > 0 && len(cachedMetrics[metricType]) > maxEntries {
 		cachedMetrics[metricType] = cachedMetrics[metricType][1:]
 	}
 	return page.SetCachedMetrics(cachedMetrics)
