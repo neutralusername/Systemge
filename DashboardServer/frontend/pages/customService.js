@@ -25,7 +25,12 @@ export class customService extends React.Component {
 				},
 			}, 
 			React.createElement(
-				status, this.props,
+				status, {
+					WS_CONNECTION: this.props.WS_CONNECTION,
+					constructMessage: this.props.constructMessage,
+					name: this.props.pageData.name,
+					status: this.props.pageData.status,
+				}
 			),
 			graphs,
 		)		

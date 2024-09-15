@@ -23,7 +23,10 @@ func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
 		},
 	}
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = &Metrics.Metrics{}
+	metrics["broker_connections"] = &Metrics.Metrics{
+		KeyValuePairs: map[string]uint64{},
+		Time:          time.Now(),
+	}
 	for _, connection := range messageBrokerClient.brokerConnections {
 		for _, metricsMap := range connection.connection.CheckMetrics() {
 			for key, value := range metricsMap.KeyValuePairs {
@@ -50,7 +53,10 @@ func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
 		},
 	}
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = &Metrics.Metrics{}
+	metrics["broker_connections"] = &Metrics.Metrics{
+		KeyValuePairs: map[string]uint64{},
+		Time:          time.Now(),
+	}
 	for _, connection := range messageBrokerClient.brokerConnections {
 		for _, metricsMap := range connection.connection.GetMetrics() {
 			for key, value := range metricsMap.KeyValuePairs {
