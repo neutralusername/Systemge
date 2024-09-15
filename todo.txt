@@ -12,7 +12,9 @@ build specialized "dashboards" for various packages. for example to add topics t
 
 create more/smaller metric types for systemge-structs
 
-integrate "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
+implement manual metrics update in some form
+
+implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
 improve logging (especially systemge and broker packages)
 
