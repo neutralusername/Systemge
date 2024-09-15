@@ -237,7 +237,7 @@ export class root extends React.Component {
         });
     }
 
-    getMultiLineGraph_(chartName, metrics) {
+    getMultiLineGraph(chartName, metrics) {
         // metrics = [{keyValuePairs:{key:value}, time:Date},...]
         let dataSet = {}; // {key:[value1, value2, ...], ...}
         let xLabels = []; // [time1, time2, ...]
