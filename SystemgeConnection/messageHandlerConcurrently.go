@@ -140,19 +140,23 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_handled"] = messageHandler.CheckAsyncMessagesHandled()
-	metrics["sync_requests_handled"] = messageHandler.CheckSyncRequestsHandled()
-	metrics["unknown_topics_received"] = messageHandler.CheckUnknownTopicsReceived()
-	return metrics
+func (messageHandler *ConcurrentMessageHandler) CheckMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"concurrent_message_handler": {
+			"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
+		},
+	}
 }
-func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_handled"] = messageHandler.GetAsyncMessagesHandled()
-	metrics["sync_requests_handled"] = messageHandler.GetSyncRequestsHandled()
-	metrics["unknown_topics_received"] = messageHandler.GetUnknownTopicsReceived()
-	return metrics
+func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"concurrent_message_handler": {
+			"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+		},
+	}
 }
 
 func (messageHandler *ConcurrentMessageHandler) CheckAsyncMessagesHandled() uint64 {

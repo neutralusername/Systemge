@@ -1,8 +1,10 @@
 package WebsocketServer
 
+import "github.com/neutralusername/Systemge/DashboardHelpers"
+
 // returns the metrics without resetting the counters
 func (server *WebsocketServer) CheckMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+	metrics := map[string]map[string]uint64{
 		"websocket_server": {
 			"bytes_sent":         server.CheckBytesSentCounter(),
 			"bytes_received":     server.CheckBytesReceivedCounter(),
@@ -11,11 +13,13 @@ func (server *WebsocketServer) CheckMetrics() map[string]map[string]uint64 {
 			"active_connections": uint64(server.GetClientCount()),
 		},
 	}
+	DashboardHelpers.MergeMetrics(metrics, server.httpServer.CheckMetrics())
+	return metrics
 }
 
 // returns the metrics and resets the counters to 0
 func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+	metrics := map[string]map[string]uint64{
 		"websocket_server": {
 			"bytes_sent":         server.GetBytesSentCounter(),
 			"bytes_received":     server.GetBytesReceivedCounter(),
@@ -24,6 +28,8 @@ func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
 			"active_connections": uint64(server.GetClientCount()),
 		},
 	}
+	DashboardHelpers.MergeMetrics(metrics, server.httpServer.GetMetrics())
+	return metrics
 }
 
 func (server *WebsocketServer) GetBytesSentCounter() uint64 {

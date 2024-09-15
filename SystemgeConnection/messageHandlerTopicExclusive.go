@@ -317,18 +317,22 @@ func (messageHandler *TopicExclusiveMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) CheckMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
-		"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
-		"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
+func (messageHandler *TopicExclusiveMessageHandler) CheckMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"topic_exclusive_message_handler": {
+			"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
+		},
 	}
 }
-func (messageHandler *TopicExclusiveMessageHandler) GetMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
-		"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
-		"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+func (messageHandler *TopicExclusiveMessageHandler) GetMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"topic_exclusive_message_handler": {
+			"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+		},
 	}
 }
 

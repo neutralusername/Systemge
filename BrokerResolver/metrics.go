@@ -1,37 +1,37 @@
 package BrokerResolver
 
+import "github.com/neutralusername/Systemge/DashboardHelpers"
+
 func (resolver *Resolver) CheckMetrics() map[string]map[string]uint64 {
-	metrics := map[string]map[string]uint64{}
-	for metricsType, metricsMap := range resolver.systemgeServer.CheckMetrics() {
-		metrics[metricsType] = metricsMap
-	}
 	resolver.mutex.Lock()
-	metrics["broker_resolver"] = map[string]uint64{
-		"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
-		"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
-		"failed_resolutions":          resolver.CheckFailedResolutions(),
-		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Load()),
-		"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
-		"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
+	metrics := map[string]map[string]uint64{
+		"broker_resolver": {
+			"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
+			"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
+			"failed_resolutions":          resolver.CheckFailedResolutions(),
+			"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Load()),
+			"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
+			"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
+		},
 	}
 	resolver.mutex.Unlock()
+	DashboardHelpers.MergeMetrics(metrics, resolver.systemgeServer.CheckMetrics())
 	return metrics
 }
 func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
-	metrics := map[string]map[string]uint64{}
-	for metricsType, metricsMap := range resolver.systemgeServer.GetMetrics() {
-		metrics[metricsType] = metricsMap
-	}
 	resolver.mutex.Lock()
-	metrics["broker_resolver"] = map[string]uint64{
-		"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
-		"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
-		"failed_resolutions":          resolver.GetFailedResolutions(),
-		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Load()),
-		"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
-		"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
+	metrics := map[string]map[string]uint64{
+		"broker_resolver": {
+			"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
+			"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
+			"failed_resolutions":          resolver.GetFailedResolutions(),
+			"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Swap(0)),
+			"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
+			"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
+		},
 	}
 	resolver.mutex.Unlock()
+	DashboardHelpers.MergeMetrics(metrics, resolver.systemgeServer.GetMetrics())
 	return metrics
 }
 

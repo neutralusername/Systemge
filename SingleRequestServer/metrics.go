@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Commands"
+	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -19,25 +20,22 @@ func (server *Server) CheckMetrics() map[string]map[string]uint64 {
 		"succeeded_sync_messages":  server.CheckSucceededSyncMessages(),
 		"failed_sync_messages":     server.CheckFailedSyncMessages(),
 	}
-	for metricsType, metricsMap := range server.systemgeServer.CheckMetrics() {
-		metrics[metricsType] = metricsMap
-	}
+	DashboardHelpers.MergeMetrics(metrics, server.systemgeServer.GetMetrics())
 	return metrics
 }
 func (server *Server) GetMetrics() map[string]map[string]uint64 {
-	metrics := map[string]map[string]uint64{}
-	metrics["single_request_server"] = map[string]uint64{
-		"invalid_messages":         server.GetInvalidMessages(),
-		"succeeded_commands":       server.GetSucceededCommands(),
-		"failed_commands":          server.GetFailedCommands(),
-		"succeeded_async_messages": server.GetSucceededAsyncMessages(),
-		"failed_async_messages":    server.GetFailedAsyncMessages(),
-		"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
-		"failed_sync_messages":     server.GetFailedSyncMessages(),
+	metrics := map[string]map[string]uint64{
+		"single_request_server": {
+			"invalid_messages":         server.GetInvalidMessages(),
+			"succeeded_commands":       server.GetSucceededCommands(),
+			"failed_commands":          server.GetFailedCommands(),
+			"succeeded_async_messages": server.GetSucceededAsyncMessages(),
+			"failed_async_messages":    server.GetFailedAsyncMessages(),
+			"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
+			"failed_sync_messages":     server.GetFailedSyncMessages(),
+		},
 	}
-	for metricsType, metricsMap := range server.systemgeServer.GetMetrics() {
-		metrics[metricsType] = metricsMap
-	}
+	DashboardHelpers.MergeMetrics(metrics, server.systemgeServer.GetMetrics())
 	return metrics
 }
 
