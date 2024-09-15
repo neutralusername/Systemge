@@ -9,13 +9,15 @@ import (
 type SystemgeListener interface {
 	AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error)
 	Close() error
-	GetAcceptedConnections() uint64
 	GetDefaultCommands() Commands.Handlers
+	CheckAcceptedConnections() uint64
+	CheckConnectionAttempts() uint64
+	CheckFailedConnections() uint64
+	CheckRejectedConnections() uint64
+	GetAcceptedConnections() uint64
 	GetConnectionAttempts() uint64
 	GetFailedConnections() uint64
 	GetRejectedConnections() uint64
-	RetrieveAcceptedConnections() uint64
-	RetrieveConnectionAttempts() uint64
-	RetrieveFailedConnections() uint64
-	RetrieveRejectedConnections() uint64
+	GetMetrics() map[string]uint64
+	CheckMetrics() map[string]uint64
 }

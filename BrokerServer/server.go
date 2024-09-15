@@ -138,7 +138,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		"getStatus": func(args []string) (string, error) {
 			return Status.ToString(server.GetStatus()), nil
 		},
-		"getMetrics": func(args []string) (string, error) {
+		"checkMetrics": func(args []string) (string, error) {
 			metrics := server.CheckMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
@@ -146,7 +146,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 			}
 			return string(json), nil
 		},
-		"retrieveMetrics": func(args []string) (string, error) {
+		"getMetrics": func(args []string) (string, error) {
 			metrics := server.GetMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {

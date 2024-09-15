@@ -237,24 +237,24 @@ func (server *Server) GetFailedSyncMessages() uint64 {
 
 func (server *Server) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{}
-	commands["start"] = func(args []string) (string, error) { //overriding the start command from the systemgeServer
+	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["stop"] = func(args []string) (string, error) { //overriding the stop command from the systemgeServer
+	commands["stop"] = func(args []string) (string, error) {
 		err := server.Stop()
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["getStatus"] = func(args []string) (string, error) { //overriding the getStatus command from the systemgeServer
+	commands["getStatus"] = func(args []string) (string, error) {
 		return Status.ToString(server.GetStatus()), nil
 	}
-	commands["getMetrics"] = func(args []string) (string, error) { //overriding the getMetrics command from the systemgeServer
+	commands["checkMetrics"] = func(args []string) (string, error) {
 		metrics := server.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
@@ -262,7 +262,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) { //overriding the retrieveMetrics command from the systemgeServer
+	commands["getMetrics"] = func(args []string) (string, error) {
 		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {

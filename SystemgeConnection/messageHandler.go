@@ -21,12 +21,12 @@ type MessageHandler interface {
 	CheckMetrics() map[string]uint64
 	GetMetrics() map[string]uint64
 
+	CheckAsyncMessagesHandled() uint64
 	GetAsyncMessagesHandled() uint64
-	RetrieveAsyncMessagesHandled() uint64
 
+	CheckSyncRequestsHandled() uint64
 	GetSyncRequestsHandled() uint64
-	RetrieveSyncRequestsHandled() uint64
 
+	CheckUnknownTopicsReceived() uint64
 	GetUnknownTopicsReceived() uint64
-	RetrieveUnknownTopicsReceived() uint64
 }

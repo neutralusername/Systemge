@@ -53,7 +53,7 @@ func (server *SystemgeServer) CheckConnectionAttempts() uint64 {
 		return 0
 	}
 
-	return server.listener.GetConnectionAttempts()
+	return server.listener.CheckConnectionAttempts()
 }
 func (server *SystemgeServer) GetConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
@@ -62,7 +62,7 @@ func (server *SystemgeServer) GetConnectionAttempts() uint64 {
 		return 0
 	}
 
-	return server.listener.RetrieveConnectionAttempts()
+	return server.listener.GetConnectionAttempts()
 }
 
 func (server *SystemgeServer) CheckFailedConnections() uint64 {
@@ -72,7 +72,7 @@ func (server *SystemgeServer) CheckFailedConnections() uint64 {
 		return 0
 	}
 
-	return server.listener.GetFailedConnections()
+	return server.listener.CheckFailedConnections()
 }
 func (server *SystemgeServer) GetFailedConnections() uint64 {
 	server.statusMutex.RLock()
@@ -81,7 +81,7 @@ func (server *SystemgeServer) GetFailedConnections() uint64 {
 		return 0
 	}
 
-	return server.listener.RetrieveFailedConnections()
+	return server.listener.GetFailedConnections()
 }
 
 func (server *SystemgeServer) CheckRejectedConnections() uint64 {
@@ -91,7 +91,7 @@ func (server *SystemgeServer) CheckRejectedConnections() uint64 {
 		return 0
 	}
 
-	return server.listener.GetRejectedConnections()
+	return server.listener.CheckRejectedConnections()
 }
 func (server *SystemgeServer) GetRejectedConnections() uint64 {
 	server.statusMutex.RLock()
@@ -100,7 +100,7 @@ func (server *SystemgeServer) GetRejectedConnections() uint64 {
 		return 0
 	}
 
-	return server.listener.RetrieveRejectedConnections()
+	return server.listener.GetRejectedConnections()
 }
 
 func (server *SystemgeServer) CheckAcceptedConnections() uint64 {
@@ -110,7 +110,7 @@ func (server *SystemgeServer) CheckAcceptedConnections() uint64 {
 		return 0
 	}
 
-	return server.listener.GetAcceptedConnections()
+	return server.listener.CheckAcceptedConnections()
 }
 func (server *SystemgeServer) GetAcceptedConnections() uint64 {
 	server.statusMutex.RLock()
@@ -119,7 +119,7 @@ func (server *SystemgeServer) GetAcceptedConnections() uint64 {
 		return 0
 	}
 
-	return server.listener.RetrieveAcceptedConnections()
+	return server.listener.GetAcceptedConnections()
 }
 
 func (server *SystemgeServer) CheckBytesSent() uint64 {

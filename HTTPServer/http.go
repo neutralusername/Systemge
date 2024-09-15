@@ -206,11 +206,11 @@ func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
 	commands["getStatus"] = func(args []string) (string, error) {
 		return Status.ToString(server.GetStatus()), nil
 	}
-	commands["getMetrics"] = func(args []string) (string, error) {
+	commands["checkMetrics"] = func(args []string) (string, error) {
 		metrics := server.CheckMetrics()
 		return Helpers.JsonMarshal(metrics), nil
 	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) {
+	commands["getMetrics"] = func(args []string) (string, error) {
 		metrics := server.GetMetrics()
 		return Helpers.JsonMarshal(metrics), nil
 	}

@@ -93,15 +93,15 @@ func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
 	commands["getStatus"] = func(args []string) (string, error) {
 		return Status.ToString(listener.GetStatus()), nil
 	}
-	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := listener.GetMetrics_()
+	commands["checkMetrics"] = func(args []string) (string, error) {
+		metrics := listener.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)
 		}
 		return string(json), nil
 	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) {
+	commands["getMetrics"] = func(args []string) (string, error) {
 		metrics := listener.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
