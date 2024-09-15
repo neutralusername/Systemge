@@ -7,7 +7,7 @@ export class commands extends React.Component {
 	}
 
 	render() {
-		let commands = Object.values(this.props.commands).map((command) => {
+		let commands = Object.keys(this.props.commands).map((command) => {
 			return React.createElement(
 				"div", {
 					key: command,

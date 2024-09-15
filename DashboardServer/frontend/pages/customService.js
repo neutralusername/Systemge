@@ -1,6 +1,7 @@
 import { 
 	backButton 
 } from "../components/backButton.js";
+import { commands } from "../components/commands.js";
 import { 
 	status 
 } from "../components/status.js";
@@ -28,6 +29,9 @@ export class customService extends React.Component {
 				},
 			}, 
 			React.createElement(
+				backButton, null	
+			),
+			React.createElement(
 				status, {
 					WS_CONNECTION: this.props.WS_CONNECTION,
 					constructMessage: this.props.constructMessage,
@@ -36,7 +40,11 @@ export class customService extends React.Component {
 				}
 			),
 			React.createElement(
-				backButton, null	
+				commands, {
+					WS_CONNECTION: this.props.WS_CONNECTION,
+					constructMessage: this.props.constructMessage,
+					commands: this.props.pageData.commands,
+				},
 			),
 			graphs,
 		)		

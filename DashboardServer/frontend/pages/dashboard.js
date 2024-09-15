@@ -1,6 +1,9 @@
 import { 
-	clientStatuses 
+	clientStatuses,
 } from "../components/clientStatuses.js";
+import {
+	commands,
+} from "../components/commands.js";
 
 export class dashboard extends React.Component {
 	constructor(props) {
@@ -30,6 +33,13 @@ export class dashboard extends React.Component {
 					constructMessage: this.props.constructMessage,
 					clientStatuses: this.props.pageData.clientStatuses,
 				}
+			),
+			React.createElement(
+				commands, {
+					WS_CONNECTION: this.props.WS_CONNECTION,
+					constructMessage: this.props.constructMessage,
+					commands: this.props.pageData.commands,
+				},
 			),
 			graphs,
 		)		
