@@ -2,7 +2,6 @@ package DashboardServer
 
 import (
 	"runtime"
-	"time"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 )
@@ -26,16 +25,13 @@ func (server *Server) retrieveDashboardClientMetrics() map[string]map[string]uin
 	}
 }
 
-func (server *Server) addMetricsToDashboardClient(metrics map[string]map[string]uint64) {
+func (server *Server) addMetricsToDashboardClient(metrics map[string]map[string]*DashboardHelpers.MetricsEntry) {
 	for metricsType, metricsKeyValuePairs := range metrics {
 		if server.dashboardClient.Metrics[metricsType] == nil {
 			server.dashboardClient.Metrics[metricsType] = map[string][]*DashboardHelpers.MetricsEntry{}
 		}
 		for key, value := range metricsKeyValuePairs {
-			server.dashboardClient.Metrics[metricsType][key] = append(server.dashboardClient.Metrics[metricsType][key], &DashboardHelpers.MetricsEntry{
-				Value: value,
-				Time:  time.Now(),
-			})
+			server.dashboardClient.Metrics[metricsType][key] = append(server.dashboardClient.Metrics[metricsType][key], value)
 			if len(server.dashboardClient.Metrics[metricsType][key]) > server.config.MaxMetricEntries {
 				server.dashboardClient.Metrics[metricsType][key] = server.dashboardClient.Metrics[metricsType][key][1:]
 			}
