@@ -1,48 +1,60 @@
 package BrokerClient
 
-func (messageBrokerClient *Client) CheckMetrics() map[string]map[string]uint64 {
+import (
+	"time"
+
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
 	messageBrokerClient.mutex.Lock()
-	metrics := map[string]map[string]uint64{
+	metrics := map[string]*Metrics.Metrics{
 		"broker_client": {
-			"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
-			"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
-			"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
-			"resolution_attempts":       messageBrokerClient.CheckResolutionAttempts(),
-			"async_messages_sent":       messageBrokerClient.CheckAsyncMessagesSent(),
-			"sync_requests_sent":        messageBrokerClient.CheckSyncRequestsSent(),
-			"sync_responses_received":   messageBrokerClient.CheckSyncResponsesReceived(),
+			KeyValuePairs: map[string]uint64{
+				"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
+				"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
+				"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
+				"resolution_attempts":       messageBrokerClient.CheckResolutionAttempts(),
+				"async_messages_sent":       messageBrokerClient.CheckAsyncMessagesSent(),
+				"sync_requests_sent":        messageBrokerClient.CheckSyncRequestsSent(),
+				"sync_responses_received":   messageBrokerClient.CheckSyncResponsesReceived(),
+			},
+			Time: time.Now(),
 		},
 	}
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = map[string]uint64{}
+	metrics["broker_connections"] = &Metrics.Metrics{}
 	for _, connection := range messageBrokerClient.brokerConnections {
 		for _, metricsMap := range connection.connection.CheckMetrics() {
-			for key, value := range metricsMap {
-				metrics["broker_connections"][key] += value
+			for key, value := range metricsMap.KeyValuePairs {
+				metrics["broker_connections"].KeyValuePairs[key] += value
 			}
 		}
 	}
 	return metrics
 }
-func (messageBrokerClient *Client) GetMetrics() map[string]map[string]uint64 {
+func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
 	messageBrokerClient.mutex.Lock()
-	metrics := map[string]map[string]uint64{
+	metrics := map[string]*Metrics.Metrics{
 		"broker_client": {
-			"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
-			"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
-			"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
-			"resolution_attempts":       messageBrokerClient.GetResolutionAttempts(),
-			"async_messages_sent":       messageBrokerClient.GetAsyncMessagesSent(),
-			"sync_requests_sent":        messageBrokerClient.GetSyncRequestsSent(),
-			"sync_responses_received":   messageBrokerClient.GetSyncResponsesReceived(),
+			KeyValuePairs: map[string]uint64{
+				"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
+				"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
+				"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
+				"resolution_attempts":       messageBrokerClient.GetResolutionAttempts(),
+				"async_messages_sent":       messageBrokerClient.GetAsyncMessagesSent(),
+				"sync_requests_sent":        messageBrokerClient.GetSyncRequestsSent(),
+				"sync_responses_received":   messageBrokerClient.GetSyncResponsesReceived(),
+			},
+			Time: time.Now(),
 		},
 	}
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = map[string]uint64{}
+	metrics["broker_connections"] = &Metrics.Metrics{}
 	for _, connection := range messageBrokerClient.brokerConnections {
 		for _, metricsMap := range connection.connection.GetMetrics() {
-			for key, value := range metricsMap {
-				metrics["broker_connections"][key] += value
+			for key, value := range metricsMap.KeyValuePairs {
+				metrics["broker_connections"].KeyValuePairs[key] += value
 			}
 		}
 	}

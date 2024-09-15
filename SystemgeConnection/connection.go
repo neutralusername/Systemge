@@ -3,6 +3,7 @@ package SystemgeConnection
 import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 )
 
 type SystemgeConnection interface {
@@ -18,7 +19,7 @@ type SystemgeConnection interface {
 	CheckInvalidMessagesReceived() uint64
 	CheckInvalidSyncResponsesReceived() uint64
 	CheckMessageRateLimiterExceeded() uint64
-	CheckMetrics() map[string]map[string]uint64
+	CheckMetrics() map[string]*Metrics.Metrics
 	CheckNoSyncResponseReceived() uint64
 	CheckSyncFailureResponsesReceived() uint64
 	CheckSyncRequestsSent() uint64
@@ -37,7 +38,7 @@ type SystemgeConnection interface {
 	GetInvalidMessagesReceived() uint64
 	GetInvalidSyncResponsesReceived() uint64
 	GetMessageRateLimiterExceeded() uint64
-	GetMetrics() map[string]map[string]uint64
+	GetMetrics() map[string]*Metrics.Metrics
 	GetNoSyncResponseReceived() uint64
 	GetSyncFailureResponsesReceived() uint64
 	GetSyncRequestsSent() uint64

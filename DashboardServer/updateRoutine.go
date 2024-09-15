@@ -111,15 +111,13 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	if err != nil {
 		return Error.New("Failed to execute get metrics request", err)
 	}
-	metrics, err := DashboardHelpers.UnmarshalMetrics(resultPayload)
+	dashboardMetrics, err := DashboardHelpers.UnmarshalDashboardMetrics(resultPayload)
 	if err != nil {
-		println(err.Error())
-		println(resultPayload)
 		return Error.New("Failed to unmarshal metrics", err)
 	}
-	for metricsName, metricsKeyValuePairs := range metrics {
-		for key, value := range metricsKeyValuePairs {
-			err := connectedClient.page.AddCachedMetricsEntry(metricsName, key, value, server.config.MaxMetricEntries)
+	for metricsType, metricsSlice := range dashboardMetrics {
+		for _, metrics := range metricsSlice {
+			err := connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxMetricEntries)
 			if err != nil {
 				return Error.New("Failed to add metrics entry", err)
 			}
@@ -131,7 +129,7 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_METRICS: metrics,
+					DashboardHelpers.CLIENT_FIELD_METRICS: dashboardMetrics,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -186,7 +184,7 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 }
 
 func (server *Server) updateDashboardClientMetrics() error {
-	newMetrics := DashboardHelpers.NewDashboardMetrics(server.GetDashboardClientMetrics())
+	newMetrics := server.GetDashboardClientMetrics()
 	server.addMetricsToDashboardClient(newMetrics)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),

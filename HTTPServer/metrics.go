@@ -1,16 +1,28 @@
 package HTTPServer
 
-func (server *HTTPServer) CheckMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+import (
+	"time"
+
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (server *HTTPServer) CheckMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"http_server": {
-			"request_counter": server.CheckHTTPRequestCounter(),
+			KeyValuePairs: map[string]uint64{
+				"request_counter": server.CheckHTTPRequestCounter(),
+			},
+			Time: time.Time{},
 		},
 	}
 }
-func (server *HTTPServer) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+func (server *HTTPServer) GetMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"http_server": {
-			"request_counter": server.GetTTPRequestCounter(),
+			KeyValuePairs: map[string]uint64{
+				"request_counter": server.CheckHTTPRequestCounter(),
+			},
+			Time: time.Time{},
 		},
 	}
 }

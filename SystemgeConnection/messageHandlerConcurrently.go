@@ -3,9 +3,11 @@ package SystemgeConnection
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 )
 
 type ConcurrentMessageHandler struct {
@@ -140,21 +142,27 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+func (messageHandler *ConcurrentMessageHandler) CheckMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"concurrent_message_handler": {
-			"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
-			"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
-			"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
+			KeyValuePairs: map[string]uint64{
+				"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
+				"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
+				"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
+			},
+			Time: time.Now(),
 		},
 	}
 }
-func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"concurrent_message_handler": {
-			"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
-			"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
-			"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+			KeyValuePairs: map[string]uint64{
+				"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
+				"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
+				"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+			},
+			Time: time.Now(),
 		},
 	}
 }

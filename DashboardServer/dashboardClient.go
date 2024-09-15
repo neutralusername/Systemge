@@ -1,37 +1,37 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/DashboardHelpers"
+	"time"
+
 	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (server *Server) GetDashboardClientMetrics() map[string]map[string]uint64 {
+func (server *Server) GetDashboardClientMetrics() map[string]*Metrics.Metrics {
 	metrics := server.checkResourceUsageMetrics()
-	DashboardHelpers.MergeMetrics(metrics, server.websocketServer.GetMetrics())
-	DashboardHelpers.MergeMetrics(metrics, server.httpServer.GetMetrics())
-	DashboardHelpers.MergeMetrics(metrics, server.systemgeServer.GetMetrics())
+	Metrics.Merge(metrics, server.websocketServer.GetMetrics())
+	Metrics.Merge(metrics, server.httpServer.GetMetrics())
+	Metrics.Merge(metrics, server.systemgeServer.GetMetrics())
 	return metrics
 }
 
-func (server *Server) addMetricsToDashboardClient(metrics map[string]map[string]*DashboardHelpers.MetricsEntry) {
-	for metricsType, metricsKeyValuePairs := range metrics {
+func (server *Server) addMetricsToDashboardClient(metrics map[string]*Metrics.Metrics) {
+	for metricsType, metrics := range metrics {
 		if server.dashboardClient.Metrics[metricsType] == nil {
-			server.dashboardClient.Metrics[metricsType] = map[string][]*DashboardHelpers.MetricsEntry{}
+			server.dashboardClient.Metrics[metricsType] = []*Metrics.Metrics{}
 		}
-		for key, value := range metricsKeyValuePairs {
-			server.dashboardClient.Metrics[metricsType][key] = append(server.dashboardClient.Metrics[metricsType][key], value)
-			if len(server.dashboardClient.Metrics[metricsType][key]) > server.config.MaxMetricEntries {
-				server.dashboardClient.Metrics[metricsType][key] = server.dashboardClient.Metrics[metricsType][key][1:]
-			}
-		}
+		server.dashboardClient.Metrics[metricsType] = append(server.dashboardClient.Metrics[metricsType], metrics)
 	}
 }
 
-func (server *Server) checkResourceUsageMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+func (server *Server) checkResourceUsageMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"resource_usage": {
-			"heap_usage":      Helpers.HeapUsage(),
-			"goroutine_count": uint64(Helpers.GoroutineCount()),
+			KeyValuePairs: map[string]uint64{
+				"heap_usage":      Helpers.HeapUsage(),
+				"goroutine_count": uint64(Helpers.GoroutineCount()),
+			},
+			Time: time.Now(),
 		},
 	}
 }

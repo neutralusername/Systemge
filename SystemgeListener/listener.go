@@ -3,6 +3,7 @@ package SystemgeListener
 import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
@@ -18,6 +19,6 @@ type SystemgeListener interface {
 	GetConnectionAttempts() uint64
 	GetFailedConnections() uint64
 	GetRejectedConnections() uint64
-	GetMetrics() map[string]map[string]uint64
-	CheckMetrics() map[string]map[string]uint64
+	GetMetrics() map[string]*Metrics.Metrics
+	CheckMetrics() map[string]*Metrics.Metrics
 }

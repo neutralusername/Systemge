@@ -2,6 +2,7 @@ package SystemgeConnection
 
 import (
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 )
 
 type MessageHandler interface {
@@ -18,8 +19,8 @@ type MessageHandler interface {
 	GetAsyncTopics() []string
 	GetSyncTopics() []string
 
-	CheckMetrics() map[string]map[string]uint64
-	GetMetrics() map[string]map[string]uint64
+	CheckMetrics() map[string]*Metrics.Metrics
+	GetMetrics() map[string]*Metrics.Metrics
 
 	CheckAsyncMessagesHandled() uint64
 	GetAsyncMessagesHandled() uint64

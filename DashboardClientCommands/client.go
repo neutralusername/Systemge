@@ -7,13 +7,16 @@ import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
-	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
+func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+	var metrics DashboardHelpers.DashboardMetrics
 	if getMetricsFunc != nil {
 		metrics = DashboardHelpers.NewDashboardMetrics(getMetricsFunc())
+	} else {
+		metrics = DashboardHelpers.DashboardMetrics{}
 	}
 	return DashboardClient.New(
 		name,

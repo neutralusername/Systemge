@@ -1,39 +1,51 @@
 package TcpSystemgeConnection
 
-func (connection *TcpConnection) CheckMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+import (
+	"time"
+
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (connection *TcpConnection) CheckMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"tcp_systemge_connection": {
-			"bytes_sent":                      connection.CheckBytesSent(),
-			"bytes_received":                  connection.CheckBytesReceived(),
-			"async_messages_sent":             connection.CheckAsyncMessagesSent(),
-			"sync_requests_sent":              connection.CheckSyncRequestsSent(),
-			"sync_success_responses_received": connection.CheckSyncSuccessResponsesReceived(),
-			"sync_failure_responses_received": connection.CheckSyncFailureResponsesReceived(),
-			"no_sync_response_received":       connection.CheckNoSyncResponseReceived(),
-			"invalid_messages_received":       connection.CheckInvalidMessagesReceived(),
-			"invalid_sync_responses_received": connection.CheckInvalidSyncResponsesReceived(),
-			"valid_messages_received":         connection.CheckValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   connection.CheckMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      connection.CheckByteRateLimiterExceeded(),
+			KeyValuePairs: map[string]uint64{
+				"bytes_sent":                      connection.CheckBytesSent(),
+				"bytes_received":                  connection.CheckBytesReceived(),
+				"async_messages_sent":             connection.CheckAsyncMessagesSent(),
+				"sync_requests_sent":              connection.CheckSyncRequestsSent(),
+				"sync_success_responses_received": connection.CheckSyncSuccessResponsesReceived(),
+				"sync_failure_responses_received": connection.CheckSyncFailureResponsesReceived(),
+				"no_sync_response_received":       connection.CheckNoSyncResponseReceived(),
+				"invalid_messages_received":       connection.CheckInvalidMessagesReceived(),
+				"invalid_sync_responses_received": connection.CheckInvalidSyncResponsesReceived(),
+				"valid_messages_received":         connection.CheckValidMessagesReceived(),
+				"message_rate_limiter_exceeded":   connection.CheckMessageRateLimiterExceeded(),
+				"byte_rate_limiter_exceeded":      connection.CheckByteRateLimiterExceeded(),
+			},
+			Time: time.Now(),
 		},
 	}
 }
 
-func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+func (connection *TcpConnection) GetMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"tcp_systemge_connection": {
-			"bytes_sent":                      connection.GetBytesSent(),
-			"bytes_received":                  connection.GetBytesReceived(),
-			"async_messages_sent":             connection.GetAsyncMessagesSent(),
-			"sync_requests_sent":              connection.GetSyncRequestsSent(),
-			"sync_success_responses_received": connection.GetSyncSuccessResponsesReceived(),
-			"sync_failure_responses_received": connection.GetSyncFailureResponsesReceived(),
-			"no_sync_response_received":       connection.GetNoSyncResponseReceived(),
-			"invalid_messages_received":       connection.GetInvalidMessagesReceived(),
-			"invalid_sync_responses_received": connection.GetInvalidSyncResponsesReceived(),
-			"valid_messages_received":         connection.GetValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   connection.GetMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      connection.GetByteRateLimiterExceeded(),
+			KeyValuePairs: map[string]uint64{
+				"bytes_sent":                      connection.GetBytesSent(),
+				"bytes_received":                  connection.GetBytesReceived(),
+				"async_messages_sent":             connection.GetAsyncMessagesSent(),
+				"sync_requests_sent":              connection.GetSyncRequestsSent(),
+				"sync_success_responses_received": connection.GetSyncSuccessResponsesReceived(),
+				"sync_failure_responses_received": connection.GetSyncFailureResponsesReceived(),
+				"no_sync_response_received":       connection.GetNoSyncResponseReceived(),
+				"invalid_messages_received":       connection.GetInvalidMessagesReceived(),
+				"invalid_sync_responses_received": connection.GetInvalidSyncResponsesReceived(),
+				"valid_messages_received":         connection.GetValidMessagesReceived(),
+				"message_rate_limiter_exceeded":   connection.GetMessageRateLimiterExceeded(),
+				"byte_rate_limiter_exceeded":      connection.GetByteRateLimiterExceeded(),
+			},
+			Time: time.Now(),
 		},
 	}
 }

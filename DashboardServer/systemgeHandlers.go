@@ -17,17 +17,17 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	if err != nil {
 		return err
 	}
-	metrics := page.GetCachedMetrics()
-	if server.config.MaxMetricTypes > 0 && len(metrics) > server.config.MaxMetricTypes {
+	dashboardMetrics := page.GetCachedMetrics()
+	if server.config.MaxMetricTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricTypes {
 		return Error.New("Too many metric types", nil)
 	}
-	for metricType, metricMap := range metrics {
-		if server.config.MaxMetricsPerType > 0 && len(metricMap) > server.config.MaxMetricsPerType {
-			return Error.New("Too many metrics of type "+metricType, nil)
+	for metricType, metricsSlice := range dashboardMetrics {
+		if server.config.MaxMetricEntries > 0 && len(metricsSlice) > server.config.MaxMetricEntries {
+			return Error.New("Too many metric entries of type "+metricType, nil)
 		}
-		for metricName, metricEntries := range metricMap {
-			if server.config.MaxMetricEntries > 0 && len(metricEntries) > server.config.MaxMetricEntries {
-				return Error.New("Too many metric entries of type "+metricType+" and name "+metricName, nil)
+		for _, metrics := range metricsSlice {
+			if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
+				return Error.New("Too many metrics of type "+metricType, nil)
 			}
 		}
 	}

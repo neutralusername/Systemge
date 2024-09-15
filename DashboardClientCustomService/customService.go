@@ -1,17 +1,19 @@
 package DashboardClientCustomService
 
+import "github.com/neutralusername/Systemge/Metrics"
+
 type customService interface {
 	Start() error
 	Stop() error
 	GetStatus() int
-	GetMetrics() map[string]map[string]uint64
+	GetMetrics() map[string]*Metrics.Metrics
 }
 
 type customServiceStruct struct {
 	startFunc      func() error
 	stopFunc       func() error
 	getStatusFunc  func() int
-	getMetricsFunc func() map[string]map[string]uint64
+	getMetricsFunc func() map[string]*Metrics.Metrics
 }
 
 func (customService *customServiceStruct) Start() error {
@@ -26,6 +28,6 @@ func (customService *customServiceStruct) GetStatus() int {
 	return customService.getStatusFunc()
 }
 
-func (customService *customServiceStruct) GetMetrics() map[string]map[string]uint64 {
+func (customService *customServiceStruct) GetMetrics() map[string]*Metrics.Metrics {
 	return customService.getMetricsFunc()
 }

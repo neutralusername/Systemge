@@ -8,19 +8,22 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
 	if systemgeConnection == nil {
 		panic("customService is nil")
 	}
-	var metrics map[string]map[string]uint64 = make(map[string]map[string]uint64)
+	var metrics map[string]*Metrics.Metrics
 	if getMetricsFunc != nil {
 		metrics = getMetricsFunc()
+	} else {
+		metrics = map[string]*Metrics.Metrics{}
 	}
-	DashboardHelpers.MergeMetrics(metrics, systemgeConnection.GetMetrics())
+	Metrics.Merge(metrics, systemgeConnection.GetMetrics())
 	return DashboardClient.New(
 		name,
 		config,
@@ -38,11 +41,13 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return Helpers.IntToString(systemgeConnection.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					var metrics map[string]map[string]uint64 = make(map[string]map[string]uint64)
+					var metrics map[string]*Metrics.Metrics
 					if getMetricsFunc != nil {
 						metrics = getMetricsFunc()
+					} else {
+						metrics = map[string]*Metrics.Metrics{}
 					}
-					DashboardHelpers.MergeMetrics(metrics, systemgeConnection.GetMetrics())
+					Metrics.Merge(metrics, systemgeConnection.GetMetrics())
 					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metrics)), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

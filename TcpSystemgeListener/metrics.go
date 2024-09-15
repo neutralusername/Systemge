@@ -1,22 +1,34 @@
 package TcpSystemgeListener
 
-func (listener *TcpListener) CheckMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+import (
+	"time"
+
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (listener *TcpListener) CheckMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"tcp_systemge_listener": {
-			"connection_attempts":  listener.CheckConnectionAttempts(),
-			"failed_connections":   listener.CheckFailedConnections(),
-			"rejected_connections": listener.CheckRejectedConnections(),
-			"accepted_connections": listener.CheckAcceptedConnections(),
+			KeyValuePairs: map[string]uint64{
+				"connection_attempts":  listener.CheckConnectionAttempts(),
+				"failed_connections":   listener.CheckFailedConnections(),
+				"rejected_connections": listener.CheckRejectedConnections(),
+				"accepted_connections": listener.CheckAcceptedConnections(),
+			},
+			Time: time.Now(),
 		},
 	}
 }
-func (listener *TcpListener) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
+func (listener *TcpListener) GetMetrics() map[string]*Metrics.Metrics {
+	return map[string]*Metrics.Metrics{
 		"tcp_systemge_listener": {
-			"connection_attempts":  listener.GetConnectionAttempts(),
-			"failed_connections":   listener.GetFailedConnections(),
-			"rejected_connections": listener.GetRejectedConnections(),
-			"accepted_connections": listener.GetAcceptedConnections(),
+			KeyValuePairs: map[string]uint64{
+				"connection_attempts":  listener.GetConnectionAttempts(),
+				"failed_connections":   listener.GetFailedConnections(),
+				"rejected_connections": listener.GetRejectedConnections(),
+				"accepted_connections": listener.GetAcceptedConnections(),
+			},
+			Time: time.Now(),
 		},
 	}
 }

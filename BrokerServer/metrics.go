@@ -1,41 +1,51 @@
 package BrokerServer
 
-import "github.com/neutralusername/Systemge/DashboardHelpers"
+import (
+	"time"
 
-func (server *Server) CheckMetrics() map[string]map[string]uint64 {
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (server *Server) CheckMetrics() map[string]*Metrics.Metrics {
 	server.mutex.Lock()
-	metrics := map[string]map[string]uint64{
+	metrics := map[string]*Metrics.Metrics{
 		"broker_server": {
-			"async_messages_received":   server.CheckAsyncMessagesReceived(),
-			"async_messages_propagated": server.CheckAsyncMessagesPropagated(),
-			"sync_requests_received":    server.CheckSyncRequestsReceived(),
-			"sync_requests_propagated":  server.CheckSyncRequestsPropagated(),
-			"connection_count":          uint64(len(server.connectionAsyncSubscriptions)),
-			"async_topic_count":         uint64(len(server.asyncTopicSubscriptions)),
-			"sync_topic_count":          uint64(len(server.syncTopicSubscriptions)),
+			KeyValuePairs: map[string]uint64{
+				"async_messages_received":   server.CheckAsyncMessagesReceived(),
+				"async_messages_propagated": server.CheckAsyncMessagesPropagated(),
+				"sync_requests_received":    server.CheckSyncRequestsReceived(),
+				"sync_requests_propagated":  server.CheckSyncRequestsPropagated(),
+				"connection_count":          uint64(len(server.connectionAsyncSubscriptions)),
+				"async_topic_count":         uint64(len(server.asyncTopicSubscriptions)),
+				"sync_topic_count":          uint64(len(server.syncTopicSubscriptions)),
+			},
+			Time: time.Now(),
 		},
 	}
 	server.mutex.Unlock()
-	DashboardHelpers.MergeMetrics(metrics, server.systemgeServer.CheckMetrics())
-	DashboardHelpers.MergeMetrics(metrics, server.messageHandler.CheckMetrics())
+	Metrics.Merge(metrics, server.systemgeServer.CheckMetrics())
+	Metrics.Merge(metrics, server.messageHandler.CheckMetrics())
 	return metrics
 }
-func (server *Server) GetMetrics() map[string]map[string]uint64 {
+func (server *Server) GetMetrics() map[string]*Metrics.Metrics {
 	server.mutex.Lock()
-	metrics := map[string]map[string]uint64{
+	metrics := map[string]*Metrics.Metrics{
 		"broker_server": {
-			"async_messages_received":   server.GetAsyncMessagesReceived(),
-			"async_messages_propagated": server.GetAsyncMessagesPropagated(),
-			"sync_requests_received":    server.GetSyncRequestsReceived(),
-			"sync_requests_propagated":  server.GetSyncRequestsPropagated(),
-			"connection_count":          uint64(len(server.connectionAsyncSubscriptions)),
-			"async_topic_count":         uint64(len(server.asyncTopicSubscriptions)),
-			"sync_topic_count":          uint64(len(server.syncTopicSubscriptions)),
+			KeyValuePairs: map[string]uint64{
+				"async_messages_received":   server.GetAsyncMessagesReceived(),
+				"async_messages_propagated": server.GetAsyncMessagesPropagated(),
+				"sync_requests_received":    server.GetSyncRequestsReceived(),
+				"sync_requests_propagated":  server.GetSyncRequestsPropagated(),
+				"connection_count":          uint64(len(server.connectionAsyncSubscriptions)),
+				"async_topic_count":         uint64(len(server.asyncTopicSubscriptions)),
+				"sync_topic_count":          uint64(len(server.syncTopicSubscriptions)),
+			},
+			Time: time.Now(),
 		},
 	}
 	server.mutex.Unlock()
-	DashboardHelpers.MergeMetrics(metrics, server.systemgeServer.GetMetrics())
-	DashboardHelpers.MergeMetrics(metrics, server.messageHandler.GetMetrics())
+	Metrics.Merge(metrics, server.systemgeServer.GetMetrics())
+	Metrics.Merge(metrics, server.messageHandler.GetMetrics())
 	return metrics
 }
 

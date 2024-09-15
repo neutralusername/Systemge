@@ -1,34 +1,44 @@
 package WebsocketServer
 
-import "github.com/neutralusername/Systemge/DashboardHelpers"
+import (
+	"time"
+
+	"github.com/neutralusername/Systemge/Metrics"
+)
 
 // returns the metrics without resetting the counters
-func (server *WebsocketServer) CheckMetrics() map[string]map[string]uint64 {
-	metrics := map[string]map[string]uint64{
+func (server *WebsocketServer) CheckMetrics() map[string]*Metrics.Metrics {
+	metrics := map[string]*Metrics.Metrics{
 		"websocket_server": {
-			"bytes_sent":         server.CheckBytesSentCounter(),
-			"bytes_received":     server.CheckBytesReceivedCounter(),
-			"incoming_messages":  uint64(server.CheckIncomingMessageCounter()),
-			"outgoing_messages":  uint64(server.CheckOutgoingMessageCounter()),
-			"active_connections": uint64(server.GetClientCount()),
+			KeyValuePairs: map[string]uint64{
+				"bytes_sent":         server.CheckBytesSentCounter(),
+				"bytes_received":     server.CheckBytesReceivedCounter(),
+				"incoming_messages":  uint64(server.CheckIncomingMessageCounter()),
+				"outgoing_messages":  uint64(server.CheckOutgoingMessageCounter()),
+				"active_connections": uint64(server.GetClientCount()),
+			},
+			Time: time.Now(),
 		},
 	}
-	DashboardHelpers.MergeMetrics(metrics, server.httpServer.CheckMetrics())
+	Metrics.Merge(metrics, server.httpServer.CheckMetrics())
 	return metrics
 }
 
 // returns the metrics and resets the counters to 0
-func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
-	metrics := map[string]map[string]uint64{
+func (server *WebsocketServer) GetMetrics() map[string]*Metrics.Metrics {
+	metrics := map[string]*Metrics.Metrics{
 		"websocket_server": {
-			"bytes_sent":         server.GetBytesSentCounter(),
-			"bytes_received":     server.GetBytesReceivedCounter(),
-			"incoming_messages":  uint64(server.GetIncomingMessageCounter()),
-			"outgoing_messages":  uint64(server.GetOutgoingMessageCounter()),
-			"active_connections": uint64(server.GetClientCount()),
+			KeyValuePairs: map[string]uint64{
+				"bytes_sent":         server.GetBytesSentCounter(),
+				"bytes_received":     server.GetBytesReceivedCounter(),
+				"incoming_messages":  uint64(server.GetIncomingMessageCounter()),
+				"outgoing_messages":  uint64(server.GetOutgoingMessageCounter()),
+				"active_connections": uint64(server.GetClientCount()),
+			},
+			Time: time.Now(),
 		},
 	}
-	DashboardHelpers.MergeMetrics(metrics, server.httpServer.GetMetrics())
+	Metrics.Merge(metrics, server.httpServer.GetMetrics())
 	return metrics
 }
 
