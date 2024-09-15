@@ -19,6 +19,11 @@ export class responseMessages extends React.Component {
 			"div", {
 				className: "status",
 				style: {
+                    position: "fixed",
+                    top: "0",
+                    right: "0",
+                    width: "33%",
+                    height : "27%",
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",
@@ -27,16 +32,11 @@ export class responseMessages extends React.Component {
 			React.createElement(
                 "div", {
                     style: {
-                        position: "fixed",
                         display: "flex",
                         flexDirection: "column",
                         gap: "10px",
-                        top: "0",
-                        left: "0",
                         padding: "10px",
                         whiteSpace: "pre-wrap",
-                        width: "33%",
-                        height : "27%",
                         overflow: "hidden",
                         overflowY: "scroll",
                         wordWrap: "break-word",
