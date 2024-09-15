@@ -4,13 +4,13 @@ import "github.com/neutralusername/Systemge/Helpers"
 
 type PageUpdate struct {
 	Data interface{} `json:"data"`
-	Page string      `json:"page"`
+	Name string      `json:"name"`
 }
 
-func NewPageUpdate(data interface{}, page string) *PageUpdate {
+func NewPageUpdate(data interface{}, name string) *PageUpdate {
 	return &PageUpdate{
 		Data: data,
-		Page: page,
+		Name: name,
 	}
 }
 

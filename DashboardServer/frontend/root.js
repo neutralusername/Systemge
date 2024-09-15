@@ -69,6 +69,15 @@ export class root extends React.Component {
             getMultiLineGraph: this.getMultiLineGraph,
         };
 
+        this.mergeData = this.mergeData.bind(this);
+        this.setResponseMessage = this.setResponseMessage.bind(this);
+        this.generateHash = this.generateHash.bind(this);
+        this.getRandomDistinctColors = this.getRandomDistinctColors.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+        this.handleOpen = this.handleOpen.bind(this);
+        this.constructMessage = this.constructMessage.bind(this);
+        this.getMultiLineGraph = this.getMultiLineGraph.bind(this);
+        this.getContent = this.getContent.bind(this);
         document.body.style.background = "#222426"
         document.body.style.color = "#ffffff"
 		Chart.defaults.color = "#ffffff";
@@ -76,6 +85,7 @@ export class root extends React.Component {
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+
     }
 
     handleMessage(event) {
@@ -87,16 +97,15 @@ export class root extends React.Component {
                 break;
             case "changePage": {
                     let page = JSON.parse(message.payload);
-                    let pageData = JSON.parse(page.data);
                     this.setState({
                         pageType: page.type,
-                        pageData: pageData,
+                        pageData: JSON.parse(page.data),
                     });
                 }
                 break;
             case "updatePageReplace": {
                     let page = JSON.parse(message.payload);
-                    if (page.type !== this.state.pageType) {
+                    if (page.name !== this.state.pageData.name) {
                         return;
                     }
                     let pageData = this.state.pageData;
@@ -109,9 +118,8 @@ export class root extends React.Component {
                 }
                 break;
             case "updatePageMerge": {
-                    console.log(message.payload);
                     let page = JSON.parse(message.payload);
-                    if (page.type !== this.state.pageType) {
+                    if (page.name !== this.state.pageData.name) {
                         return;
                     }
                     let pageData = this.state.pageData;
@@ -129,19 +137,24 @@ export class root extends React.Component {
 
     mergeData(target, source) {
         Object.keys(source).forEach((key) => {
-            let data = source[key];
-            if (Array.isArray(data)) {
+            let sourceData = source[key];
+            let targetData = target[key];
+            if (Array.isArray(targetData)) {
                 if (!Array.isArray(target[key])) {
                     target[key] = [];
                 }
-                target[key].push(...data);
-            } else if (typeof data === "object" && data !== null) { 
-                if (typeof target[key] !== "object" || target[key] === null) {
-                    target[key] = {};
+                if (Array.isArray(sourceData)) {
+                    target[key].push(...sourceData);
+                } else {
+                    target[key].push(sourceData);
                 }
-                mergeData(target[key], data);
+                if (target[key].length > 100) {
+                    target[key].splice(0, target[key].length - 100);
+                }
+            } else if (typeof targetData === "object" && targetData !== null) { 
+               this.mergeData(targetData, sourceData);
             } else { 
-                target[key] = data; 
+                targetData = sourceData; 
             }
         });
     }
