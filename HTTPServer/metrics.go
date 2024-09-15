@@ -12,7 +12,7 @@ func (server *HTTPServer) CheckMetrics() map[string]*Metrics.Metrics {
 			KeyValuePairs: map[string]uint64{
 				"request_counter": server.CheckHTTPRequestCounter(),
 			},
-			Time: time.Time{},
+			Time: time.Now(),
 		},
 	}
 }
@@ -22,7 +22,7 @@ func (server *HTTPServer) GetMetrics() map[string]*Metrics.Metrics {
 			KeyValuePairs: map[string]uint64{
 				"request_counter": server.GetTTPRequestCounter(),
 			},
-			Time: time.Time{},
+			Time: time.Now(),
 		},
 	}
 }
