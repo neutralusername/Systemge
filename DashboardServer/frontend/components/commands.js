@@ -4,7 +4,6 @@ export class commands extends React.Component {
 		this.state = {
 			intervals: {},
 		}
-		
 	}
 
 	render() {

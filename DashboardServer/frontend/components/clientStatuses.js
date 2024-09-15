@@ -3,7 +3,6 @@ export class clientStatuses extends React.Component {
 		super(props);
 		this.state = {
 		}
-		
 	}
 
 	render() {

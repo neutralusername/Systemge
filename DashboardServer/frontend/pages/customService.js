@@ -7,7 +7,6 @@ export class customService extends React.Component {
 		super(props);
 		this.state = {
 		}
-		
 	}
 
 	render() {

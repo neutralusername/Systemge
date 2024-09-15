@@ -3,7 +3,6 @@ export class status extends React.Component {
 		super(props);
 		this.state = {
 		}
-		
 	}
 
 	render() {

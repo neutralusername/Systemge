@@ -5,6 +5,7 @@ export class multiLineGraph extends React.Component {
 			chart : null,
 		}
 	}
+	
 	componentDidMount() {
 		let options = this.props.options;
 		if (this.props.options === undefined) {

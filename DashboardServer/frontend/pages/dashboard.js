@@ -7,7 +7,6 @@ export class dashboard extends React.Component {
 		super(props);
 		this.state = {
 		}
-		
 	}
 
 	render() {

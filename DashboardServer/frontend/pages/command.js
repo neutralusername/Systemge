@@ -3,7 +3,6 @@ export class command extends React.Component {
 		super(props);
 		this.state = {
 		}
-		
 	}
 
 	render() {
