@@ -78,6 +78,10 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 	if err != nil {
 		return Error.New("Failed to set status", err)
 	}
+	server.mutex.Lock()
+	server.dashboardClient.ClientStatuses[connectedClient.connection.GetName()] = Helpers.StringToInt(resultPayload)
+	server.mutex.Unlock()
+
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
@@ -207,12 +211,6 @@ func (server *Server) updateDashboardClientMetrics() error {
 }
 
 func (server *Server) updateDashboardClientStatuses() error {
-	server.mutex.Lock()
-	for _, connectedClient := range server.connectedClients {
-		status := connectedClient.page.GetCachedStatus()
-		server.dashboardClient.ClientStatuses[connectedClient.connection.GetName()] = status
-	}
-	server.mutex.Unlock()
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
 		Message.NewAsync(
