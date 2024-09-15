@@ -178,7 +178,10 @@ export class root extends React.Component {
         }
         this.state.WS_CONNECTION.send(this.changePage(pathName));
         let myLoop = () => {
-            this.state.WS_CONNECTION.send(this.pageRequest("heartbeat", ""));
+            this.state.WS_CONNECTION.send(JSON.stringify({
+                topic: "heartbeat",
+                payload: "",
+            }));
             setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
         };
         setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);

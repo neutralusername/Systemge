@@ -79,6 +79,9 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config.MaxMetricEntries <= 0 {
 		config.MaxMetricEntries = 100
 	}
+	if config.FrontendHeartbeatIntervalMs == 0 {
+		config.FrontendHeartbeatIntervalMs = 1000 * 60
+	}
 
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("server.go")] + "frontend/"
