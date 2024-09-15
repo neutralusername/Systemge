@@ -35,14 +35,11 @@ export class root extends React.Component {
         this.state = {
             responseMessages: {},
             responseMessageTimeouts: {},
-           
             pageType : PAGE_NULL,
             pageData : {},
-
             setStateRoot : (state) => {
                 this.setState(state);
             },
-
             distinctColors : [
                 "#556b2f",
                 "#7f0000",
@@ -80,7 +77,6 @@ export class root extends React.Component {
             constructMessage: this.constructMessage,
             getMultiLineGraph: this.getMultiLineGraph,
         };
-
         this.mergeData = this.mergeData.bind(this);
         this.setResponseMessage = this.setResponseMessage.bind(this);
         this.generateHash = this.generateHash.bind(this);
@@ -97,7 +93,6 @@ export class root extends React.Component {
         this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
-
     }
 
     handleMessage(event) {
@@ -135,7 +130,7 @@ export class root extends React.Component {
                         return;
                     }
                     let pageData = this.state.pageData;
-                    this.mergeData(pageData, page.data); // currently keeps on growing forever ...
+                    this.mergeData(pageData, page.data); 
                     this.setState({
                         pageData: pageData,
                     });
@@ -296,16 +291,6 @@ export class root extends React.Component {
     }
 
     render() {
-        let responseMessages = Object.keys(this.state.responseMessages).map((responseId) =>
-            React.createElement(
-                "div", {
-                    key: responseId,
-                },
-                this.state.responseMessages[responseId],
-            ),
-        );
-        responseMessages.reverse();
-
         return React.createElement(
             "div", {
                 id: "root",
@@ -317,27 +302,6 @@ export class root extends React.Component {
                     alignItems: "center",
                 },
             },
-            React.createElement(
-                "div", {
-                    style: {
-                        position: "fixed",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                        top: "0",
-                        left: "0",
-                        padding: "10px",
-                        whiteSpace: "pre-wrap",
-                        width: "33%",
-                        height : "27%",
-                        overflow: "hidden",
-                        overflowY: "scroll",
-                        wordWrap: "break-word",
-                        wordBreak: "break-word",
-                    },
-                },
-                responseMessages,
-            ),
             this.getContent()
         );
     }
