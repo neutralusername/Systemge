@@ -1,3 +1,7 @@
+import { 
+	status 
+} from "../components/status.js";
+
 export class customService extends React.Component {
 	constructor(props) {
 		super(props);
@@ -21,6 +25,9 @@ export class customService extends React.Component {
 					alignItems: "center",
 				},
 			}, 
+			React.createElement(
+				status, this.props,
+			),
 			graphs,
 		)		
 	}
