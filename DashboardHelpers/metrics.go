@@ -34,3 +34,10 @@ func ConvertMetrics(metrics map[string]map[string]uint64) map[string]map[string]
 	}
 	return metricsEntry
 }
+
+// merges metricsB into metricsA
+func MergeMetrics(metricsA map[string]map[string]uint64, metricsB map[string]map[string]uint64) {
+	for metricsType, metricsMap := range metricsB {
+		metricsA[metricsType] = metricsMap
+	}
+}

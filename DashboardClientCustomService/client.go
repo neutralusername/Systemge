@@ -1,8 +1,6 @@
 package DashboardClientCustomService
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -54,19 +52,6 @@ func New(name string, config *Config.DashboardClient, customService customServic
 	if customService == nil {
 		panic("customService is nil")
 	}
-	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
-	m := customService.GetMetrics()
-	for metricType, metricMap := range m {
-		if metrics[metricType] == nil {
-			metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
-		}
-		for metricName, metricValue := range metricMap {
-			metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
-				Value: metricValue,
-				Time:  time.Now(),
-			}
-		}
-	}
 	return DashboardClient.New(
 		name,
 		config,
@@ -77,7 +62,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					return Helpers.IntToString(customService.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.JsonMarshal(customService.GetMetrics()), nil
+					return Helpers.JsonMarshal(DashboardHelpers.ConvertMetrics(customService.GetMetrics())), nil
 				},
 				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := customService.Start()
@@ -110,7 +95,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					name,
 					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
-					metrics,
+					DashboardHelpers.ConvertMetrics(customService.GetMetrics()),
 				),
 				DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE,
 			).Marshal()

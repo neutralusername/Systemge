@@ -1,8 +1,6 @@
 package DashboardClientSystemgeConnection
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -18,33 +16,11 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 	if systemgeConnection == nil {
 		panic("customService is nil")
 	}
-	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
+	var metrics map[string]map[string]uint64 = make(map[string]map[string]uint64)
 	if getMetricsFunc != nil {
-		m := getMetricsFunc()
-		for metricType, metricMap := range m {
-			if metrics[metricType] == nil {
-				metrics[metricType] = make(map[string]*DashboardHelpers.MetricsEntry)
-			}
-			for metricName, metricValue := range metricMap {
-				metrics[metricType][metricName] = &DashboardHelpers.MetricsEntry{
-					Value: metricValue,
-					Time:  time.Now(),
-				}
-			}
-		}
+		metrics = getMetricsFunc()
 	}
-	systemgeConnectionMetrics := systemgeConnection.GetMetrics_()
-	for metricName, metricValue := range systemgeConnectionMetrics {
-		if metrics[metricName] == nil {
-			metrics[metricName] = make(map[string]*DashboardHelpers.MetricsEntry)
-		}
-		for metricKey, value := range metricValue {
-			metrics[metricName][metricKey] = &DashboardHelpers.MetricsEntry{
-				Value: value,
-				Time:  time.Now(),
-			}
-		}
-	}
+	DashboardHelpers.MergeMetrics(metrics, systemgeConnection.GetMetrics())
 	return DashboardClient.New(
 		name,
 		config,
@@ -62,7 +38,12 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return Helpers.IntToString(systemgeConnection.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.JsonMarshal(systemgeConnection.GetMetrics_()), nil
+					var metrics map[string]map[string]uint64 = make(map[string]map[string]uint64)
+					if getMetricsFunc != nil {
+						metrics = getMetricsFunc()
+					}
+					DashboardHelpers.MergeMetrics(metrics, systemgeConnection.GetMetrics())
+					return Helpers.JsonMarshal(DashboardHelpers.ConvertMetrics(metrics)), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
@@ -155,7 +136,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
 					systemgeConnection.UnprocessedMessagesCount(),
-					metrics,
+					DashboardHelpers.ConvertMetrics(metrics),
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()
