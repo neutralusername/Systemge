@@ -2,15 +2,14 @@ package DashboardHelpers
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
 type DashboardMetrics map[string][]*Metrics.Metrics // metricType -> []*Metrics
 
-func UnmarshalMetrics(data string) (map[string][]*Metrics.Metrics, error) {
-	var metrics map[string][]*Metrics.Metrics
+func UnmarshalMetrics(data string) (DashboardMetrics, error) {
+	var metrics DashboardMetrics
 	err := json.Unmarshal([]byte(data), &metrics)
 	if err != nil {
 		return nil, err
@@ -18,20 +17,17 @@ func UnmarshalMetrics(data string) (map[string][]*Metrics.Metrics, error) {
 	return metrics, nil
 }
 
-func ConvertToDashboardMetrics(metrics map[string]map[string]uint64) map[string]map[time.Time]map[string]uint64 {
-	var metricsEntry map[string]map[time.Time]map[string]uint64
-	for metricType, metricMap := range metrics {
-		if metricsEntry[metricType] == nil {
-			metricsEntry[metricType] = make(map[time.Time]map[string]uint64)
-		}
-		metricsEntry[metricType][time.Now()] = metricMap
+func NewDashboardMetrics(typeMetrics map[string]*Metrics.Metrics) DashboardMetrics {
+	var dashboardMetrics = make(DashboardMetrics)
+	for metricType, metrics := range typeMetrics {
+		dashboardMetrics[metricType] = append(dashboardMetrics[metricType], metrics)
 	}
-	return metricsEntry
+	return dashboardMetrics
 }
 
 // merges metricsB into metricsA
-func MergeMetrics(metricsA map[string]map[string]uint64, metricsB map[string]map[string]uint64) {
-	for metricsType, metricsMap := range metricsB {
-		metricsA[metricsType] = metricsMap
+func MergeMetrics(typeMetricsA map[string]*Metrics.Metrics, typeMetricsB map[string]*Metrics.Metrics) {
+	for metricsType, metricsMap := range typeMetricsB {
+		typeMetricsA[metricsType] = metricsMap
 	}
 }

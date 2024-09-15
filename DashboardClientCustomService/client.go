@@ -62,7 +62,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					return Helpers.IntToString(customService.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.JsonMarshal(DashboardHelpers.ConvertToDashboardMetrics(customService.GetMetrics())), nil
+					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(customService.GetMetrics())), nil
 				},
 				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := customService.Start()
@@ -95,7 +95,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					name,
 					commands.GetKeyBoolMap(),
 					customService.GetStatus(),
-					DashboardHelpers.ConvertToDashboardMetrics(customService.GetMetrics()),
+					DashboardHelpers.NewDashboardMetrics(customService.GetMetrics()),
 				),
 				DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE,
 			).Marshal()

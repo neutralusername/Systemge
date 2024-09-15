@@ -43,7 +43,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 						metrics = getMetricsFunc()
 					}
 					DashboardHelpers.MergeMetrics(metrics, systemgeConnection.GetMetrics())
-					return Helpers.JsonMarshal(DashboardHelpers.ConvertToDashboardMetrics(metrics)), nil
+					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metrics)), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
@@ -136,7 +136,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
 					systemgeConnection.UnprocessedMessagesCount(),
-					DashboardHelpers.ConvertToDashboardMetrics(metrics),
+					DashboardHelpers.NewDashboardMetrics(metrics),
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()
