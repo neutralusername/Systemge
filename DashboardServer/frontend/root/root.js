@@ -187,10 +187,10 @@ export class root extends React.Component {
     pageRequest = (topic, payload) => {
         return JSON.stringify({
             topic : "pageRequest",
-            payload : {
+            payload : JSON.stringify({
                 topic: topic,
                 payload: payload,
-            },
+            }),
         })
     }
 

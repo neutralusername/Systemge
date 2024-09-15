@@ -1,1 +1,1 @@
-export const configs = {"FRONTEND_HEARTBEAT_INTERVAL":0,"WS_PATTERN":"/ws","WS_PORT":8444}
+export const configs = {"FRONTEND_HEARTBEAT_INTERVAL":60000,"WS_PATTERN":"/ws","WS_PORT":8444}

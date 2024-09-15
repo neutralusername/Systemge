@@ -50,7 +50,7 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	}
 	message, err := Message.Deserialize(filteresMessageBytes, "")
 	if err != nil {
-		return nil, Error.New("Failed to deserialize response", err)
+		return nil, Error.New("Failed to deserialize response \""+string(filteresMessageBytes)+"\"", err)
 	}
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Error.New("Expected \""+Message.TOPIC_NAME+"\" message, but got \""+message.GetTopic()+"\" message", nil)
