@@ -3,10 +3,14 @@ package DashboardHelpers
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func UnmarshalMetrics(data string) (map[string][]*Metrics, error) {
-	var metrics map[string][]*Metrics
+type DashboardMetrics map[string][]*Metrics.Metrics // metricType -> []*Metrics
+
+func UnmarshalMetrics(data string) (map[string][]*Metrics.Metrics, error) {
+	var metrics map[string][]*Metrics.Metrics
 	err := json.Unmarshal([]byte(data), &metrics)
 	if err != nil {
 		return nil, err
