@@ -28,3 +28,5 @@ add ChannelConnection and channelListener as more performant alternative for sys
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
 allow some kind of grouping of metrics on dashboards (no concrete ideas yet, probably further in the future)
+
+write something that takes in configs and create an executable, that can be used to easily perform systemge-operations through the command line (such as sending messages)
