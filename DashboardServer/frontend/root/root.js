@@ -237,9 +237,9 @@ export class root extends React.Component {
     getMultiLineGraph = (chartName, metrics) => {
         // metrics = [{keyValuePairs:{key1:value1}, time:time1},...]
         let dataSet = {}; // {key1:[value1, value2, ...], ...}
-        let xLabels = []; // [time1, time2, ...]
+        let timestamps = []; // [time1, time2, ...]
         metrics.forEach((metric) => {
-            xLabels.push(new Date(metric.time).toLocaleTimeString());
+            timestamps.push(new Date(metric.time).toLocaleTimeString());
             Object.keys(metric.keyValuePairs).forEach((key) => {
                 if (dataSet[key] === undefined) {
                     dataSet[key] = [];
@@ -253,7 +253,7 @@ export class root extends React.Component {
                 chartName: `${chartName}`,
                 dataLabels: Object.keys(dataSet),
                 dataSet: dataSet,
-                labels : xLabels,
+                labels : timestamps,
                 colors : this.state.generateRandomDistinctColors(Object.keys(dataSet)),
                 height: "400px",
                 width: "1200px",
