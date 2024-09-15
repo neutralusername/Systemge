@@ -2,6 +2,7 @@ package DashboardHelpers
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type CommandClient struct {
@@ -10,7 +11,7 @@ type CommandClient struct {
 	Metrics  map[string]map[string][]*MetricsEntry `json:"metrics"` //periodically automatically updated by the server
 }
 
-func NewCommandClient(name string, commands map[string]bool, metrics map[string]map[string]*MetricsEntry) *CommandClient {
+func NewCommandClient(name string, commands map[string]bool, metrics map[string]map[time.Time]map[string]uint64) *CommandClient {
 	metricsMap := map[string]map[string][]*MetricsEntry{}
 	for key, value := range metrics {
 		metricsMap[key] = map[string][]*MetricsEntry{}

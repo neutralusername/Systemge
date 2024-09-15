@@ -5,13 +5,8 @@ import (
 	"time"
 )
 
-type MetricsEntry struct {
-	Value uint64    `json:"value"`
-	Time  time.Time `json:"time"`
-}
-
-func UnmarshalMetrics(data string) (map[string]map[string]*MetricsEntry, error) {
-	var metrics map[string]map[string]*MetricsEntry
+func UnmarshalMetrics(data string) (map[string][]*Metrics, error) {
+	var metrics map[string][]*Metrics
 	err := json.Unmarshal([]byte(data), &metrics)
 	if err != nil {
 		return nil, err
@@ -19,18 +14,13 @@ func UnmarshalMetrics(data string) (map[string]map[string]*MetricsEntry, error) 
 	return metrics, nil
 }
 
-func ConvertMetrics(metrics map[string]map[string]uint64) map[string]map[string]*MetricsEntry {
-	var metricsEntry map[string]map[string]*MetricsEntry = make(map[string]map[string]*MetricsEntry)
+func ConvertToDashboardMetrics(metrics map[string]map[string]uint64) map[string]map[time.Time]map[string]uint64 {
+	var metricsEntry map[string]map[time.Time]map[string]uint64
 	for metricType, metricMap := range metrics {
 		if metricsEntry[metricType] == nil {
-			metricsEntry[metricType] = make(map[string]*MetricsEntry)
+			metricsEntry[metricType] = make(map[time.Time]map[string]uint64)
 		}
-		for metricName, metricValue := range metricMap {
-			metricsEntry[metricType][metricName] = &MetricsEntry{
-				Value: metricValue,
-				Time:  time.Now(),
-			}
-		}
+		metricsEntry[metricType][time.Now()] = metricMap
 	}
 	return metricsEntry
 }

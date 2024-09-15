@@ -13,7 +13,7 @@ import (
 func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]map[string]uint64, commands Commands.Handlers) *DashboardClient.Client {
 	var metrics map[string]map[string]*DashboardHelpers.MetricsEntry = make(map[string]map[string]*DashboardHelpers.MetricsEntry)
 	if getMetricsFunc != nil {
-		metrics = DashboardHelpers.ConvertMetrics(getMetricsFunc())
+		metrics = DashboardHelpers.ConvertToDashboardMetrics(getMetricsFunc())
 	}
 	return DashboardClient.New(
 		name,
@@ -32,7 +32,7 @@ func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[
 					if getMetricsFunc == nil {
 						return "", nil
 					}
-					return Helpers.JsonMarshal(DashboardHelpers.ConvertMetrics(getMetricsFunc())), nil
+					return Helpers.JsonMarshal(DashboardHelpers.ConvertToDashboardMetrics(getMetricsFunc())), nil
 				},
 			},
 			nil, nil,

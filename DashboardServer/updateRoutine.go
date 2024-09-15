@@ -186,7 +186,7 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 }
 
 func (server *Server) updateDashboardClientMetrics() error {
-	newMetrics := DashboardHelpers.ConvertMetrics(server.GetDashboardClientMetrics())
+	newMetrics := DashboardHelpers.ConvertToDashboardMetrics(server.GetDashboardClientMetrics())
 	server.addMetricsToDashboardClient(newMetrics)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
