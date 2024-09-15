@@ -25,7 +25,11 @@ export class dashboard extends React.Component {
 				},
 			}, 
 			React.createElement(
-				clientStatuses, this.props,
+				clientStatuses, {
+					WS_CONNECTION: this.props.WS_CONNECTION,
+					constructMessage: this.props.constructMessage,
+					clientStatuses: this.props.pageData.clientStatuses,
+				}
 			),
 			graphs,
 		)		
