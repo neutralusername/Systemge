@@ -72,9 +72,21 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_STOP:
-		if err := server.Stop(); err != nil {
-			return Error.New("Failed to stop systemge server", err)
+		clientName := request.GetPayload()
+		if clientName == "" {
+			return Error.New("No client name", nil)
 		}
+		connectedClient, ok := server.connectedClients[clientName]
+		if !ok {
+			return Error.New("Client not found", nil)
+		}
+		if err := server.handleClientStopRequest(connectedClient); err != nil {
+			return Error.New("Failed to stop client", err)
+		}
+		websocketClient.Send(Message.NewAsync(
+			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+			"success",
+		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_START:
 		clientName := request.GetPayload()
