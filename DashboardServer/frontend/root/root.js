@@ -73,18 +73,15 @@ export class root extends React.Component {
                 "#7b68ee",
                 "#ffb6c1",
             ],
-            generateRandomDistinctColors: this.getRandomDistinctColors,
+            generateRandomDistinctColors: this.generateRandomDistinctColors,
             constructMessage: this.constructMessage,
             getMultiLineGraph: this.getMultiLineGraph,
         };
         this.mergeData = this.mergeData.bind(this);
         this.setResponseMessage = this.setResponseMessage.bind(this);
         this.generateHash = this.generateHash.bind(this);
-        this.getRandomDistinctColors = this.getRandomDistinctColors.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleOpen = this.handleOpen.bind(this);
-        this.constructMessage = this.constructMessage.bind(this);
-        this.getMultiLineGraph = this.getMultiLineGraph.bind(this);
         this.getContent = this.getContent.bind(this);
         document.body.style.background = "#222426"
         document.body.style.color = "#ffffff"
@@ -95,7 +92,7 @@ export class root extends React.Component {
         this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
     }
 
-    handleMessage(event) {
+    handleMessage = (event) => {
         let message = JSON.parse(event.data);
         switch (message.topic) {
             case "error":
@@ -142,7 +139,7 @@ export class root extends React.Component {
         }
     }
 
-    mergeData(target, source) {
+    mergeData = (target, source) => {
         Object.keys(source).forEach((key) => {
             let sourceData = source[key];
             let targetData = target[key];
@@ -166,7 +163,7 @@ export class root extends React.Component {
         });
     }
 
-    handleClose() {
+    handleClose = () => {
         setTimeout(() => {
             if (this.WS_CONNECTION.readyState === WebSocket.CLOSED) {
                 window.location.reload();
@@ -174,7 +171,7 @@ export class root extends React.Component {
         }, 2000);
     }
 
-    handleOpen() {
+    handleOpen = () => {
         let pathName = window.location.pathname;
         if (pathName != "/") {
             pathName = window.location.pathname.slice(1);
@@ -187,14 +184,14 @@ export class root extends React.Component {
         setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
     }
 
-    constructMessage(topic, payload) {
+    constructMessage = (topic, payload) => {
         return JSON.stringify({
             topic: topic,
             payload: payload,
         });
     }
 
-    generateHash(str) {
+    generateHash = (str) => {
         let hash = 0;
         for (let i = 0; i < str.length && i < 30; i++) {
             const char = str.charCodeAt(i);
@@ -204,7 +201,7 @@ export class root extends React.Component {
         return Math.abs(hash);
     }
 
-    getRandomDistinctColors(strings) {
+    generateRandomDistinctColors = (strings) => {
         let colors = [];
         strings.forEach(str => {
             const hash = this.generateHash(str);
@@ -215,7 +212,7 @@ export class root extends React.Component {
         return colors;
     }
 
-    setResponseMessage(message) {
+    setResponseMessage = (message) => {
         let responseId = GenerateRandomAlphaNumericString(10);
         let responseMessages = this.state.responseMessages;
         responseMessages[responseId] = message;
@@ -237,7 +234,7 @@ export class root extends React.Component {
         });
     }
 
-    getMultiLineGraph(chartName, metrics) {
+    getMultiLineGraph = (chartName, metrics) => {
         // metrics = [{keyValuePairs:{key1:value1}, time:time1},...]
         let dataSet = {}; // {key1:[value1, value2, ...], ...}
         let xLabels = []; // [time1, time2, ...]
@@ -252,7 +249,7 @@ export class root extends React.Component {
                 dataSet[key].push(metric.keyValuePairs[key]);
             });
         })
-        let colors = this.getRandomDistinctColors(legend);
+        let colors = this.state.generateRandomDistinctColors(legend);
         return React.createElement(
             multiLineGraph, {
                 title: chartName,

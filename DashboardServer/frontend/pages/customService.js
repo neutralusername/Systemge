@@ -7,6 +7,11 @@ export class customService extends React.Component {
 	}
 
 	render() {
+		let graphs = [];
+		Object.keys(this.props.pageData.metrics).forEach((metricType) => {
+			let metrics = this.props.pageData.metrics[metricType];
+			graphs.push(this.props.getMultiLineGraph(metricType, metrics));
+		})
 		return React.createElement(
 			"div", {
 				className: "status",
@@ -16,6 +21,7 @@ export class customService extends React.Component {
 					alignItems: "center",
 				},
 			}, 
+			graphs,
 		)		
 	}
 }
