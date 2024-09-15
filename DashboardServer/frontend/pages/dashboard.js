@@ -1,3 +1,7 @@
+import { 
+	clientStatuses 
+} from "../components/clientStatuses.js";
+
 export class dashboard extends React.Component {
 	constructor(props) {
 		super(props);
@@ -21,6 +25,9 @@ export class dashboard extends React.Component {
 					alignItems: "center",
 				},
 			}, 
+			React.createElement(
+				clientStatuses, this.props,
+			),
 			graphs,
 		)		
 	}
