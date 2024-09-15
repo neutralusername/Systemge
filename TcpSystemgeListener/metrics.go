@@ -1,19 +1,23 @@
 package TcpSystemgeListener
 
-func (listener *TcpListener) CheckMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"connection_attempts":  listener.CheckConnectionAttempts(),
-		"failed_connections":   listener.CheckFailedConnections(),
-		"rejected_connections": listener.CheckRejectedConnections(),
-		"accepted_connections": listener.CheckAcceptedConnections(),
+func (listener *TcpListener) CheckMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"tcp_systemge_listener": {
+			"connection_attempts":  listener.CheckConnectionAttempts(),
+			"failed_connections":   listener.CheckFailedConnections(),
+			"rejected_connections": listener.CheckRejectedConnections(),
+			"accepted_connections": listener.CheckAcceptedConnections(),
+		},
 	}
 }
-func (listener *TcpListener) GetMetrics() map[string]uint64 {
-	return map[string]uint64{
-		"connection_attempts":  listener.GetConnectionAttempts(),
-		"failed_connections":   listener.GetFailedConnections(),
-		"rejected_connections": listener.GetRejectedConnections(),
-		"accepted_connections": listener.GetAcceptedConnections(),
+func (listener *TcpListener) GetMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"tcp_systemge_listener": {
+			"connection_attempts":  listener.GetConnectionAttempts(),
+			"failed_connections":   listener.GetFailedConnections(),
+			"rejected_connections": listener.GetRejectedConnections(),
+			"accepted_connections": listener.GetAcceptedConnections(),
+		},
 	}
 }
 

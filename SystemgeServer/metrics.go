@@ -4,7 +4,7 @@ import "github.com/neutralusername/Systemge/Status"
 
 func (server *SystemgeServer) CheckMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"systemgeServer": {
+		"systemge_server": {
 			"connection_attempts":             server.CheckConnectionAttempts(),
 			"failed_connections":              server.CheckFailedConnections(),
 			"rejected_connections":            server.CheckRejectedConnections(),
@@ -28,7 +28,7 @@ func (server *SystemgeServer) CheckMetrics() map[string]map[string]uint64 {
 
 func (server *SystemgeServer) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"systemgeServer": {
+		"systemge_server": {
 			"connection_attempts":             server.GetConnectionAttempts(),
 			"failed_connections":              server.GetFailedConnections(),
 			"rejected_connections":            server.GetRejectedConnections(),

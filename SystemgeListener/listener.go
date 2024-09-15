@@ -18,6 +18,6 @@ type SystemgeListener interface {
 	GetConnectionAttempts() uint64
 	GetFailedConnections() uint64
 	GetRejectedConnections() uint64
-	GetMetrics() map[string]uint64
-	CheckMetrics() map[string]uint64
+	GetMetrics() map[string]map[string]uint64
+	CheckMetrics() map[string]map[string]uint64
 }

@@ -6,7 +6,7 @@ func (resolver *Resolver) CheckMetrics() map[string]map[string]uint64 {
 		metrics[metricsType] = metricsMap
 	}
 	resolver.mutex.Lock()
-	metrics["brokerResolverMetrics"] = map[string]uint64{
+	metrics["broker_resolver"] = map[string]uint64{
 		"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
 		"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
 		"failed_resolutions":          resolver.CheckFailedResolutions(),
@@ -23,7 +23,7 @@ func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
 		metrics[metricsType] = metricsMap
 	}
 	resolver.mutex.Lock()
-	metrics["brokerResolverMetrics"] = map[string]uint64{
+	metrics["broker_resolver"] = map[string]uint64{
 		"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
 		"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
 		"failed_resolutions":          resolver.GetFailedResolutions(),

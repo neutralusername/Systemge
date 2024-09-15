@@ -2,15 +2,15 @@ package HTTPServer
 
 func (server *HTTPServer) CheckMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"httpServer": {
-			"requestCounter": server.CheckHTTPRequestCounter(),
+		"http_server": {
+			"request_counter": server.CheckHTTPRequestCounter(),
 		},
 	}
 }
 func (server *HTTPServer) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"httpServer": {
-			"requestCounter": server.GetTTPRequestCounter(),
+		"http_server": {
+			"request_counter": server.GetTTPRequestCounter(),
 		},
 	}
 }

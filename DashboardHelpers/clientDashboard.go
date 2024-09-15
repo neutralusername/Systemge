@@ -4,10 +4,10 @@ import "encoding/json"
 
 const (
 	DASHBOARD_CLIENT_NAME               = "/"
-	DASHBOARD_METRICSTYPE_SYSTEMGE      = "systemgeMetrics"
-	DASHBOARD_METRICSTYPE_WEBSOCKET     = "websocketMetrics"
-	DASHBOARD_METRICSTYPE_HTTP          = "httpMetrics"
-	DASHBOARD_METRICSTYPE_RESOURCEUSAGE = "resourceUsageMetrics"
+	DASHBOARD_METRICSTYPE_SYSTEMGE      = "systemge_metrics"
+	DASHBOARD_METRICSTYPE_WEBSOCKET     = "websocket_metrics"
+	DASHBOARD_METRICSTYPE_HTTP          = "http_metrics"
+	DASHBOARD_METRICSTYPE_RESOURCEUSAGE = "resource_usage_metrics"
 )
 
 func NewDashboardClient(name string, commands map[string]bool) *DashboardClient {

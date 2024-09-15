@@ -3,7 +3,7 @@ package WebsocketServer
 // returns the metrics without resetting the counters
 func (server *WebsocketServer) CheckMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"websocketServer": {
+		"websocket_server": {
 			"bytes_sent":         server.CheckBytesSentCounter(),
 			"bytes_received":     server.CheckBytesReceivedCounter(),
 			"incoming_messages":  uint64(server.CheckIncomingMessageCounter()),
@@ -16,7 +16,7 @@ func (server *WebsocketServer) CheckMetrics() map[string]map[string]uint64 {
 // returns the metrics and resets the counters to 0
 func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"websocketServer": {
+		"websocket_server": {
 			"bytes_sent":         server.GetBytesSentCounter(),
 			"bytes_received":     server.GetBytesReceivedCounter(),
 			"incoming_messages":  uint64(server.GetIncomingMessageCounter()),

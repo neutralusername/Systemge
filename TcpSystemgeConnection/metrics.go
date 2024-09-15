@@ -2,7 +2,7 @@ package TcpSystemgeConnection
 
 func (connection *TcpConnection) CheckMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"tcp_systemge_connection_" + connection.GetName(): {
+		"tcp_systemge_connection": {
 			"bytes_sent":                      connection.CheckBytesSent(),
 			"bytes_received":                  connection.CheckBytesReceived(),
 			"async_messages_sent":             connection.CheckAsyncMessagesSent(),
@@ -21,7 +21,7 @@ func (connection *TcpConnection) CheckMetrics() map[string]map[string]uint64 {
 
 func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		"tcp_systemge_connection_" + connection.GetName(): {
+		"tcp_systemge_connection": {
 			"bytes_sent":                      connection.GetBytesSent(),
 			"bytes_received":                  connection.GetBytesReceived(),
 			"async_messages_sent":             connection.GetAsyncMessagesSent(),
