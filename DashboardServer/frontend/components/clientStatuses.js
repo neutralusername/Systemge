@@ -1,9 +1,10 @@
-// expects props:
-// WS_CONNECTION
-// constructMessage
+
 
 import { status } from "./status.js";
 
+// expects props:
+// WS_CONNECTION
+// constructMessage
 // clientStatuses = {name: status}
 export class clientStatuses extends React.Component {
 	constructor(props) {
