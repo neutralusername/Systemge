@@ -12,7 +12,7 @@ import {
 } from "../pages/command.js";
 import {
     systemgeConnection
-} from "../pages/systemGeConnection.js";
+} from "../pages/systemgeConnection.js";
 import { 
     multiLineGraph 
 } from "../components/graphs/multiLineGraph.js";
