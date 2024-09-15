@@ -207,7 +207,7 @@ func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(server.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := server.GetMetrics_()
+		metrics := server.CheckMetrics()
 		return Helpers.JsonMarshal(metrics), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) {

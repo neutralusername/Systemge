@@ -140,14 +140,14 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]uint64 {
+func (messageHandler *ConcurrentMessageHandler) CheckMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
 	metrics["async_messages_handled"] = messageHandler.GetAsyncMessagesHandled()
 	metrics["sync_requests_handled"] = messageHandler.GetSyncRequestsHandled()
 	metrics["unknown_topics_received"] = messageHandler.GetUnknownTopicsReceived()
 	return metrics
 }
-func (messageHandler *ConcurrentMessageHandler) RetrieveMetrics() map[string]uint64 {
+func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]uint64 {
 	metrics := map[string]uint64{}
 	metrics["async_messages_handled"] = messageHandler.RetrieveAsyncMessagesHandled()
 	metrics["sync_requests_handled"] = messageHandler.RetrieveSyncRequestsHandled()

@@ -153,7 +153,23 @@ func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
 
-func (server *Server) GetMetrics_() map[string]map[string]uint64 {
+func (server *Server) CheckMetrics() map[string]map[string]uint64 {
+	metrics := map[string]map[string]uint64{}
+	metrics["single_request_server"] = map[string]uint64{
+		"invalid_messages":         server.CheckInvalidMessages(),
+		"succeeded_commands":       server.CheckSucceededCommands(),
+		"failed_commands":          server.CheckFailedCommands(),
+		"succeeded_async_messages": server.CheckSucceededAsyncMessages(),
+		"failed_async_messages":    server.CheckFailedAsyncMessages(),
+		"succeeded_sync_messages":  server.CheckSucceededSyncMessages(),
+		"failed_sync_messages":     server.CheckFailedSyncMessages(),
+	}
+	for metricsType, metricsMap := range server.systemgeServer.CheckMetrics() {
+		metrics[metricsType] = metricsMap
+	}
+	return metrics
+}
+func (server *Server) GetMetrics() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
 	metrics["single_request_server"] = map[string]uint64{
 		"invalid_messages":         server.GetInvalidMessages(),
@@ -164,74 +180,58 @@ func (server *Server) GetMetrics_() map[string]map[string]uint64 {
 		"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
 		"failed_sync_messages":     server.GetFailedSyncMessages(),
 	}
-	for metricsType, metricsMap := range server.systemgeServer.GetMetrics_() {
-		metrics[metricsType] = metricsMap
-	}
-	return metrics
-}
-func (server *Server) GetMetrics() map[string]map[string]uint64 {
-	metrics := map[string]map[string]uint64{}
-	metrics["single_request_server"] = map[string]uint64{
-		"invalid_messages":         server.RetrieveInvalidMessages(),
-		"succeeded_commands":       server.RetrieveSucceededCommands(),
-		"failed_commands":          server.RetrieveFailedCommands(),
-		"succeeded_async_messages": server.RetrieveSucceededAsyncMessages(),
-		"failed_async_messages":    server.RetrieveFailedAsyncMessages(),
-		"succeeded_sync_messages":  server.RetrieveSucceededSyncMessages(),
-		"failed_sync_messages":     server.RetrieveFailedSyncMessages(),
-	}
 	for metricsType, metricsMap := range server.systemgeServer.GetMetrics() {
 		metrics[metricsType] = metricsMap
 	}
 	return metrics
 }
 
-func (server *Server) GetInvalidMessages() uint64 {
+func (server *Server) CheckInvalidMessages() uint64 {
 	return server.invalidMessages.Load()
 }
-func (server *Server) RetrieveInvalidMessages() uint64 {
+func (server *Server) GetInvalidMessages() uint64 {
 	return server.invalidMessages.Swap(0)
 }
 
-func (server *Server) GetSucceededCommands() uint64 {
+func (server *Server) CheckSucceededCommands() uint64 {
 	return server.succeededCommands.Load()
 }
-func (server *Server) RetrieveSucceededCommands() uint64 {
+func (server *Server) GetSucceededCommands() uint64 {
 	return server.succeededCommands.Swap(0)
 }
 
-func (server *Server) GetFailedCommands() uint64 {
+func (server *Server) CheckFailedCommands() uint64 {
 	return server.failedCommands.Load()
 }
-func (server *Server) RetrieveFailedCommands() uint64 {
+func (server *Server) GetFailedCommands() uint64 {
 	return server.failedCommands.Swap(0)
 }
 
-func (server *Server) GetSucceededAsyncMessages() uint64 {
+func (server *Server) CheckSucceededAsyncMessages() uint64 {
 	return server.succeededAsyncMessages.Load()
 }
-func (server *Server) RetrieveSucceededAsyncMessages() uint64 {
+func (server *Server) GetSucceededAsyncMessages() uint64 {
 	return server.succeededAsyncMessages.Swap(0)
 }
 
-func (server *Server) GetFailedAsyncMessages() uint64 {
+func (server *Server) CheckFailedAsyncMessages() uint64 {
 	return server.failedAsyncMessages.Load()
 }
-func (server *Server) RetrieveFailedAsyncMessages() uint64 {
+func (server *Server) GetFailedAsyncMessages() uint64 {
 	return server.failedAsyncMessages.Swap(0)
 }
 
-func (server *Server) GetSucceededSyncMessages() uint64 {
+func (server *Server) CheckSucceededSyncMessages() uint64 {
 	return server.succeededSyncMessages.Load()
 }
-func (server *Server) RetrieveSucceededSyncMessages() uint64 {
+func (server *Server) GetSucceededSyncMessages() uint64 {
 	return server.succeededSyncMessages.Swap(0)
 }
 
-func (server *Server) GetFailedSyncMessages() uint64 {
+func (server *Server) CheckFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Load()
 }
-func (server *Server) RetrieveFailedSyncMessages() uint64 {
+func (server *Server) GetFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Swap(0)
 }
 
@@ -255,7 +255,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(server.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) { //overriding the getMetrics command from the systemgeServer
-		metrics := server.GetMetrics_()
+		metrics := server.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("Failed to marshal metrics to json", err)

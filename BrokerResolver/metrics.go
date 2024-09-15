@@ -1,15 +1,15 @@
 package BrokerResolver
 
-func (resolver *Resolver) GetMetrics_() map[string]map[string]uint64 {
+func (resolver *Resolver) CheckMetrics() map[string]map[string]uint64 {
 	metrics := map[string]map[string]uint64{}
-	for metricsType, metricsMap := range resolver.systemgeServer.GetMetrics_() {
+	for metricsType, metricsMap := range resolver.systemgeServer.CheckMetrics() {
 		metrics[metricsType] = metricsMap
 	}
 	resolver.mutex.Lock()
 	metrics["brokerResolverMetrics"] = map[string]uint64{
-		"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
-		"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
-		"failed_resolutions":          resolver.GetFailedResolutions(),
+		"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
+		"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
+		"failed_resolutions":          resolver.CheckFailedResolutions(),
 		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Load()),
 		"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
 		"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
@@ -24,10 +24,10 @@ func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
 	}
 	resolver.mutex.Lock()
 	metrics["brokerResolverMetrics"] = map[string]uint64{
-		"sucessful_async_resolutions": resolver.RetrieveSucessfulAsyncResolutions(),
-		"sucessful_sync_resolutions":  resolver.RetrieveSucessfulSyncResolutions(),
-		"failed_resolutions":          resolver.RetrieveFailedResolutions(),
-		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Swap(0)),
+		"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
+		"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
+		"failed_resolutions":          resolver.GetFailedResolutions(),
+		"ongoing_resolutions":         uint64(resolver.ongoingResolutions.Load()),
 		"async_topic_count":           uint64(len(resolver.asyncTopicEndpoints)),
 		"sync_topic_count":            uint64(len(resolver.syncTopicEndpoints)),
 	}
@@ -35,23 +35,23 @@ func (resolver *Resolver) GetMetrics() map[string]map[string]uint64 {
 	return metrics
 }
 
-func (resolver *Resolver) GetSucessfulAsyncResolutions() uint64 {
+func (resolver *Resolver) CheckSucessfulAsyncResolutions() uint64 {
 	return resolver.sucessfulAsyncResolutions.Load()
 }
-func (resolver *Resolver) RetrieveSucessfulAsyncResolutions() uint64 {
+func (resolver *Resolver) GetSucessfulAsyncResolutions() uint64 {
 	return resolver.sucessfulAsyncResolutions.Swap(0)
 }
 
-func (resolver *Resolver) GetSucessfulSyncResolutions() uint64 {
+func (resolver *Resolver) CheckSucessfulSyncResolutions() uint64 {
 	return resolver.sucessfulSyncResolutions.Load()
 }
-func (resolver *Resolver) RetrieveSucessfulSyncResolutions() uint64 {
+func (resolver *Resolver) GetSucessfulSyncResolutions() uint64 {
 	return resolver.sucessfulSyncResolutions.Swap(0)
 }
 
-func (resolver *Resolver) GetFailedResolutions() uint64 {
+func (resolver *Resolver) CheckFailedResolutions() uint64 {
 	return resolver.failedResolutions.Load()
 }
-func (resolver *Resolver) RetrieveFailedResolutions() uint64 {
+func (resolver *Resolver) GetFailedResolutions() uint64 {
 	return resolver.failedResolutions.Swap(0)
 }

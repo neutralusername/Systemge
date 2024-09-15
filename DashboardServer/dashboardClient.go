@@ -1,27 +1,16 @@
 package DashboardServer
 
 import (
-	"runtime"
-
 	"github.com/neutralusername/Systemge/DashboardHelpers"
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (server *Server) getHeapUsage() uint64 {
-	var memStats runtime.MemStats
-	runtime.ReadMemStats(&memStats)
-	return memStats.HeapSys
-}
-
-func (server *Server) getGoroutineCount() int {
-	return runtime.NumGoroutine()
-}
-
-func (server *Server) retrieveDashboardClientMetrics() map[string]map[string]uint64 {
+func (server *Server) GetDashboardClientMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
-		DashboardHelpers.DASHBOARD_METRICSTYPE_SYSTEMGE:      server.RetrieveSystemgeMetrics(),
-		DashboardHelpers.DASHBOARD_METRICSTYPE_WEBSOCKET:     server.RetrieveWebsocketMetrics(),
-		DashboardHelpers.DASHBOARD_METRICSTYPE_HTTP:          server.RetrieveHttpMetrics(),
-		DashboardHelpers.DASHBOARD_METRICSTYPE_RESOURCEUSAGE: server.GetResourceUsageMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_SYSTEMGE:      server.GetSystemgeMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_WEBSOCKET:     server.GetWebsocketMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_HTTP:          server.GetHttpMetrics(),
+		DashboardHelpers.DASHBOARD_METRICSTYPE_RESOURCEUSAGE: server.CheckResourceUsageMetrics(),
 	}
 }
 
@@ -39,21 +28,21 @@ func (server *Server) addMetricsToDashboardClient(metrics map[string]map[string]
 	}
 }
 
-func (server *Server) GetResourceUsageMetrics() map[string]uint64 {
+func (server *Server) CheckResourceUsageMetrics() map[string]uint64 {
 	return map[string]uint64{
-		"heap_usage":      server.getHeapUsage(),
-		"goroutine_count": uint64(server.getGoroutineCount()),
+		"heap_usage":      Helpers.HeapUsage(),
+		"goroutine_count": uint64(Helpers.GoroutineCount()),
 	}
 }
 
-func (server *Server) GetSystemgeMetrics() map[string]uint64 {
-	metrics := server.systemgeServer.GetMetrics_()
+func (server *Server) CheckSystemgeMetrics() map[string]uint64 {
+	metrics := server.systemgeServer.CheckMetrics()
 	for _, value := range metrics {
 		return value
 	}
 	return nil
 }
-func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
+func (server *Server) GetSystemgeMetrics() map[string]uint64 {
 	metrics := server.systemgeServer.GetMetrics()
 	for _, value := range metrics {
 		return value
@@ -61,14 +50,14 @@ func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
 	return nil
 }
 
-func (server *Server) GetWebsocketMetrics() map[string]uint64 {
-	metrics := server.websocketServer.GetMetrics_()
+func (server *Server) CheckWebsocketMetrics() map[string]uint64 {
+	metrics := server.websocketServer.CheckMetrics()
 	for _, value := range metrics {
 		return value
 	}
 	return nil
 }
-func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
+func (server *Server) GetWebsocketMetrics() map[string]uint64 {
 	metrics := server.websocketServer.GetMetrics()
 	for _, value := range metrics {
 		return value
@@ -76,14 +65,14 @@ func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
 	return nil
 }
 
-func (server *Server) GetHttpMetrics() map[string]uint64 {
-	metrics := server.httpServer.GetMetrics_()
+func (server *Server) CheckHttpMetrics() map[string]uint64 {
+	metrics := server.httpServer.CheckMetrics()
 	for _, value := range metrics {
 		return value
 	}
 	return nil
 }
-func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
+func (server *Server) GetHttpMetrics() map[string]uint64 {
 	metrics := server.httpServer.GetMetrics()
 	for _, value := range metrics {
 		return value

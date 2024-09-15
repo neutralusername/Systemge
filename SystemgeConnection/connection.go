@@ -10,39 +10,39 @@ type SystemgeConnection interface {
 	AsyncMessage(topic string, payload string) error
 	Close() error
 	GetAddress() string
+	GetCloseChannel() <-chan bool
+	GetDefaultCommands() Commands.Handlers
+	GetName() string
+	GetNextMessage() (*Message.Message, error)
+	GetStatus() int
+	CheckInvalidMessagesReceived() uint64
+	CheckInvalidSyncResponsesReceived() uint64
+	CheckMessageRateLimiterExceeded() uint64
+	CheckMetrics() map[string]map[string]uint64
+	CheckNoSyncResponseReceived() uint64
+	CheckSyncFailureResponsesReceived() uint64
+	CheckSyncRequestsSent() uint64
+	CheckSyncSuccessResponsesReceived() uint64
+	CheckValidMessagesReceived() uint64
+	CheckAsyncMessagesSent() uint64
+	CheckByteRateLimiterExceeded() uint64
+	CheckBytesReceived() uint64
+	CheckBytesSent() uint64
+	IsProcessingLoopRunning() bool
+	ProcessMessage(message *Message.Message, messageHandler MessageHandler) error
 	GetAsyncMessagesSent() uint64
 	GetByteRateLimiterExceeded() uint64
 	GetBytesReceived() uint64
 	GetBytesSent() uint64
-	GetCloseChannel() <-chan bool
-	GetDefaultCommands() Commands.Handlers
 	GetInvalidMessagesReceived() uint64
 	GetInvalidSyncResponsesReceived() uint64
 	GetMessageRateLimiterExceeded() uint64
-	GetMetrics_() map[string]map[string]uint64
-	GetName() string
-	GetNextMessage() (*Message.Message, error)
+	GetMetrics() map[string]map[string]uint64
 	GetNoSyncResponseReceived() uint64
-	GetStatus() int
-	IsProcessingLoopRunning() bool
 	GetSyncFailureResponsesReceived() uint64
 	GetSyncRequestsSent() uint64
 	GetSyncSuccessResponsesReceived() uint64
 	GetValidMessagesReceived() uint64
-	ProcessMessage(message *Message.Message, messageHandler MessageHandler) error
-	RetrieveAsyncMessagesSent() uint64
-	RetrieveByteRateLimiterExceeded() uint64
-	RetrieveBytesReceived() uint64
-	RetrieveBytesSent() uint64
-	RetrieveInvalidMessagesReceived() uint64
-	RetrieveInvalidSyncResponsesReceived() uint64
-	RetrieveMessageRateLimiterExceeded() uint64
-	GetMetrics() map[string]map[string]uint64
-	RetrieveNoSyncResponseReceived() uint64
-	RetrieveSyncFailureResponsesReceived() uint64
-	RetrieveSyncRequestsSent() uint64
-	RetrieveSyncSuccessResponsesReceived() uint64
-	RetrieveValidMessagesReceived() uint64
 	StartProcessingLoopConcurrently(messageHandler MessageHandler) error
 	StartProcessingLoopSequentially(messageHandler MessageHandler) error
 	StopProcessingLoop() error

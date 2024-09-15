@@ -139,7 +139,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 			return Status.ToString(server.GetStatus()), nil
 		},
 		"getMetrics": func(args []string) (string, error) {
-			metrics := server.GetMetrics_()
+			metrics := server.CheckMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
 				return "", Error.New("failed to marshal metrics to json", err)

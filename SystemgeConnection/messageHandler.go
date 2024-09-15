@@ -18,8 +18,8 @@ type MessageHandler interface {
 	GetAsyncTopics() []string
 	GetSyncTopics() []string
 
+	CheckMetrics() map[string]uint64
 	GetMetrics() map[string]uint64
-	RetrieveMetrics() map[string]uint64
 
 	GetAsyncMessagesHandled() uint64
 	RetrieveAsyncMessagesHandled() uint64

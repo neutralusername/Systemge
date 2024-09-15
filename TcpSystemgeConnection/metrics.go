@@ -1,6 +1,25 @@
 package TcpSystemgeConnection
 
-func (connection *TcpConnection) GetMetrics_() map[string]map[string]uint64 {
+func (connection *TcpConnection) CheckMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"tcp_systemge_connection_" + connection.GetName(): {
+			"bytes_sent":                      connection.CheckBytesSent(),
+			"bytes_received":                  connection.CheckBytesReceived(),
+			"async_messages_sent":             connection.CheckAsyncMessagesSent(),
+			"sync_requests_sent":              connection.CheckSyncRequestsSent(),
+			"sync_success_responses_received": connection.CheckSyncSuccessResponsesReceived(),
+			"sync_failure_responses_received": connection.CheckSyncFailureResponsesReceived(),
+			"no_sync_response_received":       connection.CheckNoSyncResponseReceived(),
+			"invalid_messages_received":       connection.CheckInvalidMessagesReceived(),
+			"invalid_sync_responses_received": connection.CheckInvalidSyncResponsesReceived(),
+			"valid_messages_received":         connection.CheckValidMessagesReceived(),
+			"message_rate_limiter_exceeded":   connection.CheckMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":      connection.CheckByteRateLimiterExceeded(),
+		},
+	}
+}
+
+func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"tcp_systemge_connection_" + connection.GetName(): {
 			"bytes_sent":                      connection.GetBytesSent(),
@@ -19,105 +38,86 @@ func (connection *TcpConnection) GetMetrics_() map[string]map[string]uint64 {
 	}
 }
 
-func (connection *TcpConnection) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
-		"tcp_systemge_connection_" + connection.GetName(): {
-			"bytes_sent":                      connection.RetrieveBytesSent(),
-			"bytes_received":                  connection.RetrieveBytesReceived(),
-			"async_messages_sent":             connection.RetrieveAsyncMessagesSent(),
-			"sync_requests_sent":              connection.RetrieveSyncRequestsSent(),
-			"sync_success_responses_received": connection.RetrieveSyncSuccessResponsesReceived(),
-			"sync_failure_responses_received": connection.RetrieveSyncFailureResponsesReceived(),
-			"no_sync_response_received":       connection.RetrieveNoSyncResponseReceived(),
-			"invalid_messages_received":       connection.RetrieveInvalidMessagesReceived(),
-			"invalid_sync_responses_received": connection.RetrieveInvalidSyncResponsesReceived(),
-			"valid_messages_received":         connection.RetrieveValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   connection.RetrieveMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      connection.RetrieveByteRateLimiterExceeded(),
-		},
-	}
-}
-
-func (connection *TcpConnection) GetBytesSent() uint64 {
+func (connection *TcpConnection) CheckBytesSent() uint64 {
 	return connection.bytesSent.Load()
 }
-func (connection *TcpConnection) RetrieveBytesSent() uint64 {
+func (connection *TcpConnection) GetBytesSent() uint64 {
 	return connection.bytesSent.Swap(0)
 }
 
-func (connection *TcpConnection) GetBytesReceived() uint64 {
+func (connection *TcpConnection) CheckBytesReceived() uint64 {
 	return connection.bytesReceived.Load()
 }
-func (connection *TcpConnection) RetrieveBytesReceived() uint64 {
+func (connection *TcpConnection) GetBytesReceived() uint64 {
 	return connection.bytesReceived.Swap(0)
 }
 
-func (connection *TcpConnection) GetAsyncMessagesSent() uint64 {
+func (connection *TcpConnection) CheckAsyncMessagesSent() uint64 {
 	return connection.asyncMessagesSent.Load()
 }
-func (connection *TcpConnection) RetrieveAsyncMessagesSent() uint64 {
+func (connection *TcpConnection) GetAsyncMessagesSent() uint64 {
 	return connection.asyncMessagesSent.Swap(0)
 }
 
-func (connection *TcpConnection) GetSyncRequestsSent() uint64 {
+func (connection *TcpConnection) CheckSyncRequestsSent() uint64 {
 	return connection.syncRequestsSent.Load()
 }
-func (connection *TcpConnection) RetrieveSyncRequestsSent() uint64 {
+func (connection *TcpConnection) GetSyncRequestsSent() uint64 {
 	return connection.syncRequestsSent.Swap(0)
 }
 
-func (connection *TcpConnection) GetSyncSuccessResponsesReceived() uint64 {
+func (connection *TcpConnection) CheckSyncSuccessResponsesReceived() uint64 {
 	return connection.syncSuccessResponsesReceived.Load()
 }
-func (connection *TcpConnection) RetrieveSyncSuccessResponsesReceived() uint64 {
+func (connection *TcpConnection) GetSyncSuccessResponsesReceived() uint64 {
 	return connection.syncSuccessResponsesReceived.Swap(0)
 }
 
-func (connection *TcpConnection) GetSyncFailureResponsesReceived() uint64 {
+func (connection *TcpConnection) CheckSyncFailureResponsesReceived() uint64 {
 	return connection.syncFailureResponsesReceived.Load()
 }
-func (connection *TcpConnection) RetrieveSyncFailureResponsesReceived() uint64 {
+func (connection *TcpConnection) GetSyncFailureResponsesReceived() uint64 {
 	return connection.syncFailureResponsesReceived.Swap(0)
 }
 
-func (connection *TcpConnection) GetNoSyncResponseReceived() uint64 {
+func (connection *TcpConnection) CheckNoSyncResponseReceived() uint64 {
 	return connection.noSyncResponseReceived.Load()
 }
-func (connection *TcpConnection) RetrieveNoSyncResponseReceived() uint64 {
+func (connection *TcpConnection) GetNoSyncResponseReceived() uint64 {
 	return connection.noSyncResponseReceived.Swap(0)
 }
 
-func (receiver *TcpConnection) GetInvalidMessagesReceived() uint64 {
+func (receiver *TcpConnection) CheckInvalidMessagesReceived() uint64 {
 	return receiver.invalidMessagesReceived.Load()
 }
-func (receiver *TcpConnection) RetrieveInvalidMessagesReceived() uint64 {
+func (receiver *TcpConnection) GetInvalidMessagesReceived() uint64 {
 	return receiver.invalidMessagesReceived.Swap(0)
 }
 
-func (receiver *TcpConnection) GetInvalidSyncResponsesReceived() uint64 {
+func (receiver *TcpConnection) CheckInvalidSyncResponsesReceived() uint64 {
 	return receiver.invalidSyncResponsesReceived.Load()
 }
-func (receiver *TcpConnection) RetrieveInvalidSyncResponsesReceived() uint64 {
+func (receiver *TcpConnection) GetInvalidSyncResponsesReceived() uint64 {
 	return receiver.invalidSyncResponsesReceived.Swap(0)
 }
 
-func (receiver *TcpConnection) GetValidMessagesReceived() uint64 {
+func (receiver *TcpConnection) CheckValidMessagesReceived() uint64 {
 	return receiver.validMessagesReceived.Load()
 }
-func (receiver *TcpConnection) RetrieveValidMessagesReceived() uint64 {
+func (receiver *TcpConnection) GetValidMessagesReceived() uint64 {
 	return receiver.validMessagesReceived.Swap(0)
 }
 
-func (receiver *TcpConnection) GetMessageRateLimiterExceeded() uint64 {
+func (receiver *TcpConnection) CheckMessageRateLimiterExceeded() uint64 {
 	return receiver.messageRateLimiterExceeded.Load()
 }
-func (receiver *TcpConnection) RetrieveMessageRateLimiterExceeded() uint64 {
+func (receiver *TcpConnection) GetMessageRateLimiterExceeded() uint64 {
 	return receiver.messageRateLimiterExceeded.Swap(0)
 }
 
-func (receiver *TcpConnection) GetByteRateLimiterExceeded() uint64 {
+func (receiver *TcpConnection) CheckByteRateLimiterExceeded() uint64 {
 	return receiver.byteRateLimiterExceeded.Load()
 }
-func (receiver *TcpConnection) RetrieveByteRateLimiterExceeded() uint64 {
+func (receiver *TcpConnection) GetByteRateLimiterExceeded() uint64 {
 	return receiver.byteRateLimiterExceeded.Swap(0)
 }

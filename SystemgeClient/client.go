@@ -161,7 +161,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		return Status.ToString(client.GetStatus()), nil
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := client.GetMetrics()
+		metrics := client.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)
@@ -169,7 +169,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := client.RetrieveMetrics()
+		metrics := client.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
 			return "", Error.New("failed to marshal metrics to json", err)

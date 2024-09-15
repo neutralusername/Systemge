@@ -1,6 +1,20 @@
 package WebsocketServer
 
-func (server *WebsocketServer) GetMetrics_() map[string]map[string]uint64 {
+// returns the metrics without resetting the counters
+func (server *WebsocketServer) CheckMetrics() map[string]map[string]uint64 {
+	return map[string]map[string]uint64{
+		"websocketServer": {
+			"bytes_sent":         server.CheckBytesSentCounter(),
+			"bytes_received":     server.CheckBytesReceivedCounter(),
+			"incoming_messages":  uint64(server.CheckIncomingMessageCounter()),
+			"outgoing_messages":  uint64(server.CheckOutgoingMessageCounter()),
+			"active_connections": uint64(server.GetClientCount()),
+		},
+	}
+}
+
+// returns the metrics and resets the counters to 0
+func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
 	return map[string]map[string]uint64{
 		"websocketServer": {
 			"bytes_sent":         server.GetBytesSentCounter(),
@@ -12,43 +26,30 @@ func (server *WebsocketServer) GetMetrics_() map[string]map[string]uint64 {
 	}
 }
 
-// retrieve
-func (server *WebsocketServer) GetMetrics() map[string]map[string]uint64 {
-	return map[string]map[string]uint64{
-		"websocketServer": {
-			"bytes_sent":         server.RetrieveBytesSentCounter(),
-			"bytes_received":     server.RetrieveBytesReceivedCounter(),
-			"incoming_messages":  uint64(server.RetrieveIncomingMessageCounter()),
-			"outgoing_messages":  uint64(server.RetrieveOutgoingMessageCounter()),
-			"active_connections": uint64(server.GetClientCount()),
-		},
-	}
-}
-
-func (server *WebsocketServer) RetrieveBytesSentCounter() uint64 {
+func (server *WebsocketServer) GetBytesSentCounter() uint64 {
 	return server.bytesSentCounter.Swap(0)
 }
-func (server *WebsocketServer) GetBytesSentCounter() uint64 {
+func (server *WebsocketServer) CheckBytesSentCounter() uint64 {
 	return server.bytesSentCounter.Load()
 }
 
-func (server *WebsocketServer) RetrieveBytesReceivedCounter() uint64 {
+func (server *WebsocketServer) GetBytesReceivedCounter() uint64 {
 	return server.bytesReceivedCounter.Swap(0)
 }
-func (server *WebsocketServer) GetBytesReceivedCounter() uint64 {
+func (server *WebsocketServer) CheckBytesReceivedCounter() uint64 {
 	return server.bytesReceivedCounter.Load()
 }
 
-func (server *WebsocketServer) RetrieveIncomingMessageCounter() uint32 {
+func (server *WebsocketServer) GetIncomingMessageCounter() uint32 {
 	return server.incomingMessageCounter.Swap(0)
 }
-func (server *WebsocketServer) GetIncomingMessageCounter() uint32 {
+func (server *WebsocketServer) CheckIncomingMessageCounter() uint32 {
 	return server.incomingMessageCounter.Load()
 }
 
-func (server *WebsocketServer) RetrieveOutgoingMessageCounter() uint32 {
+func (server *WebsocketServer) GetOutgoingMessageCounter() uint32 {
 	return server.outgoigMessageCounter.Swap(0)
 }
-func (server *WebsocketServer) GetOutgoingMessageCounter() uint32 {
+func (server *WebsocketServer) CheckOutgoingMessageCounter() uint32 {
 	return server.outgoigMessageCounter.Load()
 }

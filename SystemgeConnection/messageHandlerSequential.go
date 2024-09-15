@@ -202,14 +202,14 @@ func (messageHandler *SequentialMessageHandler) GetSyncMessageHandler(topic stri
 	return messageHandler.syncMessageHandlers[topic]
 }
 
-func (messageHandler *SequentialMessageHandler) GetMetrics() map[string]uint64 {
+func (messageHandler *SequentialMessageHandler) CheckMetrics() map[string]uint64 {
 	return map[string]uint64{
 		"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
 		"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
 		"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
 	}
 }
-func (messageHandler *SequentialMessageHandler) RetrieveMetrics() map[string]uint64 {
+func (messageHandler *SequentialMessageHandler) GetMetrics() map[string]uint64 {
 	return map[string]uint64{
 		"async_messages_handled":  messageHandler.RetrieveAsyncMessagesHandled(),
 		"sync_requests_handled":   messageHandler.RetrieveSyncRequestsHandled(),
