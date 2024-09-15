@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type DashboardMetrics map[string][]*Metrics.Metrics // metricType -> []*Metrics
+type DashboardMetrics map[string][]*Metrics.Metrics
 
 func UnmarshalDashboardMetrics(data string) (DashboardMetrics, error) {
 	var metrics DashboardMetrics

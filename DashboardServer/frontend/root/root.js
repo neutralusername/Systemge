@@ -237,23 +237,22 @@ export class root extends React.Component {
         });
     }
 
-    // dataset = {metricName: [values]}
-    getMultiLineGraph(chartName, metricNames, datset) {
-        let dataSet = {};
-        let colors = this.getRandomDistinctColors(metricNames);
-        let legend = metricNames;
-        let xLabels = [];
-        Object.keys(timestampKeysValues).forEach((timestamp) => {
-            xLabels.push(new Date(Number(timestamp)).toLocaleTimeString());
-            let metricKeys = timestampKeysValues[timestamp];
-            Object.keys(metricKeys).forEach((metricKey) => {
-                if (dataSet[metricKey] === undefined) {
-                    dataSet[metricKey] = [];
+    getMultiLineGraph_(chartName, metrics) {
+        // metrics = [{keyValuePairs:{key:value}, time:Date},...]
+        let dataSet = {}; // {key:[value1, value2, ...], ...}
+        let xLabels = []; // [time1, time2, ...]
+        let legend = [];
+        metrics.forEach((metric) => {
+            xLabels.push(new Date(metric.time).toLocaleTimeString());
+            Object.keys(metric.keyValuePairs).forEach((key) => {
+                if (dataSet[key] === undefined) {
+                    dataSet[key] = [];
                 }
-                dataSet[metricKey].push(metricKeys[metricKey]);
+                legend.push(key);
+                dataSet[key].push(metric.keyValuePairs[key]);
             });
-        });
-        
+        })
+        let colors = this.getRandomDistinctColors(legend);
         return React.createElement(
             multiLineGraph, {
                 title: chartName,
@@ -261,7 +260,7 @@ export class root extends React.Component {
                 dataLabels: legend,
                 dataSet: dataSet,
                 labels : xLabels,
-                colors : colors,
+                colors,
                 height: "400px",
                 width: "1200px",
             },
