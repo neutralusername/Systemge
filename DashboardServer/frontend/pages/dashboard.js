@@ -4,6 +4,9 @@ import {
 import {
 	commands,
 } from "../components/commands.js";
+import {
+	responseMessages,
+} from "../components/responseMessages.js";
 
 export class dashboard extends React.Component {
 	constructor(props) {
@@ -27,6 +30,11 @@ export class dashboard extends React.Component {
 					alignItems: "center",
 				},
 			}, 
+			React.createElement(
+				responseMessages, {
+					responseMessages: this.props.responseMessages,
+				},
+			),
 			React.createElement(
 				clientStatuses, {
 					WS_CONNECTION: this.props.WS_CONNECTION,

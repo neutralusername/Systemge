@@ -1,10 +1,15 @@
 import { 
 	backButton 
 } from "../components/backButton.js";
-import { commands } from "../components/commands.js";
+import { 
+	commands 
+} from "../components/commands.js";
 import { 
 	status 
 } from "../components/status.js";
+import {
+	responseMessages,
+} from "../components/responseMessages.js";
 
 export class customService extends React.Component {
 	constructor(props) {
@@ -30,6 +35,11 @@ export class customService extends React.Component {
 			}, 
 			React.createElement(
 				backButton, null	
+			),
+			React.createElement(
+				responseMessages, {
+					responseMessages: this.props.responseMessages,
+				},
 			),
 			React.createElement(
 				status, {

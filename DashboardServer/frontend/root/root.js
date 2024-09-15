@@ -40,6 +40,7 @@ export class root extends React.Component {
             setStateRoot : (state) => {
                 this.setState(state);
             },
+            WS_CONNECTION : GetWebsocketConnection(configs.WS_PORT, configs.WS_PATTERN),
             distinctColors : [
                 "#556b2f",
                 "#7f0000",
@@ -86,10 +87,9 @@ export class root extends React.Component {
         document.body.style.background = "#222426"
         document.body.style.color = "#ffffff"
 		Chart.defaults.color = "#ffffff";
-        this.WS_CONNECTION = GetWebsocketConnection(configs.WS_PORT, configs.WS_PATTERN);
-        this.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
-        this.WS_CONNECTION.onclose = this.handleClose.bind(this);
-        this.WS_CONNECTION.onopen = this.handleOpen.bind(this);
+        this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
+        this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
+        this.state.WS_CONNECTION.onopen = this.handleOpen.bind(this);
     }
 
     handleMessage = (event) => {
@@ -165,7 +165,7 @@ export class root extends React.Component {
 
     handleClose = () => {
         setTimeout(() => {
-            if (this.WS_CONNECTION.readyState === WebSocket.CLOSED) {
+            if (this.state.WS_CONNECTION.readyState === WebSocket.CLOSED) {
                 window.location.reload();
             }
         }, 2000);
@@ -176,9 +176,9 @@ export class root extends React.Component {
         if (pathName != "/") {
             pathName = window.location.pathname.slice(1);
         }
-        this.WS_CONNECTION.send(this.constructMessage("changePage", pathName));
+        this.state.WS_CONNECTION.send(this.constructMessage("changePage", pathName));
         let myLoop = () => {
-            this.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
+            this.state.WS_CONNECTION.send(this.constructMessage("heartbeat", ""));
             setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
         };
         setTimeout(myLoop, configs.FRONTEND_HEARTBEAT_INTERVAL);
