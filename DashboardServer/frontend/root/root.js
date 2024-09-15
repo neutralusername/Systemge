@@ -9,7 +9,7 @@ import {
 } from "../pages/dashboard.js";
 import { 
     multiLineGraph 
-} from "../graphs/multiLineGraph.js";
+} from "../components/graphs/multiLineGraph.js";
 import { 
     GenerateRandomAlphaNumericString 
 } from "../helpers/randomizer.js";
@@ -280,11 +280,11 @@ export class root extends React.Component {
             );
         case PAGE_COMMAND:
             return React.createElement(
-                Command, this.state,
+                command, this.state,
             );
         case PAGE_SYSTEMGECONNECTION:
             return React.createElement(
-                SystemGeConnection, this.state,
+                systemGeConnection, this.state,
             );
         }
     }
