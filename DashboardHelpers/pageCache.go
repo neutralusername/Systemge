@@ -2,6 +2,7 @@ package DashboardHelpers
 
 import (
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -47,7 +48,7 @@ func (page *Page) GetCachedUnprocessedMessageCount() uint32 {
 	}
 }
 
-func (page *Page) GetCachedMetrics() map[string]map[string][]*MetricsEntry {
+func (page *Page) GetCachedMetrics() DashboardMetrics {
 	switch page.Type {
 	case CLIENT_TYPE_COMMAND:
 		return page.Data.(*CommandClient).Metrics
@@ -111,7 +112,7 @@ func (page *Page) SetCachedUnprocessedMessageCount(unprocessedMessageCount uint3
 	return nil
 }
 
-func (page *Page) SetCachedMetrics(metrics map[string]map[string][]*MetricsEntry) error {
+func (page *Page) SetCachedMetrics(metrics DashboardMetrics) error {
 	if metrics == nil {
 		return Error.New("Metrics is nil", nil)
 	}
@@ -130,23 +131,20 @@ func (page *Page) SetCachedMetrics(metrics map[string]map[string][]*MetricsEntry
 	}
 }
 
-func (page *Page) AddCachedMetricsEntry(metricName string, metricType string, entry *MetricsEntry, maxEntries int) error {
-	if entry == nil {
+func (page *Page) AddCachedMetricsEntry(metricType string, metrics *Metrics.Metrics, maxEntries int) error {
+	if metrics == nil {
 		return Error.New("Entry is nil", nil)
 	}
-	metrics := page.GetCachedMetrics()
-	if metrics == nil {
+	cachedMetrics := page.GetCachedMetrics()
+	if cachedMetrics == nil {
 		return Error.New("Metrics is nil", nil)
 	}
-	if metrics[metricName] == nil {
+	if cachedMetrics[metricType] == nil {
 		return Error.New("Metrics[metricName] is nil", nil)
 	}
-	if metrics[metricName][metricType] == nil {
-		return Error.New("Metrics[metricName][metricType] is nil", nil)
+	cachedMetrics[metricType] = append(cachedMetrics[metricType], metrics)
+	if len(cachedMetrics[metricType]) > maxEntries {
+		cachedMetrics[metricType] = cachedMetrics[metricType][1:]
 	}
-	metrics[metricName][metricType] = append(metrics[metricName][metricType], entry)
-	if len(metrics[metricName][metricType]) > int(maxEntries) {
-		metrics[metricName][metricType] = metrics[metricName][metricType][1:]
-	}
-	return page.SetCachedMetrics(metrics)
+	return page.SetCachedMetrics(cachedMetrics)
 }

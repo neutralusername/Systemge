@@ -10,20 +10,20 @@ const (
 	DASHBOARD_METRICSTYPE_RESOURCEUSAGE = "resource_usage_metrics"
 )
 
+type DashboardClient struct {
+	Name           string           `json:"name"`
+	Commands       map[string]bool  `json:"commands"`
+	ClientStatuses map[string]int   `json:"clientStatuses"` //periodically automatically updated by the server
+	Metrics        DashboardMetrics `json:"metrics"`
+}
+
 func NewDashboardClient(name string, commands map[string]bool) *DashboardClient {
 	return &DashboardClient{
 		Name:           name,
 		Commands:       commands,
 		ClientStatuses: map[string]int{},
-		Metrics:        map[string]map[string][]*MetricsEntry{},
+		Metrics:        DashboardMetrics{},
 	}
-}
-
-type DashboardClient struct {
-	Name           string                                `json:"name"`
-	Commands       map[string]bool                       `json:"commands"`
-	ClientStatuses map[string]int                        `json:"clientStatuses"` //periodically automatically updated by the server
-	Metrics        map[string]map[string][]*MetricsEntry `json:"metrics"`        //periodically automatically updated by the server
 }
 
 func (client *DashboardClient) Marshal() []byte {

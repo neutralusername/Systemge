@@ -5,25 +5,18 @@ import (
 )
 
 type CustomServiceClient struct {
-	Name     string                                `json:"name"`
-	Commands map[string]bool                       `json:"commands"`
-	Status   int                                   `json:"status"`  //periodically automatically updated by the server
-	Metrics  map[string]map[string][]*MetricsEntry `json:"metrics"` //periodically automatically updated by the server
+	Name     string           `json:"name"`
+	Commands map[string]bool  `json:"commands"`
+	Status   int              `json:"status"` //periodically automatically updated by the server
+	Metrics  DashboardMetrics `json:"metrics"`
 }
 
-func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics map[string]map[string]*MetricsEntry) *CustomServiceClient {
-	metricsMap := map[string]map[string][]*MetricsEntry{}
-	for key, value := range metrics {
-		metricsMap[key] = map[string][]*MetricsEntry{}
-		for key2, value2 := range value {
-			metricsMap[key][key2] = append(metricsMap[key][key2], value2)
-		}
-	}
+func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics DashboardMetrics) *CustomServiceClient {
 	return &CustomServiceClient{
 		Name:     name,
 		Commands: commands,
 		Status:   status,
-		Metrics:  metricsMap,
+		Metrics:  metrics,
 	}
 }
 func (client *CustomServiceClient) Marshal() []byte {
@@ -44,7 +37,7 @@ func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 		client.Commands = map[string]bool{}
 	}
 	if client.Metrics == nil {
-		client.Metrics = map[string]map[string][]*MetricsEntry{}
+		client.Metrics = DashboardMetrics{}
 	}
 	return &client, nil
 }

@@ -2,27 +2,19 @@ package DashboardHelpers
 
 import (
 	"encoding/json"
-	"time"
 )
 
 type CommandClient struct {
-	Name     string                                `json:"name"`
-	Commands map[string]bool                       `json:"commands"`
-	Metrics  map[string]map[string][]*MetricsEntry `json:"metrics"` //periodically automatically updated by the server
+	Name     string           `json:"name"`
+	Commands map[string]bool  `json:"commands"`
+	Metrics  DashboardMetrics `json:"metrics"`
 }
 
-func NewCommandClient(name string, commands map[string]bool, metrics map[string]map[time.Time]map[string]uint64) *CommandClient {
-	metricsMap := map[string]map[string][]*MetricsEntry{}
-	for key, value := range metrics {
-		metricsMap[key] = map[string][]*MetricsEntry{}
-		for key2, value2 := range value {
-			metricsMap[key][key2] = append(metricsMap[key][key2], value2)
-		}
-	}
+func NewCommandClient(name string, commands map[string]bool, metrics DashboardMetrics) *CommandClient {
 	return &CommandClient{
 		Name:     name,
 		Commands: commands,
-		Metrics:  metricsMap,
+		Metrics:  metrics,
 	}
 }
 
@@ -44,7 +36,7 @@ func UnmarshalCommandClient(bytes []byte) (*CommandClient, error) {
 		client.Commands = map[string]bool{}
 	}
 	if client.Metrics == nil {
-		client.Metrics = map[string]map[string][]*MetricsEntry{}
+		client.Metrics = DashboardMetrics{}
 	}
 	return &client, nil
 }
