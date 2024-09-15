@@ -1,4 +1,7 @@
 import { 
+	backButton 
+} from "../components/backButton.js";
+import { 
 	status 
 } from "../components/status.js";
 
@@ -31,6 +34,9 @@ export class customService extends React.Component {
 					name: this.props.pageData.name,
 					status: this.props.pageData.status,
 				}
+			),
+			React.createElement(
+				backButton, null	
 			),
 			graphs,
 		)		
