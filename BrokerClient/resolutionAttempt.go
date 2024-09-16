@@ -42,9 +42,9 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool, subscribe bool) {
 	var endpoints []*Config.TcpClient
 	attempts := uint32(0)
-	for {
+	for len(endpoints) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionAttemptMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
 		endpoints = messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
-		if !subscribe || len(endpoints) > 0 || stopChannel != messageBrokerClient.stopChannel || (messageBrokerClient.config.ResolutionAttemptMaxAttempts != 0 && attempts >= messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
+		if !subscribe {
 			break
 		}
 		attempts++
