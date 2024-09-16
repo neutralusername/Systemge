@@ -1,8 +1,6 @@
 package SystemgeClient
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
@@ -91,9 +89,6 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				endAttempt()
 				return Error.New("Max connection attempts reached", nil)
 			}
-			if attempt.attempts > 0 {
-				time.Sleep(time.Duration(client.config.ConnectionAttemptDelayMs) * time.Millisecond)
-			}
 			connection, err := TcpSystemgeConnection.EstablishConnection(client.config.TcpSystemgeConnectionConfig, attempt.endpointConfig, client.GetName(), client.config.MaxServerNameLength)
 			attempt.attempts++
 			if err != nil {
@@ -141,12 +136,8 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 				infoLogger.Log("Connection established to \"" + attempt.endpointConfig.Address + "\" with name \"" + connection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(attempt.attempts))
 			}
 
-			var endpointConfig *Config.TcpClient
-			if client.config.Reconnect {
-				endpointConfig = attempt.endpointConfig
-			}
 			client.waitGroup.Add(1)
-			go client.handleDisconnect(connection, endpointConfig)
+			go client.handleDisconnect(connection, attempt.endpointConfig)
 			return nil
 		}
 	}
@@ -168,12 +159,24 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 	delete(client.nameConnections, connection.GetName())
 	client.mutex.Unlock()
 
+	reconnect := false
 	if client.onDisconnectHandler != nil {
-		client.onDisconnectHandler(connection)
+		err := client.onDisconnectHandler(connection)
+		if err != nil {
+			if client.infoLogger != nil {
+				client.infoLogger.Log(Error.New("onDisconnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
+			}
+		} else {
+			reconnect = true
+		}
 	}
 
-	if endpointConfig != nil {
-		if err := client.startConnectionAttempts(endpointConfig); err != nil {
+	if reconnect {
+		if endpointConfig == nil {
+			if client.warningLogger != nil {
+				client.warningLogger.Log(Error.New("reconnectEndpointConfig is nil, cannot reconnect", nil).Error())
+			}
+		} else if err := client.startConnectionAttempts(endpointConfig); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error())
 			}
