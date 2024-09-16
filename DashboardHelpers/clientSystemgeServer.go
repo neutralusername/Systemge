@@ -2,22 +2,24 @@ package DashboardHelpers
 
 import "encoding/json"
 
-type SystemgeServerlient struct {
+type SystemgeServerClient struct {
 	Name     string           `json:"name"`
 	Commands map[string]bool  `json:"commands"`
 	Status   int              `json:"status"`  //periodically automatically updated by the server
 	Metrics  DashboardMetrics `json:"metrics"` //periodically automatically updated by the server
+
+	SystemgeConnections map[string]???
 }
 
-func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics) *SystemgeServerlient {
-	return &SystemgeServerlient{
+func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics) *SystemgeServerClient {
+	return &SystemgeServerClient{
 		Name:     name,
 		Commands: commands,
 		Status:   status,
 		Metrics:  metrics,
 	}
 }
-func (client *SystemgeServerlient) Marshal() []byte {
+func (client *SystemgeServerClient) Marshal() []byte {
 	bytes, err := json.Marshal(client)
 	if err != nil {
 		panic(err)
@@ -25,8 +27,8 @@ func (client *SystemgeServerlient) Marshal() []byte {
 	return bytes
 }
 
-func UnmarshalSystemgeServerlient(bytes []byte) (*SystemgeServerlient, error) {
-	var client SystemgeServerlient
+func UnmarshalSystemgeServerClient(bytes []byte) (*SystemgeServerClient, error) {
+	var client SystemgeServerClient
 	err := json.Unmarshal(bytes, &client)
 	if err != nil {
 		return nil, err
