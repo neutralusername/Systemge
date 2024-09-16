@@ -3,6 +3,7 @@ package BrokerClient
 import (
 	"time"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -39,16 +40,15 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 }
 
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool, subscribe bool) {
-	endpoints := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+	var endpoints []*Config.TcpClient
 	attempts := uint32(0)
-	for subscribe &&
-		len(endpoints) == 0 &&
-		stopChannel == messageBrokerClient.stopChannel &&
-		(messageBrokerClient.config.ResolutionAttemptMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
-
-		time.Sleep(time.Duration(messageBrokerClient.config.ResolutionAttemptRetryIntervalMs) * time.Millisecond)
+	for {
 		endpoints = messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+		if !subscribe || len(endpoints) > 0 || stopChannel != messageBrokerClient.stopChannel || (messageBrokerClient.config.ResolutionAttemptMaxAttempts != 0 && attempts >= messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
+			break
+		}
 		attempts++
+		time.Sleep(time.Duration(messageBrokerClient.config.ResolutionAttemptRetryIntervalMs) * time.Millisecond)
 	}
 
 	connections := map[string]*connection{}
