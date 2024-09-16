@@ -2,7 +2,7 @@ package Config
 
 import "encoding/json"
 
-type SystemgeConnectionAttempt struct {
+type SystemgeConnectionAttemptor struct {
 	MaxServerNameLength   int    `json:"maxServerNameLength"`   // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
 	MaxConnectionAttempts uint32 `json:"maxConnectionAttempts"` // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
 
@@ -10,8 +10,13 @@ type SystemgeConnectionAttempt struct {
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 
-func UnmarshalSystemgeClient(data string) *SystemgeConnectionAttempt {
-	var systemgeClient SystemgeConnectionAttempt
+type SystemgeConnectionReconnector struct {
+	SystemgeConnectionAttemptorConfig *SystemgeConnectionAttemptor `json:"systemgeConnectionAttemptorConfig"` // *required*
+	MaxReconnects                     uint32                       `json:"maxReconnects"`                     // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+}
+
+func UnmarshalSystemgeClient(data string) *SystemgeConnectionAttemptor {
+	var systemgeClient SystemgeConnectionAttemptor
 	err := json.Unmarshal([]byte(data), &systemgeClient)
 	if err != nil {
 		return nil

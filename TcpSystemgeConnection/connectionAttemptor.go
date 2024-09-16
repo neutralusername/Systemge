@@ -6,8 +6,8 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-type ConnectionAttempt struct {
-	config             *Config.SystemgeConnectionAttempt
+type ConnectionAttemptor struct {
+	config             *Config.SystemgeConnectionAttemptor
 	attempts           uint32
 	isAborted          bool
 	ongoing            chan bool
@@ -15,7 +15,7 @@ type ConnectionAttempt struct {
 	systemgeConnection SystemgeConnection.SystemgeConnection
 }
 
-func (connectionAttempt *ConnectionAttempt) AbortAttempt() error {
+func (connectionAttempt *ConnectionAttemptor) AbortAttempt() error {
 	select {
 	case <-connectionAttempt.ongoing:
 		return Error.New("Connection attempt is already complete", nil)
@@ -25,19 +25,19 @@ func (connectionAttempt *ConnectionAttempt) AbortAttempt() error {
 	}
 }
 
-func (connectionAttempt *ConnectionAttempt) GetAttempts() uint32 {
+func (connectionAttempt *ConnectionAttemptor) GetAttempts() uint32 {
 	return connectionAttempt.attempts
 }
 
-func (connectionAttempt *ConnectionAttempt) BlockUntilComplete() {
+func (connectionAttempt *ConnectionAttemptor) BlockUntilComplete() {
 	<-connectionAttempt.ongoing
 }
 
-func (connectionAttempt *ConnectionAttempt) GetEndpointConfig() *Config.TcpClient {
+func (connectionAttempt *ConnectionAttemptor) GetEndpointConfig() *Config.TcpClient {
 	return connectionAttempt.config.EndpointConfig
 }
 
-func (connectionAttempt *ConnectionAttempt) IsOngoing() bool {
+func (connectionAttempt *ConnectionAttemptor) IsOngoing() bool {
 	select {
 	case <-connectionAttempt.ongoing:
 		return false
@@ -46,7 +46,7 @@ func (connectionAttempt *ConnectionAttempt) IsOngoing() bool {
 	}
 }
 
-func (connectionAttempt *ConnectionAttempt) GetResult() (SystemgeConnection.SystemgeConnection, error) {
+func (connectionAttempt *ConnectionAttemptor) GetResult() (SystemgeConnection.SystemgeConnection, error) {
 	select {
 	case <-connectionAttempt.ongoing:
 		return connectionAttempt.systemgeConnection, connectionAttempt.err
@@ -55,8 +55,8 @@ func (connectionAttempt *ConnectionAttempt) GetResult() (SystemgeConnection.Syst
 	}
 }
 
-func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) *ConnectionAttempt {
-	connectionAttempts := &ConnectionAttempt{
+func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttemptor) *ConnectionAttemptor {
+	connectionAttempts := &ConnectionAttemptor{
 		config:   config,
 		attempts: 0,
 		ongoing:  make(chan bool),
@@ -65,7 +65,7 @@ func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttem
 	return connectionAttempts
 }
 
-func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
+func (connectionAttempt *ConnectionAttemptor) connectionAttempts(name string) {
 	for {
 		if connectionAttempt.isAborted {
 			connectionAttempt.err = Error.New("Connection attempt aborted before establishing connection", nil)
