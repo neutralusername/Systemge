@@ -10,6 +10,8 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
+currently looking for things to extract or split apart
+
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 create more/smaller metric types for systemge-structs
 implement different types of data visualizations
