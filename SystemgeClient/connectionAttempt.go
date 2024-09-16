@@ -50,8 +50,8 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		select {
 		case <-client.stopChannel:
 			endAttempt()
+			return
 		case <-connectionAttempt.GetOngoingChannel():
-
 		}
 		systemgeConnection, err := connectionAttempt.GetResultBlocking()
 		if err != nil {
@@ -104,17 +104,17 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 
 		var endpointConfig *Config.TcpClient
 		if client.config.Reconnect {
-			endpointConfig = endpointConfig
+			go client.handleDisconnect(systemgeConnection, endpointConfig)
+		} else {
+			go client.handleDisconnect(systemgeConnection, nil)
 		}
 		client.waitGroup.Add(1)
-		go client.handleDisconnect(systemgeConnection, endpointConfig)
 
 		val := client.ongoingConnectionAttempts.Add(-1)
 		if val == 0 {
 			client.status = Status.STARTED
 		}
 		client.waitGroup.Done()
-
 	}()
 	return nil
 }
