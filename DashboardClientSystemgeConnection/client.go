@@ -140,6 +140,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					name,
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
+					systemgeConnection.IsProcessingLoopRunning(),
 					systemgeConnection.UnprocessedMessagesCount(),
 					DashboardHelpers.NewDashboardMetrics(metrics),
 				),

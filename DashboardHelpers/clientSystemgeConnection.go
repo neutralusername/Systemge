@@ -11,12 +11,13 @@ type SystemgeConnectionClient struct {
 	Metrics                 DashboardMetrics `json:"metrics"`                 //periodically automatically updated by the server
 }
 
-func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, unprocessedMessages uint32, metrics DashboardMetrics) *SystemgeConnectionClient {
+func NewSystemgeConnectionClient(name string, commands map[string]bool, status int, isProcessingLoopRunning bool, unprocessedMessages uint32, metrics DashboardMetrics) *SystemgeConnectionClient {
 	return &SystemgeConnectionClient{
 		Name:                    name,
 		Commands:                commands,
 		Status:                  status,
 		UnprocessedMessageCount: unprocessedMessages,
+		IsProcessingLoopRunning: isProcessingLoopRunning,
 		Metrics:                 metrics,
 	}
 }
