@@ -33,7 +33,7 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 		EndpointConfig:              endpoint,
 		TcpSystemgeConnectionConfig: messageBrokerClient.config.ServerTcpSystemgeConnectionConfig,
 		RetryIntervalMs:             messageBrokerClient.config.ResolutionAttemptRetryIntervalMs,
-		MaxConnectionAttempts:       messageBrokerClient.config.ResolutionAttemptMaxAttempts,
+		MaxConnectionAttempts:       messageBrokerClient.config.ResolutionMaxAttempts,
 	})
 	select {
 	case <-connectionAttempt.GetOngoingChannel():

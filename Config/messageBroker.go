@@ -34,7 +34,7 @@ type MessageBrokerClient struct {
 	TopicResolutionLifetimeMs        uint64 `json:"topicResolutionLifetimeMs"`     // default: 0 == until disconnect
 	MaxServerNameLength              int    `json:"maxServerNameLength"`           // default: <=0 == no limit
 	ResolutionAttemptRetryIntervalMs uint32 `json:"subscribedTopicsRetryMs"`       // default: 0 == no delay
-	ResolutionAttemptMaxAttempts     uint32 `json:"subscribedTopicsRetryAttempts"` // default: 0 == no limit
+	ResolutionMaxAttempts            uint32 `json:"subscribedTopicsRetryAttempts"` // default: 0 == no limit
 
 	AsyncTopics []string `json:"asyncTopics"`
 	SyncTopics  []string `json:"syncTopics"`

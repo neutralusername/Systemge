@@ -42,7 +42,7 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
 	var endpoints []*Config.TcpClient
 	attempts := uint32(0)
-	for len(endpoints) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionAttemptMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
+	for len(endpoints) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionMaxAttempts) {
 		endpoints = messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 
 		messageBrokerClient.mutex.Lock()
