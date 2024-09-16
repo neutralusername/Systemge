@@ -21,24 +21,24 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 	if server.config.DashboardSystemgeCommands {
 		systemgeDefaultCommands := server.systemgeServer.GetDefaultCommands()
 		for command, handler := range systemgeDefaultCommands {
-			server.dashboardCommandHandlers["systemgeServer_"+command] = handler
+			dashboardHandlers["systemgeServer_"+command] = handler
 		}
 	}
 	if server.config.DashboardWebsocketCommands {
 		httpDefaultCommands := server.httpServer.GetDefaultCommands()
 		for command, handler := range httpDefaultCommands {
-			server.dashboardCommandHandlers["httpServer_"+command] = handler
+			dashboardHandlers["httpServer_"+command] = handler
 		}
 	}
 	if server.config.DashboardHttpCommands {
 		webSocketDefaultCommands := server.websocketServer.GetDefaultCommands()
 		for command, handler := range webSocketDefaultCommands {
-			server.dashboardCommandHandlers["websocketServer_"+command] = handler
+			dashboardHandlers["websocketServer_"+command] = handler
 		}
 	}
 	server.dashboardClient = DashboardHelpers.NewDashboardClient(
 		DashboardHelpers.DASHBOARD_CLIENT_NAME,
-		server.dashboardCommandHandlers.GetKeyBoolMap(),
+		dashboardHandlers.GetKeyBoolMap(),
 	)
 	return dashboardHandlers
 }
