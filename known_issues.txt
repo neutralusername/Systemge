@@ -1,3 +1,0 @@
-
-
-bug in systemgeClient (game of life sample) (todo with reconnects)
