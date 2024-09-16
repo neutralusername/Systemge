@@ -3,11 +3,11 @@ package DashboardHelpers
 import "encoding/json"
 
 type SystemgeServerClient struct {
-	Name     string           `json:"name"`
-	Commands map[string]bool  `json:"commands"`
-	Status   int              `json:"status"`  //periodically automatically updated by the server
-	Metrics  DashboardMetrics `json:"metrics"` //periodically automatically updated by the server
-	SystemgeConnections map[string]??? //periodically automatically updated by the server
+	Name                string                               `json:"name"`
+	Commands            map[string]bool                      `json:"commands"`
+	Status              int                                  `json:"status"`              //periodically automatically updated by the server
+	Metrics             DashboardMetrics                     `json:"metrics"`             //periodically automatically updated by the server
+	SystemgeConnections map[string]*SystemgeConnectionClient `json:"systemgeConnections"` //periodically automatically updated by the server
 }
 
 func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics) *SystemgeServerClient {
