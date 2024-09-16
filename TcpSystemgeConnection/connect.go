@@ -31,6 +31,7 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
+	// causes the panic
 	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, 4096)
 	if err != nil {
 		return nil, Error.New("Failed to receive response", err)
