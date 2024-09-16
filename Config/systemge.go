@@ -11,8 +11,33 @@ type SystemgeConnectionAttempt struct {
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 
-func UnmarshalSystemgeClient(data string) *SystemgeConnectionAttempt {
+func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt {
 	var systemgeClient SystemgeConnectionAttempt
+	err := json.Unmarshal([]byte(data), &systemgeClient)
+	if err != nil {
+		return nil
+	}
+	return &systemgeClient
+}
+
+type SystemgeClient struct {
+	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
+	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
+	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
+	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
+
+	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfigs            []*TcpClient           `json:"tcpClientConfigs"`
+
+	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
+
+	Reconnect                bool   `json:"reconnect"`                // default: false (if true, the client will attempt to reconnect if the connection is lost)
+	ConnectionAttemptDelayMs uint64 `json:"connectionAttemptDelayMs"` // default: 1000 (the delay between reconnection attempts in milliseconds)
+	MaxConnectionAttempts    uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+}
+
+func UnmarshalSystemgeClient(data string) *SystemgeClient {
+	var systemgeClient SystemgeClient
 	err := json.Unmarshal([]byte(data), &systemgeClient)
 	if err != nil {
 		return nil

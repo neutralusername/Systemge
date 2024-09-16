@@ -14,7 +14,7 @@ implement manual metrics update in some form (especially in regards to ranges of
 create more/smaller metric types for systemge-structs
 implement different types of data visualizations
 
-figure out how to rewrite systemgeClient purposefully
+refactor systemgeClient to use connectionAttempts-struct
 
 implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
