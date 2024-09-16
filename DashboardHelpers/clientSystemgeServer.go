@@ -7,8 +7,7 @@ type SystemgeServerClient struct {
 	Commands map[string]bool  `json:"commands"`
 	Status   int              `json:"status"`  //periodically automatically updated by the server
 	Metrics  DashboardMetrics `json:"metrics"` //periodically automatically updated by the server
-
-	SystemgeConnections map[string]???
+	SystemgeConnections map[string]??? //periodically automatically updated by the server
 }
 
 func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics) *SystemgeServerClient {
