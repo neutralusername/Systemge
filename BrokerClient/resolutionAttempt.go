@@ -95,13 +95,14 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 			}
 		}
 	}
-	messageBrokerClient.topicResolutions[resolutionAttempt.topic] = connections
+	if len(connections) > 0 {
+		messageBrokerClient.topicResolutions[resolutionAttempt.topic] = connections
+		go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.topic, resolutionAttempt.isSyncTopic, stopChannel)
+	}
 	resolutionAttempt.connections = connections
-
 	delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 	close(resolutionAttempt.ongoing)
 	messageBrokerClient.mutex.Unlock()
 
 	messageBrokerClient.waitGroup.Done()
-	go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.topic, resolutionAttempt.isSyncTopic, stopChannel)
 }
