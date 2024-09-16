@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func EstablishConnection(config *Config.TcpSystemgeConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
@@ -31,8 +32,8 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	// causes the panic
-	messageBytes, _, err := Tcp.Receive(netConn, config.TcpReceiveTimeoutMs, 4096)
+	messageReceiver := Tools.NewMessageReceiver(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
+	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		return nil, Error.New("Failed to receive response", err)
 	}
@@ -62,5 +63,5 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if message.GetPayload() == "" {
 		return nil, Error.New("Server did not respond with a name", nil)
 	}
-	return New(message.GetPayload(), config, netConn), nil
+	return New(message.GetPayload(), config, netConn, messageReceiver), nil
 }

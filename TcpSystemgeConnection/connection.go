@@ -32,7 +32,7 @@ type TcpConnection struct {
 	closed      bool
 	closedMutex sync.Mutex
 
-	tcpBuffer []byte
+	messageReceiver *Tools.MessageReceiver
 
 	syncRequests map[string]*syncRequestStruct
 	syncMutex    sync.Mutex
@@ -49,8 +49,7 @@ type TcpConnection struct {
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
 
 	// metrics
-	bytesSent     atomic.Uint64
-	bytesReceived atomic.Uint64
+	bytesSent atomic.Uint64
 
 	asyncMessagesSent atomic.Uint64
 	syncRequestsSent  atomic.Uint64
@@ -67,11 +66,12 @@ type TcpConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn) *TcpConnection {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tools.MessageReceiver) *TcpConnection {
 	connection := &TcpConnection{
 		name:                       name,
 		config:                     config,
 		netConn:                    netConn,
+		messageReceiver:            messageReceiver,
 		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:               make(chan bool),
 		syncRequests:               make(map[string]*syncRequestStruct),

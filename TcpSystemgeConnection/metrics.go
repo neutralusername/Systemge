@@ -58,10 +58,10 @@ func (connection *TcpConnection) GetBytesSent() uint64 {
 }
 
 func (connection *TcpConnection) CheckBytesReceived() uint64 {
-	return connection.bytesReceived.Load()
+	return connection.messageReceiver.CheckBytesReceived()
 }
 func (connection *TcpConnection) GetBytesReceived() uint64 {
-	return connection.bytesReceived.Swap(0)
+	return connection.messageReceiver.GetBytesReceived()
 }
 
 func (connection *TcpConnection) CheckAsyncMessagesSent() uint64 {
