@@ -3,7 +3,6 @@ package TcpSystemgeConnection
 import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
@@ -56,21 +55,14 @@ func (connectionAttempt *ConnectionAttempt) GetResult() (SystemgeConnection.Syst
 	}
 }
 
-func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) (*ConnectionAttempt, error) {
-	normalizedAddress, err := Helpers.NormalizeAddress(config.EndpointConfig.Address)
-	if err != nil {
-		return nil, Error.New("failed normalizing address", err)
-	}
-	config.EndpointConfig.Address = normalizedAddress
-
+func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) *ConnectionAttempt {
 	attempt := &ConnectionAttempt{
 		config:   config,
 		attempts: 0,
 		ongoing:  make(chan bool),
 	}
-
 	go connectionAttempts(name, attempt)
-	return nil, nil
+	return attempt
 }
 
 func connectionAttempts(name string, connectionAttempt *ConnectionAttempt) {
