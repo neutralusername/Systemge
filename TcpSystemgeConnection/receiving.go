@@ -27,7 +27,7 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 				}
 				close(connection.receiveLoopStopChannel)
 				return
-			case <-connection.processingChannelSemaphore.GetChannel():
+			case <-connection.messageChannelSemaphore.GetChannel():
 				messageBytes, err := connection.receive()
 				if err != nil {
 					if Tcp.IsConnectionClosed(err) {
@@ -44,7 +44,7 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
 					}
-					connection.processingChannelSemaphore.ReleaseBlocking()
+					connection.messageChannelSemaphore.ReleaseBlocking()
 				}
 			}
 
@@ -76,11 +76,11 @@ func (connection *TcpConnection) addMessageToProcessingChannel(messageBytes []by
 			return Error.New("failed to add sync response", err)
 		}
 		connection.validMessagesReceived.Add(1)
-		connection.processingChannelSemaphore.ReleaseBlocking()
+		connection.messageChannelSemaphore.ReleaseBlocking()
 		return nil
 	} else {
 		connection.validMessagesReceived.Add(1)
-		connection.processingChannel <- message
+		connection.messageChannel <- message
 		if connection.infoLogger != nil {
 			connection.infoLogger.Log("Added message \"" + Helpers.GetPointerId(message) + "\" to processing channel")
 		}
@@ -102,4 +102,8 @@ func (connection *TcpConnection) validateMessage(message *Message.Message) error
 		return Error.New("Message payload exceeds maximum size", nil)
 	}
 	return nil
+}
+
+func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
+	return connection.messageChannelSemaphore.AvailableAcquires()
 }

@@ -8,24 +8,20 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
-	return connection.processingChannelSemaphore.AvailableAcquires()
-}
-
 func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
-	connection.processMutex.Lock()
-	defer connection.processMutex.Unlock()
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
 	var timeout <-chan time.Time
 	if connection.config.TcpReceiveTimeoutMs > 0 {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)
 	}
 
 	select {
-	case message := <-connection.processingChannel:
+	case message := <-connection.messageChannel:
 		if message == nil {
 			return nil, Error.New("Connection closed and no remaining messages", nil)
 		}
-		connection.processingChannelSemaphore.ReleaseBlocking()
+		connection.messageChannelSemaphore.ReleaseBlocking()
 		if connection.infoLogger != nil {
 			connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
 		}

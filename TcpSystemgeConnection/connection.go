@@ -39,10 +39,10 @@ type TcpConnection struct {
 
 	closeChannel chan bool
 
-	processMutex               sync.Mutex
-	processingChannel          chan *Message.Message
-	processingChannelSemaphore *Tools.Semaphore
-	receiveLoopStopChannel     chan bool
+	messageMutex            sync.Mutex
+	messageChannel          chan *Message.Message
+	messageChannelSemaphore *Tools.Semaphore
+	receiveLoopStopChannel  chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -67,16 +67,16 @@ type TcpConnection struct {
 
 func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tools.MessageReceiver) *TcpConnection {
 	connection := &TcpConnection{
-		name:                       name,
-		config:                     config,
-		netConn:                    netConn,
-		messageReceiver:            messageReceiver,
-		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
-		closeChannel:               make(chan bool),
-		syncRequests:               make(map[string]*syncRequestStruct),
-		processingChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
-		processingChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
-		receiveLoopStopChannel:     make(chan bool),
+		name:                    name,
+		config:                  config,
+		netConn:                 netConn,
+		messageReceiver:         messageReceiver,
+		randomizer:              Tools.NewRandomizer(config.RandomizerSeed),
+		closeChannel:            make(chan bool),
+		syncRequests:            make(map[string]*syncRequestStruct),
+		messageChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
+		messageChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
+		receiveLoopStopChannel:  make(chan bool),
 	}
 	if config.InfoLoggerPath != "" {
 		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
@@ -127,7 +127,7 @@ func (connection *TcpConnection) Close() error {
 		connection.rateLimiterMessages = nil
 	}
 	<-connection.receiveLoopStopChannel
-	close(connection.processingChannel)
+	close(connection.messageChannel)
 	return nil
 }
 
@@ -185,7 +185,7 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["unprocessedMessageCount"] = func(args []string) (string, error) {
-		return Helpers.Uint32ToString(connection.processingChannelSemaphore.AvailableAcquires()), nil
+		return Helpers.Uint32ToString(connection.messageChannelSemaphore.AvailableAcquires()), nil
 	}
 	commands["getNextMessage"] = func(args []string) (string, error) {
 		message, err := connection.GetNextMessage()
