@@ -48,9 +48,8 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 			break
 		}
 		attempts++
-		timeout := time.After(time.Duration(messageBrokerClient.config.ResolutionAttemptRetryIntervalMs) * time.Millisecond)
 		select {
-		case <-timeout:
+		case <-time.After(time.Duration(messageBrokerClient.config.ResolutionAttemptRetryIntervalMs) * time.Millisecond):
 		case <-stopChannel:
 		}
 	}
