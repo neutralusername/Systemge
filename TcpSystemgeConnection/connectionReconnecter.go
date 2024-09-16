@@ -6,20 +6,25 @@ import (
 )
 
 type Reconnector struct {
-	abortChannel chan bool
+	abortChannel       chan bool
+	systemgeConnection SystemgeConnection.SystemgeConnection
 }
 
 func StartReconnector(systemgeConnection SystemgeConnection.SystemgeConnection, config *Config.SystemgeConnectionAttempt) *Reconnector {
-	reconnector := &Reconnector{}
+	reconnector := &Reconnector{
+		abortChannel:       make(chan bool),
+		systemgeConnection: systemgeConnection,
+	}
+	go reconnector.startReconnects()
 
-	go func() {
-		select {
-		case <-reconnector.abortChannel:
+	return reconnector
+}
 
-		case <-systemgeConnection.GetCloseChannel():
+func (reconnector *Reconnector) startReconnects() {
+	select {
+	case <-reconnector.abortChannel:
 
-		}
-	}()
+	case <-reconnector.systemgeConnection.GetCloseChannel():
 
-	return &Reconnector{}
+	}
 }

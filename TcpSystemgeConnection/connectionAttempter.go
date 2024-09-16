@@ -56,16 +56,16 @@ func (connectionAttempt *ConnectionAttempt) GetResult() (SystemgeConnection.Syst
 }
 
 func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) *ConnectionAttempt {
-	attempt := &ConnectionAttempt{
+	connectionAttempts := &ConnectionAttempt{
 		config:   config,
 		attempts: 0,
 		ongoing:  make(chan bool),
 	}
-	go connectionAttempts(name, attempt)
-	return attempt
+	go connectionAttempts.connectionAttempts(name)
+	return connectionAttempts
 }
 
-func connectionAttempts(name string, connectionAttempt *ConnectionAttempt) {
+func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 	for {
 		if connectionAttempt.isAborted {
 			connectionAttempt.err = Error.New("Connection attempt aborted before establishing connection", nil)
