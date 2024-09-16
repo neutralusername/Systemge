@@ -14,8 +14,6 @@ implement manual metrics update in some form (especially in regards to ranges of
 create more/smaller metric types for systemge-structs
 implement different types of data visualizations
 
-implement optional automated reconnect attempts on brokerClient for subscribed topics (and delay between attempts)
-
 figure out how to rewrite systemgeClient purposefully
 
 implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)

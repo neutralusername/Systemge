@@ -1,6 +1,8 @@
 package BrokerClient
 
 import (
+	"time"
+
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -22,13 +24,13 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	if resolutionAttempt := messageBrokerClient.ongoingTopicResolutions[topic]; resolutionAttempt != nil {
 		return resolutionAttempt, nil
 	}
-	messageBrokerClient.waitGroup.Add(1)
 	resolutionAttempt := &resolutionAttempt{
 		ongoing:     make(chan bool),
 		topic:       topic,
 		isSyncTopic: syncTopic,
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
+	messageBrokerClient.waitGroup.Add(1)
 	messageBrokerClient.resolutionAttempts.Add(1)
 	go func() {
 		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel, subscribe)
@@ -38,6 +40,17 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool, subscribe bool) {
 	endpoints := messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+	attempts := uint32(0)
+	for subscribe &&
+		len(endpoints) == 0 &&
+		stopChannel == messageBrokerClient.stopChannel &&
+		(messageBrokerClient.config.ResolutionAttemptMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
+
+		time.Sleep(time.Duration(messageBrokerClient.config.ResolutionAttemptRetryIntervalMs) * time.Millisecond)
+		endpoints = messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+		attempts++
+	}
+
 	connections := map[string]*connection{}
 	for _, endpoint := range endpoints {
 		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
@@ -88,7 +101,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 	delete(messageBrokerClient.ongoingTopicResolutions, resolutionAttempt.topic)
 	close(resolutionAttempt.ongoing)
 	messageBrokerClient.mutex.Unlock()
-	messageBrokerClient.waitGroup.Done()
 
+	messageBrokerClient.waitGroup.Done()
 	go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.topic, resolutionAttempt.isSyncTopic, stopChannel)
 }

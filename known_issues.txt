@@ -1,0 +1,9 @@
+go run .
+panic: Dashboard client failed to start -> Failed to establish connection -> Failed to handshake with [::1]:60000 -> Failed to deserialize response "{"topic":"name","syncToken":"","response":false,"payload":"DasbhboardServer_systemgeServer"}{"topic":"get_introduction","syncToken":"hehwu7ZGXy","response":false,"payload":""}" -> invalid character '{' after top-level value
+
+goroutine 1 [running]:
+SystemgeSampleChat/appWebsocketHttp.New()
+        /home/fabian/Documents/prog/SystemgeSampleChat/appWebsocketHttp/app.go:48 +0x9dd
+main.main()
+        /home/fabian/Documents/prog/SystemgeSampleChat/main/main.go:131 +0x8da
+exit status 2
