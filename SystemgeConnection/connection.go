@@ -7,15 +7,22 @@ import (
 )
 
 type SystemgeConnection interface {
-	AbortSyncRequest(syncToken string) error
-	AsyncMessage(topic string, payload string) error
-	Close() error
-	GetAddress() string
-	GetCloseChannel() <-chan bool
-	GetDefaultCommands() Commands.Handlers
 	GetName() string
-	GetNextMessage() (*Message.Message, error)
+	GetAddress() string
 	GetStatus() int
+	Close() error
+	GetCloseChannel() <-chan bool
+	GetNextMessage() (*Message.Message, error)
+	UnprocessedMessagesCount() uint32
+
+	AsyncMessage(topic string, payload string) error
+	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)
+	SyncRequestBlocking(topic string, payload string) (*Message.Message, error)
+	AbortSyncRequest(syncToken string) error
+	SyncResponse(message *Message.Message, success bool, payload string) error
+
+	GetDefaultCommands() Commands.Handlers
+
 	CheckInvalidMessagesReceived() uint64
 	CheckInvalidSyncResponsesReceived() uint64
 	CheckMessageRateLimiterExceeded() uint64
@@ -43,9 +50,4 @@ type SystemgeConnection interface {
 	GetSyncRequestsSent() uint64
 	GetSyncSuccessResponsesReceived() uint64
 	GetValidMessagesReceived() uint64
-
-	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)
-	SyncRequestBlocking(topic string, payload string) (*Message.Message, error)
-	SyncResponse(message *Message.Message, success bool, payload string) error
-	UnprocessedMessagesCount() uint32
 }
