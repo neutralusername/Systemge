@@ -14,11 +14,11 @@ func (messageBrokerClient *Client) ResolveSubscribeTopics() error {
 
 	resolutionAttempts := []*resolutionAttempt{}
 	for asyncTopic := range messageBrokerClient.subscribedAsyncTopics {
-		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(asyncTopic, false, messageBrokerClient.stopChannel, messageBrokerClient.subscribedAsyncTopics[asyncTopic])
+		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(asyncTopic, false, messageBrokerClient.stopChannel)
 		resolutionAttempts = append(resolutionAttempts, resolutionAttempt)
 	}
 	for syncTopic := range messageBrokerClient.subscribedSyncTopics {
-		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(syncTopic, true, messageBrokerClient.stopChannel, messageBrokerClient.subscribedSyncTopics[syncTopic])
+		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(syncTopic, true, messageBrokerClient.stopChannel)
 		resolutionAttempts = append(resolutionAttempts, resolutionAttempt)
 	}
 	messageBrokerClient.statusMutex.Unlock()
@@ -35,7 +35,7 @@ func (messageBrokerClient *Client) ResolveTopic(topic string) error {
 		messageBrokerClient.statusMutex.Unlock()
 		return Error.New("Client is not started", nil)
 	}
-	resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, true, messageBrokerClient.stopChannel, (messageBrokerClient.subscribedSyncTopics[topic] || messageBrokerClient.subscribedAsyncTopics[topic]))
+	resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, true, messageBrokerClient.stopChannel)
 	messageBrokerClient.statusMutex.Unlock()
 	<-resolutionAttempt.ongoing
 	return nil

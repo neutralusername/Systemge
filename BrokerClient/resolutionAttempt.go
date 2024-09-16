@@ -15,7 +15,7 @@ type resolutionAttempt struct {
 	connections map[string]*connection
 }
 
-func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool, subscribe bool) (*resolutionAttempt, error) {
+func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) (*resolutionAttempt, error) {
 	if stopChannel != messageBrokerClient.stopChannel {
 		return nil, Error.New("Aborted because resolution attempt belongs to outdated session", nil)
 	}
@@ -34,16 +34,20 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	messageBrokerClient.waitGroup.Add(1)
 	messageBrokerClient.resolutionAttempts.Add(1)
 	go func() {
-		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel, subscribe)
+		messageBrokerClient.resolutionAttempt(resolutionAttempt, stopChannel)
 	}()
 	return resolutionAttempt, nil
 }
 
-func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool, subscribe bool) {
+func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
 	var endpoints []*Config.TcpClient
 	attempts := uint32(0)
 	for len(endpoints) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionAttemptMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionAttemptMaxAttempts) {
 		endpoints = messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+
+		messageBrokerClient.mutex.Lock()
+		subscribe := (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic])
+		messageBrokerClient.mutex.Unlock()
 		if !subscribe {
 			break
 		}
@@ -77,6 +81,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 			conn.responsibleAsyncTopics[resolutionAttempt.topic] = true
 		}
 		connections[getEndpointString(endpoint)] = conn
+		subscribe := (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic])
 		messageBrokerClient.mutex.Unlock()
 
 		if subscribe {
