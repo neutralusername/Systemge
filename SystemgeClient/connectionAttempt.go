@@ -36,79 +36,11 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	client.connectionAttemptsMap[endpointConfig.Address] = connectionAttempt
 	client.waitGroup.Add(1)
 
-	endAttempt := func() {
-		connectionAttempt.AbortAttempt()
-		client.mutex.Lock()
-		defer client.mutex.Unlock()
-		delete(client.connectionAttemptsMap, endpointConfig.Address)
-	}
-
 	go func() {
 		client.ongoingConnectionAttempts.Add(1)
 		client.status = Status.PENDING
 
-		select {
-		case <-client.stopChannel:
-			endAttempt()
-			return
-		case <-connectionAttempt.GetOngoingChannel():
-		}
-		systemgeConnection, err := connectionAttempt.GetResultBlocking()
-		if err != nil {
-			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("Connection attempt failed", err).Error())
-			}
-			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("Connection attempt failed", err).Error()))
-				if err != nil {
-					if client.errorLogger != nil {
-						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
-					}
-				}
-			}
-			endAttempt()
-			return
-		}
-		client.connectionAttemptsSuccess.Add(1)
-
-		client.mutex.Lock()
-		delete(client.connectionAttemptsMap, endpointConfig.Address)
-		if client.nameConnections[systemgeConnection.GetName()] != nil {
-			client.mutex.Unlock()
-			systemgeConnection.Close()
-			return
-		}
-		client.addressConnections[endpointConfig.Address] = systemgeConnection
-		client.nameConnections[systemgeConnection.GetName()] = systemgeConnection
-		client.mutex.Unlock()
-
-		if client.onConnectHandler != nil {
-			if err := client.onConnectHandler(systemgeConnection); err != nil {
-				if client.warningLogger != nil {
-					client.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+systemgeConnection.GetName()+"\"", err).Error())
-				}
-				systemgeConnection.Close()
-
-				client.mutex.Lock()
-				delete(client.addressConnections, systemgeConnection.GetAddress())
-				delete(client.nameConnections, systemgeConnection.GetName())
-				client.mutex.Unlock()
-
-				return
-			}
-		}
-
-		if infoLogger := client.infoLogger; infoLogger != nil {
-			infoLogger.Log("Connection established to \"" + endpointConfig.Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttempts()))
-		}
-
-		var endpointConfig *Config.TcpClient
-		if client.config.Reconnect {
-			go client.handleDisconnect(systemgeConnection, endpointConfig)
-		} else {
-			go client.handleDisconnect(systemgeConnection, nil)
-		}
-		client.waitGroup.Add(1)
+		client.handleConnectionAttempt(connectionAttempt)
 
 		val := client.ongoingConnectionAttempts.Add(-1)
 		if val == 0 {
@@ -117,6 +49,78 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 		client.waitGroup.Done()
 	}()
 	return nil
+}
+
+func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSystemgeConnection.ConnectionAttempt) {
+	endAttempt := func() {
+		connectionAttempt.AbortAttempt()
+		client.mutex.Lock()
+		defer client.mutex.Unlock()
+		delete(client.connectionAttemptsMap, connectionAttempt.GetEndpointConfig().Address)
+	}
+
+	select {
+	case <-client.stopChannel:
+		endAttempt()
+		return
+	case <-connectionAttempt.GetOngoingChannel():
+	}
+	systemgeConnection, err := connectionAttempt.GetResultBlocking()
+	if err != nil {
+		if client.errorLogger != nil {
+			client.errorLogger.Log(Error.New("Connection attempt failed", err).Error())
+		}
+		if client.mailer != nil {
+			err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("Connection attempt failed", err).Error()))
+			if err != nil {
+				if client.errorLogger != nil {
+					client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+				}
+			}
+		}
+		endAttempt()
+		return
+	}
+	client.connectionAttemptsSuccess.Add(1)
+
+	client.mutex.Lock()
+	delete(client.connectionAttemptsMap, connectionAttempt.GetEndpointConfig().Address)
+	if client.nameConnections[systemgeConnection.GetName()] != nil {
+		client.mutex.Unlock()
+		systemgeConnection.Close()
+		return
+	}
+	client.addressConnections[connectionAttempt.GetEndpointConfig().Address] = systemgeConnection
+	client.nameConnections[systemgeConnection.GetName()] = systemgeConnection
+	client.mutex.Unlock()
+
+	if client.onConnectHandler != nil {
+		if err := client.onConnectHandler(systemgeConnection); err != nil {
+			if client.warningLogger != nil {
+				client.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+systemgeConnection.GetName()+"\"", err).Error())
+			}
+			systemgeConnection.Close()
+
+			client.mutex.Lock()
+			delete(client.addressConnections, systemgeConnection.GetAddress())
+			delete(client.nameConnections, systemgeConnection.GetName())
+			client.mutex.Unlock()
+
+			return
+		}
+	}
+
+	if infoLogger := client.infoLogger; infoLogger != nil {
+		infoLogger.Log("Connection established to \"" + connectionAttempt.GetEndpointConfig().Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttempts()))
+	}
+
+	var endpointConfig *Config.TcpClient
+	if client.config.Reconnect {
+		go client.handleDisconnect(systemgeConnection, endpointConfig)
+	} else {
+		go client.handleDisconnect(systemgeConnection, nil)
+	}
+	client.waitGroup.Add(1)
 }
 
 func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpClient) {
