@@ -3,7 +3,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -systemgeConnectionDashboard X
 -systemgeServerDashboard 
 -brokerResolverDashboard
--brokerClientDashboard
+-brokerClientDashboard  (include visual elements that represent subscribed topics and whether they are successfully connected to)
 -brokerServerDashboard
 -singleRequestServerDashboard
 -websocketServerDashboard
