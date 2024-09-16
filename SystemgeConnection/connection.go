@@ -29,7 +29,6 @@ type SystemgeConnection interface {
 	CheckByteRateLimiterExceeded() uint64
 	CheckBytesReceived() uint64
 	CheckBytesSent() uint64
-	IsProcessingLoopRunning() bool
 
 	GetAsyncMessagesSent() uint64
 	GetByteRateLimiterExceeded() uint64

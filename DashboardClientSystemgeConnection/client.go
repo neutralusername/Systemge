@@ -93,7 +93,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.BoolToString(systemgeConnection.IsProcessingLoopRunning()), nil
+					return Helpers.BoolToString(processingLoopStopChannel != nil), nil
 				},
 				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := systemgeConnection.GetNextMessage()
@@ -154,7 +154,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					name,
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
-					systemgeConnection.IsProcessingLoopRunning(),
+					processingLoopStopChannel != nil,
 					systemgeConnection.UnprocessedMessagesCount(),
 					DashboardHelpers.NewDashboardMetrics(metrics),
 				),

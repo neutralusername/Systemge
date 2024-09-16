@@ -42,7 +42,6 @@ type TcpConnection struct {
 	processMutex               sync.Mutex
 	processingChannel          chan *Message.Message
 	processingChannelSemaphore *Tools.Semaphore
-	processingLoopStopChannel  chan bool
 	receiveLoopStopChannel     chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
