@@ -20,7 +20,7 @@ type ConnectionAttempt struct {
 func (connectionAttempt *ConnectionAttempt) AbortAttempt() error {
 	select {
 	case <-connectionAttempt.ongoing:
-		return Error.New("Connection attempt is already complete", nil)
+		return Error.New("Connection attempt has already ended", nil)
 	default:
 		connectionAttempt.isAborted = true
 		return nil

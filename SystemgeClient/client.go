@@ -11,6 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -26,9 +27,9 @@ type SystemgeClient struct {
 	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
 
 	mutex                 sync.RWMutex
-	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
-	nameConnections       map[string]SystemgeConnection.SystemgeConnection // name -> connection
-	connectionAttemptsMap map[string]*ConnectionAttempt                    // address -> connection attempt
+	addressConnections    map[string]SystemgeConnection.SystemgeConnection    // address -> connection
+	nameConnections       map[string]SystemgeConnection.SystemgeConnection    // name -> connection
+	connectionAttemptsMap map[string]*TcpSystemgeConnection.ConnectionAttempt // address -> connection attempt
 
 	stopChannel chan bool
 
@@ -64,7 +65,7 @@ func New(name string, config *Config.SystemgeClient, onConnectHandler func(Syste
 
 		addressConnections:    make(map[string]SystemgeConnection.SystemgeConnection),
 		nameConnections:       make(map[string]SystemgeConnection.SystemgeConnection),
-		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
+		connectionAttemptsMap: make(map[string]*TcpSystemgeConnection.ConnectionAttempt),
 
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,

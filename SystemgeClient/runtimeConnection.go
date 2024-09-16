@@ -67,8 +67,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 		return nil
 	}
 	if connectionAttempt, ok := client.connectionAttemptsMap[address]; ok {
-		connectionAttempt.isAborted = true
-		return nil
+		return connectionAttempt.AbortAttempt()
 	}
 	return Error.New("connection not found", nil)
 }
