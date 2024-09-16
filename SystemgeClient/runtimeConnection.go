@@ -9,7 +9,7 @@ import (
 
 // AddConnection adds an active connection to the client.
 // if reconnectEndpointConfig is not nil, the connection will attempt to reconnect
-func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpClient) error {
+func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection) error {
 	if connection == nil {
 		return Error.New("connection is nil", nil)
 	}
@@ -28,7 +28,7 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 	client.addressConnections[connection.GetAddress()] = connection
 	client.nameConnections[connection.GetName()] = connection
 	client.waitGroup.Add(1)
-	go client.handleDisconnect(connection, reconnectEndpointConfig)
+	go client.handleDisconnect(connection)
 	return nil
 }
 

@@ -23,7 +23,7 @@ type SystemgeClient struct {
 	config *Config.SystemgeClient
 
 	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(SystemgeConnection.SystemgeConnection) error
+	onDisconnectHandler func(SystemgeConnection.SystemgeConnection) *Config.TcpClient
 
 	mutex                 sync.RWMutex
 	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
@@ -47,7 +47,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess atomic.Uint64
 }
 
-func New(name string, config *Config.SystemgeClient, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection) error) *SystemgeClient {
+func New(name string, config *Config.SystemgeClient, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection) *Config.TcpClient) *SystemgeClient {
 	if config == nil {
 		panic("config is nil")
 	}

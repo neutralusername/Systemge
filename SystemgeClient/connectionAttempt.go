@@ -137,13 +137,13 @@ func (client *SystemgeClient) connectionAttempts(attempt *ConnectionAttempt) err
 			}
 
 			client.waitGroup.Add(1)
-			go client.handleDisconnect(connection, attempt.endpointConfig)
+			go client.handleDisconnect(connection)
 			return nil
 		}
 	}
 }
 
-func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpClient) {
+func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection) {
 	select {
 	case <-connection.GetCloseChannel():
 	case <-client.stopChannel:
@@ -159,29 +159,18 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 	delete(client.nameConnections, connection.GetName())
 	client.mutex.Unlock()
 
-	reconnect := false
+	var reconnectEndpointConfig *Config.TcpClient
 	if client.onDisconnectHandler != nil {
-		err := client.onDisconnectHandler(connection)
-		if err != nil {
-			if client.infoLogger != nil {
-				client.infoLogger.Log(Error.New("onDisconnectHandler failed for connection \""+connection.GetName()+"\"", err).Error())
-			}
-		} else {
-			reconnect = true
-		}
+		reconnectEndpointConfig = client.onDisconnectHandler(connection)
 	}
 
-	if reconnect {
-		if endpointConfig == nil {
-			if client.warningLogger != nil {
-				client.warningLogger.Log(Error.New("reconnectEndpointConfig is nil, cannot reconnect", nil).Error())
-			}
-		} else if err := client.startConnectionAttempts(endpointConfig); err != nil {
+	if reconnectEndpointConfig != nil {
+		if err := client.startConnectionAttempts(reconnectEndpointConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error())
+				client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+reconnectEndpointConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting (re-)connection attempts to \""+endpointConfig.Address+"\"", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting (re-)connection attempts to \""+reconnectEndpointConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
 						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
