@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -27,7 +27,7 @@ type Resolver struct {
 	syncTopicEndpoints  map[string]*Config.TcpClient
 	mutex               sync.Mutex
 
-	messageHandler SystemgeConnection.MessageHandler
+	messageHandler SystemgeMessageHandler.MessageHandler
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
@@ -94,7 +94,7 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 		resolver.syncTopicEndpoints[topic] = endpoint
 	}
 
-	resolver.messageHandler = SystemgeConnection.NewConcurrentMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
+	resolver.messageHandler = SystemgeMessageHandler.NewConcurrentMessageHandler(nil, SystemgeMessageHandler.SyncMessageHandlers{
 		Message.TOPIC_RESOLVE_ASYNC: resolver.resolveAsync,
 		Message.TOPIC_RESOLVE_SYNC:  resolver.resolveSync,
 	}, nil, nil)

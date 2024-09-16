@@ -2,6 +2,7 @@ package BrokerClient
 
 import (
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
@@ -50,10 +51,11 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 
 		return nil, err
 	}
-	systemgeConnection.StartProcessingLoopConcurrently(messageBrokerClient.messageHandler)
+	messageHandlerStopChannel, _ := SystemgeMessageHandler.StartProcessingLoopConcurrently(systemgeConnection, messageBrokerClient.messageHandler)
 	conn := &connection{
 		connection:             systemgeConnection,
 		endpoint:               endpoint,
+		messageHandlerStopChan: messageHandlerStopChannel,
 		responsibleAsyncTopics: make(map[string]bool),
 		responsibleSyncTopics:  make(map[string]bool),
 	}

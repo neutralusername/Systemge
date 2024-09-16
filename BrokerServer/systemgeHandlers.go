@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
 func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -152,14 +153,15 @@ func (server *Server) onSystemgeConnection(connection SystemgeConnection.Systemg
 	server.mutex.Lock()
 	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
 	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
+	stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopSequentially(connection, server.messageHandler)
+	server.messageHandlerStopChannel = stopChannel
 	server.mutex.Unlock()
-	connection.StartProcessingLoopSequentially(server.messageHandler)
 	return nil
 }
 
 func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
-	connection.StopProcessingLoop()
 	server.mutex.Lock()
+	close(server.messageHandlerStopChannel)
 	defer server.mutex.Unlock()
 	for topic := range server.connectionAsyncSubscriptions[connection] {
 		delete(server.asyncTopicSubscriptions[topic], connection)

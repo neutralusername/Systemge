@@ -195,13 +195,6 @@ func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(message.Serialize()), nil
 	}
-	commands["stopProcessingLoop"] = func(args []string) (string, error) {
-		err := connection.StopProcessingLoop()
-		if err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
 	commands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) != 2 {
 			return "", Error.New("expected at least 2 arguments", nil)

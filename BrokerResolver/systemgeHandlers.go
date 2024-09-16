@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
 func (resolver *Resolver) resolveAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -37,7 +38,7 @@ func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnec
 	}
 	switch message.GetTopic() {
 	case Message.TOPIC_RESOLVE_ASYNC:
-		err := connection.ProcessMessage(message, resolver.messageHandler)
+		err := SystemgeMessageHandler.ProcessMessage(connection, message, resolver.messageHandler)
 		if err != nil {
 			resolver.failedResolutions.Add(1)
 			return err
@@ -46,7 +47,7 @@ func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnec
 		resolver.sucessfulAsyncResolutions.Add(1)
 		return nil
 	case Message.TOPIC_RESOLVE_SYNC:
-		err := connection.ProcessMessage(message, resolver.messageHandler)
+		err := SystemgeMessageHandler.ProcessMessage(connection, message, resolver.messageHandler)
 		if err != nil {
 			resolver.failedResolutions.Add(1)
 			return err

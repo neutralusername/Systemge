@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
@@ -15,14 +16,15 @@ type Client struct {
 	name                              string
 	config                            *Config.DashboardClient
 	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
-	dashboardClientMessageHandler     SystemgeConnection.MessageHandler
+	dashboardClientMessageHandler     SystemgeMessageHandler.MessageHandler
 	introductionHandler               func() (string, error)
+	messageHandlerStopChannel         chan<- bool
 
 	status int
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, dashboardClientMessageHandler SystemgeConnection.MessageHandler, introductionHandler func() (string, error)) *Client {
+func New(name string, config *Config.DashboardClient, dashboardClientMessageHandler SystemgeMessageHandler.MessageHandler, introductionHandler func() (string, error)) *Client {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -80,7 +82,8 @@ func (app *Client) Start() error {
 		return Error.New("Failed to send introduction response", err)
 	}
 
-	app.dashboardServerSystemgeConnection.StartProcessingLoopSequentially(app.dashboardClientMessageHandler)
+	stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopSequentially(connection, app.dashboardClientMessageHandler)
+	app.messageHandlerStopChannel = stopChannel
 	app.status = Status.STARTED
 	return nil
 }
@@ -91,7 +94,7 @@ func (app *Client) Stop() error {
 	if app.status == Status.STOPPED {
 		return Error.New("Already stopped", nil)
 	}
-	app.dashboardServerSystemgeConnection.StopProcessingLoop()
+	close(app.messageHandlerStopChannel)
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil
 	app.status = Status.STOPPED

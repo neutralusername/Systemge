@@ -1,6 +1,8 @@
 package DashboardClientSystemgeConnection
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -11,9 +13,10 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
-func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeMessageHandler.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
 	if systemgeConnection == nil {
 		panic("customService is nil")
 	}
@@ -23,13 +26,15 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 	} else {
 		metrics = map[string]*Metrics.Metrics{}
 	}
+	mutex := sync.Mutex{}
+	var processingLoopStopChannel chan<- bool
 	Metrics.Merge(metrics, systemgeConnection.GetMetrics())
 	return DashboardClient.New(
 		name,
 		config,
-		SystemgeConnection.NewTopicExclusiveMessageHandler(
+		SystemgeMessageHandler.NewTopicExclusiveMessageHandler(
 			nil,
-			SystemgeConnection.SyncMessageHandlers{
+			SystemgeMessageHandler.SyncMessageHandlers{
 				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 					if err != nil {
@@ -58,24 +63,33 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return Helpers.IntToString(Status.STOPPED), nil
 				},
 				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := systemgeConnection.StartProcessingLoopSequentially(messageHandler)
-					if err != nil {
-						return "", err
+					mutex.Lock()
+					defer mutex.Unlock()
+					if processingLoopStopChannel != nil {
+						return "", Error.New("Processing loop is already running", nil)
 					}
+					stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopSequentially(systemgeConnection, messageHandler)
+					processingLoopStopChannel = stopChannel
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := systemgeConnection.StartProcessingLoopConcurrently(messageHandler)
-					if err != nil {
-						return "", err
+					mutex.Lock()
+					defer mutex.Unlock()
+					if processingLoopStopChannel != nil {
+						return "", Error.New("Processing loop is already running", nil)
 					}
+					stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopConcurrently(systemgeConnection, messageHandler)
+					processingLoopStopChannel = stopChannel
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := systemgeConnection.StopProcessingLoop()
-					if err != nil {
-						return "", err
+					mutex.Lock()
+					defer mutex.Unlock()
+					if processingLoopStopChannel == nil {
+						return "", Error.New("Processing loop is not running", nil)
 					}
+					close(processingLoopStopChannel)
+					processingLoopStopChannel = nil
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

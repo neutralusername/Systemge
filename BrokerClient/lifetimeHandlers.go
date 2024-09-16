@@ -9,8 +9,10 @@ import (
 func (messageBrokerClient *Client) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
 	select {
 	case <-connection.connection.GetCloseChannel():
-		connection.connection.StopProcessingLoop()
+
 		messageBrokerClient.mutex.Lock()
+		close(connection.messageHandlerStopChan)
+
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
 		for topic := range connection.responsibleAsyncTopics {
@@ -44,8 +46,8 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 		messageBrokerClient.statusMutex.Unlock()
 	case <-stopChannel:
 		connection.connection.Close()
-		connection.connection.StopProcessingLoop()
 		messageBrokerClient.mutex.Lock()
+		close(connection.messageHandlerStopChan)
 		for topic := range connection.responsibleAsyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleAsyncTopics, topic)

@@ -11,6 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -31,7 +32,7 @@ type Client struct {
 
 	stopChannel chan bool
 
-	messageHandler SystemgeConnection.MessageHandler
+	messageHandler SystemgeMessageHandler.MessageHandler
 
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
@@ -57,11 +58,12 @@ type Client struct {
 type connection struct {
 	connection             SystemgeConnection.SystemgeConnection
 	endpoint               *Config.TcpClient
+	messageHandlerStopChan chan<- bool
 	responsibleAsyncTopics map[string]bool
 	responsibleSyncTopics  map[string]bool
 }
 
-func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
+func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeMessageHandler.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
