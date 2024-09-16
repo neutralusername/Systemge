@@ -76,7 +76,9 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if clientName == "" {
 			return Error.New("No client name", nil)
 		}
+		server.mutex.RLock()
 		connectedClient, ok := server.connectedClients[clientName]
+		server.mutex.RUnlock()
 		if !ok {
 			return Error.New("Client not found", nil)
 		}
@@ -93,7 +95,9 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if clientName == "" {
 			return Error.New("No client name", nil)
 		}
+		server.mutex.RLock()
 		connectedClient, ok := server.connectedClients[clientName]
+		server.mutex.RUnlock()
 		if !ok {
 			return Error.New("Client not found", nil)
 		}
