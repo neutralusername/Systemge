@@ -15,26 +15,34 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type Listener struct {
-	config    *Config.TcpServer
+type TcpListener struct {
+	closed      bool
+	closedMutex sync.Mutex
+
+	config        *Config.TcpSystemgeListener
+	ipRateLimiter *Tools.IpRateLimiter
+
 	listener  net.Listener
 	blacklist *Tools.AccessControlList
 	whitelist *Tools.AccessControlList
+
+	connectionId uint32
+
+	// metrics
+
+	connectionAttempts  atomic.Uint64
+	failedConnections   atomic.Uint64
+	rejectedConnections atomic.Uint64
+	acceptedConnections atomic.Uint64
 }
 
-func NewListener(config *Config.TcpServer, blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList) (*Listener, error) {
+func (server *TcpListener) newListener(config *Config.TcpServer) (net.Listener, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {
 			return nil, Error.New("Failed to listen on port: ", err)
 		}
-		server := &Listener{
-			config:    config,
-			listener:  listener,
-			blacklist: blacklist,
-			whitelist: whitelist,
-		}
-		return server, nil
+		return listener, nil
 	} else {
 		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
 		if err != nil {
@@ -47,44 +55,20 @@ func NewListener(config *Config.TcpServer, blacklist *Tools.AccessControlList, w
 		if err != nil {
 			return nil, Error.New("Failed to listen on port: ", err)
 		}
-		server := &Listener{
-			config:    config,
-			listener:  listener,
-			blacklist: blacklist,
-			whitelist: whitelist,
-		}
-		return server, nil
+		return listener, nil
 	}
 }
 
-func (server *Listener) GetWhitelist() *Tools.AccessControlList {
+func (server *TcpListener) GetWhitelist() *Tools.AccessControlList {
 	return server.whitelist
 }
 
-func (server *Listener) GetBlacklist() *Tools.AccessControlList {
+func (server *TcpListener) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *Listener) GetListener() net.Listener {
+func (server *TcpListener) GetListener() net.Listener {
 	return server.listener
-}
-
-type TcpListener struct {
-	closed      bool
-	closedMutex sync.Mutex
-
-	config        *Config.TcpSystemgeListener
-	tcpListener   *Listener
-	ipRateLimiter *Tools.IpRateLimiter
-
-	connectionId uint32
-
-	// metrics
-
-	connectionAttempts  atomic.Uint64
-	failedConnections   atomic.Uint64
-	rejectedConnections atomic.Uint64
-	acceptedConnections atomic.Uint64
 }
 
 func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpListener, error) {
@@ -94,18 +78,20 @@ func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList,
 	if config.TcpServerConfig == nil {
 		return nil, Error.New("listener is nil", nil)
 	}
-	tcpListener, err := NewListener(config.TcpServerConfig, whitelist, blacklist)
+	server := &TcpListener{
+		config:    config,
+		blacklist: blacklist,
+		whitelist: whitelist,
+	}
+	tcpListener, err := server.newListener(config.TcpServerConfig)
 	if err != nil {
 		return nil, Error.New("failed to create listener", err)
 	}
-	listener := &TcpListener{
-		config:      config,
-		tcpListener: tcpListener,
-	}
+	server.listener = tcpListener
 	if config.IpRateLimiter != nil {
-		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
+		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
 	}
-	return listener, nil
+	return server, nil
 }
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
@@ -116,7 +102,7 @@ func (listener *TcpListener) Close() error {
 		return Error.New("listener is already closed", nil)
 	}
 	listener.closed = true
-	listener.tcpListener.GetListener().Close()
+	listener.listener.Close()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
 	}
@@ -133,8 +119,8 @@ func (listener *TcpListener) GetStatus() int {
 }
 
 func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := listener.tcpListener.GetBlacklist().GetDefaultCommands()
-	whitelistCommands := listener.tcpListener.GetWhitelist().GetDefaultCommands()
+	blacklistCommands := listener.blacklist.GetDefaultCommands()
+	whitelistCommands := listener.whitelist.GetDefaultCommands()
 	commands := Commands.Handlers{}
 	for key, value := range blacklistCommands {
 		commands["blacklist_"+key] = value

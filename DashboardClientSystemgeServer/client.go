@@ -87,6 +87,9 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return "", nil
 				},
+				/* DashboardHelpers.TOPIC_CONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+
+				}, */
 				/*
 					DashboardHelpers.TOPIC_GET_SYSTEMGECONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 						return Helpers.JsonMarshal(DashboardHelpers.NewSystemgeConnectionClients(systemgeServer.GetSystemgeConnections())), nil

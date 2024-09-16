@@ -14,7 +14,7 @@ import (
 )
 
 func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
-	netConn, err := listener.tcpListener.GetListener().Accept()
+	netConn, err := listener.listener.Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
 	listener.connectionAttempts.Add(1)
@@ -28,12 +28,12 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to rate limiting", nil)
 	}
-	if listener.tcpListener.GetBlacklist() != nil && listener.tcpListener.GetBlacklist().Contains(ip) {
+	if listener.blacklist != nil && listener.blacklist.Contains(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to blacklist", nil)
 	}
-	if listener.tcpListener.GetWhitelist() != nil && listener.tcpListener.GetWhitelist().ElementCount() > 0 && !listener.tcpListener.GetWhitelist().Contains(ip) {
+	if listener.whitelist != nil && listener.whitelist.ElementCount() > 0 && !listener.whitelist.Contains(ip) {
 		listener.rejectedConnections.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
