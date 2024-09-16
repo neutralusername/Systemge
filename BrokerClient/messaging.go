@@ -4,11 +4,12 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
-	connections, err := messageBrokerClient.getTopicResolutions(topic, false)
+	systemgeConnections, err := messageBrokerClient.getTopicResolutions(topic)
 	if err != nil {
 		if messageBrokerClient.errorLogger != nil {
 			messageBrokerClient.errorLogger.Log(Error.New("Failed to get topic resolutions", err).Error())
@@ -23,8 +24,8 @@ func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 		return
 	}
 
-	for _, connection := range connections {
-		err := connection.connection.AsyncMessage(topic, payload)
+	for _, systemgeConnection := range systemgeConnections {
+		err := systemgeConnection.AsyncMessage(topic, payload)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to send async message", err).Error())
@@ -43,7 +44,7 @@ func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 }
 
 func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*Message.Message {
-	connections, err := messageBrokerClient.getTopicResolutions(topic, true)
+	systemgeConnections, err := messageBrokerClient.getTopicResolutions(topic)
 	if err != nil {
 		if messageBrokerClient.errorLogger != nil {
 			messageBrokerClient.errorLogger.Log(Error.New("Failed to get topic resolutions", err).Error())
@@ -59,8 +60,8 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 	}
 
 	responses := []*Message.Message{}
-	for _, connection := range connections {
-		response, err := connection.connection.SyncRequestBlocking(topic, payload)
+	for _, systemgeConnection := range systemgeConnections {
+		response, err := systemgeConnection.SyncRequestBlocking(topic, payload)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
 				messageBrokerClient.errorLogger.Log(Error.New("Failed to send sync message", err).Error())
@@ -110,14 +111,14 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 
 }
 
-func (MessageBrokerClient *Client) subscribeToTopic(connection *connection, topic string, sync bool) error {
+func (MessageBrokerClient *Client) subscribeToTopic(systemgeConnection SystemgeConnection.SystemgeConnection, topic string, sync bool) error {
 	if sync {
-		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, Helpers.StringsToJsonStringArray([]string{topic}))
+		_, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, Helpers.StringsToJsonStringArray([]string{topic}))
 		if err != nil {
 			return Error.New("Failed to subscribe to topic", err)
 		}
 	} else {
-		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, Helpers.StringsToJsonStringArray([]string{topic}))
+		_, err := systemgeConnection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, Helpers.StringsToJsonStringArray([]string{topic}))
 		if err != nil {
 			return Error.New("Failed to subscribe to topic", err)
 		}

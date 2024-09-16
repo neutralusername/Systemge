@@ -12,7 +12,7 @@ func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
 		"broker_client": {
 			KeyValuePairs: map[string]uint64{
 				"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
-				"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
+				"broker_connections":        uint64(messageBrokerClient.brokerSystemgeClient.GetConnectionCount()),
 				"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
 				"resolution_attempts":       messageBrokerClient.CheckResolutionAttempts(),
 				"async_messages_sent":       messageBrokerClient.CheckAsyncMessagesSent(),
@@ -23,17 +23,7 @@ func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
 		},
 	}
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = &Metrics.Metrics{
-		KeyValuePairs: map[string]uint64{},
-		Time:          time.Now(),
-	}
-	for _, connection := range messageBrokerClient.brokerConnections {
-		for _, metricsMap := range connection.connection.CheckMetrics() {
-			for key, value := range metricsMap.KeyValuePairs {
-				metrics["broker_connections"].KeyValuePairs[key] += value
-			}
-		}
-	}
+	Metrics.Merge(metrics, messageBrokerClient.CheckMetrics())
 	return metrics
 }
 func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
@@ -42,7 +32,7 @@ func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
 		"broker_client": {
 			KeyValuePairs: map[string]uint64{
 				"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
-				"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
+				"broker_connections":        uint64(messageBrokerClient.brokerSystemgeClient.GetConnectionCount()),
 				"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
 				"resolution_attempts":       messageBrokerClient.GetResolutionAttempts(),
 				"async_messages_sent":       messageBrokerClient.GetAsyncMessagesSent(),
@@ -53,17 +43,7 @@ func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
 		},
 	}
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = &Metrics.Metrics{
-		KeyValuePairs: map[string]uint64{},
-		Time:          time.Now(),
-	}
-	for _, connection := range messageBrokerClient.brokerConnections {
-		for _, metricsMap := range connection.connection.GetMetrics() {
-			for key, value := range metricsMap.KeyValuePairs {
-				metrics["broker_connections"].KeyValuePairs[key] += value
-			}
-		}
-	}
+	Metrics.Merge(metrics, messageBrokerClient.GetMetrics())
 	return metrics
 }
 
