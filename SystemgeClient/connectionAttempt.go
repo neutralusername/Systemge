@@ -117,9 +117,8 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 
 	client.waitGroup.Add(1)
 
-	var endpointConfig *Config.TcpClient
 	if client.config.Reconnect {
-		go client.handleDisconnect(systemgeConnection, endpointConfig)
+		go client.handleDisconnect(systemgeConnection, connectionAttempt.GetEndpointConfig())
 	} else {
 		go client.handleDisconnect(systemgeConnection, nil)
 	}
@@ -131,11 +130,9 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 	case <-client.stopChannel:
 		connection.Close()
 	}
-
 	if infoLogger := client.infoLogger; infoLogger != nil {
 		infoLogger.Log("Connection closed to \"" + connection.GetAddress() + "\" with name \"" + connection.GetName() + "\"")
 	}
-
 	client.mutex.Lock()
 	delete(client.addressConnections, connection.GetAddress())
 	delete(client.nameConnections, connection.GetName())
@@ -144,7 +141,6 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 	if client.onDisconnectHandler != nil {
 		client.onDisconnectHandler(connection)
 	}
-
 	if endpointConfig != nil {
 		if err := client.startConnectionAttempts(endpointConfig); err != nil {
 			if client.errorLogger != nil {
@@ -160,6 +156,5 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 			}
 		}
 	}
-
 	client.waitGroup.Done()
 }
