@@ -200,15 +200,6 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			}
 			return string(json), nil
 		},
-		"resolveTopic": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			return "success", messageBrokerClient.ResolveTopic(args[0])
-		},
-		"resolveSubscribeTopics": func(args []string) (string, error) {
-			return "success", messageBrokerClient.ResolveSubscribeTopics()
-		},
 		"getAsyncSubscribeTopics": func(args []string) (string, error) {
 			topics := messageBrokerClient.GetAsyncSubscribeTopics()
 			return Helpers.JsonMarshal(topics), nil
