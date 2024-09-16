@@ -1,7 +1,7 @@
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
--systemgeConnectionDashboard
--systemgeServerDashboard
+-systemgeConnectionDashboard X
+-systemgeServerDashboard 
 -brokerResolverDashboard
 -brokerClientDashboard
 -brokerServerDashboard
@@ -10,13 +10,14 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
-create more/smaller metric types for systemge-structs
+change systemgeClient so that it no longer reconnects based on config, but based on the result of onDisconnect() function (non-nil error will mean "no reconnect")
 
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
+create more/smaller metric types for systemge-structs
 implement different types of data visualizations
 
 implement optional automated reconnect attempts on brokerClient for subscribed topics (and delay between attempts)
-(figure out whether i can change systemgeClient to be able to be used for this purpose)
+(figure out how to use systemgeClient/ what i need tochange to use systemgeClient for this purpose)
 
 implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 

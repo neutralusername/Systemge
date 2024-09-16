@@ -64,6 +64,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 	if messageBrokerClient.config.TopicResolutionLifetimeMs > 0 {
 		topicResolutionTimeout = time.After(time.Duration(messageBrokerClient.config.TopicResolutionLifetimeMs) * time.Millisecond)
 	}
+	messageBrokerClient.waitGroup.Done()
 	select {
 	case <-topicResolutionTimeout:
 		if (isSynctopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!isSynctopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
