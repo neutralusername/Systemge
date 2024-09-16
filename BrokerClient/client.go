@@ -200,6 +200,9 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			}
 			return string(json), nil
 		},
+		"resolveSubscribeTopics": func(args []string) (string, error) {
+			return "success", messageBrokerClient.ResolveSubscribeTopics()
+		},
 		"getAsyncSubscribeTopics": func(args []string) (string, error) {
 			topics := messageBrokerClient.GetAsyncSubscribeTopics()
 			return Helpers.JsonMarshal(topics), nil
