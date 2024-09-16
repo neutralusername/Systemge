@@ -10,6 +10,8 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
+replace systemgeClient with a mechanism, that takes in an endpoint and a connectionConfig and returns a struct, which can be used to determine the status of connection attempt, abort it, etc
+
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 create more/smaller metric types for systemge-structs
 implement different types of data visualizations
