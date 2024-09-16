@@ -1,26 +1,31 @@
 package BrokerClient
 
-/* type getBrokerConnectionAttempt struct {
-	ongoing            chan bool
-	systemgeConnection SystemgeConnection.SystemgeConnection
-	err                error
+import (
+	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
+)
+
+type getBrokerConnectionAttempt struct {
+	ongoing    chan bool
+	connection *connection
+	err        error
 }
 
-func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClient, stopChannel chan bool) (SystemgeConnection.SystemgeConnection, error) {
+func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClient, stopChannel chan bool) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
-	if systemgeConnection := messageBrokerClient.brokerSystemgeClient.GetConnectionByAddress(endpoint.Address); systemgeConnection != nil {
+	if conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]; conn != nil {
 		messageBrokerClient.mutex.Unlock()
-		return systemgeConnection, nil
+		return conn, nil
 	}
-	if ongoingGetBrokerAttempt := messageBrokerClient.ongoingGetBrokerConnections[endpoint.Address]; ongoingGetBrokerAttempt != nil {
+	if ongoingGetBrokerAttempt := messageBrokerClient.ongoingGetBrokerConnections[getEndpointString(endpoint)]; ongoingGetBrokerAttempt != nil {
 		messageBrokerClient.mutex.Unlock()
 		<-ongoingGetBrokerAttempt.ongoing
-		return ongoingGetBrokerAttempt.systemgeConnection, ongoingGetBrokerAttempt.err
+		return ongoingGetBrokerAttempt.connection, ongoingGetBrokerAttempt.err
 	}
 	getBrokerAttempt := &getBrokerConnectionAttempt{
 		ongoing: make(chan bool),
 	}
-	messageBrokerClient.ongoingGetBrokerConnections[endpoint.Address] = getBrokerAttempt
+	messageBrokerClient.ongoingGetBrokerConnections[getEndpointString(endpoint)] = getBrokerAttempt
 	messageBrokerClient.mutex.Unlock()
 
 	systemgeConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerClient.config.ServerTcpSystemgeConnectionConfig, endpoint, messageBrokerClient.GetName(), messageBrokerClient.config.MaxServerNameLength)
@@ -51,4 +56,3 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 
 	return conn, nil
 }
-*/

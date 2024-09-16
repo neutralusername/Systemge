@@ -2,22 +2,16 @@ package Config
 
 import "encoding/json"
 
-type SystemgeClient struct {
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-
-	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
-	TcpClientConfigs            []*TcpClient           `json:"tcpClientConfigs"`
-
-	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
-
+type SystemgeConnectionAttempt struct {
+	MaxServerNameLength   int    `json:"maxServerNameLength"`   // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
 	MaxConnectionAttempts uint32 `json:"maxConnectionAttempts"` // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+
+	EndpointConfig              *TcpClient             `json:"endpointConfig"`              // *required*
+	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 
-func UnmarshalSystemgeClient(data string) *SystemgeClient {
-	var systemgeClient SystemgeClient
+func UnmarshalSystemgeClient(data string) *SystemgeConnectionAttempt {
+	var systemgeClient SystemgeConnectionAttempt
 	err := json.Unmarshal([]byte(data), &systemgeClient)
 	if err != nil {
 		return nil

@@ -3,10 +3,9 @@ package BrokerClient
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (messageBrokerClient *Client) getTopicResolutions(topic string) ([]SystemgeConnection.SystemgeConnection, error) {
+func (messageBrokerClient *Client) getTopicResolutions(topic string, isSyncTopic bool) ([]*connection, error) {
 	messageBrokerClient.mutex.Lock()
 	topicResolutions := messageBrokerClient.topicResolutions[topic]
 	messageBrokerClient.mutex.Unlock()
@@ -17,19 +16,33 @@ func (messageBrokerClient *Client) getTopicResolutions(topic string) ([]Systemge
 			messageBrokerClient.statusMutex.Unlock()
 			return nil, Error.New("Not started", nil)
 		}
-		attempt, err := messageBrokerClient.startResolutionAttempt(topic)
-		if err != nil {
-			messageBrokerClient.statusMutex.Unlock()
-			return nil, err
+		var resolutionAttempt *resolutionAttempt
+		if isSyncTopic {
+			attempt, err := messageBrokerClient.startResolutionAttempt(topic, isSyncTopic, messageBrokerClient.stopChannel, messageBrokerClient.subscribedSyncTopics[topic])
+			resolutionAttempt = attempt
+			if err != nil {
+				messageBrokerClient.statusMutex.Unlock()
+				return nil, err
+			}
+		} else {
+			attempt, err := messageBrokerClient.startResolutionAttempt(topic, isSyncTopic, messageBrokerClient.stopChannel, messageBrokerClient.subscribedAsyncTopics[topic])
+			resolutionAttempt = attempt
+			if err != nil {
+				messageBrokerClient.statusMutex.Unlock()
+				return nil, err
+			}
 		}
 		messageBrokerClient.statusMutex.Unlock()
-		<-attempt.ongoing
-
+		<-resolutionAttempt.ongoing
+		connectionList := []*connection{}
+		for _, connection := range resolutionAttempt.connections {
+			connectionList = append(connectionList, connection)
+		}
 		return connectionList, nil
 	}
-	systemgeConnections := make([]SystemgeConnection.SystemgeConnection, 0, len(topicResolutions))
+	connectionList := []*connection{}
 	for _, connection := range topicResolutions {
-		systemgeConnections = append(systemgeConnections, connection)
+		connectionList = append(connectionList, connection)
 	}
-	return systemgeConnections, nil
+	return connectionList, nil
 }
