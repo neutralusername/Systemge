@@ -21,10 +21,10 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 }
 
 type MessageBrokerClient struct {
-	BrokerSystemgeClientConfig          *SystemgeClient        `json:"brokerSystemgeClientConfig"`          // *required*
-	ResolverTcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"resolverTcpSystemgeConnectionConfig"` // *required*
+	BrokerSystemgeClientConfig *SystemgeClient `json:"brokerSystemgeClientConfig"` // *required*
 
-	ResolverTcpClientConfigs []*TcpClient `json:"resolverTcpClientConfigs"`
+	ResolverSystemgeConnectionConfig *TcpSystemgeConnection `json:"resolverTcpSystemgeConnectionConfig"` // *required*
+	ResolverTcpClientConfigs         []*TcpClient           `json:"resolverTcpClientConfigs"`
 
 	TopicResolutionLifetimeMs uint64 `json:"topicResolutionLifetimeMs"` // default: 0 == until disconnect
 

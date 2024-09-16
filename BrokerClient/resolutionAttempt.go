@@ -13,7 +13,7 @@ type resolutionAttempt struct {
 	endpoints   []*Config.TcpClient
 }
 
-func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool) (*resolutionAttempt, error) {
+func (messageBrokerClient *Client) startResolutionAttempt(topic string) (*resolutionAttempt, error) {
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
 
@@ -21,9 +21,8 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 		return resolutionAttempt, nil
 	}
 	resolutionAttempt := &resolutionAttempt{
-		ongoing:     make(chan bool),
-		topic:       topic,
-		isSyncTopic: syncTopic,
+		ongoing: make(chan bool),
+		topic:   topic,
 	}
 	messageBrokerClient.ongoingTopicResolutions[topic] = resolutionAttempt
 	messageBrokerClient.waitGroup.Add(1)
@@ -38,9 +37,9 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 	return resolutionAttempt, nil
 }
 
-func (server *Client) addSubscribedTopicConnectionAttempts(endpoints []*Config.TcpClient, topic string) {
+func (server *Client) addBrokerSystemgeClientConnectionAttempts(endpoints []*Config.TcpClient, topic string) {
 	for _, endpoint := range endpoints {
-		err := server.subscribedTopicSystemgeClient.AddConnectionAttempt(endpoint)
+		err := server.brokerSystemgeClient.AddConnectionAttempt(endpoint)
 		if err != nil {
 			if server.errorLogger != nil {
 				server.errorLogger.Log(Error.New("Failed to add connectionAttempt to endpoint \""+endpoint.Address+"\" for topic \""+topic+"\"", err).Error())

@@ -33,11 +33,9 @@ type Client struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	subscribedTopicSystemgeClient *SystemgeClient.SystemgeClient
-	topicResolutionSystemgeClient *SystemgeClient.SystemgeClient
+	brokerSystemgeClient *SystemgeClient.SystemgeClient
 
-	ongoingTopicResolutions     map[string]*resolutionAttempt
-	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
+	ongoingTopicResolutions map[string]*resolutionAttempt
 
 	topicResolutions       map[string]map[string]SystemgeConnection.SystemgeConnection // topic -> [endpointString -> systemgeConnection]
 	responsibleAsyncTopics map[SystemgeConnection.MessageHandler]bool
@@ -62,7 +60,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
-	if config.ResolverTcpSystemgeConnectionConfig == nil {
+	if config.ResolverSystemgeConnectionConfig == nil {
 		panic(Error.New("ResolverConnectionConfig is required", nil))
 	}
 	if config.BrokerSystemgeClientConfig == nil {
@@ -82,8 +80,6 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		responsibleAsyncTopics: make(map[SystemgeConnection.MessageHandler]bool),
 		responsibleSyncTopics:  make(map[SystemgeConnection.MessageHandler]bool),
 
-		ongoingGetBrokerConnections: make(map[string]*getBrokerConnectionAttempt),
-
 		subscribedAsyncTopics: make(map[string]bool),
 		subscribedSyncTopics:  make(map[string]bool),
 
@@ -102,7 +98,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	messageBrokerClient.subscribedTopicSystemgeClient = SystemgeClient.New(name,
+	messageBrokerClient.brokerSystemgeClient = SystemgeClient.New(name,
 		config.BrokerSystemgeClientConfig,
 		func(systemgeConnection SystemgeConnection.SystemgeConnection) error {
 			connections := map[string]*connection{}
@@ -159,8 +155,8 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 			go messageBrokerClient.handleTopicResolutionLifetime(resolutionAttempt.topic, resolutionAttempt.isSyncTopic, stopChannel)
 			return nil
 		},
-		func(systemgeConnection SystemgeConnection.SystemgeConnection) {
-
+		func(systemgeConnection SystemgeConnection.SystemgeConnection) *Config.TcpClient {
+			return nil
 		},
 	)
 
@@ -186,14 +182,14 @@ func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.stopChannel = stopChannel
 
 	for topic := range messageBrokerClient.subscribedAsyncTopics {
-		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, false)
+		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic)
 		<-resolutionAttempt.ongoing
-		messageBrokerClient.addSubscribedTopicConnectionAttempts(resolutionAttempt.endpoints, topic)
+		messageBrokerClient.addBrokerSystemgeClientConnectionAttempts(resolutionAttempt.endpoints, topic)
 	}
 	for topic := range messageBrokerClient.subscribedSyncTopics {
-		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, true)
+		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic)
 		<-resolutionAttempt.ongoing
-		messageBrokerClient.addSubscribedTopicConnectionAttempts(resolutionAttempt.endpoints, topic)
+		messageBrokerClient.addBrokerSystemgeClientConnectionAttempts(resolutionAttempt.endpoints, topic)
 	}
 	messageBrokerClient.status = Status.STARTED
 	return nil
@@ -222,10 +218,6 @@ func (messageBrokerClient *Client) GetStatus() int {
 
 func (messageBrokerClient *Client) GetName() string {
 	return messageBrokerClient.name
-}
-
-func getEndpointString(endpoint *Config.TcpClient) string {
-	return endpoint.Address + endpoint.TlsCert
 }
 
 func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
