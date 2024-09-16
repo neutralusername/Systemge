@@ -60,11 +60,6 @@ func (server *Server) updateRoutine() {
 				server.errorLogger.Log(Error.New("Failed to update metrics for dashboard client in updateRoutine", err).Error())
 			}
 		}
-		if err := server.updateDashboardClientStatuses(); err != nil {
-			if server.errorLogger != nil {
-				server.errorLogger.Log(Error.New("Failed to update statuses for dashboard client in updateRoutine", err).Error())
-			}
-		}
 		time.Sleep(time.Duration(server.config.UpdateIntervalMs) * time.Millisecond)
 	}
 }
@@ -202,22 +197,6 @@ func (server *Server) updateDashboardClientMetrics() error {
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
 					DashboardHelpers.CLIENT_FIELD_METRICS: newMetrics,
-				},
-				DashboardHelpers.DASHBOARD_CLIENT_NAME,
-			).Marshal(),
-		),
-	)
-	return nil
-}
-
-func (server *Server) updateDashboardClientStatuses() error {
-	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
-			DashboardHelpers.NewPageUpdate(
-				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_CLIENTSTATUSES: server.dashboardClient.ClientStatuses,
 				},
 				DashboardHelpers.DASHBOARD_CLIENT_NAME,
 			).Marshal(),
