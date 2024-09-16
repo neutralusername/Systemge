@@ -65,6 +65,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		return
 	case <-connectionAttempt.GetOngoingChannel():
 	}
+
 	systemgeConnection, err := connectionAttempt.GetResultBlocking()
 	if err != nil {
 		if client.errorLogger != nil {
@@ -114,13 +115,14 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		infoLogger.Log("Connection established to \"" + connectionAttempt.GetEndpointConfig().Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttempts()))
 	}
 
+	client.waitGroup.Add(1)
+
 	var endpointConfig *Config.TcpClient
 	if client.config.Reconnect {
 		go client.handleDisconnect(systemgeConnection, endpointConfig)
 	} else {
 		go client.handleDisconnect(systemgeConnection, nil)
 	}
-	client.waitGroup.Add(1)
 }
 
 func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, endpointConfig *Config.TcpClient) {
