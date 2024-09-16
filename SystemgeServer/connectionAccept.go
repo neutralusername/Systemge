@@ -22,10 +22,10 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 
 			connection, err := server.acceptConnection()
 			if err != nil {
+				server.waitGroup.Done()
 				if server.errorLogger != nil {
 					server.errorLogger.Log(err.Error())
 				}
-				server.waitGroup.Done()
 			} else {
 				if server.infoLogger != nil {
 					server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
