@@ -26,7 +26,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 	if client.connectionAttemptsMap[endpointConfig.Address] != nil {
 		return Error.New("Connection attempt already in progress", nil)
 	}
-	connectionAttempt := TcpSystemgeConnection.StartConnectionAttempts(client.name, &Config.SystemgeConnectionAttempt{
+	connectionAttempt := TcpSystemgeConnection.EstablishConnectionAttempts(client.name, &Config.SystemgeConnectionAttempt{
 		MaxServerNameLength:         client.config.MaxServerNameLength,
 		MaxConnectionAttempts:       client.config.MaxConnectionAttempts,
 		RetryIntervalMs:             uint32(client.config.ConnectionAttemptDelayMs),
@@ -53,7 +53,7 @@ func (client *SystemgeClient) startConnectionAttempts(endpointConfig *Config.Tcp
 
 func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSystemgeConnection.ConnectionAttempt) {
 	endAttempt := func() {
-		connectionAttempt.AbortAttempt()
+		connectionAttempt.AbortAttempts()
 		client.mutex.Lock()
 		defer client.mutex.Unlock()
 		delete(client.connectionAttemptsMap, connectionAttempt.GetEndpointConfig().Address)
@@ -112,7 +112,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	}
 
 	if infoLogger := client.infoLogger; infoLogger != nil {
-		infoLogger.Log("Connection established to \"" + connectionAttempt.GetEndpointConfig().Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttempts()))
+		infoLogger.Log("Connection established to \"" + connectionAttempt.GetEndpointConfig().Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttemptsCount()))
 	}
 
 	client.waitGroup.Add(1)

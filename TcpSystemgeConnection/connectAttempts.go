@@ -17,7 +17,17 @@ type ConnectionAttempt struct {
 	systemgeConnection SystemgeConnection.SystemgeConnection
 }
 
-func (connectionAttempt *ConnectionAttempt) AbortAttempt() error {
+func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) *ConnectionAttempt {
+	connectionAttempts := &ConnectionAttempt{
+		config:   config,
+		attempts: 0,
+		ongoing:  make(chan bool),
+	}
+	go connectionAttempts.connectionAttempts(name)
+	return connectionAttempts
+}
+
+func (connectionAttempt *ConnectionAttempt) AbortAttempts() error {
 	select {
 	case <-connectionAttempt.ongoing:
 		return Error.New("Connection attempt has already ended", nil)
@@ -27,7 +37,7 @@ func (connectionAttempt *ConnectionAttempt) AbortAttempt() error {
 	}
 }
 
-func (connectionAttempt *ConnectionAttempt) GetAttempts() uint32 {
+func (connectionAttempt *ConnectionAttempt) GetAttemptsCount() uint32 {
 	return connectionAttempt.attempts
 }
 
@@ -51,16 +61,6 @@ func (connectionAttempt *ConnectionAttempt) IsOngoing() bool {
 func (connectionAttempt *ConnectionAttempt) GetResultBlocking() (SystemgeConnection.SystemgeConnection, error) {
 	<-connectionAttempt.ongoing
 	return connectionAttempt.systemgeConnection, connectionAttempt.err
-}
-
-func StartConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) *ConnectionAttempt {
-	connectionAttempts := &ConnectionAttempt{
-		config:   config,
-		attempts: 0,
-		ongoing:  make(chan bool),
-	}
-	go connectionAttempts.connectionAttempts(name)
-	return connectionAttempts
 }
 
 func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
