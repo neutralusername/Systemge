@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpSystemgeConnection) addMessageToProcessingChannelLoop() {
+func (connection *TcpSystemgeConnection) receiveMessageLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
@@ -40,7 +40,7 @@ func (connection *TcpSystemgeConnection) addMessageToProcessingChannelLoop() {
 					}
 					continue
 				}
-				if err := connection.addMessageToProcessingChannel(messageBytes); err != nil {
+				if err := connection.addMessageToChannel(messageBytes); err != nil {
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
 					}
@@ -52,7 +52,7 @@ func (connection *TcpSystemgeConnection) addMessageToProcessingChannelLoop() {
 	}
 }
 
-func (connection *TcpSystemgeConnection) addMessageToProcessingChannel(messageBytes []byte) error {
+func (connection *TcpSystemgeConnection) addMessageToChannel(messageBytes []byte) error {
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		connection.byteRateLimiterExceeded.Add(1)
 		return Error.New("byte rate limiter exceeded", nil)
