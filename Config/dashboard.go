@@ -18,10 +18,10 @@ type DashboardServer struct {
 	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
-	UpdateIntervalMs  uint64 `json:"updateIntervalMs"`      // default: 0 == disabled
-	MaxMetricEntries  int    `json:"maxMetricsCacheValues"` // default: 100 (must be > 0)
-	MaxMetricTypes    int    `json:"maxMetricTypes"`        // default: 0 == no limit
-	MaxMetricsPerType int    `json:"maxMetricKeys"`         // default: 0 == no limit
+	UpdateIntervalMs  uint64 `json:"updateIntervalMs"`  // default: 0 == disabled
+	MaxMetricEntries  int    `json:"maxMetricEntries"`  // default: 100 (must be > 0)
+	MaxMetricTypes    int    `json:"maxMetricTypes"`    // default: 0 == no limit
+	MaxMetricsPerType int    `json:"maxMetricsPerType"` // default: 0 == no limit
 
 	MaxCommands int `json:"maxCommands"` // default: 0 == no limit
 }

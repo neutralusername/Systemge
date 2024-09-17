@@ -31,10 +31,10 @@ type MessageBrokerClient struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	TopicResolutionLifetimeMs        uint64 `json:"topicResolutionLifetimeMs"`     // default: 0 == until disconnect
-	MaxServerNameLength              int    `json:"maxServerNameLength"`           // default: <=0 == no limit
-	ResolutionAttemptRetryIntervalMs uint32 `json:"subscribedTopicsRetryMs"`       // default: 0 == no delay
-	ResolutionMaxAttempts            uint32 `json:"subscribedTopicsRetryAttempts"` // default: 0 == no limit
+	TopicResolutionLifetimeMs        uint64 `json:"topicResolutionLifetimeMs"`        // default: 0 == until disconnect
+	MaxServerNameLength              int    `json:"maxServerNameLength"`              // default: <=0 == no limit
+	ResolutionAttemptRetryIntervalMs uint32 `json:"resolutionAttemptRetryIntervalMs"` // default: 0 == no delay
+	ResolutionMaxAttempts            uint32 `json:"resolutionMaxAttempts"`            // default: 0 == no limit
 
 	AsyncTopics []string `json:"asyncTopics"`
 	SyncTopics  []string `json:"syncTopics"`
