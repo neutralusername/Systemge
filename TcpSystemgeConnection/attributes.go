@@ -42,7 +42,7 @@ func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnE
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) AddAttribute(attribute string, handler func() error) error {
+func (connection *TcpSystemgeConnection) AddAttributeHandler(attribute string, handler func() error) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
 	if _, ok := connection.attributes[attribute]; !!ok {
@@ -58,20 +58,8 @@ func (connection *TcpSystemgeConnection) AddAttribute(attribute string, handler 
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) RemoveAttribute(attribute string) error {
-	connection.attributeMutex.Lock()
-	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; !ok {
-		return Error.New("No attribute found", nil)
-	}
-	delete(connection.attributes, attribute)
-	for i, v := range connection.attributes[attribute].order {
-		if v == attribute {
-			connection.attributes[attribute].order = append(connection.attributes[attribute].order[:i], connection.attributes[attribute].order[i+1:]...)
-			break
-		}
-	}
-	return nil
+func (connection *TcpSystemgeConnection) RemoveAttributeHandler(index int) error {
+
 }
 
 func (connection *TcpSystemgeConnection) GetAttributes() map[string]func() error {
