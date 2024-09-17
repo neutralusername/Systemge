@@ -58,7 +58,7 @@ func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
 
 func (server *SystemgeServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
+	metricsTypes.AddMetrics("systemgeServer_connectionAttempts", Metrics.New(
 		map[string]uint64{
 			"connection_attempts":          server.GetConnectionAttempts(),
 			"failed_connection_attempts":   server.GetFailedConnectionAttempts(),
