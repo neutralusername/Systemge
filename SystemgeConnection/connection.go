@@ -15,8 +15,9 @@ type SystemgeConnection interface {
 	GetNextMessage() (*Message.Message, error)
 	AvailableMessageCount() uint32
 
-	RegisterMessageHandlingLoop(chan<- bool) error
-	IsMessageHandlingLoopRegistered() bool
+	StartMessageHandlingLoop_Sequentially(MessageHandler) error
+	StartMessageHandlingLoop_Concurrently(MessageHandler) error
+	IsMessageHandlingLoopStarted() bool
 	StopMessageHandlingLoop() error
 
 	AsyncMessage(topic string, payload string) error

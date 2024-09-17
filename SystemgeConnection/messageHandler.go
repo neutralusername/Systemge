@@ -1,14 +1,13 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 type MessageHandler interface {
-	HandleAsyncMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) error
-	HandleSyncRequest(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error)
+	HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error
+	HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error)
 	AddAsyncMessageHandler(topic string, handler AsyncMessageHandler)
 	AddSyncMessageHandler(topic string, handler SyncMessageHandler)
 	RemoveAsyncMessageHandler(topic string)
@@ -33,10 +32,10 @@ type MessageHandler interface {
 	GetUnknownTopicsReceived() uint64
 }
 
-type AsyncMessageHandler func(SystemgeConnection.SystemgeConnection, *Message.Message)
+type AsyncMessageHandler func(SystemgeConnection, *Message.Message)
 type AsyncMessageHandlers map[string]AsyncMessageHandler
 
-type SyncMessageHandler func(SystemgeConnection.SystemgeConnection, *Message.Message) (string, error)
+type SyncMessageHandler func(SystemgeConnection, *Message.Message) (string, error)
 type SyncMessageHandlers map[string]SyncMessageHandler
 
 func NewAsyncMessageHandlers() AsyncMessageHandlers {

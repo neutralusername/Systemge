@@ -1,4 +1,4 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"sync"
@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 type SequentialMessageHandler struct {
@@ -32,7 +31,7 @@ type queueStruct struct {
 	message             *Message.Message
 	syncResponseChannel chan *syncResponseStruct
 	asyncErrorChannel   chan error
-	connection          SystemgeConnection.SystemgeConnection
+	connection          SystemgeConnection
 }
 
 type syncResponseStruct struct {
@@ -111,7 +110,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) error {
+func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	response := make(chan error)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -125,7 +124,7 @@ func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection Sy
 	}
 }
 
-func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{

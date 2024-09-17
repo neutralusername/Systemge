@@ -1,4 +1,4 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"sync"
@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 type TopicExclusiveMessageHandler struct {
@@ -88,7 +87,7 @@ func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, 
 	return systemgeMessageHandler
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) error {
+func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	response := make(chan error)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -102,7 +101,7 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connectio
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{

@@ -11,7 +11,6 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 )
 
@@ -27,15 +26,15 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 
 	systemgeChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
 	for _, systemgeConnection := range systemgeServer.GetConnections() {
-		systemgeChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsProcessingLoopRunning(), systemgeConnection.AvailableMessageCount())
+		systemgeChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
 	}
 
 	return DashboardClient.New(
 		name,
 		config,
-		SystemgeMessageHandler.NewTopicExclusiveMessageHandler(
+		SystemgeConnection.NewTopicExclusiveMessageHandler(
 			nil,
-			SystemgeMessageHandler.SyncMessageHandlers{
+			SystemgeConnection.SyncMessageHandlers{
 				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 					if err != nil {

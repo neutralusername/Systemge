@@ -1,4 +1,4 @@
-package SystemgeMessageHandler
+package SystemgeConnection
 
 import (
 	"sync"
@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 type ConcurrentMessageHandler struct {
@@ -42,7 +41,7 @@ func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 	return systemgeMessageHandler
 }
 
-func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message) error {
+func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	messageHandler.asyncMutex.Lock()
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	messageHandler.asyncMutex.Unlock()
@@ -61,7 +60,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 	return nil
 }
 
-func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	messageHandler.syncMutex.Lock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.Unlock()

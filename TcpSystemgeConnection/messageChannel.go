@@ -6,19 +6,113 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (connection *TcpSystemgeConnection) RegisterMessageHandlingLoop(messageHandlingStopChannel chan<- bool) error {
+// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
+// errorChannel will send all errors that occur during message processing.
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(messageHandler SystemgeConnection.MessageHandler) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	if connection.messageHandlingLoopStopChannel != nil {
 		return Error.New("Message handling loop already registered", nil)
 	}
-	connection.messageHandlingLoopStopChannel = messageHandlingStopChannel
+	stopChann := make(chan bool)
+	connection.messageHandlingLoopStopChannel = stopChann
+	go func() {
+		for {
+			select {
+			case <-stopChann:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Message handling loop stopped")
+				}
+				return
+			default:
+				message, err := connection.GetNextMessage()
+				if err != nil {
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log(err.Error())
+					}
+					return
+				}
+				if err := connection.HandleMessage(message, messageHandler); err != nil {
+					if connection.errorLogger != nil {
+						connection.errorLogger.Log(err.Error())
+					}
+				}
+			}
+		}
+	}()
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) IsMessageHandlingLoopRegistered() bool {
+// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
+// errorChannel will send all errors that occur during message processing.
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(messageHandler SystemgeConnection.MessageHandler) error {
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
+	if connection.messageHandlingLoopStopChannel != nil {
+		return Error.New("Message handling loop already registered", nil)
+	}
+	stopChannel := make(chan bool)
+	connection.messageHandlingLoopStopChannel = stopChannel
+	go func() {
+		for {
+			select {
+			case <-stopChannel:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Message handling loop stopped")
+				}
+				return
+			default:
+				message, err := connection.GetNextMessage()
+				if err != nil {
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log(err.Error())
+					}
+					return
+				}
+				go func() {
+					if err := connection.HandleMessage(message, messageHandler); err != nil {
+						if connection.errorLogger != nil {
+							connection.errorLogger.Log(err.Error())
+						}
+					}
+				}()
+			}
+		}
+	}()
+	return nil
+}
+
+// HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
+func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
+	if messageHandler == nil {
+		return Error.New("no message handler set", nil)
+	}
+	if message.GetSyncToken() == "" {
+		err := messageHandler.HandleAsyncMessage(connection, message)
+		if err != nil {
+			return Error.New("failed to handle async message", err)
+		}
+	} else {
+		if message.IsResponse() {
+			return Error.New("message is a response, cannot handle", nil)
+		}
+		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
+			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
+				return Error.New("failed to send failure response", err)
+			}
+		} else {
+			if err := connection.SyncResponse(message, true, responsePayload); err != nil {
+				return Error.New("failed to send success response", err)
+			}
+		}
+	}
+	return nil
+}
+
+func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	return connection.messageHandlingLoopStopChannel != nil

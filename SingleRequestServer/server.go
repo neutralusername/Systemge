@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -16,7 +15,7 @@ import (
 type Server struct {
 	config          *Config.SingleRequestServer
 	commandHandlers Commands.Handlers
-	messageHandler  SystemgeMessageHandler.MessageHandler
+	messageHandler  SystemgeConnection.MessageHandler
 	systemgeServer  *SystemgeServer.SystemgeServer
 
 	// metrics
@@ -32,7 +31,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeMessageHandler.MessageHandler) *Server {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
 	if config == nil {
 		panic("Config is required")
 	}
