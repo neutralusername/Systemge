@@ -30,8 +30,12 @@ func NewSystemgeConnectionChild(name string, isProcessingLoopRunning bool, unpro
 
 func NewSystemgeConnectionChildren(systemgeConnections []SystemgeConnection.SystemgeConnection) map[string]*SystemgeConnectionChild {
 	children := map[string]*SystemgeConnectionChild{}
-	for _, child := range systemgeConnections {
-		children[child.GetName()] = NewSystemgeConnectionChild(child.GetName(), child.IsProcessingLoopRunning(), child.AvailableMessageCount())
+	for _, systemgeConnection := range systemgeConnections {
+		children[systemgeConnection.GetName()] = NewSystemgeConnectionChild(
+			systemgeConnection.GetName(),
+			systemgeConnection.IsProcessingLoopRunning(),
+			systemgeConnection.AvailableMessageCount(),
+		)
 	}
 	return children
 }
