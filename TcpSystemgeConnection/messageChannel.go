@@ -8,6 +8,10 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandlingStopChannel chan<- bool) error {
+
+}
+
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()

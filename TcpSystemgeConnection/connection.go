@@ -35,10 +35,11 @@ type TcpSystemgeConnection struct {
 
 	closeChannel chan bool
 
-	messageMutex            sync.Mutex
-	messageChannel          chan *Message.Message
-	messageChannelSemaphore *Tools.Semaphore
-	receiveLoopStopChannel  chan bool
+	messageHandlingLoopStopChannel chan bool
+	messageMutex                   sync.Mutex
+	messageChannel                 chan *Message.Message
+	messageChannelSemaphore        *Tools.Semaphore
+	receiveLoopStopChannel         chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
