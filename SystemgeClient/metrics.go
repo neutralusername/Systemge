@@ -6,22 +6,42 @@ import (
 
 func (client *SystemgeClient) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("systemge_client", Metrics.New(
+	metricsTypes.AddMetrics("systemgeClient_connectionAttempts", Metrics.New(
 		map[string]uint64{
-			"connection_attempts_failed":      client.CheckConnectionAttemptsFailed(),
-			"connection_attempts_success":     client.CheckConnectionAttemptsSuccess(),
-			"bytes_sent":                      client.CheckBytesSent(),
-			"bytes_received":                  client.CheckBytesReceived(),
-			"async_messages_sent":             client.CheckAsyncMessagesSent(),
-			"sync_requests_sent":              client.CheckSyncRequestsSent(),
+			"connection_attempts_failed":  client.CheckConnectionAttemptsFailed(),
+			"connection_attempts_success": client.CheckConnectionAttemptsSuccess(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_byteTransmissions", Metrics.New(
+		map[string]uint64{
+			"bytes_sent":     client.CheckBytesSent(),
+			"bytes_received": client.CheckBytesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_messagesSent", Metrics.New(
+		map[string]uint64{
+			"async_messages_sent": client.CheckAsyncMessagesSent(),
+			"sync_requests_sent":  client.CheckSyncRequestsSent(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_syncResponsesReceived", Metrics.New(
+		map[string]uint64{
 			"sync_success_responses_received": client.CheckSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": client.CheckSyncFailureResponsesReceived(),
 			"no_sync_response_received":       client.CheckNoSyncResponseReceived(),
-			"invalid_messages_received":       client.CheckInvalidMessagesReceived(),
 			"invalid_sync_responses_received": client.CheckInvalidSyncResponsesReceived(),
-			"valid_messages_received":         client.CheckValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   client.CheckMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      client.CheckByteRateLimiterExceeded(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_messagesReceived", Metrics.New(
+		map[string]uint64{
+			"invalid_messages_received": client.CheckInvalidMessagesReceived(),
+			"valid_messages_received":   client.CheckValidMessagesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_rateLimiter", Metrics.New(
+		map[string]uint64{
+			"message_rate_limiter_exceeded": client.CheckMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":    client.CheckByteRateLimiterExceeded(),
 		},
 	))
 	return metricsTypes
@@ -29,22 +49,42 @@ func (client *SystemgeClient) CheckMetrics() Metrics.MetricsTypes {
 
 func (client *SystemgeClient) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("systemge_client", Metrics.New(
+	metricsTypes.AddMetrics("systemgeClient_connectionAttempts", Metrics.New(
 		map[string]uint64{
-			"connection_attempts_failed":      client.GetConnectionAttemptsFailed(),
-			"connection_attempts_success":     client.GetConnectionAttemptsSuccess(),
-			"bytes_sent":                      client.GetBytesSent(),
-			"bytes_received":                  client.GetBytesReceived(),
-			"async_messages_sent":             client.GetAsyncMessagesSent(),
-			"sync_requests_sent":              client.GetSyncRequestsSent(),
+			"connection_attempts_failed":  client.GetConnectionAttemptsFailed(),
+			"connection_attempts_success": client.GetConnectionAttemptsSuccess(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_byteTransmissions", Metrics.New(
+		map[string]uint64{
+			"bytes_sent":     client.GetBytesSent(),
+			"bytes_received": client.GetBytesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_messagesSent", Metrics.New(
+		map[string]uint64{
+			"async_messages_sent": client.GetAsyncMessagesSent(),
+			"sync_requests_sent":  client.GetSyncRequestsSent(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_syncResponsesReceived", Metrics.New(
+		map[string]uint64{
 			"sync_success_responses_received": client.GetSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": client.GetSyncFailureResponsesReceived(),
 			"no_sync_response_received":       client.GetNoSyncResponseReceived(),
-			"invalid_messages_received":       client.GetInvalidMessagesReceived(),
 			"invalid_sync_responses_received": client.GetInvalidSyncResponsesReceived(),
-			"valid_messages_received":         client.GetValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   client.GetMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      client.GetByteRateLimiterExceeded(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_messagesReceived", Metrics.New(
+		map[string]uint64{
+			"invalid_messages_received": client.GetInvalidMessagesReceived(),
+			"valid_messages_received":   client.GetValidMessagesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeClient_rateLimiter", Metrics.New(
+		map[string]uint64{
+			"message_rate_limiter_exceeded": client.GetMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":    client.GetByteRateLimiterExceeded(),
 		},
 	))
 	return metricsTypes

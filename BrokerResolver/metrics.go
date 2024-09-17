@@ -11,14 +11,18 @@ func (resolver *Resolver) CheckOngoingResolutions() int64 {
 func (resolver *Resolver) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	resolver.mutex.Lock()
-	metricsTypes.AddMetrics("broker_resolver", Metrics.New(
+	metricsTypes.AddMetrics("brokerResolver_resolutions", Metrics.New(
 		map[string]uint64{
 			"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
 			"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
 			"failed_resolutions":          resolver.CheckFailedResolutions(),
-			"ongoing_resolutions":         uint64(resolver.CheckOngoingResolutions()),
-			"async_topic_count":           uint64(len(resolver.asyncTopicTcpClientConfigs)),
-			"sync_topic_count":            uint64(len(resolver.syncTopicTcpClientConfigs)),
+		},
+	))
+	metricsTypes.AddMetrics("brokerResolver_stats", Metrics.New(
+		map[string]uint64{
+			"ongoing_resolutions": uint64(resolver.CheckOngoingResolutions()),
+			"async_topic_count":   uint64(len(resolver.asyncTopicTcpClientConfigs)),
+			"sync_topic_count":    uint64(len(resolver.syncTopicTcpClientConfigs)),
 		},
 	))
 	resolver.mutex.Unlock()
@@ -29,14 +33,18 @@ func (resolver *Resolver) CheckMetrics() Metrics.MetricsTypes {
 func (resolver *Resolver) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	resolver.mutex.Lock()
-	metricsTypes.AddMetrics("broker_resolver", Metrics.New(
+	metricsTypes.AddMetrics("brokerResolver_resolutions", Metrics.New(
 		map[string]uint64{
 			"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
 			"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
 			"failed_resolutions":          resolver.GetFailedResolutions(),
-			"ongoing_resolutions":         uint64(resolver.CheckOngoingResolutions()),
-			"async_topic_count":           uint64(len(resolver.asyncTopicTcpClientConfigs)),
-			"sync_topic_count":            uint64(len(resolver.syncTopicTcpClientConfigs)),
+		},
+	))
+	metricsTypes.AddMetrics("brokerResolver_stats", Metrics.New(
+		map[string]uint64{
+			"ongoing_resolutions": uint64(resolver.CheckOngoingResolutions()),
+			"async_topic_count":   uint64(len(resolver.asyncTopicTcpClientConfigs)),
+			"sync_topic_count":    uint64(len(resolver.syncTopicTcpClientConfigs)),
 		},
 	))
 	resolver.mutex.Unlock()

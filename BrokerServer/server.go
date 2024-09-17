@@ -37,10 +37,8 @@ type Server struct {
 
 	// metrics
 
-	asyncMessagesReceived   atomic.Uint64
 	asyncMessagesPropagated atomic.Uint64
 
-	syncRequestsReceived   atomic.Uint64
 	syncRequestsPropagated atomic.Uint64
 }
 

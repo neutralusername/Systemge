@@ -7,25 +7,50 @@ import (
 
 func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("systemge_server", Metrics.New(
+	metricsTypes.AddMetrics("systemgeServer_connectionAttempts", Metrics.New(
 		map[string]uint64{
-			"connection_attempts":             server.CheckConnectionAttempts(),
-			"failed_connections":              server.CheckFailedConnections(),
-			"rejected_connections":            server.CheckRejectedConnections(),
-			"accepted_connections":            server.CheckAcceptedConnections(),
-			"bytes_sent":                      server.CheckBytesSent(),
-			"bytes_received":                  server.CheckBytesReceived(),
-			"async_messages_sent":             server.CheckAsyncMessagesSent(),
-			"sync_requests_sent":              server.CheckSyncRequestsSent(),
+			"connection_attempts":  server.CheckConnectionAttempts(),
+			"failed_connections":   server.CheckFailedConnections(),
+			"rejected_connections": server.CheckRejectedConnections(),
+			"accepted_connections": server.CheckAcceptedConnections(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_byteTransmissions", Metrics.New(
+		map[string]uint64{
+			"bytes_sent":     server.CheckBytesSent(),
+			"bytes_received": server.CheckBytesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_messagesSent", Metrics.New(
+		map[string]uint64{
+			"async_messages_sent": server.CheckAsyncMessagesSent(),
+			"sync_requests_sent":  server.CheckSyncRequestsSent(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_syncResponsesReceived", Metrics.New(
+		map[string]uint64{
 			"sync_success_responses_received": server.CheckSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": server.CheckSyncFailureResponsesReceived(),
 			"no_sync_response_received":       server.CheckNoSyncResponseReceived(),
-			"invalid_messages_received":       server.CheckInvalidMessagesReceived(),
 			"invalid_sync_responses_received": server.CheckInvalidSyncResponsesReceived(),
-			"valid_messages_received":         server.CheckValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   server.CheckMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      server.CheckByteRateLimiterExceeded(),
-			"connection_count":                uint64(server.GetConnectionCount()),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_messagesReceived", Metrics.New(
+		map[string]uint64{
+			"invalid_messages_received": server.CheckInvalidMessagesReceived(),
+			"valid_messages_received":   server.CheckValidMessagesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_rateLimiter", Metrics.New(
+		map[string]uint64{
+			"message_rate_limiter_exceeded": server.CheckMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":    server.CheckByteRateLimiterExceeded(),
+			"connection_count":              uint64(server.GetConnectionCount()),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
+		map[string]uint64{
+			"connection_count": uint64(server.GetConnectionCount()),
 		},
 	))
 	return metricsTypes
@@ -33,25 +58,50 @@ func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
 
 func (server *SystemgeServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("systemge_server", Metrics.New(
+	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
 		map[string]uint64{
-			"connection_attempts":             server.GetConnectionAttempts(),
-			"failed_connections":              server.GetFailedConnections(),
-			"rejected_connections":            server.GetRejectedConnections(),
-			"accepted_connections":            server.GetAcceptedConnections(),
-			"bytes_sent":                      server.GetBytesSent(),
-			"bytes_received":                  server.GetBytesReceived(),
-			"async_messages_sent":             server.GetAsyncMessagesSent(),
-			"sync_requests_sent":              server.GetSyncRequestsSent(),
+			"connection_attempts":  server.GetConnectionAttempts(),
+			"failed_connections":   server.GetFailedConnections(),
+			"rejected_connections": server.GetRejectedConnections(),
+			"accepted_connections": server.GetAcceptedConnections(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_byteTransmissions", Metrics.New(
+		map[string]uint64{
+			"bytes_sent":     server.GetBytesSent(),
+			"bytes_received": server.GetBytesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_messagesSent", Metrics.New(
+		map[string]uint64{
+			"async_messages_sent": server.GetAsyncMessagesSent(),
+			"sync_requests_sent":  server.GetSyncRequestsSent(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_syncResponsesReceived", Metrics.New(
+		map[string]uint64{
 			"sync_success_responses_received": server.GetSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": server.GetSyncFailureResponsesReceived(),
 			"no_sync_response_received":       server.GetNoSyncResponseReceived(),
-			"invalid_messages_received":       server.GetInvalidMessagesReceived(),
 			"invalid_sync_responses_received": server.GetInvalidSyncResponsesReceived(),
-			"valid_messages_received":         server.GetValidMessagesReceived(),
-			"message_rate_limiter_exceeded":   server.GetMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":      server.GetByteRateLimiterExceeded(),
-			"connection_count":                uint64(server.GetConnectionCount()),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_messagesReceived", Metrics.New(
+		map[string]uint64{
+			"invalid_messages_received": server.GetInvalidMessagesReceived(),
+			"valid_messages_received":   server.GetValidMessagesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_rateLimiter", Metrics.New(
+		map[string]uint64{
+			"message_rate_limiter_exceeded": server.GetMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":    server.GetByteRateLimiterExceeded(),
+			"connection_count":              uint64(server.GetConnectionCount()),
+		},
+	))
+	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
+		map[string]uint64{
+			"connection_count": uint64(server.GetConnectionCount()),
 		},
 	))
 	return metricsTypes

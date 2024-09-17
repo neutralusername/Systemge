@@ -7,15 +7,19 @@ import (
 func (messageBrokerClient *Client) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	messageBrokerClient.mutex.Lock()
-	metricsTypes.AddMetrics("broker_client", Metrics.New(
+	metricsTypes.AddMetrics("brokerClient_stats", Metrics.New(
 		map[string]uint64{
 			"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
 			"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
-			"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
+			"resolved_topics":           uint64(len(messageBrokerClient.topicResolutions)),
 			"resolution_attempts":       messageBrokerClient.CheckResolutionAttempts(),
-			"async_messages_sent":       messageBrokerClient.CheckAsyncMessagesSent(),
-			"sync_requests_sent":        messageBrokerClient.CheckSyncRequestsSent(),
-			"sync_responses_received":   messageBrokerClient.CheckSyncResponsesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("brokerClient_messageTransmissions", Metrics.New(
+		map[string]uint64{
+			"async_messages_sent":     messageBrokerClient.CheckAsyncMessagesSent(),
+			"sync_requests_sent":      messageBrokerClient.CheckSyncRequestsSent(),
+			"sync_responses_received": messageBrokerClient.CheckSyncResponsesReceived(),
 		},
 	))
 	messageBrokerClient.mutex.Unlock()
@@ -33,15 +37,19 @@ func (messageBrokerClient *Client) CheckMetrics() Metrics.MetricsTypes {
 func (messageBrokerClient *Client) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	messageBrokerClient.mutex.Lock()
-	metricsTypes.AddMetrics("broker_client", Metrics.New(
+	metricsTypes.AddMetrics("brokerClient_stats", Metrics.New(
 		map[string]uint64{
 			"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
 			"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
-			"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
+			"resolved_topics":           uint64(len(messageBrokerClient.topicResolutions)),
 			"resolution_attempts":       messageBrokerClient.GetResolutionAttempts(),
-			"async_messages_sent":       messageBrokerClient.GetAsyncMessagesSent(),
-			"sync_requests_sent":        messageBrokerClient.GetSyncRequestsSent(),
-			"sync_responses_received":   messageBrokerClient.GetSyncResponsesReceived(),
+		},
+	))
+	metricsTypes.AddMetrics("brokerClient_messageTransmissions", Metrics.New(
+		map[string]uint64{
+			"async_messages_sent":     messageBrokerClient.GetAsyncMessagesSent(),
+			"sync_requests_sent":      messageBrokerClient.GetSyncRequestsSent(),
+			"sync_responses_received": messageBrokerClient.GetSyncResponsesReceived(),
 		},
 	))
 	messageBrokerClient.mutex.Unlock()

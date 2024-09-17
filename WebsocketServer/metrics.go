@@ -6,12 +6,20 @@ import (
 
 func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("websocket_server", Metrics.New(
+	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
-			"bytes_sent":         server.CheckBytesSentCounter(),
-			"bytes_received":     server.CheckBytesReceivedCounter(),
-			"incoming_messages":  uint64(server.CheckIncomingMessageCounter()),
-			"outgoing_messages":  uint64(server.CheckOutgoingMessageCounter()),
+			"bytes_sent":     server.CheckBytesSentCounter(),
+			"bytes_received": server.CheckBytesReceivedCounter(),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_messageTransmissions", Metrics.New(
+		map[string]uint64{
+			"incoming_messages": uint64(server.CheckIncomingMessageCounter()),
+			"outgoing_messages": uint64(server.CheckOutgoingMessageCounter()),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_connections", Metrics.New(
+		map[string]uint64{
 			"active_connections": uint64(server.GetClientCount()),
 		}),
 	)
@@ -21,12 +29,20 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 
 func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("websocket_server", Metrics.New(
+	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
-			"bytes_sent":         server.GetBytesSentCounter(),
-			"bytes_received":     server.GetBytesReceivedCounter(),
-			"incoming_messages":  uint64(server.GetIncomingMessageCounter()),
-			"outgoing_messages":  uint64(server.GetOutgoingMessageCounter()),
+			"bytes_sent":     server.GetBytesSentCounter(),
+			"bytes_received": server.GetBytesReceivedCounter(),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_messageTransmissions", Metrics.New(
+		map[string]uint64{
+			"incoming_messages": uint64(server.GetIncomingMessageCounter()),
+			"outgoing_messages": uint64(server.GetOutgoingMessageCounter()),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_connections", Metrics.New(
+		map[string]uint64{
 			"active_connections": uint64(server.GetClientCount()),
 		}),
 	)

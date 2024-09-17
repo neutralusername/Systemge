@@ -20,7 +20,7 @@ type Server struct {
 	systemgeServer  *SystemgeServer.SystemgeServer
 
 	// metrics
-	invalidMessages atomic.Uint64
+	invalidRequests atomic.Uint64
 
 	succeededCommands atomic.Uint64
 	failedCommands    atomic.Uint64
@@ -134,7 +134,7 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		connection.Close()
 		return nil
 	default:
-		server.invalidMessages.Add(1)
+		server.invalidRequests.Add(1)
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
 		return Error.New("Invalid topic", nil)
 	}

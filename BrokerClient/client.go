@@ -61,7 +61,7 @@ type connection struct {
 	responsibleSyncTopics  map[string]bool
 }
 
-func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeMessageHandler.MessageHandler, dashboardCommands Commands.Handlers) *Client {
+func New(name string, config *Config.MessageBrokerClient, messageHandler SystemgeMessageHandler.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
@@ -78,7 +78,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 	messageBrokerClient := &Client{
 		name:                    name,
 		config:                  config,
-		messageHandler:          systemgeMessageHandler,
+		messageHandler:          messageHandler,
 		ongoingTopicResolutions: make(map[string]*resolutionAttempt),
 
 		topicResolutions: make(map[string]map[string]*connection),
