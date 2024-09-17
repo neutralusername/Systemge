@@ -24,9 +24,9 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 	}
 	metricsTypes.Merge(systemgeServer.GetMetrics())
 
-	systemgeChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
+	systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
 	for _, systemgeConnection := range systemgeServer.GetConnections() {
-		systemgeChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
+		systemgeConnectionChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
 	}
 
 	return DashboardClient.New(
@@ -158,7 +158,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					commands.GetKeyBoolMap(),
 					systemgeServer.GetStatus(),
 					DashboardHelpers.NewDashboardMetrics(metricsTypes),
-					DashboardHelpers.NewSystemgeConnectionChildren(systemgeServer.GetConnections()),
+					systemgeConnectionChildren,
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()
