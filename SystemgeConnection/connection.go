@@ -33,11 +33,13 @@ type SystemgeConnection interface {
 	CheckSyncSuccessResponsesReceived() uint64
 	CheckValidMessagesReceived() uint64
 	CheckAsyncMessagesSent() uint64
+	CheckSyncResponsesSent() uint64
 	CheckByteRateLimiterExceeded() uint64
 	CheckBytesReceived() uint64
 	CheckBytesSent() uint64
 
 	GetAsyncMessagesSent() uint64
+	GetSyncResponsesSent() uint64
 	GetByteRateLimiterExceeded() uint64
 	GetBytesReceived() uint64
 	GetBytesSent() uint64

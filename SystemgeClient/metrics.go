@@ -22,6 +22,7 @@ func (client *SystemgeClient) CheckMetrics() Metrics.MetricsTypes {
 		map[string]uint64{
 			"async_messages_sent": client.CheckAsyncMessagesSent(),
 			"sync_requests_sent":  client.CheckSyncRequestsSent(),
+			"sync_responses_sent": client.CheckSyncResponsesSent(),
 		},
 	))
 	metricsTypes.AddMetrics("systemgeClient_syncResponsesReceived", Metrics.New(
@@ -65,6 +66,7 @@ func (client *SystemgeClient) GetMetrics() Metrics.MetricsTypes {
 		map[string]uint64{
 			"async_messages_sent": client.GetAsyncMessagesSent(),
 			"sync_requests_sent":  client.GetSyncRequestsSent(),
+			"sync_responses_sent": client.GetSyncResponsesSent(),
 		},
 	))
 	metricsTypes.AddMetrics("systemgeClient_syncResponsesReceived", Metrics.New(
@@ -216,6 +218,35 @@ func (client *SystemgeClient) GetSyncRequestsSent() uint64 {
 	sum := uint64(0)
 	for _, connection := range client.nameConnections {
 		sum += connection.GetSyncRequestsSent()
+	}
+	return sum
+}
+
+func (client *SystemgeClient) CheckSyncResponsesSent() uint64 {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+
+	sum := uint64(0)
+	for _, connection := range client.nameConnections {
+		sum += connection.CheckSyncResponsesSent()
+	}
+	return sum
+}
+func (client *SystemgeClient) GetSyncResponsesSent() uint64 {
+	client.statusMutex.RLock()
+	client.mutex.Lock()
+	defer func() {
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+	}()
+
+	sum := uint64(0)
+	for _, connection := range client.nameConnections {
+		sum += connection.GetSyncResponsesSent()
 	}
 	return sum
 }
