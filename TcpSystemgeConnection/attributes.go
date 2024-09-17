@@ -39,7 +39,7 @@ func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnE
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) AddAttributeHandler(attribute string, handler func() error) error {
+func (connection *TcpSystemgeConnection) AppendAttributeHandler(attribute string, handler func() error) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
 	if _, ok := connection.attributes[attribute]; !!ok {
@@ -49,14 +49,11 @@ func (connection *TcpSystemgeConnection) AddAttributeHandler(attribute string, h
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) RemoveAttributeHandler(attribute string, index int) error {
+func (connection *TcpSystemgeConnection) PopAttributeHandler(attribute string) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
 	if _, ok := connection.attributes[attribute]; ok {
-		if index < 0 || index >= len(connection.attributes[attribute].order) {
-			return Error.New("Index out of bounds", nil)
-		}
-		connection.attributes[attribute].order = append(connection.attributes[attribute].order[:index], connection.attributes[attribute].order[index+1:]...)
+		connection.attributes[attribute].order = connection.attributes[attribute].order[:len(connection.attributes[attribute].order)-1]
 		return nil
 	}
 	return Error.New("No attribute found", nil)
