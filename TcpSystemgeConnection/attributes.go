@@ -7,9 +7,8 @@ import (
 )
 
 type attribue struct {
-	handlers     map[string]func() error
 	abortOnError bool
-	order        []string
+	order        []func() error
 }
 
 func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) error {
@@ -18,8 +17,7 @@ func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) erro
 	if _, ok := connection.attributes[attribute]; !ok {
 		return Error.New("No attribute found", nil)
 	}
-	for _, v := range connection.attributes[attribute].order {
-		handler := connection.attributes[attribute].handlers[v]
+	for _, handler := range connection.attributes[attribute].order {
 		err := handler()
 		if err != nil && connection.attributes[attribute].abortOnError {
 			return err
@@ -35,9 +33,8 @@ func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnE
 		return Error.New("Attribute already exists", nil)
 	}
 	connection.attributes[attribute] = &attribue{
-		handlers:     map[string]func() error{},
 		abortOnError: abortOnError,
-		order:        []string{},
+		order:        []func() error{},
 	}
 	return nil
 }
@@ -48,37 +45,30 @@ func (connection *TcpSystemgeConnection) AddAttributeHandler(attribute string, h
 	if _, ok := connection.attributes[attribute]; !!ok {
 		return Error.New("Attribute already exists", nil)
 	}
-	for _, v := range connection.attributes[attribute].order {
-		if v == attribute {
-			return Error.New("Attribute already exists", nil)
-		}
-	}
-	connection.attributes[attribute].handlers[attribute] = handler
-	connection.attributes[attribute].order = append(connection.attributes[attribute].order, attribute)
+	connection.attributes[attribute].order = append(connection.attributes[attribute].order, handler)
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) RemoveAttributeHandler(index int) error {
-
-}
-
-func (connection *TcpSystemgeConnection) GetAttributes() map[string]func() error {
-	connection.attributeMutex.Lock()
-	defer connection.attributeMutex.Unlock()
-	attributes := map[string]func() error{}
-	for k, v := range connection.attributes {
-		attributes[k] = v.handlers[k]
-	}
-	return attributes
-}
-
-func (connection *TcpSystemgeConnection) GetAttributeOrder(attribute string) []string {
+func (connection *TcpSystemgeConnection) RemoveAttributeHandler(attribute string, index int) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
 	if _, ok := connection.attributes[attribute]; ok {
-		return connection.attributes[attribute].order
+		if index < 0 || index >= len(connection.attributes[attribute].order) {
+			return Error.New("Index out of bounds", nil)
+		}
+		connection.attributes[attribute].order = append(connection.attributes[attribute].order[:index], connection.attributes[attribute].order[index+1:]...)
+		return nil
 	}
-	return nil
+	return Error.New("No attribute found", nil)
+}
+
+func (connection *TcpSystemgeConnection) GetAttributeHandlers(attribute string) ([]func() error, error) {
+	connection.attributeMutex.Lock()
+	defer connection.attributeMutex.Unlock()
+	if _, ok := connection.attributes[attribute]; ok {
+		return connection.attributes[attribute].order, nil
+	}
+	return nil, Error.New("No attribute found", nil)
 }
 
 func (connection *TcpSystemgeConnection) SwapAttributeOrder(attribute string, index1, index2 int) error {
