@@ -1,7 +1,6 @@
 package TcpSystemgeConnection
 
 import (
-	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
@@ -12,7 +11,6 @@ func (connection *TcpSystemgeConnection) send(bytes []byte) error {
 	if err != nil {
 		if Tcp.IsConnectionClosed(err) {
 			connection.Close()
-			return Error.New("Connection closed", err)
 		}
 		return err
 	}
