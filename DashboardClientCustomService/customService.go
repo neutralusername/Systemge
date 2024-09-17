@@ -6,7 +6,7 @@ type customService interface {
 	Start() error
 	Stop() error
 	GetStatus() int
-	GetMetrics() map[string]*Metrics.Metrics
+	GetMetrics() Metrics.MetricsTypes
 }
 
 type customServiceStruct struct {
@@ -28,6 +28,6 @@ func (customService *customServiceStruct) GetStatus() int {
 	return customService.getStatusFunc()
 }
 
-func (customService *customServiceStruct) GetMetrics() map[string]*Metrics.Metrics {
+func (customService *customServiceStruct) GetMetrics() Metrics.MetricsTypes {
 	return customService.getMetricsFunc()
 }

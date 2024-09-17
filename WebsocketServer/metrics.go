@@ -19,7 +19,7 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *WebsocketServer) GetMetrics() map[string]*Metrics.Metrics {
+func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("websocket_server", Metrics.New(
 		map[string]uint64{
