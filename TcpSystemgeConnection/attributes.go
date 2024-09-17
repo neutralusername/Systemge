@@ -8,7 +8,7 @@ import (
 
 type attribue struct {
 	abortOnError bool
-	order        func() error
+	order        []func() error
 }
 
 func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) error {
