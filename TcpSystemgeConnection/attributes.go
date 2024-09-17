@@ -42,11 +42,11 @@ func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnE
 func (connection *TcpSystemgeConnection) RemoveAttribute(attribute string) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		delete(connection.attributes, attribute)
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	delete(connection.attributes, attribute)
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) AppendAttributeHandler(attribute string, handler func() error) error {
@@ -62,100 +62,101 @@ func (connection *TcpSystemgeConnection) AppendAttributeHandler(attribute string
 func (connection *TcpSystemgeConnection) PopAttributeHandler(attribute string) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		connection.attributes[attribute].order = connection.attributes[attribute].order[:len(connection.attributes[attribute].order)-1]
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	connection.attributes[attribute].order = connection.attributes[attribute].order[:len(connection.attributes[attribute].order)-1]
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) GetAttributeHandlerCount(attribute string) (int, error) {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		return len(connection.attributes[attribute].order), nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return -1, Error.New("No attribute found", nil)
 	}
-	return -1, Error.New("No attribute found", nil)
+	return len(connection.attributes[attribute].order), nil
 }
 
 func (connection *TcpSystemgeConnection) ClearAttributeHandlers(attribute string) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		connection.attributes[attribute].order = []func() error{}
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	connection.attributes[attribute].order = []func() error{}
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) SetAttributeHandlers(attribute string, handlers []func() error) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		connection.attributes[attribute].order = handlers
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	connection.attributes[attribute].order = handlers
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) InsertAttributeHandler(attribute string, index int, handler func() error) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		if index < 0 || index > len(connection.attributes[attribute].order) {
-			return Error.New("Index out of bounds", nil)
-		}
-		connection.attributes[attribute].order = append(connection.attributes[attribute].order[:index], append([]func() error{handler}, connection.attributes[attribute].order[index:]...)...)
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	if index < 0 || index > len(connection.attributes[attribute].order) {
+		return Error.New("Index out of bounds", nil)
+	}
+	connection.attributes[attribute].order = append(connection.attributes[attribute].order[:index], append([]func() error{handler}, connection.attributes[attribute].order[index:]...)...)
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) RemoveAttributeHandler(attribute string, index int) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		if index < 0 || index >= len(connection.attributes[attribute].order) {
-			return Error.New("Index out of bounds", nil)
-		}
-		connection.attributes[attribute].order = append(connection.attributes[attribute].order[:index], connection.attributes[attribute].order[index+1:]...)
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	if index < 0 || index >= len(connection.attributes[attribute].order) {
+		return Error.New("Index out of bounds", nil)
+	}
+	connection.attributes[attribute].order = append(connection.attributes[attribute].order[:index], connection.attributes[attribute].order[index+1:]...)
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) GetAttributeHandler(attribute string, index int) (func() error, error) {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		if index < 0 || index >= len(connection.attributes[attribute].order) {
-			return nil, Error.New("Index out of bounds", nil)
-		}
-		return connection.attributes[attribute].order[index], nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return nil, Error.New("No attribute found", nil)
 	}
-	return nil, Error.New("No attribute found", nil)
+	if index < 0 || index >= len(connection.attributes[attribute].order) {
+		return nil, Error.New("Index out of bounds", nil)
+	}
+	return connection.attributes[attribute].order[index], nil
+
 }
 
 func (connection *TcpSystemgeConnection) GetAttributeHandlers(attribute string) ([]func() error, error) {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		return connection.attributes[attribute].order, nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return nil, Error.New("No attribute found", nil)
 	}
-	return nil, Error.New("No attribute found", nil)
+	return connection.attributes[attribute].order, nil
 }
 
 func (connection *TcpSystemgeConnection) SwapAttributeOrder(attribute string, index1, index2 int) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		if index1 < 0 || index1 >= len(connection.attributes[attribute].order) || index2 < 0 || index2 >= len(connection.attributes[attribute].order) {
-			return Error.New("Index out of bounds", nil)
-		}
-		connection.attributes[attribute].order[index1], connection.attributes[attribute].order[index2] = connection.attributes[attribute].order[index2], connection.attributes[attribute].order[index1]
-		return nil
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
-	return Error.New("No attribute found", nil)
+	if index1 < 0 || index1 >= len(connection.attributes[attribute].order) || index2 < 0 || index2 >= len(connection.attributes[attribute].order) {
+		return Error.New("Index out of bounds", nil)
+	}
+	connection.attributes[attribute].order[index1], connection.attributes[attribute].order[index2] = connection.attributes[attribute].order[index2], connection.attributes[attribute].order[index1]
+	return nil
 }
 
 type attributeStruct struct {
