@@ -15,6 +15,10 @@ type SystemgeConnection interface {
 	GetNextMessage() (*Message.Message, error)
 	AvailableMessageCount() uint32
 
+	RegisterMessageHandlingLoop(chan<- bool) error
+	IsMessageHandlingLoopRegistered() bool
+	StopMessageHandlingLoop() error
+
 	AsyncMessage(topic string, payload string) error
 	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)
 	SyncRequestBlocking(topic string, payload string) (*Message.Message, error)

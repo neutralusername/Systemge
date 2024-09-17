@@ -11,6 +11,12 @@ import (
 func StartMessageHandlingLoop_Sequentially(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (stopChannel chan<- bool, errorChannel <-chan error) {
 	stopChann := make(chan bool)
 	errorChann := make(chan error)
+	err := connection.RegisterMessageHandlingLoop(stopChann)
+	if err != nil {
+		errorChann <- Error.New("failed to register message handling loop", err)
+		close(errorChann)
+		return stopChann, errorChann
+	}
 	go func() {
 		for {
 			select {
