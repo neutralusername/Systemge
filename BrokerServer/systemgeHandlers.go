@@ -153,7 +153,7 @@ func (server *Server) onSystemgeConnection(connection SystemgeConnection.Systemg
 	server.mutex.Lock()
 	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
 	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
-	stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopSequentially(connection, server.messageHandler)
+	stopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Sequentially(connection, server.messageHandler)
 	server.messageHandlerStopChannel = stopChannel
 	server.mutex.Unlock()
 	return nil

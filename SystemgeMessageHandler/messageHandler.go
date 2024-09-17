@@ -87,7 +87,7 @@ func (map1 SyncMessageHandlers) Get(key string) (SyncMessageHandler, bool) {
 }
 
 // A started loop will run indefinitely until StopProcessingLoop is called.
-func StartProcessingLoopSequentially(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (chan<- bool, <-chan error) {
+func StartMessageHandlingLoop_Sequentially(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (chan<- bool, <-chan error) {
 	stopChannel := make(chan bool)
 	errChannel := make(chan error)
 	go func() {
@@ -104,7 +104,7 @@ func StartProcessingLoopSequentially(connection SystemgeConnection.SystemgeConne
 					close(errChannel)
 					return
 				}
-				if err := ProcessMessage(connection, message, messageHandler); err != nil {
+				if err := HandleMessage(connection, message, messageHandler); err != nil {
 					errChannel <- Error.New("failed to process message", err)
 				}
 			}
@@ -114,7 +114,7 @@ func StartProcessingLoopSequentially(connection SystemgeConnection.SystemgeConne
 }
 
 // A started loop will run indefinitely until StopProcessingLoop is called.
-func StartProcessingLoopConcurrently(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (chan<- bool, <-chan error) {
+func StartMessageHandlingLoop_Concurrently(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (chan<- bool, <-chan error) {
 	stopChannel := make(chan bool)
 	errChannel := make(chan error)
 	go func() {
@@ -132,7 +132,7 @@ func StartProcessingLoopConcurrently(connection SystemgeConnection.SystemgeConne
 					return
 				}
 				go func() {
-					if err := ProcessMessage(connection, message, messageHandler); err != nil {
+					if err := HandleMessage(connection, message, messageHandler); err != nil {
 						errChannel <- Error.New("failed to process message", err)
 					}
 				}()
@@ -142,7 +142,7 @@ func StartProcessingLoopConcurrently(connection SystemgeConnection.SystemgeConne
 	return stopChannel, errChannel
 }
 
-func ProcessMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message, messageHandler MessageHandler) error {
+func HandleMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message, messageHandler MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("no message handler set", nil)
 	}

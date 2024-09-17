@@ -38,7 +38,7 @@ func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnec
 	}
 	switch message.GetTopic() {
 	case Message.TOPIC_RESOLVE_ASYNC:
-		err := SystemgeMessageHandler.ProcessMessage(connection, message, resolver.messageHandler)
+		err := SystemgeMessageHandler.HandleMessage(connection, message, resolver.messageHandler)
 		if err != nil {
 			resolver.failedResolutions.Add(1)
 			return err
@@ -47,7 +47,7 @@ func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnec
 		resolver.sucessfulAsyncResolutions.Add(1)
 		return nil
 	case Message.TOPIC_RESOLVE_SYNC:
-		err := SystemgeMessageHandler.ProcessMessage(connection, message, resolver.messageHandler)
+		err := SystemgeMessageHandler.HandleMessage(connection, message, resolver.messageHandler)
 		if err != nil {
 			resolver.failedResolutions.Add(1)
 			return err

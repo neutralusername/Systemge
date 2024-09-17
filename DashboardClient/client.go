@@ -16,7 +16,7 @@ type Client struct {
 	name                              string
 	config                            *Config.DashboardClient
 	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
-	dashboardClientMessageHandler     SystemgeMessageHandler.MessageHandler
+	messageHandler                    SystemgeMessageHandler.MessageHandler
 	introductionHandler               func() (string, error)
 	messageHandlerStopChannel         chan<- bool
 
@@ -24,7 +24,7 @@ type Client struct {
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, dashboardClientMessageHandler SystemgeMessageHandler.MessageHandler, introductionHandler func() (string, error)) *Client {
+func New(name string, config *Config.DashboardClient, messageHandler SystemgeMessageHandler.MessageHandler, introductionHandler func() (string, error)) *Client {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -37,15 +37,15 @@ func New(name string, config *Config.DashboardClient, dashboardClientMessageHand
 	if config.TcpClientConfig == nil {
 		panic("config.TcpClientConfig is nil")
 	}
-	if dashboardClientMessageHandler == nil {
+	if messageHandler == nil {
 		panic("dashboardMessageHandler is nil")
 	}
 
 	app := &Client{
-		name:                          name,
-		config:                        config,
-		dashboardClientMessageHandler: dashboardClientMessageHandler,
-		introductionHandler:           introductionHandler,
+		name:                name,
+		config:              config,
+		messageHandler:      messageHandler,
+		introductionHandler: introductionHandler,
 	}
 	return app
 }
@@ -82,7 +82,7 @@ func (app *Client) Start() error {
 		return Error.New("Failed to send introduction response", err)
 	}
 
-	stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopSequentially(connection, app.dashboardClientMessageHandler)
+	stopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Sequentially(connection, app.messageHandler)
 	app.messageHandlerStopChannel = stopChannel
 	app.status = Status.STARTED
 	return nil

@@ -68,7 +68,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					if processingLoopStopChannel != nil {
 						return "", Error.New("Processing loop is already running", nil)
 					}
-					stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopSequentially(systemgeConnection, messageHandler)
+					stopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Sequentially(systemgeConnection, messageHandler)
 					processingLoopStopChannel = stopChannel
 					return "", nil
 				},
@@ -78,7 +78,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					if processingLoopStopChannel != nil {
 						return "", Error.New("Processing loop is already running", nil)
 					}
-					stopChannel, _ := SystemgeMessageHandler.StartProcessingLoopConcurrently(systemgeConnection, messageHandler)
+					stopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Concurrently(systemgeConnection, messageHandler)
 					processingLoopStopChannel = stopChannel
 					return "", nil
 				},

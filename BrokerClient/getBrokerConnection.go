@@ -51,7 +51,7 @@ func (messageBrokerClient *Client) getBrokerConnection(tcpClientConfig *Config.T
 
 		return nil, err
 	}
-	messageHandlerStopChannel, _ := SystemgeMessageHandler.StartProcessingLoopConcurrently(systemgeConnection, messageBrokerClient.messageHandler)
+	messageHandlerStopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Concurrently(systemgeConnection, messageBrokerClient.messageHandler)
 	conn := &connection{
 		connection:             systemgeConnection,
 		tcpClientConfig:        tcpClientConfig,
