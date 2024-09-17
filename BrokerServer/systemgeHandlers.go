@@ -149,19 +149,19 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 
 func (server *Server) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
 	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
 	stopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Sequentially(connection, server.messageHandler)
 	server.messageHandlerStopChannels[connection] = stopChannel
-	server.mutex.Unlock()
 	return nil
 }
 
 func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
 	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	close(server.messageHandlerStopChannels[connection])
 	delete(server.messageHandlerStopChannels, connection)
-	defer server.mutex.Unlock()
 	for topic := range server.connectionAsyncSubscriptions[connection] {
 		delete(server.asyncTopicSubscriptions[topic], connection)
 	}
