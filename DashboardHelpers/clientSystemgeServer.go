@@ -12,8 +12,8 @@ type SystemgeServerClient struct {
 
 type SystemgeConnectionChild struct {
 	Name                    string `json:"name"`
-	IsProcessingLoopRunning bool   `json:"isProcessingLoopRunning"` //periodically automatically updated by the server
-	UnprocessedMessageCount uint32 `json:"unprocessedMessageCount"` //periodically automatically updated by the server
+	IsProcessingLoopRunning bool   `json:"isProcessingLoopRunning"`
+	UnprocessedMessageCount uint32 `json:"unprocessedMessageCount"`
 }
 
 func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics, systemgeConnections map[string]*SystemgeConnectionChild) *SystemgeServerClient {
