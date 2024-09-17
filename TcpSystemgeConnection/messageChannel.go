@@ -12,6 +12,10 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandlin
 
 }
 
+func (connection *TcpSystemgeConnection) IsMessageHandlingLoopRunning() bool {
+
+}
+
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
