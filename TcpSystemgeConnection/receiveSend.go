@@ -5,16 +5,6 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpSystemgeConnection) receive() ([]byte, error) {
-	connection.receiveMutex.Lock()
-	defer connection.receiveMutex.Unlock()
-	bytes, err := connection.messageReceiver.ReceiveNextMessage()
-	if err != nil {
-		return nil, err
-	}
-	return bytes, nil
-}
-
 func (connection *TcpSystemgeConnection) send(bytes []byte) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()

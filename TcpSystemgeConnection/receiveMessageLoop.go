@@ -28,7 +28,7 @@ func (connection *TcpSystemgeConnection) receiveMessageLoop() {
 				close(connection.receiveLoopStopChannel)
 				return
 			case <-connection.messageChannelSemaphore.GetChannel():
-				messageBytes, err := connection.receive()
+				messageBytes, err := connection.messageReceiver.ReceiveNextMessage()
 				if err != nil {
 					if Tcp.IsConnectionClosed(err) {
 						close(connection.receiveLoopStopChannel)

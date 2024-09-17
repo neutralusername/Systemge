@@ -23,8 +23,7 @@ type TcpSystemgeConnection struct {
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
 
-	sendMutex    sync.Mutex
-	receiveMutex sync.Mutex
+	sendMutex sync.Mutex
 
 	closed      bool
 	closedMutex sync.Mutex
