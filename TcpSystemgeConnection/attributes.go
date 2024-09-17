@@ -19,8 +19,13 @@ func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) erro
 	}
 	for _, handler := range connection.attributes[attribute].order {
 		err := handler()
-		if err != nil && connection.attributes[attribute].abortOnError {
-			return err
+		if err != nil {
+			if connection.warningLogger != nil {
+				connection.warningLogger.Log(Error.New("Attribute handler failed", err).Error())
+			}
+			if connection.attributes[attribute].abortOnError {
+				return err
+			}
 		}
 	}
 	return nil
