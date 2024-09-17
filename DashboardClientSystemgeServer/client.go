@@ -17,7 +17,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeServer"
 )
 
-func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, messageHandler SystemgeMessageHandler.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
 	if systemgeServer == nil {
 		panic("customService is nil")
 	}
@@ -26,6 +26,11 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 		metricsTypes.Merge(getMetricsFunc())
 	}
 	metricsTypes.Merge(systemgeServer.GetMetrics())
+
+	systemgeChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
+	for _, systemgeConnection := range systemgeServer.GetConnections() {
+		systemgeChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsProcessingLoopRunning(), systemgeConnection.AvailableMessageCount())
+	}
 
 	mutex := sync.Mutex{}
 	handlingLoopStopChannels := map[SystemgeConnection.SystemgeConnection]chan<- bool{}
