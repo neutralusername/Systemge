@@ -52,8 +52,8 @@ func (connection *TcpSystemgeConnection) RemoveAttribute(attribute string) error
 func (connection *TcpSystemgeConnection) AppendAttributeHandler(attribute string, handler func() error) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; !!ok {
-		return Error.New("Attribute already exists", nil)
+	if _, ok := connection.attributes[attribute]; !ok {
+		return Error.New("No attribute found", nil)
 	}
 	connection.attributes[attribute].order = append(connection.attributes[attribute].order, handler)
 	return nil
