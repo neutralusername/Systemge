@@ -28,10 +28,10 @@ type TcpSystemgeListener struct {
 
 	// metrics
 
-	connectionAttempts  atomic.Uint64
-	failedConnections   atomic.Uint64
-	rejectedConnections atomic.Uint64
-	acceptedConnections atomic.Uint64
+	connectionAttempts         atomic.Uint64
+	failedConnectionAttempts   atomic.Uint64
+	rejectedConnectionAttempts atomic.Uint64
+	acceptedConnectionAttempts atomic.Uint64
 }
 
 func (server *TcpSystemgeListener) newListener(config *Config.TcpServer) (net.Listener, error) {

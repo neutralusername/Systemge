@@ -8,10 +8,10 @@ func (listener *TcpSystemgeListener) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
 		map[string]uint64{
-			"connection_attempts":  listener.CheckConnectionAttempts(),
-			"failed_connections":   listener.CheckFailedConnections(),
-			"rejected_connections": listener.CheckRejectedConnections(),
-			"accepted_connections": listener.CheckAcceptedConnections(),
+			"total_connection_attempts":    listener.CheckConnectionAttempts(),
+			"failed_connection_attempts":   listener.CheckFailedConnectionAttempts(),
+			"rejected_connection_attempts": listener.CheckRejectedConnectionAttempts(),
+			"accepted_connection_attempts": listener.CheckAcceptedConnectionAttempts(),
 		}),
 	)
 	return metricsTypes
@@ -20,10 +20,10 @@ func (listener *TcpSystemgeListener) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
 		map[string]uint64{
-			"connection_attempts":  listener.GetConnectionAttempts(),
-			"failed_connections":   listener.GetFailedConnections(),
-			"rejected_connections": listener.GetRejectedConnections(),
-			"accepted_connections": listener.GetAcceptedConnections(),
+			"total_connection_attempts":    listener.GetConnectionAttempts(),
+			"failed_connection_attempts":   listener.GetFailedConnectionAttempts(),
+			"rejected_connection_attempts": listener.GetRejectedConnectionAttempts(),
+			"accepted_connection_attempts": listener.GetAcceptedConnectionAttempts(),
 		}),
 	)
 	return metricsTypes
@@ -36,23 +36,23 @@ func (listener *TcpSystemgeListener) GetConnectionAttempts() uint64 {
 	return listener.connectionAttempts.Swap(0)
 }
 
-func (listener *TcpSystemgeListener) CheckFailedConnections() uint64 {
-	return listener.failedConnections.Load()
+func (listener *TcpSystemgeListener) CheckFailedConnectionAttempts() uint64 {
+	return listener.failedConnectionAttempts.Load()
 }
-func (listener *TcpSystemgeListener) GetFailedConnections() uint64 {
-	return listener.failedConnections.Swap(0)
-}
-
-func (listener *TcpSystemgeListener) CheckRejectedConnections() uint64 {
-	return listener.rejectedConnections.Load()
-}
-func (listener *TcpSystemgeListener) GetRejectedConnections() uint64 {
-	return listener.rejectedConnections.Swap(0)
+func (listener *TcpSystemgeListener) GetFailedConnectionAttempts() uint64 {
+	return listener.failedConnectionAttempts.Swap(0)
 }
 
-func (listener *TcpSystemgeListener) CheckAcceptedConnections() uint64 {
-	return listener.acceptedConnections.Load()
+func (listener *TcpSystemgeListener) CheckRejectedConnectionAttempts() uint64 {
+	return listener.rejectedConnectionAttempts.Load()
 }
-func (listener *TcpSystemgeListener) GetAcceptedConnections() uint64 {
-	return listener.acceptedConnections.Swap(0)
+func (listener *TcpSystemgeListener) GetRejectedConnectionAttempts() uint64 {
+	return listener.rejectedConnectionAttempts.Swap(0)
+}
+
+func (listener *TcpSystemgeListener) CheckAcceptedConnectionAttempts() uint64 {
+	return listener.acceptedConnectionAttempts.Load()
+}
+func (listener *TcpSystemgeListener) GetAcceptedConnectionAttempts() uint64 {
+	return listener.acceptedConnectionAttempts.Swap(0)
 }
