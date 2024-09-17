@@ -8,17 +8,39 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandlingStopChannel chan<- bool) error {
-
+func (connection *TcpSystemgeConnection) RegisterMessageHandlingLoop(messageHandlingStopChannel chan<- bool) error {
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
+	if connection.messageHandlingLoopStopChannel != nil {
+		return Error.New("Message handling loop already registered", nil)
+	}
+	connection.messageHandlingLoopStopChannel = messageHandlingStopChannel
+	return nil
 }
 
-func (connection *TcpSystemgeConnection) IsMessageHandlingLoopRunning() bool {
+func (connection *TcpSystemgeConnection) IsMessageHandlingLoopRegistered() bool {
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
+	return connection.messageHandlingLoopStopChannel != nil
+}
 
+func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
+	if connection.messageHandlingLoopStopChannel == nil {
+		return Error.New("Message handling loop not registered", nil)
+	}
+	close(connection.messageHandlingLoopStopChannel)
+	connection.messageHandlingLoopStopChannel = nil
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
+	if connection.messageHandlingLoopStopChannel != nil {
+		return nil, Error.New("Message handling loop is registered", nil)
+	}
 	var timeout <-chan time.Time
 	if connection.config.TcpReceiveTimeoutMs > 0 {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)

@@ -35,7 +35,7 @@ type TcpSystemgeConnection struct {
 
 	closeChannel chan bool
 
-	messageHandlingLoopStopChannel chan bool
+	messageHandlingLoopStopChannel chan<- bool
 	messageMutex                   sync.Mutex
 	messageChannel                 chan *Message.Message
 	messageChannelSemaphore        *Tools.Semaphore
