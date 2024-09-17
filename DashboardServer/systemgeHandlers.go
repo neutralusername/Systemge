@@ -22,10 +22,16 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 		return Error.New("Too many metric types", nil)
 	}
 	for metricsType, metricsSlice := range dashboardMetrics {
+		if metricsSlice == nil {
+			return Error.New("Metrics for type "+metricsType+" is nil", nil)
+		}
 		if server.config.MaxEntriesPerMetrics > 0 && len(metricsSlice) > server.config.MaxEntriesPerMetrics {
 			return Error.New("Too many metric entries of type "+metricsType, nil)
 		}
 		for _, metrics := range metricsSlice {
+			if metrics == nil {
+				return Error.New("Metrics for type "+metricsType+" is nil", nil)
+			}
 			if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
 				return Error.New("Too many metrics of type "+metricsType, nil)
 			}
