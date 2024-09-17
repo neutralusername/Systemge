@@ -2,7 +2,6 @@ package BrokerClient
 
 import (
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
@@ -51,11 +50,19 @@ func (messageBrokerClient *Client) getBrokerConnection(tcpClientConfig *Config.T
 
 		return nil, err
 	}
-	messageHandlerStopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Concurrently(systemgeConnection, messageBrokerClient.messageHandler)
+	err = systemgeConnection.StartMessageHandlingLoop_Concurrently(messageBrokerClient.messageHandler)
+	if err != nil {
+		messageBrokerClient.mutex.Lock()
+		getBrokerAttempt.err = err
+		delete(messageBrokerClient.ongoingGetBrokerConnections, getTcpClientConfigString(tcpClientConfig))
+		close(getBrokerAttempt.ongoing)
+		messageBrokerClient.mutex.Unlock()
+
+		return nil, err
+	}
 	conn := &connection{
 		connection:             systemgeConnection,
 		tcpClientConfig:        tcpClientConfig,
-		messageHandlerStopChan: messageHandlerStopChannel,
 		responsibleAsyncTopics: make(map[string]bool),
 		responsibleSyncTopics:  make(map[string]bool),
 	}

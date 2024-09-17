@@ -19,6 +19,7 @@ type SystemgeConnection interface {
 	StartMessageHandlingLoop_Concurrently(MessageHandler) error
 	IsMessageHandlingLoopStarted() bool
 	StopMessageHandlingLoop() error
+	HandleMessage(message *Message.Message, messageHandler MessageHandler) error
 
 	AsyncMessage(topic string, payload string) error
 	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)

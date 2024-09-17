@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -25,7 +24,7 @@ type Server struct {
 
 	messageHandlerStopChannels map[SystemgeConnection.SystemgeConnection]chan<- bool
 
-	messageHandler SystemgeMessageHandler.MessageHandler
+	messageHandler SystemgeConnection.MessageHandler
 
 	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 	connectionsSyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
@@ -90,7 +89,7 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 		server.onSystemgeConnection, server.onSystemgeDisconnection,
 	)
 
-	server.messageHandler = SystemgeMessageHandler.NewSequentialMessageHandler(nil, SystemgeMessageHandler.SyncMessageHandlers{
+	server.messageHandler = SystemgeConnection.NewSequentialMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
 		Message.TOPIC_SUBSCRIBE_ASYNC:   server.subscribeAsync,
 		Message.TOPIC_UNSUBSCRIBE_ASYNC: server.unsubscribeAsync,
 		Message.TOPIC_SUBSCRIBE_SYNC:    server.subscribeSync,

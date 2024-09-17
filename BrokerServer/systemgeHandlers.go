@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
 func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -150,10 +149,12 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 func (server *Server) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	err := connection.StartMessageHandlingLoop_Sequentially(server.messageHandler)
+	if err != nil {
+		return err
+	}
 	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
 	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
-	stopChannel, _ := SystemgeMessageHandler.StartMessageHandlingLoop_Sequentially(connection, server.messageHandler)
-	server.messageHandlerStopChannels[connection] = stopChannel
 	return nil
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
 func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers) *DashboardClient.Client {
@@ -57,9 +56,9 @@ func New(name string, config *Config.DashboardClient, customService customServic
 	return DashboardClient.New(
 		name,
 		config,
-		SystemgeMessageHandler.NewTopicExclusiveMessageHandler(
+		SystemgeConnection.NewTopicExclusiveMessageHandler(
 			nil,
-			SystemgeMessageHandler.SyncMessageHandlers{
+			SystemgeConnection.SyncMessageHandlers{
 				DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.IntToString(customService.GetStatus()), nil
 				},
