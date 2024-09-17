@@ -4,7 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
+func (messageBrokerClient *Client) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	messageBrokerClient.mutex.Lock()
 	metricsTypes.AddMetrics("broker_client", Metrics.New(
@@ -30,7 +30,7 @@ func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
 	metricsTypes.AddMetrics("broker_connections", Metrics.New(keyValuePairs))
 	return metricsTypes
 }
-func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
+func (messageBrokerClient *Client) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	messageBrokerClient.mutex.Lock()
 	metricsTypes.AddMetrics("broker_client", Metrics.New(

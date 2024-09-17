@@ -4,7 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (server *Server) CheckMetrics() map[string]*Metrics.Metrics {
+func (server *Server) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	server.mutex.Lock()
 	metricsTypes.AddMetrics("broker_server", Metrics.New(
@@ -24,7 +24,7 @@ func (server *Server) CheckMetrics() map[string]*Metrics.Metrics {
 	metricsTypes.Merge(server.messageHandler.CheckMetrics())
 	return metricsTypes
 }
-func (server *Server) GetMetrics() map[string]*Metrics.Metrics {
+func (server *Server) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	server.mutex.Lock()
 	metricsTypes.AddMetrics("broker_server", Metrics.New(
