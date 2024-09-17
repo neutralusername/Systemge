@@ -1,6 +1,11 @@
 package Metrics
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/neutralusername/Systemge/Helpers"
+)
 
 type Metrics struct {
 	KeyValuePairs map[string]uint64 `json:"keyValuePairs"`
@@ -24,4 +29,14 @@ func (metrics *Metrics) Get(key string) uint64 {
 
 func (metrics *Metrics) GetTime() time.Time {
 	return metrics.Time
+}
+
+func (metrics *Metrics) Marshal() string {
+	return Helpers.JsonMarshal(metrics)
+}
+
+func UnmarshalMetrics(data string) (*Metrics, error) {
+	metrics := &Metrics{}
+	err := json.Unmarshal([]byte(data), metrics)
+	return metrics, err
 }

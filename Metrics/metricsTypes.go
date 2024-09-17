@@ -1,5 +1,11 @@
 package Metrics
 
+import (
+	"encoding/json"
+
+	"github.com/neutralusername/Systemge/Helpers"
+)
+
 type MetricsTypes map[string]*Metrics
 
 func NewMetricsTypes() MetricsTypes {
@@ -30,4 +36,14 @@ func (typeMetricsA MetricsTypes) Merge(typeMetricsB MetricsTypes) {
 	for metricsType, metricsMap := range typeMetricsB {
 		typeMetricsA[metricsType] = metricsMap
 	}
+}
+
+func (typeMetrics MetricsTypes) Marshal() string {
+	return Helpers.JsonMarshal(typeMetrics)
+}
+
+func UnmarshalMetricsTypes(data string) (MetricsTypes, error) {
+	metricsTypes := MetricsTypes{}
+	err := json.Unmarshal([]byte(data), &metricsTypes)
+	return metricsTypes, err
 }

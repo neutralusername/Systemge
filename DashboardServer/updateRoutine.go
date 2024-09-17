@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -115,24 +116,22 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	if err != nil {
 		return Error.New("Failed to execute get metrics request", err)
 	}
-	dashboardMetrics, err := DashboardHelpers.UnmarshalDashboardMetrics(resultPayload)
+	metricsTypes, err := Metrics.UnmarshalMetricsTypes(resultPayload)
 	if err != nil {
 		return Error.New("Failed to unmarshal metrics", err)
 	}
-	if server.config.MaxMetricsTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricsTypes {
+	if server.config.MaxMetricsTypes > 0 && len(metricsTypes) > server.config.MaxMetricsTypes {
 		return Error.New("Too many metric types", nil)
 	}
-	for metricsType, metricsSlice := range dashboardMetrics {
-		if server.config.MaxEntriesPerMetrics > 0 && len(metricsSlice) > server.config.MaxEntriesPerMetrics {
-			return Error.New("Too many metric entries of type "+metricsType, nil)
+	for metricsType, metrics := range metricsTypes {
+		if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
+			return Error.New("Too many metrics of type "+metricsType, nil)
 		}
-		for _, metrics := range metricsSlice {
-			if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
-				return Error.New("Too many metrics of type "+metricsType, nil)
-			}
-			err := connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxEntriesPerMetrics)
-			if err != nil {
-				return Error.New("Failed to add metrics entry", err)
+	}
+	for metricsType, metrics := range metricsTypes {
+		if err := connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxEntriesPerMetrics); err != nil {
+			if server.errorLogger != nil {
+				server.errorLogger.Log(Error.New("Failed to add metrics entry", err).Error())
 			}
 		}
 	}
@@ -142,7 +141,7 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_METRICS: dashboardMetrics,
+					DashboardHelpers.CLIENT_FIELD_METRICS: DashboardHelpers.NewDashboardMetrics(metricsTypes),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),

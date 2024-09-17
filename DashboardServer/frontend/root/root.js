@@ -141,24 +141,19 @@ export class root extends React.Component {
 
     mergeData = (target, source) => {
         Object.keys(source).forEach((key) => {
-            let sourceData = source[key];
-            let targetData = target[key];
-            if (Array.isArray(targetData)) {
-                if (!Array.isArray(target[key])) {
-                    target[key] = [];
-                }
-                if (Array.isArray(sourceData)) {
-                    target[key].push(...sourceData);
+            if (Array.isArray(target[key])) {
+                if (Array.isArray( source[key])) {
+                    target[key].push(... source[key]);
                 } else {
-                    target[key].push(sourceData);
+                    target[key].push( source[key]);
                 }
                 if (target[key].length > 100) {
                     target[key].splice(0, target[key].length - 100);
                 }
-            } else if (typeof targetData === "object" && targetData !== null) { 
-               this.mergeData(targetData, sourceData);
+            } else if (typeof target[key] === "object" && target[key] !== null) { 
+               this.mergeData(target[key],  source[key]);
             } else { 
-                target[key] = sourceData; 
+                target[key] =  source[key]; 
             }
         });
     }

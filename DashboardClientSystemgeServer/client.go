@@ -46,7 +46,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 						metricsTypes.Merge(getMetricsFunc())
 					}
 					metricsTypes.Merge(systemgeServer.GetMetrics())
-					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metricsTypes)), nil
+					return Helpers.JsonMarshal(metricsTypes), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeServer.Stop()

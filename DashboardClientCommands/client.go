@@ -36,7 +36,7 @@ func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[
 					if getMetricsFunc == nil {
 						return "", nil
 					}
-					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(getMetricsFunc())), nil
+					return Helpers.JsonMarshal(getMetricsFunc()), nil
 				},
 			},
 			nil, nil,
