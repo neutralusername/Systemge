@@ -137,10 +137,11 @@ func (page *Page) AddCachedMetricsEntry(metricType string, metrics *Metrics.Metr
 	}
 	cachedMetrics := page.GetCachedMetrics()
 	if cachedMetrics == nil {
-		return Error.New("Metrics is nil", nil)
+		page.SetCachedMetrics(DashboardMetrics{})
 	}
 	if cachedMetrics[metricType] == nil {
-		return Error.New("Metrics[metricName] is nil", nil)
+		cachedMetrics[metricType] = []*Metrics.Metrics{metrics}
+		page.SetCachedMetrics(cachedMetrics)
 	}
 	cachedMetrics[metricType] = append(cachedMetrics[metricType], metrics)
 	if maxEntries > 0 && len(cachedMetrics[metricType]) > maxEntries {

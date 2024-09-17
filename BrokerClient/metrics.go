@@ -23,15 +23,18 @@ func (messageBrokerClient *Client) CheckMetrics() Metrics.MetricsTypes {
 		},
 	))
 	messageBrokerClient.mutex.Unlock()
-	keyValuePairs := map[string]uint64{}
+	metricsTypesConnections := Metrics.NewMetricsTypes()
 	for _, connection := range messageBrokerClient.brokerConnections {
-		for _, metricsMap := range connection.connection.CheckMetrics() {
+		for metricstype, metricsMap := range connection.connection.CheckMetrics() {
+			if metricsTypesConnections["brokerClient_"+metricstype] == nil {
+				metricsTypesConnections["brokerClient_"+metricstype] = Metrics.New(map[string]uint64{})
+			}
 			for key, value := range metricsMap.KeyValuePairs {
-				keyValuePairs[key] += value
+				metricsTypesConnections["brokerClient_"+metricstype].KeyValuePairs[key] += value
 			}
 		}
 	}
-	metricsTypes.AddMetrics("broker_connections", Metrics.New(keyValuePairs))
+	metricsTypes.Merge(metricsTypesConnections)
 	return metricsTypes
 }
 func (messageBrokerClient *Client) GetMetrics() Metrics.MetricsTypes {
@@ -53,15 +56,18 @@ func (messageBrokerClient *Client) GetMetrics() Metrics.MetricsTypes {
 		},
 	))
 	messageBrokerClient.mutex.Unlock()
-	keyValuePairs := map[string]uint64{}
+	metricsTypesConnections := Metrics.NewMetricsTypes()
 	for _, connection := range messageBrokerClient.brokerConnections {
-		for _, metricsMap := range connection.connection.GetMetrics() {
+		for metricstype, metricsMap := range connection.connection.GetMetrics() {
+			if metricsTypesConnections["brokerClient_"+metricstype] == nil {
+				metricsTypesConnections["brokerClient_"+metricstype] = Metrics.New(map[string]uint64{})
+			}
 			for key, value := range metricsMap.KeyValuePairs {
-				keyValuePairs[key] += value
+				metricsTypesConnections["brokerClient_"+metricstype].KeyValuePairs[key] += value
 			}
 		}
 	}
-	metricsTypes.AddMetrics("broker_connections", Metrics.New(keyValuePairs))
+	metricsTypes.Merge(metricsTypesConnections)
 	return metricsTypes
 }
 
