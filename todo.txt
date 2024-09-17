@@ -14,15 +14,15 @@ implement manual metrics update in some form (especially in regards to ranges of
 implement different types of data visualizations
 create some sort of menu to view selected metrics-types
 
-implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
-
-improve logging (especially systemge and broker packages)
-
 make websocketServer stop-operation cleaner
 
 update oauth2server (add dashboard client etc.)
 
 update readme
+
+improve logging (especially systemge and broker packages)
+
+implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
