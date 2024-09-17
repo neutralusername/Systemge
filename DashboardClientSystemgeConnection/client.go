@@ -20,15 +20,15 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 	if systemgeConnection == nil {
 		panic("customService is nil")
 	}
-	var metrics map[string]*Metrics.Metrics
+
+	metricsTypes := Metrics.NewMetricsTypes()
 	if getMetricsFunc != nil {
-		metrics = getMetricsFunc()
-	} else {
-		metrics = map[string]*Metrics.Metrics{}
+		metricsTypes.Merge(getMetricsFunc())
 	}
+	metricsTypes.Merge(systemgeConnection.GetMetrics())
+
 	mutex := sync.Mutex{}
 	var processingLoopStopChannel chan<- bool
-	Metrics.Merge(metrics, systemgeConnection.GetMetrics())
 	return DashboardClient.New(
 		name,
 		config,
@@ -46,14 +46,12 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					return Helpers.IntToString(systemgeConnection.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					var metrics map[string]*Metrics.Metrics
+					metricsTypes := Metrics.NewMetricsTypes()
 					if getMetricsFunc != nil {
-						metrics = getMetricsFunc()
-					} else {
-						metrics = map[string]*Metrics.Metrics{}
+						metricsTypes.Merge(getMetricsFunc())
 					}
-					Metrics.Merge(metrics, systemgeConnection.GetMetrics())
-					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metrics)), nil
+					metricsTypes.Merge(systemgeConnection.GetMetrics())
+					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metricsTypes)), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
@@ -156,7 +154,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					systemgeConnection.GetStatus(),
 					processingLoopStopChannel != nil,
 					systemgeConnection.AvailableMessageCount(),
-					DashboardHelpers.NewDashboardMetrics(metrics),
+					DashboardHelpers.NewDashboardMetrics(metricsTypes),
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()

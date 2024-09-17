@@ -1,64 +1,60 @@
 package SystemgeServer
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (server *SystemgeServer) CheckMetrics() map[string]*Metrics.Metrics {
-	return map[string]*Metrics.Metrics{
-		"systemge_server": {
-			KeyValuePairs: map[string]uint64{
-				"connection_attempts":             server.CheckConnectionAttempts(),
-				"failed_connections":              server.CheckFailedConnections(),
-				"rejected_connections":            server.CheckRejectedConnections(),
-				"accepted_connections":            server.CheckAcceptedConnections(),
-				"bytes_sent":                      server.CheckBytesSent(),
-				"bytes_received":                  server.CheckBytesReceived(),
-				"async_messages_sent":             server.CheckAsyncMessagesSent(),
-				"sync_requests_sent":              server.CheckSyncRequestsSent(),
-				"sync_success_responses_received": server.CheckSyncSuccessResponsesReceived(),
-				"sync_failure_responses_received": server.CheckSyncFailureResponsesReceived(),
-				"no_sync_response_received":       server.CheckNoSyncResponseReceived(),
-				"invalid_messages_received":       server.CheckInvalidMessagesReceived(),
-				"invalid_sync_responses_received": server.CheckInvalidSyncResponsesReceived(),
-				"valid_messages_received":         server.CheckValidMessagesReceived(),
-				"message_rate_limiter_exceeded":   server.CheckMessageRateLimiterExceeded(),
-				"byte_rate_limiter_exceeded":      server.CheckByteRateLimiterExceeded(),
-				"connection_count":                uint64(server.GetConnectionCount()),
-			},
-			Time: time.Now(),
+func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("systemge_server", Metrics.New(
+		map[string]uint64{
+			"connection_attempts":             server.CheckConnectionAttempts(),
+			"failed_connections":              server.CheckFailedConnections(),
+			"rejected_connections":            server.CheckRejectedConnections(),
+			"accepted_connections":            server.CheckAcceptedConnections(),
+			"bytes_sent":                      server.CheckBytesSent(),
+			"bytes_received":                  server.CheckBytesReceived(),
+			"async_messages_sent":             server.CheckAsyncMessagesSent(),
+			"sync_requests_sent":              server.CheckSyncRequestsSent(),
+			"sync_success_responses_received": server.CheckSyncSuccessResponsesReceived(),
+			"sync_failure_responses_received": server.CheckSyncFailureResponsesReceived(),
+			"no_sync_response_received":       server.CheckNoSyncResponseReceived(),
+			"invalid_messages_received":       server.CheckInvalidMessagesReceived(),
+			"invalid_sync_responses_received": server.CheckInvalidSyncResponsesReceived(),
+			"valid_messages_received":         server.CheckValidMessagesReceived(),
+			"message_rate_limiter_exceeded":   server.CheckMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":      server.CheckByteRateLimiterExceeded(),
+			"connection_count":                uint64(server.GetConnectionCount()),
 		},
-	}
+	))
+	return metricsTypes
 }
 
-func (server *SystemgeServer) GetMetrics() map[string]*Metrics.Metrics {
-	return map[string]*Metrics.Metrics{
-		"systemge_server": {
-			KeyValuePairs: map[string]uint64{
-				"connection_attempts":             server.GetConnectionAttempts(),
-				"failed_connections":              server.GetFailedConnections(),
-				"rejected_connections":            server.GetRejectedConnections(),
-				"accepted_connections":            server.GetAcceptedConnections(),
-				"bytes_sent":                      server.GetBytesSent(),
-				"bytes_received":                  server.GetBytesReceived(),
-				"async_messages_sent":             server.GetAsyncMessagesSent(),
-				"sync_requests_sent":              server.GetSyncRequestsSent(),
-				"sync_success_responses_received": server.GetSyncSuccessResponsesReceived(),
-				"sync_failure_responses_received": server.GetSyncFailureResponsesReceived(),
-				"no_sync_response_received":       server.GetNoSyncResponseReceived(),
-				"invalid_messages_received":       server.GetInvalidMessagesReceived(),
-				"invalid_sync_responses_received": server.GetInvalidSyncResponsesReceived(),
-				"valid_messages_received":         server.GetValidMessagesReceived(),
-				"message_rate_limiter_exceeded":   server.GetMessageRateLimiterExceeded(),
-				"byte_rate_limiter_exceeded":      server.GetByteRateLimiterExceeded(),
-				"connection_count":                uint64(server.GetConnectionCount()),
-			},
-			Time: time.Now(),
+func (server *SystemgeServer) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("systemge_server", Metrics.New(
+		map[string]uint64{
+			"connection_attempts":             server.GetConnectionAttempts(),
+			"failed_connections":              server.GetFailedConnections(),
+			"rejected_connections":            server.GetRejectedConnections(),
+			"accepted_connections":            server.GetAcceptedConnections(),
+			"bytes_sent":                      server.GetBytesSent(),
+			"bytes_received":                  server.GetBytesReceived(),
+			"async_messages_sent":             server.GetAsyncMessagesSent(),
+			"sync_requests_sent":              server.GetSyncRequestsSent(),
+			"sync_success_responses_received": server.GetSyncSuccessResponsesReceived(),
+			"sync_failure_responses_received": server.GetSyncFailureResponsesReceived(),
+			"no_sync_response_received":       server.GetNoSyncResponseReceived(),
+			"invalid_messages_received":       server.GetInvalidMessagesReceived(),
+			"invalid_sync_responses_received": server.GetInvalidSyncResponsesReceived(),
+			"valid_messages_received":         server.GetValidMessagesReceived(),
+			"message_rate_limiter_exceeded":   server.GetMessageRateLimiterExceeded(),
+			"byte_rate_limiter_exceeded":      server.GetByteRateLimiterExceeded(),
+			"connection_count":                uint64(server.GetConnectionCount()),
 		},
-	}
+	))
+	return metricsTypes
 }
 
 func (server *SystemgeServer) CheckConnectionAttempts() uint64 {

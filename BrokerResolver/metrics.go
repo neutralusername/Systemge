@@ -1,8 +1,6 @@
 package BrokerResolver
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
@@ -11,42 +9,40 @@ func (resolver *Resolver) GetOngoingResolutions() int64 {
 }
 
 func (resolver *Resolver) CheckMetrics() map[string]*Metrics.Metrics {
+	metricsTypes := Metrics.NewMetricsTypes()
 	resolver.mutex.Lock()
-	metrics := map[string]*Metrics.Metrics{
-		"broker_resolver": {
-			KeyValuePairs: map[string]uint64{
-				"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
-				"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
-				"failed_resolutions":          resolver.CheckFailedResolutions(),
-				"ongoing_resolutions":         uint64(resolver.GetOngoingResolutions()),
-				"async_topic_count":           uint64(len(resolver.asyncTopicTcpClientConfigs)),
-				"sync_topic_count":            uint64(len(resolver.syncTopicTcpClientConfigs)),
-			},
-			Time: time.Now(),
+	metricsTypes.AddMetrics("broker_resolver", Metrics.New(
+		map[string]uint64{
+			"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
+			"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
+			"failed_resolutions":          resolver.CheckFailedResolutions(),
+			"ongoing_resolutions":         uint64(resolver.GetOngoingResolutions()),
+			"async_topic_count":           uint64(len(resolver.asyncTopicTcpClientConfigs)),
+			"sync_topic_count":            uint64(len(resolver.syncTopicTcpClientConfigs)),
 		},
-	}
+	))
 	resolver.mutex.Unlock()
-	Metrics.Merge(metrics, resolver.systemgeServer.CheckMetrics())
-	return metrics
+
+	metricsTypes.Merge(resolver.systemgeServer.CheckMetrics())
+	return metricsTypes
 }
 func (resolver *Resolver) GetMetrics() map[string]*Metrics.Metrics {
+	metricsTypes := Metrics.NewMetricsTypes()
 	resolver.mutex.Lock()
-	metrics := map[string]*Metrics.Metrics{
-		"broker_resolver": {
-			KeyValuePairs: map[string]uint64{
-				"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
-				"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
-				"failed_resolutions":          resolver.GetFailedResolutions(),
-				"ongoing_resolutions":         uint64(resolver.GetOngoingResolutions()),
-				"async_topic_count":           uint64(len(resolver.asyncTopicTcpClientConfigs)),
-				"sync_topic_count":            uint64(len(resolver.syncTopicTcpClientConfigs)),
-			},
-			Time: time.Now(),
+	metricsTypes.AddMetrics("broker_resolver", Metrics.New(
+		map[string]uint64{
+			"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
+			"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
+			"failed_resolutions":          resolver.GetFailedResolutions(),
+			"ongoing_resolutions":         uint64(resolver.GetOngoingResolutions()),
+			"async_topic_count":           uint64(len(resolver.asyncTopicTcpClientConfigs)),
+			"sync_topic_count":            uint64(len(resolver.syncTopicTcpClientConfigs)),
 		},
-	}
+	))
 	resolver.mutex.Unlock()
-	Metrics.Merge(metrics, resolver.systemgeServer.GetMetrics())
-	return metrics
+
+	metricsTypes.Merge(resolver.systemgeServer.GetMetrics())
+	return metricsTypes
 }
 
 func (resolver *Resolver) CheckSucessfulAsyncResolutions() uint64 {

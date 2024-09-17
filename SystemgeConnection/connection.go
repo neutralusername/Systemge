@@ -26,7 +26,7 @@ type SystemgeConnection interface {
 	CheckInvalidMessagesReceived() uint64
 	CheckInvalidSyncResponsesReceived() uint64
 	CheckMessageRateLimiterExceeded() uint64
-	CheckMetrics() map[string]*Metrics.Metrics
+	CheckMetrics() Metrics.MetricsTypes
 	CheckNoSyncResponseReceived() uint64
 	CheckSyncFailureResponsesReceived() uint64
 	CheckSyncRequestsSent() uint64
@@ -44,7 +44,7 @@ type SystemgeConnection interface {
 	GetInvalidMessagesReceived() uint64
 	GetInvalidSyncResponsesReceived() uint64
 	GetMessageRateLimiterExceeded() uint64
-	GetMetrics() map[string]*Metrics.Metrics
+	GetMetrics() Metrics.MetricsTypes
 	GetNoSyncResponseReceived() uint64
 	GetSyncFailureResponsesReceived() uint64
 	GetSyncRequestsSent() uint64

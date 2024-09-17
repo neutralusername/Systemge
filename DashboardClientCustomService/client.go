@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeMessageHandler"
 )
 
-func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers) *DashboardClient.Client {
 	if startFunc == nil {
 		panic("startFunc is nil")
 	}

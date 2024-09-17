@@ -13,7 +13,7 @@ type customServiceStruct struct {
 	startFunc      func() error
 	stopFunc       func() error
 	getStatusFunc  func() int
-	getMetricsFunc func() map[string]*Metrics.Metrics
+	getMetricsFunc func() Metrics.MetricsTypes
 }
 
 func (customService *customServiceStruct) Start() error {

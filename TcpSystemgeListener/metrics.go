@@ -1,36 +1,32 @@
 package TcpSystemgeListener
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (listener *TcpSystemgeListener) CheckMetrics() map[string]*Metrics.Metrics {
-	return map[string]*Metrics.Metrics{
-		"tcp_systemge_listener": {
-			KeyValuePairs: map[string]uint64{
-				"connection_attempts":  listener.CheckConnectionAttempts(),
-				"failed_connections":   listener.CheckFailedConnections(),
-				"rejected_connections": listener.CheckRejectedConnections(),
-				"accepted_connections": listener.CheckAcceptedConnections(),
-			},
-			Time: time.Now(),
-		},
-	}
+func (listener *TcpSystemgeListener) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
+		map[string]uint64{
+			"connection_attempts":  listener.CheckConnectionAttempts(),
+			"failed_connections":   listener.CheckFailedConnections(),
+			"rejected_connections": listener.CheckRejectedConnections(),
+			"accepted_connections": listener.CheckAcceptedConnections(),
+		}),
+	)
+	return metricsTypes
 }
-func (listener *TcpSystemgeListener) GetMetrics() map[string]*Metrics.Metrics {
-	return map[string]*Metrics.Metrics{
-		"tcp_systemge_listener": {
-			KeyValuePairs: map[string]uint64{
-				"connection_attempts":  listener.GetConnectionAttempts(),
-				"failed_connections":   listener.GetFailedConnections(),
-				"rejected_connections": listener.GetRejectedConnections(),
-				"accepted_connections": listener.GetAcceptedConnections(),
-			},
-			Time: time.Now(),
-		},
-	}
+func (listener *TcpSystemgeListener) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
+		map[string]uint64{
+			"connection_attempts":  listener.GetConnectionAttempts(),
+			"failed_connections":   listener.GetFailedConnections(),
+			"rejected_connections": listener.GetRejectedConnections(),
+			"accepted_connections": listener.GetAcceptedConnections(),
+		}),
+	)
+	return metricsTypes
 }
 
 func (listener *TcpSystemgeListener) CheckConnectionAttempts() uint64 {

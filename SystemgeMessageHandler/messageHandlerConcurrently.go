@@ -3,7 +3,6 @@ package SystemgeMessageHandler
 import (
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
@@ -143,29 +142,27 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckMetrics() map[string]*Metrics.Metrics {
-	return map[string]*Metrics.Metrics{
-		"concurrent_message_handler": {
-			KeyValuePairs: map[string]uint64{
-				"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
-				"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
-				"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
-			},
-			Time: time.Now(),
+func (messageHandler *ConcurrentMessageHandler) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
+		map[string]uint64{
+			"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
 		},
-	}
+	))
+	return metricsTypes
 }
-func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]*Metrics.Metrics {
-	return map[string]*Metrics.Metrics{
-		"concurrent_message_handler": {
-			KeyValuePairs: map[string]uint64{
-				"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
-				"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
-				"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
-			},
-			Time: time.Now(),
+func (messageHandler *ConcurrentMessageHandler) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
+		map[string]uint64{
+			"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
 		},
-	}
+	))
+	return metricsTypes
 }
 
 func (messageHandler *ConcurrentMessageHandler) CheckAsyncMessagesHandled() uint64 {

@@ -19,13 +19,11 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 	if systemgeServer == nil {
 		panic("customService is nil")
 	}
-	var metrics map[string]*Metrics.Metrics
+	metricsTypes := Metrics.NewMetricsTypes()
 	if getMetricsFunc != nil {
-		metrics = getMetricsFunc()
-	} else {
-		metrics = map[string]*Metrics.Metrics{}
+		metricsTypes.Merge(getMetricsFunc())
 	}
-	Metrics.Merge(metrics, systemgeServer.GetMetrics())
+	metricsTypes.Merge(systemgeServer.GetMetrics())
 	return DashboardClient.New(
 		name,
 		config,
@@ -43,14 +41,12 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return Helpers.IntToString(systemgeServer.GetStatus()), nil
 				},
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					var metrics map[string]*Metrics.Metrics
+					metricsTypes := Metrics.NewMetricsTypes()
 					if getMetricsFunc != nil {
-						metrics = getMetricsFunc()
-					} else {
-						metrics = map[string]*Metrics.Metrics{}
+						metricsTypes.Merge(getMetricsFunc())
 					}
-					Metrics.Merge(metrics, systemgeServer.GetMetrics())
-					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metrics)), nil
+					metricsTypes.Merge(systemgeServer.GetMetrics())
+					return Helpers.JsonMarshal(DashboardHelpers.NewDashboardMetrics(metricsTypes)), nil
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeServer.Stop()
@@ -156,7 +152,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					name,
 					commands.GetKeyBoolMap(),
 					systemgeServer.GetStatus(),
-					DashboardHelpers.NewDashboardMetrics(metrics),
+					DashboardHelpers.NewDashboardMetrics(metricsTypes),
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,
 			).Marshal()

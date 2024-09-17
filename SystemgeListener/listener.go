@@ -17,11 +17,11 @@ type SystemgeListener interface {
 	GetConnectionAttempts() uint64
 	GetFailedConnections() uint64
 	GetRejectedConnections() uint64
-	GetMetrics() map[string]*Metrics.Metrics
+	GetMetrics() Metrics.MetricsTypes
 
 	CheckAcceptedConnections() uint64
 	CheckConnectionAttempts() uint64
 	CheckFailedConnections() uint64
 	CheckRejectedConnections() uint64
-	CheckMetrics() map[string]*Metrics.Metrics
+	CheckMetrics() Metrics.MetricsTypes
 }

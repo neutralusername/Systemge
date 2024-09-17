@@ -1,70 +1,60 @@
 package BrokerClient
 
 import (
-	"time"
-
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
 func (messageBrokerClient *Client) CheckMetrics() map[string]*Metrics.Metrics {
+	metricsTypes := Metrics.NewMetricsTypes()
 	messageBrokerClient.mutex.Lock()
-	metrics := map[string]*Metrics.Metrics{
-		"broker_client": {
-			KeyValuePairs: map[string]uint64{
-				"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
-				"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
-				"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
-				"resolution_attempts":       messageBrokerClient.CheckResolutionAttempts(),
-				"async_messages_sent":       messageBrokerClient.CheckAsyncMessagesSent(),
-				"sync_requests_sent":        messageBrokerClient.CheckSyncRequestsSent(),
-				"sync_responses_received":   messageBrokerClient.CheckSyncResponsesReceived(),
-			},
-			Time: time.Now(),
+	metricsTypes.AddMetrics("broker_client", Metrics.New(
+		map[string]uint64{
+			"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
+			"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
+			"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
+			"resolution_attempts":       messageBrokerClient.CheckResolutionAttempts(),
+			"async_messages_sent":       messageBrokerClient.CheckAsyncMessagesSent(),
+			"sync_requests_sent":        messageBrokerClient.CheckSyncRequestsSent(),
+			"sync_responses_received":   messageBrokerClient.CheckSyncResponsesReceived(),
 		},
-	}
+	))
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = &Metrics.Metrics{
-		KeyValuePairs: map[string]uint64{},
-		Time:          time.Now(),
-	}
+	keyValuePairs := map[string]uint64{}
 	for _, connection := range messageBrokerClient.brokerConnections {
 		for _, metricsMap := range connection.connection.CheckMetrics() {
 			for key, value := range metricsMap.KeyValuePairs {
-				metrics["broker_connections"].KeyValuePairs[key] += value
+				keyValuePairs[key] += value
 			}
 		}
 	}
-	return metrics
+	metricsTypes.AddMetrics("broker_connections", Metrics.New(keyValuePairs))
+	return metricsTypes
 }
 func (messageBrokerClient *Client) GetMetrics() map[string]*Metrics.Metrics {
+	metricsTypes := Metrics.NewMetricsTypes()
 	messageBrokerClient.mutex.Lock()
-	metrics := map[string]*Metrics.Metrics{
-		"broker_client": {
-			KeyValuePairs: map[string]uint64{
-				"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
-				"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
-				"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
-				"resolution_attempts":       messageBrokerClient.GetResolutionAttempts(),
-				"async_messages_sent":       messageBrokerClient.GetAsyncMessagesSent(),
-				"sync_requests_sent":        messageBrokerClient.GetSyncRequestsSent(),
-				"sync_responses_received":   messageBrokerClient.GetSyncResponsesReceived(),
-			},
-			Time: time.Now(),
+	metricsTypes.AddMetrics("broker_client", Metrics.New(
+		map[string]uint64{
+			"ongoing_topic_resolutions": uint64(len(messageBrokerClient.ongoingTopicResolutions)),
+			"broker_connections":        uint64(len(messageBrokerClient.brokerConnections)),
+			"topic_resolutions":         uint64(len(messageBrokerClient.topicResolutions)),
+			"resolution_attempts":       messageBrokerClient.GetResolutionAttempts(),
+			"async_messages_sent":       messageBrokerClient.GetAsyncMessagesSent(),
+			"sync_requests_sent":        messageBrokerClient.GetSyncRequestsSent(),
+			"sync_responses_received":   messageBrokerClient.GetSyncResponsesReceived(),
 		},
-	}
+	))
 	messageBrokerClient.mutex.Unlock()
-	metrics["broker_connections"] = &Metrics.Metrics{
-		KeyValuePairs: map[string]uint64{},
-		Time:          time.Now(),
-	}
+	keyValuePairs := map[string]uint64{}
 	for _, connection := range messageBrokerClient.brokerConnections {
 		for _, metricsMap := range connection.connection.GetMetrics() {
 			for key, value := range metricsMap.KeyValuePairs {
-				metrics["broker_connections"].KeyValuePairs[key] += value
+				keyValuePairs[key] += value
 			}
 		}
 	}
-	return metrics
+	metricsTypes.AddMetrics("broker_connections", Metrics.New(keyValuePairs))
+	return metricsTypes
 }
 
 func (messageBrokerClient *Client) CheckAsyncMessagesSent() uint64 {

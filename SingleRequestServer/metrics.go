@@ -2,7 +2,6 @@ package SingleRequestServer
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Error"
@@ -10,42 +9,37 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (server *Server) CheckMetrics() map[string]*Metrics.Metrics {
-	metrics := map[string]*Metrics.Metrics{
-		"single_request_server": {
-			KeyValuePairs: map[string]uint64{
-				"invalid_messages":         server.CheckInvalidMessages(),
-				"succeeded_commands":       server.CheckSucceededCommands(),
-				"failed_commands":          server.CheckFailedCommands(),
-				"succeeded_async_messages": server.CheckSucceededAsyncMessages(),
-				"failed_async_messages":    server.CheckFailedAsyncMessages(),
-				"succeeded_sync_messages":  server.CheckSucceededSyncMessages(),
-				"failed_sync_messages":     server.CheckFailedSyncMessages(),
-			},
-			Time: time.Now(),
+func (server *Server) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("single_request_server", Metrics.New(
+		map[string]uint64{
+			"invalid_messages":         server.CheckInvalidMessages(),
+			"succeeded_commands":       server.CheckSucceededCommands(),
+			"failed_commands":          server.CheckFailedCommands(),
+			"succeeded_async_messages": server.CheckSucceededAsyncMessages(),
+			"failed_async_messages":    server.CheckFailedAsyncMessages(),
+			"succeeded_sync_messages":  server.CheckSucceededSyncMessages(),
+			"failed_sync_messages":     server.CheckFailedSyncMessages(),
 		},
-	}
-	Metrics.Merge(metrics, server.systemgeServer.GetMetrics())
-	return metrics
+	))
+	metricsTypes.Merge(server.systemgeServer.GetMetrics())
+	return metricsTypes
 }
-func (server *Server) GetMetrics() map[string]*Metrics.Metrics {
-	metrics := map[string]*Metrics.Metrics{
-		"single_request_server": {
-			KeyValuePairs: map[string]uint64{
-				"invalid_messages":         server.GetInvalidMessages(),
-				"succeeded_commands":       server.GetSucceededCommands(),
-				"failed_commands":          server.GetFailedCommands(),
-				"succeeded_async_messages": server.GetSucceededAsyncMessages(),
-				"failed_async_messages":    server.GetFailedAsyncMessages(),
-				"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
-				"failed_sync_messages":     server.GetFailedSyncMessages(),
-			},
-			Time: time.Now(),
+func (server *Server) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("single_request_server", Metrics.New(
+		map[string]uint64{
+			"invalid_messages":         server.GetInvalidMessages(),
+			"succeeded_commands":       server.GetSucceededCommands(),
+			"failed_commands":          server.GetFailedCommands(),
+			"succeeded_async_messages": server.GetSucceededAsyncMessages(),
+			"failed_async_messages":    server.GetFailedAsyncMessages(),
+			"succeeded_sync_messages":  server.GetSucceededSyncMessages(),
+			"failed_sync_messages":     server.GetFailedSyncMessages(),
 		},
-	}
-	Metrics.Merge(metrics, server.systemgeServer.GetMetrics())
-	return metrics
-
+	))
+	metricsTypes.Merge(server.systemgeServer.GetMetrics())
+	return metricsTypes
 }
 
 func (server *Server) CheckInvalidMessages() uint64 {

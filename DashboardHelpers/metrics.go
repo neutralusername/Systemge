@@ -17,7 +17,7 @@ func UnmarshalDashboardMetrics(data string) (DashboardMetrics, error) {
 	return metrics, nil
 }
 
-func NewDashboardMetrics(typeMetrics map[string]*Metrics.Metrics) DashboardMetrics {
+func NewDashboardMetrics(typeMetrics Metrics.MetricsTypes) DashboardMetrics {
 	var dashboardMetrics = make(DashboardMetrics)
 	for metricType, metrics := range typeMetrics {
 		dashboardMetrics[metricType] = append(dashboardMetrics[metricType], metrics)
