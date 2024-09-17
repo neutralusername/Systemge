@@ -155,6 +155,9 @@ func HandleMessage(connection SystemgeConnection.SystemgeConnection, message *Me
 			return Error.New("failed to handle async message", err)
 		}
 	} else {
+		if message.IsResponse() {
+			return Error.New("message is a response, cannot handle", nil)
+		}
 		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
 			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
 				return Error.New("failed to send failure response", err)
