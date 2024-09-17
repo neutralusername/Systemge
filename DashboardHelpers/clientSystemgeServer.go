@@ -2,8 +2,6 @@ package DashboardHelpers
 
 import (
 	"encoding/json"
-
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 type SystemgeServerClient struct {
@@ -26,18 +24,6 @@ func NewSystemgeConnectionChild(name string, isProcessingLoopRunning bool, unpro
 		IsProcessingLoopRunning: isProcessingLoopRunning,
 		UnprocessedMessageCount: unprocessedMessages,
 	}
-}
-
-func NewSystemgeConnectionChildren(systemgeConnections []SystemgeConnection.SystemgeConnection) map[string]*SystemgeConnectionChild {
-	children := map[string]*SystemgeConnectionChild{}
-	for _, systemgeConnection := range systemgeConnections {
-		children[systemgeConnection.GetName()] = NewSystemgeConnectionChild(
-			systemgeConnection.GetName(),
-			systemgeConnection.IsProcessingLoopRunning(),
-			systemgeConnection.AvailableMessageCount(),
-		)
-	}
-	return children
 }
 
 func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics, systemgeConnections map[string]*SystemgeConnectionChild) *SystemgeServerClient {
