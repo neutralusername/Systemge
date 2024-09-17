@@ -14,6 +14,11 @@ implement manual metrics update in some form (especially in regards to ranges of
 implement different types of data visualizations
 create some sort of menu to view selected metrics-types
 
+rework/replace sync messages with a more general approach
+-> replace "syncTokens" with "attribute"
+-> per systemgeConnection, per attribute, a list of message handlers can be defined that are executed in order
+-> api for sync messages will stay more or less unchanged
+
 make websocketServer stop-operation cleaner
 
 update oauth2server (add dashboard client etc.)
