@@ -5,7 +5,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
@@ -122,67 +121,4 @@ func (connection *TcpSystemgeConnection) SyncRequestBlocking(topic, payload stri
 		return nil, Error.New("Timeout before receiving response", nil)
 
 	}
-}
-
-func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) error {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	if syncRequestStruct, ok := connection.syncRequests[syncToken]; ok {
-		close(syncRequestStruct.abortChannel)
-		delete(connection.syncRequests, syncToken)
-		return nil
-	}
-	return Error.New("No response channel found", nil)
-}
-
-// returns a slice of syncTokens of open sync requests
-func (connection *TcpSystemgeConnection) GetOpenSyncRequests() []string {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	syncTokens := make([]string, 0, len(connection.syncRequests))
-	for k := range connection.syncRequests {
-		syncTokens = append(syncTokens, k)
-	}
-	return syncTokens
-}
-
-func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncRequestStruct) {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	syncToken := connection.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
-	for _, ok := connection.syncRequests[syncToken]; ok; {
-		syncToken = connection.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
-	}
-	connection.syncRequests[syncToken] = &syncRequestStruct{
-		responseChannel: make(chan *Message.Message, 1),
-		abortChannel:    make(chan bool),
-	}
-	return syncToken, connection.syncRequests[syncToken]
-}
-
-func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Message) error {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	if syncRequestStruct, ok := connection.syncRequests[message.GetSyncToken()]; ok {
-		syncRequestStruct.responseChannel <- message
-		close(syncRequestStruct.responseChannel)
-		delete(connection.syncRequests, message.GetSyncToken())
-		return nil
-	}
-	return Error.New("No response channel found", nil)
-}
-
-func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) error {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	if _, ok := connection.syncRequests[syncToken]; ok {
-		delete(connection.syncRequests, syncToken)
-		return nil
-	}
-	return Error.New("No response channel found", nil)
-}
-
-type syncRequestStruct struct {
-	responseChannel chan *Message.Message
-	abortChannel    chan bool
 }
