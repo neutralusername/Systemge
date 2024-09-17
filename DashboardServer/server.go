@@ -76,8 +76,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config.SystemgeServerConfig.TcpSystemgeConnectionConfig == nil {
 		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
-	if config.MaxMetricEntries <= 0 {
-		config.MaxMetricEntries = 100
+	if config.MaxEntriesPerMetrics <= 0 {
+		config.MaxEntriesPerMetrics = 100
 	}
 	if config.FrontendHeartbeatIntervalMs == 0 {
 		config.FrontendHeartbeatIntervalMs = 1000 * 60

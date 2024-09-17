@@ -18,16 +18,16 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 		return err
 	}
 	dashboardMetrics := page.GetCachedMetrics()
-	if server.config.MaxMetricTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricTypes {
+	if server.config.MaxMetricsTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricsTypes {
 		return Error.New("Too many metric types", nil)
 	}
-	for metricType, metricsSlice := range dashboardMetrics {
-		if server.config.MaxMetricEntries > 0 && len(metricsSlice) > server.config.MaxMetricEntries {
-			return Error.New("Too many metric entries of type "+metricType, nil)
+	for metricsType, metricsSlice := range dashboardMetrics {
+		if server.config.MaxEntriesPerMetrics > 0 && len(metricsSlice) > server.config.MaxEntriesPerMetrics {
+			return Error.New("Too many metric entries of type "+metricsType, nil)
 		}
 		for _, metrics := range metricsSlice {
 			if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
-				return Error.New("Too many metrics of type "+metricType, nil)
+				return Error.New("Too many metrics of type "+metricsType, nil)
 			}
 		}
 	}

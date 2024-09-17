@@ -119,18 +119,18 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	if err != nil {
 		return Error.New("Failed to unmarshal metrics", err)
 	}
-	if server.config.MaxMetricTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricTypes {
+	if server.config.MaxMetricsTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricsTypes {
 		return Error.New("Too many metric types", nil)
 	}
 	for metricsType, metricsSlice := range dashboardMetrics {
-		if server.config.MaxMetricEntries > 0 && len(metricsSlice) > server.config.MaxMetricEntries {
+		if server.config.MaxEntriesPerMetrics > 0 && len(metricsSlice) > server.config.MaxEntriesPerMetrics {
 			return Error.New("Too many metric entries of type "+metricsType, nil)
 		}
 		for _, metrics := range metricsSlice {
 			if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
 				return Error.New("Too many metrics of type "+metricsType, nil)
 			}
-			err := connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxMetricEntries)
+			err := connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxEntriesPerMetrics)
 			if err != nil {
 				return Error.New("Failed to add metrics entry", err)
 			}
