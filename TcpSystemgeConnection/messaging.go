@@ -25,7 +25,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 	if err != nil {
 		return err
 	}
-	connection.asyncMessagesSent.Add(1)
+	connection.syncResponsesSent.Add(1)
 	return nil
 }
 

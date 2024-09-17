@@ -20,8 +20,6 @@ improve logging (especially systemge and broker packages)
 
 make websocketServer stop-operation cleaner
 
-add "syncResponsesSent" metrics to connection
-
 update oauth2server (add dashboard client etc.)
 
 update readme

@@ -16,6 +16,7 @@ func (connection *TcpSystemgeConnection) CheckMetrics() Metrics.MetricsTypes {
 		map[string]uint64{
 			"async_messages_sent": connection.CheckAsyncMessagesSent(),
 			"sync_requests_sent":  connection.CheckSyncRequestsSent(),
+			"sync_responses_sent": connection.CheckSyncResponsesSent(),
 		},
 	))
 	metricsTypes.AddMetrics("tcpSystemgeConnection_syncResponsesReceived", Metrics.New(
@@ -53,6 +54,7 @@ func (connection *TcpSystemgeConnection) GetMetrics() Metrics.MetricsTypes {
 		map[string]uint64{
 			"async_messages_sent": connection.GetAsyncMessagesSent(),
 			"sync_requests_sent":  connection.GetSyncRequestsSent(),
+			"sync_responses_sent": connection.GetSyncResponsesSent(),
 		},
 	))
 	metricsTypes.AddMetrics("tcpSystemgeConnection_syncResponsesReceived", Metrics.New(
@@ -104,6 +106,13 @@ func (connection *TcpSystemgeConnection) CheckSyncRequestsSent() uint64 {
 }
 func (connection *TcpSystemgeConnection) GetSyncRequestsSent() uint64 {
 	return connection.syncRequestsSent.Swap(0)
+}
+
+func (connection *TcpSystemgeConnection) CheckSyncResponsesSent() uint64 {
+	return connection.syncResponsesSent.Load()
+}
+func (connection *TcpSystemgeConnection) GetSyncResponsesSent() uint64 {
+	return connection.syncResponsesSent.Swap(0)
 }
 
 func (connection *TcpSystemgeConnection) CheckSyncSuccessResponsesReceived() uint64 {

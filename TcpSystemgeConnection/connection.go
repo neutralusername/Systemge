@@ -48,6 +48,7 @@ type TcpSystemgeConnection struct {
 
 	asyncMessagesSent atomic.Uint64
 	syncRequestsSent  atomic.Uint64
+	syncResponsesSent atomic.Uint64
 
 	syncSuccessResponsesReceived atomic.Uint64
 	syncFailureResponsesReceived atomic.Uint64
