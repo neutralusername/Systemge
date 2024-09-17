@@ -23,4 +23,5 @@ const (
 	TOPIC_COLLECT_GARBAGE                   = "collect_garbage"
 	TOPIC_HEAP_USAGE                        = "heap_usage"
 	TOPIC_GOROUTINE_COUNT                   = "goroutine_count"
+	TOPIC_GET_CONNECTIONS                   = "get_connections"
 )
