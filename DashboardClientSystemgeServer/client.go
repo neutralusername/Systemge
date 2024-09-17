@@ -1,8 +1,6 @@
 package DashboardClientSystemgeServer
 
 import (
-	"sync"
-
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -32,8 +30,6 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 		systemgeChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsProcessingLoopRunning(), systemgeConnection.AvailableMessageCount())
 	}
 
-	mutex := sync.Mutex{}
-	handlingLoopStopChannels := map[SystemgeConnection.SystemgeConnection]chan<- bool{}
 	return DashboardClient.New(
 		name,
 		config,
