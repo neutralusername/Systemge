@@ -124,16 +124,15 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 		return Error.New("Too many metric types", nil)
 	}
 	for metricsType, metrics := range metricsTypes {
+		if metrics == nil {
+			return Error.New("Metrics for type "+metricsType+" is nil", nil)
+		}
 		if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
 			return Error.New("Too many metrics of type "+metricsType, nil)
 		}
 	}
 	for metricsType, metrics := range metricsTypes {
-		if err := connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxEntriesPerMetrics); err != nil {
-			if server.errorLogger != nil {
-				server.errorLogger.Log(Error.New("Failed to add metrics entry", err).Error())
-			}
-		}
+		connectedClient.page.AddCachedMetricsEntry(metricsType, metrics, server.config.MaxEntriesPerMetrics)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),

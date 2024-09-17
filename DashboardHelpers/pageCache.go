@@ -131,10 +131,7 @@ func (page *Page) SetCachedMetrics(metrics DashboardMetrics) error {
 	}
 }
 
-func (page *Page) AddCachedMetricsEntry(metricType string, metrics *Metrics.Metrics, maxEntries int) error {
-	if metrics == nil {
-		return Error.New("Entry is nil", nil)
-	}
+func (page *Page) AddCachedMetricsEntry(metricType string, metrics *Metrics.Metrics, maxEntries int) {
 	cachedMetrics := page.GetCachedMetrics()
 	if cachedMetrics == nil {
 		page.SetCachedMetrics(DashboardMetrics{})
@@ -147,5 +144,5 @@ func (page *Page) AddCachedMetricsEntry(metricType string, metrics *Metrics.Metr
 	if maxEntries > 0 && len(cachedMetrics[metricType]) > maxEntries {
 		cachedMetrics[metricType] = cachedMetrics[metricType][1:]
 	}
-	return page.SetCachedMetrics(cachedMetrics)
+	page.SetCachedMetrics(cachedMetrics)
 }
