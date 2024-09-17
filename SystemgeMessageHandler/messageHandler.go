@@ -86,34 +86,36 @@ func (map1 SyncMessageHandlers) Get(key string) (SyncMessageHandler, bool) {
 	return value, ok
 }
 
-// A started loop will run indefinitely until StopProcessingLoop is called.
-func StartMessageHandlingLoop_Sequentially(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (chan<- bool, <-chan error) {
-	stopChannel := make(chan bool)
-	errChannel := make(chan error)
+// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
+// errorChannel will send all errors that occur during message processing.
+func StartMessageHandlingLoop_Sequentially(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (stopChannel chan<- bool, errorChannel <-chan error) {
+	stopChann := make(chan bool)
+	errorChann := make(chan error)
 	go func() {
 		for {
 			select {
-			case <-stopChannel:
-				errChannel <- Error.New("processing loop stopped", nil)
-				close(errChannel)
+			case <-stopChann:
+				errorChann <- Error.New("processing loop stopped", nil)
+				close(errorChann)
 				return
 			default:
 				message, err := connection.GetNextMessage()
 				if err != nil {
-					errChannel <- Error.New("failed to get next message", err)
-					close(errChannel)
+					errorChann <- Error.New("failed to get next message", err)
+					close(errorChann)
 					return
 				}
 				if err := HandleMessage(connection, message, messageHandler); err != nil {
-					errChannel <- Error.New("failed to process message", err)
+					errorChann <- Error.New("failed to process message", err)
 				}
 			}
 		}
 	}()
-	return stopChannel, errChannel
+	return stopChann, errorChann
 }
 
-// A started loop will run indefinitely until StopProcessingLoop is called.
+// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
+// errorChannel will send all errors that occur during message processing.
 func StartMessageHandlingLoop_Concurrently(connection SystemgeConnection.SystemgeConnection, messageHandler MessageHandler) (chan<- bool, <-chan error) {
 	stopChannel := make(chan bool)
 	errChannel := make(chan error)
@@ -142,6 +144,7 @@ func StartMessageHandlingLoop_Concurrently(connection SystemgeConnection.Systemg
 	return stopChannel, errChannel
 }
 
+// HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
 func HandleMessage(connection SystemgeConnection.SystemgeConnection, message *Message.Message, messageHandler MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("no message handler set", nil)
