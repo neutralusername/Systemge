@@ -2,7 +2,6 @@ package TcpSystemgeConnection
 
 import (
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
 )
@@ -49,42 +48,6 @@ func (connection *TcpSystemgeConnection) receiveMessageLoop() {
 			}
 
 		}
-	}
-}
-
-func (connection *TcpSystemgeConnection) addMessageToChannel(messageBytes []byte) error {
-	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		connection.byteRateLimiterExceeded.Add(1)
-		return Error.New("byte rate limiter exceeded", nil)
-	}
-	if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
-		connection.messageRateLimiterExceeded.Add(1)
-		return Error.New("message rate limiter exceeded", nil)
-	}
-	message, err := Message.Deserialize(messageBytes, connection.GetName())
-	if err != nil {
-		connection.invalidMessagesReceived.Add(1)
-		return Error.New("failed to deserialize message", err)
-	}
-	if err := connection.validateMessage(message); err != nil {
-		connection.invalidMessagesReceived.Add(1)
-		return Error.New("failed to validate message", err)
-	}
-	if message.IsResponse() {
-		if err := connection.addSyncResponse(message); err != nil {
-			connection.invalidSyncResponsesReceived.Add(1)
-			return Error.New("failed to add sync response", err)
-		}
-		connection.validMessagesReceived.Add(1)
-		connection.messageChannelSemaphore.ReleaseBlocking()
-		return nil
-	} else {
-		connection.validMessagesReceived.Add(1)
-		connection.messageChannel <- message
-		if connection.infoLogger != nil {
-			connection.infoLogger.Log("Added message \"" + Helpers.GetPointerId(message) + "\" to processing channel")
-		}
-		return nil
 	}
 }
 
