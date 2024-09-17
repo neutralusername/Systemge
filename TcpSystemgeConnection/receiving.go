@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
+func (connection *TcpSystemgeConnection) addMessageToProcessingChannelLoop() {
 	if connection.infoLogger != nil {
 		connection.infoLogger.Log("Started receiving messages")
 	}
@@ -52,7 +52,7 @@ func (connection *TcpConnection) addMessageToProcessingChannelLoop() {
 	}
 }
 
-func (connection *TcpConnection) addMessageToProcessingChannel(messageBytes []byte) error {
+func (connection *TcpSystemgeConnection) addMessageToProcessingChannel(messageBytes []byte) error {
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		connection.byteRateLimiterExceeded.Add(1)
 		return Error.New("byte rate limiter exceeded", nil)
@@ -88,7 +88,7 @@ func (connection *TcpConnection) addMessageToProcessingChannel(messageBytes []by
 	}
 }
 
-func (connection *TcpConnection) validateMessage(message *Message.Message) error {
+func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
 		return Error.New("Message sync token exceeds maximum size", nil)
 	}

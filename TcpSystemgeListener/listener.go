@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type TcpListener struct {
+type TcpSystemgeListener struct {
 	closed      bool
 	closedMutex sync.Mutex
 
@@ -34,7 +34,7 @@ type TcpListener struct {
 	acceptedConnections atomic.Uint64
 }
 
-func (server *TcpListener) newListener(config *Config.TcpServer) (net.Listener, error) {
+func (server *TcpSystemgeListener) newListener(config *Config.TcpServer) (net.Listener, error) {
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {
@@ -57,26 +57,26 @@ func (server *TcpListener) newListener(config *Config.TcpServer) (net.Listener, 
 	}
 }
 
-func (server *TcpListener) GetWhitelist() *Tools.AccessControlList {
+func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
 	return server.whitelist
 }
 
-func (server *TcpListener) GetBlacklist() *Tools.AccessControlList {
+func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *TcpListener) GetListener() net.Listener {
+func (server *TcpSystemgeListener) GetListener() net.Listener {
 	return server.listener
 }
 
-func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpListener, error) {
+func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}
 	if config.TcpServerConfig == nil {
 		return nil, Error.New("listener is nil", nil)
 	}
-	server := &TcpListener{
+	server := &TcpSystemgeListener{
 		config:    config,
 		blacklist: blacklist,
 		whitelist: whitelist,
@@ -93,7 +93,7 @@ func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList,
 }
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *TcpListener) Close() error {
+func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {
@@ -107,7 +107,7 @@ func (listener *TcpListener) Close() error {
 	return nil
 }
 
-func (listener *TcpListener) GetStatus() int {
+func (listener *TcpSystemgeListener) GetStatus() int {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {

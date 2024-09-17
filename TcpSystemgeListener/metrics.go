@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (listener *TcpListener) CheckMetrics() map[string]*Metrics.Metrics {
+func (listener *TcpSystemgeListener) CheckMetrics() map[string]*Metrics.Metrics {
 	return map[string]*Metrics.Metrics{
 		"tcp_systemge_listener": {
 			KeyValuePairs: map[string]uint64{
@@ -19,7 +19,7 @@ func (listener *TcpListener) CheckMetrics() map[string]*Metrics.Metrics {
 		},
 	}
 }
-func (listener *TcpListener) GetMetrics() map[string]*Metrics.Metrics {
+func (listener *TcpSystemgeListener) GetMetrics() map[string]*Metrics.Metrics {
 	return map[string]*Metrics.Metrics{
 		"tcp_systemge_listener": {
 			KeyValuePairs: map[string]uint64{
@@ -33,30 +33,30 @@ func (listener *TcpListener) GetMetrics() map[string]*Metrics.Metrics {
 	}
 }
 
-func (listener *TcpListener) CheckConnectionAttempts() uint64 {
+func (listener *TcpSystemgeListener) CheckConnectionAttempts() uint64 {
 	return listener.connectionAttempts.Load()
 }
-func (listener *TcpListener) GetConnectionAttempts() uint64 {
+func (listener *TcpSystemgeListener) GetConnectionAttempts() uint64 {
 	return listener.connectionAttempts.Swap(0)
 }
 
-func (listener *TcpListener) CheckFailedConnections() uint64 {
+func (listener *TcpSystemgeListener) CheckFailedConnections() uint64 {
 	return listener.failedConnections.Load()
 }
-func (listener *TcpListener) GetFailedConnections() uint64 {
+func (listener *TcpSystemgeListener) GetFailedConnections() uint64 {
 	return listener.failedConnections.Swap(0)
 }
 
-func (listener *TcpListener) CheckRejectedConnections() uint64 {
+func (listener *TcpSystemgeListener) CheckRejectedConnections() uint64 {
 	return listener.rejectedConnections.Load()
 }
-func (listener *TcpListener) GetRejectedConnections() uint64 {
+func (listener *TcpSystemgeListener) GetRejectedConnections() uint64 {
 	return listener.rejectedConnections.Swap(0)
 }
 
-func (listener *TcpListener) CheckAcceptedConnections() uint64 {
+func (listener *TcpSystemgeListener) CheckAcceptedConnections() uint64 {
 	return listener.acceptedConnections.Load()
 }
-func (listener *TcpListener) GetAcceptedConnections() uint64 {
+func (listener *TcpSystemgeListener) GetAcceptedConnections() uint64 {
 	return listener.acceptedConnections.Swap(0)
 }

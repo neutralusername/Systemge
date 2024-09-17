@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type TcpConnection struct {
+type TcpSystemgeConnection struct {
 	name       string
 	config     *Config.TcpSystemgeConnection
 	netConn    net.Conn
@@ -62,8 +62,8 @@ type TcpConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *BufferedMessageReceiver) *TcpConnection {
-	connection := &TcpConnection{
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *BufferedMessageReceiver) *TcpSystemgeConnection {
+	connection := &TcpSystemgeConnection{
 		name:                    name,
 		config:                  config,
 		netConn:                 netConn,
@@ -103,7 +103,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 	return connection
 }
 
-func (connection *TcpConnection) Close() error {
+func (connection *TcpSystemgeConnection) Close() error {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 
@@ -128,7 +128,7 @@ func (connection *TcpConnection) Close() error {
 	return nil
 }
 
-func (connection *TcpConnection) GetStatus() int {
+func (connection *TcpSystemgeConnection) GetStatus() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 	if connection.closed {
@@ -138,17 +138,17 @@ func (connection *TcpConnection) GetStatus() int {
 	}
 }
 
-func (connection *TcpConnection) GetName() string {
+func (connection *TcpSystemgeConnection) GetName() string {
 	return connection.name
 }
 
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *TcpConnection) GetCloseChannel() <-chan bool {
+func (connection *TcpSystemgeConnection) GetCloseChannel() <-chan bool {
 	return connection.closeChannel
 }
 
-func (connection *TcpConnection) GetAddress() string {
+func (connection *TcpSystemgeConnection) GetAddress() string {
 	return connection.netConn.RemoteAddr().String()
 }

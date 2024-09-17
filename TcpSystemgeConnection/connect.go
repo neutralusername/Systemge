@@ -26,7 +26,7 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 	return connection, nil
 }
 
-func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpConnection, error) {
+func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, maxServerNameLength int, netConn net.Conn) (*TcpSystemgeConnection, error) {
 	_, err := Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, clientName).Serialize(), config.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)

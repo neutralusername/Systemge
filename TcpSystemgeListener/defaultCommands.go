@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
+func (listener *TcpSystemgeListener) GetDefaultCommands() Commands.Handlers {
 	blacklistCommands := listener.blacklist.GetDefaultCommands()
 	whitelistCommands := listener.whitelist.GetDefaultCommands()
 	commands := Commands.Handlers{}
