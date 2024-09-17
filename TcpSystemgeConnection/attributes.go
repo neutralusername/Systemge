@@ -39,6 +39,16 @@ func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnE
 	return nil
 }
 
+func (connection *TcpSystemgeConnection) RemoveAttribute(attribute string) error {
+	connection.attributeMutex.Lock()
+	defer connection.attributeMutex.Unlock()
+	if _, ok := connection.attributes[attribute]; ok {
+		delete(connection.attributes, attribute)
+		return nil
+	}
+	return Error.New("No attribute found", nil)
+}
+
 func (connection *TcpSystemgeConnection) AppendAttributeHandler(attribute string, handler func() error) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
