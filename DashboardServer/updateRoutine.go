@@ -80,7 +80,7 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.NewAsync(
+		Message.New(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -94,7 +94,7 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 	)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.NewAsync(
+		Message.New(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -136,7 +136,7 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.NewAsync(
+		Message.New(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -160,7 +160,7 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.NewAsync(
+		Message.New(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -181,7 +181,7 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 	connectedClient.page.SetCachedIsProcessingLoopRunning(Helpers.StringToBool(resultPayload))
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.NewAsync(
+		Message.New(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -199,7 +199,7 @@ func (server *Server) updateDashboardClientMetrics() error {
 	server.addMetricsToDashboardClient(newMetrics)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.NewAsync(
+		Message.New(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{

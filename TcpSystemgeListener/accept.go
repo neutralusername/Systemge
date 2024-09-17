@@ -79,7 +79,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 	if message.GetPayload() == "" {
 		return nil, Error.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
+	_, err = Tcp.Send(netConn, Message.New(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}

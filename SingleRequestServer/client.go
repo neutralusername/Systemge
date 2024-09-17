@@ -54,7 +54,7 @@ func AsyncMessage(name string, config *Config.SingleRequestClient, topic string,
 	if err != nil {
 		return Error.New("Failed to establish connection", err)
 	}
-	err = connection.AsyncMessage("async", string(Message.NewAsync(topic, payload).Serialize()))
+	err = connection.AsyncMessage("async", string(Message.New(topic, payload).Serialize()))
 	if err != nil {
 		return Error.New("Failed to send message", err)
 	}
@@ -68,7 +68,7 @@ func SyncRequest(name string, config *Config.SingleRequestClient, topic string, 
 	if err != nil {
 		return nil, Error.New("Failed to establish connection", err)
 	}
-	err = connection.AsyncMessage("sync", string(Message.NewAsync(topic, payload).Serialize()))
+	err = connection.AsyncMessage("sync", string(Message.New(topic, payload).Serialize()))
 	if err != nil {
 		return nil, Error.New("Failed to send request", err)
 	}

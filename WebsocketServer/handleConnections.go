@@ -63,7 +63,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		server.incomingMessageCounter.Add(1)
 		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
 		if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-			err := client.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
+			err := client.Send(Message.New("error", Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				if warningLogger := server.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to send rate limit error message to client", err).Error())
@@ -72,7 +72,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			continue
 		}
 		if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
-			err := client.Send(Message.NewAsync("error", Error.New("rate limited", nil).Error()).Serialize())
+			err := client.Send(Message.New("error", Error.New("rate limited", nil).Error()).Serialize())
 			if err != nil {
 				if warningLogger := server.warningLogger; warningLogger != nil {
 					warningLogger.Log(Error.New("Failed to send rate limit error message to client", err).Error())
@@ -87,7 +87,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			}
 			continue
 		}
-		message = Message.NewAsync(message.GetTopic(), message.GetPayload())
+		message = Message.New(message.GetTopic(), message.GetPayload())
 		if infoLogger := server.infoLogger; infoLogger != nil {
 			infoLogger.Log(Error.New("Received message with topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
 		}
@@ -128,7 +128,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()
 	if handler == nil {
-		err := client.Send(Message.NewAsync("error", Error.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
+		err := client.Send(Message.New("error", Error.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send error message to client", err).Error())
@@ -137,7 +137,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return Error.New("no handler for topic \""+message.GetTopic()+"\"", nil)
 	}
 	if err := handler(client, message); err != nil {
-		if err := client.Send(Message.NewAsync("error", Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize()); err != nil {
+		if err := client.Send(Message.New("error", Error.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize()); err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
 				warningLogger.Log(Error.New("Failed to send error message to client", err).Error())
 			}

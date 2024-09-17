@@ -59,14 +59,14 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		websocketClient.Send(Message.NewAsync(
+		websocketClient.Send(Message.New(
 			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 			resultPayload,
 		).Serialize())
 		return nil
 	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
 		runtime.GC()
-		websocketClient.Send(Message.NewAsync(
+		websocketClient.Send(Message.New(
 			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 			"Garbage collected",
 		).Serialize())
@@ -85,7 +85,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err := server.handleClientStopRequest(connectedClient); err != nil {
 			return Error.New("Failed to stop client", err)
 		}
-		websocketClient.Send(Message.NewAsync(
+		websocketClient.Send(Message.New(
 			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 			"success",
 		).Serialize())
@@ -104,7 +104,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err := server.handleClientStartRequest(connectedClient); err != nil {
 			return Error.New("Failed to start client", err)
 		}
-		websocketClient.Send(Message.NewAsync(
+		websocketClient.Send(Message.New(
 			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 			"success",
 		).Serialize())
@@ -208,7 +208,7 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 	default:
 		delete(connectedClient.websocketClients, websocketClient)
 	}
-	go websocketClient.Send(Message.NewAsync(
+	go websocketClient.Send(Message.New(
 		DashboardHelpers.TOPIC_CHANGE_PAGE,
 		pageJson,
 	).Serialize())

@@ -29,7 +29,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 }
 
 func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) error {
-	err := connection.send(Message.NewAsync(topic, payload).Serialize())
+	err := connection.send(Message.New(topic, payload).Serialize())
 	if err != nil {
 		return err
 	}
