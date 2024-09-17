@@ -1,0 +1,12 @@
+panic: close of closed channel
+
+goroutine 285 [running]:
+github.com/neutralusername/Systemge/BrokerServer.(*Server).onSystemgeDisconnection(0xc0002861b0, {0x874a48, 0xc00016c480})
+        /home/fabian/Documents/prog/Systemge/BrokerServer/systemgeHandlers.go:162 +0x7d
+github.com/neutralusername/Systemge/SystemgeServer.(*SystemgeServer).handleDisconnect(0xc000114370, {0x874a48, 0xc00016c480}, 0xc0000da930)
+        /home/fabian/Documents/prog/Systemge/SystemgeServer/connectionAccept.go:85 +0x12f
+github.com/neutralusername/Systemge/SystemgeServer.(*SystemgeServer).handleConnections.func1()
+        /home/fabian/Documents/prog/Systemge/SystemgeServer/connectionAccept.go:34 +0x3e
+created by github.com/neutralusername/Systemge/SystemgeServer.(*SystemgeServer).handleConnections in goroutine 249
+        /home/fabian/Documents/prog/Systemge/SystemgeServer/connectionAccept.go:33 +0x245
+exit status 2
