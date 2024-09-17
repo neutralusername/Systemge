@@ -19,9 +19,9 @@ type Resolver struct {
 
 	systemgeServer *SystemgeServer.SystemgeServer
 
-	asyncTopicEndpoints map[string]*Config.TcpClient
-	syncTopicEndpoints  map[string]*Config.TcpClient
-	mutex               sync.Mutex
+	asyncTopicTcpClientConfigs map[string]*Config.TcpClient
+	syncTopicTcpClientConfigs  map[string]*Config.TcpClient
+	mutex                      sync.Mutex
 
 	messageHandler SystemgeMessageHandler.MessageHandler
 
@@ -54,10 +54,10 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 	}
 
 	resolver := &Resolver{
-		name:                name,
-		config:              config,
-		asyncTopicEndpoints: make(map[string]*Config.TcpClient),
-		syncTopicEndpoints:  make(map[string]*Config.TcpClient),
+		name:                       name,
+		config:                     config,
+		asyncTopicTcpClientConfigs: make(map[string]*Config.TcpClient),
+		syncTopicTcpClientConfigs:  make(map[string]*Config.TcpClient),
 	}
 
 	if config.InfoLoggerPath != "" {
@@ -73,21 +73,21 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 		resolver.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	for topic, endpoint := range config.AsyncTopicClientConfigs {
-		normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
+	for topic, tcpClientConfig := range config.AsyncTopicClientConfigs {
+		normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
 			panic(err)
 		}
-		endpoint.Address = normalizedAddress
-		resolver.asyncTopicEndpoints[topic] = endpoint
+		tcpClientConfig.Address = normalizedAddress
+		resolver.asyncTopicTcpClientConfigs[topic] = tcpClientConfig
 	}
-	for topic, endpoint := range config.SyncTopicClientConfigs {
-		normalizedAddress, err := Helpers.NormalizeAddress(endpoint.Address)
+	for topic, tcpClientConfig := range config.SyncTopicClientConfigs {
+		normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
 			panic(err)
 		}
-		endpoint.Address = normalizedAddress
-		resolver.syncTopicEndpoints[topic] = endpoint
+		tcpClientConfig.Address = normalizedAddress
+		resolver.syncTopicTcpClientConfigs[topic] = tcpClientConfig
 	}
 
 	resolver.messageHandler = SystemgeMessageHandler.NewConcurrentMessageHandler(nil, SystemgeMessageHandler.SyncMessageHandlers{

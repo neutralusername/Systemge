@@ -48,11 +48,11 @@ func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 			if len(args) != 2 {
 				return "", Error.New("expected 2 arguments", nil)
 			}
-			endpointConfig := Config.UnmarshalTcpClient(args[1])
-			if endpointConfig == nil {
-				return "", Error.New("failed unmarshalling endpointConfig", nil)
+			tcpClientConfig := Config.UnmarshalTcpClient(args[1])
+			if tcpClientConfig == nil {
+				return "", Error.New("failed unmarshalling tcpClientConfig", nil)
 			}
-			server.AddAsyncResolution(args[0], endpointConfig)
+			server.AddAsyncResolution(args[0], tcpClientConfig)
 			return "success", nil
 		},
 		"removeAsyncResolution": func(args []string) (string, error) {
@@ -66,11 +66,11 @@ func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 			if len(args) != 2 {
 				return "", Error.New("expected 2 arguments", nil)
 			}
-			endpointConfig := Config.UnmarshalTcpClient(args[1])
-			if endpointConfig == nil {
-				return "", Error.New("failed unmarshalling endpointConfig", nil)
+			tcpClientConfig := Config.UnmarshalTcpClient(args[1])
+			if tcpClientConfig == nil {
+				return "", Error.New("failed unmarshalling tcpClientConfig", nil)
 			}
-			server.AddSyncResolution(args[0], endpointConfig)
+			server.AddSyncResolution(args[0], tcpClientConfig)
 			return "success", nil
 		},
 		"removeSyncResolution": func(args []string) (string, error) {

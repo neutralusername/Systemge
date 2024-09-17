@@ -124,6 +124,28 @@ func (connection *TcpConnection) SyncRequestBlocking(topic, payload string) (*Me
 	}
 }
 
+func (connection *TcpConnection) AbortSyncRequest(syncToken string) error {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	if syncRequestStruct, ok := connection.syncRequests[syncToken]; ok {
+		close(syncRequestStruct.abortChannel)
+		delete(connection.syncRequests, syncToken)
+		return nil
+	}
+	return Error.New("No response channel found", nil)
+}
+
+// returns a slice of syncTokens of open sync requests
+func (connection *TcpConnection) GetOpenSyncRequests() []string {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	syncTokens := make([]string, 0, len(connection.syncRequests))
+	for k := range connection.syncRequests {
+		syncTokens = append(syncTokens, k)
+	}
+	return syncTokens
+}
+
 func (connection *TcpConnection) initResponseChannel() (string, *syncRequestStruct) {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
@@ -148,27 +170,6 @@ func (connection *TcpConnection) addSyncResponse(message *Message.Message) error
 		return nil
 	}
 	return Error.New("No response channel found", nil)
-}
-
-func (connection *TcpConnection) AbortSyncRequest(syncToken string) error {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	if syncRequestStruct, ok := connection.syncRequests[syncToken]; ok {
-		close(syncRequestStruct.abortChannel)
-		delete(connection.syncRequests, syncToken)
-		return nil
-	}
-	return Error.New("No response channel found", nil)
-}
-
-func (connection *TcpConnection) GetOpenSyncRequests() []string {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	syncTokens := make([]string, 0, len(connection.syncRequests))
-	for k := range connection.syncRequests {
-		syncTokens = append(syncTokens, k)
-	}
-	return syncTokens
 }
 
 func (connection *TcpConnection) removeSyncRequest(syncToken string) error {

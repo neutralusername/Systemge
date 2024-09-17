@@ -13,7 +13,7 @@ type SystemgeConnection interface {
 	Close() error
 	GetCloseChannel() <-chan bool
 	GetNextMessage() (*Message.Message, error)
-	UnprocessedMessagesCount() uint32
+	AvailableMessageCount() uint32
 
 	AsyncMessage(topic string, payload string) error
 	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)

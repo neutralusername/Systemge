@@ -29,7 +29,7 @@ type TcpConnection struct {
 	closed      bool
 	closedMutex sync.Mutex
 
-	messageReceiver *Tools.MessageReceiver
+	messageReceiver *BufferedMessageReceiver
 
 	syncRequests map[string]*syncRequestStruct
 	syncMutex    sync.Mutex
@@ -62,7 +62,7 @@ type TcpConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tools.MessageReceiver) *TcpConnection {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *BufferedMessageReceiver) *TcpConnection {
 	connection := &TcpConnection{
 		name:                    name,
 		config:                  config,

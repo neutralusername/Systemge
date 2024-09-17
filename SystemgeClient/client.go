@@ -50,7 +50,7 @@ func New(name string, config *Config.SystemgeClient, onConnectHandler func(Syste
 		panic("config is nil")
 	}
 	if config.TcpClientConfigs == nil {
-		panic("config.EndpointConfigs is nil")
+		panic("config.TcpClientConfigs is nil")
 	}
 	if config.TcpSystemgeConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
@@ -101,13 +101,13 @@ func (client *SystemgeClient) Start() error {
 	}
 	client.status = Status.PENDING
 	client.stopChannel = make(chan bool)
-	for _, endpointConfig := range client.config.TcpClientConfigs {
-		if err := client.startConnectionAttempts(endpointConfig); err != nil {
+	for _, tcpClientConfig := range client.config.TcpClientConfigs {
+		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error())
+				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
 						client.errorLogger.Log(Error.New("failed sending mail", err).Error())

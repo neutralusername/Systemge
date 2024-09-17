@@ -7,7 +7,7 @@ type SystemgeConnectionAttempt struct {
 	MaxConnectionAttempts uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
 	RetryIntervalMs       uint32 `json:"connectionAttemptDelayMs"` // default: 0 == no delay (the delay between reconnection attempts)
 
-	EndpointConfig              *TcpClient             `json:"endpointConfig"`              // *required*
+	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 

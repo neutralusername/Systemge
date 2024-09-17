@@ -120,7 +120,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					}
 				},
 				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.Uint32ToString(systemgeConnection.UnprocessedMessagesCount()), nil
+					return Helpers.Uint32ToString(systemgeConnection.AvailableMessageCount()), nil
 				},
 				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
@@ -155,7 +155,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					commands.GetKeyBoolMap(),
 					systemgeConnection.GetStatus(),
 					processingLoopStopChannel != nil,
-					systemgeConnection.UnprocessedMessagesCount(),
+					systemgeConnection.AvailableMessageCount(),
 					DashboardHelpers.NewDashboardMetrics(metrics),
 				),
 				DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION,

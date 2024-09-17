@@ -35,7 +35,7 @@ func New(name string, config *Config.DashboardClient, dashboardClientMessageHand
 		panic("config.ConnectionConfig is nil")
 	}
 	if config.TcpClientConfig == nil {
-		panic("config.EndpointConfig is nil")
+		panic("config.TcpClientConfig is nil")
 	}
 	if dashboardClientMessageHandler == nil {
 		panic("dashboardMessageHandler is nil")

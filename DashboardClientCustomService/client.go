@@ -49,7 +49,7 @@ func New(name string, config *Config.DashboardClient, customService customServic
 		panic("config.ConnectionConfig is nil")
 	}
 	if config.TcpClientConfig == nil {
-		panic("config.EndpointConfig is nil")
+		panic("config.TcpClientConfig is nil")
 	}
 	if customService == nil {
 		panic("customService is nil")

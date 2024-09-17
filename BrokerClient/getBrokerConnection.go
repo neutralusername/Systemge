@@ -12,13 +12,13 @@ type getBrokerConnectionAttempt struct {
 	err        error
 }
 
-func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClient, stopChannel chan bool) (*connection, error) {
+func (messageBrokerClient *Client) getBrokerConnection(tcpClientConfig *Config.TcpClient, stopChannel chan bool) (*connection, error) {
 	messageBrokerClient.mutex.Lock()
-	if conn := messageBrokerClient.brokerConnections[getEndpointString(endpoint)]; conn != nil {
+	if conn := messageBrokerClient.brokerConnections[getTcpClientConfigString(tcpClientConfig)]; conn != nil {
 		messageBrokerClient.mutex.Unlock()
 		return conn, nil
 	}
-	if ongoingGetBrokerAttempt := messageBrokerClient.ongoingGetBrokerConnections[getEndpointString(endpoint)]; ongoingGetBrokerAttempt != nil {
+	if ongoingGetBrokerAttempt := messageBrokerClient.ongoingGetBrokerConnections[getTcpClientConfigString(tcpClientConfig)]; ongoingGetBrokerAttempt != nil {
 		messageBrokerClient.mutex.Unlock()
 		<-ongoingGetBrokerAttempt.ongoing
 		return ongoingGetBrokerAttempt.connection, ongoingGetBrokerAttempt.err
@@ -26,12 +26,12 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 	getBrokerAttempt := &getBrokerConnectionAttempt{
 		ongoing: make(chan bool),
 	}
-	messageBrokerClient.ongoingGetBrokerConnections[getEndpointString(endpoint)] = getBrokerAttempt
+	messageBrokerClient.ongoingGetBrokerConnections[getTcpClientConfigString(tcpClientConfig)] = getBrokerAttempt
 	messageBrokerClient.mutex.Unlock()
 
 	connectionAttempt := TcpSystemgeConnection.EstablishConnectionAttempts(messageBrokerClient.name, &Config.SystemgeConnectionAttempt{
 		MaxServerNameLength:         messageBrokerClient.config.MaxServerNameLength,
-		EndpointConfig:              endpoint,
+		TcpClientConfig:             tcpClientConfig,
 		TcpSystemgeConnectionConfig: messageBrokerClient.config.ServerTcpSystemgeConnectionConfig,
 		RetryIntervalMs:             messageBrokerClient.config.ResolutionAttemptRetryIntervalMs,
 		MaxConnectionAttempts:       messageBrokerClient.config.ResolutionMaxAttempts,
@@ -45,7 +45,7 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 	if err != nil {
 		messageBrokerClient.mutex.Lock()
 		getBrokerAttempt.err = err
-		delete(messageBrokerClient.ongoingGetBrokerConnections, getEndpointString(endpoint))
+		delete(messageBrokerClient.ongoingGetBrokerConnections, getTcpClientConfigString(tcpClientConfig))
 		close(getBrokerAttempt.ongoing)
 		messageBrokerClient.mutex.Unlock()
 
@@ -54,16 +54,16 @@ func (messageBrokerClient *Client) getBrokerConnection(endpoint *Config.TcpClien
 	messageHandlerStopChannel, _ := SystemgeMessageHandler.StartProcessingLoopConcurrently(systemgeConnection, messageBrokerClient.messageHandler)
 	conn := &connection{
 		connection:             systemgeConnection,
-		endpoint:               endpoint,
+		tcpClientConfig:        tcpClientConfig,
 		messageHandlerStopChan: messageHandlerStopChannel,
 		responsibleAsyncTopics: make(map[string]bool),
 		responsibleSyncTopics:  make(map[string]bool),
 	}
 
 	messageBrokerClient.mutex.Lock()
-	messageBrokerClient.brokerConnections[getEndpointString(endpoint)] = conn
+	messageBrokerClient.brokerConnections[getTcpClientConfigString(tcpClientConfig)] = conn
 	getBrokerAttempt.connection = conn
-	delete(messageBrokerClient.ongoingGetBrokerConnections, getEndpointString(endpoint))
+	delete(messageBrokerClient.ongoingGetBrokerConnections, getTcpClientConfigString(tcpClientConfig))
 	close(getBrokerAttempt.ongoing)
 	go messageBrokerClient.handleConnectionLifetime(conn, stopChannel)
 	messageBrokerClient.mutex.Unlock()

@@ -29,7 +29,7 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 				subscribedSyncTopicsByClosedConnection = append(subscribedSyncTopicsByClosedConnection, topic)
 			}
 		}
-		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+		delete(messageBrokerClient.brokerConnections, getTcpClientConfigString(connection.tcpClientConfig))
 		messageBrokerClient.mutex.Unlock()
 
 		messageBrokerClient.statusMutex.Lock()
@@ -56,7 +56,7 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleSyncTopics, topic)
 		}
-		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+		delete(messageBrokerClient.brokerConnections, getTcpClientConfigString(connection.tcpClientConfig))
 		messageBrokerClient.mutex.Unlock()
 	}
 }
@@ -86,7 +86,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 					delete(connection.responsibleAsyncTopics, topic)
 				}
 				if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
-					delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+					delete(messageBrokerClient.brokerConnections, getTcpClientConfigString(connection.tcpClientConfig))
 					connection.connection.Close()
 				}
 			}

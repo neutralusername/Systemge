@@ -8,21 +8,20 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
-func EstablishConnection(config *Config.TcpSystemgeConnection, endpointConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
+func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient, clientName string, maxServerNameLength int) (SystemgeConnection.SystemgeConnection, error) {
 	if config == nil {
 		return nil, Error.New("Config is nil", nil)
 	}
-	netConn, err := Tcp.NewClient(endpointConfig)
+	netConn, err := Tcp.NewClient(tcpClientConfig)
 	if err != nil {
-		return nil, Error.New("Failed to establish connection to "+endpointConfig.Address, err)
+		return nil, Error.New("Failed to establish connection to "+tcpClientConfig.Address, err)
 	}
 	connection, err := clientHandshake(config, clientName, maxServerNameLength, netConn)
 	if err != nil {
 		netConn.Close()
-		return nil, Error.New("Failed to handshake with "+endpointConfig.Address, err)
+		return nil, Error.New("Failed to handshake with "+tcpClientConfig.Address, err)
 	}
 	return connection, nil
 }
@@ -32,7 +31,7 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	messageReceiver := Tools.NewMessageReceiver(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
+	messageReceiver := NewBufferedMessageReceiver(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
 	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		return nil, Error.New("Failed to receive response", err)

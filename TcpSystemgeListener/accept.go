@@ -10,7 +10,6 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
@@ -49,7 +48,7 @@ func (listener *TcpListener) AcceptConnection(serverName string, connectionConfi
 }
 
 func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpSystemgeConnection.TcpConnection, error) {
-	messageReceiver := Tools.NewMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
+	messageReceiver := TcpSystemgeConnection.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)

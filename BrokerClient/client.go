@@ -35,8 +35,8 @@ type Client struct {
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
 
-	brokerConnections map[string]*connection            // endpointString -> connection
-	topicResolutions  map[string]map[string]*connection // topic -> [endpointString -> connection]
+	brokerConnections map[string]*connection            // tcpClientConfigString -> connection
+	topicResolutions  map[string]map[string]*connection // topic -> [tcpClientConfigString -> connection]
 
 	mutex sync.Mutex
 
@@ -55,7 +55,7 @@ type Client struct {
 
 type connection struct {
 	connection             SystemgeConnection.SystemgeConnection
-	endpoint               *Config.TcpClient
+	tcpClientConfig        *Config.TcpClient
 	messageHandlerStopChan chan<- bool
 	responsibleAsyncTopics map[string]bool
 	responsibleSyncTopics  map[string]bool
@@ -72,7 +72,7 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		panic(Error.New("ConnectionConfig is required", nil))
 	}
 	if len(config.ResolverTcpClientConfigs) == 0 {
-		panic(Error.New("At least one ResolverEndpoint is required", nil))
+		panic(Error.New("At least one ResolverTcpClientConfig is required", nil))
 	}
 
 	messageBrokerClient := &Client{
@@ -161,6 +161,6 @@ func (messageBrokerClient *Client) GetName() string {
 	return messageBrokerClient.name
 }
 
-func getEndpointString(endpoint *Config.TcpClient) string {
-	return endpoint.Address + endpoint.TlsCert
+func getTcpClientConfigString(tcpClientConfig *Config.TcpClient) string {
+	return tcpClientConfig.Address + tcpClientConfig.TlsCert
 }

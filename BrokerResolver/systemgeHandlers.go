@@ -11,7 +11,7 @@ import (
 func (resolver *Resolver) resolveAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	if resolution, ok := resolver.asyncTopicEndpoints[message.GetPayload()]; ok {
+	if resolution, ok := resolver.asyncTopicTcpClientConfigs[message.GetPayload()]; ok {
 		return Helpers.JsonMarshal(resolution), nil
 	} else {
 		return "", Error.New("Unkown async topic", nil)
@@ -21,7 +21,7 @@ func (resolver *Resolver) resolveAsync(connection SystemgeConnection.SystemgeCon
 func (resolver *Resolver) resolveSync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
-	if resolution, ok := resolver.syncTopicEndpoints[message.GetPayload()]; ok {
+	if resolution, ok := resolver.syncTopicTcpClientConfigs[message.GetPayload()]; ok {
 		return Helpers.JsonMarshal(resolution), nil
 	} else {
 		return "", Error.New("Unkown sync topic", nil)

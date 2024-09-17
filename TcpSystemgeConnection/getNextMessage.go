@@ -8,6 +8,10 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
+func (connection *TcpConnection) AvailableMessageCount() uint32 {
+	return connection.messageChannelSemaphore.AvailableAcquires()
+}
+
 func (connection *TcpConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()

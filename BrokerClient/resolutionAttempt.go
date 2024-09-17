@@ -40,10 +40,10 @@ func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopi
 }
 
 func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resolutionAttempt, stopChannel chan bool) {
-	var endpoints []*Config.TcpClient
+	var tcpClientConfigs []*Config.TcpClient
 	attempts := uint32(0)
-	for len(endpoints) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionMaxAttempts) {
-		endpoints = messageBrokerClient.resolveBrokerEndpoints(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
+	for len(tcpClientConfigs) == 0 && stopChannel == messageBrokerClient.stopChannel && (messageBrokerClient.config.ResolutionMaxAttempts == 0 || attempts < messageBrokerClient.config.ResolutionMaxAttempts) {
+		tcpClientConfigs = messageBrokerClient.resolveBrokerTcpClientConfigs(resolutionAttempt.topic, resolutionAttempt.isSyncTopic)
 
 		messageBrokerClient.mutex.Lock()
 		subscribe := (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic])
@@ -59,14 +59,14 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 	}
 
 	connections := map[string]*connection{}
-	for _, endpoint := range endpoints {
-		conn, err := messageBrokerClient.getBrokerConnection(endpoint, stopChannel)
+	for _, tcpClientConfig := range tcpClientConfigs {
+		conn, err := messageBrokerClient.getBrokerConnection(tcpClientConfig, stopChannel)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to get connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
+				messageBrokerClient.errorLogger.Log(Error.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to get connection to resolved endpoint \""+endpoint.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
 					}
@@ -80,7 +80,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 		} else {
 			conn.responsibleAsyncTopics[resolutionAttempt.topic] = true
 		}
-		connections[getEndpointString(endpoint)] = conn
+		connections[getTcpClientConfigString(tcpClientConfig)] = conn
 		subscribe := (resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedSyncTopics[resolutionAttempt.topic]) || (!resolutionAttempt.isSyncTopic && messageBrokerClient.subscribedAsyncTopics[resolutionAttempt.topic])
 		messageBrokerClient.mutex.Unlock()
 
@@ -90,15 +90,15 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 	}
 
 	messageBrokerClient.mutex.Lock()
-	for endpointString, existingConnection := range messageBrokerClient.topicResolutions[resolutionAttempt.topic] {
-		if _, ok := connections[endpointString]; !ok {
+	for tcpClientConfigString, existingConnection := range messageBrokerClient.topicResolutions[resolutionAttempt.topic] {
+		if _, ok := connections[tcpClientConfigString]; !ok {
 			if resolutionAttempt.isSyncTopic {
 				delete(existingConnection.responsibleSyncTopics, resolutionAttempt.topic)
 			} else {
 				delete(existingConnection.responsibleAsyncTopics, resolutionAttempt.topic)
 			}
 			if len(existingConnection.responsibleAsyncTopics) == 0 && len(existingConnection.responsibleSyncTopics) == 0 {
-				delete(messageBrokerClient.brokerConnections, endpointString)
+				delete(messageBrokerClient.brokerConnections, tcpClientConfigString)
 				existingConnection.connection.Close()
 			}
 		}

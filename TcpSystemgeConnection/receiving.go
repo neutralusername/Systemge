@@ -103,7 +103,3 @@ func (connection *TcpConnection) validateMessage(message *Message.Message) error
 	}
 	return nil
 }
-
-func (connection *TcpConnection) UnprocessedMessagesCount() uint32 {
-	return connection.messageChannelSemaphore.AvailableAcquires()
-}

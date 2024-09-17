@@ -47,11 +47,11 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		if len(args) != 1 {
 			return "", Error.New("expected 1 argument", nil)
 		}
-		endpointConfig := Config.UnmarshalTcpClient(args[0])
-		if endpointConfig == nil {
-			return "", Error.New("failed unmarshalling endpointConfig", nil)
+		tcpClientConfig := Config.UnmarshalTcpClient(args[0])
+		if tcpClientConfig == nil {
+			return "", Error.New("failed unmarshalling tcpClientConfig", nil)
 		}
-		if err := client.AddConnectionAttempt(endpointConfig); err != nil {
+		if err := client.AddConnectionAttempt(tcpClientConfig); err != nil {
 			return "", err
 		}
 		return "success", nil

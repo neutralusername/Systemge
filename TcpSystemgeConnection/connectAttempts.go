@@ -45,8 +45,8 @@ func (connectionAttempt *ConnectionAttempt) GetOngoingChannel() <-chan bool {
 	return connectionAttempt.ongoing
 }
 
-func (connectionAttempt *ConnectionAttempt) GetEndpointConfig() *Config.TcpClient {
-	return connectionAttempt.config.EndpointConfig
+func (connectionAttempt *ConnectionAttempt) GetTcpClientConfig() *Config.TcpClient {
+	return connectionAttempt.config.TcpClientConfig
 }
 
 func (connectionAttempt *ConnectionAttempt) IsOngoing() bool {
@@ -76,7 +76,7 @@ func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 			return
 		}
 		connectionAttempt.attempts++
-		connection, err := EstablishConnection(connectionAttempt.config.TcpSystemgeConnectionConfig, connectionAttempt.config.EndpointConfig, name, connectionAttempt.config.MaxServerNameLength)
+		connection, err := EstablishConnection(connectionAttempt.config.TcpSystemgeConnectionConfig, connectionAttempt.config.TcpClientConfig, name, connectionAttempt.config.MaxServerNameLength)
 		if err != nil {
 			time.Sleep(time.Duration(connectionAttempt.config.RetryIntervalMs) * time.Millisecond)
 			continue

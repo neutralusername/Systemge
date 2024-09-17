@@ -1,4 +1,4 @@
-package Tools
+package TcpSystemgeConnection
 
 import (
 	"net"
@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-type MessageReceiver struct {
+type BufferedMessageReceiver struct {
 	buffer                   []byte
 	incomingMessageByteLimit uint64
 	tcpReceiveTimeoutMs      uint64
@@ -19,19 +19,19 @@ type MessageReceiver struct {
 	bytesReceived atomic.Uint64
 }
 
-func (buffer *MessageReceiver) GetBytesReceived() uint64 {
+func (buffer *BufferedMessageReceiver) GetBytesReceived() uint64 {
 	return buffer.bytesReceived.Swap(0)
 }
 
-func (buffer *MessageReceiver) CheckBytesReceived() uint64 {
+func (buffer *BufferedMessageReceiver) CheckBytesReceived() uint64 {
 	return buffer.bytesReceived.Load()
 }
 
-func NewMessageReceiver(netConn net.Conn, incomingMessageByteLimit uint64, tcpReceiveTimeoutMs uint64, bufferSize uint32) *MessageReceiver {
+func NewBufferedMessageReceiver(netConn net.Conn, incomingMessageByteLimit uint64, tcpReceiveTimeoutMs uint64, bufferSize uint32) *BufferedMessageReceiver {
 	if bufferSize == 0 {
 		bufferSize = 1024 * 4
 	}
-	return &MessageReceiver{
+	return &BufferedMessageReceiver{
 		buffer:                   []byte{},
 		incomingMessageByteLimit: incomingMessageByteLimit,
 		netConn:                  netConn,
@@ -40,7 +40,7 @@ func NewMessageReceiver(netConn net.Conn, incomingMessageByteLimit uint64, tcpRe
 	}
 }
 
-func (messageReceiver *MessageReceiver) ReceiveNextMessage() ([]byte, error) {
+func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, error) {
 	completedMsgBytes := []byte{}
 	for {
 		if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
