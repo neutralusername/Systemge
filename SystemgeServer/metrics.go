@@ -9,10 +9,10 @@ func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("systemgeServer_connectionAttempts", Metrics.New(
 		map[string]uint64{
-			"connection_attempts":  server.CheckConnectionAttempts(),
-			"failed_connections":   server.CheckFailedConnections(),
-			"rejected_connections": server.CheckRejectedConnections(),
-			"accepted_connections": server.CheckAcceptedConnections(),
+			"connection_attempts":          server.CheckConnectionAttempts(),
+			"failed_connection_attempts":   server.CheckFailedConnectionAttempts(),
+			"rejected_connection_attempts": server.CheckRejectedConnectionAttempts(),
+			"accepted_connection_attempts": server.CheckAcceptedConnectionAttempts(),
 		},
 	))
 	metricsTypes.AddMetrics("systemgeServer_byteTransmissions", Metrics.New(
@@ -60,10 +60,10 @@ func (server *SystemgeServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
 		map[string]uint64{
-			"connection_attempts":  server.GetConnectionAttempts(),
-			"failed_connections":   server.GetFailedConnections(),
-			"rejected_connections": server.GetRejectedConnections(),
-			"accepted_connections": server.GetAcceptedConnections(),
+			"connection_attempts":          server.GetConnectionAttempts(),
+			"failed_connection_attempts":   server.GetFailedConnectionAttempts(),
+			"rejected_connection_attempts": server.GetRejectedConnectionAttempts(),
+			"accepted_connection_attempts": server.GetAcceptedConnectionAttempts(),
 		},
 	))
 	metricsTypes.AddMetrics("systemgeServer_byteTransmissions", Metrics.New(
@@ -126,7 +126,7 @@ func (server *SystemgeServer) GetConnectionAttempts() uint64 {
 	return server.listener.GetConnectionAttempts()
 }
 
-func (server *SystemgeServer) CheckFailedConnections() uint64 {
+func (server *SystemgeServer) CheckFailedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 	if server.status != Status.STARTED {
@@ -135,7 +135,7 @@ func (server *SystemgeServer) CheckFailedConnections() uint64 {
 
 	return server.listener.CheckFailedConnectionAttempts()
 }
-func (server *SystemgeServer) GetFailedConnections() uint64 {
+func (server *SystemgeServer) GetFailedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 	if server.status != Status.STARTED {
@@ -145,7 +145,7 @@ func (server *SystemgeServer) GetFailedConnections() uint64 {
 	return server.listener.GetFailedConnectionAttempts()
 }
 
-func (server *SystemgeServer) CheckRejectedConnections() uint64 {
+func (server *SystemgeServer) CheckRejectedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 	if server.status != Status.STARTED {
@@ -154,7 +154,7 @@ func (server *SystemgeServer) CheckRejectedConnections() uint64 {
 
 	return server.listener.CheckRejectedConnectionAttempts()
 }
-func (server *SystemgeServer) GetRejectedConnections() uint64 {
+func (server *SystemgeServer) GetRejectedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 	if server.status != Status.STARTED {
@@ -164,7 +164,7 @@ func (server *SystemgeServer) GetRejectedConnections() uint64 {
 	return server.listener.GetRejectedConnectionAttempts()
 }
 
-func (server *SystemgeServer) CheckAcceptedConnections() uint64 {
+func (server *SystemgeServer) CheckAcceptedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 	if server.status != Status.STARTED {
@@ -173,7 +173,7 @@ func (server *SystemgeServer) CheckAcceptedConnections() uint64 {
 
 	return server.listener.CheckAcceptedConnectionAttempts()
 }
-func (server *SystemgeServer) GetAcceptedConnections() uint64 {
+func (server *SystemgeServer) GetAcceptedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 	if server.status != Status.STARTED {
