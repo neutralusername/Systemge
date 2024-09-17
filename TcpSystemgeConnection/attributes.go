@@ -29,7 +29,7 @@ func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) erro
 func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnError bool) error {
 	connection.attributeMutex.Lock()
 	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; !!ok {
+	if _, ok := connection.attributes[attribute]; ok {
 		return Error.New("Attribute already exists", nil)
 	}
 	connection.attributes[attribute] = &attribue{
