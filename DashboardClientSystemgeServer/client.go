@@ -152,24 +152,33 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					if err != nil {
 						return "", Error.New("Failed to get next message", err)
 					}
+					handleNextMessageResult := DashboardHelpers.HandleNextMessageResult{
+						Message: message,
+					}
 					if message.GetSyncToken() == "" {
 						err := messageHandler.HandleAsyncMessage(systemgeConnection, message)
 						if err != nil {
-							return "", Error.New("Failed to handle async message with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\"", err)
+							handleNextMessageResult.Error = err.Error()
+							handleNextMessageResult.HandlingSucceeded = false
+						} else {
+							handleNextMessageResult.HandlingSucceeded = true
 						}
-						return "Handled async message with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\"", nil
-					}
-					if responsePayload, err := messageHandler.HandleSyncRequest(systemgeConnection, message); err != nil {
-						if err := systemgeConnection.SyncResponse(message, false, err.Error()); err != nil {
-							return "", Error.New("Failed to handle sync request with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\" and failed to send failure response \""+err.Error()+"\"", err)
-						}
-						return "Failed to handle sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent failure response \"" + err.Error() + "\"", nil
 					} else {
-						if err := systemgeConnection.SyncResponse(message, true, responsePayload); err != nil {
-							return "", Error.New("Handled sync request with topic \""+message.GetTopic()+"\" and payload \""+message.GetPayload()+"\" and failed to send success response \""+responsePayload+"\"", err)
+						if responsePayload, err := messageHandler.HandleSyncRequest(systemgeConnection, message); err != nil {
+							handleNextMessageResult.Error = err.Error()
+							handleNextMessageResult.HandlingSucceeded = false
+							if err := systemgeConnection.SyncResponse(message, false, err.Error()); err != nil {
+								handleNextMessageResult.Error = Error.New(handleNextMessageResult.Error, err).Error()
+							}
+						} else {
+							handleNextMessageResult.HandlingSucceeded = true
+							handleNextMessageResult.ResultPayload = responsePayload
+							if err := systemgeConnection.SyncResponse(message, true, responsePayload); err != nil {
+								handleNextMessageResult.Error = err.Error()
+							}
 						}
-						return "Handled sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent success response \"" + responsePayload + "\"", nil
 					}
+					return handleNextMessageResult.Marshal(), nil
 				},
 			},
 			nil, nil,
