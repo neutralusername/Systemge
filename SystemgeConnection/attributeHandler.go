@@ -26,11 +26,11 @@ type AttributeHandler interface {
 	GetUnknownAttributesReceived() uint64
 }
 
-type Attribute struct {
+/* type Attribute struct {
 	abortOnError  bool
 	attributeCall func(SystemgeConnection, *Message.Message) error
 }
-
+*/
 /*
 func (connection SystemgeConnection) ExecuteAttribute(attribute string) error {
 	connection.attributeMutex.Lock()

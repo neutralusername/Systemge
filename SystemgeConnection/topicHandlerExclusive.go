@@ -10,22 +10,15 @@ import (
 )
 
 type TopicHandlerExclusive struct {
-	asyncMessageHandlers map[string]*asyncMessageHandler
-	syncMessageHandlers  map[string]*syncMessageHandler
-
-	syncMutex  sync.Mutex
-	asyncMutex sync.Mutex
+	messageHandlerFuncs     map[string]MessageHandlerFunc
+	unknownTopicHandlerFunc MessageHandlerFunc
+	mutex                   sync.Mutex
 
 	messageQueue chan *queueStruct
-
-	unknownAsyncTopicHandler *asyncMessageHandler
-	unknownSyncTopicHandler  *syncMessageHandler
-
-	queueSize int
+	queueSize    int
 
 	// metrics
-	asyncMessagesHandled  atomic.Uint64
-	syncRequestsHandled   atomic.Uint64
+	messagesHandled       atomic.Uint64
 	unknownTopicsReceived atomic.Uint64
 }
 

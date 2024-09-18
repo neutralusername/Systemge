@@ -10,10 +10,9 @@ import (
 )
 
 type TopicHandlerConcurrently struct {
-	messageHandlerFuncs map[string]MessageHandlerFunc
-	mutex               sync.Mutex
-
+	messageHandlerFuncs     map[string]MessageHandlerFunc
 	unknownTopicHandlerFunc MessageHandlerFunc
+	mutex                   sync.Mutex
 
 	// metrics
 	messagesHandled       atomic.Uint64
