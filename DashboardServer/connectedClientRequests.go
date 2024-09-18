@@ -102,10 +102,6 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 	return nil
 }
 
-func (server *Server) handleClientCloseRequest(connectedClient *connectedClient, request *Message.Message) error {
-
-}
-
 func (server *Server) handleClientCloseChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 
 }

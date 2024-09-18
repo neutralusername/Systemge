@@ -142,8 +142,8 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
-	case DashboardHelpers.TOPIC_CLOSE:
-		return server.handleClientCloseRequest(connectedClient, request)
+	case DashboardHelpers.TOPIC_STOP:
+		return server.handleClientStopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
 		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
