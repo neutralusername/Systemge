@@ -77,7 +77,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 				},
 
 				DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					messageWithRecipients, err := DashboardHelpers.UnmarshalMessageWithRecipients([]byte(message.GetPayload()))
+					messageWithRecipients, err := DashboardHelpers.UnmarshalMultiMessage([]byte(message.GetPayload()))
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
 					}
@@ -88,7 +88,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return string(Helpers.JsonMarshal(responses)), nil
 				},
 				DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					messageWithRecipients, err := DashboardHelpers.UnmarshalMessageWithRecipients([]byte(message.GetPayload()))
+					messageWithRecipients, err := DashboardHelpers.UnmarshalMultiMessage([]byte(message.GetPayload()))
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
 					}
