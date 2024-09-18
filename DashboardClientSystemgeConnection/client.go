@@ -55,7 +55,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					}
 					return commands.Execute(command.Command, command.Args)
 				},
-				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_CLOSE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.Close()
 					if err != nil {
 						return "", err

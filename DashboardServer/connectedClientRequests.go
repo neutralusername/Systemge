@@ -63,10 +63,10 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	return nil
 }
 
-func (server *Server) handleClientStopRequest(connectedClient *connectedClient) error {
-	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP, "")
+func (server *Server) handleClientCloseRequest(connectedClient *connectedClient) error {
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_CLOSE, "")
 	if err != nil {
-		return Error.New("Failed to stop client", err)
+		return Error.New("Failed to close client", err)
 	}
 	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
 	if err != nil {

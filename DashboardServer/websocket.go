@@ -82,7 +82,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if !ok {
 			return Error.New("Client not found", nil)
 		}
-		if err := server.handleClientStopRequest(connectedClient); err != nil {
+		if err := server.handleClientCloseRequest(connectedClient); err != nil {
 			return Error.New("Failed to stop client", err)
 		}
 		websocketClient.Send(Message.NewAsync(
@@ -130,7 +130,7 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 	case DashboardHelpers.TOPIC_START:
 		return server.handleClientStartRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
-		return server.handleClientStopRequest(connectedClient)
+		return server.handleClientCloseRequest(connectedClient)
 	default:
 		return Error.New("Unknown topic", nil)
 	}
@@ -140,8 +140,8 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
-	case DashboardHelpers.TOPIC_STOP:
-		return server.handleClientStopRequest(connectedClient)
+	case DashboardHelpers.TOPIC_CLOSE:
+		return server.handleClientCloseRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
 		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:

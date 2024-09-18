@@ -12,6 +12,7 @@ const (
 	TOPIC_GET_METRICS                       = "get_metrics"
 	TOPIC_START                             = "start"
 	TOPIC_STOP                              = "stop"
+	TOPIC_CLOSE                             = "close"
 	TOPIC_COMMAND                           = "command"
 	TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY = "start_processingloop_sequentially"
 	TOPIC_START_PROCESSINGLOOP_CONCURRENTLY = "start_processingloop_concurrently"

@@ -61,6 +61,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return commands.Execute(command.Command, command.Args)
 				},
+
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeServer.Stop()
 					if err != nil {
@@ -75,6 +76,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return Helpers.IntToString(Status.STARTED), nil
 				},
+
 				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					// think of way to message individual connections/provide connection names
 					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
@@ -100,6 +102,17 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return "", nil
 				},
 
+				DashboardHelpers.TOPIC_CLOSE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
+					if systemgeConnection == nil {
+						return "", Error.New("Connection not found", nil)
+					}
+					err := systemgeConnection.Close()
+					if err != nil {
+						return "", err
+					}
+					return Helpers.IntToString(Status.STOPPED), nil
+				},
 				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
