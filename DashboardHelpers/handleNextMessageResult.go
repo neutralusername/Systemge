@@ -10,15 +10,9 @@ import (
 type HandleNextMessageResult struct {
 	Message               *Message.Message `json:"message"`
 	HandlingSucceeded     bool             `json:"handlingSucceeded"`
-	ResultString          string           `json:"resultString"` // "" if async
+	ResultPayload         string           `json:"resultPayload"` // "" if async
+	Error                 string           `json:"error"`         // "" if no error
 	UnhandledMessageCount uint32           `json:"unhandledMessageCount"`
-}
-
-func NewHandleNextMessageResult(resultString string, unhandledMessageCount uint32) *HandleNextMessageResult {
-	return &HandleNextMessageResult{
-		ResultString:          resultString,
-		UnhandledMessageCount: unhandledMessageCount,
-	}
 }
 
 func (handleNextMessageResult *HandleNextMessageResult) Marshal() string {
