@@ -76,7 +76,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return Helpers.IntToString(Status.STARTED), nil
 				},
 
-				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					messageWithRecipients, err := DashboardHelpers.UnmarshalMessageWithRecipients([]byte(message.GetPayload()))
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
@@ -87,7 +87,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return string(Helpers.JsonMarshal(responses)), nil
 				},
-				DashboardHelpers.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					messageWithRecipients, err := DashboardHelpers.UnmarshalMessageWithRecipients([]byte(message.GetPayload()))
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
@@ -99,7 +99,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return "", nil
 				},
 
-				DashboardHelpers.TOPIC_CLOSE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_CLOSE_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
 						return "", Error.New("Connection not found", nil)
@@ -110,7 +110,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return Helpers.IntToString(Status.STOPPED), nil
 				},
-				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
 						return "", Error.New("Connection not found", nil)
@@ -121,7 +121,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
 						return "", Error.New("Connection not found", nil)
@@ -132,7 +132,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
 						return "", Error.New("Connection not found", nil)
@@ -143,7 +143,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
 						return "", Error.New("Connection not found", nil)

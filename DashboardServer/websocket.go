@@ -169,20 +169,22 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 		return server.handleClientStartRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(connectedClient)
-	case DashboardHelpers.TOPIC_CLOSE:
-		return server.handleClientCloseRequest(connectedClient, request)
-	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
-		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
-	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
-		return server.handleClientStartProcessingLoopConcurrentlyRequest(connectedClient)
-	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP:
-		return server.handleClientStopProcessingLoopRequest(connectedClient)
-	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE:
-		return server.handleClientProcessNextMessageRequest(connectedClient)
-	case DashboardHelpers.TOPIC_SYNC_REQUEST:
-		return server.handleClientSyncRequest(websocketClient, connectedClient, request)
-	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:
-		return server.handleClientAsyncMessageRequest(websocketClient, connectedClient, request)
+	case DashboardHelpers.TOPIC_CLOSE_CHILD:
+		return server.handleClientCloseChildRequest(connectedClient, request)
+	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY_CHILD:
+		return server.handleClientStartProcessingLoopSequentiallyChildRequest(connectedClient)
+	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY_CHILD:
+		return server.handleClientStartProcessingLoopConcurrentlyChildRequest(connectedClient)
+	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP_CHILD:
+		return server.handleClientStopProcessingLoopChildRequest(connectedClient)
+	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE_CHILD:
+		return server.handleClientProcessNextMessageChildRequest(connectedClient)
+	case DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST:
+		return server.handleClientMultiSyncRequest(websocketClient, connectedClient, request)
+	case DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE:
+		return server.handleClientMultiAsyncMessageRequest(websocketClient, connectedClient, request)
+	default:
+		return Error.New("Unknown topic", nil)
 	}
 }
 
