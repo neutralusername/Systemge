@@ -3,6 +3,7 @@ package DashboardHelpers
 import (
 	"encoding/json"
 
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 )
 
@@ -18,8 +19,8 @@ func NewMessageWithRecipients(message *Message.Message, recipients []string) *Me
 	}
 }
 
-func (m *MessageWithRecipients) Marshal() ([]byte, error) {
-	return json.Marshal(m)
+func (m *MessageWithRecipients) Marshal() string {
+	return Helpers.JsonMarshal(m)
 }
 
 func UnmarshalMessageWithRecipients(bytes []byte) (*MessageWithRecipients, error) {
