@@ -9,7 +9,7 @@ import (
 
 type Attribue struct {
 	abortOnError  bool
-	attributeCall func(SystemgeConnection.SystemgeConnection) error
+	attributeCall func(SystemgeConnection.SystemgeConnection, *Message.Message) error
 }
 
 func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) error {
