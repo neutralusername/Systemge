@@ -14,8 +14,8 @@ implement manual metrics update in some form (especially in regards to ranges of
 implement different types of data visualizations
 create some sort of menu to view selected metrics-types
 
-extend syncToken functionality so that you register/manage syncTokens/responses more independetly of sync requests 
-sync request/responses will stay virtually unchanged (the connection.SyncResponse() method will change slightly to work based on token instead based on message)
+extend syncToken functionality so that you can register/manage syncTokens/responses more independetly of sync requests 
+sync request/responses api will stay virtually unchanged (the connection.SyncResponse() method will change slightly to work based on token instead based on message)
 in addition it will be possible to register syncTokens on receiver side, and gather manual sync responses (connection.SyncResponse())
 with the effect, that one connection can send multiple responses for one sync token (while leaving everything else as easy to use as it is now)
 
