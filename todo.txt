@@ -15,7 +15,8 @@ implement different types of data visualizations
 create some sort of menu to view selected metrics-types
 
 extend syncToken functionality so that you register/manage syncTokens/responses more independetly of sync requests 
-(will leave sync response and request api unchanged and extends it)
+sync request/responses will stay virtually unchanged
+in addition it will be possible to register syncTokens on receiver side, and gather manual sync responses (connection.SyncResponse())
 
 make websocketServer stop-operation cleaner
 
