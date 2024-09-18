@@ -14,6 +14,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeServer"
 )
 
+// frontend not implemented nor is this testet
 func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
 	if systemgeServer == nil {
 		panic("customService is nil")
