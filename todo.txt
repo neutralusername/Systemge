@@ -14,7 +14,8 @@ implement manual metrics update in some form (especially in regards to ranges of
 implement different types of data visualizations
 create some sort of menu to view selected metrics-types
 
-extend syncToken functionality so that you register/manage syncTokens/responses more independetly of sync requests
+extend syncToken functionality so that you register/manage syncTokens/responses more independetly of sync requests 
+(will leave sync response and request api unchanged and extends it)
 
 make websocketServer stop-operation cleaner
 
