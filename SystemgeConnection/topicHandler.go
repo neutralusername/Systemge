@@ -8,7 +8,7 @@ import (
 // handles a message based on its topic
 type TopicHandler interface {
 	HandleMessage(connection SystemgeConnection, message *Message.Message) error
-	AddMessageHandlerFunc(topic string, handler MessageHandlerFunc)
+	AddMessageHandlerFunc(topic string, handler MessageHandlerFunc, lifetimeMs uint64)
 	RemoveMessageHandlerFunc(topic string)
 	GetMessageHandlerFunc(topic string) MessageHandlerFunc
 	GetTopics() []string
