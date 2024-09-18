@@ -17,7 +17,7 @@ create some sort of menu to view selected metrics-types
 rework/replace sync messages with a more general approach
 -> replace "syncTokens" with "attribute"
 -> per systemgeConnection, per attribute, a list of message handlers can be defined that are executed in order
--> api for sync messages will stay more or less unchanged
+-> api for sync messages will stay more or less unchanged for sending. responses will be a bit different since there will only be one type of message handlers
 
 make websocketServer stop-operation cleaner
 
