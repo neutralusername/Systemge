@@ -15,7 +15,7 @@ import (
 type Server struct {
 	config          *Config.SingleRequestServer
 	commandHandlers Commands.Handlers
-	messageHandler  SystemgeConnection.TopicHandler
+	messageHandler  SystemgeConnection.MessageHandler
 	systemgeServer  *SystemgeServer.SystemgeServer
 
 	// metrics
@@ -31,7 +31,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.TopicHandler) *Server {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -89,28 +89,7 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
 		connection.Close()
 		return nil
-	case "async":
-		if server.messageHandler == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
-			server.failedAsyncMessages.Add(1)
-			return Error.New("No message handler available on this server", nil)
-		}
-		asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
-		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
-			server.failedAsyncMessages.Add(1)
-			return err
-		}
-		connection.AsyncMessage(Message.TOPIC_SUCCESS, "")
-		err = server.messageHandler.HandleAsyncMessage(connection, asyncMessage)
-		if err != nil {
-			server.failedAsyncMessages.Add(1)
-			return Error.New("Message handler failed", err)
-		}
-		server.succeededAsyncMessages.Add(1)
-		connection.Close()
-		return nil
-	case "sync":
+	case "message":
 		if server.messageHandler == nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
 			server.failedSyncMessages.Add(1)
@@ -150,3 +129,27 @@ func (server *Server) Stop() error {
 func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
 }
+
+/*
+	case "async":
+	if server.messageHandler == nil {
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
+		server.failedAsyncMessages.Add(1)
+		return Error.New("No message handler available on this server", nil)
+	}
+	asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
+	if err != nil {
+		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
+		server.failedAsyncMessages.Add(1)
+		return err
+	}
+	connection.AsyncMessage(Message.TOPIC_SUCCESS, "")
+	err = server.messageHandler.HandleAsyncMessage(connection, asyncMessage)
+	if err != nil {
+		server.failedAsyncMessages.Add(1)
+		return Error.New("Message handler failed", err)
+	}
+	server.succeededAsyncMessages.Add(1)
+	connection.Close()
+	return nil
+*/

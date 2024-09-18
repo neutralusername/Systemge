@@ -8,7 +8,7 @@ import (
 // handles attributes of message in provided order
 type AttributeHandler interface {
 	HandleMessage(connection SystemgeConnection, message *Message.Message) error
-	AddMessageHandlerFunc(attribute string, handler MessageHandlerFunc, abortOnError bool)
+	AddMessageHandlerFunc(attribute string, handler MessageHandlerFunc, abortOnError bool, lifetimeMs uint64)
 	RemoveMessageHandlerFunc(attribute string)
 	GetMessageHandlerFunc(attribute string) MessageHandlerFunc
 	GetAttributes() []string
