@@ -103,7 +103,34 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 }
 
 func (server *Server) handleClientCloseChildRequest(connectedClient *connectedClient, request *Message.Message) error {
-
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_CLOSE_CHILD, request.GetPayload())
+	if err != nil {
+		return Error.New("Failed to close child", err)
+	}
+	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
+	if systemgeClientChildren == nil {
+		// should never happen
+		return Error.New("Failed to get systemge connection children", nil)
+	}
+	delete(systemgeClientChildren, request.GetPayload())
+	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
+	if err != nil {
+		// should never happen
+		return Error.New("Failed to update systemge connection children", err)
+	}
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
+			DashboardHelpers.NewPageUpdate(
+				map[string]interface{}{
+					DashboardHelpers.CLIENT_FIELD_SYSTEMGE_CONNECTION_CHILDREN: systemgeClientChildren,
+				},
+				connectedClient.connection.GetName(),
+			).Marshal(),
+		),
+	)
+	return nil
 }
 
 func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
