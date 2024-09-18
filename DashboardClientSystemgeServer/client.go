@@ -77,24 +77,22 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 				},
 
 				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					// think of way to message individual connections/provide connection names
-					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
+					messageWithRecipients, err := DashboardHelpers.UnmarshalMessageWithRecipients([]byte(message.GetPayload()))
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
 					}
-					responses, err := systemgeServer.SyncRequestBlocking(message.GetTopic(), message.GetPayload())
+					responses, err := systemgeServer.SyncRequestBlocking(messageWithRecipients.Message.GetTopic(), messageWithRecipients.Message.GetPayload(), messageWithRecipients.Recipients...)
 					if err != nil {
 						return "", Error.New("Failed to complete sync request", err)
 					}
 					return string(Helpers.JsonMarshal(responses)), nil
 				},
 				DashboardHelpers.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					// think of way to message individual connections/provide connection names
-					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
+					messageWithRecipients, err := DashboardHelpers.UnmarshalMessageWithRecipients([]byte(message.GetPayload()))
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
 					}
-					err = systemgeServer.AsyncMessage(message.GetTopic(), message.GetPayload())
+					err = systemgeServer.AsyncMessage(messageWithRecipients.Message.GetTopic(), messageWithRecipients.Message.GetPayload(), messageWithRecipients.Recipients...)
 					if err != nil {
 						return "", Error.New("Failed to handle async message", err)
 					}
