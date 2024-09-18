@@ -38,6 +38,8 @@ func (page *Page) Marshal() ([]byte, error) {
 		data = string(page.Data.(*CustomServiceClient).Marshal())
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
 		data = string(page.Data.(*SystemgeConnectionClient).Marshal())
+	case CLIENT_TYPE_SYSTEMGESERVER:
+		data = string(page.Data.(*SystemgeServerClient).Marshal())
 	default:
 		return nil, Error.New("Unknown client type", nil)
 	}
@@ -74,6 +76,11 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 		}
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
 		client, err = UnmarshalSystemgeConnectionClient([]byte(page.Data.(string)))
+		if err != nil {
+			return nil, err
+		}
+	case CLIENT_TYPE_SYSTEMGESERVER:
+		client, err = UnmarshalSystemgeServerClient([]byte(page.Data.(string)))
 		if err != nil {
 			return nil, err
 		}
