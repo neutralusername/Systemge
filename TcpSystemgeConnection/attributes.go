@@ -3,12 +3,13 @@ package TcpSystemgeConnection
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Attribue struct {
 	abortOnError  bool
-	attributeCall func() error
+	attributeCall func(SystemgeConnection.SystemgeConnection) error
 }
 
 func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) error {
