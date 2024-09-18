@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Message"
 )
 
 type HandleNextMessageResult struct {
-	ResultString          string `json:"resultString"`
-	UnhandledMessageCount uint32 `json:"unhandledMessageCount"`
+	Message               *Message.Message `json:"message"`
+	HandlingSucceeded     bool             `json:"handlingSucceeded"`
+	ResultString          string           `json:"resultString"` // "" if async
+	UnhandledMessageCount uint32           `json:"unhandledMessageCount"`
 }
 
 func NewHandleNextMessageResult(resultString string, unhandledMessageCount uint32) *HandleNextMessageResult {
