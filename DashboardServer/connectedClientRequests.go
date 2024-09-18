@@ -106,6 +106,34 @@ func (server *Server) handleClientCloseRequest(connectedClient *connectedClient,
 
 }
 
+func (server *Server) handleClientCloseChildRequest(connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientStartProcessingLoopConcurrentlyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientProcessNextMessageChildRequest(connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientMultiSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
+func (server *Server) handleClientMultiAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+
+}
+
 func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY, "")
 	if err != nil {
