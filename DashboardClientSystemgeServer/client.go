@@ -130,14 +130,11 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 					if systemgeConnection == nil {
 						return "", Error.New("Connection not found", nil)
 					}
-					return Helpers.BoolToString(systemgeConnection.IsMessageHandlingLoopStarted()), nil
-				},
-				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := systemgeConnection.GetNextMessage()
 					if err != nil {
 						return "", Error.New("Failed to get next message", err)
@@ -160,9 +157,6 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 						}
 						return "Handled sync request with topic \"" + message.GetTopic() + "\" and payload \"" + message.GetPayload() + "\" and sent success response \"" + responsePayload + "\"", nil
 					}
-				},
-				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.Uint32ToString(systemgeConnection.UnprocessedMessagesCount()), nil
 				},
 			},
 			nil, nil,
