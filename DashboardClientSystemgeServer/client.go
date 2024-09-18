@@ -68,6 +68,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return Helpers.IntToString(Status.STARTED), nil
 				},
 				DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					// think of way to message individual connections/provide connection names
 					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
@@ -79,6 +80,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return string(Helpers.JsonMarshal(responses)), nil
 				},
 				DashboardHelpers.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					// think of way to message individual connections/provide connection names
 					message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 					if err != nil {
 						return "", Error.New("Failed to deserialize message", err)
