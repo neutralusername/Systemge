@@ -54,6 +54,22 @@ func (server *Server) updateRoutine() {
 						server.errorLogger.Log(Error.New("Failed to update is processing loop running for \""+connectedClient.connection.GetName()+"\" in updateRoutine", err).Error())
 					}
 				}
+			case DashboardHelpers.CLIENT_TYPE_SYSTEMGESERVER:
+				if err := server.updateConnectedClientStatus(connectedClient); err != nil {
+					if server.errorLogger != nil {
+						server.errorLogger.Log(Error.New("Failed to update status for \""+connectedClient.connection.GetName()+"\" in updateRoutine", err).Error())
+					}
+				}
+				if err := server.updateConnectedClientMetrics(connectedClient); err != nil {
+					if server.errorLogger != nil {
+						server.errorLogger.Log(Error.New("Failed to update metrics for \""+connectedClient.connection.GetName()+"\" in updateRoutine", err).Error())
+					}
+				}
+				if err := server.updateConnectedClientChildren(connectedClient); err != nil {
+					if server.errorLogger != nil {
+						server.errorLogger.Log(Error.New("Failed to update children for \""+connectedClient.connection.GetName()+"\" in updateRoutine", err).Error())
+					}
+				}
 			}
 		}
 		if err := server.updateDashboardClientMetrics(); err != nil {
@@ -192,6 +208,10 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 		),
 	)
 	return nil
+}
+
+func (server *Server) updateConnectedClientChildren(connectedClient *connectedClient) error {
+
 }
 
 func (server *Server) updateDashboardClientMetrics() error {

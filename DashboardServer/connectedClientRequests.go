@@ -63,10 +63,10 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	return nil
 }
 
-func (server *Server) handleClientCloseRequest(connectedClient *connectedClient) error {
-	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_CLOSE, "")
+func (server *Server) handleClientStopRequest(connectedClient *connectedClient) error {
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP, "")
 	if err != nil {
-		return Error.New("Failed to close client", err)
+		return Error.New("Failed to stop client", err)
 	}
 	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
 	if err != nil {
@@ -102,8 +102,12 @@ func (server *Server) handleClientCloseRequest(connectedClient *connectedClient)
 	return nil
 }
 
-func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connectedClient *connectedClient) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY, "")
+func (server *Server) handleClientCloseRequest(connectedClient *connectedClient, request *Message.Message, name string) error {
+
+}
+
+func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connectedClient *connectedClient, name string) error {
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY, name)
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
@@ -127,8 +131,8 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 	return nil
 }
 
-func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connectedClient *connectedClient) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY, "")
+func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connectedClient *connectedClient, name string) error {
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY, name)
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
@@ -152,8 +156,8 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connect
 	return nil
 }
 
-func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *connectedClient) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP, "")
+func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *connectedClient, name string) error {
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP, name)
 	if err != nil {
 		return Error.New("Failed to stop processing loop", err)
 	}
@@ -177,8 +181,8 @@ func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *con
 	return nil
 }
 
-func (server *Server) handleClientProcessNextMessageRequest(connectedClient *connectedClient) error {
-	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE, "")
+func (server *Server) handleClientProcessNextMessageRequest(connectedClient *connectedClient, name string) error {
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE, name)
 	if err != nil {
 		return Error.New("Failed to process next message", err)
 	}
