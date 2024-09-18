@@ -24,18 +24,19 @@ func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[
 		SystemgeConnection.NewTopicExclusiveMessageHandler(
 			nil,
 			SystemgeConnection.SyncMessageHandlers{
+				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					if getMetricsFunc == nil {
+						return "", nil
+					}
+					return Helpers.JsonMarshal(getMetricsFunc()), nil
+				},
+
 				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
 					if err != nil {
 						return "", err
 					}
 					return commands.Execute(command.Command, command.Args)
-				},
-				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					if getMetricsFunc == nil {
-						return "", nil
-					}
-					return Helpers.JsonMarshal(getMetricsFunc()), nil
 				},
 			},
 			nil, nil,

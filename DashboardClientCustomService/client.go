@@ -65,6 +65,14 @@ func New(name string, config *Config.DashboardClient, customService customServic
 				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.JsonMarshal(customService.GetMetrics()), nil
 				},
+
+				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
+					if err != nil {
+						return "", err
+					}
+					return commands.Execute(command.Command, command.Args)
+				},
 				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := customService.Start()
 					if err != nil {
@@ -78,13 +86,6 @@ func New(name string, config *Config.DashboardClient, customService customServic
 						return "", err
 					}
 					return Helpers.IntToString(customService.GetStatus()), nil
-				},
-				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
-					if err != nil {
-						return "", err
-					}
-					return commands.Execute(command.Command, command.Args)
 				},
 			},
 			nil, nil,

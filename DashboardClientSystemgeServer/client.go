@@ -35,13 +35,6 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 		SystemgeConnection.NewTopicExclusiveMessageHandler(
 			nil,
 			SystemgeConnection.SyncMessageHandlers{
-				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
-					if err != nil {
-						return "", err
-					}
-					return commands.Execute(command.Command, command.Args)
-				},
 				DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.IntToString(systemgeServer.GetStatus()), nil
 				},
@@ -52,6 +45,21 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					metricsTypes.Merge(systemgeServer.GetMetrics())
 					return Helpers.JsonMarshal(metricsTypes), nil
+				},
+				DashboardHelpers.TOPIC_GET_CONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
+					for _, systemgeConnection := range systemgeServer.GetConnections() {
+						systemgeConnectionChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
+					}
+					return Helpers.JsonMarshal(systemgeConnectionChildren), nil
+				},
+
+				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
+					if err != nil {
+						return "", err
+					}
+					return commands.Execute(command.Command, command.Args)
 				},
 				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeServer.Stop()
@@ -90,13 +98,6 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 						return "", Error.New("Failed to handle async message", err)
 					}
 					return "", nil
-				},
-				DashboardHelpers.TOPIC_GET_CONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
-					for _, systemgeConnection := range systemgeServer.GetConnections() {
-						systemgeConnectionChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
-					}
-					return Helpers.JsonMarshal(systemgeConnectionChildren), nil
 				},
 
 				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
