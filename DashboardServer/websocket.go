@@ -111,6 +111,12 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 			"success",
 		).Serialize())
 		return nil
+	case DashboardHelpers.TOPIC_SUDOKU:
+		err := server.Stop()
+		if err != nil {
+			return Error.New("Failed to stop server", err)
+		}
+		return nil
 	default:
 		return Error.New("Unknown topic", nil)
 	}
@@ -120,6 +126,8 @@ func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServe
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
+	case DashboardHelpers.TOPIC_SUDOKU:
+		return connectedClient.connection.Close()
 	default:
 		return Error.New("Unknown topic", nil)
 	}
@@ -133,6 +141,8 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 		return server.handleClientStartRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(connectedClient)
+	case DashboardHelpers.TOPIC_SUDOKU:
+		return connectedClient.connection.Close()
 	default:
 		return Error.New("Unknown topic", nil)
 	}
@@ -156,6 +166,8 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 		return server.handleClientSyncRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:
 		return server.handleClientAsyncMessageRequest(websocketClient, connectedClient, request)
+	case DashboardHelpers.TOPIC_SUDOKU:
+		return connectedClient.connection.Close()
 	default:
 		return Error.New("Unknown topic", nil)
 	}
@@ -183,6 +195,8 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 		return server.handleClientMultiSyncRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE:
 		return server.handleClientMultiAsyncMessageRequest(websocketClient, connectedClient, request)
+	case DashboardHelpers.TOPIC_SUDOKU:
+		return connectedClient.connection.Close()
 	default:
 		return Error.New("Unknown topic", nil)
 	}

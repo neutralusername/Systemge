@@ -31,4 +31,5 @@ const (
 	TOPIC_HEAP_USAGE                              = "heap_usage"
 	TOPIC_GOROUTINE_COUNT                         = "goroutine_count"
 	TOPIC_GET_SYSTEMGE_CONNECTION_CHILDREN        = "get_systemge_connection_children"
+	TOPIC_SUDOKU                                  = "sudoku"
 )
