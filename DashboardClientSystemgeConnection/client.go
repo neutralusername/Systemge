@@ -41,10 +41,10 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					metricsTypes.Merge(systemgeConnection.GetMetrics())
 					return Helpers.JsonMarshal(metricsTypes), nil
 				},
-				DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_IS_MESSAGE_HANDLING_LOOP_STARTED: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.BoolToString(systemgeConnection.IsMessageHandlingLoopStarted()), nil
 				},
-				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_UNHANDLED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.Uint32ToString(systemgeConnection.AvailableMessageCount()), nil
 				},
 
@@ -62,28 +62,28 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					}
 					return Helpers.IntToString(Status.STOPPED), nil
 				},
-				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.StartMessageHandlingLoop_Sequentially(messageHandler)
 					if err != nil {
 						return "", Error.New("Failed to start processing loop", err)
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.StartMessageHandlingLoop_Concurrently(messageHandler)
 					if err != nil {
 						return "", Error.New("Failed to start processing loop", err)
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					err := systemgeConnection.StopMessageHandlingLoop()
 					if err != nil {
 						return "", Error.New("Failed to stop processing loop", err)
 					}
 					return "", nil
 				},
-				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := systemgeConnection.GetNextMessage()
 					if err != nil {
 						return "", Error.New("Failed to get next message", err)

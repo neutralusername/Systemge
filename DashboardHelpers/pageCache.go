@@ -89,7 +89,7 @@ func (page *Page) SetCachedSystemgeConnectionChildren(systemgeConnections map[st
 func (page *Page) GetCachedIsProcessingLoopRunning() bool {
 	switch page.Type {
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		return page.Data.(*SystemgeConnectionClient).IsProcessingLoopRunning
+		return page.Data.(*SystemgeConnectionClient).IsMessageHandlingLoopStarted
 	default:
 		return false
 	}
@@ -97,7 +97,7 @@ func (page *Page) GetCachedIsProcessingLoopRunning() bool {
 func (page *Page) SetCachedIsProcessingLoopRunning(isProcessingLoopRunning bool) error {
 	switch page.Type {
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		page.Data.(*SystemgeConnectionClient).IsProcessingLoopRunning = isProcessingLoopRunning
+		page.Data.(*SystemgeConnectionClient).IsMessageHandlingLoopStarted = isProcessingLoopRunning
 	default:
 		return Error.New("Unknown client type", nil)
 	}
@@ -107,7 +107,7 @@ func (page *Page) SetCachedIsProcessingLoopRunning(isProcessingLoopRunning bool)
 func (page *Page) GetCachedUnprocessedMessageCount() uint32 {
 	switch page.Type {
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		return page.Data.(*SystemgeConnectionClient).UnprocessedMessageCount
+		return page.Data.(*SystemgeConnectionClient).UnhandledMessageCount
 	default:
 		return 0
 	}
@@ -115,7 +115,7 @@ func (page *Page) GetCachedUnprocessedMessageCount() uint32 {
 func (page *Page) SetCachedUnprocessedMessageCount(unprocessedMessageCount uint32) error {
 	switch page.Type {
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
-		page.Data.(*SystemgeConnectionClient).UnprocessedMessageCount = unprocessedMessageCount
+		page.Data.(*SystemgeConnectionClient).UnhandledMessageCount = unprocessedMessageCount
 	default:
 		return Error.New("Unknown client type", nil)
 	}

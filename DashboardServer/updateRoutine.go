@@ -167,7 +167,7 @@ func (server *Server) updateConnectedClientMetrics(connectedClient *connectedCli
 }
 
 func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClient *connectedClient) error {
-	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT, "")
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_UNHANDLED_MESSAGE_COUNT, "")
 	if err != nil {
 		return Error.New("Failed to execute unprocessed message count request", err)
 	}
@@ -181,7 +181,7 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -191,7 +191,7 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 }
 
 func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClient *connectedClient) error {
-	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING, "")
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_IS_MESSAGE_HANDLING_LOOP_STARTED, "")
 	if err != nil {
 		return Error.New("Failed to execute is processing loop running request", err)
 	}
@@ -202,7 +202,7 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: Helpers.StringToBool(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED: Helpers.StringToBool(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),

@@ -33,6 +33,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(err.Error())
 					}
+					connection.StopMessageHandlingLoop()
 					return
 				}
 				if err := connection.HandleMessage(message, messageHandler); err != nil {
@@ -70,6 +71,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(m
 					if connection.warningLogger != nil {
 						connection.warningLogger.Log(err.Error())
 					}
+					connection.StopMessageHandlingLoop()
 					return
 				}
 				go func() {

@@ -13,16 +13,16 @@ type SystemgeServerClient struct {
 }
 
 type SystemgeConnectionChild struct {
-	Name                    string `json:"name"`
-	IsProcessingLoopRunning bool   `json:"isProcessingLoopRunning"`
-	UnprocessedMessageCount uint32 `json:"unprocessedMessageCount"`
+	Name                         string `json:"name"`
+	IsMessageHandlingLoopStarted bool   `json:"isMessageHandlingLoopStarted"`
+	UnhandledMessageCount        uint32 `json:"unhandledMessageCount"`
 }
 
-func NewSystemgeConnectionChild(name string, isProcessingLoopRunning bool, unprocessedMessages uint32) *SystemgeConnectionChild {
+func NewSystemgeConnectionChild(name string, isMessageHandlingLoopStarted bool, unhandledMessageCount uint32) *SystemgeConnectionChild {
 	return &SystemgeConnectionChild{
-		Name:                    name,
-		IsProcessingLoopRunning: isProcessingLoopRunning,
-		UnprocessedMessageCount: unprocessedMessages,
+		Name:                         name,
+		IsMessageHandlingLoopStarted: isMessageHandlingLoopStarted,
+		UnhandledMessageCount:        unhandledMessageCount,
 	}
 }
 

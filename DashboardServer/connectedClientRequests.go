@@ -134,7 +134,7 @@ func (server *Server) handleClientCloseChildRequest(connectedClient *connectedCl
 }
 
 func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY_CHILD, request.GetPayload())
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY_CHILD, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
@@ -143,7 +143,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(co
 		// should never happen
 		return Error.New("Failed to get systemge connection children", nil)
 	}
-	systemgeClientChildren[request.GetPayload()].IsProcessingLoopRunning = true
+	systemgeClientChildren[request.GetPayload()].IsMessageHandlingLoopStarted = true
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
@@ -165,7 +165,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(co
 }
 
 func (server *Server) handleClientStartProcessingLoopConcurrentlyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY_CHILD, request.GetPayload())
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY_CHILD, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
@@ -174,7 +174,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyChildRequest(co
 		// should never happen
 		return Error.New("Failed to get systemge connection children", nil)
 	}
-	systemgeClientChildren[request.GetPayload()].IsProcessingLoopRunning = true
+	systemgeClientChildren[request.GetPayload()].IsMessageHandlingLoopStarted = true
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
@@ -196,7 +196,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyChildRequest(co
 }
 
 func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient *connectedClient, request *Message.Message) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP_CHILD, request.GetPayload())
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP_CHILD, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to stop processing loop", err)
 	}
@@ -205,7 +205,7 @@ func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient
 		// should never happen
 		return Error.New("Failed to get systemge connection children", nil)
 	}
-	systemgeClientChildren[request.GetPayload()].IsProcessingLoopRunning = false
+	systemgeClientChildren[request.GetPayload()].IsMessageHandlingLoopStarted = false
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
@@ -239,7 +239,7 @@ func (server *Server) handleClientMultiAsyncMessageRequest(websocketClient *Webs
 }
 
 func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connectedClient *connectedClient) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY, "")
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY, "")
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
@@ -254,7 +254,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: true,
+					DashboardHelpers.CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED: true,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -264,7 +264,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 }
 
 func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connectedClient *connectedClient) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY, "")
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY, "")
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
 	}
@@ -279,7 +279,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connect
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: true,
+					DashboardHelpers.CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED: true,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -289,7 +289,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connect
 }
 
 func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *connectedClient) error {
-	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP, "")
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP, "")
 	if err != nil {
 		return Error.New("Failed to stop processing loop", err)
 	}
@@ -304,7 +304,7 @@ func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *con
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_IS_PROCESSING_LOOP_RUNNING: false,
+					DashboardHelpers.CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED: false,
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),

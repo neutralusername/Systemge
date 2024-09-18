@@ -154,13 +154,13 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(connectedClient)
-	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY:
+	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY:
 		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
-	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY:
+	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY:
 		return server.handleClientStartProcessingLoopConcurrentlyRequest(connectedClient)
-	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP:
+	case DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP:
 		return server.handleClientStopProcessingLoopRequest(connectedClient)
-	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE:
+	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE:
 		return server.handleClientProcessNextMessageRequest(connectedClient)
 	case DashboardHelpers.TOPIC_SYNC_REQUEST:
 		return server.handleClientSyncRequest(websocketClient, connectedClient, request)
@@ -183,13 +183,13 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 		return server.handleClientStopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_CLOSE_CHILD:
 		return server.handleClientCloseChildRequest(connectedClient, request)
-	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY_CHILD:
+	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY_CHILD:
 		return server.handleClientStartProcessingLoopSequentiallyChildRequest(connectedClient, request)
-	case DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY_CHILD:
+	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY_CHILD:
 		return server.handleClientStartProcessingLoopConcurrentlyChildRequest(connectedClient, request)
-	case DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP_CHILD:
+	case DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP_CHILD:
 		return server.handleClientStopProcessingLoopChildRequest(connectedClient, request)
-	case DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE_CHILD:
+	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE_CHILD:
 		return server.handleClientProcessNextMessageChildRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST:
 		return server.handleClientMultiSyncRequest(websocketClient, connectedClient, request)
