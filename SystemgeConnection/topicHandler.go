@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
+// handles a message based on its topic
 type TopicHandler interface {
 	HandleMessage(connection SystemgeConnection, message *Message.Message) error
 	AddMessageHandlerFunc(topic string, handler MessageHandlerFunc)

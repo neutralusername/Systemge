@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
+// handles attributes of message in provided order
 type AttributeHandler interface {
 	HandleMessage(connection SystemgeConnection, message *Message.Message) error
 	AddMessageHandlerFunc(attribute string, handler MessageHandlerFunc, abortOnError bool)
