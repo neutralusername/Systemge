@@ -226,7 +226,7 @@ func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient
 	return nil
 }
 
-func (server *Server) handleClientProcessNextMessageChildRequest(connectedClient *connectedClient, request *Message.Message) error {
+func (server *Server) handleClientHandleNextMessageChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 
 }
 
@@ -263,7 +263,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 	return nil
 }
 
-func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connectedClient *connectedClient) error {
+func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY, "")
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
@@ -288,7 +288,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connect
 	return nil
 }
 
-func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *connectedClient) error {
+func (server *Server) handleClientStopProcessingLoopRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP, "")
 	if err != nil {
 		return Error.New("Failed to stop processing loop", err)
@@ -313,12 +313,17 @@ func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *con
 	return nil
 }
 
-func (server *Server) handleClientProcessNextMessageRequest(connectedClient *connectedClient) error {
-	/* resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE, "")
+func (server *Server) handleClientHandleNextMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE, "")
 	if err != nil {
 		return Error.New("Failed to process next message", err)
 	}
-	err = connectedClient.page.SetCachedUnprocessedMessageCount(Helpers.StringToUint32(resultPayload))
+	handleNextMessageResult, err := DashboardHelpers.UnmarshalHandleNextMessageResult([]byte(resultPayload))
+	if err != nil {
+		return Error.New("Failed to parse handle next message result", err)
+	}
+
+	err = connectedClient.page.SetCachedUnprocessedMessageCount(handleNextMessageResult.UnhandledMessageCount)
 	if err != nil {
 		// should never happen
 		return Error.New("Failed to update processing loop status", err)
@@ -329,13 +334,17 @@ func (server *Server) handleClientProcessNextMessageRequest(connectedClient *con
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_UNPROCESSED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
 		),
 	)
-	return nil */
+	websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+		resultPayload,
+	).Serialize())
+	return nil
 }
 
 func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
