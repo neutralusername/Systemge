@@ -227,15 +227,62 @@ func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient
 }
 
 func (server *Server) handleClientHandleNextMessageChildRequest(connectedClient *connectedClient, request *Message.Message) error {
-
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE_CHILD, request.GetPayload())
+	if err != nil {
+		return Error.New("Failed to process next message", err)
+	}
+	handleNextMessageResult, err := DashboardHelpers.UnmarshalHandleNextMessageResult([]byte(resultPayload))
+	if err != nil {
+		return Error.New("Failed to parse handle next message result", err)
+	}
+	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
+	if systemgeClientChildren == nil {
+		// should never happen
+		return Error.New("Failed to get systemge connection children", nil)
+	}
+	systemgeClientChildren[request.GetPayload()].UnhandledMessageCount = handleNextMessageResult.UnhandledMessageCount
+	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
+	if err != nil {
+		// should never happen
+		return Error.New("Failed to update systemge connection children", err)
+	}
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
+			DashboardHelpers.NewPageUpdate(
+				map[string]interface{}{
+					DashboardHelpers.CLIENT_FIELD_SYSTEMGE_CONNECTION_CHILDREN: systemgeClientChildren,
+				},
+				connectedClient.connection.GetName(),
+			).Marshal(),
+		),
+	)
+	return nil
 }
 
-func (server *Server) handleClientMultiSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
-
+func (server *Server) handleClientMultiSyncRequestRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST, request.GetPayload())
+	if err != nil {
+		return Error.New("Failed to send multi sync request", err)
+	}
+	websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+		resultPayload,
+	).Serialize())
+	return nil
 }
 
 func (server *Server) handleClientMultiAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
-
+	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE, request.GetPayload())
+	if err != nil {
+		return Error.New("Failed to send multi async message", err)
+	}
+	websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
+		"successfully sent multi async message",
+	).Serialize())
+	return nil
 }
 
 func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connectedClient *connectedClient) error {
@@ -347,7 +394,7 @@ func (server *Server) handleClientHandleNextMessageRequest(websocketClient *Webs
 	return nil
 }
 
-func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+func (server *Server) handleClientSyncRequestRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_SYNC_REQUEST, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to send sync request", err)

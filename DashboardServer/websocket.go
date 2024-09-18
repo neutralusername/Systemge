@@ -157,13 +157,13 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY:
 		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY:
-		return server.handleClientStartProcessingLoopConcurrentlyRequest(connectedClient)
+		return server.handleClientStartProcessingLoopConcurrentlyRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP:
 		return server.handleClientStopProcessingLoopRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE:
-		return server.handleClientHandleNextMessageRequest(connectedClient)
+		return server.handleClientHandleNextMessageRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_SYNC_REQUEST:
-		return server.handleClientSyncRequest(websocketClient, connectedClient, request)
+		return server.handleClientSyncRequestRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:
 		return server.handleClientAsyncMessageRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_SUDOKU:
@@ -192,7 +192,7 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE_CHILD:
 		return server.handleClientHandleNextMessageChildRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST:
-		return server.handleClientMultiSyncRequest(websocketClient, connectedClient, request)
+		return server.handleClientMultiSyncRequestRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE:
 		return server.handleClientMultiAsyncMessageRequest(websocketClient, connectedClient, request)
 	case DashboardHelpers.TOPIC_SUDOKU:
