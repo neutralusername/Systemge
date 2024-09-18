@@ -7,7 +7,7 @@ const (
 	TOPIC_UPDATE_PAGE_REPLACE                            = "updatePageReplace"
 	TOPIC_RESPONSE_MESSAGE                               = "responseMessage"
 	TOPIC_INTRODUCTION                                   = "get_introduction"
-	TOPIC_GET_STATUS                                     = "get_service_status"
+	TOPIC_GET_STATUS                                     = "get_status"
 	TOPIC_IS_MESSAGE_HANDLING_LOOP_STARTED               = "is_message_handling_loop_started"
 	TOPIC_GET_METRICS                                    = "get_metrics"
 	TOPIC_START                                          = "start"

@@ -27,11 +27,14 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 					connection.infoLogger.Log("Message handling loop stopped")
 				}
 				return
-			default:
-				message, err := connection.GetNextMessage()
-				if err != nil {
-					if connection.warningLogger != nil {
-						connection.warningLogger.Log(err.Error())
+			case message := <-connection.messageChannel:
+				if message == nil {
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Connection closed and no remaining messages")
+					}
+					connection.messageChannelSemaphore.ReleaseBlocking()
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
 					}
 					connection.StopMessageHandlingLoop()
 					return
@@ -65,11 +68,14 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(m
 					connection.infoLogger.Log("Message handling loop stopped")
 				}
 				return
-			default:
-				message, err := connection.GetNextMessage()
-				if err != nil {
-					if connection.warningLogger != nil {
-						connection.warningLogger.Log(err.Error())
+			case message := <-connection.messageChannel:
+				if message == nil {
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Connection closed and no remaining messages")
+					}
+					connection.messageChannelSemaphore.ReleaseBlocking()
+					if connection.infoLogger != nil {
+						connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
 					}
 					connection.StopMessageHandlingLoop()
 					return
@@ -141,7 +147,6 @@ func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, err
 	if connection.config.TcpReceiveTimeoutMs > 0 {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)
 	}
-
 	select {
 	case message := <-connection.messageChannel:
 		if message == nil {
