@@ -18,6 +18,7 @@ type SystemgeConnection interface {
 	StartMessageHandlingLoop(TopicHandler) error
 	IsMessageHandlingLoopStarted() bool
 	StopMessageHandlingLoop() error
+
 	HandleMessage(message *Message.Message, messageHandler TopicHandler) error
 
 	AsyncMessage(topic string, payload string) error

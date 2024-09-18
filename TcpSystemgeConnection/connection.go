@@ -30,16 +30,15 @@ type TcpSystemgeConnection struct {
 
 	messageReceiver *BufferedMessageReceiver
 
-	attributes     map[string]*Attribute
-	attributeMutex sync.Mutex
+	closeChannel           chan bool
+	receiveLoopStopChannel chan bool
 
-	closeChannel chan bool
+	messageMutex            sync.Mutex
+	messageChannel          chan *Message.Message
+	messageChannelSemaphore *Tools.Semaphore
 
-	messageHandlingLoopStopChannel chan<- bool
-	messageMutex                   sync.Mutex
-	messageChannel                 chan *Message.Message
-	messageChannelSemaphore        *Tools.Semaphore
-	receiveLoopStopChannel         chan bool
+	attributeHandlerStopChannel chan<- bool
+	topicHandlerStopChannel     chan<- bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -71,7 +70,6 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 		messageReceiver:         messageReceiver,
 		randomizer:              Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:            make(chan bool),
-		attributes:              make(map[string]*Attribute),
 		messageChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		messageChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
 		receiveLoopStopChannel:  make(chan bool),

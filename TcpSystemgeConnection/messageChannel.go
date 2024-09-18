@@ -12,11 +12,11 @@ import (
 func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler SystemgeConnection.TopicHandler) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.messageHandlingLoopStopChannel != nil {
+	if connection.topicHandlerStopChannel != nil {
 		return Error.New("Message handling loop already registered", nil)
 	}
 	stopChann := make(chan bool)
-	connection.messageHandlingLoopStopChannel = stopChann
+	connection.topicHandlerStopChannel = stopChann
 	go func() {
 		for {
 			select {
@@ -74,24 +74,24 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	return connection.messageHandlingLoopStopChannel != nil
+	return connection.topicHandlerStopChannel != nil
 }
 
 func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.messageHandlingLoopStopChannel == nil {
+	if connection.topicHandlerStopChannel == nil {
 		return Error.New("Message handling loop not registered", nil)
 	}
-	close(connection.messageHandlingLoopStopChannel)
-	connection.messageHandlingLoopStopChannel = nil
+	close(connection.topicHandlerStopChannel)
+	connection.topicHandlerStopChannel = nil
 	return nil
 }
 
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.messageHandlingLoopStopChannel != nil {
+	if connection.topicHandlerStopChannel != nil {
 		return nil, Error.New("Message handling loop is registered", nil)
 	}
 	var timeout <-chan time.Time
