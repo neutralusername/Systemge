@@ -9,14 +9,16 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler SystemgeConnection.TopicHandler) error {
+// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
+// errorChannel will send all errors that occur during message processing.
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(messageHandler SystemgeConnection.MessageHandler) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.topicHandlerStopChannel != nil {
+	if connection.messageHandlingLoopStopChannel != nil {
 		return Error.New("Message handling loop already registered", nil)
 	}
 	stopChann := make(chan bool)
-	connection.topicHandlerStopChannel = stopChann
+	connection.messageHandlingLoopStopChannel = stopChann
 	go func() {
 		for {
 			select {
@@ -44,8 +46,47 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 	return nil
 }
 
+// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
+// errorChannel will send all errors that occur during message processing.
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(messageHandler SystemgeConnection.MessageHandler) error {
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
+	if connection.messageHandlingLoopStopChannel != nil {
+		return Error.New("Message handling loop already registered", nil)
+	}
+	stopChannel := make(chan bool)
+	connection.messageHandlingLoopStopChannel = stopChannel
+	go func() {
+		for {
+			select {
+			case <-stopChannel:
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Message handling loop stopped")
+				}
+				return
+			default:
+				message, err := connection.GetNextMessage()
+				if err != nil {
+					if connection.warningLogger != nil {
+						connection.warningLogger.Log(err.Error())
+					}
+					return
+				}
+				go func() {
+					if err := connection.HandleMessage(message, messageHandler); err != nil {
+						if connection.errorLogger != nil {
+							connection.errorLogger.Log(err.Error())
+						}
+					}
+				}()
+			}
+		}
+	}()
+	return nil
+}
+
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
-func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.TopicHandler) error {
+func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
 		return Error.New("no message handler set", nil)
 	}
@@ -74,24 +115,24 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	return connection.topicHandlerStopChannel != nil
+	return connection.messageHandlingLoopStopChannel != nil
 }
 
 func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.topicHandlerStopChannel == nil {
+	if connection.messageHandlingLoopStopChannel == nil {
 		return Error.New("Message handling loop not registered", nil)
 	}
-	close(connection.topicHandlerStopChannel)
-	connection.topicHandlerStopChannel = nil
+	close(connection.messageHandlingLoopStopChannel)
+	connection.messageHandlingLoopStopChannel = nil
 	return nil
 }
 
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.topicHandlerStopChannel != nil {
+	if connection.messageHandlingLoopStopChannel != nil {
 		return nil, Error.New("Message handling loop is registered", nil)
 	}
 	var timeout <-chan time.Time

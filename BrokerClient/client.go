@@ -29,7 +29,7 @@ type Client struct {
 
 	stopChannel chan bool
 
-	messageHandler SystemgeConnection.TopicHandler
+	messageHandler SystemgeConnection.MessageHandler
 
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
@@ -59,7 +59,7 @@ type connection struct {
 	responsibleSyncTopics  map[string]bool
 }
 
-func New(name string, config *Config.MessageBrokerClient, messageHandler SystemgeConnection.TopicHandler, dashboardCommands Commands.Handlers) *Client {
+func New(name string, config *Config.MessageBrokerClient, messageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}

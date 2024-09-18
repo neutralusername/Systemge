@@ -52,7 +52,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -71,7 +71,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
 		for websocketClient := range connectedClient.websocketClients {
-			server.handleChangePage(websocketClient, Message.New(DashboardHelpers.TOPIC_CHANGE_PAGE, DashboardHelpers.DASHBOARD_CLIENT_NAME))
+			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, DashboardHelpers.DASHBOARD_CLIENT_NAME))
 		}
 		delete(server.connectedClients, connection.GetName())
 		delete(server.dashboardClient.ClientStatuses, connection.GetName())
@@ -81,7 +81,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE, // it would be less awful to have a separate topic for removing keys in an object
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{

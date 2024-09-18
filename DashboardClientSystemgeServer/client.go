@@ -89,7 +89,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					}
 					return "", nil
 				},
-				/* DashboardHelpers.TOPIC_GET_CONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_GET_CONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 
 				},
 
@@ -146,7 +146,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 				},
 				DashboardHelpers.TOPIC_UNPROCESSED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					return Helpers.Uint32ToString(systemgeConnection.UnprocessedMessagesCount()), nil
-				}, */
+				},
 			},
 			nil, nil,
 			1000,

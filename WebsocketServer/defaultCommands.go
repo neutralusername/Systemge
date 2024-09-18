@@ -55,7 +55,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		topic := args[0]
 		payload := args[1]
-		err := server.Broadcast(Message.New(topic, payload))
+		err := server.Broadcast(Message.NewAsync(topic, payload))
 		if err != nil {
 			return "", err
 		}
@@ -68,7 +68,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		id := args[2]
-		err := server.Unicast(id, Message.New(topic, payload))
+		err := server.Unicast(id, Message.NewAsync(topic, payload))
 		if err != nil {
 			return "", err
 		}
@@ -81,7 +81,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		ids := args[2:]
-		err := server.Multicast(ids, Message.New(topic, payload))
+		err := server.Multicast(ids, Message.NewAsync(topic, payload))
 		if err != nil {
 			return "", err
 		}
@@ -94,7 +94,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		group := args[2]
-		err := server.Groupcast(group, Message.New(topic, payload))
+		err := server.Groupcast(group, Message.NewAsync(topic, payload))
 		if err != nil {
 			return "", err
 		}

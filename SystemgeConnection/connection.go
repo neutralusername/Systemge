@@ -15,11 +15,11 @@ type SystemgeConnection interface {
 	GetNextMessage() (*Message.Message, error)
 	AvailableMessageCount() uint32
 
-	StartMessageHandlingLoop(TopicHandler) error
+	StartMessageHandlingLoop_Sequentially(MessageHandler) error
+	StartMessageHandlingLoop_Concurrently(MessageHandler) error
 	IsMessageHandlingLoopStarted() bool
 	StopMessageHandlingLoop() error
-
-	HandleMessage(message *Message.Message, messageHandler TopicHandler) error
+	HandleMessage(message *Message.Message, messageHandler MessageHandler) error
 
 	AsyncMessage(topic string, payload string) error
 	SyncRequest(topic string, payload string) (<-chan *Message.Message, error)

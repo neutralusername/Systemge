@@ -9,16 +9,21 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type TopicHandlerSequentially struct {
-	messageHandlerFuncs     map[string]MessageHandlerFunc
-	unknownTopicHandlerFunc MessageHandlerFunc
-	mutex                   sync.Mutex
+type SequentialMessageHandler struct {
+	asyncMessageHandlers AsyncMessageHandlers
+	syncMessageHandlers  SyncMessageHandlers
+
+	syncMutex  sync.Mutex
+	asyncMutex sync.Mutex
 
 	messageQueue chan *queueStruct
 
-	// metrics
+	unknwonAsyncTopicHandler AsyncMessageHandler
+	unknwonSyncTopicHandler  SyncMessageHandler
 
-	messagesHandled       atomic.Uint64
+	// metrics
+	asyncMessagesHandled  atomic.Uint64
+	syncRequestsHandled   atomic.Uint64
 	unknownTopicsReceived atomic.Uint64
 }
 
@@ -37,14 +42,14 @@ type syncResponseStruct struct {
 // one message handler can be active at the same time.
 // requires a call to Close() to stop the message handler (otherwise it will keep running until the program ends).
 // Handle calls after Close() will cause a panic.
-func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *TopicHandlerSequentially {
+func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *SequentialMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}
 	if syncMessageHandlers == nil {
 		syncMessageHandlers = make(SyncMessageHandlers)
 	}
-	systemgeMessageHandler := &TopicHandlerSequentially{
+	systemgeMessageHandler := &SequentialMessageHandler{
 		asyncMessageHandlers:     asyncMessageHandlers,
 		syncMessageHandlers:      syncMessageHandlers,
 		unknwonAsyncTopicHandler: unknownTopicAsyncHandler,
@@ -55,11 +60,11 @@ func NewSequentialMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 	return systemgeMessageHandler
 }
 
-func (messageHandler *TopicHandlerSequentially) Close() {
+func (messageHandler *SequentialMessageHandler) Close() {
 	close(messageHandler.messageQueue)
 }
 
-func (messageHandler *TopicHandlerSequentially) handleMessages() {
+func (messageHandler *SequentialMessageHandler) handleMessages() {
 	for {
 		messageStruct := <-messageHandler.messageQueue
 		if messageStruct == nil {
@@ -105,7 +110,7 @@ func (messageHandler *TopicHandlerSequentially) handleMessages() {
 	}
 }
 
-func (messageHandler *TopicHandlerSequentially) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
+func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	response := make(chan error)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -119,7 +124,7 @@ func (messageHandler *TopicHandlerSequentially) HandleAsyncMessage(connection Sy
 	}
 }
 
-func (messageHandler *TopicHandlerSequentially) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -134,31 +139,31 @@ func (messageHandler *TopicHandlerSequentially) HandleSyncRequest(connection Sys
 	}
 }
 
-func (messageHandler *TopicHandlerSequentially) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
+func (messageHandler *SequentialMessageHandler) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
 	messageHandler.asyncMutex.Lock()
 	messageHandler.asyncMessageHandlers[topic] = handler
 	messageHandler.asyncMutex.Unlock()
 }
 
-func (messageHandler *TopicHandlerSequentially) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
+func (messageHandler *SequentialMessageHandler) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
 	messageHandler.syncMutex.Lock()
 	messageHandler.syncMessageHandlers[topic] = handler
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *TopicHandlerSequentially) RemoveAsyncMessageHandler(topic string) {
+func (messageHandler *SequentialMessageHandler) RemoveAsyncMessageHandler(topic string) {
 	messageHandler.asyncMutex.Lock()
 	delete(messageHandler.asyncMessageHandlers, topic)
 	messageHandler.asyncMutex.Unlock()
 }
 
-func (messageHandler *TopicHandlerSequentially) RemoveSyncMessageHandler(topic string) {
+func (messageHandler *SequentialMessageHandler) RemoveSyncMessageHandler(topic string) {
 	messageHandler.syncMutex.Lock()
 	delete(messageHandler.syncMessageHandlers, topic)
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *TopicHandlerSequentially) GetAsyncTopics() []string {
+func (messageHandler *SequentialMessageHandler) GetAsyncTopics() []string {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
@@ -168,7 +173,7 @@ func (messageHandler *TopicHandlerSequentially) GetAsyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *TopicHandlerSequentially) GetSyncTopics() []string {
+func (messageHandler *SequentialMessageHandler) GetSyncTopics() []string {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
@@ -178,27 +183,27 @@ func (messageHandler *TopicHandlerSequentially) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *TopicHandlerSequentially) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
+func (messageHandler *SequentialMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
 	messageHandler.unknwonAsyncTopicHandler = handler
 }
 
-func (messageHandler *TopicHandlerSequentially) SetUnknownSyncHandler(handler SyncMessageHandler) {
+func (messageHandler *SequentialMessageHandler) SetUnknownSyncHandler(handler SyncMessageHandler) {
 	messageHandler.unknwonSyncTopicHandler = handler
 }
 
-func (messageHandler *TopicHandlerSequentially) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
+func (messageHandler *SequentialMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	return messageHandler.asyncMessageHandlers[topic]
 }
 
-func (messageHandler *TopicHandlerSequentially) GetSyncMessageHandler(topic string) SyncMessageHandler {
+func (messageHandler *SequentialMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	return messageHandler.syncMessageHandlers[topic]
 }
 
-func (messageHandler *TopicHandlerSequentially) CheckMetrics() Metrics.MetricsTypes {
+func (messageHandler *SequentialMessageHandler) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
 		map[string]uint64{
@@ -209,7 +214,7 @@ func (messageHandler *TopicHandlerSequentially) CheckMetrics() Metrics.MetricsTy
 	))
 	return metricsTypes
 }
-func (messageHandler *TopicHandlerSequentially) GetMetrics() Metrics.MetricsTypes {
+func (messageHandler *SequentialMessageHandler) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
 		map[string]uint64{
@@ -221,23 +226,23 @@ func (messageHandler *TopicHandlerSequentially) GetMetrics() Metrics.MetricsType
 	return metricsTypes
 }
 
-func (messageHandler *TopicHandlerSequentially) CheckAsyncMessagesHandled() uint64 {
+func (messageHandler *SequentialMessageHandler) CheckAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }
-func (messageHandler *TopicHandlerSequentially) GetAsyncMessagesHandled() uint64 {
+func (messageHandler *SequentialMessageHandler) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Swap(0)
 }
 
-func (messageHandler *TopicHandlerSequentially) CheckSyncRequestsHandled() uint64 {
+func (messageHandler *SequentialMessageHandler) CheckSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Load()
 }
-func (messageHandler *TopicHandlerSequentially) GetSyncRequestsHandled() uint64 {
+func (messageHandler *SequentialMessageHandler) GetSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Swap(0)
 }
 
-func (messageHandler *TopicHandlerSequentially) CheckUnknownTopicsReceived() uint64 {
+func (messageHandler *SequentialMessageHandler) CheckUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Load()
 }
-func (messageHandler *TopicHandlerSequentially) GetUnknownTopicsReceived() uint64 {
+func (messageHandler *SequentialMessageHandler) GetUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Swap(0)
 }

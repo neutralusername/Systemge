@@ -17,7 +17,7 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 	if err != nil {
 		return Error.New("Failed to execute command", err)
 	}
-	websocketClient.Send(Message.New(
+	websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 		resultPayload,
 	).Serialize())
@@ -36,7 +36,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -50,7 +50,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -75,7 +75,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -89,7 +89,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 	)
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -114,7 +114,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -139,7 +139,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connect
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -164,7 +164,7 @@ func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *con
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -189,7 +189,7 @@ func (server *Server) handleClientProcessNextMessageRequest(connectedClient *con
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
-		Message.New(
+		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
@@ -207,7 +207,7 @@ func (server *Server) handleClientSyncRequest(websocketClient *WebsocketServer.W
 	if err != nil {
 		return Error.New("Failed to send sync request", err)
 	}
-	websocketClient.Send(Message.New(
+	websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 		resultPayload,
 	).Serialize())
@@ -219,7 +219,7 @@ func (server *Server) handleClientAsyncMessageRequest(websocketClient *Websocket
 	if err != nil {
 		return Error.New("Failed to send async message", err)
 	}
-	websocketClient.Send(Message.New(
+	websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
 		"successfully sent async message",
 	).Serialize())

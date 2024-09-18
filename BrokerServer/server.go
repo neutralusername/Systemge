@@ -24,7 +24,7 @@ type Server struct {
 
 	messageHandlerStopChannels map[SystemgeConnection.SystemgeConnection]chan<- bool
 
-	messageHandler SystemgeConnection.TopicHandler
+	messageHandler SystemgeConnection.MessageHandler
 
 	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
 	connectionsSyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
