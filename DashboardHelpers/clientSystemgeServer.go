@@ -5,11 +5,11 @@ import (
 )
 
 type SystemgeServerClient struct {
-	Name                string                              `json:"name"`
-	Commands            map[string]bool                     `json:"commands"`
-	Status              int                                 `json:"status"`              //periodically automatically updated by the server
-	Metrics             DashboardMetrics                    `json:"metrics"`             //periodically automatically updated by the server
-	SystemgeConnections map[string]*SystemgeConnectionChild `json:"systemgeConnections"` //periodically automatically updated by the server
+	Name                       string                              `json:"name"`
+	Commands                   map[string]bool                     `json:"commands"`
+	Status                     int                                 `json:"status"`                     //periodically automatically updated by the server
+	Metrics                    DashboardMetrics                    `json:"metrics"`                    //periodically automatically updated by the server
+	SystemgeConnectionChildren map[string]*SystemgeConnectionChild `json:"systemgeConnectionChildren"` //periodically automatically updated by the server
 }
 
 type SystemgeConnectionChild struct {
@@ -28,11 +28,11 @@ func NewSystemgeConnectionChild(name string, isProcessingLoopRunning bool, unpro
 
 func NewSystemgeServerClient(name string, commands map[string]bool, status int, metrics DashboardMetrics, systemgeConnections map[string]*SystemgeConnectionChild) *SystemgeServerClient {
 	return &SystemgeServerClient{
-		Name:                name,
-		Commands:            commands,
-		Status:              status,
-		Metrics:             metrics,
-		SystemgeConnections: systemgeConnections,
+		Name:                       name,
+		Commands:                   commands,
+		Status:                     status,
+		Metrics:                    metrics,
+		SystemgeConnectionChildren: systemgeConnections,
 	}
 }
 func (client *SystemgeServerClient) Marshal() []byte {

@@ -65,6 +65,27 @@ func (page *Page) SetCachedStatus(status int) error {
 	return nil
 }
 
+func (page *Page) GetCachedSystemgeConnectionChildren() map[string]*SystemgeConnectionChild {
+	switch page.Type {
+	case CLIENT_TYPE_SYSTEMGESERVER:
+		return page.Data.(*SystemgeServerClient).SystemgeConnectionChildren
+	default:
+		return nil
+	}
+}
+func (page *Page) SetCachedSystemgeConnectionChildren(systemgeConnections map[string]*SystemgeConnectionChild) error {
+	if systemgeConnections == nil {
+		return Error.New("SystemgeConnections is nil", nil)
+	}
+	switch page.Type {
+	case CLIENT_TYPE_SYSTEMGESERVER:
+		page.Data.(*SystemgeServerClient).SystemgeConnectionChildren = systemgeConnections
+	default:
+		return Error.New("Unknown client type", nil)
+	}
+	return nil
+}
+
 func (page *Page) GetCachedIsProcessingLoopRunning() bool {
 	switch page.Type {
 	case CLIENT_TYPE_SYSTEMGECONNECTION:

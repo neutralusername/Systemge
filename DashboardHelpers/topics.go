@@ -30,5 +30,5 @@ const (
 	TOPIC_COLLECT_GARBAGE                         = "collect_garbage"
 	TOPIC_HEAP_USAGE                              = "heap_usage"
 	TOPIC_GOROUTINE_COUNT                         = "goroutine_count"
-	TOPIC_GET_CHILDREN                            = "get_children"
+	TOPIC_GET_SYSTEMGE_CONNECTION_CHILDREN        = "get_systemge_connection_children"
 )

@@ -1,6 +1,7 @@
 package DashboardServer
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
@@ -65,7 +66,7 @@ func (server *Server) updateRoutine() {
 						server.errorLogger.Log(Error.New("Failed to update metrics for \""+connectedClient.connection.GetName()+"\" in updateRoutine", err).Error())
 					}
 				}
-				if err := server.updateConnectedClientChildren(connectedClient); err != nil {
+				if err := server.updateConnectedClientSystemgeConnectionChildren(connectedClient); err != nil {
 					if server.errorLogger != nil {
 						server.errorLogger.Log(Error.New("Failed to update children for \""+connectedClient.connection.GetName()+"\" in updateRoutine", err).Error())
 					}
@@ -210,8 +211,32 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 	return nil
 }
 
-func (server *Server) updateConnectedClientChildren(connectedClient *connectedClient) error {
-
+func (server *Server) updateConnectedClientSystemgeConnectionChildren(connectedClient *connectedClient) error {
+	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_GET_SYSTEMGE_CONNECTION_CHILDREN, "")
+	if err != nil {
+		return Error.New("Failed to execute get children request", err)
+	}
+	systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
+	if err := json.Unmarshal([]byte(resultPayload), &systemgeConnectionChildren); err != nil {
+		return Error.New("Failed to unmarshal children", err)
+	}
+	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeConnectionChildren)
+	if err != nil {
+		return Error.New("Failed to set children", err)
+	}
+	server.websocketServer.Multicast(
+		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
+			DashboardHelpers.NewPageUpdate(
+				map[string]interface{}{
+					DashboardHelpers.CLIENT_FIELD_SYSTEMGE_CONNECTION_CHILDREN: systemgeConnectionChildren,
+				},
+				connectedClient.connection.GetName(),
+			).Marshal(),
+		),
+	)
+	return nil
 }
 
 func (server *Server) updateDashboardClientMetrics() error {

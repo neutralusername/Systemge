@@ -46,7 +46,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					metricsTypes.Merge(systemgeServer.GetMetrics())
 					return Helpers.JsonMarshal(metricsTypes), nil
 				},
-				DashboardHelpers.TOPIC_GET_CHILDREN: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				DashboardHelpers.TOPIC_GET_SYSTEMGE_CONNECTION_CHILDREN: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
 					for _, systemgeConnection := range systemgeServer.GetConnections() {
 						systemgeConnectionChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
