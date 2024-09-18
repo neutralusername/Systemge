@@ -14,7 +14,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeServer"
 )
 
-func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
 	if systemgeServer == nil {
 		panic("customService is nil")
 	}
@@ -90,35 +90,52 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_GET_CONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-
+					systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
+					for _, systemgeConnection := range systemgeServer.GetConnections() {
+						systemgeConnectionChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
+					}
+					return Helpers.JsonMarshal(systemgeConnectionChildren), nil
 				},
 
-				DashboardHelpers.TOPIC_GET_SYSTEMGECONNECTIONS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.JsonMarshal(DashboardHelpers.NewSystemgeConnectionClients(systemgeServer.GetSystemgeConnections())), nil
-				},
 				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := systemgeConnection.StartProcessingLoopSequentially(messageHandler)
+					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
+					if systemgeConnection == nil {
+						return "", Error.New("Connection not found", nil)
+					}
+					err := systemgeConnection.StartMessageHandlingLoop_Sequentially(messageHandler)
 					if err != nil {
 						return "", err
 					}
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_START_PROCESSINGLOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := systemgeConnection.StartProcessingLoopConcurrently(messageHandler)
+					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
+					if systemgeConnection == nil {
+						return "", Error.New("Connection not found", nil)
+					}
+					err := systemgeConnection.StartMessageHandlingLoop_Concurrently(messageHandler)
 					if err != nil {
 						return "", err
 					}
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_STOP_PROCESSINGLOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := systemgeConnection.StopProcessingLoop()
+					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
+					if systemgeConnection == nil {
+						return "", Error.New("Connection not found", nil)
+					}
+					err := systemgeConnection.StopMessageHandlingLoop()
 					if err != nil {
 						return "", err
 					}
 					return "", nil
 				},
 				DashboardHelpers.TOPIC_IS_PROCESSING_LOOP_RUNNING: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.BoolToString(systemgeConnection.IsProcessingLoopRunning()), nil
+					systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
+					if systemgeConnection == nil {
+						return "", Error.New("Connection not found", nil)
+					}
+					return Helpers.BoolToString(systemgeConnection.IsMessageHandlingLoopStarted()), nil
 				},
 				DashboardHelpers.TOPIC_PROCESS_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 					message, err := systemgeConnection.GetNextMessage()
