@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type ConcurrentMessageHandler struct {
+type TopicHandlerConcurrently struct {
 	asyncMessageHandlers AsyncMessageHandlers
 	syncMessageHandlers  SyncMessageHandlers
 	syncMutex            sync.Mutex
@@ -25,14 +25,14 @@ type ConcurrentMessageHandler struct {
 }
 
 // any number of message handlers may be active at the same time.
-func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler) *ConcurrentMessageHandler {
+func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler) *TopicHandlerConcurrently {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}
 	if syncMessageHandlers == nil {
 		syncMessageHandlers = make(SyncMessageHandlers)
 	}
-	systemgeMessageHandler := &ConcurrentMessageHandler{
+	systemgeMessageHandler := &TopicHandlerConcurrently{
 		asyncMessageHandlers:     asyncMessageHandlers,
 		syncMessageHandlers:      syncMessageHandlers,
 		unknwonAsyncTopicHandler: unknownTopicAsyncHandler,
@@ -41,7 +41,7 @@ func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 	return systemgeMessageHandler
 }
 
-func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
+func (messageHandler *TopicHandlerConcurrently) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	messageHandler.asyncMutex.Lock()
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
 	messageHandler.asyncMutex.Unlock()
@@ -60,7 +60,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 	return nil
 }
 
-func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *TopicHandlerConcurrently) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	messageHandler.syncMutex.Lock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.Unlock()
@@ -77,51 +77,51 @@ func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection Sys
 	return handler(connection, message)
 }
 
-func (messageHandler *ConcurrentMessageHandler) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
+func (messageHandler *TopicHandlerConcurrently) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
 	messageHandler.asyncMutex.Lock()
 	messageHandler.asyncMessageHandlers[topic] = handler
 	messageHandler.asyncMutex.Unlock()
 }
 
-func (messageHandler *ConcurrentMessageHandler) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
+func (messageHandler *TopicHandlerConcurrently) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
 	messageHandler.syncMutex.Lock()
 	messageHandler.syncMessageHandlers[topic] = handler
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *ConcurrentMessageHandler) RemoveAsyncMessageHandler(topic string) {
+func (messageHandler *TopicHandlerConcurrently) RemoveAsyncMessageHandler(topic string) {
 	messageHandler.asyncMutex.Lock()
 	delete(messageHandler.asyncMessageHandlers, topic)
 	messageHandler.asyncMutex.Unlock()
 }
 
-func (messageHandler *ConcurrentMessageHandler) RemoveSyncMessageHandler(topic string) {
+func (messageHandler *TopicHandlerConcurrently) RemoveSyncMessageHandler(topic string) {
 	messageHandler.syncMutex.Lock()
 	delete(messageHandler.syncMessageHandlers, topic)
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *ConcurrentMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
+func (messageHandler *TopicHandlerConcurrently) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
 	messageHandler.unknwonAsyncTopicHandler = handler
 }
 
-func (messageHandler *ConcurrentMessageHandler) SetUnknownSyncHandler(handler SyncMessageHandler) {
+func (messageHandler *TopicHandlerConcurrently) SetUnknownSyncHandler(handler SyncMessageHandler) {
 	messageHandler.unknwonSyncTopicHandler = handler
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
+func (messageHandler *TopicHandlerConcurrently) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	return messageHandler.asyncMessageHandlers[topic]
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
+func (messageHandler *TopicHandlerConcurrently) GetSyncMessageHandler(topic string) SyncMessageHandler {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	return messageHandler.syncMessageHandlers[topic]
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetAsyncTopics() []string {
+func (messageHandler *TopicHandlerConcurrently) GetAsyncTopics() []string {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
@@ -131,7 +131,7 @@ func (messageHandler *ConcurrentMessageHandler) GetAsyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
+func (messageHandler *TopicHandlerConcurrently) GetSyncTopics() []string {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
@@ -141,7 +141,7 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckMetrics() Metrics.MetricsTypes {
+func (messageHandler *TopicHandlerConcurrently) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
 		map[string]uint64{
@@ -152,7 +152,7 @@ func (messageHandler *ConcurrentMessageHandler) CheckMetrics() Metrics.MetricsTy
 	))
 	return metricsTypes
 }
-func (messageHandler *ConcurrentMessageHandler) GetMetrics() Metrics.MetricsTypes {
+func (messageHandler *TopicHandlerConcurrently) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
 		map[string]uint64{
@@ -164,23 +164,23 @@ func (messageHandler *ConcurrentMessageHandler) GetMetrics() Metrics.MetricsType
 	return metricsTypes
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckAsyncMessagesHandled() uint64 {
+func (messageHandler *TopicHandlerConcurrently) CheckAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }
-func (messageHandler *ConcurrentMessageHandler) GetAsyncMessagesHandled() uint64 {
+func (messageHandler *TopicHandlerConcurrently) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Swap(0)
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckSyncRequestsHandled() uint64 {
+func (messageHandler *TopicHandlerConcurrently) CheckSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Load()
 }
-func (messageHandler *ConcurrentMessageHandler) GetSyncRequestsHandled() uint64 {
+func (messageHandler *TopicHandlerConcurrently) GetSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Swap(0)
 }
 
-func (messageHandler *ConcurrentMessageHandler) CheckUnknownTopicsReceived() uint64 {
+func (messageHandler *TopicHandlerConcurrently) CheckUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Load()
 }
-func (messageHandler *ConcurrentMessageHandler) GetUnknownTopicsReceived() uint64 {
+func (messageHandler *TopicHandlerConcurrently) GetUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Swap(0)
 }

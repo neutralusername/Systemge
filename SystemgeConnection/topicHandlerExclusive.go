@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type TopicExclusiveMessageHandler struct {
+type TopicHandlerExclusive struct {
 	asyncMessageHandlers map[string]*asyncMessageHandler
 	syncMessageHandlers  map[string]*syncMessageHandler
 
@@ -40,14 +40,14 @@ type syncMessageHandler struct {
 }
 
 // one message handler of each topic may be active at the same time. messages are handled in the order they were added to the queue.
-func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *TopicExclusiveMessageHandler {
+func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *TopicHandlerExclusive {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}
 	if syncMessageHandlers == nil {
 		syncMessageHandlers = make(SyncMessageHandlers)
 	}
-	systemgeMessageHandler := &TopicExclusiveMessageHandler{
+	systemgeMessageHandler := &TopicHandlerExclusive{
 		asyncMessageHandlers: make(map[string]*asyncMessageHandler),
 		syncMessageHandlers:  make(map[string]*syncMessageHandler),
 
@@ -87,7 +87,7 @@ func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, 
 	return systemgeMessageHandler
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
+func (messageHandler *TopicHandlerExclusive) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
 	response := make(chan error)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -101,7 +101,7 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connectio
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
+func (messageHandler *TopicHandlerExclusive) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{
@@ -116,7 +116,7 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
+func (messageHandler *TopicHandlerExclusive) handleMessages() {
 	for {
 		messageStruct := <-messageHandler.messageQueue
 		if messageStruct == nil {
@@ -154,7 +154,7 @@ func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) Close() {
+func (messageHandler *TopicHandlerExclusive) Close() {
 	close(messageHandler.messageQueue)
 	messageHandler.asyncMutex.Lock()
 	for key, handler := range messageHandler.asyncMessageHandlers {
@@ -179,7 +179,7 @@ func (messageHandler *TopicExclusiveMessageHandler) Close() {
 	messageHandler.syncMutex.Unlock()
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) handleAsyncMessages(asyncMessageHandler *asyncMessageHandler) {
+func (messageHandler *TopicHandlerExclusive) handleAsyncMessages(asyncMessageHandler *asyncMessageHandler) {
 	for {
 		messageStruct := <-asyncMessageHandler.messageQueue
 		if messageStruct == nil {
@@ -190,7 +190,7 @@ func (messageHandler *TopicExclusiveMessageHandler) handleAsyncMessages(asyncMes
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) handleSyncMessages(syncMessageHandler *syncMessageHandler) {
+func (messageHandler *TopicHandlerExclusive) handleSyncMessages(syncMessageHandler *syncMessageHandler) {
 	for {
 		messageStruct := <-syncMessageHandler.messageQueue
 		if messageStruct == nil {
@@ -204,7 +204,7 @@ func (messageHandler *TopicExclusiveMessageHandler) handleSyncMessages(syncMessa
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
+func (messageHandler *TopicHandlerExclusive) AddAsyncMessageHandler(topic string, handler AsyncMessageHandler) {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	if messageHandler.asyncMessageHandlers[topic] != nil {
@@ -218,7 +218,7 @@ func (messageHandler *TopicExclusiveMessageHandler) AddAsyncMessageHandler(topic
 	go messageHandler.handleAsyncMessages(asyncMessageHandler)
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
+func (messageHandler *TopicHandlerExclusive) AddSyncMessageHandler(topic string, handler SyncMessageHandler) {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	if messageHandler.syncMessageHandlers[topic] != nil {
@@ -232,7 +232,7 @@ func (messageHandler *TopicExclusiveMessageHandler) AddSyncMessageHandler(topic 
 	go messageHandler.handleSyncMessages(syncMessageHandler)
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
+func (messageHandler *TopicHandlerExclusive) SetUnknownAsyncHandler(handler AsyncMessageHandler) {
 	if messageHandler.unknownAsyncTopicHandler != nil {
 		close(messageHandler.unknownAsyncTopicHandler.messageQueue)
 	}
@@ -247,7 +247,7 @@ func (messageHandler *TopicExclusiveMessageHandler) SetUnknownAsyncHandler(handl
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) SetUnknownSyncHandler(handler SyncMessageHandler) {
+func (messageHandler *TopicHandlerExclusive) SetUnknownSyncHandler(handler SyncMessageHandler) {
 	if messageHandler.unknownSyncTopicHandler != nil {
 		close(messageHandler.unknownSyncTopicHandler.messageQueue)
 	}
@@ -262,7 +262,7 @@ func (messageHandler *TopicExclusiveMessageHandler) SetUnknownSyncHandler(handle
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) RemoveAsyncMessageHandler(topic string) {
+func (messageHandler *TopicHandlerExclusive) RemoveAsyncMessageHandler(topic string) {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	if handler, exists := messageHandler.asyncMessageHandlers[topic]; !exists {
@@ -271,7 +271,7 @@ func (messageHandler *TopicExclusiveMessageHandler) RemoveAsyncMessageHandler(to
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) RemoveSyncMessageHandler(topic string) {
+func (messageHandler *TopicHandlerExclusive) RemoveSyncMessageHandler(topic string) {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	if handler, exists := messageHandler.syncMessageHandlers[topic]; !exists {
@@ -280,7 +280,7 @@ func (messageHandler *TopicExclusiveMessageHandler) RemoveSyncMessageHandler(top
 	}
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
+func (messageHandler *TopicHandlerExclusive) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	if handler, exists := messageHandler.asyncMessageHandlers[topic]; exists {
@@ -289,7 +289,7 @@ func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessageHandler(topic
 	return nil
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
+func (messageHandler *TopicHandlerExclusive) GetSyncMessageHandler(topic string) SyncMessageHandler {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	if handler, exists := messageHandler.syncMessageHandlers[topic]; exists {
@@ -298,7 +298,7 @@ func (messageHandler *TopicExclusiveMessageHandler) GetSyncMessageHandler(topic 
 	return nil
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) GetAsyncTopics() []string {
+func (messageHandler *TopicHandlerExclusive) GetAsyncTopics() []string {
 	messageHandler.asyncMutex.Lock()
 	defer messageHandler.asyncMutex.Unlock()
 	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
@@ -308,7 +308,7 @@ func (messageHandler *TopicExclusiveMessageHandler) GetAsyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) GetSyncTopics() []string {
+func (messageHandler *TopicHandlerExclusive) GetSyncTopics() []string {
 	messageHandler.syncMutex.Lock()
 	defer messageHandler.syncMutex.Unlock()
 	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
@@ -318,7 +318,7 @@ func (messageHandler *TopicExclusiveMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) CheckMetrics() Metrics.MetricsTypes {
+func (messageHandler *TopicHandlerExclusive) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
 		map[string]uint64{
@@ -329,7 +329,7 @@ func (messageHandler *TopicExclusiveMessageHandler) CheckMetrics() Metrics.Metri
 	))
 	return metricsTypes
 }
-func (messageHandler *TopicExclusiveMessageHandler) GetMetrics() Metrics.MetricsTypes {
+func (messageHandler *TopicHandlerExclusive) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
 		map[string]uint64{
@@ -341,23 +341,23 @@ func (messageHandler *TopicExclusiveMessageHandler) GetMetrics() Metrics.Metrics
 	return metricsTypes
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) CheckAsyncMessagesHandled() uint64 {
+func (messageHandler *TopicHandlerExclusive) CheckAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }
-func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessagesHandled() uint64 {
+func (messageHandler *TopicHandlerExclusive) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Swap(0)
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) CheckSyncRequestsHandled() uint64 {
+func (messageHandler *TopicHandlerExclusive) CheckSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Load()
 }
-func (messageHandler *TopicExclusiveMessageHandler) GetSyncRequestsHandled() uint64 {
+func (messageHandler *TopicHandlerExclusive) GetSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Swap(0)
 }
 
-func (messageHandler *TopicExclusiveMessageHandler) CheckUnknownTopicsReceived() uint64 {
+func (messageHandler *TopicHandlerExclusive) CheckUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Load()
 }
-func (messageHandler *TopicExclusiveMessageHandler) GetUnknownTopicsReceived() uint64 {
+func (messageHandler *TopicHandlerExclusive) GetUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Swap(0)
 }

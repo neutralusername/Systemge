@@ -15,7 +15,7 @@ import (
 type Server struct {
 	config          *Config.SingleRequestServer
 	commandHandlers Commands.Handlers
-	messageHandler  SystemgeConnection.MessageHandler
+	messageHandler  SystemgeConnection.TopicHandler
 	systemgeServer  *SystemgeServer.SystemgeServer
 
 	// metrics
@@ -31,7 +31,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.TopicHandler) *Server {
 	if config == nil {
 		panic("Config is required")
 	}

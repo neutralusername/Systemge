@@ -15,14 +15,14 @@ type Client struct {
 	name                              string
 	config                            *Config.DashboardClient
 	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
-	messageHandler                    SystemgeConnection.MessageHandler
+	messageHandler                    SystemgeConnection.TopicHandler
 	introductionHandler               func() (string, error)
 
 	status int
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, messageHandler SystemgeConnection.MessageHandler, introductionHandler func() (string, error)) *Client {
+func New(name string, config *Config.DashboardClient, messageHandler SystemgeConnection.TopicHandler, introductionHandler func() (string, error)) *Client {
 	if config == nil {
 		panic("config is nil")
 	}

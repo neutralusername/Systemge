@@ -23,7 +23,7 @@ type Resolver struct {
 	syncTopicTcpClientConfigs  map[string]*Config.TcpClient
 	mutex                      sync.Mutex
 
-	messageHandler SystemgeConnection.MessageHandler
+	messageHandler SystemgeConnection.TopicHandler
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger

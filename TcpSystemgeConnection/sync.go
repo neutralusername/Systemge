@@ -3,55 +3,8 @@ package TcpSystemgeConnection
 import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
-
-type Attribue struct {
-	abortOnError  bool
-	attributeCall func(SystemgeConnection.SystemgeConnection, *Message.Message) error
-}
-
-func (connection *TcpSystemgeConnection) ExecuteAttribute(attribute string) error {
-	connection.attributeMutex.Lock()
-	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; !ok {
-		return Error.New("No attribute found", nil)
-	}
-	return connection.attributes[attribute].attributeCall()
-}
-
-func (connection *TcpSystemgeConnection) NewAttribute(attribute string, abortOnError bool) error {
-	connection.attributeMutex.Lock()
-	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; ok {
-		return Error.New("Attribute already exists", nil)
-	}
-	connection.attributes[attribute] = &Attribue{
-		abortOnError:  abortOnError,
-		attributeCall: func() error { return nil },
-	}
-	return nil
-}
-
-func (connection *TcpSystemgeConnection) RemoveAttribute(attribute string) error {
-	connection.attributeMutex.Lock()
-	defer connection.attributeMutex.Unlock()
-	if _, ok := connection.attributes[attribute]; !ok {
-		return Error.New("No attribute found", nil)
-	}
-	delete(connection.attributes, attribute)
-	return nil
-}
-
-func (connection *TcpSystemgeConnection) GetAttribute(attribute string) (*Attribue, error) {
-	connection.attributeMutex.Lock()
-	defer connection.attributeMutex.Unlock()
-	if attribute, ok := connection.attributes[attribute]; ok {
-		return attribute, nil
-	}
-	return nil, Error.New("No attribute found", nil)
-}
 
 type attributeStruct struct {
 	responseChannel chan *Message.Message
