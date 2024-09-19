@@ -53,7 +53,18 @@ export class verticalNavigation extends React.Component {
 			];
 		case PAGE_TYPE_CUSTOMSERVICE:
 			return [
-				
+				React.createElement(
+					commands, {
+						selectedEntry: this.props.selectedEntry,
+						setStateRoot: this.props.setStateRoot,
+					}
+				),
+				React.createElement(
+					metrics, {
+						selectedEntry: this.props.selectedEntry,
+						setStateRoot: this.props.setStateRoot,
+					}
+				),
 			];
 		}
 	}
