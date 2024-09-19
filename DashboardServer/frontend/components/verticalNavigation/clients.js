@@ -14,9 +14,10 @@ export class clients extends React.Component {
                     color: "white",
                     fontSize: "1.3vw",
                     display: "flex",
+                    cursor: "pointer",
                 },
             }, 
-            "Clients",
+            "• Clients",
         )
 	}
 }

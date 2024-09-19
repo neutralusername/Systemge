@@ -68,6 +68,7 @@ export class verticalNavigation extends React.Component {
 					flexDirection: "column",
 					alignItems : "flex-start",
 					paddingTop: "1vh",
+					paddingLeft: ".5vw",	
 					gap: "1vh",
 					backgroundColor: "#191b1c",
 					borderRight: "2px solid #2f3236",
