@@ -311,7 +311,7 @@ export class root extends React.Component {
             },
             React.createElement(
                 "div", {
-                    className : "verticalNavigationWrapper",
+                    className : "verticalNavigationWidthWrapper",
                     style: {
                         width: "18%",
                     },
@@ -322,7 +322,7 @@ export class root extends React.Component {
             ),
             React.createElement(
                 "div", {
-                    className : "contentWrapper",
+                    className : "contentWidthWrapper",
                     style: {
                         width: "82%",
                     },
