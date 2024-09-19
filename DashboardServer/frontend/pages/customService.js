@@ -10,6 +10,7 @@ import {
 import {
 	responseMessages,
 } from "../components/responseMessages.js";
+import { verticalNavigation } from "../components/verticalNavigation.js";
 
 export class customService extends React.Component {
 	constructor(props) {
@@ -33,6 +34,13 @@ export class customService extends React.Component {
 					alignItems: "center",
 				},
 			}, 
+			React.createElement(
+				verticalNavigation, {
+					WS_CONNECTION: this.props.WS_CONNECTION,
+					pageRequest: this.props.pageRequest,
+					pageData: this.props.pageData,
+				},
+			),
 			React.createElement(
 				backButton, null	
 			),
