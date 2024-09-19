@@ -259,14 +259,14 @@ func (server *Server) changePageHandler(websocketClient *WebsocketServer.Websock
 }
 
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-
 	if server.config.FrontendPassword != "" {
-		websocketClient.Send(Message.NewAsync(
+		err := websocketClient.Send(Message.NewAsync(
 			DashboardHelpers.TOPIC_PASSWORD,
 			"",
 		).Serialize())
+		if err != nil {
+			return Error.New("Failed to send password request", err)
+		}
 		messageBytes, err := websocketClient.Receive()
 		if err != nil {
 			return Error.New("Failed to receive message", err)
@@ -282,11 +282,16 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 			return Error.New("Invalid password", nil)
 		}
 	}
-	websocketClient.Send(Message.NewAsync(
+	err := websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_REQUEST_PAGE_CHANGE,
 		"",
 	).Serialize())
+	if err != nil {
+		return Error.New("Failed to send page change request", err)
+	}
 
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
 	server.websocketClientLocations[websocketClient] = ""
 	return nil
 }
