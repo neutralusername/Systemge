@@ -54,10 +54,6 @@ export class verticalNavigation extends React.Component {
 			"div", {
 				className: "verticalNagivation",
 				style: {
-					paddingTop: "1vh",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
 					width: "18%",
 					backgroundColor: "#191b1c",
 					borderRight: "2px solid #2f3236",
@@ -67,9 +63,11 @@ export class verticalNavigation extends React.Component {
 				"div", {
 					className : "verticalNavigationEntries",
 					style: {
+						paddingTop: "1vh",
 						position : "fixed",
 						display: "flex",
 						flexDirection: "column",
+						alignItems: "center",
 						width: "18%",
 						alignItems : "flex-start",
 						gap: "1vh",
