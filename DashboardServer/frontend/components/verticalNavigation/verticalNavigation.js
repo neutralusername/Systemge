@@ -64,6 +64,7 @@ export class verticalNavigation extends React.Component {
 					paddingBottom: "1vh",
 					backgroundColor: "#191b1c",
 					borderRight: "2px solid #2f3236",
+					userSelect: "none",
 				},
 			}, 
 			React.createElement(
