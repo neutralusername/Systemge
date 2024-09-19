@@ -17,9 +17,10 @@ add timestamps to response messages
 add status for non-landing pages
 make content less ugly
 refactor response messages
+consider storing some response messages in a buffer on the server
 
 create some sort of menu to view selected metrics-types
-option to create csv file based on update routine
+option to create csv file based on update routine and response messages
 rework dashboard design (menu bar, iphone support etc)
 implement different types of data visualizations
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
