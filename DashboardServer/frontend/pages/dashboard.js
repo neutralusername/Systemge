@@ -31,7 +31,7 @@ export class dashboard extends React.Component {
 					alignItems: "center",
 				},
 			}, 
-			React.createElement(
+			/* React.createElement(
 				responseMessages, {
 					responseMessages: this.props.responseMessages,
 				},
@@ -50,7 +50,7 @@ export class dashboard extends React.Component {
 					commands: this.props.pageData.commands,
 				},
 			),
-			graphs,
+			graphs, */
 		)		
 	}
 }

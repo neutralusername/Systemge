@@ -52,7 +52,7 @@ export class verticalNavigation extends React.Component {
 	render() {
 		return React.createElement(
 			"div", {
-				className : "verticalNavigationEntries",
+				className : "verticalNavigation",
 				style: {
 					position : "fixed",
 					height: "100%",
