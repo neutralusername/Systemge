@@ -12,6 +12,10 @@ export class responseMessages extends React.Component {
         let responseMessages = Object.keys(this.props.responseMessages).map((responseId) =>
             React.createElement(
                 "div", {
+                    style: {
+                        width: "100%",
+                        borderBottom: "1px solid #979fa8",
+                    },
                     key: responseId,
                 },
                 this.props.responseMessages[responseId],
@@ -22,32 +26,19 @@ export class responseMessages extends React.Component {
 			"div", {
 				id: "responseMessage",
 				style: {
-                    position: "fixed",
-                    top: "0",
-                    right: "0",
-                    width: "33%",
-                    height : "27%",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
+                    width: "100%",
+                    height: "100vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    whiteSpace: "pre-wrap",
+                    overflow: "hidden",
+                    overflowY: "scroll",
+                    wordWrap: "break-word",
+                    wordBreak: "break-word",
+                    
 				},
 			}, 
-			React.createElement(
-                "div", {
-                    style: {
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                        padding: "10px",
-                        whiteSpace: "pre-wrap",
-                        overflow: "hidden",
-                        overflowY: "scroll",
-                        wordWrap: "break-word",
-                        wordBreak: "break-word",
-                    },
-                },
-                responseMessages,
-            ),
+            responseMessages,
 		)		
 	}
 }
