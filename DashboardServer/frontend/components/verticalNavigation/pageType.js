@@ -35,8 +35,9 @@ export class pageType extends React.Component {
             "div", {
                 id: "pageTypeEntry",
                 style: {
-                    color: "white",
-                    fontSize: "1.4vw",
+					color: "white",
+                    fontSize: "clamp(1.5vh, 1.7vw, 2.8vh)",
+					whiteSpace: "nowrap",
                     fontWeight: "bold",
 					alignSelf: "center",
 					marginBottom: "1vh",

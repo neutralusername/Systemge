@@ -13,7 +13,8 @@ export class clients extends React.Component {
                 id: "clientsEntry",
                 style: {
                     color: "white",
-                    fontSize: "1.3vw",
+                    fontSize: "clamp(1.3vh, 1.5vw, 2.5vh)",
+                    whiteSpace: "nowrap",
                     display: "flex",
                     backgroundColor: this.props.selectedEntry == SELECTED_ENTRY_CLIENTS ? "#373b40" : "",
                     paddingTop: ".7vh",
