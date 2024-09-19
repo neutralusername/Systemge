@@ -54,6 +54,7 @@ export class verticalNavigation extends React.Component {
 					alignItems: "center",
 					width: "18%",
 					backgroundColor: "#191b1c",
+					borderRight: "2px solid #2f3236",
 				},
 			}, 
 			React.createElement(
