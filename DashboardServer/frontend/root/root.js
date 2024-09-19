@@ -25,6 +25,8 @@ import {
 import { 
     verticalNavigation 
 } from "../components/verticalNavigation/verticalNavigation.js";
+import { clientStatuses } from "../components/clientStatuses.js";
+import { metrics } from "../components/metrics.js";
 
 export const PAGE_TYPE_NULL = 0
 export const PAGE_TYPE_DASHBOARD = 1
@@ -281,7 +283,16 @@ export class root extends React.Component {
 
     getContent() {
         switch(this.state.selectedEntry) {
-            
+            case SELECTED_ENTRY_NULL:
+                return null;
+            case SELECTED_ENTRY_CLIENTS:
+                return React.createElement(
+                   clientStatuses, this.state
+                );
+            case SELECTED_ENTRY_METRICS:
+                return React.createElement(
+                    metrics, this.state
+                );
         }
     }
 
