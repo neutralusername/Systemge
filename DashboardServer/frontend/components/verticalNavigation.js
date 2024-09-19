@@ -62,7 +62,14 @@ export class verticalNavigation extends React.Component {
 					backgroundColor: "black",
 				},
 			}, 
-			entries,
+			React.createElement(
+				"div", {
+					style: {
+						position : "fixed"
+					},
+				}, 
+				entries,
+			),
 		)		
 	}
 }
