@@ -18,6 +18,7 @@ export class verticalNavigation extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+			width : "0",
 		}
 	}
 
@@ -49,6 +50,12 @@ export class verticalNavigation extends React.Component {
 		}
 	}
 
+	componentDidMount() {
+		this.setState({
+			width : document.getElementById("verticalNavigationWidthWrapper").style.width,
+		});
+	}
+
 	render() {
 		return React.createElement(
 			"div", {
@@ -56,7 +63,7 @@ export class verticalNavigation extends React.Component {
 				style: {
 					position : "fixed",
 					height: "100%",
-					width: "18%",
+					width: this.state.width,
 					display: "flex",
 					flexDirection: "column",
 					alignItems : "flex-start",
