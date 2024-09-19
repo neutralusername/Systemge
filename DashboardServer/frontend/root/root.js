@@ -201,7 +201,7 @@ export class root extends React.Component {
                 responseMessages: responseMessages,
                 responseMessageTimeouts: responseMessageTimeouts,
             });
-        }, 10000);
+        }, 1000*60*5);
         this.setState({
             responseMessages: responseMessages,
             responseMessageTimeouts: responseMessageTimeouts,
