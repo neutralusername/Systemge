@@ -15,6 +15,7 @@ add close buttons, add back button for non-landing pages
 add response messages (split up commands and response messages vertically)
 add status for non-landing pages
 make content less ugly
+refactor response messages
 
 add close button for dashboard server as well as all clients
 create some sort of menu to view selected metrics-types
