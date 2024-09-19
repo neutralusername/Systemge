@@ -310,7 +310,7 @@ export class root extends React.Component {
             React.createElement(
 				verticalNavigation, this.state,
 			),
-            this.getContent()
+            this.getContent(),
         );
     }
 }

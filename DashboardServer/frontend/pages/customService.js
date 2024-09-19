@@ -31,6 +31,7 @@ export class customService extends React.Component {
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",
+					width: "82%",
 				},
 			}, 
 			React.createElement(
