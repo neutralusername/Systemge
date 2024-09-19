@@ -90,6 +90,9 @@ export class verticalNavigation extends React.Component {
 			React.createElement(
 				pageType, {
 					pageType: this.props.pageType,
+					WS_CONNECTION: this.props.WS_CONNECTION,
+					pageRequest: this.props.pageRequest,
+					pageName: this.props.pageData.name
 				},
 			),
 			this.getEntries(),

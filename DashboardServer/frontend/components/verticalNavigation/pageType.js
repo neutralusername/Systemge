@@ -41,8 +41,16 @@ export class pageType extends React.Component {
                     fontWeight: "bold",
 					alignSelf: "center",
 					marginBottom: "1vh",
-					cursor: "default",
+					cursor: this.props.pageName == "/" ? "default" : "pointer",
                 },
+				onClick: () => {
+					if (this.props.pageName != "/") {
+						this.props.WS_CONNECTION.send(JSON.stringify({
+							topic : "changePage",
+							payload : "/",
+						}));
+					}
+				},
             }, 
             pageTypeWord,
         )

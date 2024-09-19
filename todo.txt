@@ -11,7 +11,6 @@ build specialized "dashboards" for various packages. for example to add topics t
 -oauth2ServerDashboard
 
 todo(frontend)
-add close buttons, add back button for non-landing pages
 add response messages (split up commands and response messages vertically)
 add status for non-landing pages
 make content less ugly
