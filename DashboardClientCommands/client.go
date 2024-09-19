@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-// frontend not implemented nor is this testet
+// frontend not implemented nor is this tested (use DashboardClientCustomService for now)
 func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
 	var metrics DashboardHelpers.DashboardMetrics
 	if getMetricsFunc != nil {
