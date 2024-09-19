@@ -10,6 +10,11 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
+todo(frontend)
+add close buttons, add back button for non-landing pages
+add response messages (split up commands and response messages vertically)
+add status for non-landing pages
+
 add close button for dashboard server as well as all clients
 create some sort of menu to view selected metrics-types
 option to create csv file based on update routine
