@@ -17,6 +17,8 @@ implement different types of data visualizations
 create some sort of menu to view selected metrics-types
 option to create csv file based on update routine
 
+rework dashboard design (menu bar, iphone support etc)
+
 maybe other types of csv files as well
 
 make websocketServer stop-operation cleaner
