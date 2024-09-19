@@ -203,10 +203,15 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 }
 
 func (server *Server) changePageHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	locationBeforeChange := server.websocketClientLocations[websocketClient]
 	locationAfterChange := message.GetPayload()
+	return server.changePage(websocketClient, locationAfterChange, true)
+}
+func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketClient, locationAfterChange string, lock bool) error {
+	if lock {
+		server.mutex.Lock()
+		defer server.mutex.Unlock()
+	}
+	locationBeforeChange := server.websocketClientLocations[websocketClient]
 
 	if locationBeforeChange == locationAfterChange {
 		return Error.New("Location is already "+locationAfterChange, nil)
