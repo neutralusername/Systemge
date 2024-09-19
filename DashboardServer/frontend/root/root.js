@@ -314,8 +314,6 @@ export class root extends React.Component {
                     className: "verticalNagivation",
                     style: {
                         width: "18%",
-                        backgroundColor: "#191b1c",
-                        borderRight: "2px solid #2f3236",
                     },
                 }, 
                 React.createElement(
