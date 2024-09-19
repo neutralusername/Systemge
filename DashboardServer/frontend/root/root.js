@@ -26,10 +26,10 @@ export const PAGE_TYPE_CUSTOMSERVICE = 2
 export const PAGE_TYPE_COMMAND = 3
 export const PAGE_TYPE_SYSTEMGECONNECTION = 4
 
-export const SELECTED_ENTRY_NULL = "null"
-export const SELECTED_ENTRY_CLIENTS = "clients"
-export const SELECTED_ENTRY_METRICS = "metrics"
-export const SELECTED_ENTRY_COMMANDS = "commands"
+export const SELECTED_ENTRY_NULL = 0
+export const SELECTED_ENTRY_CLIENTS = 1
+export const SELECTED_ENTRY_METRICS = 2
+export const SELECTED_ENTRY_COMMANDS = 3
 
 export const verticalNavigationWidthPercentage = 18;
 
