@@ -27,7 +27,7 @@ export class customService extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "status",
+				className: "customService",
 				style: {
 					display: "flex",
 					flexDirection: "column",
@@ -35,14 +35,7 @@ export class customService extends React.Component {
 				},
 			}, 
 			React.createElement(
-				verticalNavigation, {
-					WS_CONNECTION: this.props.WS_CONNECTION,
-					pageRequest: this.props.pageRequest,
-					pageData: this.props.pageData,
-				},
-			),
-			React.createElement(
-				backButton, null	
+				verticalNavigation, this.props,
 			),
 			React.createElement(
 				responseMessages, {

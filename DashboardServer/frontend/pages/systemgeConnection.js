@@ -13,7 +13,7 @@ export class systemgeConnection extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "status",
+				className: "systemgeConnection",
 				style: {
 					display: "flex",
 					flexDirection: "column",

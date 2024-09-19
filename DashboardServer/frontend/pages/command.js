@@ -13,7 +13,7 @@ export class command extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "status",
+				className: "command",
 				style: {
 					display: "flex",
 					flexDirection: "column",

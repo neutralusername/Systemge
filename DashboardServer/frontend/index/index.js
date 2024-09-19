@@ -3,5 +3,5 @@ import {
 } from "../root/root.js"
 
 ReactDOM.render(
-    React.createElement(root), document.getElementById('root')
-)
+    React.createElement(root), document.body
+);

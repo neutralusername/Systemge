@@ -23,11 +23,11 @@ import {
     GetWebsocketConnection,
 } from "../helpers/wsConnection.js";
 
-const PAGE_NULL = 0
-const PAGE_DASHBOARD = 1
-const PAGE_CUSTOMSERVICE = 2
-const PAGE_COMMAND = 3
-const PAGE_SYSTEMGECONNECTION = 4
+export const PAGE_TYPE_NULL = 0
+export const PAGE_TYPE_DASHBOARD = 1
+export const PAGE_TYPE_CUSTOMSERVICE = 2
+export const PAGE_TYPE_COMMAND = 3
+export const PAGE_TYPE_SYSTEMGECONNECTION = 4
 
 export class root extends React.Component {
     constructor(props) {
@@ -35,7 +35,7 @@ export class root extends React.Component {
         this.state = {
             responseMessages: {},
             responseMessageTimeouts: {},
-            pageType : PAGE_NULL,
+            pageType : PAGE_TYPE_NULL,
             pageData : {},
             setStateRoot : (state) => {
                 this.setState(state);
@@ -84,7 +84,6 @@ export class root extends React.Component {
         this.handleClose = this.handleClose.bind(this);
         this.handleOpen = this.handleOpen.bind(this);
         this.getContent = this.getContent.bind(this);
-        document.body.style.background = "#222426"
         document.body.style.color = "#ffffff"
 		Chart.defaults.color = "#ffffff";
         this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
@@ -271,21 +270,21 @@ export class root extends React.Component {
 
     getContent() {
         switch(this.state.pageType) {
-        case PAGE_NULL:
+        case PAGE_TYPE_NULL:
             return null;   
-        case PAGE_DASHBOARD:
+        case PAGE_TYPE_DASHBOARD:
             return React.createElement(
                 dashboard, this.state,
             );
-        case PAGE_CUSTOMSERVICE:
+        case PAGE_TYPE_CUSTOMSERVICE:
             return React.createElement(
                 customService, this.state,
             );
-        case PAGE_COMMAND:
+        case PAGE_TYPE_COMMAND:
             return React.createElement(
                 command, this.state,
             );
-        case PAGE_SYSTEMGECONNECTION:
+        case PAGE_TYPE_SYSTEMGECONNECTION:
             return React.createElement(
                 systemgeConnection, this.state,
             );
@@ -297,11 +296,8 @@ export class root extends React.Component {
             "div", {
                 id: "root",
                 style: {
+                    backgroundColor: "#222426",
                     fontFamily: "sans-serif",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
                 },
             },
             this.getContent()

@@ -7,6 +7,7 @@ import {
 import {
 	responseMessages,
 } from "../components/responseMessages.js";
+import { verticalNavigation } from "../components/verticalNavigation.js";
 
 export class dashboard extends React.Component {
 	constructor(props) {
@@ -23,13 +24,16 @@ export class dashboard extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "status",
+				className: "dashboard",
 				style: {
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",
 				},
 			}, 
+			React.createElement(
+				verticalNavigation, this.props,
+			),
 			React.createElement(
 				responseMessages, {
 					responseMessages: this.props.responseMessages,

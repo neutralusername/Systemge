@@ -29,7 +29,7 @@ export class clientStatuses extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "status",
+				className: "clientStatuses",
 				style: {
 					display: "flex",
 					flexDirection: "column",

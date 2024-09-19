@@ -17,7 +17,7 @@ export class responseMessages extends React.Component {
         responseMessages.reverse();
 		return React.createElement(
 			"div", {
-				className: "status",
+				className: "responseMessage",
 				style: {
                     position: "fixed",
                     top: "0",
