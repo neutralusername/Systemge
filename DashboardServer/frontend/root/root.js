@@ -66,6 +66,20 @@ export class root extends React.Component {
             case "updatePageMerge": 
                 this.updatePageMerge(JSON.parse(message.payload));
                 break;
+            case "password":
+                this.state.WS_CONNECTION.send(JSON.stringify({
+                    topic : "password",
+                    payload : window.prompt("Enter password"),
+                }))
+            case "requestPageChange":
+                let pathName = window.location.pathname;
+                if (pathName != "/") {
+                    pathName = window.location.pathname.slice(1);
+                }
+                this.state.WS_CONNECTION.send(JSON.stringify({
+                    topic : "changePage",
+                    payload : pathName,
+                }));
             default:
                 console.log("Unknown message topic: " + event.data);
                 break;
@@ -138,18 +152,6 @@ export class root extends React.Component {
     }
 
     handleOpen = () => {
-        let pathName = window.location.pathname;
-        if (pathName != "/") {
-            pathName = window.location.pathname.slice(1);
-        }
-        this.state.WS_CONNECTION.send(JSON.stringify({
-            topic : "password",
-            payload : window.prompt("Enter password"),
-        }))
-        this.state.WS_CONNECTION.send(JSON.stringify({
-            topic : "changePage",
-            payload : pathName,
-        }));
         let myLoop = () => {
             this.state.WS_CONNECTION.send(JSON.stringify({
                 topic: "heartbeat",
