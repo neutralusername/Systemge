@@ -46,7 +46,7 @@ export class verticalNavigation extends React.Component {
 			"div", {
 				className: "verticalNagivation",
 				style: {
-					paddingTop: "10px",
+					paddingTop: "1vh",
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",

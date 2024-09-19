@@ -15,6 +15,7 @@ export class command extends React.Component {
 			"div", {
 				className: "command",
 				style: {
+					paddingTop: "1vh",
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",

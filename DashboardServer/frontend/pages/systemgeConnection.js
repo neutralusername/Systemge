@@ -15,6 +15,7 @@ export class systemgeConnection extends React.Component {
 			"div", {
 				className: "systemgeConnection",
 				style: {
+					paddingTop: "1vh",
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",

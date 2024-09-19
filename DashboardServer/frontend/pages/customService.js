@@ -28,6 +28,7 @@ export class customService extends React.Component {
 			"div", {
 				className: "customService",
 				style: {
+					paddingTop: "1vh",
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",
