@@ -22,6 +22,9 @@ import {
 import {
     GetWebsocketConnection,
 } from "../helpers/wsConnection.js";
+import { 
+    verticalNavigation 
+} from "../components/verticalNavigation.js";
 
 export const PAGE_TYPE_NULL = 0
 export const PAGE_TYPE_DASHBOARD = 1
@@ -298,8 +301,15 @@ export class root extends React.Component {
                     backgroundColor: "#222426",
                     color: "#ffffff",
                     fontFamily: "sans-serif",
+                    display: "flex",
+                    flexDirection: "row",
+                    minHeight : "100vh",
+                    minWidth : "100vw",
                 },
             },
+            React.createElement(
+				verticalNavigation, this.state,
+			),
             this.getContent()
         );
     }

@@ -58,13 +58,8 @@ export class verticalNavigation extends React.Component {
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",
-					position: "fixed",
-					top: "0",
-					left: "0",
 					width: "18%",
-					height : "100%",
 					backgroundColor: "black",
-					
 				},
 			}, 
 			entries,
