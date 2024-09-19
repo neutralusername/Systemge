@@ -282,6 +282,10 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 			return Error.New("Invalid password", nil)
 		}
 	}
+	websocketClient.Send(Message.NewAsync(
+		DashboardHelpers.TOPIC_REQUEST_PAGE_CHANGE,
+		"",
+	).Serialize())
 
 	server.websocketClientLocations[websocketClient] = ""
 	return nil
