@@ -17,7 +17,6 @@ export class metrics extends React.Component {
                     whiteSpace: "nowrap",
                     display: "flex",
                     backgroundColor: this.props.selectedEntry == SELECTED_ENTRY_METRICS ? "#373b40" : "",
-                    overflow: "hidden",
                     paddingTop: ".7vh",
                     paddingBottom: ".7vh",
                     width : "100%",
