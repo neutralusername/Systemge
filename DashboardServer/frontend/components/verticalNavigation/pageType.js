@@ -18,9 +18,6 @@ export class pageType extends React.Component {
 	render() {
         let pageTypeWord = ""
 		switch(this.props.pageType) {
-			case PAGE_TYPE_NULL:
-				pageTypeWord = "NULL";
-				break;
 			case PAGE_TYPE_DASHBOARD:
 				pageTypeWord = "Overview";
 				break;

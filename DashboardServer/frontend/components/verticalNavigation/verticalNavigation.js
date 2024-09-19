@@ -27,11 +27,6 @@ export class verticalNavigation extends React.Component {
 		case PAGE_TYPE_DASHBOARD:
 			return [
 				React.createElement(
-					pageType, {
-						pageType: this.props.pageType,
-					},
-				),
-				React.createElement(
 					clients, {
 
 					}
@@ -39,11 +34,7 @@ export class verticalNavigation extends React.Component {
 			];
 		case PAGE_TYPE_CUSTOMSERVICE:
 			return [
-				React.createElement(
-					pageType, {
-						pageType: this.props.pageType,
-					},
-				),
+				
 			];
 		}
 	}
@@ -66,6 +57,11 @@ export class verticalNavigation extends React.Component {
 					borderRight: "2px solid #2f3236",
 				},
 			}, 
+			React.createElement(
+				pageType, {
+					pageType: this.props.pageType,
+				},
+			),
 			this.getEntries(),
 		)
 	}
