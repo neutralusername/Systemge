@@ -12,6 +12,7 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
+	FrontendPassword            string `json:"frontendPassword"`            // default: "" (no password)
 	FrontendHeartbeatIntervalMs uint64 `json:"frontendHeartbeatIntervalMs"` // default: 0 = disabled
 
 	DashboardSystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false

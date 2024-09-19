@@ -202,7 +202,7 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 	}
 }
 
-func (server *Server) handleChangePage(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (server *Server) changePageHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	locationBeforeChange := server.websocketClientLocations[websocketClient]
@@ -261,6 +261,21 @@ func (server *Server) handleChangePage(websocketClient *WebsocketServer.Websocke
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
+	messageBytes, err := websocketClient.Receive()
+	if err != nil {
+		return Error.New("Failed to receive message", err)
+	}
+	message, err := Message.Deserialize(messageBytes, websocketClient.GetId())
+	if err != nil {
+		return Error.New("Failed to deserialize message", err)
+	}
+	if message.GetTopic() != DashboardHelpers.TOPIC_PASSWORD {
+		return Error.New("Expected password request", nil)
+	}
+	if message.GetPayload() != server.config.FrontendPassword {
+		return Error.New("Invalid password", nil)
+	}
+
 	server.websocketClientLocations[websocketClient] = ""
 	return nil
 }

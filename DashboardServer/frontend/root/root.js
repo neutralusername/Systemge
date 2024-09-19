@@ -143,6 +143,10 @@ export class root extends React.Component {
             pathName = window.location.pathname.slice(1);
         }
         this.state.WS_CONNECTION.send(JSON.stringify({
+            topic : "password",
+            payload : window.prompt("Enter password"),
+        }))
+        this.state.WS_CONNECTION.send(JSON.stringify({
             topic : "changePage",
             payload : pathName,
         }));

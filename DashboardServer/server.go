@@ -124,7 +124,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		whitelist, blacklist,
 		map[string]WebsocketServer.MessageHandler{
 			DashboardHelpers.TOPIC_PAGE_REQUEST: server.pageRequestHandler,
-			DashboardHelpers.TOPIC_CHANGE_PAGE:  server.handleChangePage,
+			DashboardHelpers.TOPIC_CHANGE_PAGE:  server.changePageHandler,
 		},
 		server.onWebsocketConnectHandler, server.onWebsocketDisconnectHandler,
 	)

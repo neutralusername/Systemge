@@ -27,8 +27,6 @@ update readme
 
 improve logging (especially systemge and broker packages)
 
-implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
-
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
 add ChannelConnection and channelListener as more performant alternative for systems within a single process

@@ -71,7 +71,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
 		for websocketClient := range connectedClient.websocketClients {
-			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, DashboardHelpers.DASHBOARD_CLIENT_NAME))
+			server.changePageHandler(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, DashboardHelpers.DASHBOARD_CLIENT_NAME))
 		}
 		delete(server.connectedClients, connection.GetName())
 		delete(server.dashboardClient.ClientStatuses, connection.GetName())

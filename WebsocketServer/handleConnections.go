@@ -45,6 +45,10 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 			return
 		}
 	}
+	client.pastOnConnectHandlerMutex.Lock()
+	client.pastOnConnectHandler = true
+	client.pastOnConnectHandlerMutex.Unlock()
+
 	server.handleMessages(client)
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log(Error.New("client disconnected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
