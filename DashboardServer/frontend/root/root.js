@@ -16,6 +16,9 @@ import {
 import { 
     metrics 
 } from "../components/metrics.js";
+import { 
+    commands 
+} from "../components/commands.js";
 
 export const PAGE_TYPE_NULL = 0
 export const PAGE_TYPE_DASHBOARD = 1

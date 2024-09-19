@@ -13,7 +13,7 @@ export class commands extends React.Component {
 	}
 
 	render() {
-		let commands = Object.keys(this.props.commands).map((command) => {
+		let commands = Object.keys(this.props.pageData.commands).map((command) => {
 			return React.createElement(
 				"div", {
 					id: "commands",
@@ -79,7 +79,6 @@ export class commands extends React.Component {
 										...this.state.intervals,
 										[command]: setInterval(() => {
 											this.props.WS_CONNECTION.send(this.props.pageRequest("command", JSON.stringify({
-												name: this.props.name,
 												command: command,
 												args: document.getElementById(command+"args").value !== "" ? document.getElementById(command+"args").value.split(" ") : [],
 											})));

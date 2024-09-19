@@ -33,7 +33,7 @@ export class pageType extends React.Component {
 		}
 		return React.createElement(
             "div", {
-                id: "pageType",
+                id: "pageTypeEntry",
                 style: {
                     color: "white",
                     fontSize: "1.4vw",

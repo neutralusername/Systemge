@@ -1,8 +1,8 @@
 import { 
-    SELECTED_ENTRY_METRICS 
+    SELECTED_ENTRY_COMMANDS,
 } from "../../root/root.js";
 
-export class metrics extends React.Component {
+export class commands extends React.Component {
 	constructor(props) {
 		super(props);
 	}
@@ -10,12 +10,12 @@ export class metrics extends React.Component {
 	render() {
 		return React.createElement(
             "div", {
-                id: "metricsEntry",
+                id: "commandsEntry",
                 style: {
                     color: "white",
                     fontSize: "1.3vw",
                     display: "flex",
-                    backgroundColor: this.props.selectedEntry == SELECTED_ENTRY_METRICS ? "#373b40" : "",
+                    backgroundColor: this.props.selectedEntry == SELECTED_ENTRY_COMMANDS ? "#373b40" : "",
                     paddingTop: ".7vh",
                     paddingBottom: ".7vh",
                     width : "100%",
@@ -23,11 +23,11 @@ export class metrics extends React.Component {
                 },
                 onClick: () => {
                     this.props.setStateRoot({
-                        selectedEntry: SELECTED_ENTRY_METRICS,
+                        selectedEntry: SELECTED_ENTRY_COMMANDS,
                     });
                 }
             }, 
-            "• Metrics",
+            "• Commands",
         )
 	}
 }

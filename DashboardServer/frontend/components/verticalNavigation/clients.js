@@ -10,7 +10,7 @@ export class clients extends React.Component {
 	render() {
 		return React.createElement(
             "div", {
-                id: "clients",
+                id: "clientsEntry",
                 style: {
                     color: "white",
                     fontSize: "1.3vw",

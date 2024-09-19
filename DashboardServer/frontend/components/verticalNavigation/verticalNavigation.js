@@ -10,6 +10,9 @@ import {
 	clients 
 } from "./clients.js";
 import { 
+	commands 
+} from "./commands.js";
+import { 
 	metrics 
 } from "./metrics.js";
 import { 
@@ -31,6 +34,12 @@ export class verticalNavigation extends React.Component {
 			return [
 				React.createElement(
 					clients, {
+						selectedEntry: this.props.selectedEntry,
+						setStateRoot: this.props.setStateRoot,
+					}
+				),
+				React.createElement(
+					commands, {
 						selectedEntry: this.props.selectedEntry,
 						setStateRoot: this.props.setStateRoot,
 					}
