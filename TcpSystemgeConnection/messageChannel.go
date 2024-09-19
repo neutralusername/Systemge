@@ -32,12 +32,12 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 					if connection.infoLogger != nil {
 						connection.infoLogger.Log("Connection closed and no remaining messages")
 					}
-					connection.messageChannelSemaphore.ReleaseBlocking()
-					if connection.infoLogger != nil {
-						connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
-					}
 					connection.StopMessageHandlingLoop()
 					return
+				}
+				connection.messageChannelSemaphore.ReleaseBlocking()
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
 				}
 				if err := connection.HandleMessage(message, messageHandler); err != nil {
 					if connection.errorLogger != nil {
@@ -73,12 +73,12 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(m
 					if connection.infoLogger != nil {
 						connection.infoLogger.Log("Connection closed and no remaining messages")
 					}
-					connection.messageChannelSemaphore.ReleaseBlocking()
-					if connection.infoLogger != nil {
-						connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
-					}
 					connection.StopMessageHandlingLoop()
 					return
+				}
+				connection.messageChannelSemaphore.ReleaseBlocking()
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
 				}
 				go func() {
 					if err := connection.HandleMessage(message, messageHandler); err != nil {
