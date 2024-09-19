@@ -17,14 +17,13 @@ add status for non-landing pages
 make content less ugly
 refactor response messages
 
-add close button for dashboard server as well as all clients
 create some sort of menu to view selected metrics-types
 option to create csv file based on update routine
 rework dashboard design (menu bar, iphone support etc)
 implement different types of data visualizations
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 
-maybe other types of csv files as well
+maybe other types of csv files as well (e.g. connects/disconnects)
 
 make websocketServer stop-operation cleaner
 
