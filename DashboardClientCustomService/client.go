@@ -74,7 +74,6 @@ func New(name string, config *Config.DashboardClient, customService customServic
 					return commands.Execute(command.Command, command.Args)
 				},
 				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					println("t1")
 					err := customService.Start()
 					if err != nil {
 						return "", err
