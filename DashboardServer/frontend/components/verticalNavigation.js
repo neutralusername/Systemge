@@ -35,12 +35,6 @@ export class verticalNavigation extends React.Component {
 			React.createElement(
 				"div", {
 					style: {
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "center",
-						width: "100%",
-						height: "10%",
-						backgroundColor: "black",
 						color: "white",
 						fontSize: "20px",
 						fontWeight: "bold",
