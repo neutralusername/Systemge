@@ -36,7 +36,7 @@ export class verticalNavigation extends React.Component {
 				"div", {
 					style: {
 						color: "white",
-						fontSize: "20px",
+						fontSize: "1.5vw",
 						fontWeight: "bold",
 						marginTop: "5px",
 						marginBottom: "5px",
