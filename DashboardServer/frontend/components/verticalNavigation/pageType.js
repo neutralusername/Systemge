@@ -40,6 +40,7 @@ export class pageType extends React.Component {
                     fontWeight: "bold",
 					alignSelf: "center",
 					marginBottom: "1vh",
+					cursor: "default",
                 },
             }, 
             pageTypeWord,
