@@ -161,8 +161,6 @@ func (server *Server) onSystemgeConnection(connection SystemgeConnection.Systemg
 func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	close(server.messageHandlerStopChannels[connection])
-	delete(server.messageHandlerStopChannels, connection)
 	for topic := range server.connectionAsyncSubscriptions[connection] {
 		delete(server.asyncTopicSubscriptions[topic], connection)
 	}

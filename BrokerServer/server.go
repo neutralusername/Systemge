@@ -22,8 +22,6 @@ type Server struct {
 	errorLogger   *Tools.Logger
 	mailer        *Tools.Mailer
 
-	messageHandlerStopChannels map[SystemgeConnection.SystemgeConnection]chan<- bool
-
 	messageHandler SystemgeConnection.MessageHandler
 
 	connectionAsyncSubscriptions map[SystemgeConnection.SystemgeConnection]map[string]bool // connection -> topic -> true
@@ -67,8 +65,6 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 
 		connectionAsyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
 		connectionsSyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
-
-		messageHandlerStopChannels: make(map[SystemgeConnection.SystemgeConnection]chan<- bool),
 	}
 	if config.InfoLoggerPath != "" {
 		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)
