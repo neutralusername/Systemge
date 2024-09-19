@@ -300,11 +300,11 @@ export class root extends React.Component {
             "div", {
                 id: "root",
                 style: {
-                    backgroundColor: "#222426",
-                    color: "#ffffff",
-                    fontFamily: "sans-serif",
                     display: "flex",
                     flexDirection: "row",
+                    fontFamily: "sans-serif",
+                    backgroundColor: "#222426",
+                    color: "#ffffff",
                     minHeight : "100vh",
                     minWidth : "100vw",
                 },
