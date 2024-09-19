@@ -6,7 +6,7 @@ import {
 // WS_CONNECTION
 // pageRequest
 // clientStatuses = {name: status}
-export class clientStatuses extends React.Component {
+export class clients extends React.Component {
 	constructor(props) {
 		super(props);
 	}

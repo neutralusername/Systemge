@@ -2,18 +2,6 @@ import {
    configs
 } from "../configs.js";
 import { 
-    customService 
-} from "../pages/customService.js";
-import { 
-    dashboard 
-} from "../pages/dashboard.js";
-import {
-    command
-} from "../pages/command.js";
-import {
-    systemgeConnection
-} from "../pages/systemgeConnection.js";
-import { 
     multiLineGraph 
 } from "../components/graphs/multiLineGraph.js";
 import { 
@@ -25,8 +13,12 @@ import {
 import { 
     verticalNavigation 
 } from "../components/verticalNavigation/verticalNavigation.js";
-import { clientStatuses } from "../components/clientStatuses.js";
-import { metrics } from "../components/metrics.js";
+import { 
+    clients 
+} from "../components/clients.js";
+import { 
+    metrics 
+} from "../components/metrics.js";
 
 export const PAGE_TYPE_NULL = 0
 export const PAGE_TYPE_DASHBOARD = 1
@@ -37,6 +29,7 @@ export const PAGE_TYPE_SYSTEMGECONNECTION = 4
 export const SELECTED_ENTRY_NULL = "null"
 export const SELECTED_ENTRY_CLIENTS = "clients"
 export const SELECTED_ENTRY_METRICS = "metrics"
+export const SELECTED_ENTRY_COMMANDS = "commands"
 
 export const verticalNavigationWidthPercentage = 18;
 
@@ -296,12 +289,16 @@ export class root extends React.Component {
             return null;
         case SELECTED_ENTRY_CLIENTS:
             return React.createElement(
-                clientStatuses, this.state
+                clients, this.state
             );
         case SELECTED_ENTRY_METRICS:
             return React.createElement(
                 metrics, this.state
             );
+        case SELECTED_ENTRY_COMMANDS:
+            return React.createElement(
+				commands, this.state
+			);
         }
     }
 
