@@ -15,6 +15,9 @@ add close button for dashboard server as well as all clients
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 implement different types of data visualizations
 create some sort of menu to view selected metrics-types
+option to create csv file based on update routine
+
+maybe other types of csv files as well
 
 make websocketServer stop-operation cleaner
 
