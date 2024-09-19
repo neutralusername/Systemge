@@ -32,6 +32,10 @@ export const PAGE_TYPE_CUSTOMSERVICE = 2
 export const PAGE_TYPE_COMMAND = 3
 export const PAGE_TYPE_SYSTEMGECONNECTION = 4
 
+export const SELECTED_ENTRY_NULL = "null"
+export const SELECTED_ENTRY_CLIENTS = "clients"
+export const SELECTED_ENTRY_METRICS = "metrics"
+
 export const verticalNavigationWidthPercentage = 18;
 
 export class root extends React.Component {
@@ -42,6 +46,7 @@ export class root extends React.Component {
             responseMessageTimeouts: {},
             pageType : PAGE_TYPE_NULL,
             pageData : {},
+            selectedEntry : SELECTED_ENTRY_NULL,
             setStateRoot : (state) => {
                 this.setState(state);
             },
@@ -275,25 +280,8 @@ export class root extends React.Component {
     }
 
     getContent() {
-        switch(this.state.pageType) {
-        case PAGE_TYPE_NULL:
-            return null;   
-        case PAGE_TYPE_DASHBOARD:
-            return React.createElement(
-                dashboard, this.state,
-            );
-        case PAGE_TYPE_CUSTOMSERVICE:
-            return React.createElement(
-                customService, this.state,
-            );
-        case PAGE_TYPE_COMMAND:
-            return React.createElement(
-                command, this.state,
-            );
-        case PAGE_TYPE_SYSTEMGECONNECTION:
-            return React.createElement(
-                systemgeConnection, this.state,
-            );
+        switch(this.state.selectedEntry) {
+            
         }
     }
 

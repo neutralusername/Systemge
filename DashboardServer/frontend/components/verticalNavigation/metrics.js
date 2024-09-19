@@ -1,10 +1,10 @@
+import { 
+    SELECTED_ENTRY_METRICS 
+} from "../../root/root.js";
 
 export class metrics extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-            entry: "metrics",
-		}
 	}
 
 	render() {
@@ -15,14 +15,16 @@ export class metrics extends React.Component {
                     color: "white",
                     fontSize: "1.3vw",
                     display: "flex",
-                    backgroundColor: this.props.selectedEntry == this.state.entry ? "#373b40" : "",
+                    backgroundColor: this.props.selectedEntry == SELECTED_ENTRY_METRICS ? "#373b40" : "",
                     paddingTop: ".7vh",
                     paddingBottom: ".7vh",
                     width : "100%",
                     cursor: "pointer",
                 },
                 onClick: () => {
-                    this.props.changeSelectedEntry("metrics");
+                    this.props.setStateRoot({
+                        selectedEntry: SELECTED_ENTRY_METRICS,
+                    });
                 }
             }, 
             "• Metrics",

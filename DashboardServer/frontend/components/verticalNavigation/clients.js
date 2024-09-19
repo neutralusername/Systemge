@@ -1,10 +1,10 @@
+import { 
+    SELECTED_ENTRY_CLIENTS 
+} from "../../root/root.js";
 
 export class clients extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-            entry: "clients",
-		}
 	}
 
 	render() {
@@ -15,14 +15,16 @@ export class clients extends React.Component {
                     color: "white",
                     fontSize: "1.3vw",
                     display: "flex",
-                    backgroundColor: this.props.selectedEntry == this.state.entry ? "#373b40" : "",
+                    backgroundColor: this.props.selectedEntry == SELECTED_ENTRY_CLIENTS ? "#373b40" : "",
                     paddingTop: ".7vh",
                     paddingBottom: ".7vh",
                     width : "100%",
                     cursor: "pointer",
                 },
                 onClick: () => {
-                    this.props.changeSelectedEntry("clients");
+                    this.props.setStateRoot({
+                        selectedEntry: SELECTED_ENTRY_CLIENTS,
+                    });
                 }
             }, 
             "• Clients",

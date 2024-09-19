@@ -21,15 +21,6 @@ import {
 export class verticalNavigation extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			selectedEntry: "",
-		}
-	}
-
-	changeSelectedEntry(entry) {
-		this.setState({
-			selectedEntry: entry,
-		});
 	}
 
 	getEntries() {
@@ -40,14 +31,14 @@ export class verticalNavigation extends React.Component {
 			return [
 				React.createElement(
 					clients, {
-						changeSelectedEntry: this.changeSelectedEntry.bind(this),
-						selectedEntry: this.state.selectedEntry,
+						selectedEntry: this.props.selectedEntry,
+						setStateRoot: this.props.setStateRoot,
 					}
 				),
 				React.createElement(
 					metrics, {
-						changeSelectedEntry: this.changeSelectedEntry.bind(this),
-						selectedEntry: this.state.selectedEntry,
+						selectedEntry: this.props.selectedEntry,
+						setStateRoot: this.props.setStateRoot,
 					}
 				),
 			];
