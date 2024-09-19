@@ -24,7 +24,7 @@ import {
 } from "../helpers/wsConnection.js";
 import { 
     verticalNavigation 
-} from "../components/verticalNavigation.js";
+} from "../components/verticalNavigation/verticalNavigation.js";
 
 export const PAGE_TYPE_NULL = 0
 export const PAGE_TYPE_DASHBOARD = 1

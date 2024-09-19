@@ -25,6 +25,7 @@ export class dashboard extends React.Component {
 			"div", {
 				className: "dashboard",
 				style: {
+					paddingTop: "10px",
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "center",
