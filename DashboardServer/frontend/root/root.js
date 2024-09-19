@@ -223,6 +223,9 @@ export class root extends React.Component {
 
     setResponseMessage = (message) => {
         let responseId = GenerateRandomAlphaNumericString(10);
+        while (this.state.responseMessages[responseId] !== undefined) {
+            responseId = GenerateRandomAlphaNumericString(10);
+        }
         let responseMessages = this.state.responseMessages;
         responseMessages[responseId] = message;
         let responseMessageTimeouts = this.state.responseMessageTimeouts;

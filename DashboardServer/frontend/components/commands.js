@@ -1,3 +1,9 @@
+
+// expects props:
+// commands
+// WS_CONNECTION
+// pageRequest
+// name
 export class commands extends React.Component {
 	constructor(props) {
 		super(props);

@@ -6,6 +6,8 @@ import {
 	PAGE_TYPE_SYSTEMGECONNECTION,
 } from "../../root/root.js";
 
+// expected props:
+// pageType
 export class pageType extends React.Component {
 	constructor(props) {
 		super(props);

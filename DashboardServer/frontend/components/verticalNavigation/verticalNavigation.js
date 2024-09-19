@@ -9,6 +9,8 @@ import {
 	pageType 
 } from "./pageType.js";
 
+// expected props:
+// root.state
 export class verticalNavigation extends React.Component {
 	constructor(props) {
 		super(props);

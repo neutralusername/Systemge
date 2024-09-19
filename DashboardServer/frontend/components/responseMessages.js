@@ -1,3 +1,6 @@
+
+// expected props:
+// responseMessages 
 export class responseMessages extends React.Component {
 	constructor(props) {
 		super(props);
