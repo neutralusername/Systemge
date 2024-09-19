@@ -1,16 +1,16 @@
 
-export class clients extends React.Component {
+export class metrics extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-            entry: "clients",
+            entry: "metrics",
 		}
 	}
 
 	render() {
 		return React.createElement(
             "div", {
-                id: "clients",
+                id: "metrics",
                 style: {
                     color: "white",
                     fontSize: "1.3vw",
@@ -22,10 +22,10 @@ export class clients extends React.Component {
                     cursor: "pointer",
                 },
                 onClick: () => {
-                    this.props.changeSelectedEntry("clients");
+                    this.props.changeSelectedEntry("metrics");
                 }
             }, 
-            "• Clients",
+            "• Metrics",
         )
 	}
 }

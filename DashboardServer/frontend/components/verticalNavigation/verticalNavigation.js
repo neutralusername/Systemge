@@ -10,6 +10,9 @@ import {
 	clients 
 } from "./clients.js";
 import { 
+	metrics 
+} from "./metrics.js";
+import { 
 	pageType 
 } from "./pageType.js";
 
@@ -18,6 +21,15 @@ import {
 export class verticalNavigation extends React.Component {
 	constructor(props) {
 		super(props);
+		this.state = {
+			selectedEntry: "",
+		}
+	}
+
+	changeSelectedEntry(entry) {
+		this.setState({
+			selectedEntry: entry,
+		});
 	}
 
 	getEntries() {
@@ -28,7 +40,14 @@ export class verticalNavigation extends React.Component {
 			return [
 				React.createElement(
 					clients, {
-
+						changeSelectedEntry: this.changeSelectedEntry.bind(this),
+						selectedEntry: this.state.selectedEntry,
+					}
+				),
+				React.createElement(
+					metrics, {
+						changeSelectedEntry: this.changeSelectedEntry.bind(this),
+						selectedEntry: this.state.selectedEntry,
 					}
 				),
 			];
@@ -52,7 +71,6 @@ export class verticalNavigation extends React.Component {
 					alignItems : "flex-start",
 					paddingTop: "1vh",
 					paddingBottom: "1vh",
-					gap: "1vh",
 					backgroundColor: "#191b1c",
 					borderRight: "2px solid #2f3236",
 				},
