@@ -45,11 +45,6 @@ export class root extends React.Component {
             WS_CONNECTION : GetWebsocketConnection(configs.WS_PORT, configs.WS_PATTERN),
             pageRequest: this.pageRequest,
         };
-        this.mergeData = this.mergeData.bind(this);
-        this.setResponseMessage = this.setResponseMessage.bind(this);
-        this.handleClose = this.handleClose.bind(this);
-        this.handleOpen = this.handleOpen.bind(this);
-        this.getContent = this.getContent.bind(this);
 		Chart.defaults.color = "#ffffff";
         this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
