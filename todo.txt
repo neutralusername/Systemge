@@ -15,7 +15,7 @@ add config option for response message lifetime (0 infite)
 add button to remove response messages manually 
 add timestamps to response messages
 add status for non-landing pages
-make content less ugly
+make content less ugly (style for input elements, status, metrics)
 refactor response messages
 consider storing some response messages in a cache on the server
 
