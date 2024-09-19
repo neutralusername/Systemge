@@ -17,7 +17,7 @@ add timestamps to response messages
 add status for non-landing pages
 make content less ugly
 refactor response messages
-consider storing some response messages in a buffer on the server
+consider storing some response messages in a cache on the server
 
 create some sort of menu to view selected metrics-types
 option to create csv file based on update routine and response messages
