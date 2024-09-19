@@ -22,6 +22,12 @@ export class verticalNavigation extends React.Component {
 		}
 	}
 
+	componentDidMount() {
+		this.setState({
+			width : document.getElementById("verticalNavigationWidthWrapper").style.width,
+		});
+	}
+
 	getEntries() {
 		switch(this.props.pageType) {
 		case PAGE_TYPE_NULL:
@@ -48,12 +54,6 @@ export class verticalNavigation extends React.Component {
 				),
 			];
 		}
-	}
-
-	componentDidMount() {
-		this.setState({
-			width : document.getElementById("verticalNavigationWidthWrapper").style.width,
-		});
 	}
 
 	render() {
