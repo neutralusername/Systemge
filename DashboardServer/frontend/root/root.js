@@ -112,36 +112,40 @@ export class root extends React.Component {
             case "changePage": 
                 this.changePage(JSON.parse(message.payload));
                 break;
-            case "updatePageReplace": {
-                    let page = JSON.parse(message.payload);
-                    if (page.name !== this.state.pageData.name) {
-                        return;
-                    }
-                    let pageData = this.state.pageData;
-                    Object.keys(page.data).forEach((key) => {
-                        pageData[key] = page[key];
-                    });
-                    this.setState({
-                        pageData: pageData,
-                    });
-                }
+            case "updatePageReplace": 
+                this.updatePageReplace(JSON.parse(message.payload));
                 break;
-            case "updatePageMerge": {
-                    let page = JSON.parse(message.payload);
-                    if (page.name !== this.state.pageData.name) {
-                        return;
-                    }
-                    let pageData = this.state.pageData;
-                    this.mergeData(pageData, page.data); 
-                    this.setState({
-                        pageData: pageData,
-                    });
-                }
+            case "updatePageMerge": 
+                this.updatePageMerge(JSON.parse(message.payload));
                 break;
             default:
                 console.log("Unknown message topic: " + event.data);
                 break;
         }
+    }
+
+    updatePageReplace = (page) => {
+        if (page.name !== this.state.pageData.name) {
+            return;
+        }
+        let pageData = this.state.pageData;
+        Object.keys(page.data).forEach((key) => {
+            pageData[key] = page[key];
+        });
+        this.setState({
+            pageData: pageData,
+        });
+    }
+
+    updatePageMerge = (page) => {
+        if (page.name !== this.state.pageData.name) {
+            return;
+        }
+        let pageData = this.state.pageData;
+        this.mergeData(pageData, page.data); 
+        this.setState({
+            pageData: pageData,
+        });
     }
 
     changePage = (page) => {
