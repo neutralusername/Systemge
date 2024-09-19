@@ -1,3 +1,10 @@
+import {
+	PAGE_TYPE_NULL,
+	PAGE_TYPE_DASHBOARD,
+	PAGE_TYPE_CUSTOMSERVICE,
+	PAGE_TYPE_COMMAND,
+	PAGE_TYPE_SYSTEMGECONNECTION,
+} from "../../root/root.js";
 import { 
 	pageType 
 } from "./pageType.js";
@@ -8,14 +15,31 @@ export class verticalNavigation extends React.Component {
 		this.state = {
 		}
 	}
+
+	getEntries() {
+		switch(this.props.pageType) {
+		case PAGE_TYPE_NULL:
+			return [];
+		case PAGE_TYPE_DASHBOARD:
+			return [
+				React.createElement(
+					pageType, {
+						pageType: this.props.pageType,
+					},
+				),
+			];
+		case PAGE_TYPE_CUSTOMSERVICE:
+			return [
+				React.createElement(
+					pageType, {
+						pageType: this.props.pageType,
+					},
+				),
+			];
+		}
+	}
+
 	render() {
-		let entries = [
-			React.createElement(
-				pageType, {
-					pageType: this.props.pageType,
-				},
-			),
-		];
 		return React.createElement(
 			"div", {
 				className: "verticalNagivation",
@@ -32,10 +56,13 @@ export class verticalNavigation extends React.Component {
 			React.createElement(
 				"div", {
 					style: {
-						position : "fixed"
+						position : "fixed",
+						display: "flex",
+						flexDirection: "column",
+						gap: "1vh",
 					},
 				}, 
-				entries,
+				this.getEntries(),
 			),
 		)		
 	}
