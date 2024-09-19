@@ -310,9 +310,30 @@ export class root extends React.Component {
                 },
             },
             React.createElement(
-				verticalNavigation, this.state,
-			),
-            this.getContent(),
+                "div", {
+                    className: "verticalNagivation",
+                    style: {
+                        width: "18%",
+                        backgroundColor: "#191b1c",
+                        borderRight: "2px solid #2f3236",
+                    },
+                }, 
+                React.createElement(
+                    verticalNavigation, this.state,
+                ),
+            ),
+            React.createElement(
+                "div", {
+                    className: "content",
+                    style: {
+                        width: "82%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    },
+                }, 
+                this.getContent(),
+            ),
         );
     }
 }
