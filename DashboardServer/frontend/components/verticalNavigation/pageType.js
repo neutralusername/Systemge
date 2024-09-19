@@ -39,7 +39,7 @@ export class pageType extends React.Component {
                 className: "title",
                 style: {
                     color: "white",
-                    fontSize: "1.5vw",
+                    fontSize: "1.4vw",
                     fontWeight: "bold",
                 },
             }, 

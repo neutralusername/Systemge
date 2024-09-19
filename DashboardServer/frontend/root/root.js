@@ -217,7 +217,6 @@ export class root extends React.Component {
             const colorIndex = hash % this.state.distinctColors.length;
             colors.push(this.state.distinctColors[colorIndex]);
         });
-
         return colors;
     }
 
