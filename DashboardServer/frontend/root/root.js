@@ -32,6 +32,8 @@ export const PAGE_TYPE_CUSTOMSERVICE = 2
 export const PAGE_TYPE_COMMAND = 3
 export const PAGE_TYPE_SYSTEMGECONNECTION = 4
 
+export const verticalNavigationWidthPercentage = 18;
+
 export class root extends React.Component {
     constructor(props) {
         super(props);
@@ -313,7 +315,7 @@ export class root extends React.Component {
                 "div", {
                     id : "verticalNavigationWidthWrapper",
                     style: {
-                        width: "18%",
+                        width: verticalNavigationWidthPercentage+"%",
                     },
                 }, 
                 React.createElement(
@@ -324,7 +326,7 @@ export class root extends React.Component {
                 "div", {
                     id : "contentWidthWrapper",
                     style: {
-                        width: "82%",
+                        width: 100-verticalNavigationWidthPercentage+"%",
                     },
                 }, 
                 this.getContent(),

@@ -4,6 +4,7 @@ import {
 	PAGE_TYPE_CUSTOMSERVICE,
 	PAGE_TYPE_COMMAND,
 	PAGE_TYPE_SYSTEMGECONNECTION,
+	verticalNavigationWidthPercentage,
 } from "../../root/root.js";
 import { 
 	clients 
@@ -17,15 +18,6 @@ import {
 export class verticalNavigation extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			width : "0",
-		}
-	}
-
-	componentDidMount() {
-		this.setState({
-			width : document.getElementById("verticalNavigationWidthWrapper").style.width,
-		});
 	}
 
 	getEntries() {
@@ -63,7 +55,7 @@ export class verticalNavigation extends React.Component {
 				style: {
 					position : "fixed",
 					height: "100%",
-					width: this.state.width,
+					width: verticalNavigationWidthPercentage+"%",
 					display: "flex",
 					flexDirection: "column",
 					alignItems : "flex-start",
