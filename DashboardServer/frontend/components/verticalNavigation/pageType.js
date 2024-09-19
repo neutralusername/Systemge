@@ -19,7 +19,7 @@ export class pageType extends React.Component {
         let pageTypeWord = ""
 		switch(this.props.pageType) {
 			case PAGE_TYPE_DASHBOARD:
-				pageTypeWord = "Overview";
+				pageTypeWord = "Dashboard";
 				break;
 			case PAGE_TYPE_CUSTOMSERVICE:
 				pageTypeWord = "Custom Service";
