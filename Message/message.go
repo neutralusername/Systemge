@@ -24,13 +24,6 @@ type messageData struct {
 const TOPIC_SUCCESS = "success"
 const TOPIC_FAILURE = "failure"
 
-const TOPIC_INTRODUCTION = "get_introduction"
-const TOPIC_GET_STATUS = "get_service_status"
-const TOPIC_GET_METRICS = "get_metrics"
-const TOPIC_START = "start_service"
-const TOPIC_STOP = "stop_service"
-const TOPIC_EXECUTE_COMMAND = "execute_command"
-
 const TOPIC_SUBSCRIBE_ASYNC = "add_async_topics"
 const TOPIC_SUBSCRIBE_SYNC = "add_sync_topics"
 const TOPIC_UNSUBSCRIBE_ASYNC = "remove_async_topics"

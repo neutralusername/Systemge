@@ -1,14 +1,12 @@
 package BrokerClient
 
 import (
-	"encoding/json"
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
@@ -36,8 +34,8 @@ type Client struct {
 	ongoingTopicResolutions     map[string]*resolutionAttempt
 	ongoingGetBrokerConnections map[string]*getBrokerConnectionAttempt
 
-	brokerConnections map[string]*connection            // endpointString -> connection
-	topicResolutions  map[string]map[string]*connection // topic -> [endpointString -> connection]
+	brokerConnections map[string]*connection            // tcpClientConfigString -> connection
+	topicResolutions  map[string]map[string]*connection // topic -> [tcpClientConfigString -> connection]
 
 	mutex sync.Mutex
 
@@ -56,12 +54,12 @@ type Client struct {
 
 type connection struct {
 	connection             SystemgeConnection.SystemgeConnection
-	endpoint               *Config.TcpClient
+	tcpClientConfig        *Config.TcpClient
 	responsibleAsyncTopics map[string]bool
 	responsibleSyncTopics  map[string]bool
 }
 
-func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
+func New(name string, config *Config.MessageBrokerClient, messageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
 		panic(Error.New("Config is required", nil))
 	}
@@ -72,13 +70,13 @@ func New(name string, config *Config.MessageBrokerClient, systemgeMessageHandler
 		panic(Error.New("ConnectionConfig is required", nil))
 	}
 	if len(config.ResolverTcpClientConfigs) == 0 {
-		panic(Error.New("At least one ResolverEndpoint is required", nil))
+		panic(Error.New("At least one ResolverTcpClientConfig is required", nil))
 	}
 
 	messageBrokerClient := &Client{
 		name:                    name,
 		config:                  config,
-		messageHandler:          systemgeMessageHandler,
+		messageHandler:          messageHandler,
 		ongoingTopicResolutions: make(map[string]*resolutionAttempt),
 
 		topicResolutions: make(map[string]map[string]*connection),
@@ -127,12 +125,10 @@ func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.stopChannel = stopChannel
 
 	for topic := range messageBrokerClient.subscribedAsyncTopics {
-		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, false, stopChannel, messageBrokerClient.subscribedAsyncTopics[topic])
-		<-resolutionAttempt.ongoing
+		messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
 	}
 	for topic := range messageBrokerClient.subscribedSyncTopics {
-		resolutionAttempt, _ := messageBrokerClient.startResolutionAttempt(topic, true, stopChannel, messageBrokerClient.subscribedSyncTopics[topic])
-		<-resolutionAttempt.ongoing
+		messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 	}
 	messageBrokerClient.status = Status.STARTED
 	return nil
@@ -163,109 +159,6 @@ func (messageBrokerClient *Client) GetName() string {
 	return messageBrokerClient.name
 }
 
-func getEndpointString(endpoint *Config.TcpClient) string {
-	return endpoint.Address + endpoint.TlsCert
-}
-
-func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
-	commands := Commands.Handlers{
-		"start": func(args []string) (string, error) {
-			err := messageBrokerClient.Start()
-			if err != nil {
-				return "", Error.New("Failed to start message broker client", err)
-			}
-			return "success", nil
-		},
-		"stop": func(args []string) (string, error) {
-			err := messageBrokerClient.Stop()
-			if err != nil {
-				return "", Error.New("Failed to stop message broker client", err)
-			}
-			return "success", nil
-		},
-		"getStatus": func(args []string) (string, error) {
-			return Status.ToString(messageBrokerClient.GetStatus()), nil
-		},
-		"getMetrics": func(args []string) (string, error) {
-			metrics := messageBrokerClient.GetMetrics()
-			json, err := json.Marshal(metrics)
-			if err != nil {
-				return "", Error.New("Failed to marshal metrics to json", err)
-			}
-			return string(json), nil
-		},
-		"retrieveMetrics": func(args []string) (string, error) {
-			metrics := messageBrokerClient.RetrieveMetrics()
-			json, err := json.Marshal(metrics)
-			if err != nil {
-				return "", Error.New("Failed to marshal metrics to json", err)
-			}
-			return string(json), nil
-		},
-		"resolveTopic": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			return "success", messageBrokerClient.ResolveTopic(args[0])
-		},
-		"resolveSubscribeTopics": func(args []string) (string, error) {
-			return "success", messageBrokerClient.ResolveSubscribeTopics()
-		},
-		"getAsyncSubscribeTopics": func(args []string) (string, error) {
-			topics := messageBrokerClient.GetAsyncSubscribeTopics()
-			return Helpers.JsonMarshal(topics), nil
-		},
-		"getSyncSubscribeTopics": func(args []string) (string, error) {
-			topics := messageBrokerClient.GetSyncSubscribeTopics()
-			return Helpers.JsonMarshal(topics), nil
-		},
-		"addAsyncSubscribeTopic": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			return "success", messageBrokerClient.AddAsyncSubscribeTopic(args[0])
-		},
-		"addSyncSubscribeTopic": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			return "success", messageBrokerClient.AddSyncSubscribeTopic(args[0])
-		},
-		"removeAsyncSubscribeTopic": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			return "success", messageBrokerClient.RemoveAsyncSubscribeTopic(args[0])
-		},
-		"removeSyncSubscribeTopic": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			return "success", messageBrokerClient.RemoveSyncSubscribeTopic(args[0])
-		},
-		"asyncMessage": func(args []string) (string, error) {
-			if len(args) != 2 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			topic := args[0]
-			payload := args[1]
-			messageBrokerClient.AsyncMessage(topic, payload)
-			return "success", nil
-		},
-		"syncRequest": func(args []string) (string, error) {
-			if len(args) != 2 {
-				return "", Error.New("Invalid number of arguments", nil)
-			}
-			topic := args[0]
-			payload := args[1]
-			responseMessages := messageBrokerClient.SyncRequest(topic, payload)
-			json, err := json.Marshal(responseMessages)
-			if err != nil {
-				return "", Error.New("Failed to marshal messages to json", err)
-			}
-			return string(json), nil
-		},
-	}
-
-	return commands
+func getTcpClientConfigString(tcpClientConfig *Config.TcpClient) string {
+	return tcpClientConfig.Address + tcpClientConfig.TlsCert
 }

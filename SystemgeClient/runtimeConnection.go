@@ -8,8 +8,8 @@ import (
 )
 
 // AddConnection adds an active connection to the client.
-// if reconnectEndpointConfig is not nil, the connection will attempt to reconnect
-func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectEndpointConfig *Config.TcpClient) error {
+// if reconnectTcpClientConfig is not nil, the connection will attempt to reconnect
+func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectTcpClientConfig *Config.TcpClient) error {
 	if connection == nil {
 		return Error.New("connection is nil", nil)
 	}
@@ -28,24 +28,24 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 	client.addressConnections[connection.GetAddress()] = connection
 	client.nameConnections[connection.GetName()] = connection
 	client.waitGroup.Add(1)
-	go client.handleDisconnect(connection, reconnectEndpointConfig)
+	go client.handleDisconnect(connection, reconnectTcpClientConfig)
 	return nil
 }
 
 // AddConnectionAttempt attempts to connect to a server and add it to the client
-func (client *SystemgeClient) AddConnectionAttempt(endpointConfig *Config.TcpClient) error {
-	if endpointConfig == nil {
-		return Error.New("endpointConfig is nil", nil)
+func (client *SystemgeClient) AddConnectionAttempt(tcpClientConfig *Config.TcpClient) error {
+	if tcpClientConfig == nil {
+		return Error.New("tcpClientConfig is nil", nil)
 	}
-	if endpointConfig.Address == "" {
-		return Error.New("endpointConfig.Address is empty", nil)
+	if tcpClientConfig.Address == "" {
+		return Error.New("tcpClientConfig.Address is empty", nil)
 	}
 	client.statusMutex.RLock()
 	defer client.statusMutex.RUnlock()
 	if client.status == Status.STOPPED {
 		return Error.New("client stopped", nil)
 	}
-	return client.startConnectionAttempts(endpointConfig)
+	return client.startConnectionAttempts(tcpClientConfig)
 }
 
 // RemoveConnection attempts to remove a connection from the client
@@ -67,8 +67,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 		return nil
 	}
 	if connectionAttempt, ok := client.connectionAttemptsMap[address]; ok {
-		connectionAttempt.isAborted = true
-		return nil
+		return connectionAttempt.AbortAttempts()
 	}
 	return Error.New("connection not found", nil)
 }

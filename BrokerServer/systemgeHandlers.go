@@ -92,7 +92,6 @@ func (server *Server) unsubscribeSync(connection SystemgeConnection.SystemgeConn
 }
 
 func (server *Server) handleAsyncPropagate(sendingConnection SystemgeConnection.SystemgeConnection, message *Message.Message) {
-	server.asyncMessagesReceived.Add(1)
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for connection := range server.asyncTopicSubscriptions[message.GetTopic()] {
@@ -110,7 +109,6 @@ func (server *Server) handleAsyncPropagate(sendingConnection SystemgeConnection.
 }
 
 func (server *Server) handleSyncPropagate(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	server.syncRequestsReceived.Add(1)
 	server.mutex.Lock()
 	responseChannels := []<-chan *Message.Message{}
 	waitgroup := sync.WaitGroup{}
@@ -150,15 +148,17 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 
 func (server *Server) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	err := connection.StartMessageHandlingLoop_Sequentially(server.messageHandler)
+	if err != nil {
+		return err
+	}
 	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
 	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
-	server.mutex.Unlock()
-	connection.StartProcessingLoopSequentially(server.messageHandler)
 	return nil
 }
 
 func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
-	connection.StopProcessingLoop()
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	for topic := range server.connectionAsyncSubscriptions[connection] {

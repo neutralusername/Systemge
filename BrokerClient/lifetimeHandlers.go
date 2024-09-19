@@ -9,8 +9,15 @@ import (
 func (messageBrokerClient *Client) handleConnectionLifetime(connection *connection, stopChannel chan bool) {
 	select {
 	case <-connection.connection.GetCloseChannel():
-		connection.connection.StopProcessingLoop()
+
 		messageBrokerClient.mutex.Lock()
+		err := connection.connection.StopMessageHandlingLoop()
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(err.Error())
+			}
+		}
+
 		subscribedAsyncTopicsByClosedConnection := []string{}
 		subscribedSyncTopicsByClosedConnection := []string{}
 		for topic := range connection.responsibleAsyncTopics {
@@ -27,7 +34,7 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 				subscribedSyncTopicsByClosedConnection = append(subscribedSyncTopicsByClosedConnection, topic)
 			}
 		}
-		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+		delete(messageBrokerClient.brokerConnections, getTcpClientConfigString(connection.tcpClientConfig))
 		messageBrokerClient.mutex.Unlock()
 
 		messageBrokerClient.statusMutex.Lock()
@@ -36,16 +43,21 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 			return
 		}
 		for _, topic := range subscribedAsyncTopicsByClosedConnection {
-			messageBrokerClient.startResolutionAttempt(topic, false, stopChannel, true)
+			messageBrokerClient.startResolutionAttempt(topic, false, stopChannel)
 		}
 		for _, topic := range subscribedSyncTopicsByClosedConnection {
-			messageBrokerClient.startResolutionAttempt(topic, true, stopChannel, true)
+			messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 		}
 		messageBrokerClient.statusMutex.Unlock()
 	case <-stopChannel:
 		connection.connection.Close()
-		connection.connection.StopProcessingLoop()
 		messageBrokerClient.mutex.Lock()
+		err := connection.connection.StopMessageHandlingLoop()
+		if err != nil {
+			if messageBrokerClient.errorLogger != nil {
+				messageBrokerClient.errorLogger.Log(err.Error())
+			}
+		}
 		for topic := range connection.responsibleAsyncTopics {
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleAsyncTopics, topic)
@@ -54,7 +66,7 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 			delete(messageBrokerClient.topicResolutions, topic)
 			delete(connection.responsibleSyncTopics, topic)
 		}
-		delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+		delete(messageBrokerClient.brokerConnections, getTcpClientConfigString(connection.tcpClientConfig))
 		messageBrokerClient.mutex.Unlock()
 	}
 }
@@ -72,7 +84,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 				messageBrokerClient.statusMutex.Unlock()
 				return
 			}
-			messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel, true)
+			messageBrokerClient.startResolutionAttempt(topic, isSynctopic, stopChannel)
 			messageBrokerClient.statusMutex.Unlock()
 		} else {
 			messageBrokerClient.mutex.Lock()
@@ -84,7 +96,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 					delete(connection.responsibleAsyncTopics, topic)
 				}
 				if len(connection.responsibleAsyncTopics) == 0 && len(connection.responsibleSyncTopics) == 0 {
-					delete(messageBrokerClient.brokerConnections, getEndpointString(connection.endpoint))
+					delete(messageBrokerClient.brokerConnections, getTcpClientConfigString(connection.tcpClientConfig))
 					connection.connection.Close()
 				}
 			}

@@ -1,70 +1,64 @@
 package BrokerServer
 
-func (server *Server) GetMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_received"] = server.GetAsyncMessagesReceived()
-	metrics["async_messages_propagated"] = server.GetAsyncMessagesPropagated()
-	metrics["sync_requests_received"] = server.GetSyncRequestsReceived()
-	metrics["sync_requests_propagated"] = server.GetSyncRequestsPropagated()
-	metrics["connection_count"] = uint64(len(server.connectionAsyncSubscriptions))
-	metrics["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
-	metrics["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
-	systemgeServerMetrics := server.systemgeServer.GetMetrics()
-	for key, value := range systemgeServerMetrics {
-		metrics[key] = value
-	}
-	messageHandlerMetrics := server.messageHandler.GetMetrics()
-	for key, value := range messageHandlerMetrics {
-		metrics[key] = value
-	}
-	return metrics
+import (
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (server *Server) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	server.mutex.Lock()
+	metricsTypes.AddMetrics("brokerServer_messagesPropagated", Metrics.New(
+		map[string]uint64{
+			"async_messages_propagated": server.CheckAsyncMessagesPropagated(),
+			"sync_requests_propagated":  server.CheckSyncRequestsPropagated(),
+		},
+	))
+	metricsTypes.AddMetrics("brokerServer_stats", Metrics.New(
+		map[string]uint64{
+			"connection_count":  uint64(len(server.connectionAsyncSubscriptions)),
+			"async_topic_count": uint64(len(server.asyncTopicSubscriptions)),
+			"sync_topic_count":  uint64(len(server.syncTopicSubscriptions)),
+		},
+	))
+	server.mutex.Unlock()
+
+	metricsTypes.Merge(server.systemgeServer.CheckMetrics())
+	metricsTypes.Merge(server.messageHandler.CheckMetrics())
+	return metricsTypes
 }
-func (server *Server) RetrieveMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_received"] = server.RetrieveAsyncMessagesPropagated()
-	metrics["async_messages_propagated"] = server.RetrieveAsyncMessagesPropagated()
-	metrics["sync_requests_received"] = server.RetrieveSyncRequestsReceived()
-	metrics["sync_requests_propagated"] = server.RetrieveSyncRequestsPropagated()
-	metrics["connection_count"] = uint64(len(server.connectionAsyncSubscriptions))
-	metrics["async_topic_count"] = uint64(len(server.asyncTopicSubscriptions))
-	metrics["sync_topic_count"] = uint64(len(server.syncTopicSubscriptions))
-	systemgeServerMetrics := server.systemgeServer.RetrieveMetrics()
-	for key, value := range systemgeServerMetrics {
-		metrics["systemgeServer_"+key] = value
-	}
-	if server.messageHandler != nil {
-		messageHandlerMetrics := server.messageHandler.RetrieveMetrics()
-		for key, value := range messageHandlerMetrics {
-			metrics["messageHandler_"+key] = value
-		}
-	}
-	return metrics
+func (server *Server) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	server.mutex.Lock()
+	metricsTypes.AddMetrics("brokerServer_messagesPropagated", Metrics.New(
+		map[string]uint64{
+			"async_messages_propagated": server.GetAsyncMessagesPropagated(),
+			"sync_requests_propagated":  server.GetSyncRequestsPropagated(),
+		},
+	))
+	metricsTypes.AddMetrics("brokerServer_stats", Metrics.New(
+		map[string]uint64{
+			"connection_count":  uint64(len(server.connectionAsyncSubscriptions)),
+			"async_topic_count": uint64(len(server.asyncTopicSubscriptions)),
+			"sync_topic_count":  uint64(len(server.syncTopicSubscriptions)),
+		},
+	))
+	server.mutex.Unlock()
+
+	metricsTypes.Merge(server.systemgeServer.GetMetrics())
+	metricsTypes.Merge(server.messageHandler.GetMetrics())
+	return metricsTypes
 }
 
-func (server *Server) GetAsyncMessagesReceived() uint64 {
-	return server.asyncMessagesReceived.Load()
-}
-func (server *Server) RetrieveAsyncMessagesReceived() uint64 {
-	return server.asyncMessagesReceived.Swap(0)
-}
-
-func (server *Server) GetAsyncMessagesPropagated() uint64 {
+func (server *Server) CheckAsyncMessagesPropagated() uint64 {
 	return server.asyncMessagesPropagated.Load()
 }
-func (server *Server) RetrieveAsyncMessagesPropagated() uint64 {
+func (server *Server) GetAsyncMessagesPropagated() uint64 {
 	return server.asyncMessagesPropagated.Swap(0)
 }
 
-func (server *Server) GetSyncRequestsReceived() uint64 {
-	return server.syncRequestsReceived.Load()
-}
-func (server *Server) RetrieveSyncRequestsReceived() uint64 {
-	return server.syncRequestsReceived.Swap(0)
-}
-
-func (server *Server) GetSyncRequestsPropagated() uint64 {
+func (server *Server) CheckSyncRequestsPropagated() uint64 {
 	return server.syncRequestsPropagated.Load()
 }
-func (server *Server) RetrieveSyncRequestsPropagated() uint64 {
+func (server *Server) GetSyncRequestsPropagated() uint64 {
 	return server.syncRequestsPropagated.Swap(0)
 }

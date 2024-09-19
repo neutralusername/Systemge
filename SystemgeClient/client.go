@@ -1,16 +1,14 @@
 package SystemgeClient
 
 import (
-	"encoding/json"
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -26,9 +24,9 @@ type SystemgeClient struct {
 	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
 
 	mutex                 sync.RWMutex
-	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
-	nameConnections       map[string]SystemgeConnection.SystemgeConnection // name -> connection
-	connectionAttemptsMap map[string]*ConnectionAttempt                    // address -> connection attempt
+	addressConnections    map[string]SystemgeConnection.SystemgeConnection    // address -> connection
+	nameConnections       map[string]SystemgeConnection.SystemgeConnection    // name -> connection
+	connectionAttemptsMap map[string]*TcpSystemgeConnection.ConnectionAttempt // address -> connection attempt
 
 	stopChannel chan bool
 
@@ -52,7 +50,7 @@ func New(name string, config *Config.SystemgeClient, onConnectHandler func(Syste
 		panic("config is nil")
 	}
 	if config.TcpClientConfigs == nil {
-		panic("config.EndpointConfigs is nil")
+		panic("config.TcpClientConfigs is nil")
 	}
 	if config.TcpSystemgeConnectionConfig == nil {
 		panic("config.ConnectionConfig is nil")
@@ -64,7 +62,7 @@ func New(name string, config *Config.SystemgeClient, onConnectHandler func(Syste
 
 		addressConnections:    make(map[string]SystemgeConnection.SystemgeConnection),
 		nameConnections:       make(map[string]SystemgeConnection.SystemgeConnection),
-		connectionAttemptsMap: make(map[string]*ConnectionAttempt),
+		connectionAttemptsMap: make(map[string]*TcpSystemgeConnection.ConnectionAttempt),
 
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
@@ -103,13 +101,13 @@ func (client *SystemgeClient) Start() error {
 	}
 	client.status = Status.PENDING
 	client.stopChannel = make(chan bool)
-	for _, endpointConfig := range client.config.TcpClientConfigs {
-		if err := client.startConnectionAttempts(endpointConfig); err != nil {
+	for _, tcpClientConfig := range client.config.TcpClientConfigs {
+		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error())
+				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts to \""+endpointConfig.Address+"\"", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
 						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
@@ -141,122 +139,4 @@ func (client *SystemgeClient) Stop() error {
 	}
 	client.status = Status.STOPPED
 	return nil
-}
-
-func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
-	commands := Commands.Handlers{}
-	commands["start"] = func(args []string) (string, error) {
-		if err := client.Start(); err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["stop"] = func(args []string) (string, error) {
-		if err := client.Stop(); err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["getStatus"] = func(args []string) (string, error) {
-		return Status.ToString(client.GetStatus()), nil
-	}
-	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := client.GetMetrics()
-		json, err := json.Marshal(metrics)
-		if err != nil {
-			return "", Error.New("failed to marshal metrics to json", err)
-		}
-		return string(json), nil
-	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := client.RetrieveMetrics()
-		json, err := json.Marshal(metrics)
-		if err != nil {
-			return "", Error.New("failed to marshal metrics to json", err)
-		}
-		return string(json), nil
-	}
-	commands["addConnectionAttempt"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", Error.New("expected 1 argument", nil)
-		}
-		endpointConfig := Config.UnmarshalTcpClient(args[0])
-		if endpointConfig == nil {
-			return "", Error.New("failed unmarshalling endpointConfig", nil)
-		}
-		if err := client.AddConnectionAttempt(endpointConfig); err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["removeConnection"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", Error.New("expected 1 argument", nil)
-		}
-		if err := client.RemoveConnection(args[0]); err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["getConnectionNamesAndAddresses"] = func(args []string) (string, error) {
-		connectionNamesAndAddress := client.GetConnectionNamesAndAddresses()
-		json, err := json.Marshal(connectionNamesAndAddress)
-		if err != nil {
-			return "", Error.New("failed to marshal connectionNamesAndAddress to json", err)
-		}
-		return string(json), nil
-	}
-	commands["getConnectionName"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", Error.New("expected 1 argument", nil)
-		}
-		connectionName := client.GetConnectionName(args[0])
-		if connectionName == "" {
-			return "", Error.New("failed to get connection name", nil)
-		}
-		return connectionName, nil
-	}
-	commands["getConnectionAddress"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", Error.New("expected 1 argument", nil)
-		}
-		connectionAddress := client.GetConnectionAddress(args[0])
-		if connectionAddress == "" {
-			return "", Error.New("failed to get connection address", nil)
-		}
-		return connectionAddress, nil
-	}
-	commands["getConnectionCount"] = func(args []string) (string, error) {
-		return Helpers.IntToString(client.GetConnectionCount()), nil
-	}
-	commands["asyncMessage"] = func(args []string) (string, error) {
-		if len(args) < 2 {
-			return "", Error.New("expected at least 2 arguments", nil)
-		}
-		topic := args[0]
-		payload := args[1]
-		clientNames := args[2:]
-		if err := client.AsyncMessage(topic, payload, clientNames...); err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["syncRequest"] = func(args []string) (string, error) {
-		if len(args) < 2 {
-			return "", Error.New("expected at least 2 arguments", nil)
-		}
-		topic := args[0]
-		payload := args[1]
-		clientNames := args[2:]
-		messages, err := client.SyncRequestBlocking(topic, payload, clientNames...)
-		if err != nil {
-			return "", err
-		}
-		json, err := json.Marshal(messages)
-		if err != nil {
-			return "", Error.New("failed to marshal messages to json", err)
-		}
-		return string(json), nil
-	}
-	return commands
 }

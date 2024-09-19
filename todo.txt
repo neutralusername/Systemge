@@ -1,20 +1,45 @@
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
+-allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
+-systemgeConnectionDashboard X
+-systemgeServerDashboard 
+-brokerResolverDashboard
+-brokerClientDashboard  (include visual elements that represent subscribed topics and whether they are successfully connected to)
+-brokerServerDashboard
+-singleRequestServerDashboard
+-websocketServerDashboard
+-httpServerDashboard
+-oauth2ServerDashboard
 
-integrate "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
+add close button for dashboard server as well as all clients
 
-improve logging (especially systemge and broker packages)
+implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
+implement different types of data visualizations
+create some sort of menu to view selected metrics-types
 
 make websocketServer stop-operation cleaner
-
-add "syncResponsesSent" metrics to connection
 
 update oauth2server (add dashboard client etc.)
 
 update readme
+
+improve logging (especially systemge and broker packages)
+
+implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
 add ChannelConnection and channelListener as more performant alternative for systems within a single process
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
-allow some kind of grouping of metrics on dashboards (no concrete ideas yet, probably further in the future)
+write something that takes in configs and create an executable, that can be used to easily perform systemge-operations through the (os-)command line (such as sending messages) i.e. through the provided args
+
+possibly create a way to access systemge-operations (i.e. operations from a structs like systemgeServer) through os-level shared memory and synchronization (syscall package)
+
+support the option for custom dashboard clients and frontend pages (react components)
+
+extend syncToken functionality so that you can register/manage syncTokens/responses more independetly of sync requests 
+sync request/responses api will stay virtually unchanged (the connection.SyncResponse() method will change slightly to work based on token instead based on message)
+in addition it will be possible to register syncTokens on receiver side, and gather manual sync responses (connection.SyncResponse())
+with the effect, that one connection can send multiple responses for one sync token (while leaving everything else as easy to use as it is now)
+Add SyncResponses struct that is returned instead of a message channel. the struct can be used to receive response messages or cancel the token. (also make it possible to get the response channel)
+change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)

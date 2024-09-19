@@ -1,77 +1,21 @@
 package DashboardHelpers
 
-import "github.com/neutralusername/Systemge/Error"
-
 const (
-	CLIENT_COMMAND = iota
-	CLIENT_CUSTOM_SERVICE
+	CLIENT_FIELD_COMMANDS                         = "commands"
+	CLIENT_FIELD_NAME                             = "name"
+	CLIENT_FIELD_STATUS                           = "status"
+	CLIENT_FIELD_METRICS                          = "metrics"
+	CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED = "isMessageHandlingLoopStarted"
+	CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT          = "unhandledMessageCount"
+	CLIENT_FIELD_CLIENTSTATUSES                   = "clientStatuses"
+	CLIENT_FIELD_SYSTEMGE_CONNECTION_CHILDREN     = "systemgeConnectionChildren"
 )
 
-func HasMetrics(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
-func HasStatus(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
-func HasStart(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
-func HasStop(client interface{}) bool {
-	switch client.(type) {
-	case *CustomServiceClient:
-		return true
-	default:
-		return false
-	}
-}
-
-func GetCommands(client interface{}) ([]string, error) {
-	commands := []string{}
-	switch client.(type) {
-	case *CommandClient:
-		commands = append(commands, client.(*CommandClient).Commands...)
-	case *CustomServiceClient:
-		commands = append(commands, client.(*CustomServiceClient).Commands...)
-	default:
-		return nil, Error.New("Unknown client type", nil)
-	}
-	return commands, nil
-}
-
-func UpdateMetrics(client interface{}, metrics map[string]uint64) error {
-	switch client.(type) {
-	case *CustomServiceClient:
-		client.(*CustomServiceClient).Metrics = metrics
-	default:
-		return Error.New("Unknown client type", nil)
-	}
-	return nil
-}
-
-func UpdateStatus(client interface{}, status int) error {
-	switch client.(type) {
-	case *CustomServiceClient:
-		client.(*CustomServiceClient).Status = status
-	default:
-		return Error.New("Unknown client type", nil)
-	}
-	return nil
-}
+const (
+	CLIENT_TYPE_NULL = iota
+	CLIENT_TYPE_DASHBOARD
+	CLIENT_TYPE_CUSTOMSERVICE
+	CLIENT_TYPE_COMMAND
+	CLIENT_TYPE_SYSTEMGECONNECTION
+	CLIENT_TYPE_SYSTEMGESERVER
+)

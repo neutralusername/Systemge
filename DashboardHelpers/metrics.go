@@ -1,29 +1,26 @@
 package DashboardHelpers
 
-import "encoding/json"
+import (
+	"encoding/json"
 
-type Metrics struct {
-	Metrics map[string]uint64 `json:"metrics"`
-	Name    string            `json:"name"`
-}
+	"github.com/neutralusername/Systemge/Metrics"
+)
 
-func NewMetrics(name string, metrics map[string]uint64) Metrics {
-	return Metrics{
-		Name:    name,
-		Metrics: metrics,
-	}
-}
+type DashboardMetrics map[string][]*Metrics.Metrics
 
-func UnmarshalMetrics(data string) (Metrics, error) {
-	var m Metrics
-	err := json.Unmarshal([]byte(data), &m)
-	return m, err
-}
-
-func (m Metrics) Marshal() string {
-	bytes, err := json.Marshal(m)
+func UnmarshalDashboardMetrics(data string) (DashboardMetrics, error) {
+	var metrics DashboardMetrics
+	err := json.Unmarshal([]byte(data), &metrics)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return string(bytes)
+	return metrics, nil
+}
+
+func NewDashboardMetrics(typeMetrics Metrics.MetricsTypes) DashboardMetrics {
+	var dashboardMetrics = make(DashboardMetrics)
+	for metricType, metrics := range typeMetrics {
+		dashboardMetrics[metricType] = append(dashboardMetrics[metricType], metrics)
+	}
+	return dashboardMetrics
 }

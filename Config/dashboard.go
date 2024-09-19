@@ -12,18 +12,18 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
-	MaxChartEntries uint32 `json:"maxChartEntries"` // default: 0 = disabled
+	FrontendHeartbeatIntervalMs uint64 `json:"frontendHeartbeatIntervalMs"` // default: 0 = disabled
 
-	DashboardMetrics           bool `json:"dashboardMetrics"`           // default: false
-	DashboardCommands          bool `json:"dashboardCommands"`          // default: false
 	DashboardSystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false
 	DashboardHttpCommands      bool `json:"dashboardHttpCommands"`      // default: false
 	DashboardWebsocketCommands bool `json:"dashboardWebsocketCommands"` // default: false
 
-	HeapUpdateIntervalMs      uint64 `json:"heapUpdateIntervalMs"`      // default: 0 = disabled
-	GoroutineUpdateIntervalMs uint64 `json:"goroutineUpdateIntervalMs"` // default: 0 = disabled
-	StatusUpdateIntervalMs    uint64 `json:"statusUpdateIntervalMs"`    // default: 0 = disabled
-	MetricsUpdateIntervalMs   uint64 `json:"metricsUpdateIntervalMs"`   // default: 0 = disabled
+	UpdateIntervalMs     uint64 `json:"updateIntervalMs"`  // default: 0 == disabled
+	MaxMetricsTypes      int    `json:"maxMetricTypes"`    // default: 0 == no limit
+	MaxMetricsPerType    int    `json:"maxMetricsPerType"` // default: 0 == no limit
+	MaxEntriesPerMetrics int    `json:"maxMetricEntries"`  // default: 100 (must be > 0)
+
+	MaxCommands int `json:"maxCommands"` // default: 0 == no limit
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {

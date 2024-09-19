@@ -1,9 +1,14 @@
+
+// expects props:
+// WS_CONNECTION
+// pageRequest
+// name
+// status
 export class status extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 		}
-		
 	}
 
 	render() {
@@ -25,18 +30,18 @@ export class status extends React.Component {
 						flexDirection: "row",
 					},
 				}, 
-				this.props.module.name !== "dashboard" && this.props.module.status === 0 ? React.createElement(	
+				this.props.name !== "dashboard" && this.props.status === 0 ? React.createElement(	
 					"button", {
 						onClick: () => {
-							this.props.WS_CONNECTION.send(this.props.constructMessage("start", this.props.module.name));
+							this.props.WS_CONNECTION.send(this.props.pageRequest("start", this.props.name));
 						},
 					},
 					"start",
 				): null,
-				this.props.module.name !== "dashboard" && (this.props.module.status === 1 || this.props.module.status === 2) ? React.createElement(
+				this.props.name !== "dashboard" && (this.props.status === 1 || this.props.status === 2) ? React.createElement(
 					"button", {
 						onClick: () => {
-							this.props.WS_CONNECTION.send(this.props.constructMessage("stop", this.props.module.name));
+							this.props.WS_CONNECTION.send(this.props.pageRequest("stop", this.props.name));
 						},
 					},
 					"stop",
@@ -52,21 +57,23 @@ export class status extends React.Component {
 							style: {
 								color: "white",
 							},
-							href: this.props.module.name !== "dashboard" ? `/${this.props.module.name}` : "",
+							href: this.props.name !== "/" ? `/${this.props.name}` : "",
 							onClick: (e) => {
 								e.preventDefault();
-								if (this.props.module.name !== "dashboard") {
-									//if not current page
-									if (window.location.pathname !== `/${this.props.module.name}`)
-										window.location.href = `/${this.props.module.name}`;
+								if (this.props.name != "/") {
+									if (window.location.pathname !== `/${this.props.name}`)
+										window.location.href = `/${this.props.name}`;
 								}
 							},
 						},
-						this.props.module.name,
+						this.props.name,
 					),
 				),
-				this.props.module.status === 0 ? "🔴" : this.props.module.status === 1 ? "🟡" : this.props.module.status === 2 ? "🟢" : "🟠"
+				this.props.status === 0 ? "🔴" : this.props.status === 1 ? "🟡" : this.props.status === 2 ? "🟢" : "🟠"
 			),
 		)		
 	}
 }
+
+
+

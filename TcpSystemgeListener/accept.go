@@ -12,47 +12,44 @@ import (
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-func (listener *TcpListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
-	netConn, err := listener.tcpListener.GetListener().Accept()
+func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
+	netConn, err := listener.listener.Accept()
 	listener.connectionId++
 	connectionId := listener.connectionId
 	listener.connectionAttempts.Add(1)
 	if err != nil {
-		listener.failedConnections.Add(1)
+		listener.failedConnectionAttempts.Add(1)
 		return nil, Error.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
 	}
 	ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
-		listener.rejectedConnections.Add(1)
+		listener.rejectedConnectionAttempts.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to rate limiting", nil)
 	}
-	if listener.tcpListener.GetBlacklist() != nil && listener.tcpListener.GetBlacklist().Contains(ip) {
-		listener.rejectedConnections.Add(1)
+	if listener.blacklist != nil && listener.blacklist.Contains(ip) {
+		listener.rejectedConnectionAttempts.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to blacklist", nil)
 	}
-	if listener.tcpListener.GetWhitelist() != nil && listener.tcpListener.GetWhitelist().ElementCount() > 0 && !listener.tcpListener.GetWhitelist().Contains(ip) {
-		listener.rejectedConnections.Add(1)
+	if listener.whitelist != nil && listener.whitelist.ElementCount() > 0 && !listener.whitelist.Contains(ip) {
+		listener.rejectedConnectionAttempts.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to whitelist", nil)
 	}
 	connection, err := listener.serverHandshake(connectionConfig, serverName, netConn)
 	if err != nil {
-		listener.rejectedConnections.Add(1)
+		listener.rejectedConnectionAttempts.Add(1)
 		netConn.Close()
 		return nil, Error.New("Rejected connection #"+Helpers.Uint32ToString(connectionId)+" due to handshake failure", err)
 	}
-	listener.acceptedConnections.Add(1)
+	listener.acceptedConnectionAttempts.Add(1)
 	return connection, nil
 }
 
-func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpSystemgeConnection.TcpConnection, error) {
-	tcpBufferBytes := connectionConfig.TcpBufferBytes
-	if tcpBufferBytes == 0 {
-		tcpBufferBytes = 1024 * 4
-	}
-	messageBytes, _, err := Tcp.Receive(netConn, connectionConfig.TcpReceiveTimeoutMs, tcpBufferBytes)
+func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
+	messageReceiver := TcpSystemgeConnection.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
+	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		return nil, Error.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
 	}
@@ -86,5 +83,5 @@ func (listener *TcpListener) serverHandshake(connectionConfig *Config.TcpSystemg
 	if err != nil {
 		return nil, Error.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn), nil
+	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver), nil
 }

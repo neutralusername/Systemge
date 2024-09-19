@@ -1,22 +1,34 @@
 package DashboardServer
 
-func (server *Server) GetSystemgeMetrics() map[string]uint64 {
-	return server.systemgeServer.GetMetrics()
-}
-func (server *Server) RetrieveSystemgeMetrics() map[string]uint64 {
-	return server.systemgeServer.RetrieveMetrics()
+import (
+	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (server *Server) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("resource_usage", Metrics.New(
+		map[string]uint64{
+			"heap_usage":      Helpers.HeapUsage(),
+			"goroutine_count": uint64(Helpers.GoroutineCount()),
+		},
+	))
+	metricsTypes.Merge(server.websocketServer.GetMetrics())
+	metricsTypes.Merge(server.httpServer.GetMetrics())
+	metricsTypes.Merge(server.systemgeServer.GetMetrics())
+	return metricsTypes
 }
 
-func (server *Server) GetWebsocketMetrics() map[string]uint64 {
-	return server.websocketServer.GetMetrics()
-}
-func (server *Server) RetrieveWebsocketMetrics() map[string]uint64 {
-	return server.websocketServer.RetrieveMetrics()
-}
-
-func (server *Server) GetHttpMetrics() map[string]uint64 {
-	return server.httpServer.GetMetrics()
-}
-func (server *Server) RetrieveHttpMetrics() map[string]uint64 {
-	return server.httpServer.RetrieveMetrics()
+func (server *Server) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("resource_usage", Metrics.New(
+		map[string]uint64{
+			"heap_usage":      Helpers.HeapUsage(),
+			"goroutine_count": uint64(Helpers.GoroutineCount()),
+		},
+	))
+	metricsTypes.Merge(server.websocketServer.CheckMetrics())
+	metricsTypes.Merge(server.httpServer.CheckMetrics())
+	metricsTypes.Merge(server.systemgeServer.CheckMetrics())
+	return metricsTypes
 }

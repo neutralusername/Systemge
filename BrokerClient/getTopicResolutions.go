@@ -18,14 +18,14 @@ func (messageBrokerClient *Client) getTopicResolutions(topic string, isSyncTopic
 		}
 		var resolutionAttempt *resolutionAttempt
 		if isSyncTopic {
-			attempt, err := messageBrokerClient.startResolutionAttempt(topic, isSyncTopic, messageBrokerClient.stopChannel, messageBrokerClient.subscribedSyncTopics[topic])
+			attempt, err := messageBrokerClient.startResolutionAttempt(topic, isSyncTopic, messageBrokerClient.stopChannel)
 			resolutionAttempt = attempt
 			if err != nil {
 				messageBrokerClient.statusMutex.Unlock()
 				return nil, err
 			}
 		} else {
-			attempt, err := messageBrokerClient.startResolutionAttempt(topic, isSyncTopic, messageBrokerClient.stopChannel, messageBrokerClient.subscribedAsyncTopics[topic])
+			attempt, err := messageBrokerClient.startResolutionAttempt(topic, isSyncTopic, messageBrokerClient.stopChannel)
 			resolutionAttempt = attempt
 			if err != nil {
 				messageBrokerClient.statusMutex.Unlock()

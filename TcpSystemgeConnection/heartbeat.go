@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpConnection) heartbeatLoop() {
+func (connection *TcpSystemgeConnection) heartbeatLoop() {
 	for {
 		select {
 		case <-connection.closeChannel:

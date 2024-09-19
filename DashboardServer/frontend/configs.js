@@ -1,1 +1,1 @@
-export const WS_PORT = 8444;export const WS_PATTERN = "/ws";export const MAX_CHART_ENTRIES = 100;
+export const configs = {"FRONTEND_HEARTBEAT_INTERVAL":60000,"WS_PATTERN":"/ws","WS_PORT":8444}

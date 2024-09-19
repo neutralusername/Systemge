@@ -9,13 +9,13 @@ import (
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTopic bool) []*Config.TcpClient {
-	endpoints := []*Config.TcpClient{}
-	for _, resolverEndpoint := range messageBrokerclient.config.ResolverTcpClientConfigs {
-		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverEndpoint, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
+func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, isSyncTopic bool) []*Config.TcpClient {
+	tcpClientConfigs := []*Config.TcpClient{}
+	for _, resolverTcpClientConfig := range messageBrokerclient.config.ResolverTcpClientConfigs {
+		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverTcpClientConfig, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverEndpoint.Address+"\"", err).Error())
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverTcpClientConfig.Address+"\"", err).Error())
 			}
 			continue
 		}
@@ -29,24 +29,24 @@ func (messageBrokerclient *Client) resolveBrokerEndpoints(topic string, isSyncTo
 		resolverConnection.Close() // close in case there was an issue on the resolver side that prevented closing the connection
 		if syncErr != nil {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverEndpoint.Address+"\"", syncErr).Error())
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverTcpClientConfig.Address+"\"", syncErr).Error())
 			}
 			continue
 		}
 		if response.GetTopic() == Message.TOPIC_FAILURE {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverEndpoint.Address+"\"", errors.New(response.GetPayload())).Error())
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverTcpClientConfig.Address+"\"", errors.New(response.GetPayload())).Error())
 			}
 			continue
 		}
-		endpoint := Config.UnmarshalTcpClient(response.GetPayload())
-		if endpoint == nil {
+		tcpClientConfig := Config.UnmarshalTcpClient(response.GetPayload())
+		if tcpClientConfig == nil {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal endpoint", nil).Error())
+				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal tcpClientConfig", nil).Error())
 			}
 			continue
 		}
-		endpoints = append(endpoints, endpoint)
+		tcpClientConfigs = append(tcpClientConfigs, tcpClientConfig)
 	}
-	return endpoints
+	return tcpClientConfigs
 }

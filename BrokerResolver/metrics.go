@@ -1,55 +1,75 @@
 package BrokerResolver
 
-func (resolver *Resolver) GetMetrics() map[string]uint64 {
-	metrics := resolver.systemgeServer.GetMetrics()
-	metrics["sucessful_async_resolutions"] = resolver.GetSucessfulAsyncResolutions()
-	metrics["sucessful_sync_resolutions"] = resolver.GetSucessfulSyncResolutions()
-	metrics["failed_resolutions"] = resolver.GetFailedResolutions()
-	metrics["ongoing_resolutions"] = uint64(resolver.ongoingResolutions.Load())
-	resolver.mutex.Lock()
-	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
-	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
-	resolver.mutex.Unlock()
-	serverMetrics := resolver.systemgeServer.GetMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
-	}
-	return metrics
-}
-func (resolver *Resolver) RetrieveMetrics() map[string]uint64 {
-	metrics := resolver.systemgeServer.RetrieveMetrics()
-	metrics["sucessful_async_resolutions"] = resolver.RetrieveSucessfulAsyncResolutions()
-	metrics["sucessful_sync_resolutions"] = resolver.RetrieveSucessfulSyncResolutions()
-	metrics["failed_resolutions"] = resolver.RetrieveFailedResolutions()
-	metrics["ongoing_resolutions"] = uint64(resolver.ongoingResolutions.Load())
-	resolver.mutex.Lock()
-	metrics["async_topic_count"] = uint64(len(resolver.asyncTopicEndpoints))
-	metrics["sync_topic_count"] = uint64(len(resolver.syncTopicEndpoints))
-	resolver.mutex.Unlock()
-	serverMetrics := resolver.systemgeServer.RetrieveMetrics()
-	for key, value := range serverMetrics {
-		metrics[key] = value
-	}
-	return metrics
+import (
+	"github.com/neutralusername/Systemge/Metrics"
+)
+
+func (resolver *Resolver) CheckOngoingResolutions() int64 {
+	return resolver.ongoingResolutions.Load()
 }
 
-func (resolver *Resolver) GetSucessfulAsyncResolutions() uint64 {
+func (resolver *Resolver) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	resolver.mutex.Lock()
+	metricsTypes.AddMetrics("brokerResolver_resolutions", Metrics.New(
+		map[string]uint64{
+			"sucessful_async_resolutions": resolver.CheckSucessfulAsyncResolutions(),
+			"sucessful_sync_resolutions":  resolver.CheckSucessfulSyncResolutions(),
+			"failed_resolutions":          resolver.CheckFailedResolutions(),
+		},
+	))
+	metricsTypes.AddMetrics("brokerResolver_stats", Metrics.New(
+		map[string]uint64{
+			"ongoing_resolutions": uint64(resolver.CheckOngoingResolutions()),
+			"async_topic_count":   uint64(len(resolver.asyncTopicTcpClientConfigs)),
+			"sync_topic_count":    uint64(len(resolver.syncTopicTcpClientConfigs)),
+		},
+	))
+	resolver.mutex.Unlock()
+
+	metricsTypes.Merge(resolver.systemgeServer.CheckMetrics())
+	return metricsTypes
+}
+func (resolver *Resolver) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	resolver.mutex.Lock()
+	metricsTypes.AddMetrics("brokerResolver_resolutions", Metrics.New(
+		map[string]uint64{
+			"sucessful_async_resolutions": resolver.GetSucessfulAsyncResolutions(),
+			"sucessful_sync_resolutions":  resolver.GetSucessfulSyncResolutions(),
+			"failed_resolutions":          resolver.GetFailedResolutions(),
+		},
+	))
+	metricsTypes.AddMetrics("brokerResolver_stats", Metrics.New(
+		map[string]uint64{
+			"ongoing_resolutions": uint64(resolver.CheckOngoingResolutions()),
+			"async_topic_count":   uint64(len(resolver.asyncTopicTcpClientConfigs)),
+			"sync_topic_count":    uint64(len(resolver.syncTopicTcpClientConfigs)),
+		},
+	))
+	resolver.mutex.Unlock()
+
+	metricsTypes.Merge(resolver.systemgeServer.GetMetrics())
+	return metricsTypes
+}
+
+func (resolver *Resolver) CheckSucessfulAsyncResolutions() uint64 {
 	return resolver.sucessfulAsyncResolutions.Load()
 }
-func (resolver *Resolver) RetrieveSucessfulAsyncResolutions() uint64 {
+func (resolver *Resolver) GetSucessfulAsyncResolutions() uint64 {
 	return resolver.sucessfulAsyncResolutions.Swap(0)
 }
 
-func (resolver *Resolver) GetSucessfulSyncResolutions() uint64 {
+func (resolver *Resolver) CheckSucessfulSyncResolutions() uint64 {
 	return resolver.sucessfulSyncResolutions.Load()
 }
-func (resolver *Resolver) RetrieveSucessfulSyncResolutions() uint64 {
+func (resolver *Resolver) GetSucessfulSyncResolutions() uint64 {
 	return resolver.sucessfulSyncResolutions.Swap(0)
 }
 
-func (resolver *Resolver) GetFailedResolutions() uint64 {
+func (resolver *Resolver) CheckFailedResolutions() uint64 {
 	return resolver.failedResolutions.Load()
 }
-func (resolver *Resolver) RetrieveFailedResolutions() uint64 {
+func (resolver *Resolver) GetFailedResolutions() uint64 {
 	return resolver.failedResolutions.Swap(0)
 }

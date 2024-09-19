@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *TcpConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
+func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
 	if message == nil {
 		return Error.New("Message is nil", nil)
 	}
@@ -25,11 +25,11 @@ func (connection *TcpConnection) SyncResponse(message *Message.Message, success 
 	if err != nil {
 		return err
 	}
-	connection.asyncMessagesSent.Add(1)
+	connection.syncResponsesSent.Add(1)
 	return nil
 }
 
-func (connection *TcpConnection) AsyncMessage(topic, payload string) error {
+func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) error {
 	err := connection.send(Message.NewAsync(topic, payload).Serialize())
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (connection *TcpConnection) AsyncMessage(topic, payload string) error {
 
 // blocks until the sending attempt is completed. returns error if sending request fails.
 // nil result from response channel indicates either connection closed before receiving response, timeout or manual abortion.
-func (connection *TcpConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
+func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
 	synctoken, syncRequestStruct := connection.initResponseChannel()
 	err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize())
 	if err != nil {
@@ -85,7 +85,7 @@ func (connection *TcpConnection) SyncRequest(topic, payload string) (<-chan *Mes
 }
 
 // blocks until response is received, connection is closed, timeout or manual abortion.
-func (connection *TcpConnection) SyncRequestBlocking(topic, payload string) (*Message.Message, error) {
+func (connection *TcpSystemgeConnection) SyncRequestBlocking(topic, payload string) (*Message.Message, error) {
 	synctoken, syncRequestStruct := connection.initResponseChannel()
 	err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize())
 	if err != nil {
@@ -124,7 +124,29 @@ func (connection *TcpConnection) SyncRequestBlocking(topic, payload string) (*Me
 	}
 }
 
-func (connection *TcpConnection) initResponseChannel() (string, *syncRequestStruct) {
+func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) error {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	if syncRequestStruct, ok := connection.syncRequests[syncToken]; ok {
+		close(syncRequestStruct.abortChannel)
+		delete(connection.syncRequests, syncToken)
+		return nil
+	}
+	return Error.New("No response channel found", nil)
+}
+
+// returns a slice of syncTokens of open sync requests
+func (connection *TcpSystemgeConnection) GetOpenSyncRequests() []string {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	syncTokens := make([]string, 0, len(connection.syncRequests))
+	for k := range connection.syncRequests {
+		syncTokens = append(syncTokens, k)
+	}
+	return syncTokens
+}
+
+func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncRequestStruct) {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	syncToken := connection.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
@@ -138,7 +160,7 @@ func (connection *TcpConnection) initResponseChannel() (string, *syncRequestStru
 	return syncToken, connection.syncRequests[syncToken]
 }
 
-func (connection *TcpConnection) addSyncResponse(message *Message.Message) error {
+func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Message) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	if syncRequestStruct, ok := connection.syncRequests[message.GetSyncToken()]; ok {
@@ -150,28 +172,7 @@ func (connection *TcpConnection) addSyncResponse(message *Message.Message) error
 	return Error.New("No response channel found", nil)
 }
 
-func (connection *TcpConnection) AbortSyncRequest(syncToken string) error {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	if syncRequestStruct, ok := connection.syncRequests[syncToken]; ok {
-		close(syncRequestStruct.abortChannel)
-		delete(connection.syncRequests, syncToken)
-		return nil
-	}
-	return Error.New("No response channel found", nil)
-}
-
-func (connection *TcpConnection) GetOpenSyncRequests() []string {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	syncTokens := make([]string, 0, len(connection.syncRequests))
-	for k := range connection.syncRequests {
-		syncTokens = append(syncTokens, k)
-	}
-	return syncTokens
-}
-
-func (connection *TcpConnection) removeSyncRequest(syncToken string) error {
+func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 	if _, ok := connection.syncRequests[syncToken]; ok {

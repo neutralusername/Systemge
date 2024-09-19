@@ -1,76 +1,17 @@
 package DashboardClientCustomService
 
 import (
-	"sync"
-
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-type Client struct {
-	name               string
-	config             *Config.DashboardClient
-	systemgeConnection SystemgeConnection.SystemgeConnection
-
-	customService customService
-	commands      Commands.Handlers
-
-	messageHandler *SystemgeConnection.TopicExclusiveMessageHandler
-
-	status int
-	mutex  sync.Mutex
-}
-
-type customService interface {
-	Start() error
-	Stop() error
-	GetStatus() int
-	GetMetrics() map[string]uint64
-}
-
-type customServiceStruct struct {
-	startFunc      func() error
-	stopFunc       func() error
-	getStatusFunc  func() int
-	getMetricsFunc func() map[string]uint64
-}
-
-func (customService *customServiceStruct) Start() error {
-	return customService.startFunc()
-}
-
-func (customService *customServiceStruct) Stop() error {
-	return customService.stopFunc()
-}
-
-func (customService *customServiceStruct) GetStatus() int {
-	return customService.getStatusFunc()
-}
-
-func (customService *customServiceStruct) GetMetrics() map[string]uint64 {
-	return customService.getMetricsFunc()
-}
-
-func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() map[string]uint64, commands Commands.Handlers) *Client {
-	if config == nil {
-		panic("config is nil")
-	}
-	if name == "" {
-		panic("config.Name is empty")
-	}
-	if config.TcpSystemgeConnectionConfig == nil {
-		panic("config.ConnectionConfig is nil")
-	}
-	if config.TcpClientConfig == nil {
-		panic("config.EndpointConfig is nil")
-	}
+func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers) *DashboardClient.Client {
 	if startFunc == nil {
 		panic("startFunc is nil")
 	}
@@ -83,23 +24,20 @@ func New_(name string, config *Config.DashboardClient, startFunc func() error, s
 	if getMetricsFunc == nil {
 		panic("getMetricsFunc is nil")
 	}
-	customService := &customServiceStruct{
-		startFunc:      startFunc,
-		stopFunc:       stopFunc,
-		getStatusFunc:  getStatusFunc,
-		getMetricsFunc: getMetricsFunc,
-	}
-	app := &Client{
-		name:          name,
-		config:        config,
-		customService: customService,
-		commands:      commands,
-	}
-	return app
-
+	return New(
+		name,
+		config,
+		&customServiceStruct{
+			startFunc:      startFunc,
+			stopFunc:       stopFunc,
+			getStatusFunc:  getStatusFunc,
+			getMetricsFunc: getMetricsFunc,
+		},
+		commands,
+	)
 }
 
-func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers) *Client {
+func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers) *DashboardClient.Client {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -110,124 +48,64 @@ func New(name string, config *Config.DashboardClient, customService customServic
 		panic("config.ConnectionConfig is nil")
 	}
 	if config.TcpClientConfig == nil {
-		panic("config.EndpointConfig is nil")
+		panic("config.TcpClientConfig is nil")
 	}
 	if customService == nil {
 		panic("customService is nil")
 	}
-	app := &Client{
-		name:          name,
-		config:        config,
-		customService: customService,
-		commands:      commands,
-	}
-	return app
-}
+	return DashboardClient.New(
+		name,
+		config,
+		SystemgeConnection.NewTopicExclusiveMessageHandler(
+			nil,
+			SystemgeConnection.SyncMessageHandlers{
+				DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					return Helpers.IntToString(customService.GetStatus()), nil
+				},
+				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					return Helpers.JsonMarshal(customService.GetMetrics()), nil
+				},
 
-func (app *Client) Start() error {
-	app.mutex.Lock()
-	defer app.mutex.Unlock()
-	if app.status == Status.STARTED {
-		return Error.New("Already started", nil)
-	}
-	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength)
-	if err != nil {
-		return Error.New("Failed to establish connection", err)
-	}
-	app.systemgeConnection = connection
-
-	message, err := connection.GetNextMessage()
-	if err != nil {
-		connection.Close()
-		return Error.New("Failed to get introduction message", err)
-	}
-	if message.GetTopic() != Message.TOPIC_INTRODUCTION {
-		connection.Close()
-		return Error.New("Expected introduction message", nil)
-	}
-	response, err := app.introductionHandler()
-	if err != nil {
-		connection.Close()
-		return Error.New("Failed to handle introduction message", err)
-	}
-	err = connection.SyncResponse(message, true, response)
-	if err != nil {
-		connection.Close()
-		return Error.New("Failed to send introduction response", err)
-	}
-
-	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
-		nil,
-		SystemgeConnection.SyncMessageHandlers{
-			Message.TOPIC_GET_STATUS:      app.getStatusHandler,
-			Message.TOPIC_GET_METRICS:     app.getMetricsHandler,
-			Message.TOPIC_START:           app.startHandler,
-			Message.TOPIC_STOP:            app.stopHandler,
-			Message.TOPIC_EXECUTE_COMMAND: app.executeCommandHandler,
-		},
-		nil, nil,
-		100,
-	)
-	app.systemgeConnection.StartProcessingLoopSequentially(app.messageHandler)
-	app.status = Status.STARTED
-	return nil
-}
-
-func (app *Client) Stop() error {
-	app.mutex.Lock()
-	defer app.mutex.Unlock()
-	if app.status == Status.STOPPED {
-		return Error.New("Already stopped", nil)
-	}
-	app.systemgeConnection.StopProcessingLoop()
-	app.messageHandler.Close()
-	app.messageHandler = nil
-	app.systemgeConnection.Close()
-	app.systemgeConnection = nil
-	app.status = Status.STOPPED
-	return nil
-}
-
-func (app *Client) introductionHandler() (string, error) {
-	return string(DashboardHelpers.NewIntroduction(
-		DashboardHelpers.NewCustomServiceClient(
-			app.name,
-			app.commands.GetKeys(),
-			app.customService.GetStatus(),
-			app.customService.GetMetrics(),
+				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
+					if err != nil {
+						return "", err
+					}
+					return commands.Execute(command.Command, command.Args)
+				},
+				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					println("t1")
+					err := customService.Start()
+					if err != nil {
+						return "", err
+					}
+					return Helpers.IntToString(customService.GetStatus()), nil
+				},
+				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+					err := customService.Stop()
+					if err != nil {
+						return "", err
+					}
+					return Helpers.IntToString(customService.GetStatus()), nil
+				},
+			},
+			nil, nil,
+			1000,
 		),
-		DashboardHelpers.CLIENT_CUSTOM_SERVICE,
-	).Marshal()), nil
-}
-
-func (app *Client) getStatusHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return Helpers.IntToString(app.customService.GetStatus()), nil
-}
-
-func (app *Client) getMetricsHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	return DashboardHelpers.NewMetrics(app.name, app.customService.GetMetrics()).Marshal(), nil
-}
-
-func (app *Client) startHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.customService.Start()
-	if err != nil {
-		return "", err
-	}
-	return Helpers.IntToString(app.customService.GetStatus()), nil
-}
-
-func (app *Client) stopHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	err := app.customService.Stop()
-	if err != nil {
-		return "", err
-	}
-	return Helpers.IntToString(app.customService.GetStatus()), nil
-}
-
-func (app *Client) executeCommandHandler(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-	command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
-	if err != nil {
-		return "", err
-	}
-	return app.commands.Execute(command.Command, command.Args)
+		func() (string, error) {
+			pageMarshalled, err := DashboardHelpers.NewPage(
+				DashboardHelpers.NewCustomServiceClient(
+					name,
+					commands.GetKeyBoolMap(),
+					customService.GetStatus(),
+					DashboardHelpers.NewDashboardMetrics(customService.GetMetrics()),
+				),
+				DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE,
+			).Marshal()
+			if err != nil {
+				panic(err)
+			}
+			return string(pageMarshalled), nil
+		},
+	)
 }

@@ -5,13 +5,13 @@ import (
 )
 
 type CustomServiceClient struct {
-	Name     string            `json:"name"`
-	Commands []string          `json:"commands"`
-	Status   int               `json:"status"`
-	Metrics  map[string]uint64 `json:"metrics"`
+	Name     string           `json:"name"`
+	Commands map[string]bool  `json:"commands"`
+	Status   int              `json:"status"` //periodically automatically updated by the server
+	Metrics  DashboardMetrics `json:"metrics"`
 }
 
-func NewCustomServiceClient(name string, commands []string, status int, metrics map[string]uint64) *CustomServiceClient {
+func NewCustomServiceClient(name string, commands map[string]bool, status int, metrics DashboardMetrics) *CustomServiceClient {
 	return &CustomServiceClient{
 		Name:     name,
 		Commands: commands,
@@ -32,6 +32,12 @@ func UnmarshalCustomClient(bytes []byte) (*CustomServiceClient, error) {
 	err := json.Unmarshal(bytes, &client)
 	if err != nil {
 		return nil, err
+	}
+	if client.Commands == nil {
+		client.Commands = map[string]bool{}
+	}
+	if client.Metrics == nil {
+		client.Metrics = DashboardMetrics{}
 	}
 	return &client, nil
 }

@@ -40,6 +40,23 @@ func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string
 	return names
 }
 
+func (Server *SystemgeServer) GetConnections() []SystemgeConnection.SystemgeConnection {
+	Server.statusMutex.RLock()
+	Server.mutex.Lock()
+	defer func() {
+		Server.mutex.Unlock()
+		Server.statusMutex.RUnlock()
+	}()
+	if Server.status != Status.STARTED {
+		return nil
+	}
+	connections := make([]SystemgeConnection.SystemgeConnection, 0, len(Server.clients))
+	for _, connection := range Server.clients {
+		connections = append(connections, connection)
+	}
+	return connections
+}
+
 func (server *SystemgeServer) GetConnection(name string) SystemgeConnection.SystemgeConnection {
 	server.statusMutex.RLock()
 	server.mutex.Lock()

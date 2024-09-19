@@ -13,16 +13,15 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
-	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
-	if err != nil {
-		println(err.Error())
+	commands := connectedClient.page.GetCachedCommands()
+	if commands == nil {
 		if server.errorLogger != nil {
-			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+			server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		}
 		return
 	}
 
-	for _, command := range commands {
+	for command := range commands {
 		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
 			body := make([]byte, r.ContentLength)
 			_, err := r.Body.Read(body)
@@ -35,7 +34,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 				http.Error(w, "No command", http.StatusBadRequest)
 				return
 			}
-			result, err := connectedClient.ExecuteCommand(args[0], args[1:])
+			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(args[0], args[1:]).Marshal())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -49,7 +48,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 				http.Error(w, "No command", http.StatusBadRequest)
 				return
 			}
-			result, err := connectedClient.ExecuteCommand(argsSplit[0], argsSplit[1:])
+			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(argsSplit[0], argsSplit[1:]).Marshal())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -62,12 +61,12 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
 	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
 
-	commands, err := DashboardHelpers.GetCommands(connectedClient.client)
-	if err != nil {
-		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\": " + err.Error())
+	commands := connectedClient.page.GetCachedCommands()
+	if commands == nil {
+		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return
 	}
-	for _, command := range commands {
+	for command := range commands {
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
 	}

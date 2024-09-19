@@ -1,113 +1,117 @@
 package TcpSystemgeListener
 
 import (
-	"encoding/json"
+	"crypto/tls"
+	"net"
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type TcpListener struct {
+type TcpSystemgeListener struct {
 	closed      bool
 	closedMutex sync.Mutex
 
 	config        *Config.TcpSystemgeListener
-	tcpListener   *Tcp.Listener
 	ipRateLimiter *Tools.IpRateLimiter
+
+	listener  net.Listener
+	blacklist *Tools.AccessControlList
+	whitelist *Tools.AccessControlList
 
 	connectionId uint32
 
 	// metrics
 
-	connectionAttempts  atomic.Uint64
-	failedConnections   atomic.Uint64
-	rejectedConnections atomic.Uint64
-	acceptedConnections atomic.Uint64
+	connectionAttempts         atomic.Uint64
+	failedConnectionAttempts   atomic.Uint64
+	rejectedConnectionAttempts atomic.Uint64
+	acceptedConnectionAttempts atomic.Uint64
 }
 
-func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpListener, error) {
+func (server *TcpSystemgeListener) newListener(config *Config.TcpServer) (net.Listener, error) {
+	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
+		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
+		if err != nil {
+			return nil, Error.New("Failed to listen on port: ", err)
+		}
+		return listener, nil
+	} else {
+		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
+		if err != nil {
+			return nil, Error.New("Failed to load TLS certificate: ", err)
+		}
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
+		if err != nil {
+			return nil, Error.New("Failed to listen on port: ", err)
+		}
+		return listener, nil
+	}
+}
+
+func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
+}
+
+func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
+	return server.blacklist
+}
+
+func (server *TcpSystemgeListener) GetListener() net.Listener {
+	return server.listener
+}
+
+func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
 	if config == nil {
 		return nil, Error.New("config is nil", nil)
 	}
 	if config.TcpServerConfig == nil {
 		return nil, Error.New("listener is nil", nil)
 	}
-	tcpListener, err := Tcp.NewListener(config.TcpServerConfig, whitelist, blacklist)
+	server := &TcpSystemgeListener{
+		config:    config,
+		blacklist: blacklist,
+		whitelist: whitelist,
+	}
+	tcpListener, err := server.newListener(config.TcpServerConfig)
 	if err != nil {
 		return nil, Error.New("failed to create listener", err)
 	}
-	listener := &TcpListener{
-		config:      config,
-		tcpListener: tcpListener,
-	}
+	server.listener = tcpListener
 	if config.IpRateLimiter != nil {
-		listener.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
+		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
 	}
-	return listener, nil
+	return server, nil
 }
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *TcpListener) Close() error {
+func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {
 		return Error.New("listener is already closed", nil)
 	}
 	listener.closed = true
-	listener.tcpListener.GetListener().Close()
+	listener.listener.Close()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
 	}
 	return nil
 }
 
-func (listener *TcpListener) GetStatus() int {
+func (listener *TcpSystemgeListener) GetStatus() int {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {
 		return Status.STOPPED
 	}
 	return Status.STARTED
-}
-
-func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := listener.tcpListener.GetBlacklist().GetDefaultCommands()
-	whitelistCommands := listener.tcpListener.GetWhitelist().GetDefaultCommands()
-	commands := Commands.Handlers{}
-	for key, value := range blacklistCommands {
-		commands["blacklist_"+key] = value
-	}
-	for key, value := range whitelistCommands {
-		commands["whitelist_"+key] = value
-	}
-	commands["close"] = func(args []string) (string, error) {
-		listener.Close()
-		return "success", nil
-	}
-	commands["getStatus"] = func(args []string) (string, error) {
-		return Status.ToString(listener.GetStatus()), nil
-	}
-	commands["getMetrics"] = func(args []string) (string, error) {
-		metrics := listener.GetMetrics()
-		json, err := json.Marshal(metrics)
-		if err != nil {
-			return "", Error.New("failed to marshal metrics to json", err)
-		}
-		return string(json), nil
-	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) {
-		metrics := listener.RetrieveMetrics()
-		json, err := json.Marshal(metrics)
-		if err != nil {
-			return "", Error.New("failed to marshal metrics to json", err)
-		}
-		return string(json), nil
-	}
-	return commands
 }

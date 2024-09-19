@@ -6,6 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Metrics"
 )
 
 type ConcurrentMessageHandler struct {
@@ -140,38 +141,46 @@ func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
 	return topics
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_handled"] = messageHandler.GetAsyncMessagesHandled()
-	metrics["sync_requests_handled"] = messageHandler.GetSyncRequestsHandled()
-	metrics["unknown_topics_received"] = messageHandler.GetUnknownTopicsReceived()
-	return metrics
+func (messageHandler *ConcurrentMessageHandler) CheckMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
+		map[string]uint64{
+			"async_messages_handled":  messageHandler.CheckAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.CheckSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.CheckUnknownTopicsReceived(),
+		},
+	))
+	return metricsTypes
 }
-func (messageHandler *ConcurrentMessageHandler) RetrieveMetrics() map[string]uint64 {
-	metrics := map[string]uint64{}
-	metrics["async_messages_handled"] = messageHandler.RetrieveAsyncMessagesHandled()
-	metrics["sync_requests_handled"] = messageHandler.RetrieveSyncRequestsHandled()
-	metrics["unknown_topics_received"] = messageHandler.RetrieveUnknownTopicsReceived()
-	return metrics
+func (messageHandler *ConcurrentMessageHandler) GetMetrics() Metrics.MetricsTypes {
+	metricsTypes := Metrics.NewMetricsTypes()
+	metricsTypes.AddMetrics("concurrent_message_handler", Metrics.New(
+		map[string]uint64{
+			"async_messages_handled":  messageHandler.GetAsyncMessagesHandled(),
+			"sync_requests_handled":   messageHandler.GetSyncRequestsHandled(),
+			"unknown_topics_received": messageHandler.GetUnknownTopicsReceived(),
+		},
+	))
+	return metricsTypes
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetAsyncMessagesHandled() uint64 {
+func (messageHandler *ConcurrentMessageHandler) CheckAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Load()
 }
-func (messageHandler *ConcurrentMessageHandler) RetrieveAsyncMessagesHandled() uint64 {
+func (messageHandler *ConcurrentMessageHandler) GetAsyncMessagesHandled() uint64 {
 	return messageHandler.asyncMessagesHandled.Swap(0)
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetSyncRequestsHandled() uint64 {
+func (messageHandler *ConcurrentMessageHandler) CheckSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Load()
 }
-func (messageHandler *ConcurrentMessageHandler) RetrieveSyncRequestsHandled() uint64 {
+func (messageHandler *ConcurrentMessageHandler) GetSyncRequestsHandled() uint64 {
 	return messageHandler.syncRequestsHandled.Swap(0)
 }
 
-func (messageHandler *ConcurrentMessageHandler) GetUnknownTopicsReceived() uint64 {
+func (messageHandler *ConcurrentMessageHandler) CheckUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Load()
 }
-func (messageHandler *ConcurrentMessageHandler) RetrieveUnknownTopicsReceived() uint64 {
+func (messageHandler *ConcurrentMessageHandler) GetUnknownTopicsReceived() uint64 {
 	return messageHandler.unknownTopicsReceived.Swap(0)
 }
