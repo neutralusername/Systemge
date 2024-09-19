@@ -23,7 +23,7 @@ rework dashboard design (menu bar, iphone support etc)
 implement different types of data visualizations
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 
-maybe other types of csv files as well (e.g. connects/disconnects)
+maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
 make websocketServer stop-operation cleaner
 
