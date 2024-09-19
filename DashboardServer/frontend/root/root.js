@@ -292,16 +292,16 @@ export class root extends React.Component {
 
     getContent() {
         switch(this.state.selectedEntry) {
-            case SELECTED_ENTRY_NULL:
-                return null;
-            case SELECTED_ENTRY_CLIENTS:
-                return React.createElement(
-                   clientStatuses, this.state
-                );
-            case SELECTED_ENTRY_METRICS:
-                return React.createElement(
-                    metrics, this.state
-                );
+        case SELECTED_ENTRY_NULL:
+            return null;
+        case SELECTED_ENTRY_CLIENTS:
+            return React.createElement(
+                clientStatuses, this.state
+            );
+        case SELECTED_ENTRY_METRICS:
+            return React.createElement(
+                metrics, this.state
+            );
         }
     }
 
