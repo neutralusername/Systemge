@@ -6,6 +6,7 @@ import {
 export class metrics extends React.Component {
 	constructor(props) {
 		super(props);
+        Chart.defaults.color = "#ffffff";
 		this.state = {
 			distinctColors : [
                 "#556b2f",

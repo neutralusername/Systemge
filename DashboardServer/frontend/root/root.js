@@ -45,7 +45,6 @@ export class root extends React.Component {
             WS_CONNECTION : GetWebsocketConnection(configs.WS_PORT, configs.WS_PATTERN),
             pageRequest: this.pageRequest,
         };
-		Chart.defaults.color = "#ffffff";
         this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
         this.state.WS_CONNECTION.onopen = this.handleOpen.bind(this);
