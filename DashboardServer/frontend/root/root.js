@@ -71,6 +71,7 @@ export class root extends React.Component {
                     topic : "password",
                     payload : window.prompt("Enter password"),
                 }))
+                break;
             case "requestPageChange":
                 let pathName = window.location.pathname;
                 if (pathName != "/") {
@@ -80,6 +81,7 @@ export class root extends React.Component {
                     topic : "changePage",
                     payload : pathName,
                 }));
+                break;
             default:
                 console.log("Unknown message topic: " + event.data);
                 break;
