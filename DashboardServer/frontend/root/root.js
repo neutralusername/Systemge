@@ -84,7 +84,6 @@ export class root extends React.Component {
         this.handleClose = this.handleClose.bind(this);
         this.handleOpen = this.handleOpen.bind(this);
         this.getContent = this.getContent.bind(this);
-        document.body.style.color = "#ffffff"
 		Chart.defaults.color = "#ffffff";
         this.state.WS_CONNECTION.onmessage = this.handleMessage.bind(this);
         this.state.WS_CONNECTION.onclose = this.handleClose.bind(this);
@@ -297,6 +296,7 @@ export class root extends React.Component {
                 id: "root",
                 style: {
                     backgroundColor: "#222426",
+                    color: "#ffffff",
                     fontFamily: "sans-serif",
                 },
             },
