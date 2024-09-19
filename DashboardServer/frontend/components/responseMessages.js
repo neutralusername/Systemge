@@ -15,6 +15,7 @@ export class responseMessages extends React.Component {
                     style: {
                         width: "100%",
                         borderBottom: "1px solid #979fa8",
+                        paddingBottom: "1vh"
                     },
                     key: responseId,
                 },
