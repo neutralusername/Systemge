@@ -327,9 +327,6 @@ export class root extends React.Component {
                     className: "content",
                     style: {
                         width: "82%",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
                     },
                 }, 
                 this.getContent(),
