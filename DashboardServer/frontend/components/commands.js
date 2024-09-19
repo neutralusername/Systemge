@@ -16,7 +16,7 @@ export class commands extends React.Component {
 		let commands = Object.keys(this.props.commands).map((command) => {
 			return React.createElement(
 				"div", {
-					className: "commands",
+					id: "commands",
 					key: command,
 					style: {
 						margin: "2px",

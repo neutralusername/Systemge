@@ -10,7 +10,7 @@ export class backButton extends React.Component {
 	render() {
 		return React.createElement(
 			"div", {
-				className: "backButton",
+				id: "backButton",
 				style: {
 					display: "flex",
 					flexDirection: "column",

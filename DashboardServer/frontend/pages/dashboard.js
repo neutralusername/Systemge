@@ -23,7 +23,7 @@ export class dashboard extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "dashboard",
+				id: "dashboard",
 				style: {
 					paddingTop: "1vh",
 					display: "flex",

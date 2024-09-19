@@ -9,7 +9,7 @@ export class clients extends React.Component {
 	render() {
 		return React.createElement(
             "div", {
-                className: "clients",
+                id: "clients",
                 style: {
                     color: "white",
                     fontSize: "1.3vw",

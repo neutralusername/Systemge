@@ -26,7 +26,7 @@ export class customService extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "customService",
+				id: "customService",
 				style: {
 					paddingTop: "1vh",
 					display: "flex",

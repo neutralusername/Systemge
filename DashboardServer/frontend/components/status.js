@@ -14,7 +14,7 @@ export class status extends React.Component {
 	render() {
 		return React.createElement(
 			"div", {
-				className: "status",
+				id: "status",
 				style: {
 					display: "flex",
 					flexDirection: "column",

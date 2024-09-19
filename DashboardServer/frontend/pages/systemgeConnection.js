@@ -13,7 +13,7 @@ export class systemgeConnection extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "systemgeConnection",
+				id: "systemgeConnection",
 				style: {
 					paddingTop: "1vh",
 					display: "flex",

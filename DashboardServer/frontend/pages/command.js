@@ -13,7 +13,7 @@ export class command extends React.Component {
 		})
 		return React.createElement(
 			"div", {
-				className: "command",
+				id: "command",
 				style: {
 					paddingTop: "1vh",
 					display: "flex",

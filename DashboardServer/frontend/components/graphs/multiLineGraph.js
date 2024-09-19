@@ -83,7 +83,6 @@ export class multiLineGraph extends React.Component {
 		return 	React.createElement(
 			"canvas", {
 				id: this.props.chartName,
-				className : "multiLineGraph",
 				style : {
 					height : this.props.height,
 					width : this.props.width,
