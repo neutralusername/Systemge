@@ -109,13 +109,8 @@ export class root extends React.Component {
             case "responseMessage":
                 this.setResponseMessage(message.payload || "\u00A0");
                 break;
-            case "changePage": {
-                    let page = JSON.parse(message.payload);
-                    this.setState({
-                        pageType: page.type,
-                        pageData: JSON.parse(page.data),
-                    });
-                }
+            case "changePage": 
+                this.changePage(JSON.parse(message.payload));
                 break;
             case "updatePageReplace": {
                     let page = JSON.parse(message.payload);
@@ -147,6 +142,20 @@ export class root extends React.Component {
                 console.log("Unknown message topic: " + event.data);
                 break;
         }
+    }
+
+    changePage = (page) => {
+        let selectedEntry = SELECTED_ENTRY_NULL;
+        switch(page.type) {
+        case PAGE_TYPE_DASHBOARD:
+            selectedEntry = SELECTED_ENTRY_CLIENTS;
+            break;
+        }
+        this.setState({
+            pageType: page.type,
+            pageData: JSON.parse(page.data),
+            selectedEntry: selectedEntry,
+        });
     }
 
     mergeData = (target, source) => {
@@ -181,7 +190,10 @@ export class root extends React.Component {
         if (pathName != "/") {
             pathName = window.location.pathname.slice(1);
         }
-        this.state.WS_CONNECTION.send(this.changePage(pathName));
+        this.state.WS_CONNECTION.send(JSON.stringify({
+            topic : "changePage",
+            payload : pathName,
+        }));
         let myLoop = () => {
             this.state.WS_CONNECTION.send(JSON.stringify({
                 topic: "heartbeat",
@@ -200,13 +212,6 @@ export class root extends React.Component {
                 payload: payload,
             }),
         })
-    }
-
-    changePage = (pathName) => {
-        return JSON.stringify({
-            topic : "changePage",
-            payload : pathName,
-        });
     }
 
     generateHash = (str) => {
