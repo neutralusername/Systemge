@@ -22,7 +22,6 @@ export class status extends React.Component {
 					flexDirection: "row",
 				},
 			}, 
-			
 			this.props.name !== "dashboard" && this.props.status === 0 ? React.createElement(	
 				"button", {
 					onClick: () => {

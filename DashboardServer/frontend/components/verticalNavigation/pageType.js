@@ -41,6 +41,7 @@ export class pageType extends React.Component {
                     color: "white",
                     fontSize: "1.4vw",
                     fontWeight: "bold",
+					alignSelf: "center",
                 },
             }, 
             pageTypeWord,

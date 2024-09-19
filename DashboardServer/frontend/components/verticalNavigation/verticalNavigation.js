@@ -6,6 +6,9 @@ import {
 	PAGE_TYPE_SYSTEMGECONNECTION,
 } from "../../root/root.js";
 import { 
+	clients 
+} from "./clients.js";
+import { 
 	pageType 
 } from "./pageType.js";
 
@@ -28,6 +31,11 @@ export class verticalNavigation extends React.Component {
 					pageType, {
 						pageType: this.props.pageType,
 					},
+				),
+				React.createElement(
+					clients, {
+
+					}
 				),
 			];
 		case PAGE_TYPE_CUSTOMSERVICE:
@@ -57,10 +65,13 @@ export class verticalNavigation extends React.Component {
 			}, 
 			React.createElement(
 				"div", {
+					className : "verticalNavigationEntries",
 					style: {
 						position : "fixed",
 						display: "flex",
 						flexDirection: "column",
+						width: "18%",
+						alignItems : "flex-start",
 						gap: "1vh",
 					},
 				}, 
