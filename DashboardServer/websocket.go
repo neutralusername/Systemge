@@ -249,7 +249,9 @@ func (server *Server) changePageHandler(websocketClient *WebsocketServer.Websock
 	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
 		delete(server.dashboardWebsocketClients, websocketClient)
 	default:
-		delete(connectedClient.websocketClients, websocketClient)
+		if connectedClient != nil {
+			delete(connectedClient.websocketClients, websocketClient)
+		}
 	}
 	go websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_CHANGE_PAGE,

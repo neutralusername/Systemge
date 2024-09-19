@@ -117,14 +117,20 @@ export class root extends React.Component {
 
     changePage = (page) => {
         let selectedEntry = SELECTED_ENTRY_NULL;
+        let pageData = JSON.parse(page.data);
         switch(page.type) {
         case PAGE_TYPE_DASHBOARD:
+            history.pushState(null, '', "/");
             selectedEntry = SELECTED_ENTRY_CLIENTS;
+            break;
+        case PAGE_TYPE_CUSTOMSERVICE:
+            history.pushState(null, '', "/"+pageData.name);
+            selectedEntry = SELECTED_ENTRY_NULL;
             break;
         }
         this.setState({
             pageType: page.type,
-            pageData: JSON.parse(page.data),
+            pageData: pageData,
             selectedEntry: selectedEntry,
         });
     }

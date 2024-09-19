@@ -93,6 +93,25 @@ export class verticalNavigation extends React.Component {
 				},
 			),
 			this.getEntries(),
+			React.createElement(
+				"div", {
+					style: {
+						position : "fixed",
+						bottom: "0",
+						alignSelf: "flex-end",
+						fontSize: "clamp(0.9vh, 1.2vw, 2vh)",
+						marginRight: "1vw",
+						cursor: "pointer",
+						marginBottom: "1vh",
+					},
+					onClick: () => {
+						if (window.confirm("Are you sure you want to disconnect?")) {
+							this.props.WS_CONNECTION.send(this.props.pageRequest("sudoku", ""))
+						}
+					},
+				},
+				"disconnect",
+			),
 		)
 	}
 }
