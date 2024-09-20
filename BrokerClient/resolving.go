@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
@@ -15,7 +15,7 @@ func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, i
 		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverTcpClientConfig, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to establish connection to resolver \""+resolverTcpClientConfig.Address+"\"", err).Error())
+				messageBrokerclient.warningLogger.Log(Event.New("Failed to establish connection to resolver \""+resolverTcpClientConfig.Address+"\"", err).Error())
 			}
 			continue
 		}
@@ -29,20 +29,20 @@ func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, i
 		resolverConnection.Close() // close in case there was an issue on the resolver side that prevented closing the connection
 		if syncErr != nil {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to send resolution request to resolver \""+resolverTcpClientConfig.Address+"\"", syncErr).Error())
+				messageBrokerclient.warningLogger.Log(Event.New("Failed to send resolution request to resolver \""+resolverTcpClientConfig.Address+"\"", syncErr).Error())
 			}
 			continue
 		}
 		if response.GetTopic() == Message.TOPIC_FAILURE {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverTcpClientConfig.Address+"\"", errors.New(response.GetPayload())).Error())
+				messageBrokerclient.warningLogger.Log(Event.New("Failed to resolve topic \""+topic+"\" using resolver \""+resolverTcpClientConfig.Address+"\"", errors.New(response.GetPayload())).Error())
 			}
 			continue
 		}
 		tcpClientConfig := Config.UnmarshalTcpClient(response.GetPayload())
 		if tcpClientConfig == nil {
 			if messageBrokerclient.warningLogger != nil {
-				messageBrokerclient.warningLogger.Log(Error.New("Failed to unmarshal tcpClientConfig", nil).Error())
+				messageBrokerclient.warningLogger.Log(Event.New("Failed to unmarshal tcpClientConfig", nil).Error())
 			}
 			continue
 		}

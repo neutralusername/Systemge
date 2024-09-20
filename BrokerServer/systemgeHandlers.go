@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -19,7 +19,7 @@ func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConne
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.asyncTopicSubscriptions[topic] == nil {
-			return "", Error.New("unknown async topic \""+topic+"\"", nil)
+			return "", Event.New("unknown async topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
@@ -39,7 +39,7 @@ func (server *Server) subscribeSync(connection SystemgeConnection.SystemgeConnec
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.syncTopicSubscriptions[topic] == nil {
-			return "", Error.New("unknown sync topic \""+topic+"\"", nil)
+			return "", Event.New("unknown sync topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
@@ -60,7 +60,7 @@ func (server *Server) unsubscribeAsync(connection SystemgeConnection.SystemgeCon
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.asyncTopicSubscriptions[topic] == nil {
-			return "", Error.New("unknown async topic \""+topic+"\"", nil)
+			return "", Event.New("unknown async topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
@@ -81,7 +81,7 @@ func (server *Server) unsubscribeSync(connection SystemgeConnection.SystemgeConn
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.syncTopicSubscriptions[topic] == nil {
-			return "", Error.New("unknown sync topic \""+topic+"\"", nil)
+			return "", Event.New("unknown sync topic \""+topic+"\"", nil)
 		}
 	}
 	for _, topic := range topics {
@@ -99,7 +99,7 @@ func (server *Server) handleAsyncPropagate(sendingConnection SystemgeConnection.
 			err := connection.AsyncMessage(message.GetTopic(), message.GetPayload())
 			if err != nil {
 				if server.warningLogger != nil {
-					server.warningLogger.Log(Error.New("failed to send async message to client \""+connection.GetName(), nil).Error())
+					server.warningLogger.Log(Event.New("failed to send async message to client \""+connection.GetName(), nil).Error())
 				}
 			} else {
 				server.asyncMessagesPropagated.Add(1)
@@ -121,7 +121,7 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 				responseChannel, err := client.SyncRequest(message.GetTopic(), message.GetPayload())
 				if err != nil {
 					if server.warningLogger != nil {
-						server.warningLogger.Log(Error.New("failed to send sync request to client \""+client.GetName(), nil).Error())
+						server.warningLogger.Log(Event.New("failed to send sync request to client \""+client.GetName(), nil).Error())
 					}
 				} else {
 					responseChannels = append(responseChannels, responseChannel)
@@ -141,7 +141,7 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 		}
 	}
 	if len(responses) == 0 {
-		return "", Error.New("no responses", nil)
+		return "", Event.New("no responses", nil)
 	}
 	return Message.SerializeMessages(responses), nil
 }

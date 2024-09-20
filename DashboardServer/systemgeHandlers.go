@@ -2,7 +2,7 @@ package DashboardServer
 
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -19,27 +19,27 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 	}
 	dashboardMetrics := page.GetCachedMetrics()
 	if server.config.MaxMetricsTypes > 0 && len(dashboardMetrics) > server.config.MaxMetricsTypes {
-		return Error.New("Too many metric types", nil)
+		return Event.New("Too many metric types", nil)
 	}
 	for metricsType, metricsSlice := range dashboardMetrics {
 		if metricsSlice == nil {
-			return Error.New("Metrics for type "+metricsType+" is nil", nil)
+			return Event.New("Metrics for type "+metricsType+" is nil", nil)
 		}
 		if server.config.MaxEntriesPerMetrics > 0 && len(metricsSlice) > server.config.MaxEntriesPerMetrics {
-			return Error.New("Too many metric entries of type "+metricsType, nil)
+			return Event.New("Too many metric entries of type "+metricsType, nil)
 		}
 		for _, metrics := range metricsSlice {
 			if metrics == nil {
-				return Error.New("Metrics for type "+metricsType+" is nil", nil)
+				return Event.New("Metrics for type "+metricsType+" is nil", nil)
 			}
 			if server.config.MaxMetricsPerType > 0 && len(metrics.KeyValuePairs) > server.config.MaxMetricsPerType {
-				return Error.New("Too many metrics of type "+metricsType, nil)
+				return Event.New("Too many metrics of type "+metricsType, nil)
 			}
 		}
 	}
 	commands := page.GetCachedCommands()
 	if server.config.MaxCommandsPerClient > 0 && len(commands) > server.config.MaxCommandsPerClient {
-		return Error.New("Too many commands", nil)
+		return Event.New("Too many commands", nil)
 	}
 
 	connectedClient := newConnectedClient(connection, page)
@@ -77,7 +77,7 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 			err := server.changePage(websocketClient, DashboardHelpers.DASHBOARD_CLIENT_NAME, false)
 			if err != nil {
 				if server.errorLogger != nil {
-					server.errorLogger.Log(Error.New("Failed to change page", err).Error())
+					server.errorLogger.Log(Event.New("Failed to change page", err).Error())
 				}
 			}
 		}

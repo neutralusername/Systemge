@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -71,7 +71,7 @@ func (server *HTTPServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return Error.New("http server not stopped", nil)
+		return Event.New("http server not stopped", nil)
 	}
 	server.status = Status.PENDING
 	if server.infoLogger != nil {
@@ -115,7 +115,7 @@ func (server *HTTPServer) Start() error {
 	select {
 	case err := <-errorChannel:
 		server.status = Status.STOPPED
-		return Error.New("failed to start http server", err)
+		return Event.New("failed to start http server", err)
 	default:
 	}
 
@@ -130,7 +130,7 @@ func (server *HTTPServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STARTED {
-		return Error.New("http server not started", nil)
+		return Event.New("http server not started", nil)
 	}
 	server.status = Status.PENDING
 	if server.infoLogger != nil {
@@ -139,7 +139,7 @@ func (server *HTTPServer) Stop() error {
 
 	err := server.httpServer.Close()
 	if err != nil {
-		return Error.New("failed stopping http server", err)
+		return Event.New("failed stopping http server", err)
 	}
 	server.httpServer = nil
 

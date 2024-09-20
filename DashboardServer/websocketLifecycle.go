@@ -2,7 +2,7 @@ package DashboardServer
 
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
@@ -15,21 +15,21 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 			"",
 		).Serialize())
 		if err != nil {
-			return Error.New("Failed to send password request", err)
+			return Event.New("Failed to send password request", err)
 		}
 		messageBytes, err := websocketClient.Receive()
 		if err != nil {
-			return Error.New("Failed to receive message", err)
+			return Event.New("Failed to receive message", err)
 		}
 		message, err := Message.Deserialize(messageBytes, websocketClient.GetId())
 		if err != nil {
-			return Error.New("Failed to deserialize message", err)
+			return Event.New("Failed to deserialize message", err)
 		}
 		if message.GetTopic() != DashboardHelpers.TOPIC_PASSWORD {
-			return Error.New("Expected password request", nil)
+			return Event.New("Expected password request", nil)
 		}
 		if message.GetPayload() != server.config.FrontendPassword {
-			return Error.New("Invalid password", nil)
+			return Event.New("Invalid password", nil)
 		}
 	}
 
@@ -40,7 +40,7 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 		).Serialize(),
 	)
 	if err != nil {
-		return Error.New("Failed to send response message cache request", err)
+		return Event.New("Failed to send response message cache request", err)
 	}
 
 	err = websocketClient.Send(Message.NewAsync(
@@ -48,7 +48,7 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 		"",
 	).Serialize())
 	if err != nil {
-		return Error.New("Failed to send page change request", err)
+		return Event.New("Failed to send page change request", err)
 	}
 
 	server.mutex.Lock()

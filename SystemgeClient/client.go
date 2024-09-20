@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
@@ -94,7 +94,7 @@ func (client *SystemgeClient) Start() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
 	if client.status != Status.STOPPED {
-		return Error.New("client not stopped", nil)
+		return Event.New("client not stopped", nil)
 	}
 	if client.infoLogger != nil {
 		client.infoLogger.Log("starting client")
@@ -104,13 +104,13 @@ func (client *SystemgeClient) Start() error {
 	for _, tcpClientConfig := range client.config.TcpClientConfigs {
 		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
+				client.errorLogger.Log(Event.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Event.New("failed starting connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
-						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						client.errorLogger.Log(Event.New("failed sending mail", err).Error())
 					}
 				}
 			}
@@ -126,7 +126,7 @@ func (client *SystemgeClient) Stop() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
 	if client.status == Status.STOPPED {
-		return Error.New("client already stopped", nil)
+		return Event.New("client already stopped", nil)
 	}
 	if client.infoLogger != nil {
 		client.infoLogger.Log("stopping client")

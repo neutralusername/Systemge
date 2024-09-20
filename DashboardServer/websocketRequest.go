@@ -4,7 +4,7 @@ import (
 	"runtime"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
@@ -17,7 +17,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 
 	request, err := Message.Deserialize([]byte(message.GetPayload()), websocketClient.GetId())
 	if err != nil {
-		return Error.New("Failed to deserialize request", err)
+		return Event.New("Failed to deserialize request", err)
 	}
 
 	if request.GetTopic() == DashboardHelpers.TOPIC_DELETE_CACHED_RESPONSE_MESSAGE {
@@ -41,18 +41,18 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 			return nil
 		} else {
 			server.mutex.Unlock()
-			return Error.New("Cached response message not found", nil)
+			return Event.New("Cached response message not found", nil)
 		}
 	} else {
 		switch currentPage {
 		case "":
-			return Error.New("No location", nil)
+			return Event.New("No location", nil)
 		case DashboardHelpers.DASHBOARD_CLIENT_NAME:
 			return server.handleDashboardRequest(request)
 		default:
 			if connectedClient == nil {
 				// should never happen
-				return Error.New("Client not found", nil)
+				return Event.New("Client not found", nil)
 			}
 			switch connectedClient.page.Type {
 			case DashboardHelpers.CLIENT_TYPE_COMMAND:
@@ -65,7 +65,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 				return server.handleSystemgeServerClientRequest(request, connectedClient)
 			default:
 				// should never happen
-				return Error.New("Unknown client type", nil)
+				return Event.New("Unknown client type", nil)
 			}
 		}
 	}
@@ -76,15 +76,15 @@ func (server *Server) handleDashboardRequest(request *Message.Message) error {
 	case DashboardHelpers.TOPIC_COMMAND:
 		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 		if err != nil {
-			return Error.New("Failed to parse command", err)
+			return Event.New("Failed to parse command", err)
 		}
 		commandHandler, _ := server.dashboardCommandHandlers.Get(command.Command)
 		if commandHandler == nil {
-			return Error.New("Command not found", nil)
+			return Event.New("Command not found", nil)
 		}
 		resultPayload, err := commandHandler(command.Args)
 		if err != nil {
-			return Error.New("Failed to execute command", err)
+			return Event.New("Failed to execute command", err)
 		}
 		server.handleWebsocketResponseMessage(resultPayload, DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
@@ -95,43 +95,43 @@ func (server *Server) handleDashboardRequest(request *Message.Message) error {
 	case DashboardHelpers.TOPIC_STOP:
 		clientName := request.GetPayload()
 		if clientName == "" {
-			return Error.New("No client name", nil)
+			return Event.New("No client name", nil)
 		}
 		server.mutex.RLock()
 		connectedClient, ok := server.connectedClients[clientName]
 		server.mutex.RUnlock()
 		if !ok {
-			return Error.New("Client not found", nil)
+			return Event.New("Client not found", nil)
 		}
 		if err := server.handleClientStopRequest(connectedClient); err != nil {
-			return Error.New("Failed to stop client", err)
+			return Event.New("Failed to stop client", err)
 		}
 		server.handleWebsocketResponseMessage("success", DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
 	case DashboardHelpers.TOPIC_START:
 		clientName := request.GetPayload()
 		if clientName == "" {
-			return Error.New("No client name", nil)
+			return Event.New("No client name", nil)
 		}
 		server.mutex.RLock()
 		connectedClient, ok := server.connectedClients[clientName]
 		server.mutex.RUnlock()
 		if !ok {
-			return Error.New("Client not found", nil)
+			return Event.New("Client not found", nil)
 		}
 		if err := server.handleClientStartRequest(connectedClient); err != nil {
-			return Error.New("Failed to start client", err)
+			return Event.New("Failed to start client", err)
 		}
 		server.handleWebsocketResponseMessage("success", DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
 	case DashboardHelpers.TOPIC_SUDOKU:
 		err := server.Stop()
 		if err != nil {
-			return Error.New("Failed to stop server", err)
+			return Event.New("Failed to stop server", err)
 		}
 		return nil
 	default:
-		return Error.New("Unknown topic", nil)
+		return Event.New("Unknown topic", nil)
 	}
 }
 
@@ -142,7 +142,7 @@ func (server *Server) handleCommandClientRequest(request *Message.Message, conne
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:
-		return Error.New("Unknown topic", nil)
+		return Event.New("Unknown topic", nil)
 	}
 }
 
@@ -157,7 +157,7 @@ func (server *Server) handleCustomServiceClientRequest(request *Message.Message,
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:
-		return Error.New("Unknown topic", nil)
+		return Event.New("Unknown topic", nil)
 	}
 }
 
@@ -182,7 +182,7 @@ func (server *Server) handleSystemgeConnectionClientRequest(request *Message.Mes
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:
-		return Error.New("Unknown topic", nil)
+		return Event.New("Unknown topic", nil)
 	}
 }
 
@@ -211,6 +211,6 @@ func (server *Server) handleSystemgeServerClientRequest(request *Message.Message
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:
-		return Error.New("Unknown topic", nil)
+		return Event.New("Unknown topic", nil)
 	}
 }

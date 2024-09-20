@@ -1,4 +1,4 @@
-package Error
+package Event
 
 import (
 	"errors"
@@ -8,18 +8,20 @@ import (
 	"strings"
 )
 
-type Error struct {
-	err     error
+type Event struct {
+	err     Type
 	context []*Context
 }
+
+type Type string
 
 type Context struct {
 	Key string `json:"key"`
 	Val string `json:"val"`
 }
 
-func New(err error, context ...*Context) *Error {
-	return &Error{
+func New(err error, context ...*Context) *Event {
+	return &Event{
 		err:     err,
 		context: context,
 	}

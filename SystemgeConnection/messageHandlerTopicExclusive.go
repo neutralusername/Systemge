@@ -4,7 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 )
@@ -97,7 +97,7 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connectio
 	}:
 		return <-response
 	default:
-		return Error.New("Message queue is full", nil)
+		return Event.New("Message queue is full", nil)
 	}
 }
 
@@ -112,7 +112,7 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection
 		responseStruct := <-response
 		return responseStruct.response, responseStruct.err
 	default:
-		return "", Error.New("Message queue is full", nil)
+		return "", Event.New("Message queue is full", nil)
 	}
 }
 
@@ -131,7 +131,7 @@ func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
 					unknownMessageHandler.messageQueue <- messageStruct
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
-					messageStruct.syncResponseChannel <- &syncResponseStruct{response: "", err: Error.New("No handler for sync message", nil)}
+					messageStruct.syncResponseChannel <- &syncResponseStruct{response: "", err: Event.New("No handler for sync message", nil)}
 				}
 			} else {
 				handler.messageQueue <- messageStruct
@@ -145,7 +145,7 @@ func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
 					unknownMessageHandler.messageQueue <- messageStruct
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
-					messageStruct.asyncErrorChannel <- Error.New("No handler for async message", nil)
+					messageStruct.asyncErrorChannel <- Event.New("No handler for async message", nil)
 				}
 			} else {
 				handler.messageQueue <- messageStruct

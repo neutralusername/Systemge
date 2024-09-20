@@ -3,17 +3,17 @@ package TcpSystemgeConnection
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
 	if message == nil {
-		return Error.New("Message is nil", nil)
+		return Event.New("Message is nil", nil)
 	}
 	if message.GetSyncToken() == "" {
-		return Error.New("SyncToken is empty", nil)
+		return Event.New("SyncToken is empty", nil)
 	}
 	var response *Message.Message
 	if success {
@@ -109,17 +109,17 @@ func (connection *TcpSystemgeConnection) SyncRequestBlocking(topic, payload stri
 
 	case <-syncRequestStruct.abortChannel:
 		connection.noSyncResponseReceived.Add(1)
-		return nil, Error.New("SyncRequest aborted", nil)
+		return nil, Event.New("SyncRequest aborted", nil)
 
 	case <-connection.closeChannel:
 		connection.noSyncResponseReceived.Add(1)
 		connection.removeSyncRequest(synctoken)
-		return nil, Error.New("SystemgeClient stopped before receiving response", nil)
+		return nil, Event.New("SystemgeClient stopped before receiving response", nil)
 
 	case <-timeout:
 		connection.noSyncResponseReceived.Add(1)
 		connection.removeSyncRequest(synctoken)
-		return nil, Error.New("Timeout before receiving response", nil)
+		return nil, Event.New("Timeout before receiving response", nil)
 
 	}
 }
@@ -132,7 +132,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 		delete(connection.syncRequests, syncToken)
 		return nil
 	}
-	return Error.New("No response channel found", nil)
+	return Event.New("No response channel found", nil)
 }
 
 // returns a slice of syncTokens of open sync requests
@@ -169,7 +169,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 		delete(connection.syncRequests, message.GetSyncToken())
 		return nil
 	}
-	return Error.New("No response channel found", nil)
+	return Event.New("No response channel found", nil)
 }
 
 func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) error {
@@ -179,7 +179,7 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 		delete(connection.syncRequests, syncToken)
 		return nil
 	}
-	return Error.New("No response channel found", nil)
+	return Event.New("No response channel found", nil)
 }
 
 type syncRequestStruct struct {

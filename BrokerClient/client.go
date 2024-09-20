@@ -6,7 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
@@ -61,16 +61,16 @@ type connection struct {
 
 func New(name string, config *Config.MessageBrokerClient, messageHandler SystemgeConnection.MessageHandler, dashboardCommands Commands.Handlers) *Client {
 	if config == nil {
-		panic(Error.New("Config is required", nil))
+		panic(Event.New("Config is required", nil))
 	}
 	if config.ResolverTcpSystemgeConnectionConfig == nil {
-		panic(Error.New("ResolverConnectionConfig is required", nil))
+		panic(Event.New("ResolverConnectionConfig is required", nil))
 	}
 	if config.ServerTcpSystemgeConnectionConfig == nil {
-		panic(Error.New("ConnectionConfig is required", nil))
+		panic(Event.New("ConnectionConfig is required", nil))
 	}
 	if len(config.ResolverTcpClientConfigs) == 0 {
-		panic(Error.New("At least one ResolverTcpClientConfig is required", nil))
+		panic(Event.New("At least one ResolverTcpClientConfig is required", nil))
 	}
 
 	messageBrokerClient := &Client{
@@ -118,7 +118,7 @@ func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
 	if messageBrokerClient.status != Status.STOPPED {
-		return Error.New("Already started", nil)
+		return Event.New("Already started", nil)
 	}
 	messageBrokerClient.status = Status.PENDING
 	stopChannel := make(chan bool)
@@ -144,7 +144,7 @@ func (messageBrokerClient *Client) Stop() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
 	if messageBrokerClient.status != Status.STARTED {
-		return Error.New("Already started", nil)
+		return Event.New("Already started", nil)
 	}
 	messageBrokerClient.status = Status.PENDING
 	messageBrokerClient.stop()

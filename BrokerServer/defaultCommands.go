@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -13,14 +13,14 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		"start": func(args []string) (string, error) {
 			err := server.Start()
 			if err != nil {
-				return "", Error.New("failed to start message broker server", err)
+				return "", Event.New("failed to start message broker server", err)
 			}
 			return "success", nil
 		},
 		"stop": func(args []string) (string, error) {
 			err := server.Stop()
 			if err != nil {
-				return "", Error.New("failed to stop message broker server", err)
+				return "", Event.New("failed to stop message broker server", err)
 			}
 			return "success", nil
 		},
@@ -31,7 +31,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 			metrics := server.CheckMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
-				return "", Error.New("failed to marshal metrics to json", err)
+				return "", Event.New("failed to marshal metrics to json", err)
 			}
 			return string(json), nil
 		},
@@ -39,7 +39,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 			metrics := server.GetMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
-				return "", Error.New("failed to marshal metrics to json", err)
+				return "", Event.New("failed to marshal metrics to json", err)
 			}
 			return string(json), nil
 		},

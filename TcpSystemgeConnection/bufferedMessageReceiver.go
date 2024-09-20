@@ -4,7 +4,7 @@ import (
 	"net"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
@@ -44,7 +44,7 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, er
 	completedMsgBytes := []byte{}
 	for {
 		if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
-			return nil, Error.New("Incoming message byte limit exceeded", nil)
+			return nil, Event.New("Incoming message byte limit exceeded", nil)
 		}
 		for i, b := range messageReceiver.buffer {
 			if b == Tcp.HEARTBEAT {
@@ -54,7 +54,7 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, er
 				messageReceiver.buffer = messageReceiver.buffer[i+1:]
 				if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
 					// i am considering removing this error case and just returning the message instead, even though the limit is exceeded, but only by less than the buffer size
-					return nil, Error.New("Incoming message byte limit exceeded", nil)
+					return nil, Event.New("Incoming message byte limit exceeded", nil)
 				}
 				return completedMsgBytes, nil
 			}

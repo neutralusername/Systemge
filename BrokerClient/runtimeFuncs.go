@@ -1,7 +1,7 @@
 package BrokerClient
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -9,7 +9,7 @@ func (messageBrokerClient *Client) ResolveSubscribeTopics() error {
 	messageBrokerClient.statusMutex.Lock()
 	if messageBrokerClient.status != Status.STARTED {
 		messageBrokerClient.statusMutex.Unlock()
-		return Error.New("Client is not started", nil)
+		return Event.New("Client is not started", nil)
 	}
 
 	resolutionAttempts := []*resolutionAttempt{}

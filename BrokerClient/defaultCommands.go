@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -14,14 +14,14 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 		"start": func(args []string) (string, error) {
 			err := messageBrokerClient.Start()
 			if err != nil {
-				return "", Error.New("Failed to start message broker client", err)
+				return "", Event.New("Failed to start message broker client", err)
 			}
 			return "success", nil
 		},
 		"stop": func(args []string) (string, error) {
 			err := messageBrokerClient.Stop()
 			if err != nil {
-				return "", Error.New("Failed to stop message broker client", err)
+				return "", Event.New("Failed to stop message broker client", err)
 			}
 			return "success", nil
 		},
@@ -32,7 +32,7 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			metrics := messageBrokerClient.CheckMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
-				return "", Error.New("Failed to marshal metrics to json", err)
+				return "", Event.New("Failed to marshal metrics to json", err)
 			}
 			return string(json), nil
 		},
@@ -40,7 +40,7 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			metrics := messageBrokerClient.GetMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
-				return "", Error.New("Failed to marshal metrics to json", err)
+				return "", Event.New("Failed to marshal metrics to json", err)
 			}
 			return string(json), nil
 		},
@@ -57,31 +57,31 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 		},
 		"addAsyncSubscribeTopic": func(args []string) (string, error) {
 			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
+				return "", Event.New("Invalid number of arguments", nil)
 			}
 			return "success", messageBrokerClient.AddAsyncSubscribeTopic(args[0])
 		},
 		"addSyncSubscribeTopic": func(args []string) (string, error) {
 			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
+				return "", Event.New("Invalid number of arguments", nil)
 			}
 			return "success", messageBrokerClient.AddSyncSubscribeTopic(args[0])
 		},
 		"removeAsyncSubscribeTopic": func(args []string) (string, error) {
 			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
+				return "", Event.New("Invalid number of arguments", nil)
 			}
 			return "success", messageBrokerClient.RemoveAsyncSubscribeTopic(args[0])
 		},
 		"removeSyncSubscribeTopic": func(args []string) (string, error) {
 			if len(args) != 1 {
-				return "", Error.New("Invalid number of arguments", nil)
+				return "", Event.New("Invalid number of arguments", nil)
 			}
 			return "success", messageBrokerClient.RemoveSyncSubscribeTopic(args[0])
 		},
 		"asyncMessage": func(args []string) (string, error) {
 			if len(args) != 2 {
-				return "", Error.New("Invalid number of arguments", nil)
+				return "", Event.New("Invalid number of arguments", nil)
 			}
 			topic := args[0]
 			payload := args[1]
@@ -90,14 +90,14 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 		},
 		"syncRequest": func(args []string) (string, error) {
 			if len(args) != 2 {
-				return "", Error.New("Invalid number of arguments", nil)
+				return "", Event.New("Invalid number of arguments", nil)
 			}
 			topic := args[0]
 			payload := args[1]
 			responseMessages := messageBrokerClient.SyncRequest(topic, payload)
 			json, err := json.Marshal(responseMessages)
 			if err != nil {
-				return "", Error.New("Failed to marshal messages to json", err)
+				return "", Event.New("Failed to marshal messages to json", err)
 			}
 			return string(json), nil
 		},

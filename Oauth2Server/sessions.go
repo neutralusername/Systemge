@@ -3,7 +3,7 @@ package Oauth2Server
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -20,13 +20,13 @@ func (server *Server) getSessionForIdentity(identity string, keyValuePairs map[s
 	if session == nil {
 		session = server.createSession(identity, keyValuePairs)
 		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Error.New("Created session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
+			infoLogger.Log(Event.New("Created session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
 		}
 	} else {
 		session.watchdog.Reset(time.Duration(server.config.SessionLifetimeMs) * time.Millisecond)
 		session.expired = false
 		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Error.New("Refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
+			infoLogger.Log(Event.New("Refreshed session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
 		}
 	}
 	return session
@@ -61,7 +61,7 @@ func (server *Server) getRemoveSessionFunc(session *session) func() {
 		delete(server.sessions, session.sessionId)
 		delete(server.identities, session.identity)
 		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Error.New("Removed session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
+			infoLogger.Log(Event.New("Removed session \""+session.sessionId+"\" with identity \""+session.identity+"\"", nil).Error())
 		}
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -70,7 +70,7 @@ func (server *Server) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return Error.New("Server is not in stopped state", nil)
+		return Event.New("Server is not in stopped state", nil)
 	}
 	server.status = Status.PENDING
 	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
@@ -90,7 +90,7 @@ func (server *Server) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STARTED {
-		return Error.New("Server is not in started state", nil)
+		return Event.New("Server is not in started state", nil)
 	}
 	server.status = Status.PENDING
 	server.httpServer.Stop()
@@ -115,7 +115,7 @@ func handleSessionRequests(server *Server) {
 			return
 		}
 		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Error.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
+			infoLogger.Log(Event.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 		}
 		handleSessionRequest(server, sessionRequest)
 	}
@@ -126,14 +126,14 @@ func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) 
 	if err != nil {
 		sessionRequest.sessionChannel <- nil
 		if warningLogger := server.warningLogger; warningLogger != nil {
-			warningLogger.Log(Error.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\"", err).Error())
+			warningLogger.Log(Event.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\"", err).Error())
 		}
 		return
 	}
 	if identity == "" {
 		sessionRequest.sessionChannel <- nil
 		if warningLogger := server.warningLogger; warningLogger != nil {
-			warningLogger.Log(Error.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
+			warningLogger.Log(Event.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 		}
 		return
 	}

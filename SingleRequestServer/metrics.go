@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -138,7 +138,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		metrics := server.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Error.New("Failed to marshal metrics to json", err)
+			return "", Event.New("Failed to marshal metrics to json", err)
 		}
 		return string(json), nil
 	}
@@ -146,7 +146,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Error.New("Failed to marshal metrics to json", err)
+			return "", Event.New("Failed to marshal metrics to json", err)
 		}
 		return string(json), nil
 	}

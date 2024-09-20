@@ -2,7 +2,7 @@ package DashboardServer
 
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/WebsocketServer"
@@ -28,10 +28,10 @@ func (connectedClient *connectedClient) executeRequest(topic, payload string) (s
 		payload,
 	)
 	if err != nil {
-		return "", Error.New("Failed to execute request", err)
+		return "", Event.New("Failed to execute request", err)
 	}
 	if response.GetTopic() == Message.TOPIC_FAILURE {
-		return "", Error.New(response.GetPayload(), nil)
+		return "", Event.New(response.GetPayload(), nil)
 	}
 	return response.GetPayload(), nil
 }

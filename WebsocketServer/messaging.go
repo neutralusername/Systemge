@@ -1,7 +1,7 @@
 package WebsocketServer
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -24,10 +24,10 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 						errorLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
 					}
 					if mailer := server.mailer; mailer != nil {
-						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to broadcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
+						err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to broadcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
 						if err != nil {
 							if errorLogger := server.errorLogger; errorLogger != nil {
-								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+								errorLogger.Log(Event.New("Failed sending mail", err).Error())
 							}
 						}
 					}
@@ -53,7 +53,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	server.clientMutex.RLock()
 	if client, exists := server.clients[id]; !exists {
 		server.clientMutex.RUnlock()
-		return Error.New("Client \""+id+"\" does not exist", nil)
+		return Event.New("Client \""+id+"\" does not exist", nil)
 	} else {
 		waitGroup.AddTask(func() {
 			err := client.Send(messageBytes)
@@ -62,10 +62,10 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 					errorLogger.Log("Failed to unicast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
 				}
 				if mailer := server.mailer; mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to unicast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
+					err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to unicast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
 					if err != nil {
 						if errorLogger := server.errorLogger; errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							errorLogger.Log(Event.New("Failed sending mail", err).Error())
 						}
 					}
 				}
@@ -101,10 +101,10 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 						errorLogger.Log("Failed to multicast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
 					}
 					if mailer := server.mailer; mailer != nil {
-						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to multicast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
+						err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to multicast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
 						if err != nil {
 							if errorLogger := server.errorLogger; errorLogger != nil {
-								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+								errorLogger.Log(Event.New("Failed sending mail", err).Error())
 							}
 						}
 					}
@@ -130,7 +130,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	server.clientMutex.RLock()
 	if server.groups[groupId] == nil {
 		server.clientMutex.RUnlock()
-		return Error.New("Group \""+groupId+"\" does not exist", nil)
+		return Event.New("Group \""+groupId+"\" does not exist", nil)
 	}
 	for _, client := range server.groups[groupId] {
 		waitGroup.AddTask(func() {
@@ -140,10 +140,10 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 					errorLogger.Log("Failed to groupcast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
 				}
 				if mailer := server.mailer; mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to groupcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
+					err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to groupcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
 					if err != nil {
 						if errorLogger := server.errorLogger; errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							errorLogger.Log(Event.New("Failed sending mail", err).Error())
 						}
 					}
 				}

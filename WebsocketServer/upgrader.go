@@ -4,21 +4,21 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 )
 
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if server.httpServer == nil {
 			if server.warningLogger != nil {
-				server.warningLogger.Log(Error.New("websocket component not started", nil).Error())
+				server.warningLogger.Log(Event.New("websocket component not started", nil).Error())
 			}
 			return
 		}
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
 			if server.warningLogger != nil {
-				server.warningLogger.Log(Error.New("failed to split IP and port", err).Error())
+				server.warningLogger.Log(Event.New("failed to split IP and port", err).Error())
 			}
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			return
@@ -33,7 +33,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if server.warningLogger != nil {
-				server.warningLogger.Log(Error.New("failed upgrading connection to websocket", err).Error())
+				server.warningLogger.Log(Event.New("failed upgrading connection to websocket", err).Error())
 			}
 			return
 		}

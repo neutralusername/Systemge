@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -109,7 +109,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 	defer connection.closedMutex.Unlock()
 
 	if connection.closed {
-		return Error.New("Connection already closed", nil)
+		return Event.New("Connection already closed", nil)
 	}
 
 	connection.closed = true

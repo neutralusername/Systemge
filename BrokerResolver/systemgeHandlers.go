@@ -1,7 +1,7 @@
 package BrokerResolver
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -13,7 +13,7 @@ func (resolver *Resolver) resolveAsync(connection SystemgeConnection.SystemgeCon
 	if resolution, ok := resolver.asyncTopicTcpClientConfigs[message.GetPayload()]; ok {
 		return Helpers.JsonMarshal(resolution), nil
 	} else {
-		return "", Error.New("Unkown async topic", nil)
+		return "", Event.New("Unkown async topic", nil)
 	}
 }
 
@@ -23,7 +23,7 @@ func (resolver *Resolver) resolveSync(connection SystemgeConnection.SystemgeConn
 	if resolution, ok := resolver.syncTopicTcpClientConfigs[message.GetPayload()]; ok {
 		return Helpers.JsonMarshal(resolution), nil
 	} else {
-		return "", Error.New("Unkown sync topic", nil)
+		return "", Event.New("Unkown sync topic", nil)
 	}
 }
 
@@ -56,6 +56,6 @@ func (resolver *Resolver) onConnect(connection SystemgeConnection.SystemgeConnec
 		return nil
 	default:
 		resolver.failedResolutions.Add(1)
-		return Error.New("Invalid topic", nil)
+		return Event.New("Invalid topic", nil)
 	}
 }

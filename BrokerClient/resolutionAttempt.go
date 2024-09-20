@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -17,7 +17,7 @@ type resolutionAttempt struct {
 
 func (messageBrokerClient *Client) startResolutionAttempt(topic string, syncTopic bool, stopChannel chan bool) (*resolutionAttempt, error) {
 	if stopChannel != messageBrokerClient.stopChannel {
-		return nil, Error.New("Aborted because resolution attempt belongs to outdated session", nil)
+		return nil, Event.New("Aborted because resolution attempt belongs to outdated session", nil)
 	}
 	messageBrokerClient.mutex.Lock()
 	defer messageBrokerClient.mutex.Unlock()
@@ -63,12 +63,12 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 		conn, err := messageBrokerClient.getBrokerConnection(tcpClientConfig, stopChannel)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
+				messageBrokerClient.errorLogger.Log(Event.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 					}
 				}
 			}

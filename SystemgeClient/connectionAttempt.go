@@ -2,7 +2,7 @@ package SystemgeClient
 
 import (
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -13,7 +13,7 @@ import (
 func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {
 	normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
 	if err != nil {
-		return Error.New("failed normalizing address", err)
+		return Event.New("failed normalizing address", err)
 	}
 	tcpClientConfig.Address = normalizedAddress
 
@@ -21,10 +21,10 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 	defer client.mutex.Unlock()
 
 	if client.addressConnections[tcpClientConfig.Address] != nil {
-		return Error.New("Connection already exists", nil)
+		return Event.New("Connection already exists", nil)
 	}
 	if client.connectionAttemptsMap[tcpClientConfig.Address] != nil {
-		return Error.New("Connection attempt already in progress", nil)
+		return Event.New("Connection attempt already in progress", nil)
 	}
 	connectionAttempt := TcpSystemgeConnection.EstablishConnectionAttempts(client.name, &Config.SystemgeConnectionAttempt{
 		MaxServerNameLength:         client.config.MaxServerNameLength,
@@ -69,13 +69,13 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	systemgeConnection, err := connectionAttempt.GetResultBlocking()
 	if err != nil {
 		if client.errorLogger != nil {
-			client.errorLogger.Log(Error.New("Connection attempt failed", err).Error())
+			client.errorLogger.Log(Event.New("Connection attempt failed", err).Error())
 		}
 		if client.mailer != nil {
-			err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("Connection attempt failed", err).Error()))
+			err := client.mailer.Send(Tools.NewMail(nil, "error", Event.New("Connection attempt failed", err).Error()))
 			if err != nil {
 				if client.errorLogger != nil {
-					client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					client.errorLogger.Log(Event.New("failed sending mail", err).Error())
 				}
 			}
 		}
@@ -98,7 +98,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	if client.onConnectHandler != nil {
 		if err := client.onConnectHandler(systemgeConnection); err != nil {
 			if client.warningLogger != nil {
-				client.warningLogger.Log(Error.New("onConnectHandler failed for connection \""+systemgeConnection.GetName()+"\"", err).Error())
+				client.warningLogger.Log(Event.New("onConnectHandler failed for connection \""+systemgeConnection.GetName()+"\"", err).Error())
 			}
 			systemgeConnection.Close()
 
@@ -144,13 +144,13 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 	if tcpClientConfig != nil {
 		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
 			if client.errorLogger != nil {
-				client.errorLogger.Log(Error.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
+				client.errorLogger.Log(Event.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
 			}
 			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Error.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
+				err := client.mailer.Send(Tools.NewMail(nil, "error", Event.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
 				if err != nil {
 					if client.errorLogger != nil {
-						client.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						client.errorLogger.Log(Event.New("failed sending mail", err).Error())
 					}
 				}
 			}

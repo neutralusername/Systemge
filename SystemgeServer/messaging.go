@@ -1,7 +1,7 @@
 package SystemgeServer
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -12,7 +12,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 	server.statusMutex.RLock()
 	if server.status == Status.STOPPED {
 		server.statusMutex.RUnlock()
-		return Error.New("Server stopped", nil)
+		return Event.New("Server stopped", nil)
 	}
 	server.mutex.Lock()
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
@@ -25,13 +25,13 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 			connection := server.clients[clientName]
 			if connection == nil {
 				if server.errorLogger != nil {
-					server.errorLogger.Log(Error.New("Client \""+clientName+"\" not found", nil).Error())
+					server.errorLogger.Log(Event.New("Client \""+clientName+"\" not found", nil).Error())
 				}
 				if server.mailer != nil {
-					err := server.mailer.Send(Tools.NewMail(nil, "error", Error.New("Client \""+clientName+"\" not found", nil).Error()))
+					err := server.mailer.Send(Tools.NewMail(nil, "error", Event.New("Client \""+clientName+"\" not found", nil).Error()))
 					if err != nil {
 						if server.errorLogger != nil {
-							server.errorLogger.Log(Error.New("failed sending mail", err).Error())
+							server.errorLogger.Log(Event.New("failed sending mail", err).Error())
 						}
 					}
 				}
@@ -53,7 +53,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 				err := server.mailer.Send(Tools.NewMail(nil, "error", err.Error()))
 				if err != nil {
 					if server.errorLogger != nil {
-						server.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						server.errorLogger.Log(Event.New("failed sending mail", err).Error())
 					}
 				}
 			}
@@ -66,7 +66,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 	server.statusMutex.RLock()
 	if server.status == Status.STOPPED {
 		server.statusMutex.RUnlock()
-		return nil, Error.New("Server stopped", nil)
+		return nil, Event.New("Server stopped", nil)
 	}
 	server.mutex.Lock()
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
@@ -79,13 +79,13 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 			connection := server.clients[clientName]
 			if connection == nil {
 				if server.errorLogger != nil {
-					server.errorLogger.Log(Error.New("Client \""+clientName+"\" not found", nil).Error())
+					server.errorLogger.Log(Event.New("Client \""+clientName+"\" not found", nil).Error())
 				}
 				if server.mailer != nil {
-					err := server.mailer.Send(Tools.NewMail(nil, "error", Error.New("Client \""+clientName+"\" not found", nil).Error()))
+					err := server.mailer.Send(Tools.NewMail(nil, "error", Event.New("Client \""+clientName+"\" not found", nil).Error()))
 					if err != nil {
 						if server.errorLogger != nil {
-							server.errorLogger.Log(Error.New("failed sending mail", err).Error())
+							server.errorLogger.Log(Event.New("failed sending mail", err).Error())
 						}
 					}
 				}
@@ -107,7 +107,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 				err := server.mailer.Send(Tools.NewMail(nil, "error", err.Error()))
 				if err != nil {
 					if server.errorLogger != nil {
-						server.errorLogger.Log(Error.New("failed sending mail", err).Error())
+						server.errorLogger.Log(Event.New("failed sending mail", err).Error())
 					}
 				}
 			}
@@ -120,7 +120,7 @@ func (server *SystemgeServer) SyncRequestBlocking(topic, payload string, clientN
 	server.statusMutex.RLock()
 	if server.status == Status.STOPPED {
 		server.statusMutex.RUnlock()
-		return nil, Error.New("Server stopped", nil)
+		return nil, Event.New("Server stopped", nil)
 	}
 	server.mutex.Lock()
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
@@ -133,13 +133,13 @@ func (server *SystemgeServer) SyncRequestBlocking(topic, payload string, clientN
 			connection := server.clients[clientName]
 			if connection == nil {
 				if server.errorLogger != nil {
-					server.errorLogger.Log(Error.New("Client \""+clientName+"\" not found", nil).Error())
+					server.errorLogger.Log(Event.New("Client \""+clientName+"\" not found", nil).Error())
 				}
 				if server.mailer != nil {
-					err := server.mailer.Send(Tools.NewMail(nil, "error", Error.New("Client \""+clientName+"\" not found", nil).Error()))
+					err := server.mailer.Send(Tools.NewMail(nil, "error", Event.New("Client \""+clientName+"\" not found", nil).Error()))
 					if err != nil {
 						if server.errorLogger != nil {
-							server.errorLogger.Log(Error.New("failed sending mail", err).Error())
+							server.errorLogger.Log(Event.New("failed sending mail", err).Error())
 						}
 					}
 				}
@@ -164,7 +164,7 @@ func (server *SystemgeServer) SyncRequestBlocking(topic, payload string, clientN
 			err := server.mailer.Send(Tools.NewMail(nil, "error", err.Error()))
 			if err != nil {
 				if server.errorLogger != nil {
-					server.errorLogger.Log(Error.New("failed sending mail", err).Error())
+					server.errorLogger.Log(Event.New("failed sending mail", err).Error())
 				}
 			}
 		}

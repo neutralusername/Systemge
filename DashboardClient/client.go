@@ -5,7 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
@@ -52,32 +52,32 @@ func (app *Client) Start() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 	if app.status == Status.STARTED {
-		return Error.New("Already started", nil)
+		return Event.New("Already started", nil)
 	}
 	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength)
 	if err != nil {
-		return Error.New("Failed to establish connection", err)
+		return Event.New("Failed to establish connection", err)
 	}
 	app.dashboardServerSystemgeConnection = connection
 
 	message, err := connection.GetNextMessage()
 	if err != nil {
 		connection.Close()
-		return Error.New("Failed to get introduction message", err)
+		return Event.New("Failed to get introduction message", err)
 	}
 	if message.GetTopic() != DashboardHelpers.TOPIC_INTRODUCTION {
 		connection.Close()
-		return Error.New("Expected introduction message", nil)
+		return Event.New("Expected introduction message", nil)
 	}
 	response, err := app.introductionHandler()
 	if err != nil {
 		connection.Close()
-		return Error.New("Failed to handle introduction message", err)
+		return Event.New("Failed to handle introduction message", err)
 	}
 	err = connection.SyncResponse(message, true, response)
 	if err != nil {
 		connection.Close()
-		return Error.New("Failed to send introduction response", err)
+		return Event.New("Failed to send introduction response", err)
 	}
 
 	app.messageHandler = SystemgeConnection.NewSequentialMessageHandler(
@@ -90,7 +90,7 @@ func (app *Client) Start() error {
 	err = connection.StartMessageHandlingLoop_Sequentially(app.messageHandler)
 	if err != nil {
 		connection.Close()
-		return Error.New("Failed to start message handling loop", err)
+		return Event.New("Failed to start message handling loop", err)
 	}
 	app.status = Status.STARTED
 	return nil
@@ -100,7 +100,7 @@ func (app *Client) Stop() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 	if app.status == Status.STOPPED {
-		return Error.New("Already stopped", nil)
+		return Event.New("Already stopped", nil)
 	}
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil

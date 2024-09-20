@@ -1,7 +1,7 @@
 package SystemgeServer
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
@@ -70,7 +70,7 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 func (server *SystemgeServer) acceptConnection() (SystemgeConnection.SystemgeConnection, error) {
 	connection, err := server.listener.AcceptConnection(server.GetName(), server.config.TcpSystemgeConnectionConfig)
 	if err != nil {
-		return nil, Error.New("failed to accept connection", err)
+		return nil, Event.New("failed to accept connection", err)
 	}
 
 	server.mutex.Lock()
@@ -78,7 +78,7 @@ func (server *SystemgeServer) acceptConnection() (SystemgeConnection.SystemgeCon
 		server.mutex.Unlock()
 
 		connection.Close()
-		return nil, Error.New("connection with name \""+connection.GetName()+"\" already exists", nil)
+		return nil, Event.New("connection with name \""+connection.GetName()+"\" already exists", nil)
 	}
 	server.clients[connection.GetName()] = connection
 	server.mutex.Unlock()

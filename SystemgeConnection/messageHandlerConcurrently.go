@@ -4,7 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 )
@@ -52,7 +52,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 			return nil
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
-			return Error.New("No handler for async message", nil)
+			return Event.New("No handler for async message", nil)
 		}
 	}
 	messageHandler.asyncMessagesHandled.Add(1)
@@ -70,7 +70,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection Sys
 			return messageHandler.unknwonSyncTopicHandler(connection, message)
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
-			return "", Error.New("No handler for sync message", nil)
+			return "", Event.New("No handler for sync message", nil)
 		}
 	}
 	messageHandler.syncRequestsHandled.Add(1)

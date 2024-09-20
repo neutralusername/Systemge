@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
@@ -86,7 +86,7 @@ func (server *SystemgeServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return Error.New("server is already started", nil)
+		return Event.New("server is already started", nil)
 	}
 	server.status = Status.PENDING
 	if server.infoLogger != nil {
@@ -95,7 +95,7 @@ func (server *SystemgeServer) Start() error {
 	listener, err := TcpSystemgeListener.New(server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist)
 	if err != nil {
 		server.status = Status.STOPPED
-		return Error.New("failed to create listener", err)
+		return Event.New("failed to create listener", err)
 	}
 	server.listener = listener
 	server.stopChannel = make(chan bool)
@@ -112,7 +112,7 @@ func (server *SystemgeServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STARTED {
-		return Error.New("server is already stopped", nil)
+		return Event.New("server is already stopped", nil)
 	}
 	server.status = Status.PENDING
 	if server.infoLogger != nil {

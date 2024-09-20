@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -40,9 +40,9 @@ type WebsocketServer struct {
 
 	messageHandlerMutex sync.Mutex
 
-	onErrorHandler   func(*Error.Error) *Error.Error
-	onWarningHandler func(*Error.Error) *Error.Error
-	onInfoHandler    func(*Error.Error) *Error.Error
+	onErrorHandler   func(*Event.Event) *Event.Event
+	onWarningHandler func(*Event.Event) *Event.Event
+	onInfoHandler    func(*Event.Event) *Event.Event
 
 	// metrics
 
@@ -103,18 +103,18 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) GetServerContext() []*Error.Context {
-	return []*Error.Context{
-		Error.NewContext("service", "WebsocketServer"),
-		Error.NewContext("name", server.name),
+func (server *WebsocketServer) GetServerContext() []*Event.Context {
+	return []*Event.Context{
+		Event.NewContext("service", "WebsocketServer"),
+		Event.NewContext("name", server.name),
 	}
 }
 
-func (server *WebsocketServer) Start() *Error.Error {
+func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return server.onErrorHandler(Error.New(Error.NewErrAlreadyStarted(""), server.GetServerContext()...))
+		return server.onErrorHandler(Event.New(Event.NewErrAlreadyStarted(""), server.GetServerContext()...))
 	}
 
 	if server.infoLogger != nil {
@@ -130,7 +130,7 @@ func (server *WebsocketServer) Start() *Error.Error {
 		close(server.connectionChannel)
 		server.connectionChannel = nil
 		server.status = Status.STOPPED
-		return Error.New("failed starting websocket handshake handler", err)
+		return Event.New("failed starting websocket handshake handler", err)
 	}
 	go server.handleWebsocketConnections()
 
@@ -145,7 +145,7 @@ func (server *WebsocketServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STARTED {
-		return Error.New("WebsocketServer is not in started state", nil)
+		return Event.New("WebsocketServer is not in started state", nil)
 	}
 	if server.infoLogger != nil {
 		server.infoLogger.Log("Stopping WebsocketServer")
@@ -197,23 +197,23 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) OnError(err error, context string) *Error.Error {
+func (server *WebsocketServer) OnError(err error, context string) *Event.Event {
 	if server.onErrorHandler != nil {
-		return server.onErrorHandler(Error.New(context, err))
+		return server.onErrorHandler(Event.New(context, err))
 	}
-	return Error.New(context, err)
+	return Event.New(context, err)
 }
 
-func (server *WebsocketServer) OnWarning(err error, context string) *Error.Error {
+func (server *WebsocketServer) OnWarning(err error, context string) *Event.Event {
 	if server.onWarningHandler != nil {
-		return server.onWarningHandler(Error.New(context, err))
+		return server.onWarningHandler(Event.New(context, err))
 	}
-	return Error.New(context, err)
+	return Event.New(context, err)
 }
 
-func (server *WebsocketServer) OnInfo(err error, context string) *Error.Error {
+func (server *WebsocketServer) OnInfo(err error, context string) *Event.Event {
 	if server.onErrorHandler != nil {
-		return server.onErrorHandler(Error.New(context, err))
+		return server.onErrorHandler(Event.New(context, err))
 	}
-	return server.onErrorHandler(Error.New(context, err))
+	return server.onErrorHandler(Event.New(context, err))
 }

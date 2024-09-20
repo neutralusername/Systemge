@@ -2,7 +2,7 @@ package HTTPServer
 
 import (
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -24,14 +24,14 @@ func (server *HTTPServer) GetDefaultCommands() Commands.Handlers {
 	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()
 		if err != nil {
-			return "", Error.New("failed to start http server", err)
+			return "", Event.New("failed to start http server", err)
 		}
 		return "success", nil
 	}
 	commands["stop"] = func(args []string) (string, error) {
 		err := server.Stop()
 		if err != nil {
-			return "", Error.New("failed to stop http server", err)
+			return "", Event.New("failed to stop http server", err)
 		}
 		return "success", nil
 	}

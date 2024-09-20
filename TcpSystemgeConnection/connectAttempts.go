@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
@@ -30,7 +30,7 @@ func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionA
 func (connectionAttempt *ConnectionAttempt) AbortAttempts() error {
 	select {
 	case <-connectionAttempt.ongoing:
-		return Error.New("Connection attempt has already ended", nil)
+		return Event.New("Connection attempt has already ended", nil)
 	default:
 		connectionAttempt.isAborted = true
 		return nil
@@ -66,12 +66,12 @@ func (connectionAttempt *ConnectionAttempt) GetResultBlocking() (SystemgeConnect
 func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 	for {
 		if connectionAttempt.isAborted {
-			connectionAttempt.err = Error.New("Connection attempt aborted before establishing connection", nil)
+			connectionAttempt.err = Event.New("Connection attempt aborted before establishing connection", nil)
 			close(connectionAttempt.ongoing)
 			return
 		}
 		if connectionAttempt.config.MaxConnectionAttempts > 0 && connectionAttempt.attempts >= connectionAttempt.config.MaxConnectionAttempts {
-			connectionAttempt.err = Error.New("Max connection attempts reached", nil)
+			connectionAttempt.err = Event.New("Max connection attempts reached", nil)
 			close(connectionAttempt.ongoing)
 			return
 		}
@@ -83,7 +83,7 @@ func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 		}
 		if connectionAttempt.isAborted {
 			connection.Close()
-			connectionAttempt.err = Error.New("Connection attempt aborted after establishing connection", nil)
+			connectionAttempt.err = Event.New("Connection attempt aborted after establishing connection", nil)
 			close(connectionAttempt.ongoing)
 			return
 		}

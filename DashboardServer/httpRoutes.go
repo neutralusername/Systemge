@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 )
 
 func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
@@ -24,12 +24,12 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
 		if err != nil {
-			http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
+			http.Error(w, Event.New("Failed to read body", err).Error(), http.StatusInternalServerError)
 			return
 		}
 		command, err := DashboardHelpers.UnmarshalCommand(string(body))
 		if err != nil {
-			http.Error(w, Error.New("Failed to unmarshal command", err).Error(), http.StatusBadRequest)
+			http.Error(w, Event.New("Failed to unmarshal command", err).Error(), http.StatusBadRequest)
 			return
 		}
 		if server.config.FrontendPassword != "" && command.Password != server.config.FrontendPassword {

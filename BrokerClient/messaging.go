@@ -1,7 +1,7 @@
 package BrokerClient
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
@@ -11,12 +11,12 @@ func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 	connections, err := messageBrokerClient.getTopicResolutions(topic, false)
 	if err != nil {
 		if messageBrokerClient.errorLogger != nil {
-			messageBrokerClient.errorLogger.Log(Error.New("Failed to get topic resolutions", err).Error())
+			messageBrokerClient.errorLogger.Log(Event.New("Failed to get topic resolutions", err).Error())
 		}
 		if messageBrokerClient.mailer != nil {
-			if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to get topic resolutions", err).Error())); err != nil {
+			if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to get topic resolutions", err).Error())); err != nil {
 				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 				}
 			}
 		}
@@ -27,12 +27,12 @@ func (messageBrokerClient *Client) AsyncMessage(topic string, payload string) {
 		err := connection.connection.AsyncMessage(topic, payload)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to send async message", err).Error())
+				messageBrokerClient.errorLogger.Log(Event.New("Failed to send async message", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send async message", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to send async message", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 					}
 				}
 			}
@@ -46,12 +46,12 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 	connections, err := messageBrokerClient.getTopicResolutions(topic, true)
 	if err != nil {
 		if messageBrokerClient.errorLogger != nil {
-			messageBrokerClient.errorLogger.Log(Error.New("Failed to get topic resolutions", err).Error())
+			messageBrokerClient.errorLogger.Log(Event.New("Failed to get topic resolutions", err).Error())
 		}
 		if messageBrokerClient.mailer != nil {
-			if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to get topic resolutions", err).Error())); err != nil {
+			if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to get topic resolutions", err).Error())); err != nil {
 				if messageBrokerClient.errorLogger != nil {
-					messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+					messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 				}
 			}
 		}
@@ -63,12 +63,12 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 		response, err := connection.connection.SyncRequestBlocking(topic, payload)
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to send sync message", err).Error())
+				messageBrokerClient.errorLogger.Log(Event.New("Failed to send sync message", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send sync message", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to send sync message", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 					}
 				}
 			}
@@ -78,12 +78,12 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 		}
 		if response.GetTopic() == Message.TOPIC_FAILURE {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to send sync message", Error.New("Failed to send sync message", nil)).Error())
+				messageBrokerClient.errorLogger.Log(Event.New("Failed to send sync message", Event.New("Failed to send sync message", nil)).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to send sync message", Error.New("Failed to send sync message", nil)).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to send sync message", Event.New("Failed to send sync message", nil)).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 					}
 				}
 			}
@@ -92,12 +92,12 @@ func (messageBrokerClient *Client) SyncRequest(topic string, payload string) []*
 		responseMessages, err := Message.DeserializeMessages([]byte(response.GetPayload()))
 		if err != nil {
 			if messageBrokerClient.errorLogger != nil {
-				messageBrokerClient.errorLogger.Log(Error.New("Failed to deserialize response", err).Error())
+				messageBrokerClient.errorLogger.Log(Event.New("Failed to deserialize response", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to deserialize response", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to deserialize response", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
-						messageBrokerClient.errorLogger.Log(Error.New("Failed to send email", err).Error())
+						messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 					}
 				}
 			}
@@ -114,12 +114,12 @@ func (MessageBrokerClient *Client) subscribeToTopic(connection *connection, topi
 	if sync {
 		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_SYNC, Helpers.StringsToJsonStringArray([]string{topic}))
 		if err != nil {
-			return Error.New("Failed to subscribe to topic", err)
+			return Event.New("Failed to subscribe to topic", err)
 		}
 	} else {
 		_, err := connection.connection.SyncRequestBlocking(Message.TOPIC_SUBSCRIBE_ASYNC, Helpers.StringsToJsonStringArray([]string{topic}))
 		if err != nil {
-			return Error.New("Failed to subscribe to topic", err)
+			return Event.New("Failed to subscribe to topic", err)
 		}
 	}
 	return nil

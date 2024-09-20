@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 )
 
 const ENDOFMESSAGE = '\x04'
@@ -16,7 +16,7 @@ const HEARTBEAT = '\x05'
 
 func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {
 	if netConn == nil {
-		return 0, Error.New("net.Conn is nil", nil)
+		return 0, Event.New("net.Conn is nil", nil)
 	}
 	if timeoutMs > 0 {
 		netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
@@ -32,7 +32,7 @@ func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {
 
 func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
 	if netConn == nil {
-		return Error.New("net.Conn is nil", nil)
+		return Event.New("net.Conn is nil", nil)
 	}
 	if timeoutMs > 0 {
 		netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
@@ -48,7 +48,7 @@ func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
 
 func Receive(netConn net.Conn, timeoutMs uint64, bufferSize uint32) ([]byte, int, error) {
 	if netConn == nil {
-		return nil, 0, Error.New("net.Conn is nil", nil)
+		return nil, 0, Event.New("net.Conn is nil", nil)
 	}
 	buffer := make([]byte, bufferSize)
 	if timeoutMs > 0 {

@@ -2,7 +2,7 @@ package DashboardServer
 
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 )
@@ -10,11 +10,11 @@ import (
 func (server *Server) handleClientCommandRequest(request *Message.Message, connectedClient *connectedClient) error {
 	_, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to parse command", err)
+		return Event.New("Failed to parse command", err)
 	}
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to execute command", err)
+		return Event.New("Failed to execute command", err)
 	}
 	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
@@ -23,12 +23,12 @@ func (server *Server) handleClientCommandRequest(request *Message.Message, conne
 func (server *Server) handleClientStartRequest(connectedClient *connectedClient) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START, "")
 	if err != nil {
-		return Error.New("Failed to start client", err)
+		return Event.New("Failed to start client", err)
 	}
 	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update status", err)
+		return Event.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
@@ -62,12 +62,12 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 func (server *Server) handleClientStopRequest(connectedClient *connectedClient) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP, "")
 	if err != nil {
-		return Error.New("Failed to stop client", err)
+		return Event.New("Failed to stop client", err)
 	}
 	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update status", err)
+		return Event.New("Failed to update status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
@@ -101,18 +101,18 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 func (server *Server) handleClientCloseChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_CLOSE_CHILD, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to close child", err)
+		return Event.New("Failed to close child", err)
 	}
 	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
 	if systemgeClientChildren == nil {
 		// should never happen
-		return Error.New("Failed to get systemge connection children", nil)
+		return Event.New("Failed to get systemge connection children", nil)
 	}
 	delete(systemgeClientChildren, request.GetPayload())
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update systemge connection children", err)
+		return Event.New("Failed to update systemge connection children", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -132,18 +132,18 @@ func (server *Server) handleClientCloseChildRequest(connectedClient *connectedCl
 func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY_CHILD, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to start processing loop", err)
+		return Event.New("Failed to start processing loop", err)
 	}
 	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
 	if systemgeClientChildren == nil {
 		// should never happen
-		return Error.New("Failed to get systemge connection children", nil)
+		return Event.New("Failed to get systemge connection children", nil)
 	}
 	systemgeClientChildren[request.GetPayload()].IsMessageHandlingLoopStarted = true
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update systemge connection children", err)
+		return Event.New("Failed to update systemge connection children", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -163,18 +163,18 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyChildRequest(co
 func (server *Server) handleClientStartProcessingLoopConcurrentlyChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY_CHILD, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to start processing loop", err)
+		return Event.New("Failed to start processing loop", err)
 	}
 	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
 	if systemgeClientChildren == nil {
 		// should never happen
-		return Error.New("Failed to get systemge connection children", nil)
+		return Event.New("Failed to get systemge connection children", nil)
 	}
 	systemgeClientChildren[request.GetPayload()].IsMessageHandlingLoopStarted = true
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update systemge connection children", err)
+		return Event.New("Failed to update systemge connection children", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -194,18 +194,18 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyChildRequest(co
 func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP_CHILD, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to stop processing loop", err)
+		return Event.New("Failed to stop processing loop", err)
 	}
 	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
 	if systemgeClientChildren == nil {
 		// should never happen
-		return Error.New("Failed to get systemge connection children", nil)
+		return Event.New("Failed to get systemge connection children", nil)
 	}
 	systemgeClientChildren[request.GetPayload()].IsMessageHandlingLoopStarted = false
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update systemge connection children", err)
+		return Event.New("Failed to update systemge connection children", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -225,22 +225,22 @@ func (server *Server) handleClientStopProcessingLoopChildRequest(connectedClient
 func (server *Server) handleClientHandleNextMessageChildRequest(connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE_CHILD, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to process next message", err)
+		return Event.New("Failed to process next message", err)
 	}
 	handleNextMessageResult, err := DashboardHelpers.UnmarshalHandleNextMessageResult([]byte(resultPayload))
 	if err != nil {
-		return Error.New("Failed to parse handle next message result", err)
+		return Event.New("Failed to parse handle next message result", err)
 	}
 	systemgeClientChildren := connectedClient.page.GetCachedSystemgeConnectionChildren()
 	if systemgeClientChildren == nil {
 		// should never happen
-		return Error.New("Failed to get systemge connection children", nil)
+		return Event.New("Failed to get systemge connection children", nil)
 	}
 	systemgeClientChildren[request.GetPayload()].UnhandledMessageCount = handleNextMessageResult.UnhandledMessageCount
 	err = connectedClient.page.SetCachedSystemgeConnectionChildren(systemgeClientChildren)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update systemge connection children", err)
+		return Event.New("Failed to update systemge connection children", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -260,7 +260,7 @@ func (server *Server) handleClientHandleNextMessageChildRequest(connectedClient 
 func (server *Server) handleClientMultiSyncRequestRequest(connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to send multi sync request", err)
+		return Event.New("Failed to send multi sync request", err)
 	}
 	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
@@ -269,7 +269,7 @@ func (server *Server) handleClientMultiSyncRequestRequest(connectedClient *conne
 func (server *Server) handleClientMultiAsyncMessageRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to send multi async message", err)
+		return Event.New("Failed to send multi async message", err)
 	}
 	server.handleWebsocketResponseMessage("successfully sent multi async message", connectedClient.connection.GetName())
 	return nil
@@ -278,12 +278,12 @@ func (server *Server) handleClientMultiAsyncMessageRequest(connectedClient *conn
 func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY, "")
 	if err != nil {
-		return Error.New("Failed to start processing loop", err)
+		return Event.New("Failed to start processing loop", err)
 	}
 	err = connectedClient.page.SetCachedIsProcessingLoopRunning(true)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update processing loop status", err)
+		return Event.New("Failed to update processing loop status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -303,12 +303,12 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY, "")
 	if err != nil {
-		return Error.New("Failed to start processing loop", err)
+		return Event.New("Failed to start processing loop", err)
 	}
 	err = connectedClient.page.SetCachedIsProcessingLoopRunning(true)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update processing loop status", err)
+		return Event.New("Failed to update processing loop status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -328,12 +328,12 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connect
 func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP, "")
 	if err != nil {
-		return Error.New("Failed to stop processing loop", err)
+		return Event.New("Failed to stop processing loop", err)
 	}
 	err = connectedClient.page.SetCachedIsProcessingLoopRunning(false)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update processing loop status", err)
+		return Event.New("Failed to update processing loop status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -353,17 +353,17 @@ func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *con
 func (server *Server) handleClientHandleNextMessageRequest(connectedClient *connectedClient) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE, "")
 	if err != nil {
-		return Error.New("Failed to process next message", err)
+		return Event.New("Failed to process next message", err)
 	}
 	handleNextMessageResult, err := DashboardHelpers.UnmarshalHandleNextMessageResult([]byte(resultPayload))
 	if err != nil {
-		return Error.New("Failed to parse handle next message result", err)
+		return Event.New("Failed to parse handle next message result", err)
 	}
 
 	err = connectedClient.page.SetCachedUnprocessedMessageCount(handleNextMessageResult.UnhandledMessageCount)
 	if err != nil {
 		// should never happen
-		return Error.New("Failed to update processing loop status", err)
+		return Event.New("Failed to update processing loop status", err)
 	}
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
@@ -384,7 +384,7 @@ func (server *Server) handleClientHandleNextMessageRequest(connectedClient *conn
 func (server *Server) handleClientSyncRequestRequest(connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_SYNC_REQUEST, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to send sync request", err)
+		return Event.New("Failed to send sync request", err)
 	}
 	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
@@ -393,7 +393,7 @@ func (server *Server) handleClientSyncRequestRequest(connectedClient *connectedC
 func (server *Server) handleClientAsyncMessageRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_ASYNC_MESSAGE, request.GetPayload())
 	if err != nil {
-		return Error.New("Failed to send async message", err)
+		return Event.New("Failed to send async message", err)
 	}
 	server.handleWebsocketResponseMessage("successfully sent async message", connectedClient.connection.GetName())
 	return nil

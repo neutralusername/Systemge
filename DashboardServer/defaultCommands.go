@@ -3,14 +3,14 @@ package DashboardServer
 import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 )
 
 func (server *Server) GetDefaultCommands() Commands.Handlers {
 	dashboardHandlers := Commands.Handlers{
 		"disconnectClient": func(args []string) (string, error) {
 			if len(args) == 0 {
-				return "", Error.New("No client name", nil)
+				return "", Event.New("No client name", nil)
 			}
 			if err := server.DisconnectClient(args[0]); err != nil {
 				return "", err

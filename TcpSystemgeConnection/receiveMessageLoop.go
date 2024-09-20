@@ -1,7 +1,7 @@
 package TcpSystemgeConnection
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
 )
@@ -35,13 +35,13 @@ func (connection *TcpSystemgeConnection) receiveMessageLoop() {
 						return
 					}
 					if connection.warningLogger != nil {
-						connection.warningLogger.Log(Error.New("failed to receive message", err).Error())
+						connection.warningLogger.Log(Event.New("failed to receive message", err).Error())
 					}
 					continue
 				}
 				if err := connection.addMessageToChannel(messageBytes); err != nil {
 					if connection.warningLogger != nil {
-						connection.warningLogger.Log(Error.New("failed to add message to processing channel", err).Error())
+						connection.warningLogger.Log(Event.New("failed to add message to processing channel", err).Error())
 					}
 					connection.messageChannelSemaphore.ReleaseBlocking()
 				}
@@ -53,16 +53,16 @@ func (connection *TcpSystemgeConnection) receiveMessageLoop() {
 
 func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
-		return Error.New("Message sync token exceeds maximum size", nil)
+		return Event.New("Message sync token exceeds maximum size", nil)
 	}
 	if len(message.GetTopic()) == 0 {
-		return Error.New("Message missing topic", nil)
+		return Event.New("Message missing topic", nil)
 	}
 	if maxTopicSize := connection.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return Error.New("Message topic exceeds maximum size", nil)
+		return Event.New("Message topic exceeds maximum size", nil)
 	}
 	if maxPayloadSize := connection.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return Error.New("Message payload exceeds maximum size", nil)
+		return Event.New("Message payload exceeds maximum size", nil)
 	}
 	return nil
 }

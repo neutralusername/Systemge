@@ -1,7 +1,7 @@
 package SystemgeServer
 
 import (
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -14,13 +14,13 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 		server.statusMutex.RUnlock()
 	}()
 	if server.status != Status.STARTED {
-		return Error.New("server is not started", nil)
+		return Event.New("server is not started", nil)
 	}
 	if connection, ok := server.clients[name]; ok {
 		connection.Close()
 		return nil
 	}
-	return Error.New("connection not found", nil)
+	return Event.New("connection not found", nil)
 }
 
 func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string {

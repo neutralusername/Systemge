@@ -6,7 +6,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
@@ -103,10 +103,10 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	commands := Commands.Handlers{}
 	commands["consume"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Error.New("consume expects 1 argument", nil)
+			return "", Event.New("consume expects 1 argument", nil)
 		}
 		if !rateLimiter.Consume(Helpers.StringToUint64(args[0])) {
-			return "", Error.New("failed to consume", nil)
+			return "", Event.New("failed to consume", nil)
 		}
 		return "success", nil
 	}
@@ -119,7 +119,7 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	}
 	commands["setRefillRate"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Error.New("setRefillRate expects 1 argument", nil)
+			return "", Event.New("setRefillRate expects 1 argument", nil)
 		}
 		rateLimiter.SetRefillRate(Helpers.StringToUint64(args[0]))
 		return "success", nil
@@ -129,7 +129,7 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	}
 	commands["setRefillInterval"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Error.New("setRefillInterval expects 1 argument", nil)
+			return "", Event.New("setRefillInterval expects 1 argument", nil)
 		}
 		rateLimiter.SetRefillInterval(Helpers.StringToUint64(args[0]))
 		return "success", nil
@@ -139,7 +139,7 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	}
 	commands["setMaxBucketSize"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Error.New("setMaxBucketSize expects 1 argument", nil)
+			return "", Event.New("setMaxBucketSize expects 1 argument", nil)
 		}
 		rateLimiter.SetMaxBucketSize(Helpers.StringToUint64(args[0]))
 		return "success", nil

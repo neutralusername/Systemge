@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -29,7 +29,7 @@ func (listener *TcpSystemgeListener) GetDefaultCommands() Commands.Handlers {
 		metrics := listener.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Error.New("failed to marshal metrics to json", err)
+			return "", Event.New("failed to marshal metrics to json", err)
 		}
 		return string(json), nil
 	}
@@ -37,7 +37,7 @@ func (listener *TcpSystemgeListener) GetDefaultCommands() Commands.Handlers {
 		metrics := listener.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Error.New("failed to marshal metrics to json", err)
+			return "", Event.New("failed to marshal metrics to json", err)
 		}
 		return string(json), nil
 	}

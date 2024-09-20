@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -38,20 +38,20 @@ func (server *TcpSystemgeListener) newListener(config *Config.TcpServer) (net.Li
 	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
 		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
 		if err != nil {
-			return nil, Error.New("Failed to listen on port: ", err)
+			return nil, Event.New("Failed to listen on port: ", err)
 		}
 		return listener, nil
 	} else {
 		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
 		if err != nil {
-			return nil, Error.New("Failed to load TLS certificate: ", err)
+			return nil, Event.New("Failed to load TLS certificate: ", err)
 		}
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		}
 		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
 		if err != nil {
-			return nil, Error.New("Failed to listen on port: ", err)
+			return nil, Event.New("Failed to listen on port: ", err)
 		}
 		return listener, nil
 	}
@@ -71,10 +71,10 @@ func (server *TcpSystemgeListener) GetListener() net.Listener {
 
 func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
 	if config == nil {
-		return nil, Error.New("config is nil", nil)
+		return nil, Event.New("config is nil", nil)
 	}
 	if config.TcpServerConfig == nil {
-		return nil, Error.New("listener is nil", nil)
+		return nil, Event.New("listener is nil", nil)
 	}
 	server := &TcpSystemgeListener{
 		config:    config,
@@ -83,7 +83,7 @@ func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList,
 	}
 	tcpListener, err := server.newListener(config.TcpServerConfig)
 	if err != nil {
-		return nil, Error.New("failed to create listener", err)
+		return nil, Event.New("failed to create listener", err)
 	}
 	server.listener = tcpListener
 	if config.IpRateLimiter != nil {
@@ -97,7 +97,7 @@ func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {
-		return Error.New("listener is already closed", nil)
+		return Event.New("listener is already closed", nil)
 	}
 	listener.closed = true
 	listener.listener.Close()

@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
@@ -70,7 +70,7 @@ func CloseLoggerQueue(path string) error {
 	defer loggerQueueMutex.Unlock()
 	loggerQueue := loggerQueues[path]
 	if loggerQueue == nil {
-		return Error.New("Logger not found", nil)
+		return Event.New("Logger not found", nil)
 	}
 	close(loggerQueue.stop)
 	close(loggerQueue.queue)

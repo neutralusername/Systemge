@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
@@ -65,28 +65,28 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeConnection.StartMessageHandlingLoop_Sequentially(messageHandler)
 				if err != nil {
-					return "", Error.New("Failed to start processing loop", err)
+					return "", Event.New("Failed to start processing loop", err)
 				}
 				return "", nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeConnection.StartMessageHandlingLoop_Concurrently(messageHandler)
 				if err != nil {
-					return "", Error.New("Failed to start processing loop", err)
+					return "", Event.New("Failed to start processing loop", err)
 				}
 				return "", nil
 			},
 			DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeConnection.StopMessageHandlingLoop()
 				if err != nil {
-					return "", Error.New("Failed to stop processing loop", err)
+					return "", Event.New("Failed to stop processing loop", err)
 				}
 				return "", nil
 			},
 			DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				message, err := systemgeConnection.GetNextMessage()
 				if err != nil {
-					return "", Error.New("Failed to get next message", err)
+					return "", Event.New("Failed to get next message", err)
 				}
 				handleNextMessageResult := DashboardHelpers.HandleNextMessageResult{
 					Message: message,
@@ -104,7 +104,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 						handleNextMessageResult.Error = err.Error()
 						handleNextMessageResult.HandlingSucceeded = false
 						if err := systemgeConnection.SyncResponse(message, false, err.Error()); err != nil {
-							handleNextMessageResult.Error = Error.New(handleNextMessageResult.Error, err).Error()
+							handleNextMessageResult.Error = Event.New(handleNextMessageResult.Error, err).Error()
 						}
 					} else {
 						handleNextMessageResult.HandlingSucceeded = true
@@ -120,22 +120,22 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 				if err != nil {
-					return "", Error.New("Failed to deserialize message", err)
+					return "", Event.New("Failed to deserialize message", err)
 				}
 				response, err := systemgeConnection.SyncRequestBlocking(message.GetTopic(), message.GetPayload())
 				if err != nil {
-					return "", Error.New("Failed to complete sync request", err)
+					return "", Event.New("Failed to complete sync request", err)
 				}
 				return string(response.Serialize()), nil
 			},
 			DashboardHelpers.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 				if err != nil {
-					return "", Error.New("Failed to deserialize message", err)
+					return "", Event.New("Failed to deserialize message", err)
 				}
 				err = systemgeConnection.AsyncMessage(message.GetTopic(), message.GetPayload())
 				if err != nil {
-					return "", Error.New("Failed to handle async message", err)
+					return "", Event.New("Failed to handle async message", err)
 				}
 				return "", nil
 			},

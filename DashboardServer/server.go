@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
@@ -153,7 +153,7 @@ func (server *Server) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status == Status.STARTED {
-		return Error.New("Already started", nil)
+		return Event.New("Already started", nil)
 	}
 	if err := server.systemgeServer.Start(); err != nil {
 		return err
@@ -161,7 +161,7 @@ func (server *Server) Start() error {
 	if err := server.websocketServer.Start(); err != nil {
 		if err := server.systemgeServer.Stop(); err != nil {
 			if server.errorLogger != nil {
-				server.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
+				server.errorLogger.Log(Event.New("Failed to stop Systemge server after failed start", err).Error())
 			}
 		}
 		return err
@@ -169,12 +169,12 @@ func (server *Server) Start() error {
 	if err := server.httpServer.Start(); err != nil {
 		if err := server.systemgeServer.Stop(); err != nil {
 			if server.errorLogger != nil {
-				server.errorLogger.Log(Error.New("Failed to stop Systemge server after failed start", err).Error())
+				server.errorLogger.Log(Event.New("Failed to stop Systemge server after failed start", err).Error())
 			}
 		}
 		if err := server.websocketServer.Stop(); err != nil {
 			if server.errorLogger != nil {
-				server.errorLogger.Log(Error.New("Failed to stop Websocket server after failed start", err).Error())
+				server.errorLogger.Log(Event.New("Failed to stop Websocket server after failed start", err).Error())
 			}
 		}
 		return err
@@ -193,23 +193,23 @@ func (server *Server) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status == Status.STOPPED {
-		return Error.New("Already stopped", nil)
+		return Event.New("Already stopped", nil)
 	}
 	server.status = Status.PENDING
 	server.waitGroup.Wait()
 	if err := server.systemgeServer.Stop(); err != nil {
 		if server.errorLogger != nil {
-			server.errorLogger.Log(Error.New("Failed to stop Systemge server", err).Error())
+			server.errorLogger.Log(Event.New("Failed to stop Systemge server", err).Error())
 		}
 	}
 	if err := server.websocketServer.Stop(); err != nil {
 		if server.errorLogger != nil {
-			server.errorLogger.Log(Error.New("Failed to stop Websocket server", err).Error())
+			server.errorLogger.Log(Event.New("Failed to stop Websocket server", err).Error())
 		}
 	}
 	if err := server.httpServer.Stop(); err != nil {
 		if server.errorLogger != nil {
-			server.errorLogger.Log(Error.New("Failed to stop HTTP server", err).Error())
+			server.errorLogger.Log(Event.New("Failed to stop HTTP server", err).Error())
 		}
 	}
 	server.status = Status.STOPPED

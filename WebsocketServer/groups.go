@@ -1,6 +1,6 @@
 package WebsocketServer
 
-import "github.com/neutralusername/Systemge/Error"
+import "github.com/neutralusername/Systemge/Event"
 
 // AddClientsToGroup adds websocket clients to a group.
 // Returns an error if either of the websocket clients does not exist or is already in the group.
@@ -9,10 +9,10 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 	defer server.clientMutex.Unlock()
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] == nil {
-			return Error.New("client with id "+websocketId+" does not exist", nil)
+			return Event.New("client with id "+websocketId+" does not exist", nil)
 		}
 		if server.clientGroups[websocketId][groupId] {
-			return Error.New("client with id "+websocketId+" is already in group "+groupId, nil)
+			return Event.New("client with id "+websocketId+" is already in group "+groupId, nil)
 		}
 	}
 	if server.groups[groupId] == nil {
@@ -56,14 +56,14 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 	if server.groups[groupId] == nil {
-		return Error.New("group with id "+groupId+" does not exist", nil)
+		return Event.New("group with id "+groupId+" does not exist", nil)
 	}
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] == nil {
-			return Error.New("client with id "+websocketId+" does not exist", nil)
+			return Event.New("client with id "+websocketId+" does not exist", nil)
 		}
 		if !server.clientGroups[websocketId][groupId] {
-			return Error.New("client with id "+websocketId+" is not in group "+groupId, nil)
+			return Event.New("client with id "+websocketId+" is not in group "+groupId, nil)
 		}
 	}
 	for _, websocketId := range websocketIds {
@@ -83,7 +83,7 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 	if server.groups[groupId] == nil {
-		return Error.New("group with id "+groupId+" does not exist", nil)
+		return Event.New("group with id "+groupId+" does not exist", nil)
 	}
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] != nil {

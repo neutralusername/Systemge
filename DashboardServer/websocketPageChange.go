@@ -2,7 +2,7 @@ package DashboardServer
 
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
-	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
@@ -19,7 +19,7 @@ func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketClien
 	locationBeforeChange := server.websocketClientLocations[websocketClient]
 
 	if locationBeforeChange == locationAfterChange {
-		return Error.New("Location is already "+locationAfterChange, nil)
+		return Event.New("Location is already "+locationAfterChange, nil)
 	}
 
 	var pageJson string
@@ -28,7 +28,7 @@ func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketClien
 	case "":
 		page, err := DashboardHelpers.GetNullPage().Marshal()
 		if err != nil {
-			return Error.New("Failed to marshal null page", err)
+			return Event.New("Failed to marshal null page", err)
 		}
 		pageJson = string(page)
 	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
@@ -37,18 +37,18 @@ func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketClien
 			DashboardHelpers.CLIENT_TYPE_DASHBOARD,
 		).Marshal()
 		if err != nil {
-			return Error.New("Failed to marshal dashboard page", err)
+			return Event.New("Failed to marshal dashboard page", err)
 		}
 		pageJson = string(pageMarshalled)
 		server.dashboardWebsocketClients[websocketClient] = true
 	default:
 		connectedClient = server.connectedClients[locationAfterChange]
 		if connectedClient == nil {
-			return Error.New("Client not found", nil)
+			return Event.New("Client not found", nil)
 		}
 		pageMarshalled, err := connectedClient.page.Marshal()
 		if err != nil {
-			return Error.New("Failed to marshal client page", err)
+			return Event.New("Failed to marshal client page", err)
 		}
 		pageJson = string(pageMarshalled)
 		connectedClient.websocketClients[websocketClient] = true
