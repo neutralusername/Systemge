@@ -20,12 +20,9 @@ type WebsocketServer struct {
 	status      int
 	statusMutex sync.Mutex
 
-	config        *Config.WebsocketServer
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
-	randomizer    *Tools.Randomizer
+	config     *Config.WebsocketServer
+	mailer     *Tools.Mailer
+	randomizer *Tools.Randomizer
 
 	onConnectHandler    OnConnectHandler
 	onDisconnectHandler OnDisconnectHandler
@@ -42,6 +39,8 @@ type WebsocketServer struct {
 	clientMutex       sync.RWMutex
 
 	messageHandlerMutex sync.Mutex
+
+	onErrorHandler func(error, string) (error, string)
 
 	// metrics
 
@@ -189,4 +188,11 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Lock()
 	delete(server.messageHandlers, topic)
 	server.messageHandlerMutex.Unlock()
+}
+
+func (server *WebsocketServer) OnError(err error, context string) (error, string) {
+	if server.onErrorHandler != nil {
+		return server.onErrorHandler(err, context)
+	}
+	return err, context
 }
