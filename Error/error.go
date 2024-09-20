@@ -18,7 +18,6 @@ type Context struct {
 	Val string `json:"val"`
 }
 
-// description is used to provide context to the error message
 func New(err error, context ...*Context) *Error {
 	return &Error{
 		err:     err,

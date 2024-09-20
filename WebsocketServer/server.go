@@ -103,11 +103,11 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) Start() Error.Error {
+func (server *WebsocketServer) Start() *Error.Error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return Error.New().Error.New("WebsocketServer is not in stopped state", nil)
+		return Error.New(Error.NewErrAlreadyStarted("test"))
 	}
 	if server.infoLogger != nil {
 		server.infoLogger.Log("Starting WebsocketServer")
