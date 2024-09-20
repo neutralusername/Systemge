@@ -93,13 +93,13 @@ func (client *SystemgeClient) GetStatus() int {
 func (client *SystemgeClient) Start() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
-	if client.status != Status.STOPPED {
+	if client.status != Status.Stoped {
 		return Event.New("client not stopped", nil)
 	}
 	if client.infoLogger != nil {
 		client.infoLogger.Log("starting client")
 	}
-	client.status = Status.PENDING
+	client.status = Status.Pending
 	client.stopChannel = make(chan bool)
 	for _, tcpClientConfig := range client.config.TcpClientConfigs {
 		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
@@ -125,7 +125,7 @@ func (client *SystemgeClient) Start() error {
 func (client *SystemgeClient) Stop() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
-	if client.status == Status.STOPPED {
+	if client.status == Status.Stoped {
 		return Event.New("client already stopped", nil)
 	}
 	if client.infoLogger != nil {
@@ -137,6 +137,6 @@ func (client *SystemgeClient) Stop() error {
 	if client.infoLogger != nil {
 		client.infoLogger.Log("client stopped")
 	}
-	client.status = Status.STOPPED
+	client.status = Status.Stoped
 	return nil
 }

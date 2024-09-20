@@ -70,10 +70,10 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 func (server *HTTPServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STOPPED {
+	if server.status != Status.Stoped {
 		return Event.New("http server not stopped", nil)
 	}
-	server.status = Status.PENDING
+	server.status = Status.Pending
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting http server")
 	}
@@ -114,7 +114,7 @@ func (server *HTTPServer) Start() error {
 	ended = true
 	select {
 	case err := <-errorChannel:
-		server.status = Status.STOPPED
+		server.status = Status.Stoped
 		return Event.New("failed to start http server", err)
 	default:
 	}
@@ -122,17 +122,17 @@ func (server *HTTPServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("http server started")
 	}
-	server.status = Status.STARTED
+	server.status = Status.Started
 	return nil
 }
 
 func (server *HTTPServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return Event.New("http server not started", nil)
 	}
-	server.status = Status.PENDING
+	server.status = Status.Pending
 	if server.infoLogger != nil {
 		server.infoLogger.Log("stopping http server")
 	}
@@ -146,7 +146,7 @@ func (server *HTTPServer) Stop() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("http server stopped")
 	}
-	server.status = Status.STOPPED
+	server.status = Status.Stoped
 	return nil
 }
 

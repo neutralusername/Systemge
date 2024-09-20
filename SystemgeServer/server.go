@@ -85,16 +85,16 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 func (server *SystemgeServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STOPPED {
+	if server.status != Status.Stoped {
 		return Event.New("server is already started", nil)
 	}
-	server.status = Status.PENDING
+	server.status = Status.Pending
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
 	listener, err := TcpSystemgeListener.New(server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist)
 	if err != nil {
-		server.status = Status.STOPPED
+		server.status = Status.Stoped
 		return Event.New("failed to create listener", err)
 	}
 	server.listener = listener
@@ -104,17 +104,17 @@ func (server *SystemgeServer) Start() error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server started")
 	}
-	server.status = Status.STARTED
+	server.status = Status.Started
 	return nil
 }
 
 func (server *SystemgeServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return Event.New("server is already stopped", nil)
 	}
-	server.status = Status.PENDING
+	server.status = Status.Pending
 	if server.infoLogger != nil {
 		server.infoLogger.Log("stopping server")
 	}
@@ -129,7 +129,7 @@ func (server *SystemgeServer) Stop() error {
 	if infoLogger := server.infoLogger; infoLogger != nil {
 		infoLogger.Log("server stopped")
 	}
-	server.status = Status.STOPPED
+	server.status = Status.Stoped
 	return nil
 }
 

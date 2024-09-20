@@ -14,7 +14,7 @@ import (
 
 func (server *Server) updateRoutine() {
 	defer server.waitGroup.Done()
-	for server.status == Status.STARTED {
+	for server.status == Status.Started {
 		for _, connectedClient := range server.connectedClients {
 			switch connectedClient.page.Type {
 			case DashboardHelpers.CLIENT_TYPE_COMMAND:

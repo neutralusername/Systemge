@@ -152,7 +152,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 func (server *Server) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status == Status.STARTED {
+	if server.status == Status.Started {
 		return Event.New("Already started", nil)
 	}
 	if err := server.systemgeServer.Start(); err != nil {
@@ -179,7 +179,7 @@ func (server *Server) Start() error {
 		}
 		return err
 	}
-	server.status = Status.STARTED
+	server.status = Status.Started
 
 	if server.config.UpdateIntervalMs > 0 {
 		server.waitGroup.Add(1)
@@ -192,10 +192,10 @@ func (server *Server) Start() error {
 func (server *Server) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status == Status.STOPPED {
+	if server.status == Status.Stoped {
 		return Event.New("Already stopped", nil)
 	}
-	server.status = Status.PENDING
+	server.status = Status.Pending
 	server.waitGroup.Wait()
 	if err := server.systemgeServer.Stop(); err != nil {
 		if server.errorLogger != nil {
@@ -212,7 +212,7 @@ func (server *Server) Stop() error {
 			server.errorLogger.Log(Event.New("Failed to stop HTTP server", err).Error())
 		}
 	}
-	server.status = Status.STOPPED
+	server.status = Status.Stoped
 	return nil
 }
 

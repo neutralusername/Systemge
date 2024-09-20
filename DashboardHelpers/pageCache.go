@@ -48,7 +48,7 @@ func (page *Page) GetCachedStatus() int {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		return page.Data.(*SystemgeServerClient).Status
 	default:
-		return Status.NON_EXISTENT
+		return Status.Non_Existant
 	}
 }
 func (page *Page) SetCachedStatus(status int) error {

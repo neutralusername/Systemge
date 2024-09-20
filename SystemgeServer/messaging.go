@@ -10,7 +10,7 @@ import (
 
 func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ...string) error {
 	server.statusMutex.RLock()
-	if server.status == Status.STOPPED {
+	if server.status == Status.Stoped {
 		server.statusMutex.RUnlock()
 		return Event.New("Server stopped", nil)
 	}
@@ -64,7 +64,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 
 func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
 	server.statusMutex.RLock()
-	if server.status == Status.STOPPED {
+	if server.status == Status.Stoped {
 		server.statusMutex.RUnlock()
 		return nil, Event.New("Server stopped", nil)
 	}
@@ -118,7 +118,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 
 func (server *SystemgeServer) SyncRequestBlocking(topic, payload string, clientNames ...string) ([]*Message.Message, error) {
 	server.statusMutex.RLock()
-	if server.status == Status.STOPPED {
+	if server.status == Status.Stoped {
 		server.statusMutex.RUnlock()
 		return nil, Event.New("Server stopped", nil)
 	}

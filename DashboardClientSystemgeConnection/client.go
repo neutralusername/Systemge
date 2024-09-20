@@ -60,7 +60,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.STOPPED), nil
+				return Helpers.IntToString(Status.Stoped), nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeConnection.StartMessageHandlingLoop_Sequentially(messageHandler)

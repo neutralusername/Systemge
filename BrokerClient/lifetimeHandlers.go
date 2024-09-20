@@ -38,7 +38,7 @@ func (messageBrokerClient *Client) handleConnectionLifetime(connection *connecti
 		messageBrokerClient.mutex.Unlock()
 
 		messageBrokerClient.statusMutex.Lock()
-		if messageBrokerClient.status != Status.STARTED {
+		if messageBrokerClient.status != Status.Started {
 			messageBrokerClient.statusMutex.Unlock()
 			return
 		}
@@ -80,7 +80,7 @@ func (messageBrokerClient *Client) handleTopicResolutionLifetime(topic string, i
 	case <-topicResolutionTimeout:
 		if (isSynctopic && messageBrokerClient.subscribedSyncTopics[topic]) || (!isSynctopic && messageBrokerClient.subscribedAsyncTopics[topic]) {
 			messageBrokerClient.statusMutex.Lock()
-			if messageBrokerClient.status != Status.STARTED {
+			if messageBrokerClient.status != Status.Started {
 				messageBrokerClient.statusMutex.Unlock()
 				return
 			}

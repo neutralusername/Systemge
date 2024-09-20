@@ -110,7 +110,7 @@ func (server *SystemgeServer) GetMetrics() Metrics.MetricsTypes {
 func (server *SystemgeServer) CheckConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -119,7 +119,7 @@ func (server *SystemgeServer) CheckConnectionAttempts() uint64 {
 func (server *SystemgeServer) GetConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -129,7 +129,7 @@ func (server *SystemgeServer) GetConnectionAttempts() uint64 {
 func (server *SystemgeServer) CheckFailedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -138,7 +138,7 @@ func (server *SystemgeServer) CheckFailedConnectionAttempts() uint64 {
 func (server *SystemgeServer) GetFailedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -148,7 +148,7 @@ func (server *SystemgeServer) GetFailedConnectionAttempts() uint64 {
 func (server *SystemgeServer) CheckRejectedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -157,7 +157,7 @@ func (server *SystemgeServer) CheckRejectedConnectionAttempts() uint64 {
 func (server *SystemgeServer) GetRejectedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -167,7 +167,7 @@ func (server *SystemgeServer) GetRejectedConnectionAttempts() uint64 {
 func (server *SystemgeServer) CheckAcceptedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 
@@ -176,7 +176,7 @@ func (server *SystemgeServer) CheckAcceptedConnectionAttempts() uint64 {
 func (server *SystemgeServer) GetAcceptedConnectionAttempts() uint64 {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 

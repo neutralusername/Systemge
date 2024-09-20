@@ -38,13 +38,13 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 
 	go func() {
 		client.ongoingConnectionAttempts.Add(1)
-		client.status = Status.PENDING
+		client.status = Status.Pending
 
 		client.handleConnectionAttempt(connectionAttempt)
 
 		val := client.ongoingConnectionAttempts.Add(-1)
 		if val == 0 {
-			client.status = Status.STARTED
+			client.status = Status.Started
 		}
 		client.waitGroup.Done()
 	}()

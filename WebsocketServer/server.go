@@ -114,12 +114,12 @@ func (server *WebsocketServer) GetServerContext() []*Event.Context {
 func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STOPPED {
+	if server.status != Status.Stoped {
 		return server.onErrorHandler(Event.New(Error.ErrAlreadyStarted, server.GetServerContext()...))
 	}
 
 	server.onInfoHandler(Event.New(Event.Starting, server.GetServerContext()...))
-	server.status = Status.PENDING
+	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
 	err := server.httpServer.Start()
@@ -128,7 +128,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		server.ipRateLimiter = nil
 		close(server.connectionChannel)
 		server.connectionChannel = nil
-		server.status = Status.STOPPED
+		server.status = Status.Stoped
 		return Event.New("failed starting websocket handshake handler", err)
 	}
 	go server.handleWebsocketConnections()
@@ -136,20 +136,20 @@ func (server *WebsocketServer) Start() *Event.Event {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("WebsocketServer started")
 	}
-	server.status = Status.STARTED
+	server.status = Status.Started
 	return nil
 }
 
 func (server *WebsocketServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return Event.New("WebsocketServer is not in started state", nil)
 	}
 	if server.infoLogger != nil {
 		server.infoLogger.Log("Stopping WebsocketServer")
 	}
-	server.status = Status.PENDING
+	server.status = Status.Pending
 
 	server.httpServer.Stop()
 	close(server.connectionChannel)
@@ -172,7 +172,7 @@ func (server *WebsocketServer) Stop() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("WebsocketServer stopped")
 	}
-	server.status = Status.STOPPED
+	server.status = Status.Stoped
 	return nil
 }
 

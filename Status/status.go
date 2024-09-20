@@ -1,30 +1,30 @@
 package Status
 
 const (
-	NON_EXISTENT = -1
-	STOPPED      = 0
-	PENDING      = 1
-	STARTED      = 2
+	Non_Existant = -1
+	Stoped       = 0
+	Pending      = 1
+	Started      = 2
 )
 
 func ToString(status int) string {
 	switch status {
-	case NON_EXISTENT:
-		return "NON_EXISTENT"
-	case STOPPED:
-		return "STOPPED"
-	case PENDING:
-		return "PENDING"
-	case STARTED:
-		return "STARTED"
+	case Non_Existant:
+		return "Non_Existant"
+	case Stoped:
+		return "Stoped"
+	case Pending:
+		return "Pending"
+	case Started:
+		return "Started"
 	default:
-		return "UNKNOWN"
+		return "Unknown"
 	}
 }
 
 func IsValidStatus(status int) bool {
 	switch status {
-	case NON_EXISTENT, STOPPED, PENDING, STARTED:
+	case Non_Existant, Stoped, Pending, Started:
 		return true
 	default:
 		return false

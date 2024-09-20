@@ -12,7 +12,7 @@ func (messageBrokerClient *Client) getTopicResolutions(topic string, isSyncTopic
 
 	if topicResolutions == nil {
 		messageBrokerClient.statusMutex.Lock()
-		if messageBrokerClient.status != Status.STARTED {
+		if messageBrokerClient.status != Status.Started {
 			messageBrokerClient.statusMutex.Unlock()
 			return nil, Event.New("Not started", nil)
 		}

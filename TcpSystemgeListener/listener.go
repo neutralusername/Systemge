@@ -111,7 +111,7 @@ func (listener *TcpSystemgeListener) GetStatus() int {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {
-		return Status.STOPPED
+		return Status.Stoped
 	}
-	return Status.STARTED
+	return Status.Started
 }

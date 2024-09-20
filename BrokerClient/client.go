@@ -88,7 +88,7 @@ func New(name string, config *Config.MessageBrokerClient, messageHandler Systemg
 		subscribedAsyncTopics: make(map[string]bool),
 		subscribedSyncTopics:  make(map[string]bool),
 
-		status: Status.STOPPED,
+		status: Status.Stoped,
 	}
 	if config.InfoLoggerPath != "" {
 		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
@@ -117,10 +117,10 @@ func New(name string, config *Config.MessageBrokerClient, messageHandler Systemg
 func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
-	if messageBrokerClient.status != Status.STOPPED {
+	if messageBrokerClient.status != Status.Stoped {
 		return Event.New("Already started", nil)
 	}
-	messageBrokerClient.status = Status.PENDING
+	messageBrokerClient.status = Status.Pending
 	stopChannel := make(chan bool)
 	messageBrokerClient.stopChannel = stopChannel
 
@@ -130,7 +130,7 @@ func (messageBrokerClient *Client) Start() error {
 	for topic := range messageBrokerClient.subscribedSyncTopics {
 		messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 	}
-	messageBrokerClient.status = Status.STARTED
+	messageBrokerClient.status = Status.Started
 	return nil
 }
 
@@ -138,15 +138,15 @@ func (messageBrokerClient *Client) stop() {
 	close(messageBrokerClient.stopChannel)
 	messageBrokerClient.stopChannel = nil
 	messageBrokerClient.waitGroup.Wait()
-	messageBrokerClient.status = Status.STOPPED
+	messageBrokerClient.status = Status.Stoped
 }
 func (messageBrokerClient *Client) Stop() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
-	if messageBrokerClient.status != Status.STARTED {
+	if messageBrokerClient.status != Status.Started {
 		return Event.New("Already started", nil)
 	}
-	messageBrokerClient.status = Status.PENDING
+	messageBrokerClient.status = Status.Pending
 	messageBrokerClient.stop()
 	return nil
 }

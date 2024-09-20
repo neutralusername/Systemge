@@ -51,7 +51,7 @@ func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs S
 func (app *Client) Start() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
-	if app.status == Status.STARTED {
+	if app.status == Status.Started {
 		return Event.New("Already started", nil)
 	}
 	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength)
@@ -92,20 +92,20 @@ func (app *Client) Start() error {
 		connection.Close()
 		return Event.New("Failed to start message handling loop", err)
 	}
-	app.status = Status.STARTED
+	app.status = Status.Started
 	return nil
 }
 
 func (app *Client) Stop() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
-	if app.status == Status.STOPPED {
+	if app.status == Status.Stoped {
 		return Event.New("Already stopped", nil)
 	}
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil
 	app.messageHandler.Close()
 	app.messageHandler = nil
-	app.status = Status.STOPPED
+	app.status = Status.Stoped
 	return nil
 }

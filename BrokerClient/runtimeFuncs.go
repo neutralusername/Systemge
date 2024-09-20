@@ -7,7 +7,7 @@ import (
 
 func (messageBrokerClient *Client) ResolveSubscribeTopics() error {
 	messageBrokerClient.statusMutex.Lock()
-	if messageBrokerClient.status != Status.STARTED {
+	if messageBrokerClient.status != Status.Started {
 		messageBrokerClient.statusMutex.Unlock()
 		return Event.New("Client is not started", nil)
 	}

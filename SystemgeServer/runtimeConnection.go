@@ -13,7 +13,7 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 	}()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return Event.New("server is not started", nil)
 	}
 	if connection, ok := server.clients[name]; ok {
@@ -30,7 +30,7 @@ func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string
 		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 	}()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return nil
 	}
 	names := make(map[string]string, len(server.clients))
@@ -47,7 +47,7 @@ func (Server *SystemgeServer) GetConnections() []SystemgeConnection.SystemgeConn
 		Server.mutex.Unlock()
 		Server.statusMutex.RUnlock()
 	}()
-	if Server.status != Status.STARTED {
+	if Server.status != Status.Started {
 		return nil
 	}
 	connections := make([]SystemgeConnection.SystemgeConnection, 0, len(Server.clients))
@@ -64,7 +64,7 @@ func (server *SystemgeServer) GetConnection(name string) SystemgeConnection.Syst
 		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 	}()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return nil
 	}
 	if connection, ok := server.clients[name]; ok {
@@ -80,7 +80,7 @@ func (server *SystemgeServer) GetConnectionCount() int {
 		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 	}()
-	if server.status != Status.STARTED {
+	if server.status != Status.Started {
 		return 0
 	}
 	return len(server.clients)
