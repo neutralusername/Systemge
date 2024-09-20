@@ -131,7 +131,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		))
 	}
 
-	server.onInfo(Event.New(Event.StartingService, server.GetServerContext()...))
+	server.onInfo(Event.New(Event.StartingService, server.GetServerContext(nil)))
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
@@ -144,11 +144,11 @@ func (server *WebsocketServer) Start() *Event.Event {
 		server.status = Status.Stoped
 		return server.onError(Event.New(
 			Event.FailedStartingService,
-			server.GetServerContext(
-				Event.GetErrorContext(err.Error()),
-				Event.NewContext("targetServiceType", Service.HttpServer),
-				Event.NewContext("targetServiceName", server.httpServer.GetName()),
-			)...,
+			server.GetServerContext(Event.Context{
+				"error":             err.Error(),
+				"targetServiceType": Service.HttpServer,
+				"targetServiceName": server.httpServer.GetName(),
+			}),
 		))
 	}
 	go server.handleWebsocketConnections()
