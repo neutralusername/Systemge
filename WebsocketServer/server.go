@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Error"
@@ -110,6 +111,7 @@ func (server *WebsocketServer) GetServerContext(context ...*Event.Context) []*Ev
 		[]*Event.Context{
 			Event.NewContext("serviceType", Service.WebsocketServer),
 			Event.NewContext("name", server.name),
+			Event.NewContext("timestamp", time.Now().GoString()),
 		},
 		context...,
 	)
