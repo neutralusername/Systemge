@@ -27,6 +27,8 @@ implement manual metrics update in some form (especially in regards to ranges of
 
 add http calls for dashboard commands somehow
 
+add dashboard chat/notes
+
 maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
 refactor brokerResolver to use singleRequestServer
