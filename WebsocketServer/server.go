@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
@@ -105,17 +104,17 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) GetServerContext(context ...*Event.Context) []*Event.Context {
-
-	return append(
-		[]*Event.Context{
-			Event.NewContext("serviceType", Service.WebsocketServer),
-			Event.NewContext("name", server.name),
-			Event.NewContext("timestamp", time.Now().GoString()),
-			//Event.GetCallerContext(2),
-		},
-		context...,
-	)
+func (server *WebsocketServer) GetServerContext(context Event.Context) Event.Context {
+	ctx := Event.Context{
+		"serviceType": Service.WebsocketServer,
+		"name":        server.name,
+		"status":      Status.ToString(server.status),
+		//Event.GetCallerContext(2),
+	}
+	for key, value := range context {
+		ctx[key] = value
+	}
+	return ctx
 }
 
 func (server *WebsocketServer) Start() *Event.Event {
