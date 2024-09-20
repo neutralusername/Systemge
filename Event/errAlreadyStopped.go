@@ -1,20 +1,7 @@
 package Event
 
-import "errors"
+type ErrAlreadyStopped string
 
-type ErrAlreadyStopped struct {
-	err error
-}
-
-func (e *ErrAlreadyStopped) Error() string {
-	return e.err.Error()
-}
-
-func NewErrAlreadyStopped(err string) *ErrAlreadyStopped {
-	if err == "" {
-		err = "already stopped"
-	}
-	return &ErrAlreadyStopped{
-		err: errors.New(err),
-	}
+func (e ErrAlreadyStopped) Error() Type {
+	return Type(e)
 }
