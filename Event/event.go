@@ -8,7 +8,7 @@ import (
 )
 
 type Event struct {
-	Type_   string  `json:"type"`
+	Type    string  `json:"type"`
 	Context Context `json:"context"`
 }
 
@@ -16,7 +16,7 @@ type Context map[string]string
 
 func New(eventType string, context Context) *Event {
 	return &Event{
-		Type_:   eventType,
+		Type:    eventType,
 		Context: context,
 	}
 }
