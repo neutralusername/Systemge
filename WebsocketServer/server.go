@@ -138,6 +138,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 			server.GetServerContext(
 				Event.NewContext("error", err.Error()),
 				Event.NewContext("targetServiceType", Service.HttpServer),
+				Event.NewContext("targetServiceName", server.httpServer.GetName()),
 			)...,
 		)
 	}
