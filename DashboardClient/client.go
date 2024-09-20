@@ -15,14 +15,16 @@ type Client struct {
 	name                              string
 	config                            *Config.DashboardClient
 	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
-	messageHandler                    SystemgeConnection.MessageHandler
+	messageHandler                    *SystemgeConnection.TopicExclusiveMessageHandler
+	asyncMessageHandlerFuncs          SystemgeConnection.AsyncMessageHandlers
+	syncMessageHandlerFuncs           SystemgeConnection.SyncMessageHandlers
 	introductionHandler               func() (string, error)
 
 	status int
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, messageHandler SystemgeConnection.MessageHandler, introductionHandler func() (string, error)) *Client {
+func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs SystemgeConnection.AsyncMessageHandlers, syncMessageHandlerFuncs SystemgeConnection.SyncMessageHandlers, introductionHandler func() (string, error)) *Client {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -35,15 +37,13 @@ func New(name string, config *Config.DashboardClient, messageHandler SystemgeCon
 	if config.TcpClientConfig == nil {
 		panic("config.TcpClientConfig is nil")
 	}
-	if messageHandler == nil {
-		panic("dashboardMessageHandler is nil")
-	}
 
 	app := &Client{
-		name:                name,
-		config:              config,
-		messageHandler:      messageHandler,
-		introductionHandler: introductionHandler,
+		name:                     name,
+		config:                   config,
+		asyncMessageHandlerFuncs: asyncMessageHandlerFuncs,
+		syncMessageHandlerFuncs:  syncMessageHandlerFuncs,
+		introductionHandler:      introductionHandler,
 	}
 	return app
 }
@@ -80,6 +80,13 @@ func (app *Client) Start() error {
 		return Error.New("Failed to send introduction response", err)
 	}
 
+	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+		app.asyncMessageHandlerFuncs,
+		app.syncMessageHandlerFuncs,
+		nil, nil,
+		1000,
+	)
+
 	err = connection.StartMessageHandlingLoop_Sequentially(app.messageHandler)
 	if err != nil {
 		connection.Close()
@@ -97,6 +104,8 @@ func (app *Client) Stop() error {
 	}
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil
+	app.messageHandler.Close()
+	app.messageHandler = nil
 	app.status = Status.STOPPED
 	return nil
 }
