@@ -20,31 +20,31 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		return
 	}
 
+	server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
+		body := make([]byte, r.ContentLength)
+		_, err := r.Body.Read(body)
+		if err != nil {
+			http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
+			return
+		}
+		command, err := DashboardHelpers.UnmarshalCommand(string(body))
+		if err != nil {
+			http.Error(w, Error.New("Failed to unmarshal command", err).Error(), http.StatusBadRequest)
+			return
+		}
+		if server.config.FrontendPassword != "" && command.Password != server.config.FrontendPassword {
+			http.Error(w, "Invalid password", http.StatusUnauthorized)
+			return
+		}
+		result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(command.Command, command.Args).Marshal())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(result))
+	})
 	for command := range commands {
 		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
-			body := make([]byte, r.ContentLength)
-			_, err := r.Body.Read(body)
-			if err != nil {
-				http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
-				return
-			}
-			command, err := DashboardHelpers.UnmarshalCommand(string(body))
-			if err != nil {
-				http.Error(w, Error.New("Failed to unmarshal command", err).Error(), http.StatusBadRequest)
-				return
-			}
-			if server.config.FrontendPassword != "" && command.Password != server.config.FrontendPassword {
-				http.Error(w, "Invalid password", http.StatusUnauthorized)
-				return
-			}
-			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(command.Command, command.Args).Marshal())
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Write([]byte(result))
-		})
-		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command+"/", func(w http.ResponseWriter, r *http.Request) {
 			query := r.URL.Query()
 			password := query.Get("password")
 			if server.config.FrontendPassword != "" && password != server.config.FrontendPassword {
