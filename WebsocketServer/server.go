@@ -122,10 +122,10 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Stoped {
-		return server.onErrorHandler(Event.New(Event.AlreadyStarted, server.GetServerContext()...))
+		return server.onError(Event.New(Event.AlreadyStarted, server.GetServerContext()...))
 	}
 
-	server.onInfoHandler(Event.New(Event.StartingService, server.GetServerContext()...))
+	server.onInfo(Event.New(Event.StartingService, server.GetServerContext()...))
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
@@ -136,30 +136,30 @@ func (server *WebsocketServer) Start() *Event.Event {
 		close(server.connectionChannel)
 		server.connectionChannel = nil
 		server.status = Status.Stoped
-		return Event.New(
+		return server.onError(Event.New(
 			Event.FailedStartingService,
 			server.GetServerContext(
 				Event.NewContext("error", err.Error()),
 				Event.NewContext("targetServiceType", Service.HttpServer),
 				Event.NewContext("targetServiceName", server.httpServer.GetName()),
 			)...,
-		)
+		))
 	}
 	go server.handleWebsocketConnections()
 
-	server.onInfoHandler(Event.New(Event.ServiceStarted, server.GetServerContext()...))
+	server.onInfo(Event.New(Event.ServiceStarted, server.GetServerContext()...))
 
 	server.status = Status.Started
 	return nil
 }
 
-func (server *WebsocketServer) Stop() error {
+func (server *WebsocketServer) Stop() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Started {
-		return Event.New(Event.AlreadyStopped, server.GetServerContext()...)
+		return server.onError(Event.New(Event.AlreadyStopped, server.GetServerContext()...))
 	}
-	server.onInfoHandler(Event.New(Event.StoppingService, server.GetServerContext()...))
+	server.onInfo(Event.New(Event.StoppingService, server.GetServerContext()...))
 	server.status = Status.Pending
 
 	server.httpServer.Stop()
@@ -180,7 +180,7 @@ func (server *WebsocketServer) Stop() error {
 		websocketClient.Disconnect()
 	}
 
-	server.onInfoHandler(Event.New(Event.ServiceStopped, server.GetServerContext()...))
+	server.onInfo(Event.New(Event.ServiceStopped, server.GetServerContext()...))
 	server.status = Status.Stoped
 	return nil
 }
@@ -205,21 +205,21 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) OnError(event *Event.Event) *Event.Event {
+func (server *WebsocketServer) onError(event *Event.Event) *Event.Event {
 	if server.onErrorHandler != nil {
 		return server.onErrorHandler(event)
 	}
 	return event
 }
 
-func (server *WebsocketServer) OnWarning(event *Event.Event) *Event.Event {
+func (server *WebsocketServer) onWarning(event *Event.Event) *Event.Event {
 	if server.onWarningHandler != nil {
 		return server.onWarningHandler(event)
 	}
 	return event
 }
 
-func (server *WebsocketServer) OnInfo(event *Event.Event) *Event.Event {
+func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
 	if server.onInfoHandler != nil {
 		return server.onInfoHandler(event)
 	}
