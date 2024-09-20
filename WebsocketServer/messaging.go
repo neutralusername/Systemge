@@ -47,7 +47,16 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	}
 	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
-	return nil
+	return server.onInfo(Event.New(
+		Event.SentMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType": "websocketBroadcast",
+			"topic":       message.GetTopic(),
+			"payload":     message.GetPayload(),
+			"syncToken":   message.GetSyncToken(),
+			"info":        "broadcasted message to all connected clients",
+		}),
+	))
 }
 
 // Unicast unicasts a message to a specific client by id.

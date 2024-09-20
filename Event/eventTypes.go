@@ -21,5 +21,6 @@ const IPRateLimitExceeded = "ipRateLimitExceeded"
 const FailedToUpgradeToWebsocket = "failedToUpgradeToWebsocket"
 
 const SendingMessage = "sendingMessage"
+const SentMessage = "sentMessage"
 
 const FailedToSendMessage = "failedToSendMessage"
