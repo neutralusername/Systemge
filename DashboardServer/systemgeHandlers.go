@@ -70,6 +70,9 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
+		delete(server.connectedClients, connection.GetName())
+		delete(server.dashboardClient.ClientStatuses, connection.GetName())
+		server.unregisterModuleHttpHandlers(connectedClient)
 		for websocketClient := range connectedClient.websocketClients {
 			err := server.changePage(websocketClient, DashboardHelpers.DASHBOARD_CLIENT_NAME, false)
 			if err != nil {
@@ -78,9 +81,6 @@ func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.
 				}
 			}
 		}
-		delete(server.connectedClients, connection.GetName())
-		delete(server.dashboardClient.ClientStatuses, connection.GetName())
-		server.unregisterModuleHttpHandlers(connectedClient)
 	}
 	server.mutex.Unlock()
 

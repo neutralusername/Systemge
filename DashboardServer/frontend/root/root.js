@@ -99,7 +99,7 @@ export class root extends React.Component {
         }
         let pageData = this.state.pageData;
         Object.keys(page.data).forEach((key) => {
-            pageData[key] = page[key];
+            pageData[key] = page.data[key];
         });
         this.setState({
             pageData: pageData,
