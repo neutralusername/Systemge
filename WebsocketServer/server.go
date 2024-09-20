@@ -114,7 +114,7 @@ func (server *WebsocketServer) Start() *Error.Error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return Error.New(Error.NewErrAlreadyStarted("test"), server.GetServerContext()...)
+		return Error.New(Error.NewErrAlreadyStarted(""), server.GetServerContext()...)
 	}
 	if server.infoLogger != nil {
 		server.infoLogger.Log("Starting WebsocketServer")

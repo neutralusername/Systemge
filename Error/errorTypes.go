@@ -11,6 +11,9 @@ func (e *ErrAlreadyStarted) Error() string {
 }
 
 func NewErrAlreadyStarted(err string) *ErrAlreadyStarted {
+	if err == "" {
+		err = "already started"
+	}
 	return &ErrAlreadyStarted{
 		err: errors.New(err),
 	}
