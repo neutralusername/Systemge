@@ -71,7 +71,7 @@ func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedCli
 		return
 	}
 	for command := range commands {
+		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command")
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
-		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
 	}
 }
