@@ -25,3 +25,9 @@ const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
 
 const FailedToSendMessage = "failedToSendMessage"
+
+const OnConnectHandlerStarted = "onConnectHandlerStarted"
+const OnConnectHandlerFinished = "onConnectHandlerFinished"
+
+const OnDisconnectHandlerStarted = "onDisconnectHandlerStarted"
+const OnDisconnectHandlerFinished = "onDisconnectHandlerFinished"

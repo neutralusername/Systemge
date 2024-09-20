@@ -9,7 +9,7 @@ import (
 
 // Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
-func (server *WebsocketServer) Broadcast(message *Message.Message) error {
+func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event {
 	server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -62,7 +62,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 // Unicast unicasts a message to a specific client by id.
 // Blocking until the message is sent.
-func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
+func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Event.Event {
 	server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -79,7 +79,16 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	server.clientMutex.RLock()
 	if client, exists := server.clients[id]; !exists {
 		server.clientMutex.RUnlock()
-		return Event.New("Client \""+id+"\" does not exist", nil)
+		return server.onError(Event.New(
+			Event.FailedToSendMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"messageType": "websocketUnicast",
+				"topic":       message.GetTopic(),
+				"payload":     message.GetPayload(),
+				"syncToken":   message.GetSyncToken(),
+				"error":       "Client \"" + id + "\" does not exist",
+			}),
+		))
 	} else {
 		waitGroup.AddTask(func() {
 			err := client.Send(messageBytes)
@@ -118,7 +127,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 
 // Multicast multicasts a message to multiple clients by id.
 // Blocking until all messages are sent.
-func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) error {
+func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) *Event.Event {
 	server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -173,7 +182,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 // Groupcast groupcasts a message to all clients in a group.
 // Blocking until all messages are sent.
-func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) error {
+func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) *Event.Event {
 	server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{

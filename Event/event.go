@@ -52,6 +52,11 @@ func (e *Event) IsWarning() bool {
 	return ok
 }
 
+func (e *Event) IsError() bool {
+	_, ok := e.Context["error"]
+	return ok
+}
+
 func (e *Event) GetError() error {
 	if _, ok := e.Context["error"]; !ok {
 		return nil
