@@ -13,3 +13,9 @@ const StartingService = "starting"
 const StoppingService = "stopping"
 
 const ServiceNotStarted = "serviceNotStarted"
+
+const FailedToSplitIPAndPort = "failedToSplitIPAndPort"
+
+const IPRateLimitExceeded = "ipRateLimitExceeded"
+
+const FailedToUpgradeToWebsocket = "failedToUpgradeToWebsocket"

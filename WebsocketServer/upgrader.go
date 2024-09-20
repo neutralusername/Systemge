@@ -10,29 +10,43 @@ import (
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if server.httpServer == nil {
-			server.onWarning(Event.New(Event.ServiceNotStarted, server.GetServerContext(nil)))
+			server.onWarning(Event.New(
+				Event.ServiceNotStarted,
+				server.GetServerContext(Event.Context{
+					"warning": "http server not started",
+				}),
+			))
 			return
 		}
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			if server.warningLogger != nil {
-				server.warningLogger.Log(Event.New("failed to split IP and port", err).Error())
-			}
+			server.onWarning(Event.New(
+				Event.FailedToSplitIPAndPort,
+				server.GetServerContext(Event.Context{
+					"waring": "failed to split IP and port",
+				}),
+			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			if server.warningLogger != nil {
-				server.warningLogger.Log("IP rate limit exceeded for " + httpRequest.RemoteAddr)
-			}
+			server.onWarning(Event.New(
+				Event.IPRateLimitExceeded,
+				server.GetServerContext(Event.Context{
+					"warning": "IP rate limit exceeded",
+				}),
+			))
 			http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			if server.warningLogger != nil {
-				server.warningLogger.Log(Event.New("failed upgrading connection to websocket", err).Error())
-			}
+			server.onWarning(Event.New(
+				Event.FailedToUpgradeToWebsocket,
+				server.GetServerContext(Event.Context{
+					"warning": "failed to upgrade connection to websocket",
+				}),
+			))
 			return
 		}
 		server.connectionChannel <- websocketConnection
