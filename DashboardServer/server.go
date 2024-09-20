@@ -39,6 +39,8 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
+	responseMessageCache []DashboardHelpers.ResponseMessage
+
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
@@ -98,6 +100,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		connectedClients:          map[string]*connectedClient{},
 		websocketClientLocations:  map[*WebsocketServer.WebsocketClient]string{},
 		dashboardWebsocketClients: map[*WebsocketServer.WebsocketClient]bool{},
+		responseMessageCache:      make([]DashboardHelpers.ResponseMessage, config.ResponseMessageCacheSize),
 		frontendPath:              frontendPath,
 	}
 

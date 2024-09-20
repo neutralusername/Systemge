@@ -61,17 +61,11 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-			resultPayload,
-		).Serialize())
+		server.handleWebsocketResponseMessage(websocketClient, resultPayload)
 		return nil
 	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
 		runtime.GC()
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-			"Garbage collected",
-		).Serialize())
+		server.handleWebsocketResponseMessage(websocketClient, "Garbage collected")
 		return nil
 	case DashboardHelpers.TOPIC_STOP:
 		clientName := request.GetPayload()
@@ -87,10 +81,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err := server.handleClientStopRequest(connectedClient); err != nil {
 			return Error.New("Failed to stop client", err)
 		}
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-			"success",
-		).Serialize())
+		server.handleWebsocketResponseMessage(websocketClient, "success")
 		return nil
 	case DashboardHelpers.TOPIC_START:
 		clientName := request.GetPayload()
@@ -106,10 +97,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err := server.handleClientStartRequest(connectedClient); err != nil {
 			return Error.New("Failed to start client", err)
 		}
-		websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-			"success",
-		).Serialize())
+		server.handleWebsocketResponseMessage(websocketClient, "success")
 		return nil
 	case DashboardHelpers.TOPIC_SUDOKU:
 		err := server.Stop()
@@ -200,110 +188,4 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 	default:
 		return Error.New("Unknown topic", nil)
 	}
-}
-
-func (server *Server) changePageHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
-	locationAfterChange := message.GetPayload()
-	return server.changePage(websocketClient, locationAfterChange, true)
-}
-func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketClient, locationAfterChange string, lock bool) error {
-	if lock {
-		server.mutex.Lock()
-		defer server.mutex.Unlock()
-	}
-	locationBeforeChange := server.websocketClientLocations[websocketClient]
-
-	if locationBeforeChange == locationAfterChange {
-		return Error.New("Location is already "+locationAfterChange, nil)
-	}
-
-	var pageJson string
-	var connectedClient *connectedClient
-	switch locationAfterChange {
-	case "":
-		page, err := DashboardHelpers.GetNullPage().Marshal()
-		if err != nil {
-			return Error.New("Failed to marshal null page", err)
-		}
-		pageJson = string(page)
-	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
-		pageMarshalled, err := DashboardHelpers.NewPage(
-			server.dashboardClient,
-			DashboardHelpers.CLIENT_TYPE_DASHBOARD,
-		).Marshal()
-		if err != nil {
-			return Error.New("Failed to marshal dashboard page", err)
-		}
-		pageJson = string(pageMarshalled)
-		server.dashboardWebsocketClients[websocketClient] = true
-	default:
-		connectedClient = server.connectedClients[locationAfterChange]
-		if connectedClient == nil {
-			return Error.New("Client not found", nil)
-		}
-		pageMarshalled, err := connectedClient.page.Marshal()
-		if err != nil {
-			return Error.New("Failed to marshal client page", err)
-		}
-		pageJson = string(pageMarshalled)
-		connectedClient.websocketClients[websocketClient] = true
-	}
-	server.websocketClientLocations[websocketClient] = locationAfterChange
-	switch locationBeforeChange {
-	case "":
-	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
-		delete(server.dashboardWebsocketClients, websocketClient)
-	default:
-		if connectedClient != nil {
-			delete(connectedClient.websocketClients, websocketClient)
-		}
-	}
-	go websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_CHANGE_PAGE,
-		pageJson,
-	).Serialize())
-	return nil
-}
-
-func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
-	if server.config.FrontendPassword != "" {
-		err := websocketClient.Send(Message.NewAsync(
-			DashboardHelpers.TOPIC_PASSWORD,
-			"",
-		).Serialize())
-		if err != nil {
-			return Error.New("Failed to send password request", err)
-		}
-		messageBytes, err := websocketClient.Receive()
-		if err != nil {
-			return Error.New("Failed to receive message", err)
-		}
-		message, err := Message.Deserialize(messageBytes, websocketClient.GetId())
-		if err != nil {
-			return Error.New("Failed to deserialize message", err)
-		}
-		if message.GetTopic() != DashboardHelpers.TOPIC_PASSWORD {
-			return Error.New("Expected password request", nil)
-		}
-		if message.GetPayload() != server.config.FrontendPassword {
-			return Error.New("Invalid password", nil)
-		}
-	}
-	err := websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_REQUEST_PAGE_CHANGE,
-		"",
-	).Serialize())
-	if err != nil {
-		return Error.New("Failed to send page change request", err)
-	}
-
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	server.websocketClientLocations[websocketClient] = ""
-	return nil
-}
-func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	delete(server.websocketClientLocations, websocketClient)
 }

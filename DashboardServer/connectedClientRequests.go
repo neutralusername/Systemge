@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
+func (server *Server) handleClientCommandRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
 	_, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to parse command", err)
@@ -17,10 +17,7 @@ func (Server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 	if err != nil {
 		return Error.New("Failed to execute command", err)
 	}
-	websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		resultPayload,
-	).Serialize())
+	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
 	return nil
 }
 
@@ -266,10 +263,7 @@ func (server *Server) handleClientMultiSyncRequestRequest(websocketClient *Webso
 	if err != nil {
 		return Error.New("Failed to send multi sync request", err)
 	}
-	websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		resultPayload,
-	).Serialize())
+	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
 	return nil
 }
 
@@ -278,10 +272,7 @@ func (server *Server) handleClientMultiAsyncMessageRequest(websocketClient *Webs
 	if err != nil {
 		return Error.New("Failed to send multi async message", err)
 	}
-	websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		"successfully sent multi async message",
-	).Serialize())
+	server.handleWebsocketResponseMessage(websocketClient, "successfully sent multi async message")
 	return nil
 }
 
@@ -387,10 +378,7 @@ func (server *Server) handleClientHandleNextMessageRequest(websocketClient *Webs
 			).Marshal(),
 		),
 	)
-	websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		resultPayload,
-	).Serialize())
+	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
 	return nil
 }
 
@@ -399,10 +387,7 @@ func (server *Server) handleClientSyncRequestRequest(websocketClient *WebsocketS
 	if err != nil {
 		return Error.New("Failed to send sync request", err)
 	}
-	websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		resultPayload,
-	).Serialize())
+	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
 	return nil
 }
 
@@ -411,9 +396,6 @@ func (server *Server) handleClientAsyncMessageRequest(websocketClient *Websocket
 	if err != nil {
 		return Error.New("Failed to send async message", err)
 	}
-	websocketClient.Send(Message.NewAsync(
-		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		"successfully sent async message",
-	).Serialize())
+	server.handleWebsocketResponseMessage(websocketClient, "successfully sent async message")
 	return nil
 }

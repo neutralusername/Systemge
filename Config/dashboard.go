@@ -24,7 +24,10 @@ type DashboardServer struct {
 	MaxMetricsPerType    int    `json:"maxMetricsPerType"` // default: 0 == no limit
 	MaxEntriesPerMetrics int    `json:"maxMetricEntries"`  // default: 100 (must be > 0)
 
-	MaxCommands int `json:"maxCommands"` // default: 0 == no limit
+	MaxCommandsPerClient int `json:"maxCommands"` // default: 0 == no limit
+
+	ResponseMessageCacheSize  uint32 `json:"responseMessageCacheSize"`  // default: 0 == disabled
+	ResponseMessageLifetimeMs uint64 `json:"responseMessageLifetimeMs"` // default: 0 == disabled
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
