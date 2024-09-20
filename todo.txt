@@ -13,12 +13,11 @@ build specialized "dashboards" for various packages. for example to add topics t
 todo(frontend)
 display error responses somehow on dashboard
 more expressive response messages (so it becomes clear what the underlying request/command was)
-add button to delete response messages 
-add additional infos to response messages
+add delete button for response messages and add more infos (page, timestamp)
 add status for non-landing pages
 make content less ugly (style for input elements, status, metrics)
-refactor response messages
-consider storing some response messages in a cache on the server
+
+hide password input on dashboard (will create a separate password-page and remove the usage of prompt window)
 
 create some sort of menu to view selected metrics-types
 option to create csv file based on update routine and response messages
@@ -30,7 +29,6 @@ add http calls for dashboard commands somehow
 
 add dashboard chat/notes
 
-hide password input on dashboard (will create a separate password-page and remove the usage of prompt window)
 
 maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
