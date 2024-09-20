@@ -12,24 +12,21 @@ build specialized "dashboards" for various packages. for example to add topics t
 
 todo(frontend)
 display error responses somehow on dashboard
-more expressive response messages (so it becomes clear what the underlying request/command was)
 add delete button for response messages and add more infos (page, timestamp)
+hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
+more expressive response messages (so it becomes clear what the underlying request/command was)
 add status for non-landing pages
 make content less ugly (style for input elements, status, metrics)
-
-hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
-
 create some sort of menu to view selected metrics-types
-option to create csv file based on update routine and response messages
-rework dashboard design (menu bar, iphone support etc)
-implement different types of data visualizations
-implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 
 add http calls for dashboard commands somehow
 
 add dashboard chat/notes
 
+implement different types of data visualizations
+implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 
+option to create csv file based on update routine and response messages
 maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
 refactor brokerResolver to use singleRequestServer
