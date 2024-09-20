@@ -187,7 +187,6 @@ export class root extends React.Component {
     addResponseMessage = (responseMessage) => {
         let responseMessages = this.state.responseMessages;
         responseMessages[responseMessage.id] = responseMessage;
-        console.log(responseMessages);
         this.setState({
             responseMessages: responseMessages,
         });
