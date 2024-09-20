@@ -9,7 +9,7 @@ export class responseMessages extends React.Component {
 	}
 
 	render() {
-        let responseMessages = Object.keys(this.props.responseMessages).map((responseId) =>
+        let responseMessages = Object.values(this.props.responseMessages).map((response) =>
             React.createElement(
                 "div", {
                     style: {
@@ -17,9 +17,9 @@ export class responseMessages extends React.Component {
                         borderBottom: "1px solid #979fa8",
                         paddingBottom: "1vh"
                     },
-                    key: responseId,
+                    key: response.id,
                 },
-                this.props.responseMessages[responseId].responseMessage,
+                response.responseMessage,
             ),
         );
         responseMessages.reverse();

@@ -37,7 +37,7 @@ export class root extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            responseMessages: {},
+            responseMessages: [],
             pageType : PAGE_TYPE_NULL,
             pageData : {},
             intervals : {},
@@ -186,7 +186,10 @@ export class root extends React.Component {
 
     addResponseMessage = (responseMessage) => {
         let responseMessages = this.state.responseMessages;
-        responseMessages[responseMessage.id] = responseMessage;
+        responseMessages.push(responseMessage);
+        if (responseMessages.length > configs.RESPONSE_MESSAGE_CACHE_SIZE) {
+            responseMessages.shift();
+        }
         this.setState({
             responseMessages: responseMessages,
         });
