@@ -118,9 +118,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		return server.onErrorHandler(Event.New(Error.ErrAlreadyStarted, server.GetServerContext()...))
 	}
 
-	if server.infoLogger != nil {
-		server.infoLogger.Log("Starting WebsocketServer")
-	}
+	server.onInfoHandler(Event.New(Event.EventStarting, server.GetServerContext()...))
 	server.status = Status.PENDING
 
 	server.connectionChannel = make(chan *websocket.Conn)
