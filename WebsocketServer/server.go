@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
@@ -114,7 +115,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return server.onErrorHandler(Event.New(Event.ErrAlreadyStarted(""), server.GetServerContext()...))
+		return server.onErrorHandler(Event.New(Error.ErrAlreadyStarted, server.GetServerContext()...))
 	}
 
 	if server.infoLogger != nil {
