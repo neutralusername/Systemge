@@ -154,21 +154,22 @@ func (server *WebsocketServer) Start() *Event.Event {
 	go server.handleWebsocketConnections()
 
 	server.status = Status.Started
-	return server.onInfo(Event.New(Event.ServiceStarted, server.GetServerContext()...))
+	return server.onInfo(Event.New(Event.ServiceStarted, server.GetServerContext(nil)))
 }
 
 func (server *WebsocketServer) Stop() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Started {
-		return server.onError(
-			Event.New(
-				Event.AlreadyStopped,
-				server.GetServerContext(Event.GetErrorContext("failed to start websocketServer"))...,
-			),
-		)
+		return server.onError(Event.New(
+			Event.AlreadyStopped,
+			server.GetServerContext(Event.Context{
+				"error": "failed to stop websocketServer",
+			}),
+		))
 	}
-	server.onInfo(Event.New(Event.StoppingService, server.GetServerContext()...))
+
+	server.onInfo(Event.New(Event.StoppingService, server.GetServerContext(nil)))
 	server.status = Status.Pending
 
 	server.httpServer.Stop()
@@ -190,7 +191,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	}
 
 	server.status = Status.Stoped
-	return server.onInfo(Event.New(Event.ServiceStopped, server.GetServerContext()...))
+	return server.onInfo(Event.New(Event.ServiceStopped, server.GetServerContext(nil)))
 }
 
 func (server *WebsocketServer) GetName() string {
