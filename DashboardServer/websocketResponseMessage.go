@@ -7,8 +7,9 @@ import (
 )
 
 func (server *Server) handleWebsocketResponseMessage(websocketClient *WebsocketServer.WebsocketClient, responseMessage string) error {
+	responseMessageStruct := DashboardHelpers.NewResponseMessage(responseMessage)
 	server.mutex.Lock()
-	server.responseMessageCache = append(server.responseMessageCache, DashboardHelpers.NewResponseMessage(responseMessage))
+	server.responseMessageCache = append(server.responseMessageCache, responseMessageStruct)
 	if len(server.responseMessageCache) > server.config.ResponseMessageCacheSize {
 		server.responseMessageCache = server.responseMessageCache[1:]
 	}
@@ -16,6 +17,6 @@ func (server *Server) handleWebsocketResponseMessage(websocketClient *WebsocketS
 
 	return websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_RESPONSE_MESSAGE,
-		responseMessage,
+		responseMessageStruct.Marshal(),
 	).Serialize())
 }
