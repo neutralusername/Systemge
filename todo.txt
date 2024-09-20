@@ -1,7 +1,7 @@
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
 -systemgeConnectionDashboard X
--systemgeServerDashboard 
+-systemgeServerDashboard X
 -brokerResolverDashboard
 -brokerClientDashboard  (include visual elements that represent subscribed topics and whether they are successfully connected to)
 -brokerServerDashboard
@@ -52,3 +52,5 @@ in addition it will be possible to register syncTokens on receiver side, and gat
 with the effect, that one connection can send multiple responses for one sync token (while leaving everything else as easy to use as it is now)
 Add SyncResponses struct that is returned instead of a message channel. the struct can be used to receive response messages or cancel the token. (also make it possible to get the response channel)
 change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)
+
+add some functionality to visualize how clients in a node are connected to each other (ask them for connected node names)
