@@ -1,6 +1,7 @@
 package Event
 
 import (
+	"encoding/json"
 	"errors"
 	"path"
 	"runtime"
@@ -9,8 +10,8 @@ import (
 )
 
 type Event struct {
-	type_   Type
-	context []*Context
+	Type_   Type       `json:"type"`
+	Context []*Context `json:"context"`
 }
 
 type Type string
@@ -18,6 +19,10 @@ type Type string
 type Context struct {
 	Key string `json:"key"`
 	Val string `json:"val"`
+}
+
+func (e *Event) Marshal() ([]byte, error) {
+	return json.Marshal(e)
 }
 
 func New(eventType Type, context ...*Context) *Event {
