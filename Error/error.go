@@ -14,16 +14,11 @@ type Error struct {
 }
 
 // description is used to provide context to the error message
-func New(description string, err error) error {
-	builder := strings.Builder{}
-	builder.WriteString(description)
-	if err != nil {
-		if description != "" {
-			builder.WriteString(" -> ")
-		}
-		builder.WriteString(err.Error())
+func New(description string, err error) *Error {
+	return &Error{
+		err:     err,
+		context: description,
 	}
-	return errors.New(builder.String())
 }
 
 func NewTraced(description string, err error) error {
