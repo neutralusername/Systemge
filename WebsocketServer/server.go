@@ -84,9 +84,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		onConnectHandler:    onConnectHandler,
 		onDisconnectHandler: onDisconnectHandler,
 		config:              config,
-		errorLogger:         Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath),
-		infoLogger:          Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath),
-		warningLogger:       Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath),
 		mailer:              Tools.NewMailer(config.MailerConfig),
 		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
 	}
@@ -106,11 +103,11 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) Start() error {
+func (server *WebsocketServer) Start() Error.Error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.STOPPED {
-		return Error.New("WebsocketServer is not in stopped state", nil)
+		return Error.New().Error.New("WebsocketServer is not in stopped state", nil)
 	}
 	if server.infoLogger != nil {
 		server.infoLogger.Log("Starting WebsocketServer")

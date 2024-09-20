@@ -10,14 +10,18 @@ import (
 
 type Error struct {
 	err     error
-	context string
+	context *Context
+}
+
+type Context struct {
+	context map[string]string
 }
 
 // description is used to provide context to the error message
-func New(description string, err error) *Error {
+func New(err error, context *Context) *Error {
 	return &Error{
 		err:     err,
-		context: description,
+		context: context,
 	}
 }
 
