@@ -70,8 +70,8 @@ func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedCli
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return
 	}
+	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command")
 	for command := range commands {
-		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command")
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
 	}
 }
