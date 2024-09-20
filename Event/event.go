@@ -8,14 +8,11 @@ import (
 )
 
 type Event struct {
-	Type_   string            `json:"type"`
-	Context map[string]string `json:"context"`
+	Type_   string  `json:"type"`
+	Context Context `json:"context"`
 }
 
-type Context struct {
-	Key string `json:"key"`
-	Val string `json:"val"`
-}
+type Context map[string]string
 
 func (e *Event) Marshal() ([]byte, error) {
 	return json.Marshal(e)
@@ -25,8 +22,11 @@ func (e *Event) Error() string {
 	return e.Type_
 }
 
-func GetErrorContext(err string) *Context {
-	return NewContext("error", err)
+func (e *Event) GetError() error {
+	if _, ok := e.Context["error"]; !ok {
+		return nil
+	}
+	return e
 }
 
 func UnmarshalEvent(data []byte) (*Event, error) {
@@ -38,43 +38,30 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 	return event, nil
 }
 
-func New(eventType string, context ...*Context) *Event {
-	contextMap := make(map[string]string)
-	for _, c := range context {
-		contextMap[c.Key] = c.Val
-	}
+func New(eventType string, context Context) *Event {
 	return &Event{
 		Type_:   eventType,
-		Context: contextMap,
+		Context: context,
 	}
 }
 
-func (e *Event) AddContext(context *Context) {
-	e.Context[context.Key] = context.Val
-}
-
-func (e *Event) AddContexts(contexts ...*Context) {
-	for _, c := range contexts {
-		e.AddContext(c)
-	}
+func (e *Event) AddContext(key, val string) {
+	e.Context[key] = val
 }
 
 func (e *Event) GetValue(key string) string {
 	return e.Context[key]
 }
 
-func NewContext(key, val string) *Context {
-	return &Context{
-		Key: key,
-		Val: val,
-	}
+func (e *Event) GetContext() map[string]string {
+	return e.Context
 }
 
-func GetCallerContext(depth int) *Context {
+func GetCallerContextString(depth int) string {
 	_, file, line, ok := runtime.Caller(depth)
 	if !ok {
 		panic("could not get caller information")
 	}
 	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
-	return NewContext("caller", file+":"+strconv.Itoa(line))
+	return file + ":" + strconv.Itoa(line)
 }
