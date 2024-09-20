@@ -2,6 +2,9 @@ package WebsocketServer
 
 import (
 	"net/http"
+	"path"
+	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -107,11 +110,18 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 }
 
 func (server *WebsocketServer) GetServerContext(context ...*Event.Context) []*Event.Context {
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		panic("could not get caller information")
+	}
+	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
+
 	return append(
 		[]*Event.Context{
 			Event.NewContext("serviceType", Service.WebsocketServer),
 			Event.NewContext("name", server.name),
 			Event.NewContext("timestamp", time.Now().GoString()),
+			Event.NewContext("caller", file+":"+strconv.Itoa(line)),
 		},
 		context...,
 	)
