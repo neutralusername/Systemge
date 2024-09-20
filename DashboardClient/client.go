@@ -15,7 +15,7 @@ type Client struct {
 	name                              string
 	config                            *Config.DashboardClient
 	dashboardServerSystemgeConnection SystemgeConnection.SystemgeConnection
-	messageHandler                    *SystemgeConnection.TopicExclusiveMessageHandler
+	messageHandler                    *SystemgeConnection.SequentialMessageHandler
 	asyncMessageHandlerFuncs          SystemgeConnection.AsyncMessageHandlers
 	syncMessageHandlerFuncs           SystemgeConnection.SyncMessageHandlers
 	introductionHandler               func() (string, error)
@@ -80,11 +80,11 @@ func (app *Client) Start() error {
 		return Error.New("Failed to send introduction response", err)
 	}
 
-	app.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+	app.messageHandler = SystemgeConnection.NewSequentialMessageHandler(
 		app.asyncMessageHandlerFuncs,
 		app.syncMessageHandlerFuncs,
 		nil, nil,
-		1000,
+		app.config.MessageHandlerQueueSize,
 	)
 
 	err = connection.StartMessageHandlingLoop_Sequentially(app.messageHandler)

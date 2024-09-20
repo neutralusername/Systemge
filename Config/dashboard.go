@@ -42,6 +42,8 @@ type DashboardClient struct {
 	MaxServerNameLength         int                    `json:"maxServerNameLength"`         // default: <=0 == no limit
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
+
+	MessageHandlerQueueSize int `json:"messageHandlerQueueSize"`
 }
 
 func UnmarshalDashboardClient(data string) *DashboardClient {
