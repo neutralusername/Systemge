@@ -123,7 +123,7 @@ func (client *WebsocketClient) Send(messageBytes []byte) error {
 	return client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
-func (client *WebsocketClient) receive() ([]byte, error) {
+func (client *WebsocketClient) receive() ([]byte, *Event.Event) {
 	client.receiveMutex.Lock()
 	defer client.receiveMutex.Unlock()
 	_, messageBytes, err := client.websocketConnection.ReadMessage()

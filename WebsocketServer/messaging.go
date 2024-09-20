@@ -9,9 +9,16 @@ import (
 // Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Broadcast(message *Message.Message) error {
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log("Broadcasting message with topic \"" + message.GetTopic() + "\"")
-	}
+	server.onInfo(Event.New(
+		Event.SendingMessage,
+		server.GetServerContext(Event.Context{
+			"messageType": "websocketBroadcast",
+			"topic":       message.GetTopic(),
+			"payload":     message.GetPayload(),
+			"syncToken":   message.GetSyncToken(),
+			"info":        "broadcasting message to all connected clients",
+		}),
+	))
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
@@ -20,17 +27,18 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			waitGroup.AddTask(func() {
 				err := client.Send(messageBytes)
 				if err != nil {
-					if errorLogger := server.errorLogger; errorLogger != nil {
-						errorLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
-					}
-					if mailer := server.mailer; mailer != nil {
-						err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to broadcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
-						if err != nil {
-							if errorLogger := server.errorLogger; errorLogger != nil {
-								errorLogger.Log(Event.New("Failed sending mail", err).Error())
-							}
-						}
-					}
+					server.onError(Event.New(
+						Event.FailedToSendMessage,
+						server.GetServerContext(Event.Context{
+							"messageType":       "websocketBroadcast",
+							"topic":             message.GetTopic(),
+							"payload":           message.GetPayload(),
+							"syncToken":         message.GetSyncToken(),
+							"senderWebsocketId": client.GetId(),
+							"senderIp":          client.GetIp(),
+							"error":             err.Error(),
+						}),
+					))
 				}
 				server.outgoigMessageCounter.Add(1)
 				server.bytesSentCounter.Add(uint64(len(messageBytes)))
