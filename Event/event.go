@@ -14,13 +14,15 @@ type Event struct {
 
 type Context map[string]string
 
-func (e *Event) Marshal() ([]byte, error) {
-	return json.Marshal(e)
+func New(eventType string, context Context) *Event {
+	return &Event{
+		Type_:   eventType,
+		Context: context,
+	}
 }
 
-func (e *Event) IsError() bool {
-	_, ok := e.Context["error"]
-	return ok
+func (e *Event) Marshal() ([]byte, error) {
+	return json.Marshal(e)
 }
 
 func UnmarshalEvent(data []byte) (*Event, error) {
@@ -32,11 +34,9 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 	return event, nil
 }
 
-func New(eventType string, context Context) *Event {
-	return &Event{
-		Type_:   eventType,
-		Context: context,
-	}
+func (e *Event) IsError() bool {
+	_, ok := e.Context["error"]
+	return ok
 }
 
 func (e *Event) AddContext(key, val string) {
