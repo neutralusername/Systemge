@@ -25,6 +25,10 @@ func (e *Event) Error() string {
 	return e.Type_
 }
 
+func GetErrorContext(err string) *Context {
+	return NewContext("error", err)
+}
+
 func UnmarshalEvent(data []byte) (*Event, error) {
 	event := &Event{}
 	err := json.Unmarshal(data, event)

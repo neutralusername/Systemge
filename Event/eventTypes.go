@@ -11,3 +11,5 @@ const FailedStoppingService = "failedStoppingService"
 
 const StartingService = "starting"
 const StoppingService = "stopping"
+
+const ServiceNotStarted = "serviceNotStarted"

@@ -122,7 +122,12 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Stoped {
-		return server.onError(Event.New(Event.AlreadyStarted, server.GetServerContext()...))
+		return server.onError(
+			Event.New(
+				Event.AlreadyStarted,
+				server.GetServerContext(Event.GetErrorContext("failed to start websocketServer"))...,
+			),
+		)
 	}
 
 	server.onInfo(Event.New(Event.StartingService, server.GetServerContext()...))
@@ -139,7 +144,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		return server.onError(Event.New(
 			Event.FailedStartingService,
 			server.GetServerContext(
-				Event.NewContext("error", err.Error()),
+				Event.GetErrorContext(err.Error()),
 				Event.NewContext("targetServiceType", Service.HttpServer),
 				Event.NewContext("targetServiceName", server.httpServer.GetName()),
 			)...,
@@ -147,17 +152,20 @@ func (server *WebsocketServer) Start() *Event.Event {
 	}
 	go server.handleWebsocketConnections()
 
-	server.onInfo(Event.New(Event.ServiceStarted, server.GetServerContext()...))
-
 	server.status = Status.Started
-	return nil
+	return server.onInfo(Event.New(Event.ServiceStarted, server.GetServerContext()...))
 }
 
 func (server *WebsocketServer) Stop() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Started {
-		return server.onError(Event.New(Event.AlreadyStopped, server.GetServerContext()...))
+		return server.onError(
+			Event.New(
+				Event.AlreadyStopped,
+				server.GetServerContext(Event.GetErrorContext("failed to start websocketServer"))...,
+			),
+		)
 	}
 	server.onInfo(Event.New(Event.StoppingService, server.GetServerContext()...))
 	server.status = Status.Pending
@@ -180,9 +188,8 @@ func (server *WebsocketServer) Stop() *Event.Event {
 		websocketClient.Disconnect()
 	}
 
-	server.onInfo(Event.New(Event.ServiceStopped, server.GetServerContext()...))
 	server.status = Status.Stoped
-	return nil
+	return server.onInfo(Event.New(Event.ServiceStopped, server.GetServerContext()...))
 }
 
 func (server *WebsocketServer) GetName() string {
