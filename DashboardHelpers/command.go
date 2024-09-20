@@ -7,8 +7,9 @@ import (
 )
 
 type Command struct {
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
+	Password string   `json:"password"`
+	Command  string   `json:"command"`
+	Args     []string `json:"args"`
 }
 
 func NewCommand(command string, args []string) *Command {
