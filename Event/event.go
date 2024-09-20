@@ -39,6 +39,13 @@ func (e *Event) IsError() bool {
 	return ok
 }
 
+func (e *Event) Error() string {
+	if e.IsError() {
+		return e.Context["error"]
+	}
+	return ""
+}
+
 func (e *Event) AddContext(key, val string) {
 	e.Context[key] = val
 }
