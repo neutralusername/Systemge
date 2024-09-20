@@ -1,7 +1,7 @@
 package Event
 
-type ErrAlreadyStarted string
+type ErrAlreadyStarted Type
 
-func (e ErrAlreadyStarted) Error() Type {
-	return Type(e)
+func (e ErrAlreadyStarted) Error() string {
+	return string(e)
 }

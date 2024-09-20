@@ -1,7 +1,7 @@
 package Event
 
-type EventStarting string
+type EventStarting Type
 
-func (e eventStarting) Error() Type {
-	return Type(e)
+func (e EventStarting) Error() string {
+	return string(e)
 }
