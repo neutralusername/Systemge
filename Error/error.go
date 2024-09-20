@@ -10,15 +10,16 @@ import (
 
 type Error struct {
 	err     error
-	context *Context
+	context []*Context
 }
 
 type Context struct {
-	context map[string]string
+	Key string `json:"key"`
+	Val string `json:"val"`
 }
 
 // description is used to provide context to the error message
-func New(err error, context *Context) *Error {
+func New(err error, context ...*Context) *Error {
 	return &Error{
 		err:     err,
 		context: context,
