@@ -84,7 +84,7 @@ func (app *Client) Start() error {
 		app.asyncMessageHandlerFuncs,
 		app.syncMessageHandlerFuncs,
 		nil, nil,
-		1000,
+		app.config.MessageHandlerQueueSize,
 	)
 
 	err = connection.StartMessageHandlingLoop_Sequentially(app.messageHandler)
