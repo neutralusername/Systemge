@@ -123,7 +123,11 @@ func (server *WebsocketServer) Start() *Event.Event {
 	if server.status != Status.Stoped {
 		return server.onError(Event.New(
 			Event.AlreadyStarted,
-			server.GetServerContext(Event.GetErrorContext("failed to start websocketServer"))...,
+			server.GetServerContext(
+				Event.Context{
+					"error": "failed to start websocketServer",
+				},
+			),
 		))
 	}
 
