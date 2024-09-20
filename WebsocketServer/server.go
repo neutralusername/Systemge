@@ -147,9 +147,8 @@ func (server *WebsocketServer) Start() *Event.Event {
 	}
 	go server.handleWebsocketConnections()
 
-	if server.infoLogger != nil {
-		server.infoLogger.Log("WebsocketServer started")
-	}
+	server.onInfoHandler(Event.New(Event.ServiceStarted, server.GetServerContext()...))
+
 	server.status = Status.Started
 	return nil
 }
