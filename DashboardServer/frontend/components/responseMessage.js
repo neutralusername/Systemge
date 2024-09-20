@@ -18,7 +18,18 @@ export class responseMessage extends React.Component {
                 },
                 key: this.props.response.id,
             },
-            this.props.response.responseMessage,
+            React.createElement(
+                "b", {
+
+                },
+                (this.props.response.page == "/" ? "dashboard" : this.props.response.page) + ": " + new Date(this.props.response.timestamp).toLocaleString(),
+            ),
+            React.createElement(
+                "div", {
+
+                },
+                this.props.response.responseMessage,
+            ),
         )
 	}
 }
