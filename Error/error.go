@@ -25,6 +25,13 @@ func New(err error, context ...*Context) *Error {
 	}
 }
 
+func NewContext(key, val string) *Context {
+	return &Context{
+		Key: key,
+		Val: val,
+	}
+}
+
 func NewTraced(description string, err error) error {
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
