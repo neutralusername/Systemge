@@ -34,6 +34,8 @@ make websocketServer stop-operation cleaner
 
 update oauth2server (add dashboard client etc.)
 
+(maybe) add onError, onWarning, onInfo functions for systemge structs instead of logging by default
+
 update readme
 
 improve logging (especially systemge and broker packages)
