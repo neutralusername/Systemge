@@ -29,6 +29,8 @@ protect dashboard-http-commands with password
 
 maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
+refactor brokerResolver to use singleRequestServer
+
 make websocketServer stop-operation cleaner
 
 update oauth2server (add dashboard client etc.)
