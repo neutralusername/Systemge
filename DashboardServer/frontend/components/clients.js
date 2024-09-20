@@ -35,6 +35,36 @@ export class clients extends React.Component {
 				},
 			}, 
 			statuses,
+			React.createElement(
+				"button", {
+					onClick: () => {
+						Object.keys(this.props.pageData.clientStatuses).forEach((name) => {
+							this.props.WS_CONNECTION.send(
+								this.props.pageRequest(
+									"start",
+									name,
+								),
+							)
+						})
+					},
+				}, 
+				"start all",
+			),
+			React.createElement(
+				"button", {
+					onClick: () => {
+						Object.keys(this.props.pageData.clientStatuses).forEach((name) => {
+							this.props.WS_CONNECTION.send(
+								this.props.pageRequest(
+									"stop",
+									name,
+								),
+							)
+						})
+					},
+				}, 
+				"stop all",
+			),
 		)		
 	}
 }
