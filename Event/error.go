@@ -20,9 +20,9 @@ type Context struct {
 	Val string `json:"val"`
 }
 
-func New(event Type, context ...*Context) *Event {
+func New(eventType Type, context ...*Context) *Event {
 	return &Event{
-		type_:   event,
+		type_:   eventType,
 		context: context,
 	}
 }
