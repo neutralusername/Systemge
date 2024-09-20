@@ -12,7 +12,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if server.httpServer == nil {
 			server.onWarning(Event.New(
 				Event.ServiceNotStarted,
-				server.GetServerContext(Event.Context{
+				server.GetServerContext().Merge(Event.Context{
 					"warning": "http server not started",
 				}),
 			))
@@ -22,7 +22,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if err != nil {
 			server.onWarning(Event.New(
 				Event.FailedToSplitIPAndPort,
-				server.GetServerContext(Event.Context{
+				server.GetServerContext().Merge(Event.Context{
 					"waring": "failed to split IP and port",
 				}),
 			))
@@ -32,7 +32,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			server.onWarning(Event.New(
 				Event.IPRateLimitExceeded,
-				server.GetServerContext(Event.Context{
+				server.GetServerContext().Merge(Event.Context{
 					"warning": "IP rate limit exceeded",
 				}),
 			))
@@ -43,7 +43,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if err != nil {
 			server.onWarning(Event.New(
 				Event.FailedToUpgradeToWebsocket,
-				server.GetServerContext(Event.Context{
+				server.GetServerContext().Merge(Event.Context{
 					"warning": "failed to upgrade connection to websocket",
 				}),
 			))

@@ -143,7 +143,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		server.status = Status.Stoped
 		return server.onError(Event.New(
 			Event.FailedStartingService,
-			server.GetServerContext(Event.Context{
+			server.GetServerContext().Merge(Event.Context{
 				"error":             err.Error(),
 				"targetServiceType": Service.HttpServer,
 				"targetServiceName": server.httpServer.GetName(),
@@ -155,7 +155,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.status = Status.Started
 	return server.onInfo(Event.New(
 		Event.ServiceStarted,
-		server.GetServerContext(Event.Context{
+		server.GetServerContext().Merge(Event.Context{
 			"info": "websocketServer started",
 		}),
 	))
@@ -167,7 +167,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	if server.status != Status.Started {
 		return server.onError(Event.New(
 			Event.AlreadyStopped,
-			server.GetServerContext(Event.Context{
+			server.GetServerContext().Merge(Event.Context{
 				"error": "failed to stop websocketServer",
 			}),
 		))
@@ -175,7 +175,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 
 	server.onInfo(Event.New(
 		Event.StoppingService,
-		server.GetServerContext(Event.Context{
+		server.GetServerContext().Merge(Event.Context{
 			"info": "stopping websocketServer",
 		}),
 	))
@@ -202,7 +202,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	server.status = Status.Stoped
 	return server.onInfo(Event.New(
 		Event.ServiceStopped,
-		server.GetServerContext(Event.Context{
+		server.GetServerContext().Merge(Event.Context{
 			"info": "websocketServer stopped",
 		}),
 	))

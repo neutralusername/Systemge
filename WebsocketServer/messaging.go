@@ -29,7 +29,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 				if err != nil {
 					server.onError(Event.New(
 						Event.FailedToSendMessage,
-						server.GetServerContext(Event.Context{
+						server.GetServerContext().Merge(Event.Context{
 							"messageType":       "websocketBroadcast",
 							"topic":             message.GetTopic(),
 							"payload":           message.GetPayload(),
