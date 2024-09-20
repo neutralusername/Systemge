@@ -10,7 +10,6 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
-todo(frontend)
 display error responses somehow on dashboard
 add delete button for response messages and add more infos (page, timestamp)
 hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
