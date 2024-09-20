@@ -18,11 +18,3 @@ func NewErrAlreadyStarted(err string) *ErrAlreadyStarted {
 		err: errors.New(err),
 	}
 }
-
-type ErrAlreadyStopped struct {
-	err error
-}
-
-func (e *ErrAlreadyStopped) Error() string {
-	return e.err.Error()
-}
