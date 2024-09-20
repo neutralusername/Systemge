@@ -40,9 +40,9 @@ type WebsocketServer struct {
 
 	messageHandlerMutex sync.Mutex
 
-	onErrorHandler   func(error, string) (error, string)
-	onWarningHandler func(error, string) (error, string)
-	onInfoHandler    func(error, string) (error, string)
+	onErrorHandler   func(Error.Error) Error.Error
+	onWarningHandler func(Error.Error) Error.Error
+	onInfoHandler    func(Error.Error) Error.Error
 
 	// metrics
 
@@ -192,23 +192,23 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) OnError(err error, context string) (error, string) {
+func (server *WebsocketServer) OnError(err Error.Error) Error.Error {
 	if server.onErrorHandler != nil {
-		return server.onErrorHandler(err, context)
+		return server.onErrorHandler(err)
 	}
-	return err, context
+	return err
 }
 
-func (server *WebsocketServer) OnWarning(err error, context string) (error, string) {
-	if server.onWarningHandler != nil {
-		return server.onWarningHandler(err, context)
+func (server *WebsocketServer) OnWarning(err Error.Error) Error.Error {
+	if server.onErrorHandler != nil {
+		return server.onErrorHandler(err)
 	}
-	return err, context
+	return err
 }
 
-func (server *WebsocketServer) OnInfo(err error, context string) (error, string) {
-	if server.onInfoHandler != nil {
-		return server.onInfoHandler(err, context)
+func (server *WebsocketServer) OnInfo(err Error.Error) Error.Error {
+	if server.onErrorHandler != nil {
+		return server.onErrorHandler(err)
 	}
-	return err, context
+	return err
 }

@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+type Error struct {
+	err     error
+	context string
+}
+
 // description is used to provide context to the error message
 func New(description string, err error) error {
 	builder := strings.Builder{}
