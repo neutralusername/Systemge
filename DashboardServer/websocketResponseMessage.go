@@ -12,7 +12,7 @@ func (server *Server) handleWebsocketResponseMessage(responseMessage, page strin
 	for server.responseMessageCache[responseId] != nil {
 		responseId = Tools.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	}
-	responseMessageStruct := DashboardHelpers.NewResponseMessage(responseId, responseMessage, page)
+	responseMessageStruct := DashboardHelpers.NewResponseMessage(responseId, page, responseMessage)
 	server.responseMessageCache[responseId] = responseMessageStruct
 	server.responseMessageCacheOrder = append(server.responseMessageCacheOrder, responseMessageStruct)
 	if len(server.responseMessageCacheOrder) > server.config.ResponseMessageCacheSize {
