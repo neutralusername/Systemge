@@ -5,10 +5,9 @@ import (
 	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) handleClientCommandRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
+func (server *Server) handleClientCommandRequest(request *Message.Message, connectedClient *connectedClient) error {
 	_, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to parse command", err)
@@ -17,7 +16,7 @@ func (server *Server) handleClientCommandRequest(websocketClient *WebsocketServe
 	if err != nil {
 		return Error.New("Failed to execute command", err)
 	}
-	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload)
 	return nil
 }
 
@@ -258,21 +257,21 @@ func (server *Server) handleClientHandleNextMessageChildRequest(connectedClient 
 	return nil
 }
 
-func (server *Server) handleClientMultiSyncRequestRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+func (server *Server) handleClientMultiSyncRequestRequest(connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to send multi sync request", err)
 	}
-	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload)
 	return nil
 }
 
-func (server *Server) handleClientMultiAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+func (server *Server) handleClientMultiAsyncMessageRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to send multi async message", err)
 	}
-	server.handleWebsocketResponseMessage(websocketClient, "successfully sent multi async message")
+	server.handleWebsocketResponseMessage("successfully sent multi async message")
 	return nil
 }
 
@@ -351,7 +350,7 @@ func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *con
 	return nil
 }
 
-func (server *Server) handleClientHandleNextMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+func (server *Server) handleClientHandleNextMessageRequest(connectedClient *connectedClient) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE, "")
 	if err != nil {
 		return Error.New("Failed to process next message", err)
@@ -378,24 +377,24 @@ func (server *Server) handleClientHandleNextMessageRequest(websocketClient *Webs
 			).Marshal(),
 		),
 	)
-	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload)
 	return nil
 }
 
-func (server *Server) handleClientSyncRequestRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+func (server *Server) handleClientSyncRequestRequest(connectedClient *connectedClient, request *Message.Message) error {
 	resultPayload, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_SYNC_REQUEST, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to send sync request", err)
 	}
-	server.handleWebsocketResponseMessage(websocketClient, resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload)
 	return nil
 }
 
-func (server *Server) handleClientAsyncMessageRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient, request *Message.Message) error {
+func (server *Server) handleClientAsyncMessageRequest(connectedClient *connectedClient, request *Message.Message) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_ASYNC_MESSAGE, request.GetPayload())
 	if err != nil {
 		return Error.New("Failed to send async message", err)
 	}
-	server.handleWebsocketResponseMessage(websocketClient, "successfully sent async message")
+	server.handleWebsocketResponseMessage("successfully sent async message")
 	return nil
 }

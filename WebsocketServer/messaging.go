@@ -16,24 +16,26 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
 	for _, client := range server.clients {
-		waitGroup.AddTask(func() {
-			err := client.Send(messageBytes)
-			if err != nil {
-				if errorLogger := server.errorLogger; errorLogger != nil {
-					errorLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
-				}
-				if mailer := server.mailer; mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to broadcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
-					if err != nil {
-						if errorLogger := server.errorLogger; errorLogger != nil {
-							errorLogger.Log(Error.New("Failed sending mail", err).Error())
+		if client.pastOnConnectHandler {
+			waitGroup.AddTask(func() {
+				err := client.Send(messageBytes)
+				if err != nil {
+					if errorLogger := server.errorLogger; errorLogger != nil {
+						errorLogger.Log("Failed to broadcast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
+					}
+					if mailer := server.mailer; mailer != nil {
+						err := mailer.Send(Tools.NewMail(nil, "error", Error.New("Failed to broadcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
+						if err != nil {
+							if errorLogger := server.errorLogger; errorLogger != nil {
+								errorLogger.Log(Error.New("Failed sending mail", err).Error())
+							}
 						}
 					}
 				}
-			}
-			server.outgoigMessageCounter.Add(1)
-			server.bytesSentCounter.Add(uint64(len(messageBytes)))
-		})
+				server.outgoigMessageCounter.Add(1)
+				server.bytesSentCounter.Add(uint64(len(messageBytes)))
+			})
+		}
 	}
 	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()

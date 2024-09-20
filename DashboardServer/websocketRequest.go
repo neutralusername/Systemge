@@ -24,7 +24,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	case "":
 		return Error.New("No location", nil)
 	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
-		return server.handleDashboardRequest(websocketClient, request)
+		return server.handleDashboardRequest(request)
 	default:
 		if connectedClient == nil {
 			// should never happen
@@ -32,13 +32,13 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		}
 		switch connectedClient.page.Type {
 		case DashboardHelpers.CLIENT_TYPE_COMMAND:
-			return server.handleCommandClientRequest(websocketClient, request, connectedClient)
+			return server.handleCommandClientRequest(request, connectedClient)
 		case DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE:
-			return server.handleCustomServiceClientRequest(websocketClient, request, connectedClient)
+			return server.handleCustomServiceClientRequest(request, connectedClient)
 		case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
-			return server.handleSystemgeConnectionClientRequest(websocketClient, request, connectedClient)
+			return server.handleSystemgeConnectionClientRequest(request, connectedClient)
 		case DashboardHelpers.CLIENT_TYPE_SYSTEMGESERVER:
-			return server.handleSystemgeServerClientRequest(websocketClient, request, connectedClient)
+			return server.handleSystemgeServerClientRequest(request, connectedClient)
 		default:
 			// should never happen
 			return Error.New("Unknown client type", nil)
@@ -46,7 +46,7 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 	}
 }
 
-func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message) error {
+func (server *Server) handleDashboardRequest(request *Message.Message) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
 		command, err := DashboardHelpers.UnmarshalCommand(request.GetPayload())
@@ -61,11 +61,11 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		server.handleWebsocketResponseMessage(websocketClient, resultPayload)
+		server.handleWebsocketResponseMessage(resultPayload)
 		return nil
 	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
 		runtime.GC()
-		server.handleWebsocketResponseMessage(websocketClient, "Garbage collected")
+		server.handleWebsocketResponseMessage("Garbage collected")
 		return nil
 	case DashboardHelpers.TOPIC_STOP:
 		clientName := request.GetPayload()
@@ -81,7 +81,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err := server.handleClientStopRequest(connectedClient); err != nil {
 			return Error.New("Failed to stop client", err)
 		}
-		server.handleWebsocketResponseMessage(websocketClient, "success")
+		server.handleWebsocketResponseMessage("success")
 		return nil
 	case DashboardHelpers.TOPIC_START:
 		clientName := request.GetPayload()
@@ -97,7 +97,7 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 		if err := server.handleClientStartRequest(connectedClient); err != nil {
 			return Error.New("Failed to start client", err)
 		}
-		server.handleWebsocketResponseMessage(websocketClient, "success")
+		server.handleWebsocketResponseMessage("success")
 		return nil
 	case DashboardHelpers.TOPIC_SUDOKU:
 		err := server.Stop()
@@ -110,10 +110,10 @@ func (server *Server) handleDashboardRequest(websocketClient *WebsocketServer.We
 	}
 }
 
-func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
+func (server *Server) handleCommandClientRequest(request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
-		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
+		return server.handleClientCommandRequest(request, connectedClient)
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:
@@ -121,10 +121,10 @@ func (server *Server) handleCommandClientRequest(websocketClient *WebsocketServe
 	}
 }
 
-func (server *Server) handleCustomServiceClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
+func (server *Server) handleCustomServiceClientRequest(request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
-		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
+		return server.handleClientCommandRequest(request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
 		return server.handleClientStartRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
@@ -136,10 +136,10 @@ func (server *Server) handleCustomServiceClientRequest(websocketClient *Websocke
 	}
 }
 
-func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
+func (server *Server) handleSystemgeConnectionClientRequest(request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
-		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
+		return server.handleClientCommandRequest(request, connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
 		return server.handleClientStopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY:
@@ -149,11 +149,11 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	case DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP:
 		return server.handleClientStopProcessingLoopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE:
-		return server.handleClientHandleNextMessageRequest(websocketClient, connectedClient)
+		return server.handleClientHandleNextMessageRequest(connectedClient)
 	case DashboardHelpers.TOPIC_SYNC_REQUEST:
-		return server.handleClientSyncRequestRequest(websocketClient, connectedClient, request)
+		return server.handleClientSyncRequestRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_ASYNC_MESSAGE:
-		return server.handleClientAsyncMessageRequest(websocketClient, connectedClient, request)
+		return server.handleClientAsyncMessageRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:
@@ -161,10 +161,10 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	}
 }
 
-func (server *Server) handleSystemgeServerClientRequest(websocketClient *WebsocketServer.WebsocketClient, request *Message.Message, connectedClient *connectedClient) error {
+func (server *Server) handleSystemgeServerClientRequest(request *Message.Message, connectedClient *connectedClient) error {
 	switch request.GetTopic() {
 	case DashboardHelpers.TOPIC_COMMAND:
-		return server.handleClientCommandRequest(websocketClient, request, connectedClient)
+		return server.handleClientCommandRequest(request, connectedClient)
 	case DashboardHelpers.TOPIC_START:
 		return server.handleClientStartRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP:
@@ -180,9 +180,9 @@ func (server *Server) handleSystemgeServerClientRequest(websocketClient *Websock
 	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE_CHILD:
 		return server.handleClientHandleNextMessageChildRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST:
-		return server.handleClientMultiSyncRequestRequest(websocketClient, connectedClient, request)
+		return server.handleClientMultiSyncRequestRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE:
-		return server.handleClientMultiAsyncMessageRequest(websocketClient, connectedClient, request)
+		return server.handleClientMultiAsyncMessageRequest(connectedClient, request)
 	case DashboardHelpers.TOPIC_SUDOKU:
 		return connectedClient.connection.Close()
 	default:

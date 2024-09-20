@@ -29,6 +29,8 @@ add http calls for dashboard commands somehow
 
 add dashboard chat/notes
 
+hide password input on dashboard
+
 maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
 refactor brokerResolver to use singleRequestServer

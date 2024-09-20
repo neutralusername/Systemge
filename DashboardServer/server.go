@@ -39,7 +39,8 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
-	responseMessageCache []*DashboardHelpers.ResponseMessage
+	responseMessageCache      map[string]*DashboardHelpers.ResponseMessage
+	responseMessageCacheOrder []*DashboardHelpers.ResponseMessage
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
@@ -91,6 +92,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		"WS_PORT":                     config.WebsocketServerConfig.TcpServerConfig.Port,
 		"WS_PATTERN":                  config.WebsocketServerConfig.Pattern,
 		"FRONTEND_HEARTBEAT_INTERVAL": config.FrontendHeartbeatIntervalMs,
+		"RESPONSE_MESSAGE_CACHE_SIZE": config.ResponseMessageCacheSize,
+		"MAX_ENTRIES_PER_METRICS":     config.MaxEntriesPerMetrics,
 	}))
 
 	server := &Server{
@@ -100,7 +103,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		connectedClients:          map[string]*connectedClient{},
 		websocketClientLocations:  map[*WebsocketServer.WebsocketClient]string{},
 		dashboardWebsocketClients: map[*WebsocketServer.WebsocketClient]bool{},
-		responseMessageCache:      []*DashboardHelpers.ResponseMessage{},
+		responseMessageCache:      map[string]*DashboardHelpers.ResponseMessage{},
 		frontendPath:              frontendPath,
 	}
 

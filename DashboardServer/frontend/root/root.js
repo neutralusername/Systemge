@@ -38,7 +38,6 @@ export class root extends React.Component {
         super(props);
         this.state = {
             responseMessages: {},
-            responseMessageTimeouts: {},
             pageType : PAGE_TYPE_NULL,
             pageData : {},
             intervals : {},
@@ -58,8 +57,10 @@ export class root extends React.Component {
         let message = JSON.parse(event.data);
         switch (message.topic) {
             case "error":
+                console.log("Error: " + message.payload);
+                break
             case "responseMessage":
-                this.setResponseMessage(message.payload || "\u00A0");
+                this.addResponseMessage(JSON.parse(message.payload));
                 break;
             case "changePage": 
                 this.changePage(JSON.parse(message.payload));
@@ -115,6 +116,24 @@ export class root extends React.Component {
             pageData: pageData,
         });
     }
+    mergeData = (target, source) => {
+        Object.keys(source).forEach((key) => {
+            if (Array.isArray(target[key])) {
+                if (Array.isArray( source[key])) {
+                    target[key].push(... source[key]);
+                } else {
+                    target[key].push( source[key]);
+                }
+                if (target[key].length > configs.MAX_ENTRIES_PER_METRICS) { // suboptimal solution but for now all requirements are met
+                    target[key].splice(0, target[key].length - configs.MAX_ENTRIES_PER_METRICS);
+                }
+            } else if (typeof target[key] === "object" && target[key] !== null) { 
+               this.mergeData(target[key],  source[key]);
+            } else { 
+                target[key] =  source[key]; 
+            }
+        });
+    }
 
     changePage = (page) => {
         let selectedEntry = SELECTED_ENTRY_NULL;
@@ -133,25 +152,6 @@ export class root extends React.Component {
             pageType: page.type,
             pageData: pageData,
             selectedEntry: selectedEntry,
-        });
-    }
-
-    mergeData = (target, source) => {
-        Object.keys(source).forEach((key) => {
-            if (Array.isArray(target[key])) {
-                if (Array.isArray( source[key])) {
-                    target[key].push(... source[key]);
-                } else {
-                    target[key].push( source[key]);
-                }
-                if (target[key].length > 100) {
-                    target[key].splice(0, target[key].length - 100);
-                }
-            } else if (typeof target[key] === "object" && target[key] !== null) { 
-               this.mergeData(target[key],  source[key]);
-            } else { 
-                target[key] =  source[key]; 
-            }
         });
     }
 
@@ -184,28 +184,12 @@ export class root extends React.Component {
         })
     }
 
-    setResponseMessage = (message) => {
-        let responseId = GenerateRandomAlphaNumericString(10);
-        while (this.state.responseMessages[responseId] !== undefined) {
-            responseId = GenerateRandomAlphaNumericString(10);
-        }
+    addResponseMessage = (responseMessage) => {
         let responseMessages = this.state.responseMessages;
-        responseMessages[responseId] = message;
-        let responseMessageTimeouts = this.state.responseMessageTimeouts;
-        if (responseMessageTimeouts[responseId] !== undefined) {
-            clearTimeout(responseMessageTimeouts[responseId]);
-        }
-        responseMessageTimeouts[responseId] = setTimeout(() => {
-            delete responseMessages[responseId];
-            delete responseMessageTimeouts[responseId];
-            this.setState({
-                responseMessages: responseMessages,
-                responseMessageTimeouts: responseMessageTimeouts,
-            });
-        }, 1000*60*5);
+        responseMessages[responseMessage.id] = responseMessage;
+        console.log(responseMessages);
         this.setState({
             responseMessages: responseMessages,
-            responseMessageTimeouts: responseMessageTimeouts,
         });
     }
 

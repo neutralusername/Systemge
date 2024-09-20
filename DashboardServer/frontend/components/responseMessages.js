@@ -19,7 +19,7 @@ export class responseMessages extends React.Component {
                     },
                     key: responseId,
                 },
-                this.props.responseMessages[responseId],
+                this.props.responseMessages[responseId].responseMessage,
             ),
         );
         responseMessages.reverse();

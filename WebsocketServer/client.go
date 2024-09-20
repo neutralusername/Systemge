@@ -14,8 +14,7 @@ type WebsocketClient struct {
 	id                  string
 	websocketConnection *websocket.Conn
 
-	pastOnConnectHandler      bool
-	pastOnConnectHandlerMutex sync.Mutex
+	pastOnConnectHandler bool
 
 	watchdogMutex sync.Mutex
 	receiveMutex  sync.Mutex
@@ -136,8 +135,6 @@ func (client *WebsocketClient) receive() ([]byte, error) {
 
 // may only be called during the connections onConnectHandler.
 func (client *WebsocketClient) Receive() ([]byte, error) {
-	client.pastOnConnectHandlerMutex.Lock()
-	defer client.pastOnConnectHandlerMutex.Unlock()
 	if client.pastOnConnectHandler {
 		return nil, Error.New("may only be called during the connections onConnectHandler", nil)
 	}
