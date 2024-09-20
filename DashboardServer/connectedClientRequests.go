@@ -16,7 +16,7 @@ func (server *Server) handleClientCommandRequest(request *Message.Message, conne
 	if err != nil {
 		return Error.New("Failed to execute command", err)
 	}
-	server.handleWebsocketResponseMessage(resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
 }
 
@@ -262,7 +262,7 @@ func (server *Server) handleClientMultiSyncRequestRequest(connectedClient *conne
 	if err != nil {
 		return Error.New("Failed to send multi sync request", err)
 	}
-	server.handleWebsocketResponseMessage(resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
 }
 
@@ -271,7 +271,7 @@ func (server *Server) handleClientMultiAsyncMessageRequest(connectedClient *conn
 	if err != nil {
 		return Error.New("Failed to send multi async message", err)
 	}
-	server.handleWebsocketResponseMessage("successfully sent multi async message")
+	server.handleWebsocketResponseMessage("successfully sent multi async message", connectedClient.connection.GetName())
 	return nil
 }
 
@@ -377,7 +377,7 @@ func (server *Server) handleClientHandleNextMessageRequest(connectedClient *conn
 			).Marshal(),
 		),
 	)
-	server.handleWebsocketResponseMessage(resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
 }
 
@@ -386,7 +386,7 @@ func (server *Server) handleClientSyncRequestRequest(connectedClient *connectedC
 	if err != nil {
 		return Error.New("Failed to send sync request", err)
 	}
-	server.handleWebsocketResponseMessage(resultPayload)
+	server.handleWebsocketResponseMessage(resultPayload, connectedClient.connection.GetName())
 	return nil
 }
 
@@ -395,6 +395,6 @@ func (server *Server) handleClientAsyncMessageRequest(connectedClient *connected
 	if err != nil {
 		return Error.New("Failed to send async message", err)
 	}
-	server.handleWebsocketResponseMessage("successfully sent async message")
+	server.handleWebsocketResponseMessage("successfully sent async message", connectedClient.connection.GetName())
 	return nil
 }

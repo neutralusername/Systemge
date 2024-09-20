@@ -61,11 +61,11 @@ func (server *Server) handleDashboardRequest(request *Message.Message) error {
 		if err != nil {
 			return Error.New("Failed to execute command", err)
 		}
-		server.handleWebsocketResponseMessage(resultPayload)
+		server.handleWebsocketResponseMessage(resultPayload, DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
 	case DashboardHelpers.TOPIC_COLLECT_GARBAGE:
 		runtime.GC()
-		server.handleWebsocketResponseMessage("Garbage collected")
+		server.handleWebsocketResponseMessage("Garbage collected", DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
 	case DashboardHelpers.TOPIC_STOP:
 		clientName := request.GetPayload()
@@ -81,7 +81,7 @@ func (server *Server) handleDashboardRequest(request *Message.Message) error {
 		if err := server.handleClientStopRequest(connectedClient); err != nil {
 			return Error.New("Failed to stop client", err)
 		}
-		server.handleWebsocketResponseMessage("success")
+		server.handleWebsocketResponseMessage("success", DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
 	case DashboardHelpers.TOPIC_START:
 		clientName := request.GetPayload()
@@ -97,7 +97,7 @@ func (server *Server) handleDashboardRequest(request *Message.Message) error {
 		if err := server.handleClientStartRequest(connectedClient); err != nil {
 			return Error.New("Failed to start client", err)
 		}
-		server.handleWebsocketResponseMessage("success")
+		server.handleWebsocketResponseMessage("success", DashboardHelpers.DASHBOARD_CLIENT_NAME)
 		return nil
 	case DashboardHelpers.TOPIC_SUDOKU:
 		err := server.Stop()

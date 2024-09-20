@@ -6,13 +6,13 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (server *Server) handleWebsocketResponseMessage(responseMessage string) error {
+func (server *Server) handleWebsocketResponseMessage(responseMessage, page string) error {
 	server.mutex.Lock()
 	responseId := Tools.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	for server.responseMessageCache[responseId] != nil {
 		responseId = Tools.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	}
-	responseMessageStruct := DashboardHelpers.NewResponseMessage(responseId, responseMessage)
+	responseMessageStruct := DashboardHelpers.NewResponseMessage(responseId, responseMessage, page)
 	server.responseMessageCache[responseId] = responseMessageStruct
 	server.responseMessageCacheOrder = append(server.responseMessageCacheOrder, responseMessageStruct)
 	if len(server.responseMessageCacheOrder) > server.config.ResponseMessageCacheSize {
