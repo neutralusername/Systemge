@@ -15,9 +15,6 @@ import {
 export class commands extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			intervals: {},
-		}
 	}
 
 	render() {
@@ -25,9 +22,10 @@ export class commands extends React.Component {
 			return React.createElement(
 				command, {
 					command: command_,
-					intervals: this.state.intervals,
+					intervals: this.props.intervals,
 					WS_CONNECTION: this.props.WS_CONNECTION,
 					pageRequest: this.props.pageRequest,
+					setStateRoot: this.props.setStateRoot,
 				},
 			)
 		});

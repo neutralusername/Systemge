@@ -41,6 +41,7 @@ export class root extends React.Component {
             responseMessageTimeouts: {},
             pageType : PAGE_TYPE_NULL,
             pageData : {},
+            intervals : {},
             selectedEntry : SELECTED_ENTRY_NULL,
             setStateRoot : (state) => {
                 this.setState(state);

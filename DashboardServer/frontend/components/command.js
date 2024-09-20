@@ -74,14 +74,16 @@ export class command extends React.Component {
                             cursor: "pointer",
                         },
                         onClick: () => {
-                            if (this.props.intervals[commathis.props.commandnd])
+                            if (this.props.intervals[this.props.command]) {
                                 clearInterval(this.props.intervals[this.props.command]);
-                                this.setState({
+                                this.props.setStateRoot({
                                     intervals: {
                                         ...this.props.intervals,
                                         [this.props.command]: false,
                                     },
                                 });
+                            }
+                               
                         },
                     },
                     "Stop",
@@ -92,7 +94,7 @@ export class command extends React.Component {
                         },
                         onClick: () => {
                             if (document.getElementById(this.props.command+"interval").value !== "" && !isNaN(document.getElementById(this.props.command+"interval").value)) {
-                                this.setState({
+                                this.props.setStateRoot({
                                     intervals: {
                                         ...this.props.intervals,
                                         [this.props.command]: setInterval(() => {
