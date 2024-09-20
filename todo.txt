@@ -11,9 +11,10 @@ build specialized "dashboards" for various packages. for example to add topics t
 -oauth2ServerDashboard
 
 todo(frontend)
-add config option for response message lifetime (0 infite)
-add button to remove response messages manually 
-add timestamps to response messages
+display error responses somehow on dashboard
+more expressive response messages (so it becomes clear what the underlying request/command was)
+add button to delete response messages 
+add additional infos to response messages
 add status for non-landing pages
 make content less ugly (style for input elements, status, metrics)
 refactor response messages
@@ -26,9 +27,6 @@ implement different types of data visualizations
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
 
 add http calls for dashboard commands somehow
-
-display error responses somehow on dashboard
-more expressive response messages (so it becomes clear what the underlying request/command was)
 
 add dashboard chat/notes
 
