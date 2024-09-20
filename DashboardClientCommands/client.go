@@ -22,27 +22,23 @@ func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[
 	return DashboardClient.New(
 		name,
 		config,
-		SystemgeConnection.NewTopicExclusiveMessageHandler(
-			nil,
-			SystemgeConnection.SyncMessageHandlers{
-				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					if getMetricsFunc == nil {
-						return "", nil
-					}
-					return Helpers.JsonMarshal(getMetricsFunc()), nil
-				},
-
-				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
-					if err != nil {
-						return "", err
-					}
-					return commands.Execute(command.Command, command.Args)
-				},
+		nil,
+		SystemgeConnection.SyncMessageHandlers{
+			DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				if getMetricsFunc == nil {
+					return "", nil
+				}
+				return Helpers.JsonMarshal(getMetricsFunc()), nil
 			},
-			nil, nil,
-			1000,
-		),
+
+			DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
+				if err != nil {
+					return "", err
+				}
+				return commands.Execute(command.Command, command.Args)
+			},
+		},
 
 		func() (string, error) {
 			pageMarshalled, err := DashboardHelpers.NewPage(

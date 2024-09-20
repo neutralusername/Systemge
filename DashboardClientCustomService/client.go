@@ -56,41 +56,37 @@ func New(name string, config *Config.DashboardClient, customService customServic
 	return DashboardClient.New(
 		name,
 		config,
-		SystemgeConnection.NewTopicExclusiveMessageHandler(
-			nil,
-			SystemgeConnection.SyncMessageHandlers{
-				DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.IntToString(customService.GetStatus()), nil
-				},
-				DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					return Helpers.JsonMarshal(customService.GetMetrics()), nil
-				},
-
-				DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
-					if err != nil {
-						return "", err
-					}
-					return commands.Execute(command.Command, command.Args)
-				},
-				DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := customService.Start()
-					if err != nil {
-						return "", err
-					}
-					return Helpers.IntToString(customService.GetStatus()), nil
-				},
-				DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-					err := customService.Stop()
-					if err != nil {
-						return "", err
-					}
-					return Helpers.IntToString(customService.GetStatus()), nil
-				},
+		nil,
+		SystemgeConnection.SyncMessageHandlers{
+			DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return Helpers.IntToString(customService.GetStatus()), nil
 			},
-			nil, nil,
-			1000,
-		),
+			DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				return Helpers.JsonMarshal(customService.GetMetrics()), nil
+			},
+
+			DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				command, err := DashboardHelpers.UnmarshalCommand(message.GetPayload())
+				if err != nil {
+					return "", err
+				}
+				return commands.Execute(command.Command, command.Args)
+			},
+			DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				err := customService.Start()
+				if err != nil {
+					return "", err
+				}
+				return Helpers.IntToString(customService.GetStatus()), nil
+			},
+			DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
+				err := customService.Stop()
+				if err != nil {
+					return "", err
+				}
+				return Helpers.IntToString(customService.GetStatus()), nil
+			},
+		},
 		func() (string, error) {
 			pageMarshalled, err := DashboardHelpers.NewPage(
 				DashboardHelpers.NewCustomServiceClient(
