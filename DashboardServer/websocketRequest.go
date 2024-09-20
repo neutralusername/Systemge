@@ -145,9 +145,9 @@ func (server *Server) handleSystemgeConnectionClientRequest(websocketClient *Web
 	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY:
 		return server.handleClientStartProcessingLoopSequentiallyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY:
-		return server.handleClientStartProcessingLoopConcurrentlyRequest(websocketClient, connectedClient)
+		return server.handleClientStartProcessingLoopConcurrentlyRequest(connectedClient)
 	case DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP:
-		return server.handleClientStopProcessingLoopRequest(websocketClient, connectedClient)
+		return server.handleClientStopProcessingLoopRequest(connectedClient)
 	case DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE:
 		return server.handleClientHandleNextMessageRequest(websocketClient, connectedClient)
 	case DashboardHelpers.TOPIC_SYNC_REQUEST:

@@ -301,7 +301,7 @@ func (server *Server) handleClientStartProcessingLoopSequentiallyRequest(connect
 	return nil
 }
 
-func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY, "")
 	if err != nil {
 		return Error.New("Failed to start processing loop", err)
@@ -326,7 +326,7 @@ func (server *Server) handleClientStartProcessingLoopConcurrentlyRequest(websock
 	return nil
 }
 
-func (server *Server) handleClientStopProcessingLoopRequest(websocketClient *WebsocketServer.WebsocketClient, connectedClient *connectedClient) error {
+func (server *Server) handleClientStopProcessingLoopRequest(connectedClient *connectedClient) error {
 	_, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP, "")
 	if err != nil {
 		return Error.New("Failed to stop processing loop", err)

@@ -26,8 +26,7 @@ type DashboardServer struct {
 
 	MaxCommandsPerClient int `json:"maxCommands"` // default: 0 == no limit
 
-	ResponseMessageCacheSize  uint32 `json:"responseMessageCacheSize"`  // default: 0 == disabled
-	ResponseMessageLifetimeMs uint64 `json:"responseMessageLifetimeMs"` // default: 0 == disabled
+	ResponseMessageCacheSize int `json:"responseMessageCacheSize"` // default: 0 == disabled
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
