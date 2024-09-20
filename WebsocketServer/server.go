@@ -157,9 +157,9 @@ func (server *WebsocketServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Started {
-		return Event.New("WebsocketServer is not in started state", nil)
+		return Event.New(Event.AlreadyStopped, server.GetServerContext()...)
 	}
-	server.onInfoHandler(Event.New(Event.StartingService, server.GetServerContext()...))
+	server.onInfoHandler(Event.New(Event.StoppingService, server.GetServerContext()...))
 	server.status = Status.Pending
 
 	server.httpServer.Stop()
@@ -180,9 +180,7 @@ func (server *WebsocketServer) Stop() error {
 		websocketClient.Disconnect()
 	}
 
-	if server.infoLogger != nil {
-		server.infoLogger.Log("WebsocketServer stopped")
-	}
+	server.onInfoHandler(Event.New(Event.ServiceStopped, server.GetServerContext()...))
 	server.status = Status.Stoped
 	return nil
 }
