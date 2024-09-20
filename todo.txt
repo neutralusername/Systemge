@@ -28,7 +28,6 @@ implement manual metrics update in some form (especially in regards to ranges of
 add http calls for dashboard commands somehow
 
 display error responses somehow on dashboard
-propagate response message cache on connect
 more expressive response messages (so it becomes clear what the underlying request/command was)
 
 add dashboard chat/notes
