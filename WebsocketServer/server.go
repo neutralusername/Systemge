@@ -108,6 +108,7 @@ func (server *WebsocketServer) GetServerContext(context ...*Error.Context) []*Ev
 	return append(
 		[]*Event.Context{
 			Event.NewContext("service", "WebsocketServer"),
+			Event.NewContext("serviceType", Service.HttpServer),
 			Event.NewContext("name", server.name),
 		},
 		context...,
@@ -132,7 +133,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		close(server.connectionChannel)
 		server.connectionChannel = nil
 		server.status = Status.Stoped
-		return Event.New(Error.FailedStartingService, server.GetServerContext(Event.NewContext("error", err.Error()))...)
+		return Event.New(Error.FailedStartingService, server.GetServerContext(Event.NewContext("error", err.Error(), "serviceType"))...)
 	}
 	go server.handleWebsocketConnections()
 
