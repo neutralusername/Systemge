@@ -62,6 +62,13 @@ export class root extends React.Component {
             case "responseMessage":
                 this.addResponseMessage(JSON.parse(message.payload));
                 break;
+            case "getResponseMessageCache":
+                console.log(message.payload);
+                let cache = JSON.parse(message.payload);
+                this.setState({
+                    responseMessages: cache,
+                });
+                break;
             case "changePage": 
                 this.changePage(JSON.parse(message.payload));
                 break;

@@ -3,6 +3,7 @@ package DashboardServer
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
@@ -31,7 +32,18 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 			return Error.New("Invalid password", nil)
 		}
 	}
-	err := websocketClient.Send(Message.NewAsync(
+
+	err := websocketClient.Send(
+		Message.NewAsync(
+			DashboardHelpers.TOPIC_GET_RESPONSE_MESSAGE_CACHE,
+			Helpers.JsonMarshal(server.responseMessageCacheOrder),
+		).Serialize(),
+	)
+	if err != nil {
+		return Error.New("Failed to send response message cache request", err)
+	}
+
+	err = websocketClient.Send(Message.NewAsync(
 		DashboardHelpers.TOPIC_REQUEST_PAGE_CHANGE,
 		"",
 	).Serialize())

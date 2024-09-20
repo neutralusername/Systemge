@@ -107,6 +107,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		websocketClientLocations:  map[*WebsocketServer.WebsocketClient]string{},
 		dashboardWebsocketClients: map[*WebsocketServer.WebsocketClient]bool{},
 		responseMessageCache:      map[string]*DashboardHelpers.ResponseMessage{},
+		responseMessageCacheOrder: []*DashboardHelpers.ResponseMessage{},
 		frontendPath:              frontendPath,
 	}
 
