@@ -25,10 +25,19 @@ func (e *Event) Marshal() ([]byte, error) {
 	return json.Marshal(e)
 }
 
+func UnmarshalEvent(data []byte) (*Event, error) {
+	event := &Event{}
+	err := json.Unmarshal(data, event)
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
+}
+
 func New(eventType Type, context ...*Context) *Event {
 	return &Event{
-		type_:   eventType,
-		context: context,
+		Type_:   eventType,
+		Context: context,
 	}
 }
 
