@@ -11,7 +11,7 @@ import (
 func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	server.onInfo(Event.New(
 		Event.SendingMessage,
-		server.GetServerContext(Event.Context{
+		server.GetServerContext().Merge(Event.Context{
 			"messageType": "websocketBroadcast",
 			"topic":       message.GetTopic(),
 			"payload":     message.GetPayload(),

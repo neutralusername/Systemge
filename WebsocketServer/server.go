@@ -104,15 +104,12 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) GetServerContext(context Event.Context) Event.Context {
+func (server *WebsocketServer) GetServerContext() Event.Context {
 	ctx := Event.Context{
 		"serviceType": Service.WebsocketServer,
 		"name":        server.name,
 		"status":      Status.ToString(server.status),
 		"caller":      Event.GetCallerPath(2),
-	}
-	for key, value := range context {
-		ctx[key] = value
 	}
 	return ctx
 }
@@ -123,14 +120,14 @@ func (server *WebsocketServer) Start() *Event.Event {
 	if server.status != Status.Stoped {
 		return server.onError(Event.New(
 			Event.AlreadyStarted,
-			server.GetServerContext(Event.Context{
+			server.GetServerContext().Merge(Event.Context{
 				"error": "failed to start websocketServer",
 			}),
 		))
 	}
 
 	server.onInfo(Event.New(Event.StartingService,
-		server.GetServerContext(Event.Context{
+		server.GetServerContext().Merge(Event.Context{
 			"info": "starting websocketServer",
 		}),
 	))

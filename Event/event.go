@@ -21,6 +21,13 @@ func New(eventType string, context Context) *Event {
 	}
 }
 
+func (ctx Context) Merge(other Context) Context {
+	for key, val := range other {
+		(ctx)[key] = val
+	}
+	return ctx
+}
+
 func (e *Event) Marshal() ([]byte, error) {
 	return json.Marshal(e)
 }
