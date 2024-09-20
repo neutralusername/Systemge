@@ -38,7 +38,7 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 		}
 	}
 	commands := page.GetCachedCommands()
-	if server.config.MaxCommands > 0 && len(commands) > server.config.MaxCommands {
+	if server.config.MaxCommandsPerClient > 0 && len(commands) > server.config.MaxCommandsPerClient {
 		return Error.New("Too many commands", nil)
 	}
 
@@ -70,12 +70,17 @@ func (server *Server) onSystemgeConnectHandler(connection SystemgeConnection.Sys
 func (server *Server) onSystemgeDisconnectHandler(connection SystemgeConnection.SystemgeConnection) {
 	server.mutex.Lock()
 	if connectedClient, ok := server.connectedClients[connection.GetName()]; ok {
-		for websocketClient := range connectedClient.websocketClients {
-			server.handleChangePage(websocketClient, Message.NewAsync(DashboardHelpers.TOPIC_CHANGE_PAGE, DashboardHelpers.DASHBOARD_CLIENT_NAME))
-		}
 		delete(server.connectedClients, connection.GetName())
 		delete(server.dashboardClient.ClientStatuses, connection.GetName())
 		server.unregisterModuleHttpHandlers(connectedClient)
+		for websocketClient := range connectedClient.websocketClients {
+			err := server.changePage(websocketClient, DashboardHelpers.DASHBOARD_CLIENT_NAME, false)
+			if err != nil {
+				if server.errorLogger != nil {
+					server.errorLogger.Log(Error.New("Failed to change page", err).Error())
+				}
+			}
+		}
 	}
 	server.mutex.Unlock()
 

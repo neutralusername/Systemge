@@ -27,7 +27,6 @@ func (c *CustomMux) AddRoute(pattern string, handler http.Handler) {
 func (c *CustomMux) RemoveRoute(pattern string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-
 	delete(c.routes, pattern)
 }
 

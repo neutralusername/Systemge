@@ -39,6 +39,9 @@ type Server struct {
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
+	responseMessageCache      map[string]*DashboardHelpers.ResponseMessage
+	responseMessageCacheOrder []*DashboardHelpers.ResponseMessage // has the purpose, to easily remove the oldest response message without iterating over the whole map
+
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
 	errorLogger   *Tools.Logger
@@ -79,6 +82,9 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	if config.MaxEntriesPerMetrics <= 0 {
 		config.MaxEntriesPerMetrics = 100
 	}
+	if config.ResponseMessageCacheSize <= 0 {
+		config.ResponseMessageCacheSize = 100
+	}
 	if config.FrontendHeartbeatIntervalMs == 0 {
 		config.FrontendHeartbeatIntervalMs = 1000 * 60
 	}
@@ -89,6 +95,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		"WS_PORT":                     config.WebsocketServerConfig.TcpServerConfig.Port,
 		"WS_PATTERN":                  config.WebsocketServerConfig.Pattern,
 		"FRONTEND_HEARTBEAT_INTERVAL": config.FrontendHeartbeatIntervalMs,
+		"RESPONSE_MESSAGE_CACHE_SIZE": config.ResponseMessageCacheSize,
+		"MAX_ENTRIES_PER_METRICS":     config.MaxEntriesPerMetrics,
 	}))
 
 	server := &Server{
@@ -98,6 +106,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		connectedClients:          map[string]*connectedClient{},
 		websocketClientLocations:  map[*WebsocketServer.WebsocketClient]string{},
 		dashboardWebsocketClients: map[*WebsocketServer.WebsocketClient]bool{},
+		responseMessageCache:      map[string]*DashboardHelpers.ResponseMessage{},
+		responseMessageCacheOrder: []*DashboardHelpers.ResponseMessage{},
 		frontendPath:              frontendPath,
 	}
 
@@ -124,7 +134,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		whitelist, blacklist,
 		map[string]WebsocketServer.MessageHandler{
 			DashboardHelpers.TOPIC_PAGE_REQUEST: server.pageRequestHandler,
-			DashboardHelpers.TOPIC_CHANGE_PAGE:  server.handleChangePage,
+			DashboardHelpers.TOPIC_CHANGE_PAGE:  server.changePageHandler,
 		},
 		server.onWebsocketConnectHandler, server.onWebsocketDisconnectHandler,
 	)

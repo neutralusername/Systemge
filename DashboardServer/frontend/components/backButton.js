@@ -1,3 +1,5 @@
+
+// expects props:
 export class backButton extends React.Component {
 	constructor(props) {
 		super(props);
@@ -8,7 +10,7 @@ export class backButton extends React.Component {
 	render() {
 		return React.createElement(
 			"div", {
-				className: "status",
+				id: "backButton",
 				style: {
 					display: "flex",
 					flexDirection: "column",

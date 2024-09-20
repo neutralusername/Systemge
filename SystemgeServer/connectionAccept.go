@@ -27,16 +27,41 @@ func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
 					server.errorLogger.Log(err.Error())
 				}
 			} else {
-				if server.infoLogger != nil {
-					server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
-				}
+				pastOnConnectHandler := false
 				go func() {
-					server.handleDisconnect(connection, stopChannel)
+					select {
+					case <-connection.GetCloseChannel():
+					case <-stopChannel:
+						connection.Close()
+					}
+					server.mutex.Lock()
+					delete(server.clients, connection.GetName())
+					server.mutex.Unlock()
+
+					if pastOnConnectHandler {
+						if server.onDisconnectHandler != nil {
+							server.onDisconnectHandler(connection)
+						}
+					}
+
 					server.waitGroup.Done()
+
 					if server.infoLogger != nil {
 						server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
 					}
 				}()
+
+				if server.onConnectHandler != nil {
+					if err := server.onConnectHandler(connection); err != nil {
+						connection.Close()
+						return
+					}
+				}
+				pastOnConnectHandler = true
+
+				if server.infoLogger != nil {
+					server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
+				}
 			}
 		}
 	}
@@ -58,30 +83,5 @@ func (server *SystemgeServer) acceptConnection() (SystemgeConnection.SystemgeCon
 	server.clients[connection.GetName()] = connection
 	server.mutex.Unlock()
 
-	if server.onConnectHandler != nil {
-		if err := server.onConnectHandler(connection); err != nil {
-			connection.Close()
-
-			server.mutex.Lock()
-			delete(server.clients, connection.GetName())
-			server.mutex.Unlock()
-
-			return nil, Error.New("onConnectHandler failed for connection \""+connection.GetName()+"\"", err)
-		}
-	}
 	return connection, nil
-}
-
-func (server *SystemgeServer) handleDisconnect(connection SystemgeConnection.SystemgeConnection, stopChannel chan bool) {
-	select {
-	case <-connection.GetCloseChannel():
-	case <-stopChannel:
-		connection.Close()
-	}
-	server.mutex.Lock()
-	delete(server.clients, connection.GetName())
-	server.mutex.Unlock()
-	if server.onDisconnectHandler != nil {
-		server.onDisconnectHandler(connection)
-	}
 }

@@ -2,7 +2,6 @@ package DashboardServer
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Error"
@@ -21,34 +20,39 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		return
 	}
 
+	server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
+		body := make([]byte, r.ContentLength)
+		_, err := r.Body.Read(body)
+		if err != nil {
+			http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
+			return
+		}
+		command, err := DashboardHelpers.UnmarshalCommand(string(body))
+		if err != nil {
+			http.Error(w, Error.New("Failed to unmarshal command", err).Error(), http.StatusBadRequest)
+			return
+		}
+		if server.config.FrontendPassword != "" && command.Password != server.config.FrontendPassword {
+			http.Error(w, "Invalid password", http.StatusUnauthorized)
+			return
+		}
+		result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(command.Command, command.Args).Marshal())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(result))
+	})
 	for command := range commands {
 		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
-			body := make([]byte, r.ContentLength)
-			_, err := r.Body.Read(body)
-			if err != nil {
-				http.Error(w, Error.New("Failed to read body", err).Error(), http.StatusInternalServerError)
+			query := r.URL.Query()
+			password := query.Get("password")
+			if server.config.FrontendPassword != "" && password != server.config.FrontendPassword {
+				http.Error(w, "Invalid password", http.StatusUnauthorized)
 				return
 			}
-			args := strings.Split(string(body), " ")
-			if len(args) == 0 {
-				http.Error(w, "No command", http.StatusBadRequest)
-				return
-			}
-			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(args[0], args[1:]).Marshal())
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Write([]byte(result))
-		})
-		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command+"/", func(w http.ResponseWriter, r *http.Request) {
-			args := r.URL.Path[len("/"+connectedClient.connection.GetName()+"/command/"):]
-			argsSplit := strings.Split(args, " ")
-			if len(argsSplit) == 0 {
-				http.Error(w, "No command", http.StatusBadRequest)
-				return
-			}
-			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(argsSplit[0], argsSplit[1:]).Marshal())
+			args := query["arg"]
+			result, err := connectedClient.executeRequest(DashboardHelpers.TOPIC_COMMAND, DashboardHelpers.NewCommand(command, args).Marshal())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -66,8 +70,8 @@ func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedCli
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return
 	}
+	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command")
 	for command := range commands {
 		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
-		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command + "/")
 	}
 }

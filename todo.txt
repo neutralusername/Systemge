@@ -1,7 +1,7 @@
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
 -systemgeConnectionDashboard X
--systemgeServerDashboard 
+-systemgeServerDashboard X
 -brokerResolverDashboard
 -brokerClientDashboard  (include visual elements that represent subscribed topics and whether they are successfully connected to)
 -brokerServerDashboard
@@ -10,17 +10,25 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
-add close button for dashboard server as well as all clients
+display error responses somehow on dashboard
+hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
+add status for non-landing pages
+more expressive response messages (so it becomes clear what the underlying request/command was)
+make content less ugly (style for input elements, status, metrics)
 
 create some sort of menu to view selected metrics-types
-option to create csv file based on update routine
 
-rework dashboard design (menu bar, iphone support etc)
+add http calls for dashboard commands somehow
 
-maybe other types of csv files as well
+add dashboard chat/notes
 
 implement different types of data visualizations
 implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
+
+option to create csv file based on update routine and response messages
+maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
+
+refactor brokerResolver to use singleRequestServer
 
 make websocketServer stop-operation cleaner
 
@@ -29,8 +37,6 @@ update oauth2server (add dashboard client etc.)
 update readme
 
 improve logging (especially systemge and broker packages)
-
-implement "password" in some form into the dashboard (for the beginning as access control as an alternative to whitelist)
 
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
@@ -49,3 +55,5 @@ in addition it will be possible to register syncTokens on receiver side, and gat
 with the effect, that one connection can send multiple responses for one sync token (while leaving everything else as easy to use as it is now)
 Add SyncResponses struct that is returned instead of a message channel. the struct can be used to receive response messages or cancel the token. (also make it possible to get the response channel)
 change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)
+
+add some functionality to visualize how clients of a dashboardServer are connected to each other (ask them for connected names)

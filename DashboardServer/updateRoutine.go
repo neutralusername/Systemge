@@ -238,21 +238,3 @@ func (server *Server) updateConnectedClientSystemgeConnectionChildren(connectedC
 	)
 	return nil
 }
-
-func (server *Server) updateDashboardClientMetrics() error {
-	newMetrics := server.GetMetrics()
-	server.addMetricsToDashboardClient(newMetrics)
-	server.websocketServer.Multicast(
-		server.GetWebsocketClientIdsOnPage(DashboardHelpers.DASHBOARD_CLIENT_NAME),
-		Message.NewAsync(
-			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
-			DashboardHelpers.NewPageUpdate(
-				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_METRICS: newMetrics,
-				},
-				DashboardHelpers.DASHBOARD_CLIENT_NAME,
-			).Marshal(),
-		),
-	)
-	return nil
-}

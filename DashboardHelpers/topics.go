@@ -1,11 +1,16 @@
 package DashboardHelpers
 
 const (
-	TOPIC_PAGE_REQUEST                                   = "pageRequest"
-	TOPIC_CHANGE_PAGE                                    = "changePage"
+	TOPIC_PAGE_REQUEST                   = "pageRequest"
+	TOPIC_CHANGE_PAGE                    = "changePage"
+	TOPIC_PASSWORD                       = "password"
+	TOPIC_REQUEST_PAGE_CHANGE            = "requestPageChange"
+	TOPIC_RESPONSE_MESSAGE               = "responseMessage"
+	TOPIC_GET_RESPONSE_MESSAGE_CACHE     = "getResponseMessageCache"
+	TOPIC_DELETE_CACHED_RESPONSE_MESSAGE = "deleteCachedResponseMessage"
+
 	TOPIC_UPDATE_PAGE_MERGE                              = "updatePageMerge"
 	TOPIC_UPDATE_PAGE_REPLACE                            = "updatePageReplace"
-	TOPIC_RESPONSE_MESSAGE                               = "responseMessage"
 	TOPIC_INTRODUCTION                                   = "get_introduction"
 	TOPIC_GET_STATUS                                     = "get_status"
 	TOPIC_IS_MESSAGE_HANDLING_LOOP_STARTED               = "is_message_handling_loop_started"

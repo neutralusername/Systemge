@@ -12,6 +12,7 @@ type DashboardServer struct {
 	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
 	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
 
+	FrontendPassword            string `json:"frontendPassword"`            // default: "" (no password)
 	FrontendHeartbeatIntervalMs uint64 `json:"frontendHeartbeatIntervalMs"` // default: 0 = disabled
 
 	DashboardSystemgeCommands  bool `json:"dashboardSystemgeCommands"`  // default: false
@@ -23,7 +24,9 @@ type DashboardServer struct {
 	MaxMetricsPerType    int    `json:"maxMetricsPerType"` // default: 0 == no limit
 	MaxEntriesPerMetrics int    `json:"maxMetricEntries"`  // default: 100 (must be > 0)
 
-	MaxCommands int `json:"maxCommands"` // default: 0 == no limit
+	MaxCommandsPerClient int `json:"maxCommands"` // default: 0 == no limit
+
+	ResponseMessageCacheSize int `json:"responseMessageCacheSize"` // default: 0 == disabled
 }
 
 func UnmarshalDashboardServer(data string) *DashboardServer {
