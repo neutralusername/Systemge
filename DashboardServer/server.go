@@ -40,7 +40,7 @@ type Server struct {
 	websocketServer *WebsocketServer.WebsocketServer
 
 	responseMessageCache      map[string]*DashboardHelpers.ResponseMessage
-	responseMessageCacheOrder []*DashboardHelpers.ResponseMessage
+	responseMessageCacheOrder []*DashboardHelpers.ResponseMessage // has the purpose, to easily remove the oldest response message without iterating over the whole map
 
 	infoLogger    *Tools.Logger
 	warningLogger *Tools.Logger
