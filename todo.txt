@@ -35,7 +35,7 @@ make websocketServer stop-operation cleaner
 update oauth2server (add dashboard client etc.)
 
 (maybe) add onError, onWarning, onInfo functions for systemge structs instead of logging by default
-(maybe) create general error types that can be used to detect and act on specific errors.
+(maybe) create general error types that can be used to detect and act on specific event (failures).
 (maybe) pass error and string for specific context into this function
 
 update readme
