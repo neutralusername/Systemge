@@ -17,6 +17,7 @@ type ResponseMessage struct {
 func NewResponseMessage(id, page string, responseMessage string) *ResponseMessage {
 	return &ResponseMessage{
 		Id:              id,
+		Page:            page,
 		ResponseMessage: responseMessage,
 		Timestamp:       time.Now(),
 	}
