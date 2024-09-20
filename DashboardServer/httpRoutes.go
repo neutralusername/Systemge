@@ -8,8 +8,8 @@ import (
 )
 
 func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
-	server.httpServer.AddRoute("/service/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/service/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
+	server.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
 	commands := connectedClient.page.GetCachedCommands()
@@ -20,7 +20,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		return
 	}
 
-	server.httpServer.AddRoute("/service/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
+	server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
 		if err != nil {
