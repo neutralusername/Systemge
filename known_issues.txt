@@ -1,0 +1,1 @@
+problem with disconnecting dashboard clients (frontend error?)
