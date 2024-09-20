@@ -104,7 +104,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) GetServerContext() []*Event.Context {
+func (server *WebsocketServer) GetServerContext(context ...*Error.Context) []*Event.Context {
 	return []*Event.Context{
 		Event.NewContext("service", "WebsocketServer"),
 		Event.NewContext("name", server.name),
