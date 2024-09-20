@@ -9,7 +9,7 @@ import (
 )
 
 type Event struct {
-	err     Type
+	type_   Type
 	context []*Context
 }
 
@@ -20,9 +20,9 @@ type Context struct {
 	Val string `json:"val"`
 }
 
-func New(err error, context ...*Context) *Event {
+func New(event Type, context ...*Context) *Event {
 	return &Event{
-		err:     err,
+		type_:   event,
 		context: context,
 	}
 }
