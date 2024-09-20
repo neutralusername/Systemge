@@ -39,6 +39,16 @@ func (e *Event) IsError() bool {
 	return ok
 }
 
+func (e *Event) IsInfo() bool {
+	_, ok := e.Context["info"]
+	return ok
+}
+
+func (e *Event) IsWarning() bool {
+	_, ok := e.Context["warning"]
+	return ok
+}
+
 func (e *Event) Error() string {
 	if e.IsError() {
 		return e.Context["error"]

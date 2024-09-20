@@ -10,7 +10,7 @@ import (
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if server.httpServer == nil {
-			server.onWarning(Event.New(Event.ServiceNotStarted, server.GetServerContext()...))
+			server.onWarning(Event.New(Event.ServiceNotStarted, server.GetServerContext(nil)))
 			return
 		}
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
