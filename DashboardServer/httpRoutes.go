@@ -8,8 +8,8 @@ import (
 )
 
 func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClient) {
-	server.httpServer.AddRoute("/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
+	server.httpServer.AddRoute("/service/"+connectedClient.connection.GetName(), func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/service/"+connectedClient.connection.GetName(), http.FileServer(http.Dir(server.frontendPath))).ServeHTTP(w, r)
 	})
 
 	commands := connectedClient.page.GetCachedCommands()
@@ -20,7 +20,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		return
 	}
 
-	server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
+	server.httpServer.AddRoute("/service/"+connectedClient.connection.GetName()+"/command", func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(body)
 		if err != nil {
@@ -44,7 +44,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		w.Write([]byte(result))
 	})
 	for command := range commands {
-		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
+		server.httpServer.AddRoute("/service/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
 			query := r.URL.Query()
 			password := query.Get("password")
 			if server.config.FrontendPassword != "" && password != server.config.FrontendPassword {
@@ -63,15 +63,15 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 }
 
 func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
-	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
+	server.httpServer.RemoveRoute("/service/" + connectedClient.connection.GetName())
 
 	commands := connectedClient.page.GetCachedCommands()
 	if commands == nil {
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return
 	}
-	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command")
+	server.httpServer.RemoveRoute("/service/" + connectedClient.connection.GetName() + "/command")
 	for command := range commands {
-		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
+		server.httpServer.RemoveRoute("/service/" + connectedClient.connection.GetName() + "/command/" + command)
 	}
 }
