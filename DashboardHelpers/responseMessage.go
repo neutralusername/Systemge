@@ -9,11 +9,12 @@ import (
 
 type ResponseMessage struct {
 	Id              string    `json:"id"`
+	Page            string    `json:"page"`
 	ResponseMessage string    `json:"responseMessage"`
 	Timestamp       time.Time `json:"timestamp"`
 }
 
-func NewResponseMessage(id, responseMessage string) *ResponseMessage {
+func NewResponseMessage(id, page string, responseMessage string) *ResponseMessage {
 	return &ResponseMessage{
 		Id:              id,
 		ResponseMessage: responseMessage,

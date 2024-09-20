@@ -29,7 +29,6 @@ add http calls for dashboard commands somehow
 
 display error responses somehow on dashboard
 propagate response message cache on connect
-create a separate response message cache for every page
 
 add dashboard chat/notes
 
