@@ -22,11 +22,9 @@ func (e *Event) Error() string {
 	return e.Type_
 }
 
-func (e *Event) GetError() error {
-	if _, ok := e.Context["error"]; !ok {
-		return nil
-	}
-	return e
+func (e *Event) IsError() bool {
+	_, ok := e.Context["error"]
+	return ok
 }
 
 func UnmarshalEvent(data []byte) (*Event, error) {
