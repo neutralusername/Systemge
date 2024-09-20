@@ -10,11 +10,9 @@ import (
 )
 
 type Event struct {
-	Type_   Type       `json:"type"`
+	Type_   string     `json:"type"`
 	Context []*Context `json:"context"`
 }
-
-type Type string
 
 type Context struct {
 	Key string `json:"key"`
@@ -34,7 +32,7 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 	return event, nil
 }
 
-func New(eventType Type, context ...*Context) *Event {
+func New(eventType string, context ...*Context) *Event {
 	return &Event{
 		Type_:   eventType,
 		Context: context,
