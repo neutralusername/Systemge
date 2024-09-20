@@ -14,6 +14,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.ServiceNotStarted,
 				server.GetServerContext().Merge(Event.Context{
 					"warning": "http server not started",
+					"ip":      httpRequest.RemoteAddr,
 				}),
 			))
 			return
@@ -24,6 +25,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.FailedToSplitIPAndPort,
 				server.GetServerContext().Merge(Event.Context{
 					"waring": "failed to split IP and port",
+					"ip":     httpRequest.RemoteAddr,
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -34,6 +36,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.IPRateLimitExceeded,
 				server.GetServerContext().Merge(Event.Context{
 					"warning": "IP rate limit exceeded",
+					"ip":      ip,
 				}),
 			))
 			http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
@@ -45,10 +48,18 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.FailedToUpgradeToWebsocket,
 				server.GetServerContext().Merge(Event.Context{
 					"warning": "failed to upgrade connection to websocket",
+					"ip":      ip,
 				}),
 			))
 			return
 		}
+		server.onInfo(Event.New(
+			Event.UpgradedToWebsocket,
+			server.GetServerContext().Merge(Event.Context{
+				"info": "upgraded connection to websocket",
+				"ip":   ip,
+			}),
+		))
 		server.connectionChannel <- websocketConnection
 	}
 }

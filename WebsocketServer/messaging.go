@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -62,9 +63,17 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 // Unicast unicasts a message to a specific client by id.
 // Blocking until the message is sent.
 func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log("Unicasting message with topic \"" + message.GetTopic() + "\" to client \"" + id + "\"")
-	}
+	server.onInfo(Event.New(
+		Event.SendingMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType":       "websocketUnicast",
+			"topic":             message.GetTopic(),
+			"payload":           message.GetPayload(),
+			"syncToken":         message.GetSyncToken(),
+			"info":              "unicasting message to client",
+			"targetWebsocketId": id,
+		}),
+	))
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
@@ -75,17 +84,18 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 		waitGroup.AddTask(func() {
 			err := client.Send(messageBytes)
 			if err != nil {
-				if errorLogger := server.errorLogger; errorLogger != nil {
-					errorLogger.Log("Failed to unicast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
-				}
-				if mailer := server.mailer; mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to unicast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
-					if err != nil {
-						if errorLogger := server.errorLogger; errorLogger != nil {
-							errorLogger.Log(Event.New("Failed sending mail", err).Error())
-						}
-					}
-				}
+				server.onError(Event.New(
+					Event.FailedToSendMessage,
+					server.GetServerContext().Merge(Event.Context{
+						"messageType":       "websocketUnicast",
+						"topic":             message.GetTopic(),
+						"payload":           message.GetPayload(),
+						"syncToken":         message.GetSyncToken(),
+						"senderWebsocketId": client.GetId(),
+						"senderIp":          client.GetIp(),
+						"error":             err.Error(),
+					}),
+				))
 			}
 			server.outgoigMessageCounter.Add(1)
 			server.bytesSentCounter.Add(uint64(len(messageBytes)))
@@ -93,19 +103,33 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	}
 	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
-	return nil
+	return server.onInfo(Event.New(
+		Event.SentMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType":       "websocketUnicast",
+			"topic":             message.GetTopic(),
+			"payload":           message.GetPayload(),
+			"syncToken":         message.GetSyncToken(),
+			"info":              "unicasted message to client",
+			"targetWebsocketId": id,
+		}),
+	))
 }
 
 // Multicast multicasts a message to multiple clients by id.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) error {
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		idsString := ""
-		for _, id := range ids {
-			idsString += id + ", "
-		}
-		infoLogger.Log("Multicasting message with topic \"" + message.GetTopic() + "\" to client \"" + idsString[:len(idsString)-2] + "\"")
-	}
+	server.onInfo(Event.New(
+		Event.SendingMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType":        "websocketMulticast",
+			"topic":              message.GetTopic(),
+			"payload":            message.GetPayload(),
+			"syncToken":          message.GetSyncToken(),
+			"info":               "multicasting message to clients",
+			"targetWebsocketIds": Helpers.JsonMarshal(ids),
+		}),
+	))
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
@@ -114,17 +138,18 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			waitGroup.AddTask(func() {
 				err := client.Send(messageBytes)
 				if err != nil {
-					if errorLogger := server.errorLogger; errorLogger != nil {
-						errorLogger.Log("Failed to multicast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
-					}
-					if mailer := server.mailer; mailer != nil {
-						err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to multicast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
-						if err != nil {
-							if errorLogger := server.errorLogger; errorLogger != nil {
-								errorLogger.Log(Event.New("Failed sending mail", err).Error())
-							}
-						}
-					}
+					server.onError(Event.New(
+						Event.FailedToSendMessage,
+						server.GetServerContext().Merge(Event.Context{
+							"messageType":       "websocketMulticast",
+							"topic":             message.GetTopic(),
+							"payload":           message.GetPayload(),
+							"syncToken":         message.GetSyncToken(),
+							"senderWebsocketId": client.GetId(),
+							"senderIp":          client.GetIp(),
+							"error":             err.Error(),
+						}),
+					))
 				}
 				server.outgoigMessageCounter.Add(1)
 				server.bytesSentCounter.Add(uint64(len(messageBytes)))
@@ -133,15 +158,33 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	}
 	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
-	return nil
+	return server.onInfo(Event.New(
+		Event.SentMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType":        "websocketMulticast",
+			"topic":              message.GetTopic(),
+			"payload":            message.GetPayload(),
+			"syncToken":          message.GetSyncToken(),
+			"info":               "multicasted message to clients",
+			"targetWebsocketIds": Helpers.JsonMarshal(ids),
+		}),
+	))
 }
 
 // Groupcast groupcasts a message to all clients in a group.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) error {
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log("Groupcasting message with topic \"" + message.GetTopic() + "\" to group \"" + groupId + "\"")
-	}
+	server.onInfo(Event.New(
+		Event.SendingMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType": "websocketGroupcast",
+			"topic":       message.GetTopic(),
+			"payload":     message.GetPayload(),
+			"syncToken":   message.GetSyncToken(),
+			"info":        "groupcasting message to group",
+			"targetGroup": groupId,
+		}),
+	))
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
@@ -153,17 +196,18 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		waitGroup.AddTask(func() {
 			err := client.Send(messageBytes)
 			if err != nil {
-				if errorLogger := server.errorLogger; errorLogger != nil {
-					errorLogger.Log("Failed to groupcast message with topic \"" + message.GetTopic() + "\" to client \"" + client.GetId() + "\" with ip \"" + client.GetIp() + "\"")
-				}
-				if mailer := server.mailer; mailer != nil {
-					err := mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to groupcast message with topic \""+message.GetTopic()+"\" to client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error()))
-					if err != nil {
-						if errorLogger := server.errorLogger; errorLogger != nil {
-							errorLogger.Log(Event.New("Failed sending mail", err).Error())
-						}
-					}
-				}
+				server.onError(Event.New(
+					Event.FailedToSendMessage,
+					server.GetServerContext().Merge(Event.Context{
+						"messageType":       "websocketGroupcast",
+						"topic":             message.GetTopic(),
+						"payload":           message.GetPayload(),
+						"syncToken":         message.GetSyncToken(),
+						"senderWebsocketId": client.GetId(),
+						"senderIp":          client.GetIp(),
+						"error":             err.Error(),
+					}),
+				))
 			}
 			server.outgoigMessageCounter.Add(1)
 			server.bytesSentCounter.Add(uint64(len(messageBytes)))
@@ -171,5 +215,15 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	}
 	server.clientMutex.RUnlock()
 	waitGroup.ExecuteTasksConcurrently()
-	return nil
+	return server.onInfo(Event.New(
+		Event.SentMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType": "websocketGroupcast",
+			"topic":       message.GetTopic(),
+			"payload":     message.GetPayload(),
+			"syncToken":   message.GetSyncToken(),
+			"info":        "groupcasted message to group",
+			"targetGroup": groupId,
+		}),
+	))
 }

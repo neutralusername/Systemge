@@ -19,6 +19,7 @@ const FailedToSplitIPAndPort = "failedToSplitIPAndPort"
 const IPRateLimitExceeded = "ipRateLimitExceeded"
 
 const FailedToUpgradeToWebsocket = "failedToUpgradeToWebsocket"
+const UpgradedToWebsocket = "upgradedToWebsocket"
 
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
