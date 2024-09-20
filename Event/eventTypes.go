@@ -1,6 +1,6 @@
 package Event
 
-const AlreadyStarted = "errAlreadyStarted"
-const AlreadyStopped = "errAlreadyStopped"
+const AlreadyStarted = "alreadyStarted"
+const AlreadyStopped = "alreadyStopped"
 
-const Starting = "eventStarting"
+const Starting = "starting"
