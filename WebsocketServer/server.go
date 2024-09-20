@@ -40,7 +40,9 @@ type WebsocketServer struct {
 
 	messageHandlerMutex sync.Mutex
 
-	onErrorHandler func(error, string) (error, string)
+	onErrorHandler   func(error, string) (error, string)
+	onWarningHandler func(error, string) (error, string)
+	onInfoHandler    func(error, string) (error, string)
 
 	// metrics
 
@@ -193,6 +195,20 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 func (server *WebsocketServer) OnError(err error, context string) (error, string) {
 	if server.onErrorHandler != nil {
 		return server.onErrorHandler(err, context)
+	}
+	return err, context
+}
+
+func (server *WebsocketServer) OnWarning(err error, context string) (error, string) {
+	if server.onWarningHandler != nil {
+		return server.onWarningHandler(err, context)
+	}
+	return err, context
+}
+
+func (server *WebsocketServer) OnInfo(err error, context string) (error, string) {
+	if server.onInfoHandler != nil {
+		return server.onInfoHandler(err, context)
 	}
 	return err, context
 }
