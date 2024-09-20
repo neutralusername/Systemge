@@ -1,5 +1,8 @@
 
 // expected props:
+
+import { responseMessage } from "./responseMessage.js";
+
 // responseMessages 
 export class responseMessages extends React.Component {
 	constructor(props) {
@@ -11,21 +14,15 @@ export class responseMessages extends React.Component {
 	render() {
         let responseMessages = Object.values(this.props.responseMessages).map((response) =>
             React.createElement(
-                "div", {
-                    style: {
-                        width: "100%",
-                        borderBottom: "1px solid #979fa8",
-                        paddingBottom: "1vh"
-                    },
-                    key: response.id,
+                responseMessage, {
+                    response: response,
                 },
-                response.responseMessage,
-            ),
+            )
         );
         responseMessages.reverse();
 		return React.createElement(
 			"div", {
-				id: "responseMessage",
+				id: "responseMessages",
 				style: {
                     width: "100%",
                     height: "100vh",
