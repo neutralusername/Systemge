@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Error"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Service"
@@ -123,7 +122,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Stoped {
-		return server.onErrorHandler(Event.New(Error.ErrAlreadyStarted, server.GetServerContext()...))
+		return server.onErrorHandler(Event.New(Event.AlreadyStarted, server.GetServerContext()...))
 	}
 
 	server.onInfoHandler(Event.New(Event.Starting, server.GetServerContext()...))
@@ -138,7 +137,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		server.connectionChannel = nil
 		server.status = Status.Stoped
 		return Event.New(
-			Error.FailedStartingService,
+			Event.FailedStartingService,
 			server.GetServerContext(
 				Event.NewContext("error", err.Error()),
 				Event.NewContext("targetServiceType", Service.HttpServer),
