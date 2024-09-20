@@ -54,7 +54,7 @@ type WebsocketServer struct {
 }
 
 // onConnectHandler, onDisconnectHandler may be nil.
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers, onConnectHandler func(*WebsocketClient) error, onDisconnectHandler func(*WebsocketClient)) *WebsocketServer {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers) *WebsocketServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -77,16 +77,14 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		}
 	}
 	server := &WebsocketServer{
-		name:                name,
-		clients:             make(map[string]*WebsocketClient),
-		groups:              make(map[string]map[string]*WebsocketClient),
-		clientGroups:        make(map[string]map[string]bool),
-		messageHandlers:     messageHandlers,
-		onConnectHandler:    onConnectHandler,
-		onDisconnectHandler: onDisconnectHandler,
-		config:              config,
-		mailer:              Tools.NewMailer(config.MailerConfig),
-		randomizer:          Tools.NewRandomizer(config.RandomizerSeed),
+		name:            name,
+		clients:         make(map[string]*WebsocketClient),
+		groups:          make(map[string]map[string]*WebsocketClient),
+		clientGroups:    make(map[string]map[string]bool),
+		messageHandlers: messageHandlers,
+		config:          config,
+		mailer:          Tools.NewMailer(config.MailerConfig),
+		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	httpServer := HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{

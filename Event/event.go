@@ -2,6 +2,7 @@ package Event
 
 import (
 	"encoding/json"
+	"errors"
 	"path"
 	"runtime"
 	"strconv"
@@ -41,11 +42,6 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 	return event, nil
 }
 
-func (e *Event) IsError() bool {
-	_, ok := e.Context["error"]
-	return ok
-}
-
 func (e *Event) IsInfo() bool {
 	_, ok := e.Context["info"]
 	return ok
@@ -56,11 +52,15 @@ func (e *Event) IsWarning() bool {
 	return ok
 }
 
-func (e *Event) Error() string {
-	if e.IsError() {
-		return e.Context["error"]
+func (e *Event) GetError() error {
+	if _, ok := e.Context["error"]; !ok {
+		return nil
 	}
-	return ""
+	bytes, err := e.Marshal()
+	if err != nil {
+		return nil
+	}
+	return errors.New(string(bytes))
 }
 
 func (e *Event) AddContext(key, val string) {
