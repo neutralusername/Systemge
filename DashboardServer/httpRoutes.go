@@ -44,7 +44,7 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 		w.Write([]byte(result))
 	})
 	for command := range commands {
-		server.httpServer.AddRoute("/service/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
+		server.httpServer.AddRoute("/"+connectedClient.connection.GetName()+"/command/"+command, func(w http.ResponseWriter, r *http.Request) {
 			query := r.URL.Query()
 			password := query.Get("password")
 			if server.config.FrontendPassword != "" && password != server.config.FrontendPassword {
@@ -63,15 +63,15 @@ func (server *Server) registerModuleHttpHandlers(connectedClient *connectedClien
 }
 
 func (server *Server) unregisterModuleHttpHandlers(connectedClient *connectedClient) {
-	server.httpServer.RemoveRoute("/service/" + connectedClient.connection.GetName())
+	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName())
 
 	commands := connectedClient.page.GetCachedCommands()
 	if commands == nil {
 		server.errorLogger.Log("Failed to get commands for connectedClient \"" + connectedClient.connection.GetName() + "\"")
 		return
 	}
-	server.httpServer.RemoveRoute("/service/" + connectedClient.connection.GetName() + "/command")
+	server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command")
 	for command := range commands {
-		server.httpServer.RemoveRoute("/service/" + connectedClient.connection.GetName() + "/command/" + command)
+		server.httpServer.RemoveRoute("/" + connectedClient.connection.GetName() + "/command/" + command)
 	}
 }
