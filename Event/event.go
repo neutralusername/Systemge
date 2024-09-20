@@ -8,8 +8,8 @@ import (
 )
 
 type Event struct {
-	Type_   string     `json:"type"`
-	Context []*Context `json:"context"`
+	Type_   string            `json:"type"`
+	Context map[string]string `json:"context"`
 }
 
 type Context struct {
@@ -39,10 +39,28 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 }
 
 func New(eventType string, context ...*Context) *Event {
+	contextMap := make(map[string]string)
+	for _, c := range context {
+		contextMap[c.Key] = c.Val
+	}
 	return &Event{
 		Type_:   eventType,
-		Context: context,
+		Context: contextMap,
 	}
+}
+
+func (e *Event) AddContext(context *Context) {
+	e.Context[context.Key] = context.Val
+}
+
+func (e *Event) AddContexts(contexts ...*Context) {
+	for _, c := range contexts {
+		e.AddContext(c)
+	}
+}
+
+func (e *Event) GetValue(key string) string {
+	return e.Context[key]
 }
 
 func NewContext(key, val string) *Context {

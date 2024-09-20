@@ -122,12 +122,10 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Stoped {
-		return server.onError(
-			Event.New(
-				Event.AlreadyStarted,
-				server.GetServerContext(Event.GetErrorContext("failed to start websocketServer"))...,
-			),
-		)
+		return server.onError(Event.New(
+			Event.AlreadyStarted,
+			server.GetServerContext(Event.GetErrorContext("failed to start websocketServer"))...,
+		))
 	}
 
 	server.onInfo(Event.New(Event.StartingService, server.GetServerContext()...))
