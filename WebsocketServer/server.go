@@ -113,7 +113,7 @@ func (server *WebsocketServer) GetServerContext(context ...*Event.Context) []*Ev
 			Event.NewContext("serviceType", Service.WebsocketServer),
 			Event.NewContext("name", server.name),
 			Event.NewContext("timestamp", time.Now().GoString()),
-			Event.GetCallerContext(2),
+			//Event.GetCallerContext(2),
 		},
 		context...,
 	)
