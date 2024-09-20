@@ -11,7 +11,6 @@ build specialized "dashboards" for various packages. for example to add topics t
 -oauth2ServerDashboard
 
 display error responses somehow on dashboard
-add delete button for response messages and add more infos (page, timestamp)
 hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
 add status for non-landing pages
 more expressive response messages (so it becomes clear what the underlying request/command was)
