@@ -205,23 +205,23 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) OnError(err error, context string) *Event.Event {
+func (server *WebsocketServer) OnError(event *Event.Event) *Event.Event {
 	if server.onErrorHandler != nil {
-		return server.onErrorHandler(Event.New(context, err))
+		return server.onErrorHandler(event)
 	}
-	return Event.New(context, err)
+	return event
 }
 
-func (server *WebsocketServer) OnWarning(err error, context string) *Event.Event {
+func (server *WebsocketServer) OnWarning(event *Event.Event) *Event.Event {
 	if server.onWarningHandler != nil {
-		return server.onWarningHandler(Event.New(context, err))
+		return server.onWarningHandler(event)
 	}
-	return Event.New(context, err)
+	return event
 }
 
-func (server *WebsocketServer) OnInfo(err error, context string) *Event.Event {
-	if server.onErrorHandler != nil {
-		return server.onErrorHandler(Event.New(context, err))
+func (server *WebsocketServer) OnInfo(event *Event.Event) *Event.Event {
+	if server.onInfoHandler != nil {
+		return server.onInfoHandler(event)
 	}
-	return server.onErrorHandler(Event.New(context, err))
+	return event
 }
