@@ -51,7 +51,7 @@ func (e *Event) GetContext() map[string]string {
 	return e.Context
 }
 
-func GetCallerContextString(depth int) string {
+func GetCallerPath(depth int) string {
 	_, file, line, ok := runtime.Caller(depth)
 	if !ok {
 		panic("could not get caller information")

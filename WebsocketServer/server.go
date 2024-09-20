@@ -109,7 +109,7 @@ func (server *WebsocketServer) GetServerContext(context Event.Context) Event.Con
 		"serviceType": Service.WebsocketServer,
 		"name":        server.name,
 		"status":      Status.ToString(server.status),
-		//Event.GetCallerContext(2),
+		"caller":      Event.GetCallerPath(2),
 	}
 	for key, value := range context {
 		ctx[key] = value
