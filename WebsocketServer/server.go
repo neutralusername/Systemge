@@ -125,7 +125,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		return server.onErrorHandler(Event.New(Event.AlreadyStarted, server.GetServerContext()...))
 	}
 
-	server.onInfoHandler(Event.New(Event.Starting, server.GetServerContext()...))
+	server.onInfoHandler(Event.New(Event.StartingService, server.GetServerContext()...))
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
@@ -159,9 +159,7 @@ func (server *WebsocketServer) Stop() error {
 	if server.status != Status.Started {
 		return Event.New("WebsocketServer is not in started state", nil)
 	}
-	if server.infoLogger != nil {
-		server.infoLogger.Log("Stopping WebsocketServer")
-	}
+	server.onInfoHandler(Event.New(Event.StartingService, server.GetServerContext()...))
 	server.status = Status.Pending
 
 	server.httpServer.Stop()

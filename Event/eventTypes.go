@@ -7,5 +7,7 @@ const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"
 
 const FailedStartingService = "failedStartingService"
+const FailedStoppingService = "failedStoppingService"
 
-const Starting = "starting"
+const StartingService = "starting"
+const StoppingService = "stopping"
