@@ -63,10 +63,18 @@ export class root extends React.Component {
                 this.addResponseMessage(JSON.parse(message.payload));
                 break;
             case "getResponseMessageCache":
-                console.log(message.payload);
                 let cache = JSON.parse(message.payload);
                 this.setState({
                     responseMessages: cache,
+                });
+                break;
+            case "deleteCachedResponseMessage":
+                let responseMessages = this.state.responseMessages;
+                responseMessages = responseMessages.filter((response) => {
+                    return response.id !== message.payload;
+                });
+                this.setState({
+                    responseMessages: responseMessages,
                 });
                 break;
             case "changePage": 

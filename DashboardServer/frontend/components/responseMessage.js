@@ -20,7 +20,11 @@ export class responseMessage extends React.Component {
             },
             React.createElement(
                 "b", {
-
+                    onClick: () => {
+                        if (window.confirm("Are you sure you want to delete this message?")) {
+                            this.props.WS_CONNECTION.send(this.props.pageRequest("deleteCachedResponseMessage", this.props.response.id));
+                        }
+                    },
                 },
                 (this.props.response.page == "/" ? "dashboard" : this.props.response.page) + ": " + new Date(this.props.response.timestamp).toLocaleString(),
             ),

@@ -20,28 +20,53 @@ func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.Websoc
 		return Error.New("Failed to deserialize request", err)
 	}
 
-	switch currentPage {
-	case "":
-		return Error.New("No location", nil)
-	case DashboardHelpers.DASHBOARD_CLIENT_NAME:
-		return server.handleDashboardRequest(request)
-	default:
-		if connectedClient == nil {
-			// should never happen
-			return Error.New("Client not found", nil)
+	if request.GetTopic() == DashboardHelpers.TOPIC_DELETE_CACHED_RESPONSE_MESSAGE {
+		responseId := request.GetPayload()
+		server.mutex.Lock()
+		if _, ok := server.responseMessageCache[responseId]; ok {
+			delete(server.responseMessageCache, responseId)
+			for i, responseMessage := range server.responseMessageCacheOrder {
+				if responseMessage.Id == responseId {
+					server.responseMessageCacheOrder = append(server.responseMessageCacheOrder[:i], server.responseMessageCacheOrder[i+1:]...)
+					break
+				}
+			}
+			server.mutex.Unlock()
+			server.websocketServer.Broadcast(
+				Message.NewAsync(
+					DashboardHelpers.TOPIC_DELETE_CACHED_RESPONSE_MESSAGE,
+					responseId,
+				),
+			)
+			return nil
+		} else {
+			server.mutex.Unlock()
+			return Error.New("Cached response message not found", nil)
 		}
-		switch connectedClient.page.Type {
-		case DashboardHelpers.CLIENT_TYPE_COMMAND:
-			return server.handleCommandClientRequest(request, connectedClient)
-		case DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE:
-			return server.handleCustomServiceClientRequest(request, connectedClient)
-		case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
-			return server.handleSystemgeConnectionClientRequest(request, connectedClient)
-		case DashboardHelpers.CLIENT_TYPE_SYSTEMGESERVER:
-			return server.handleSystemgeServerClientRequest(request, connectedClient)
+	} else {
+		switch currentPage {
+		case "":
+			return Error.New("No location", nil)
+		case DashboardHelpers.DASHBOARD_CLIENT_NAME:
+			return server.handleDashboardRequest(request)
 		default:
-			// should never happen
-			return Error.New("Unknown client type", nil)
+			if connectedClient == nil {
+				// should never happen
+				return Error.New("Client not found", nil)
+			}
+			switch connectedClient.page.Type {
+			case DashboardHelpers.CLIENT_TYPE_COMMAND:
+				return server.handleCommandClientRequest(request, connectedClient)
+			case DashboardHelpers.CLIENT_TYPE_CUSTOMSERVICE:
+				return server.handleCustomServiceClientRequest(request, connectedClient)
+			case DashboardHelpers.CLIENT_TYPE_SYSTEMGECONNECTION:
+				return server.handleSystemgeConnectionClientRequest(request, connectedClient)
+			case DashboardHelpers.CLIENT_TYPE_SYSTEMGESERVER:
+				return server.handleSystemgeServerClientRequest(request, connectedClient)
+			default:
+				// should never happen
+				return Error.New("Unknown client type", nil)
+			}
 		}
 	}
 }

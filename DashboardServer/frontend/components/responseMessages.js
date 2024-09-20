@@ -16,6 +16,8 @@ export class responseMessages extends React.Component {
             React.createElement(
                 responseMessage, {
                     response: response,
+                    WS_CONNECTION: this.props.WS_CONNECTION,
+                    pageRequest: this.props.pageRequest,
                 },
             )
         );
