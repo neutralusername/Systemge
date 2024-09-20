@@ -57,4 +57,4 @@ with the effect, that one connection can send multiple responses for one sync to
 Add SyncResponses struct that is returned instead of a message channel. the struct can be used to receive response messages or cancel the token. (also make it possible to get the response channel)
 change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)
 
-add some functionality to visualize how clients in a node are connected to each other (ask them for connected node names)
+add some functionality to visualize how clients of a dashboardServer are connected to each other (ask them for connected names)
