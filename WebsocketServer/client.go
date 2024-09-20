@@ -107,7 +107,7 @@ func (client *WebsocketClient) Disconnect() error {
 }
 
 // Returns the ip of the client.
-func (client *WebsocketClient) GetIp() string {
+func (client *WebsocketClient) GetIp() string { rename to address when i can
 	return client.websocketConnection.RemoteAddr().String()
 }
 

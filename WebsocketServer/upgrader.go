@@ -17,14 +17,6 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				"address":              httpRequest.RemoteAddr,
 			}),
 		))
-		defer server.onInfo(Event.New(
-			Event.OnConnectHandlerFinished,
-			server.GetServerContext().Merge(Event.Context{
-				"info":                 "onConnect handler finished",
-				"onConnectHandlerType": "httpWebsocketUpgrade",
-				"address":              httpRequest.RemoteAddr,
-			}),
-		))
 		if server.httpServer == nil {
 			server.onWarning(Event.New(
 				Event.ServiceNotStarted,
@@ -74,11 +66,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 		server.onInfo(Event.New(
-			Event.UpgradedToWebsocket,
+			Event.OnConnectHandlerFinished,
 			server.GetServerContext().Merge(Event.Context{
-				"info":                 "upgraded connection to websocket",
+				"info":                 "onConnect handler finished",
 				"onConnectHandlerType": "httpWebsocketUpgrade",
-				"address":              ip,
+				"address":              httpRequest.RemoteAddr,
 			}),
 		))
 		server.connectionChannel <- websocketConnection
