@@ -23,6 +23,10 @@ func (e *Event) Marshal() ([]byte, error) {
 	return json.Marshal(e)
 }
 
+func (e *Event) Error() string {
+	return e.Type_
+}
+
 func UnmarshalEvent(data []byte) (*Event, error) {
 	event := &Event{}
 	err := json.Unmarshal(data, event)
