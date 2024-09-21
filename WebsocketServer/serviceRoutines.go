@@ -219,16 +219,14 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 }
 
 func (server *WebsocketServer) executeMessageHandler(client *WebsocketClient, message *Message.Message) *Event.Event {
-	/*
-		if message.GetTopic() == "heartbeat" {
-			server.ResetWatchdog(client)
-			continue
-		}
-	*/
+	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
+		return server.ResetWatchdog(client)
+	}
 
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()
+
 	if handler == nil {
 		err := client.Send(Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
 		if err != nil {

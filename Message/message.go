@@ -24,6 +24,8 @@ type messageData struct {
 const TOPIC_SUCCESS = "success"
 const TOPIC_FAILURE = "failure"
 
+const TOPIC_HEARTBEAT = "heartbeat"
+
 const TOPIC_SUBSCRIBE_ASYNC = "add_async_topics"
 const TOPIC_SUBSCRIBE_SYNC = "add_sync_topics"
 const TOPIC_UNSUBSCRIBE_ASYNC = "remove_async_topics"
