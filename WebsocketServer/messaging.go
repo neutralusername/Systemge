@@ -141,12 +141,13 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			server.onError(Event.New(
 				Event.FailedToSendMessage,
 				server.GetServerContext().Merge(Event.Context{
-					"messageType":       "websocketMulticast",
-					"topic":             message.GetTopic(),
-					"payload":           message.GetPayload(),
-					"syncToken":         message.GetSyncToken(),
-					"error":             "Client does not exist",
-					"targetWebsocketId": id,
+					"messageType":        "websocketMulticast",
+					"topic":              message.GetTopic(),
+					"payload":            message.GetPayload(),
+					"syncToken":          message.GetSyncToken(),
+					"error":              "Client does not exist",
+					"targetWebsocketIds": Helpers.JsonMarshal(ids),
+					"targetWebsocketId":  id,
 				}),
 			))
 			server.failedMessageCounter.Add(1)
