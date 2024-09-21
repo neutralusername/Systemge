@@ -26,6 +26,8 @@ const ClientAlreadyInGroup = "clientAlreadyInGroup"
 
 const GroupDoesNotExist = "groupDoesNotExist"
 
+const ClientNotInGroup = "clientNotInGroup"
+
 const AcceptingClient = "acceptingConnection"
 const AcceptedClient = "connectionAccepted"
 
@@ -61,3 +63,6 @@ const HandlerFailed = "handlerFailed"
 
 const AddingClientsToGroup = "addingClientsToGroup"
 const ClientsAddedToGroup = "clientsAddedToGroup"
+
+const RemovingClientsFromGroup = "removingClientsFromGroup"
+const ClientsRemovedFromGroup = "clientsRemovedFromGroup"

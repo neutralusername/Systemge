@@ -125,18 +125,57 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 // RemoveClientsFromGroup removes websocket clients from a group.
 // Returns an error if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketIds ...string) *Event.Event {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
+	if event := server.onInfo(Event.New(
+		Event.RemovingClientsFromGroup,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "removing clients from group",
+			"type":               "websocketConnection",
+			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
+			"groupId":            groupId,
+			"function":           "RemoveClientsFromGroup",
+		}),
+	)); event.IsError() {
+		return event
+	}
 	if server.groups[groupId] == nil {
-		return Event.New("group with id "+groupId+" does not exist", nil)
+		return server.onError(Event.New(
+			Event.GroupDoesNotExist,
+			server.GetServerContext().Merge(Event.Context{
+				"error":     "group does not exist",
+				"type":      "websocketConnection",
+				"groupId":   groupId,
+				"websocket": Helpers.JsonMarshal(websocketIds),
+				"function":  "RemoveClientsFromGroup",
+			}),
+		))
 	}
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] == nil {
-			return Event.New("client with id "+websocketId+" does not exist", nil)
+			return server.onError(Event.New(
+				Event.ClientDoesNotExist,
+				server.GetServerContext().Merge(Event.Context{
+					"error":             "client does not exist",
+					"type":              "websocketConnection",
+					"targetWebsocketId": websocketId,
+					"groupId":           groupId,
+					"function":          "RemoveClientsFromGroup",
+				}),
+			))
 		}
 		if !server.clientGroups[websocketId][groupId] {
-			return Event.New("client with id "+websocketId+" is not in group "+groupId, nil)
+			return server.onError(Event.New(
+				Event.ClientNotInGroup,
+				server.GetServerContext().Merge(Event.Context{
+					"error":             "client is not in group",
+					"type":              "websocketConnection",
+					"targetWebsocketId": websocketId,
+					"groupId":           groupId,
+					"function":          "RemoveClientsFromGroup",
+				}),
+			))
 		}
 	}
 	for _, websocketId := range websocketIds {
@@ -146,24 +185,64 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 	if len(server.groups[groupId]) == 0 {
 		delete(server.groups, groupId)
 	}
-	return nil
+	return server.onInfo(Event.New(
+		Event.ClientsAddedToGroup,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "removed clients from group",
+			"type":               "websocketConnection",
+			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
+			"groupId":            groupId,
+			"function":           "RemoveClientsFromGroup",
+		}),
+	))
 }
 
 // AttemptToRemoveClientsFromGroup removes websocket clients from a group.
 // proceeds even if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, websocketIds ...string) *Event.Event {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
+	if event := server.onInfo(Event.New(
+		Event.RemovingClientsFromGroup,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "removing clients from group",
+			"type":               "websocketConnection",
+			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
+			"groupId":            groupId,
+			"function":           "AttemptToRemoveClientsFromGroup",
+		}),
+	)); event.IsError() {
+		return event
+	}
 	if server.groups[groupId] == nil {
-		return Event.New("group with id "+groupId+" does not exist", nil)
+		return server.onError(Event.New(
+			Event.GroupDoesNotExist,
+			server.GetServerContext().Merge(Event.Context{
+				"error":     "group does not exist",
+				"type":      "websocketConnection",
+				"groupId":   groupId,
+				"websocket": Helpers.JsonMarshal(websocketIds),
+				"function":  "AttemptToRemoveClientsFromGroup",
+			}),
+		))
 	}
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] != nil {
 			delete(server.clientGroups[websocketId], groupId)
 		} else {
-			if server.warningLogger != nil {
-				server.warningLogger.Log("failed to remove client \"" + websocketId + "\" from group \"" + groupId + "\" because the client does not exist")
+			event := server.onWarning(Event.New(
+				Event.ClientDoesNotExist,
+				server.GetServerContext().Merge(Event.Context{
+					"warning":           "client does not exist",
+					"type":              "websocketConnection",
+					"targetWebsocketId": websocketId,
+					"groupId":           groupId,
+					"function":          "AttemptToRemoveClientsFromGroup",
+				}),
+			))
+			if event.IsError() {
+				return event
 			}
 		}
 		delete(server.groups[groupId], websocketId)
@@ -171,7 +250,16 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 	if len(server.groups[groupId]) == 0 {
 		delete(server.groups, groupId)
 	}
-	return nil
+	return server.onInfo(Event.New(
+		Event.ClientsAddedToGroup,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "removed clients from group",
+			"type":               "websocketConnection",
+			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
+			"groupId":            groupId,
+			"function":           "AttemptToRemoveClientsFromGroup",
+		}),
+	))
 }
 
 func (server *WebsocketServer) GetGroupClients(groupId string) []string {
