@@ -102,16 +102,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) GetServerContext() Event.Context {
-	ctx := Event.Context{
-		"serviceType": Service.WebsocketServer,
-		"name":        server.name,
-		"status":      Status.ToString(server.status),
-		"caller":      Event.GetCallerPath(2),
-	}
-	return ctx
-}
-
 func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
@@ -124,11 +114,13 @@ func (server *WebsocketServer) Start() *Event.Event {
 		))
 	}
 
-	server.onInfo(Event.New(Event.StartingService,
+	if event := server.onInfo(Event.New(Event.StartingService,
 		server.GetServerContext().Merge(Event.Context{
 			"info": "starting websocketServer",
 		}),
-	))
+	)); event.IsError() {
+		return event
+	}
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
@@ -171,12 +163,14 @@ func (server *WebsocketServer) Stop() *Event.Event {
 		))
 	}
 
-	server.onInfo(Event.New(
+	if event := server.onInfo(Event.New(
 		Event.StoppingService,
 		server.GetServerContext().Merge(Event.Context{
 			"info": "stopping websocketServer",
 		}),
-	))
+	)); event.IsError() {
+		return event
+	}
 	server.status = Status.Pending
 
 	server.httpServer.Stop()
@@ -245,4 +239,14 @@ func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
 		return server.onInfoHandler(event)
 	}
 	return event
+}
+
+func (server *WebsocketServer) GetServerContext() Event.Context {
+	ctx := Event.Context{
+		"serviceType": Service.WebsocketServer,
+		"name":        server.name,
+		"status":      Status.ToString(server.status),
+		"caller":      Event.GetCallerPath(2),
+	}
+	return ctx
 }

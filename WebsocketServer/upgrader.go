@@ -9,70 +9,83 @@ import (
 
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		server.onInfo(Event.New(
+		if event := server.onInfo(Event.New(
 			Event.OnConnectHandlerStarted,
 			server.GetServerContext().Merge(Event.Context{
 				"info":                 "onConnect handler started",
 				"onConnectHandlerType": "httpWebsocketUpgrade",
 				"address":              httpRequest.RemoteAddr,
 			}),
-		))
+		)); event.IsError() {
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 		if server.httpServer == nil {
-			server.onWarning(Event.New(
+			if event := server.onError(Event.New(
 				Event.ServiceNotStarted,
 				server.GetServerContext().Merge(Event.Context{
-					"warning":              "http server not started",
+					"error":                "accepted connection on websocketServer but httpServer is nil",
 					"onConnectHandlerType": "httpWebsocketUpgrade",
 					"address":              httpRequest.RemoteAddr,
 				}),
-			))
+			)); event.IsError() {
+				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			}
 			return
 		}
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			server.onWarning(Event.New(
+			if event := server.onError(Event.New(
 				Event.FailedToSplitIPAndPort,
 				server.GetServerContext().Merge(Event.Context{
-					"waring":               "failed to split IP and port",
+					"error":                "failed to split IP and port",
 					"onConnectHandlerType": "httpWebsocketUpgrade",
 					"address":              httpRequest.RemoteAddr,
 				}),
-			))
-			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			)); event.IsError() {
+				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			}
 			return
 		}
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			server.onWarning(Event.New(
+			if event := server.onError(Event.New(
 				Event.IPRateLimitExceeded,
 				server.GetServerContext().Merge(Event.Context{
-					"warning":              "IP rate limit exceeded",
+					"error":                "IP rate limit exceeded",
 					"onConnectHandlerType": "httpWebsocketUpgrade",
 					"address":              httpRequest.RemoteAddr,
 				}),
-			))
-			http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
+			)); event.IsError() {
+				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
+			}
 			return
 		}
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			server.onWarning(Event.New(
+			if event := server.onError(Event.New(
 				Event.FailedToUpgradeToWebsocket,
 				server.GetServerContext().Merge(Event.Context{
-					"warning":              "failed to upgrade connection to websocket",
+					"error":                "failed to upgrade connection to websocket",
 					"onConnectHandlerType": "httpWebsocketUpgrade",
 					"address":              httpRequest.RemoteAddr,
 				}),
-			))
+			)); event.IsError() {
+				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			}
 			return
 		}
-		server.onInfo(Event.New(
+		if event := server.onInfo(Event.New(
 			Event.OnConnectHandlerFinished,
 			server.GetServerContext().Merge(Event.Context{
 				"info":                 "onConnect handler finished",
 				"onConnectHandlerType": "httpWebsocketUpgrade",
 				"address":              httpRequest.RemoteAddr,
 			}),
-		))
+		)); event.IsError() {
+			websocketConnection.Close()
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 		server.connectionChannel <- websocketConnection
 	}
 }
