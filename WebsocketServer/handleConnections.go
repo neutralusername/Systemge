@@ -129,12 +129,39 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		}
 		server.incomingMessageCounter.Add(1)
 		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+
+		event = server.onInfo(Event.New(
+			Event.HandlingMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"info":               "handling message from client",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		))
+		if event.IsError() {
+			break
+		}
+		if event.IsWarning() {
+			continue
+		}
 		event = server.handleClientMessage(client, messageBytes)
 		if event.IsError() {
 			break
 		}
 		if event.IsWarning() {
 			continue
+		}
+		if event := server.onInfo(Event.New(
+			Event.HandledMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"info":               "handled message from client",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		)); event.IsError() {
+			break
 		}
 	}
 	if event := server.onInfo(Event.New(
@@ -153,9 +180,10 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, messageBytes []byte) *Event.Event {
 	if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		return server.onWarning(Event.New(
-			Event.FailedToHandleMessage,
+			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
 				"warning":            "rate limited",
+				"rateLimiterType":    "bytes",
 				"serviceRoutineType": "handleMessages",
 				"address":            client.GetIp(),
 				"websocketId":        client.GetId(),
@@ -164,9 +192,10 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	}
 	if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
 		return server.onWarning(Event.New(
-			Event.FailedToHandleMessage,
+			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
 				"warning":            "rate limited",
+				"rateLimiterType":    "messages",
 				"serviceRoutineType": "handleMessages",
 				"address":            client.GetIp(),
 				"websocketId":        client.GetId(),

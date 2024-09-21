@@ -41,3 +41,5 @@ const FailedToReceiveMessage = "failedToReceiveMessage"
 const HandlingMessage = "handlingMessage"
 const HandledMessage = "handledMessage"
 const FailedToHandleMessage = "failedToHandleMessage"
+
+const RateLimited = "rateLimited"
