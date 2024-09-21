@@ -66,7 +66,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 
 		if event := server.sendWebsocketConnectionToChannel(websocketConnection); event.IsError() {
-			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
+			websocketConnection.Close()
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
@@ -91,7 +92,6 @@ func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnect
 			"address": websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
-		websocketConnection.Close()
 		server.rejectedWebsocketConnectionsCounter.Add(1)
 		return event
 	}

@@ -22,6 +22,8 @@ const ClientNotAccepted = "clientNotAccepted"
 
 const ClientDoesNotExist = "clientDoesNotExist"
 
+const ClientAlreadyInGroup = "clientAlreadyInGroup"
+
 const GroupDoesNotExist = "groupDoesNotExist"
 
 const AcceptingClient = "acceptingConnection"
@@ -56,3 +58,6 @@ const NetworkError = "networkError"
 const NoHandlerForTopic = "noHandlerForTopic"
 
 const HandlerFailed = "handlerFailed"
+
+const AddingClientsToGroup = "addingClientsToGroup"
+const ClientsAddedToGroup = "clientsAddedToGroup"
