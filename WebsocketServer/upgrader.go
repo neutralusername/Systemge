@@ -42,6 +42,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.RateLimited,
 				server.GetServerContext().Merge(Event.Context{
 					"error":   "IP rate limit exceeded",
+					"type":    "ip",
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
