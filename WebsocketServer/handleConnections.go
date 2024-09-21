@@ -18,6 +18,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 	)); event.IsError() {
 		return
 	}
+
 	for {
 		if event := server.onInfo(Event.New(
 			Event.ReceivingFromChannel,
@@ -27,20 +28,21 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 				"channelType":        "websocketConnection",
 			}),
 		)); event.IsError() {
-			return
+			break
 		}
 		websocketConnection := <-server.connectionChannel
 		if websocketConnection == nil {
-			server.onInfo(Event.New(
-				Event.ServiceRoutineFinished,
+			server.onError(Event.New(
+				Event.ReceivedNilValueFromChannel,
 				server.GetServerContext().Merge(Event.Context{
-					"info":               "websocketServer stopped",
+					"error":              "received nil value from channel",
 					"serviceRoutineType": "acceptClients",
+					"channelType":        "websocketConnection",
 				}),
 			))
-			return
+
 		}
-		if event := server.onInfo(Event.New(
+		event := server.onInfo(Event.New(
 			Event.ReceivedFromChannel,
 			server.GetServerContext().Merge(Event.Context{
 				"info":               "received connection from channel",
@@ -48,11 +50,23 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 				"address":            websocketConnection.RemoteAddr().String(),
 				"channelType":        "websocketConnection",
 			}),
-		)); event.IsError() {
+		))
+		if event.IsError() {
+			break
+		}
+		if event.IsWarning() {
 			continue
 		}
 		go server.handleWebsocketConnection(websocketConnection)
 	}
+
+	server.onInfo(Event.New(
+		Event.ServiceRoutineFinished,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "websocketServer stopped",
+			"serviceRoutineType": "acceptClients",
+		}),
+	))
 }
 
 func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *websocket.Conn) {
@@ -81,10 +95,10 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id
 		Event.AcceptedClient,
 		server.GetServerContext().Merge(Event.Context{
-			"info":       "websocket connection accepted",
-			"acceptType": "websocketClient",
-			"address":    websocketConnection.RemoteAddr().String(),
-			"id":         websocketId,
+			"info":        "websocket connection accepted",
+			"acceptType":  "websocketClient",
+			"address":     websocketConnection.RemoteAddr().String(),
+			"websocketId": websocketId,
 		}),
 	)); event.IsError() {
 		return
@@ -99,18 +113,41 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "handling messages from client",
 			"serviceRoutineType": "handleMessages",
-			"clientId":           client.GetId(),
+			"address":            client.GetIp(),
+			"websocketId":        client.GetId(),
 		}),
 	)); event.IsError() {
 		return
 	}
 	for {
-		messageBytes, err := client.receive()
+		if event := server.onInfo(Event.New(
+			Event.ReceivingMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"info":               "receiving message from client",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		)); event.IsError() {
+			break
+		}
+		_, messageBytes, err := client.websocketConnection.ReadMessage()
 		if err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to receive message from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error())
+			event := server.onError(Event.New(
+				Event.FailedToReceiveMessage,
+				server.GetServerContext().Merge(Event.Context{
+					"error":              "failed to receive message from client",
+					"serviceRoutineType": "handleMessages",
+					"address":            client.GetIp(),
+					"websocketId":        client.GetId(),
+				}),
+			))
+			if event.IsError() {
+				break
 			}
-			return
+			if event.IsWarning() {
+				continue
+			}
 		}
 		server.incomingMessageCounter.Add(1)
 		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
@@ -172,6 +209,17 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 				}
 			}()
 		}
+	}
+	if event := server.onInfo(Event.New(
+		Event.ServiceRoutineFinished,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "handling messages from client finished",
+			"serviceRoutineType": "handleMessages",
+			"address":            client.GetIp(),
+			"websocketId":        client.GetId(),
+		}),
+	)); event.IsError() {
+		return
 	}
 }
 

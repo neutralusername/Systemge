@@ -12,32 +12,20 @@ const FailedStoppingService = "failedStoppingService"
 const StartingService = "starting"
 const StoppingService = "stopping"
 
-const ServiceNotStarted = "serviceNotStarted"
-
-const FailedToSplitIPAndPort = "failedToSplitIPAndPort"
-
-const IPRateLimitExceeded = "ipRateLimitExceeded"
-
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
-
 const FailedToSendMessage = "failedToSendMessage"
-
-const OnConnectHandlerStarted = "onConnectHandlerStarted"
-const OnConnectHandlerFinished = "onConnectHandlerFinished"
 
 const ExecutingHttpHandler = "executingHttpHandler"
 const ExecutedHttpHandler = "executedHttpHandler"
 const FailedToExecuteHttpHandler = "failedToExecuteHttpHandler"
-
-const OnDisconnectHandlerStarted = "onDisconnectHandlerStarted"
-const OnDisconnectHandlerFinished = "onDisconnectHandlerFinished"
 
 const ServiceRoutineStarted = "serviceRoutineStarted"
 const ServiceRoutineFinished = "serviceRoutineFinished"
 
 const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
+const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
 
 const SendingToChannel = "sendingToChannel"
 const SentToChannel = "sentToChannel"
@@ -45,3 +33,11 @@ const SentToChannel = "sentToChannel"
 const AcceptingClient = "acceptingConnection"
 const FailedToAcceptClient = "failedToAcceptConnection"
 const AcceptedClient = "connectionAccepted"
+
+const ReceivingMessage = "receivingMessage"
+const ReceivedMessage = "receivedMessage"
+const FailedToReceiveMessage = "failedToReceiveMessage"
+
+const HandlingMessage = "handlingMessage"
+const HandledMessage = "handledMessage"
+const FailedToHandleMessage = "failedToHandleMessage"

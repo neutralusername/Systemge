@@ -17,7 +17,6 @@ type WebsocketClient struct {
 	isAccepted bool
 
 	watchdogMutex sync.Mutex
-	receiveMutex  sync.Mutex
 	sendMutex     sync.Mutex
 	stopChannel   chan bool
 
@@ -156,16 +155,6 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			"targetWebsocketId": client.GetId(),
 		}),
 	))
-}
-
-func (client *WebsocketClient) receive() ([]byte, *Event.Event) {
-	client.receiveMutex.Lock()
-	defer client.receiveMutex.Unlock()
-	_, messageBytes, err := client.websocketConnection.ReadMessage()
-	if err != nil {
-		return nil, Event.New("failed to receive message", err)
-	}
-	return messageBytes, err
 }
 
 // may only be called during the connections onConnectHandler.
