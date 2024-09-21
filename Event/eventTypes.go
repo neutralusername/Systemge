@@ -37,7 +37,8 @@ const ServiceRoutineStarted = "serviceRoutineStarted"
 const ServiceRoutineFinished = "serviceRoutineFinished"
 
 const ReceivingFromChannel = "receivingFromChannel"
+const ReceivedFromChannel = "receivingFromChannel"
 
-const AcceptingConnection = "acceptingConnection"
-const FailedToAcceptConnection = "failedToAcceptConnection"
-const ConnectionAccepted = "connectionAccepted"
+const AcceptingClient = "acceptingConnection"
+const FailedToAcceptClient = "failedToAcceptConnection"
+const AcceptedClient = "connectionAccepted"

@@ -19,6 +19,15 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 		return
 	}
 	for {
+		if event := server.onInfo(Event.New(
+			Event.ReceivingFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":               "receiving connection from channel",
+				"serviceRoutineType": "handleWebsocketConnections",
+			}),
+		)); event.IsError() {
+			return
+		}
 		websocketConnection := <-server.connectionChannel
 		if websocketConnection == nil {
 			server.onInfo(Event.New(
@@ -31,7 +40,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 			return
 		}
 		if event := server.onInfo(Event.New(
-			Event.ReceivingFromChannel,
+			Event.ReceivedFromChannel,
 			server.GetServerContext().Merge(Event.Context{
 				"info":               "received connection from channel",
 				"serviceRoutineType": "handleWebsocketConnections",
@@ -46,7 +55,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 
 func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *websocket.Conn) {
 	if event := server.onInfo(Event.New(
-		Event.AcceptingConnection,
+		Event.AcceptingClient,
 		server.GetServerContext().Merge(Event.Context{
 			"info":    "accepting connection",
 			"address": websocketConnection.RemoteAddr().String(),
