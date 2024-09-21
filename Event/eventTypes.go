@@ -26,9 +26,9 @@ const FailedToSendMessage = "failedToSendMessage"
 const OnConnectHandlerStarted = "onConnectHandlerStarted"
 const OnConnectHandlerFinished = "onConnectHandlerFinished"
 
-const UpgradingToWebsocketConnection = "upgradingToWebsocketConnection"
-const FailedToUpgradeToWebsocketConnection = "failedToUpgradeToWebsocketConnection"
-const UpgradedToWebsocketConnection = "upgradedToWebsocketConnection"
+const ExecutingHttpHandler = "executingHttpHandler"
+const ExecutedHttpHandler = "executedHttpHandler"
+const FailedToExecuteHttpHandler = "failedToExecuteHttpHandler"
 
 const OnDisconnectHandlerStarted = "onDisconnectHandlerStarted"
 const OnDisconnectHandlerFinished = "onDisconnectHandlerFinished"
