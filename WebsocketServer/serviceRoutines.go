@@ -132,9 +132,13 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		server.incomingMessageCounter.Add(1)
 		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
 
-		event = server.handleClientMessage(client, messageBytes)
-		if event.IsError() {
-			break
+		if server.config.ExecuteMessageHandlersSequentially {
+			event = server.handleClientMessage(client, messageBytes)
+			if event.IsError() {
+				break
+			}
+		} else {
+			go server.handleClientMessage(client, messageBytes)
 		}
 	}
 
@@ -198,14 +202,29 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	}
 	message = Message.NewAsync(message.GetTopic(), message.GetPayload()) // getting rid of possible syncToken
 
-	if server.config.ExecuteMessageHandlersSequentially {
-		if event := server.executeMessageHandler(client, message); event.IsError() {
-			return event
+	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
+		return server.ResetWatchdog(client)
+	}
+
+	server.messageHandlerMutex.Lock()
+	handler := server.messageHandlers[message.GetTopic()]
+	server.messageHandlerMutex.Unlock()
+
+	if handler == nil {
+		err := server.Send(client, Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
+		if err != nil {
+			if warningLogger := server.warningLogger; warningLogger != nil {
+				warningLogger.Log(Event.New("Failed to send error message to client", err).Error())
+			}
 		}
-	} else {
-		go func() {
-			server.executeMessageHandler(client, message)
-		}()
+		return Event.New("no handler for topic \""+message.GetTopic()+"\"", nil)
+	}
+	if err := handler(client, message); err != nil {
+		if err := server.Send(client, Message.NewAsync("error", Event.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize()); err != nil {
+			if warningLogger := server.warningLogger; warningLogger != nil {
+				warningLogger.Log(Event.New("Failed to send error message to client", err).Error())
+			}
+		}
 	}
 
 	return server.onInfo(Event.New(
@@ -216,32 +235,4 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			"websocketId": client.GetId(),
 		}),
 	))
-}
-
-func (server *WebsocketServer) executeMessageHandler(client *WebsocketClient, message *Message.Message) *Event.Event {
-	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
-		return server.ResetWatchdog(client)
-	}
-
-	server.messageHandlerMutex.Lock()
-	handler := server.messageHandlers[message.GetTopic()]
-	server.messageHandlerMutex.Unlock()
-
-	if handler == nil {
-		err := client.Send(Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
-		if err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to send error message to client", err).Error())
-			}
-		}
-		return Event.New("no handler for topic \""+message.GetTopic()+"\"", nil)
-	}
-	if err := handler(client, message); err != nil {
-		if err := client.Send(Message.NewAsync("error", Event.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize()); err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to send error message to client", err).Error())
-			}
-		}
-	}
-	return nil
 }
