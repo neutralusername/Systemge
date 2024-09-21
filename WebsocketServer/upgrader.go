@@ -21,6 +21,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
+
 		if server.httpServer == nil {
 			if event := server.onError(Event.New(
 				Event.FailedToExecuteHttpHandler,
@@ -35,6 +36,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
+
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
 			if event := server.onError(Event.New(
@@ -50,6 +52,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
+
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			if event := server.onError(Event.New(
 				Event.FailedToExecuteHttpHandler,
@@ -64,6 +67,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
+
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if event := server.onError(Event.New(
@@ -80,7 +84,6 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 
-		server.acceptedWebsocketConnectionsCounter.Add(1)
 		if event := server.onInfo(Event.New(
 			Event.SendingToChannel,
 			server.GetServerContext().Merge(Event.Context{
@@ -91,9 +94,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			}),
 		)); event.IsError() {
 			websocketConnection.Close()
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 		server.connectionChannel <- websocketConnection
+		server.acceptedWebsocketConnectionsCounter.Add(1)
 		if event := server.onInfo(Event.New(
 			Event.SentToChannel,
 			server.GetServerContext().Merge(Event.Context{
