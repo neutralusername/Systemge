@@ -107,6 +107,15 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 func (server *WebsocketServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
+
+	if event := server.onInfo(Event.New(Event.StartingService,
+		server.GetServerContext().Merge(Event.Context{
+			"info": "starting websocketServer",
+		}),
+	)); event.IsError() {
+		return event
+	}
+
 	if server.status != Status.Stoped {
 		return server.onError(Event.New(
 			Event.ServiceAlreadyStarted,
@@ -116,13 +125,6 @@ func (server *WebsocketServer) Start() *Event.Event {
 		))
 	}
 
-	if event := server.onInfo(Event.New(Event.StartingService,
-		server.GetServerContext().Merge(Event.Context{
-			"info": "starting websocketServer",
-		}),
-	)); event.IsError() {
-		return event
-	}
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
@@ -149,14 +151,6 @@ func (server *WebsocketServer) Start() *Event.Event {
 func (server *WebsocketServer) Stop() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.Started {
-		return server.onError(Event.New(
-			Event.ServiceAlreadyStopped,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "failed to stop websocketServer",
-			}),
-		))
-	}
 
 	if event := server.onInfo(Event.New(
 		Event.StoppingService,
@@ -166,6 +160,16 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	)); event.IsError() {
 		return event
 	}
+
+	if server.status != Status.Started {
+		return server.onError(Event.New(
+			Event.ServiceAlreadyStopped,
+			server.GetServerContext().Merge(Event.Context{
+				"error": "failed to stop websocketServer",
+			}),
+		))
+	}
+
 	server.status = Status.Pending
 
 	server.httpServer.Stop()
