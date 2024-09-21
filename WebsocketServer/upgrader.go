@@ -24,22 +24,21 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			if event := server.onError(Event.New(
+			server.onError(Event.New(
 				Event.FailedToSplitHostPort,
 				server.GetServerContext().Merge(Event.Context{
 					"error":           "failed to split IP and port",
 					"httpHandlerType": "websocketUpgrade",
 					"address":         httpRequest.RemoteAddr,
 				}),
-			)); event.IsError() {
-				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			}
+			))
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			if event := server.onError(Event.New(
+			server.onError(Event.New(
 				Event.RateLimited,
 				server.GetServerContext().Merge(Event.Context{
 					"error":           "IP rate limit exceeded",
@@ -47,24 +46,22 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 					"rateLimiterType": "ip",
 					"address":         httpRequest.RemoteAddr,
 				}),
-			)); event.IsError() {
-				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
-			}
+			))
+			http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			if event := server.onError(Event.New(
+			server.onError(Event.New(
 				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
 					"error":           "failed to upgrade connection to websocket",
 					"httpHandlerType": "websocketUpgrade",
 					"address":         httpRequest.RemoteAddr,
 				}),
-			)); event.IsError() {
-			}
+			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
