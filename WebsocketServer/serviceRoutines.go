@@ -135,10 +135,16 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		if server.config.ExecuteMessageHandlersSequentially {
 			event = server.handleClientMessage(client, messageBytes)
 			if event.IsError() {
+				// err := server.Send(client, Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
 				break
 			}
 		} else {
-			go server.handleClientMessage(client, messageBytes)
+			go func() {
+				event := server.handleClientMessage(client, messageBytes)
+				if event.IsError() {
+					// err := server.Send(client, Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
+				}
+			}()
 		}
 	}
 
@@ -211,20 +217,27 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	server.messageHandlerMutex.Unlock()
 
 	if handler == nil {
-		err := server.Send(client, Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
-		if err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to send error message to client", err).Error())
-			}
-		}
-		return Event.New("no handler for topic \""+message.GetTopic()+"\"", nil)
+		return server.onWarning(Event.New(
+			Event.NoHandlerForTopic,
+			server.GetServerContext().Merge(Event.Context{
+				"warning":     "no handler for for provided topic",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
+				"topic":       message.GetTopic(),
+			}),
+		))
 	}
+
 	if err := handler(client, message); err != nil {
-		if err := server.Send(client, Message.NewAsync("error", Event.New("error in handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", err).Error()).Serialize()); err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to send error message to client", err).Error())
-			}
-		}
+		return server.onWarning(Event.New(
+			Event.HandlerFailed,
+			server.GetServerContext().Merge(Event.Context{
+				"warning":     err.Error(),
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
+				"topic":       message.GetTopic(),
+			}),
+		))
 	}
 
 	return server.onInfo(Event.New(
