@@ -199,28 +199,12 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	message = Message.NewAsync(message.GetTopic(), message.GetPayload()) // getting rid of possible syncToken
 
 	if server.config.ExecuteMessageHandlersSequentially {
-		err := server.executeMessageHandler(client, message)
-		if err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to handle message (sequentially)", err).Error())
-			}
-		} else {
-			if infoLogger := server.infoLogger; infoLogger != nil {
-				infoLogger.Log(Event.New("Handled message (sequentially)", nil).Error())
-			}
+		if event := server.executeMessageHandler(client, message); event.IsError() {
+			return event
 		}
 	} else {
 		go func() {
-			err := server.executeMessageHandler(client, message)
-			if err != nil {
-				if warningLogger := server.warningLogger; warningLogger != nil {
-					warningLogger.Log(Event.New("Failed to handle message (concurrently)", err).Error())
-				}
-			} else {
-				if infoLogger := server.infoLogger; infoLogger != nil {
-					infoLogger.Log(Event.New("Handled message (concurrently)", nil).Error())
-				}
-			}
+			server.executeMessageHandler(client, message)
 		}()
 	}
 
@@ -234,7 +218,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	))
 }
 
-func (server *WebsocketServer) executeMessageHandler(client *WebsocketClient, message *Message.Message) error {
+func (server *WebsocketServer) executeMessageHandler(client *WebsocketClient, message *Message.Message) *Event.Event {
 	/*
 		if message.GetTopic() == "heartbeat" {
 			server.ResetWatchdog(client)
