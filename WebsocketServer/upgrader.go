@@ -10,7 +10,7 @@ import (
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if event := server.onInfo(Event.New(
-			Event.ExecutingHttpHandler,
+			Event.HandlingHttpRequest,
 			server.GetServerContext().Merge(Event.Context{
 				"info":            "onConnect handler started",
 				"httpHandlerType": "websocketUpgrade",
@@ -64,41 +64,20 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 					"address":         httpRequest.RemoteAddr,
 				}),
 			)); event.IsError() {
-				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			}
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 
-		if event := server.onInfo(Event.New(
-			Event.SendingToChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":            "sending upgraded websocket connection to channel",
-				"httpHandlerType": "websocketClient",
-				"channelType":     "websocketConnection",
-				"address":         websocketConnection.RemoteAddr().String(),
-			}),
-		)); event.IsError() {
-			websocketConnection.Close()
+		if event := server.sendWebsocketConnectionToChannel(websocketConnection); event.IsError() {
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
-		}
-		server.connectionChannel <- websocketConnection
-		server.acceptedWebsocketConnectionsCounter.Add(1)
-		if event := server.onInfo(Event.New(
-			Event.SentToChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":            "sent upgraded websocket connection to channel",
-				"httpHandlerType": "websocketUpgrade",
-				"channelType":     "websocketConnection",
-				"address":         httpRequest.RemoteAddr,
-			}),
-		)); event.IsError() {
-			websocketConnection.Close()
 		}
 
 		server.onInfo(Event.New(
-			Event.ExecutedHttpHandler,
+			Event.HandledHttpRequest,
 			server.GetServerContext().Merge(Event.Context{
 				"info":            "upgraded connection to websocket",
 				"httpHandlerType": "websocketUpgrade",

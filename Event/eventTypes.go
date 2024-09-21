@@ -12,8 +12,8 @@ const StoppingService = "stopping"
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
 
-const ExecutingHttpHandler = "executingHttpHandler"
-const ExecutedHttpHandler = "executedHttpHandler"
+const HandlingHttpRequest = "handlingHttpRequest"
+const HandledHttpRequest = "handledHttpRequest"
 
 const AcceptClientsRoutineStarted = "acceptClientsRoutineStarted"
 const AcceptClientsRoutineFinished = "acceptClientsRoutineFinished"
