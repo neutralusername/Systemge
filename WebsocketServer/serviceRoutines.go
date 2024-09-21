@@ -190,7 +190,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onError(Event.New(
 			Event.FailedToDeserialize,
 			server.GetServerContext().Merge(Event.Context{
-				"error":       "failed to deserialize message",
+				"error":       err.Error(),
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
 			}),

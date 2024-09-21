@@ -28,7 +28,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.onError(Event.New(
 				Event.FailedToSplitHostPort,
 				server.GetServerContext().Merge(Event.Context{
-					"error":   "failed to split IP and port",
+					"error":   err.Error(),
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
@@ -56,7 +56,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.onError(Event.New(
 				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
-					"error":   "failed to upgrade connection to websocket",
+					"error":   err.Error(),
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
