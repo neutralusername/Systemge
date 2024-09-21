@@ -188,16 +188,10 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			}),
 		))
 	}
-	message = Message.NewAsync(message.GetTopic(), message.GetPayload())
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log(Event.New("Received message with topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
-	}
-	if message.GetTopic() == "heartbeat" {
-		server.ResetWatchdog(client)
-		continue
-	}
-	if server.config.HandleClientMessagesSequentially {
-		err := server.handleClientMessage(client, message)
+	message = Message.NewAsync(message.GetTopic(), message.GetPayload()) // getting rid of possible syncToken
+
+	if server.config.ExecuteMessageHandlersSequentially {
+		err := server.executeMessageHandler(client, message)
 		if err != nil {
 			if warningLogger := server.warningLogger; warningLogger != nil {
 				warningLogger.Log(Event.New("Failed to handle message (sequentially)", err).Error())
@@ -209,7 +203,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		}
 	} else {
 		go func() {
-			err := server.handleClientMessage(client, message)
+			err := server.executeMessageHandler(client, message)
 			if err != nil {
 				if warningLogger := server.warningLogger; warningLogger != nil {
 					warningLogger.Log(Event.New("Failed to handle message (concurrently)", err).Error())
@@ -233,7 +227,14 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	))
 }
 
-func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, message *Message.Message) error {
+func (server *WebsocketServer) executeMessageHandler(client *WebsocketClient, message *Message.Message) error {
+	/*
+		if message.GetTopic() == "heartbeat" {
+			server.ResetWatchdog(client)
+			continue
+		}
+	*/
+
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()
