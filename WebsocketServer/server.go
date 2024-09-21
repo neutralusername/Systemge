@@ -25,9 +25,6 @@ type WebsocketServer struct {
 	mailer     *Tools.Mailer
 	randomizer *Tools.Randomizer
 
-	onConnectHandler    OnConnectHandler
-	onDisconnectHandler OnDisconnectHandler
-
 	ipRateLimiter *Tools.IpRateLimiter
 
 	httpServer *HTTPServer.HTTPServer

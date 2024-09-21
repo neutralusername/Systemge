@@ -24,6 +24,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 			server.GetServerContext().Merge(Event.Context{
 				"info":               "receiving connection from channel",
 				"serviceRoutineType": "handleWebsocketConnections",
+				"channelType":        "websocketConnection",
 			}),
 		)); event.IsError() {
 			return
@@ -45,6 +46,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 				"info":               "received connection from channel",
 				"serviceRoutineType": "handleWebsocketConnections",
 				"address":            websocketConnection.RemoteAddr().String(),
+				"channelType":        "websocketConnection",
 			}),
 		)); event.IsError() {
 			continue
@@ -74,20 +76,18 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 	server.clientMutex.Unlock()
 
 	defer client.Disconnect()
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log(Event.New("client connected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
+	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id
+		Event.AcceptedClient,
+		server.GetServerContext().Merge(Event.Context{
+			"info":    "connection accepted",
+			"address": websocketConnection.RemoteAddr().String(),
+			"id":      websocketId,
+		}),
+	)); event.IsError() {
+		return
 	}
-	if server.onConnectHandler != nil {
-		err := server.onConnectHandler(client)
-		if err != nil {
-			return
-		}
-	}
-	client.pastOnConnectHandler = true
-	server.handleMessages(client)
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log(Event.New("client disconnected with id \""+client.GetId()+"\" and ip \""+client.GetIp()+"\"", nil).Error())
-	}
+	client.isAccepted = true
+	go server.handleMessages(client)
 }
 
 func (server *WebsocketServer) handleMessages(client *WebsocketClient) {

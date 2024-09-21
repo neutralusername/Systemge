@@ -26,7 +26,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
 	for _, client := range server.clients {
-		if client.pastOnConnectHandler {
+		if client.isAccepted {
 			waitGroup.AddTask(func() {
 				if event := server.Send(client, messageBytes); event.IsError() {
 					server.failedMessageCounter.Add(1)
