@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (server *WebsocketServer) handleWebsocketConnections() {
+func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.New(
 		Event.ServiceRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
@@ -20,37 +20,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 	}
 
 	for {
-		if event := server.onInfo(Event.New(
-			Event.ReceivingFromChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":               "receiving connection from channel",
-				"serviceRoutineType": "acceptClients",
-				"channelType":        "websocketConnection",
-			}),
-		)); event.IsError() {
-			break
-		}
-		websocketConnection := <-server.connectionChannel
-		if websocketConnection == nil {
-			server.onError(Event.New(
-				Event.ReceivedNilValueFromChannel,
-				server.GetServerContext().Merge(Event.Context{
-					"error":              "received nil value from channel",
-					"serviceRoutineType": "acceptClients",
-					"channelType":        "websocketConnection",
-				}),
-			))
-
-		}
-		event := server.onInfo(Event.New(
-			Event.ReceivedFromChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":               "received connection from channel",
-				"serviceRoutineType": "acceptClients",
-				"address":            websocketConnection.RemoteAddr().String(),
-				"channelType":        "websocketConnection",
-			}),
-		))
+		websocketConnection, event := server.receiveWebsocketConnectionFromChannel()
 		if event.IsError() {
 			break
 		}
@@ -65,6 +35,39 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "websocketServer stopped",
 			"serviceRoutineType": "acceptClients",
+		}),
+	))
+}
+
+func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websocket.Conn, *Event.Event) {
+	if event := server.onInfo(Event.New(
+		Event.ReceivingFromChannel,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "receiving connection from channel",
+			"serviceRoutineType": "acceptClients",
+			"channelType":        "websocketConnection",
+		}),
+	)); event.IsError() {
+		return nil, event
+	}
+	websocketConnection := <-server.connectionChannel
+	if websocketConnection == nil {
+		return nil, server.onError(Event.New(
+			Event.ReceivedNilValueFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"error":              "received nil value from channel",
+				"serviceRoutineType": "acceptClients",
+				"channelType":        "websocketConnection",
+			}),
+		))
+	}
+	return websocketConnection, server.onInfo(Event.New(
+		Event.ReceivedFromChannel,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "received connection from channel",
+			"serviceRoutineType": "acceptClients",
+			"address":            websocketConnection.RemoteAddr().String(),
+			"channelType":        "websocketConnection",
 		}),
 	))
 }
@@ -104,15 +107,15 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 		return
 	}
 	client.isAccepted = true
-	go server.handleMessages(client)
+	go server.receiveMessagesLoop(client)
 }
 
-func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
+func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 	if event := server.onInfo(Event.New(
 		Event.ServiceRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "handling messages from client",
-			"serviceRoutineType": "handleMessages",
+			"info":               "started receiving messages from client",
+			"serviceRoutineType": "receiveMessages",
 			"address":            client.GetIp(),
 			"websocketId":        client.GetId(),
 		}),
@@ -143,8 +146,8 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 	if event := server.onInfo(Event.New(
 		Event.ServiceRoutineFinished,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "handling messages from client finished",
-			"serviceRoutineType": "handleMessages",
+			"info":               "stopped receiving messages from client",
+			"serviceRoutineType": "receiveMessages",
 			"address":            client.GetIp(),
 			"websocketId":        client.GetId(),
 		}),
