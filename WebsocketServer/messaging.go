@@ -85,7 +85,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 		))
 	} else {
 		waitGroup.AddTask(func() {
-			if event := server.Send(client, messageBytes); event != nil {
+			if event := server.Send(client, messageBytes); event.IsError() {
 				server.failedMessageCounter.Add(1)
 			} else {
 				server.outgoigMessageCounter.Add(1)
@@ -111,7 +111,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 // Multicast multicasts a message to multiple clients by id.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) *Event.Event {
-	server.onInfo(Event.New(
+	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"messageType":        "websocketMulticast",
@@ -121,31 +121,35 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			"info":               "multicasting message to clients",
 			"targetWebsocketIds": Helpers.JsonMarshal(ids),
 		}),
-	))
+	)); event.IsError() {
+		return event
+	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
 	for _, id := range ids {
 		if client, exists := server.clients[id]; exists {
 			waitGroup.AddTask(func() {
-				err := client.Send(messageBytes)
-				if err != nil {
-					server.onError(Event.New(
-						Event.FailedToSendMessage,
-						server.GetServerContext().Merge(Event.Context{
-							"messageType":       "websocketMulticast",
-							"topic":             message.GetTopic(),
-							"payload":           message.GetPayload(),
-							"syncToken":         message.GetSyncToken(),
-							"senderWebsocketId": client.GetId(),
-							"senderIp":          client.GetIp(),
-							"error":             err.Error(),
-						}),
-					))
+				if event := server.Send(client, messageBytes); event.IsError() {
+					server.failedMessageCounter.Add(1)
+				} else {
+					server.outgoigMessageCounter.Add(1)
+					server.bytesSentCounter.Add(uint64(len(messageBytes)))
 				}
-				server.outgoigMessageCounter.Add(1)
-				server.bytesSentCounter.Add(uint64(len(messageBytes)))
 			})
+		} else {
+			server.onError(Event.New(
+				Event.FailedToSendMessage,
+				server.GetServerContext().Merge(Event.Context{
+					"messageType":       "websocketMulticast",
+					"topic":             message.GetTopic(),
+					"payload":           message.GetPayload(),
+					"syncToken":         message.GetSyncToken(),
+					"error":             "Client does not exist",
+					"targetWebsocketId": id,
+				}),
+			))
+			server.failedMessageCounter.Add(1)
 		}
 	}
 	server.clientMutex.RUnlock()
