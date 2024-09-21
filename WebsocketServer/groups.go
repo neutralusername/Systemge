@@ -4,12 +4,17 @@ import "github.com/neutralusername/Systemge/Event"
 
 // AddClientsToGroup adds websocket clients to a group.
 // Returns an error if either of the websocket clients does not exist or is already in the group.
-func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ...string) *Event.Event {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] == nil {
-			return Event.New("client with id "+websocketId+" does not exist", nil)
+			return server.onError(Event.New(
+				Event.ClientDoesNotExist,
+				server.GetServerContext().Merge(Event.Context{
+					"type": "websocketConnection",
+				}),
+			))
 		}
 		if server.clientGroups[websocketId][groupId] {
 			return Event.New("client with id "+websocketId+" is already in group "+groupId, nil)

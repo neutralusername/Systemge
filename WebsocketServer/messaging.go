@@ -93,7 +93,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 			Event.ClientDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":             "Client does not exist",
-				"type":              "websocketUnicast",
+				"type":              "websocketConnection",
 				"targetWebsocketId": id,
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
@@ -163,7 +163,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.ClientDoesNotExist,
 				server.GetServerContext().Merge(Event.Context{
 					"error":              "Client does not exist",
-					"type":               "websocketMulticast",
+					"type":               "websocketConnection",
 					"targetWebsocketId":  id,
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
 					"topic":              message.GetTopic(),

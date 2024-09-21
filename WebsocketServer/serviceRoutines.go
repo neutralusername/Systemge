@@ -264,6 +264,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			"info":        "handled message from client",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
+			"topic":       message.GetTopic(),
 		}),
 	))
 }
