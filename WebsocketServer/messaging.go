@@ -171,7 +171,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 // Groupcast groupcasts a message to all clients in a group.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) *Event.Event {
-	server.onInfo(Event.New(
+	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"messageType": "websocketGroupcast",
@@ -181,33 +181,34 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			"info":        "groupcasting message to group",
 			"targetGroup": groupId,
 		}),
-	))
+	)); event.IsError() {
+		return event
+	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
 	if server.groups[groupId] == nil {
 		server.clientMutex.RUnlock()
-		return Event.New("Group \""+groupId+"\" does not exist", nil)
+		return server.onError(Event.New(
+			Event.FailedToSendMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"messageType": "websocketGroupcast",
+				"topic":       message.GetTopic(),
+				"payload":     message.GetPayload(),
+				"syncToken":   message.GetSyncToken(),
+				"error":       "Group does not exist",
+				"targetGroup": groupId,
+			}),
+		))
 	}
 	for _, client := range server.groups[groupId] {
 		waitGroup.AddTask(func() {
-			err := client.Send(messageBytes)
-			if err != nil {
-				server.onError(Event.New(
-					Event.FailedToSendMessage,
-					server.GetServerContext().Merge(Event.Context{
-						"messageType":       "websocketGroupcast",
-						"topic":             message.GetTopic(),
-						"payload":           message.GetPayload(),
-						"syncToken":         message.GetSyncToken(),
-						"senderWebsocketId": client.GetId(),
-						"senderIp":          client.GetIp(),
-						"error":             err.Error(),
-					}),
-				))
+			if event := server.Send(client, messageBytes); event.IsError() {
+				server.failedMessageCounter.Add(1)
+			} else {
+				server.outgoigMessageCounter.Add(1)
+				server.bytesSentCounter.Add(uint64(len(messageBytes)))
 			}
-			server.outgoigMessageCounter.Add(1)
-			server.bytesSentCounter.Add(uint64(len(messageBytes)))
 		})
 	}
 	server.clientMutex.RUnlock()
