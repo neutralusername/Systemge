@@ -123,10 +123,11 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType":       "websocketWrite",
-			"bytes":             string(messageBytes),
 			"info":              "writing to websocket connection",
+			"type":              "websocket",
+			"address":           client.GetIp(),
 			"targetWebsocketId": client.GetId(),
+			"bytes":             string(messageBytes),
 		}),
 	)); event.IsError() {
 		server.failedMessageCounter.Add(1)
@@ -136,12 +137,13 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	if err != nil {
 		server.failedMessageCounter.Add(1)
 		return server.onError(Event.New(
-			Event.FailedToSendMessage,
+			Event.NetworkError,
 			server.GetServerContext().Merge(Event.Context{
-				"messageType":       "websocketWrite",
-				"bytes":             string(messageBytes),
 				"error":             "failed to write to websocket connection",
+				"type":              "websocket",
+				"address":           client.GetIp(),
 				"targetWebsocketId": client.GetId(),
+				"bytes":             string(messageBytes),
 			}),
 		))
 	}
@@ -150,10 +152,11 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType":       "websocketWrite",
-			"bytes":             string(messageBytes),
 			"info":              "wrote to websocket connection",
+			"type":              "websocket",
+			"address":           client.GetIp(),
 			"targetWebsocketId": client.GetId(),
+			"bytes":             string(messageBytes),
 		}),
 	))
 }
@@ -164,10 +167,10 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.
 	if event := server.onInfo(Event.New(
 		Event.ReceivingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "receiving message from client",
-			"serviceRoutineType": "handleMessages",
-			"address":            client.GetIp(),
-			"websocketId":        client.GetId(),
+			"info":        "receiving message from client",
+			"type":        "websocket",
+			"address":     client.GetIp(),
+			"websocketId": client.GetId(),
 		}),
 	)); event.IsError() {
 		return nil, event
@@ -175,12 +178,12 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.
 	_, messageBytes, err := client.websocketConnection.ReadMessage()
 	if err != nil {
 		event := server.onError(Event.New(
-			Event.FailedToReceiveMessage,
+			Event.NetworkError,
 			server.GetServerContext().Merge(Event.Context{
-				"error":              "failed to receive message from client",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
+				"error":       "failed to receive message from client",
+				"type":        "websocket",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
 			}),
 		))
 		return nil, event
@@ -188,10 +191,10 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.
 	return messageBytes, server.onInfo(Event.New(
 		Event.ReceivedMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "received message from client",
-			"serviceRoutineType": "handleMessages",
-			"address":            client.GetIp(),
-			"websocketId":        client.GetId(),
+			"info":        "received message from client",
+			"type":        "websocket",
+			"address":     client.GetIp(),
+			"websocketId": client.GetId(),
 		}),
 	))
 }

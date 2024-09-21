@@ -50,3 +50,5 @@ const FailedToDeserialize = "failedToDeserialize"
 const FailedToSplitHostPort = "failedToSplitHostPort"
 
 const FailedToUpgradeToWebsocketConnection = "failedToUpgradeToWebsocketConnection"
+
+const NetworkError = "networkError"
