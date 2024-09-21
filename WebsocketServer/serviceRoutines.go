@@ -135,14 +135,32 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		if server.config.ExecuteMessageHandlersSequentially {
 			event = server.handleClientMessage(client, messageBytes)
 			if event.IsError() {
-				// err := server.Send(client, Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
+				if server.config.PropagateMessageHandlerErrors {
+					bytes, _ := event.Marshal()
+					server.Send(client, Message.NewAsync("error", string(bytes)).Serialize())
+				}
 				break
+			}
+			if event.IsWarning() {
+				if server.config.PropagateMessageHandlerWarnings {
+					bytes, _ := event.Marshal()
+					server.Send(client, Message.NewAsync("warning", string(bytes)).Serialize())
+				}
 			}
 		} else {
 			go func() {
 				event := server.handleClientMessage(client, messageBytes)
 				if event.IsError() {
-					// err := server.Send(client, Message.NewAsync("error", Event.New("no handler for topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\"", nil).Error()).Serialize())
+					if server.config.PropagateMessageHandlerErrors {
+						bytes, _ := event.Marshal()
+						server.Send(client, Message.NewAsync("error", string(bytes)).Serialize())
+					}
+				}
+				if event.IsWarning() {
+					if server.config.PropagateMessageHandlerWarnings {
+						bytes, _ := event.Marshal()
+						server.Send(client, Message.NewAsync("warning", string(bytes)).Serialize())
+					}
 				}
 			}()
 		}
