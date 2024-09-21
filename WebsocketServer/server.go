@@ -242,10 +242,10 @@ func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	ctx := Event.Context{
-		"serviceType": Service.WebsocketServer,
-		"name":        server.name,
-		"status":      Status.ToString(server.status),
-		"caller":      Event.GetCallerPath(2),
+		"serviceType":   Service.WebsocketServer,
+		"serviceName":   server.name,
+		"serviceStatus": Status.ToString(server.status),
+		//"caller":        Event.GetCallerPath(2),
 	}
 	return ctx
 }

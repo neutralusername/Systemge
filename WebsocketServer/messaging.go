@@ -13,11 +13,11 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType": "websocketBroadcast",
-			"topic":       message.GetTopic(),
-			"payload":     message.GetPayload(),
-			"syncToken":   message.GetSyncToken(),
-			"info":        "broadcasting message to all connected clients",
+			"type":      "websocketBroadcast",
+			"topic":     message.GetTopic(),
+			"payload":   message.GetPayload(),
+			"syncToken": message.GetSyncToken(),
+			"info":      "broadcasting message to all connected clients",
 		}),
 	)); event.IsError() {
 		return event
@@ -31,7 +31,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 			event := server.onWarning(Event.New(
 				Event.ClientNotAccepted,
 				server.GetServerContext().Merge(Event.Context{
-					"messageType":       "websocketBroadcast",
+					"type":              "websocketBroadcast",
 					"topic":             message.GetTopic(),
 					"payload":           message.GetPayload(),
 					"syncToken":         message.GetSyncToken(),
@@ -57,11 +57,11 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType": "websocketBroadcast",
-			"topic":       message.GetTopic(),
-			"payload":     message.GetPayload(),
-			"syncToken":   message.GetSyncToken(),
-			"info":        "broadcasted message to all connected clients",
+			"type":      "websocketBroadcast",
+			"topic":     message.GetTopic(),
+			"payload":   message.GetPayload(),
+			"syncToken": message.GetSyncToken(),
+			"info":      "broadcasted message to all connected clients",
 		}),
 	))
 }
@@ -72,7 +72,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType":       "websocketUnicast",
+			"type":              "websocketUnicast",
 			"topic":             message.GetTopic(),
 			"payload":           message.GetPayload(),
 			"syncToken":         message.GetSyncToken(),
@@ -92,7 +92,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 		return server.onError(Event.New(
 			Event.ClientDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
-				"messageType":       "websocketUnicast",
+				"type":              "websocketUnicast",
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
 				"syncToken":         message.GetSyncToken(),
@@ -105,7 +105,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 		event := server.onWarning(Event.New(
 			Event.ClientNotAccepted,
 			server.GetServerContext().Merge(Event.Context{
-				"messageType":       "websocketUnicast",
+				"type":              "websocketUnicast",
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
 				"syncToken":         message.GetSyncToken(),
@@ -127,7 +127,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType":       "websocketUnicast",
+			"type":              "websocketUnicast",
 			"topic":             message.GetTopic(),
 			"payload":           message.GetPayload(),
 			"syncToken":         message.GetSyncToken(),
@@ -143,7 +143,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType":        "websocketMulticast",
+			"type":               "websocketMulticast",
 			"topic":              message.GetTopic(),
 			"payload":            message.GetPayload(),
 			"syncToken":          message.GetSyncToken(),
@@ -162,7 +162,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			if event := server.onError(Event.New(
 				Event.ClientDoesNotExist,
 				server.GetServerContext().Merge(Event.Context{
-					"messageType":        "websocketMulticast",
+					"type":               "websocketMulticast",
 					"topic":              message.GetTopic(),
 					"payload":            message.GetPayload(),
 					"syncToken":          message.GetSyncToken(),
@@ -179,7 +179,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			event := server.onWarning(Event.New(
 				Event.ClientNotAccepted,
 				server.GetServerContext().Merge(Event.Context{
-					"messageType":        "websocketMulticast",
+					"type":               "websocketMulticast",
 					"topic":              message.GetTopic(),
 					"payload":            message.GetPayload(),
 					"syncToken":          message.GetSyncToken(),
@@ -206,7 +206,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType":        "websocketMulticast",
+			"type":               "websocketMulticast",
 			"topic":              message.GetTopic(),
 			"payload":            message.GetPayload(),
 			"syncToken":          message.GetSyncToken(),
@@ -222,12 +222,12 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType": "websocketGroupcast",
-			"topic":       message.GetTopic(),
-			"payload":     message.GetPayload(),
-			"syncToken":   message.GetSyncToken(),
-			"info":        "groupcasting message to group",
-			"groupId":     groupId,
+			"type":      "websocketGroupcast",
+			"topic":     message.GetTopic(),
+			"payload":   message.GetPayload(),
+			"syncToken": message.GetSyncToken(),
+			"info":      "groupcasting message to group",
+			"groupId":   groupId,
 		}),
 	)); event.IsError() {
 		return event
@@ -242,12 +242,12 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		return server.onError(Event.New(
 			Event.GroupDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
-				"messageType": "websocketGroupcast",
-				"topic":       message.GetTopic(),
-				"payload":     message.GetPayload(),
-				"syncToken":   message.GetSyncToken(),
-				"error":       "Group does not exist",
-				"groupId":     groupId,
+				"type":      "websocketGroupcast",
+				"topic":     message.GetTopic(),
+				"payload":   message.GetPayload(),
+				"syncToken": message.GetSyncToken(),
+				"error":     "Group does not exist",
+				"groupId":   groupId,
 			}),
 		))
 	}
@@ -256,7 +256,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			event := server.onWarning(Event.New(
 				Event.ClientNotAccepted,
 				server.GetServerContext().Merge(Event.Context{
-					"messageType":       "websocketGroupcast",
+					"type":              "websocketGroupcast",
 					"topic":             message.GetTopic(),
 					"payload":           message.GetPayload(),
 					"syncToken":         message.GetSyncToken(),
@@ -283,12 +283,12 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType": "websocketGroupcast",
-			"topic":       message.GetTopic(),
-			"payload":     message.GetPayload(),
-			"syncToken":   message.GetSyncToken(),
-			"info":        "groupcasted message to group",
-			"groupId":     groupId,
+			"type":      "websocketGroupcast",
+			"topic":     message.GetTopic(),
+			"payload":   message.GetPayload(),
+			"syncToken": message.GetSyncToken(),
+			"info":      "groupcasted message to group",
+			"groupId":   groupId,
 		}),
 	))
 }

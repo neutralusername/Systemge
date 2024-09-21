@@ -41,8 +41,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 	if event := server.onInfo(Event.New(
 		Event.ReceivingFromChannel,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "receiving connection from channel",
-			"channelType": "websocketConnection",
+			"info": "receiving connection from channel",
+			"type": "websocketConnection",
 		}),
 	)); event.IsError() {
 		return nil, event
@@ -52,17 +52,17 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 		return nil, server.onError(Event.New(
 			Event.ReceivedNilValueFromChannel,
 			server.GetServerContext().Merge(Event.Context{
-				"error":       "received nil value from channel",
-				"channelType": "websocketConnection",
+				"error": "received nil value from channel",
+				"type":  "websocketConnection",
 			}),
 		))
 	}
 	return websocketConnection, server.onInfo(Event.New(
 		Event.ReceivedFromChannel,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "received connection from channel",
-			"address":     websocketConnection.RemoteAddr().String(),
-			"channelType": "websocketConnection",
+			"info":    "received connection from channel",
+			"address": websocketConnection.RemoteAddr().String(),
+			"type":    "websocketConnection",
 		}),
 	))
 }
@@ -160,10 +160,10 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onWarning(Event.New(
 			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":         "bytes rate limited",
-				"rateLimiterType": "tokenBucket",
-				"address":         client.GetIp(),
-				"websocketId":     client.GetId(),
+				"warning":     "bytes rate limited",
+				"type":        "tokenBucket",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
 			}),
 		))
 	}
@@ -171,10 +171,10 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onWarning(Event.New(
 			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":         "messages rate limited",
-				"rateLimiterType": "tokenBucket",
-				"address":         client.GetIp(),
-				"websocketId":     client.GetId(),
+				"warning":     "messages rate limited",
+				"type":        "tokenBucket",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
 			}),
 		))
 	}
@@ -220,10 +220,9 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	return server.onInfo(Event.New(
 		Event.HandledMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "handled message from client",
-			"serviceRoutineType": "handleMessages",
-			"address":            client.GetIp(),
-			"websocketId":        client.GetId(),
+			"info":        "handled message from client",
+			"address":     client.GetIp(),
+			"websocketId": client.GetId(),
 		}),
 	))
 }
