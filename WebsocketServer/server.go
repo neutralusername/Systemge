@@ -112,7 +112,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Stoped {
 		return server.onError(Event.New(
-			Event.AlreadyStarted,
+			Event.ServiceAlreadyStarted,
 			server.GetServerContext().Merge(Event.Context{
 				"error": "failed to start websocketServer",
 			}),
@@ -161,7 +161,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Started {
 		return server.onError(Event.New(
-			Event.AlreadyStopped,
+			Event.ServiceAlreadyStopped,
 			server.GetServerContext().Merge(Event.Context{
 				"error": "failed to stop websocketServer",
 			}),

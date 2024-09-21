@@ -10,11 +10,10 @@ import (
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if event := server.onInfo(Event.New(
-			Event.OnConnectHandlerStarted,
+			Event.UpgradingToWebsocketConnection,
 			server.GetServerContext().Merge(Event.Context{
-				"info":                 "onConnect handler started",
-				"onConnectHandlerType": "httpWebsocketUpgrade",
-				"address":              httpRequest.RemoteAddr,
+				"info":    "onConnect handler started",
+				"address": httpRequest.RemoteAddr,
 			}),
 		)); event.IsError() {
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -23,11 +22,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 		if server.httpServer == nil {
 			if event := server.onError(Event.New(
-				Event.ServiceNotStarted,
+				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
-					"error":                "accepted connection on websocketServer but httpServer is nil",
-					"onConnectHandlerType": "httpWebsocketUpgrade",
-					"address":              httpRequest.RemoteAddr,
+					"error":   "accepted connection on websocketServer but httpServer is nil",
+					"address": httpRequest.RemoteAddr,
 				}),
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -38,11 +36,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
 			if event := server.onError(Event.New(
-				Event.FailedToSplitIPAndPort,
+				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
-					"error":                "failed to split IP and port",
-					"onConnectHandlerType": "httpWebsocketUpgrade",
-					"address":              httpRequest.RemoteAddr,
+					"error":   "failed to split IP and port",
+					"address": httpRequest.RemoteAddr,
 				}),
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -52,11 +49,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			if event := server.onError(Event.New(
-				Event.IPRateLimitExceeded,
+				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
-					"error":                "IP rate limit exceeded",
-					"onConnectHandlerType": "httpWebsocketUpgrade",
-					"address":              httpRequest.RemoteAddr,
+					"error":   "IP rate limit exceeded",
+					"address": httpRequest.RemoteAddr,
 				}),
 			)); event.IsError() {
 				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
@@ -67,11 +63,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if event := server.onError(Event.New(
-				Event.FailedToUpgradeToWebsocket,
+				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
-					"error":                "failed to upgrade connection to websocket",
-					"onConnectHandlerType": "httpWebsocketUpgrade",
-					"address":              httpRequest.RemoteAddr,
+					"error":   "failed to upgrade connection to websocket",
+					"address": httpRequest.RemoteAddr,
 				}),
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -80,11 +75,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 		if event := server.onInfo(Event.New(
-			Event.OnConnectHandlerFinished,
+			Event.UpgradedToWebsocketConnection,
 			server.GetServerContext().Merge(Event.Context{
-				"info":                 "onConnect handler finished",
-				"onConnectHandlerType": "httpWebsocketUpgrade",
-				"address":              httpRequest.RemoteAddr,
+				"info":    "upgraded connection to websocket",
+				"address": httpRequest.RemoteAddr,
 			}),
 		)); event.IsError() {
 			websocketConnection.Close()

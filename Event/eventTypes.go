@@ -1,7 +1,7 @@
 package Event
 
-const AlreadyStarted = "alreadyStarted"
-const AlreadyStopped = "alreadyStopped"
+const ServiceAlreadyStarted = "alreadyStarted"
+const ServiceAlreadyStopped = "alreadyStopped"
 
 const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"
@@ -18,8 +18,6 @@ const FailedToSplitIPAndPort = "failedToSplitIPAndPort"
 
 const IPRateLimitExceeded = "ipRateLimitExceeded"
 
-const FailedToUpgradeToWebsocket = "failedToUpgradeToWebsocket"
-
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
 
@@ -28,6 +26,10 @@ const FailedToSendMessage = "failedToSendMessage"
 const OnConnectHandlerStarted = "onConnectHandlerStarted"
 const OnConnectHandlerFinished = "onConnectHandlerFinished"
 
+const UpgradingToWebsocketConnection = "upgradingToWebsocketConnection"
+const FailedToUpgradeToWebsocketConnection = "failedToUpgradeToWebsocketConnection"
+const UpgradedToWebsocketConnection = "upgradedToWebsocketConnection"
+
 const OnDisconnectHandlerStarted = "onDisconnectHandlerStarted"
 const OnDisconnectHandlerFinished = "onDisconnectHandlerFinished"
 
@@ -35,3 +37,7 @@ const ServiceRoutineStarted = "serviceRoutineStarted"
 const ServiceRoutineFinished = "serviceRoutineFinished"
 
 const ReceivingFromChannel = "receivingFromChannel"
+
+const AcceptingConnection = "acceptingConnection"
+const FailedToAcceptConnection = "failedToAcceptConnection"
+const ConnectionAccepted = "connectionAccepted"
