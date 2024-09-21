@@ -22,25 +22,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 
-		if server.httpServer == nil {
-			if event := server.onError(Event.New(
-				Event.FailedToExecuteHttpHandler,
-				server.GetServerContext().Merge(Event.Context{
-					"error":           "accepted connection on websocketServer but httpServer is nil",
-					"httpHandlerType": "websocketUpgrade",
-					"address":         httpRequest.RemoteAddr,
-				}),
-			)); event.IsError() {
-				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			}
-			server.rejectedWebsocketConnectionsCounter.Add(1)
-			return
-		}
-
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
 			if event := server.onError(Event.New(
-				Event.FailedToExecuteHttpHandler,
+				Event.FailedToSplitHostPort,
 				server.GetServerContext().Merge(Event.Context{
 					"error":           "failed to split IP and port",
 					"httpHandlerType": "websocketUpgrade",
@@ -55,10 +40,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			if event := server.onError(Event.New(
-				Event.FailedToExecuteHttpHandler,
+				Event.RateLimited,
 				server.GetServerContext().Merge(Event.Context{
 					"error":           "IP rate limit exceeded",
 					"httpHandlerType": "websocketUpgrade",
+					"rateLimiterType": "ip",
 					"address":         httpRequest.RemoteAddr,
 				}),
 			)); event.IsError() {
@@ -71,7 +57,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if event := server.onError(Event.New(
-				Event.FailedToExecuteHttpHandler,
+				Event.FailedToUpgradeToWebsocketConnection,
 				server.GetServerContext().Merge(Event.Context{
 					"error":           "failed to upgrade connection to websocket",
 					"httpHandlerType": "websocketUpgrade",

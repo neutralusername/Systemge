@@ -159,8 +159,8 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onWarning(Event.New(
 			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":         "rate limited",
-				"rateLimiterType": "bytes",
+				"warning":         "bytes rate limited",
+				"rateLimiterType": "tokenBucket",
 				"address":         client.GetIp(),
 				"websocketId":     client.GetId(),
 			}),
@@ -170,8 +170,8 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onWarning(Event.New(
 			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":         "rate limited",
-				"rateLimiterType": "messages",
+				"warning":         "messages rate limited",
+				"rateLimiterType": "tokenBucket",
 				"address":         client.GetIp(),
 				"websocketId":     client.GetId(),
 			}),
