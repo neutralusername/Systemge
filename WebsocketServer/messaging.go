@@ -24,20 +24,40 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
+
 	server.clientMutex.RLock()
 	for _, client := range server.clients {
-		if client.isAccepted {
-			waitGroup.AddTask(func() {
-				if event := server.Send(client, messageBytes); event.IsError() {
-					server.failedMessageCounter.Add(1)
-				} else {
-					server.outgoigMessageCounter.Add(1)
-					server.bytesSentCounter.Add(uint64(len(messageBytes)))
-				}
-			})
+		if !client.isAccepted {
+			event := server.onWarning(Event.New(
+				Event.FailedToSendMessage,
+				server.GetServerContext().Merge(Event.Context{
+					"messageType":       "websocketBroadcast",
+					"topic":             message.GetTopic(),
+					"payload":           message.GetPayload(),
+					"syncToken":         message.GetSyncToken(),
+					"warning":           "Client is not accepted",
+					"targetWebsocketId": client.GetId(),
+				}),
+			))
+			if event.IsError() {
+				server.clientMutex.RUnlock()
+				return event
+			}
+			if event.IsWarning() {
+				continue
+			}
 		}
+		waitGroup.AddTask(func() {
+			if event := server.Send(client, messageBytes); event.IsError() {
+				server.failedMessageCounter.Add(1)
+			} else {
+				server.outgoigMessageCounter.Add(1)
+				server.bytesSentCounter.Add(uint64(len(messageBytes)))
+			}
+		})
 	}
 	server.clientMutex.RUnlock()
+
 	waitGroup.ExecuteTasksConcurrently()
 	return server.onInfo(Event.New(
 		Event.SentMessage,
@@ -69,8 +89,10 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
+
 	server.clientMutex.RLock()
-	if client, exists := server.clients[id]; !exists {
+	client, exists := server.clients[id]
+	if !exists {
 		server.clientMutex.RUnlock()
 		return server.onError(Event.New(
 			Event.FailedToSendMessage,
@@ -83,17 +105,34 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 				"targetWebsocketId": id,
 			}),
 		))
-	} else {
-		waitGroup.AddTask(func() {
-			if event := server.Send(client, messageBytes); event.IsError() {
-				server.failedMessageCounter.Add(1)
-			} else {
-				server.outgoigMessageCounter.Add(1)
-				server.bytesSentCounter.Add(uint64(len(messageBytes)))
-			}
-		})
 	}
+	if !client.isAccepted {
+		event := server.onWarning(Event.New(
+			Event.FailedToSendMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"messageType":       "websocketUnicast",
+				"topic":             message.GetTopic(),
+				"payload":           message.GetPayload(),
+				"syncToken":         message.GetSyncToken(),
+				"warning":           "Client is not accepted",
+				"targetWebsocketId": id,
+			}),
+		))
+		if event.IsError() {
+			server.clientMutex.RUnlock()
+			return event
+		}
+	}
+	waitGroup.AddTask(func() {
+		if event := server.Send(client, messageBytes); event.IsError() {
+			server.failedMessageCounter.Add(1)
+		} else {
+			server.outgoigMessageCounter.Add(1)
+			server.bytesSentCounter.Add(uint64(len(messageBytes)))
+		}
+	})
 	server.clientMutex.RUnlock()
+
 	waitGroup.ExecuteTasksConcurrently()
 	return server.onInfo(Event.New(
 		Event.SentMessage,
@@ -128,17 +167,10 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
 	for _, id := range ids {
-		if client, exists := server.clients[id]; exists {
-			waitGroup.AddTask(func() {
-				if event := server.Send(client, messageBytes); event.IsError() {
-					server.failedMessageCounter.Add(1)
-				} else {
-					server.outgoigMessageCounter.Add(1)
-					server.bytesSentCounter.Add(uint64(len(messageBytes)))
-				}
-			})
-		} else {
-			server.onError(Event.New(
+		client, exists := server.clients[id]
+		if !exists {
+			server.failedMessageCounter.Add(1)
+			if event := server.onError(Event.New(
 				Event.FailedToSendMessage,
 				server.GetServerContext().Merge(Event.Context{
 					"messageType":        "websocketMulticast",
@@ -149,11 +181,43 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
 					"targetWebsocketId":  id,
 				}),
-			))
-			server.failedMessageCounter.Add(1)
+			)); event.IsError() {
+				server.clientMutex.RUnlock()
+				return event
+			}
 		}
+		if !client.isAccepted {
+			event := server.onWarning(Event.New(
+				Event.FailedToSendMessage,
+				server.GetServerContext().Merge(Event.Context{
+					"messageType":        "websocketMulticast",
+					"topic":              message.GetTopic(),
+					"payload":            message.GetPayload(),
+					"syncToken":          message.GetSyncToken(),
+					"warning":            "Client is not accepted",
+					"targetWebsocketIds": Helpers.JsonMarshal(ids),
+					"targetWebsocketId":  id,
+				}),
+			))
+			if event.IsError() {
+				server.clientMutex.RUnlock()
+				return event
+			}
+			if event.IsWarning() {
+				continue
+			}
+		}
+		waitGroup.AddTask(func() {
+			if event := server.Send(client, messageBytes); event.IsError() {
+				server.failedMessageCounter.Add(1)
+			} else {
+				server.outgoigMessageCounter.Add(1)
+				server.bytesSentCounter.Add(uint64(len(messageBytes)))
+			}
+		})
 	}
 	server.clientMutex.RUnlock()
+
 	waitGroup.ExecuteTasksConcurrently()
 	return server.onInfo(Event.New(
 		Event.SentMessage,
@@ -186,8 +250,10 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
+
 	server.clientMutex.RLock()
-	if server.groups[groupId] == nil {
+	group, ok := server.groups[groupId]
+	if !ok {
 		server.clientMutex.RUnlock()
 		return server.onError(Event.New(
 			Event.FailedToSendMessage,
@@ -201,7 +267,28 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			}),
 		))
 	}
-	for _, client := range server.groups[groupId] {
+	for _, client := range group {
+		if !client.isAccepted {
+			event := server.onWarning(Event.New(
+				Event.FailedToSendMessage,
+				server.GetServerContext().Merge(Event.Context{
+					"messageType":       "websocketGroupcast",
+					"topic":             message.GetTopic(),
+					"payload":           message.GetPayload(),
+					"syncToken":         message.GetSyncToken(),
+					"warning":           "Client is not accepted",
+					"targetWebsocketId": client.GetId(),
+					"targetGroup":       groupId,
+				}),
+			))
+			if event.IsError() {
+				server.clientMutex.RUnlock()
+				return event
+			}
+			if event.IsWarning() {
+				continue
+			}
+		}
 		waitGroup.AddTask(func() {
 			if event := server.Send(client, messageBytes); event.IsError() {
 				server.failedMessageCounter.Add(1)
@@ -212,6 +299,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		})
 	}
 	server.clientMutex.RUnlock()
+
 	waitGroup.ExecuteTasksConcurrently()
 	return server.onInfo(Event.New(
 		Event.SentMessage,
