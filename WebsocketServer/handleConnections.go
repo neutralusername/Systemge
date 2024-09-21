@@ -119,6 +119,7 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 	)); event.IsError() {
 		return
 	}
+
 	for {
 		messageBytes, event := server.receive(client)
 		if event.IsError() {
@@ -130,21 +131,6 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		server.incomingMessageCounter.Add(1)
 		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
 
-		event = server.onInfo(Event.New(
-			Event.HandlingMessage,
-			server.GetServerContext().Merge(Event.Context{
-				"info":               "handling message from client",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
-			}),
-		))
-		if event.IsError() {
-			break
-		}
-		if event.IsWarning() {
-			continue
-		}
 		event = server.handleClientMessage(client, messageBytes)
 		if event.IsError() {
 			break
@@ -152,18 +138,8 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		if event.IsWarning() {
 			continue
 		}
-		if event := server.onInfo(Event.New(
-			Event.HandledMessage,
-			server.GetServerContext().Merge(Event.Context{
-				"info":               "handled message from client",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
-			}),
-		)); event.IsError() {
-			break
-		}
 	}
+
 	if event := server.onInfo(Event.New(
 		Event.ServiceRoutineFinished,
 		server.GetServerContext().Merge(Event.Context{
@@ -178,6 +154,19 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 }
 
 func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, messageBytes []byte) *Event.Event {
+	event := server.onInfo(Event.New(
+		Event.HandlingMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "handling message from client",
+			"serviceRoutineType": "handleMessages",
+			"address":            client.GetIp(),
+			"websocketId":        client.GetId(),
+		}),
+	))
+	if event.IsError() {
+		return event
+	}
+
 	if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		return server.onWarning(Event.New(
 			Event.RateLimited,
@@ -247,6 +236,16 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			}
 		}()
 	}
+
+	return server.onInfo(Event.New(
+		Event.HandledMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "handled message from client",
+			"serviceRoutineType": "handleMessages",
+			"address":            client.GetIp(),
+			"websocketId":        client.GetId(),
+		}),
+	))
 }
 
 func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, message *Message.Message) error {
