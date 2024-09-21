@@ -17,6 +17,7 @@ type WebsocketClient struct {
 	isAccepted bool
 
 	watchdogMutex sync.Mutex
+	receiveMutex  sync.Mutex
 	sendMutex     sync.Mutex
 	stopChannel   chan bool
 
@@ -153,6 +154,44 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			"bytes":             string(messageBytes),
 			"info":              "wrote to websocket connection",
 			"targetWebsocketId": client.GetId(),
+		}),
+	))
+}
+
+func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.Event) {
+	client.receiveMutex.Lock()
+	defer client.receiveMutex.Unlock()
+	if event := server.onInfo(Event.New(
+		Event.ReceivingMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "receiving message from client",
+			"serviceRoutineType": "handleMessages",
+			"address":            client.GetIp(),
+			"websocketId":        client.GetId(),
+		}),
+	)); event.IsError() {
+		return nil, event
+	}
+	_, messageBytes, err := client.websocketConnection.ReadMessage()
+	if err != nil {
+		event := server.onError(Event.New(
+			Event.FailedToReceiveMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"error":              "failed to receive message from client",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		))
+		return nil, event
+	}
+	return messageBytes, server.onInfo(Event.New(
+		Event.ReceivedMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "received message from client",
+			"serviceRoutineType": "handleMessages",
+			"address":            client.GetIp(),
+			"websocketId":        client.GetId(),
 		}),
 	))
 }

@@ -120,23 +120,20 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		return
 	}
 	for {
-		if event := server.onInfo(Event.New(
-			Event.ReceivingMessage,
-			server.GetServerContext().Merge(Event.Context{
-				"info":               "receiving message from client",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
-			}),
-		)); event.IsError() {
+		messageBytes, event := server.receive(client)
+		if event.IsError() {
 			break
 		}
-		_, messageBytes, err := client.websocketConnection.ReadMessage()
-		if err != nil {
-			event := server.onError(Event.New(
-				Event.FailedToReceiveMessage,
+		if event.IsWarning() {
+			continue
+		}
+		server.incomingMessageCounter.Add(1)
+		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+		if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+			event := server.onWarning(Event.New(
+				Event.FailedToHandleMessage,
 				server.GetServerContext().Merge(Event.Context{
-					"error":              "failed to receive message from client",
+					"warning":            "rate limited",
 					"serviceRoutineType": "handleMessages",
 					"address":            client.GetIp(),
 					"websocketId":        client.GetId(),
@@ -148,17 +145,6 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 			if event.IsWarning() {
 				continue
 			}
-		}
-		server.incomingMessageCounter.Add(1)
-		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
-		if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-			err := client.Send(Message.NewAsync("error", Event.New("rate limited", nil).Error()).Serialize())
-			if err != nil {
-				if warningLogger := server.warningLogger; warningLogger != nil {
-					warningLogger.Log(Event.New("Failed to send rate limit error message to client", err).Error())
-				}
-			}
-			continue
 		}
 		if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
 			err := client.Send(Message.NewAsync("error", Event.New("rate limited", nil).Error()).Serialize())
