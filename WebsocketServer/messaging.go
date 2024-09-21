@@ -169,7 +169,6 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	for _, id := range ids {
 		client, exists := server.clients[id]
 		if !exists {
-			server.failedMessageCounter.Add(1)
 			if event := server.onError(Event.New(
 				Event.FailedToSendMessage,
 				server.GetServerContext().Merge(Event.Context{
