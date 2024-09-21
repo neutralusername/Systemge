@@ -142,7 +142,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 			}),
 		))
 	}
-	go server.handleWebsocketConnections()
+	go server.receiveWebsocketConnectionLoop()
 
 	server.status = Status.Started
 	return server.onInfo(Event.New(

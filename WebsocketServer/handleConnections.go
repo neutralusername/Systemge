@@ -27,7 +27,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		if event.IsWarning() {
 			continue
 		}
-		go server.handleWebsocketConnection(websocketConnection)
+		go server.acceptWebsocketConnection(websocketConnection)
 	}
 
 	server.onInfo(Event.New(
@@ -72,7 +72,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 	))
 }
 
-func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *websocket.Conn) {
+func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn) {
 	if event := server.onInfo(Event.New(
 		Event.AcceptingClient,
 		server.GetServerContext().Merge(Event.Context{
@@ -143,7 +143,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		}
 	}
 
-	if event := server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.ServiceRoutineFinished,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "stopped receiving messages from client",
@@ -151,9 +151,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 			"address":            client.GetIp(),
 			"websocketId":        client.GetId(),
 		}),
-	)); event.IsError() {
-		return
-	}
+	))
 }
 
 func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, messageBytes []byte) *Event.Event {
