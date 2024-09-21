@@ -129,71 +129,12 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		}
 		server.incomingMessageCounter.Add(1)
 		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
-		if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-			event := server.onWarning(Event.New(
-				Event.FailedToHandleMessage,
-				server.GetServerContext().Merge(Event.Context{
-					"warning":            "rate limited",
-					"serviceRoutineType": "handleMessages",
-					"address":            client.GetIp(),
-					"websocketId":        client.GetId(),
-				}),
-			))
-			if event.IsError() {
-				break
-			}
-			if event.IsWarning() {
-				continue
-			}
+		event = server.handleClientMessage(client, messageBytes)
+		if event.IsError() {
+			break
 		}
-		if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
-			err := client.Send(Message.NewAsync("error", Event.New("rate limited", nil).Error()).Serialize())
-			if err != nil {
-				if warningLogger := server.warningLogger; warningLogger != nil {
-					warningLogger.Log(Event.New("Failed to send rate limit error message to client", err).Error())
-				}
-			}
+		if event.IsWarning() {
 			continue
-		}
-		message, err := Message.Deserialize(messageBytes, client.GetId())
-		if err != nil {
-			if warningLogger := server.warningLogger; warningLogger != nil {
-				warningLogger.Log(Event.New("Failed to deserialize message from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", err).Error())
-			}
-			continue
-		}
-		message = Message.NewAsync(message.GetTopic(), message.GetPayload())
-		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Event.New("Received message with topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
-		}
-		if message.GetTopic() == "heartbeat" {
-			server.ResetWatchdog(client)
-			continue
-		}
-		if server.config.HandleClientMessagesSequentially {
-			err := server.handleClientMessage(client, message)
-			if err != nil {
-				if warningLogger := server.warningLogger; warningLogger != nil {
-					warningLogger.Log(Event.New("Failed to handle message (sequentially)", err).Error())
-				}
-			} else {
-				if infoLogger := server.infoLogger; infoLogger != nil {
-					infoLogger.Log(Event.New("Handled message (sequentially)", nil).Error())
-				}
-			}
-		} else {
-			go func() {
-				err := server.handleClientMessage(client, message)
-				if err != nil {
-					if warningLogger := server.warningLogger; warningLogger != nil {
-						warningLogger.Log(Event.New("Failed to handle message (concurrently)", err).Error())
-					}
-				} else {
-					if infoLogger := server.infoLogger; infoLogger != nil {
-						infoLogger.Log(Event.New("Handled message (concurrently)", nil).Error())
-					}
-				}
-			}()
 		}
 	}
 	if event := server.onInfo(Event.New(
@@ -206,6 +147,76 @@ func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
 		}),
 	)); event.IsError() {
 		return
+	}
+}
+
+func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, messageBytes []byte) *Event.Event {
+	if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
+		return server.onWarning(Event.New(
+			Event.FailedToHandleMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"warning":            "rate limited",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		))
+	}
+	if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
+		return server.onWarning(Event.New(
+			Event.FailedToHandleMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"warning":            "rate limited",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		))
+	}
+	message, err := Message.Deserialize(messageBytes, client.GetId())
+	if err != nil {
+		return server.onError(Event.New(
+			Event.FailedToHandleMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"error":              "failed to deserialize message",
+				"serviceRoutineType": "handleMessages",
+				"address":            client.GetIp(),
+				"websocketId":        client.GetId(),
+			}),
+		))
+	}
+	message = Message.NewAsync(message.GetTopic(), message.GetPayload())
+	if infoLogger := server.infoLogger; infoLogger != nil {
+		infoLogger.Log(Event.New("Received message with topic \""+message.GetTopic()+"\" from client \""+client.GetId()+"\" with ip \""+client.GetIp()+"\"", nil).Error())
+	}
+	if message.GetTopic() == "heartbeat" {
+		server.ResetWatchdog(client)
+		continue
+	}
+	if server.config.HandleClientMessagesSequentially {
+		err := server.handleClientMessage(client, message)
+		if err != nil {
+			if warningLogger := server.warningLogger; warningLogger != nil {
+				warningLogger.Log(Event.New("Failed to handle message (sequentially)", err).Error())
+			}
+		} else {
+			if infoLogger := server.infoLogger; infoLogger != nil {
+				infoLogger.Log(Event.New("Handled message (sequentially)", nil).Error())
+			}
+		}
+	} else {
+		go func() {
+			err := server.handleClientMessage(client, message)
+			if err != nil {
+				if warningLogger := server.warningLogger; warningLogger != nil {
+					warningLogger.Log(Event.New("Failed to handle message (concurrently)", err).Error())
+				}
+			} else {
+				if infoLogger := server.infoLogger; infoLogger != nil {
+					infoLogger.Log(Event.New("Handled message (concurrently)", nil).Error())
+				}
+			}
+		}()
 	}
 }
 
