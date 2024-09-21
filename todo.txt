@@ -1,3 +1,5 @@
+extract strings after being done w websocketServer package
+
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
 -systemgeConnectionDashboard X

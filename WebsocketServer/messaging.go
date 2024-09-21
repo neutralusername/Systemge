@@ -10,7 +10,7 @@ import (
 // Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event {
-	server.onInfo(Event.New(
+	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"messageType": "websocketBroadcast",
@@ -19,30 +19,21 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 			"syncToken":   message.GetSyncToken(),
 			"info":        "broadcasting message to all connected clients",
 		}),
-	))
+	)); event.IsError() {
+		return event
+	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
 	for _, client := range server.clients {
 		if client.pastOnConnectHandler {
 			waitGroup.AddTask(func() {
-				err := client.Send(messageBytes)
-				if err != nil {
-					server.onError(Event.New(
-						Event.FailedToSendMessage,
-						server.GetServerContext().Merge(Event.Context{
-							"messageType":       "websocketBroadcast",
-							"topic":             message.GetTopic(),
-							"payload":           message.GetPayload(),
-							"syncToken":         message.GetSyncToken(),
-							"senderWebsocketId": client.GetId(),
-							"senderIp":          client.GetIp(),
-							"error":             err.Error(),
-						}),
-					))
+				if event := server.Send(client, messageBytes); event.IsError() {
+					server.failedMessageCounter.Add(1)
+				} else {
+					server.outgoigMessageCounter.Add(1)
+					server.bytesSentCounter.Add(uint64(len(messageBytes)))
 				}
-				server.outgoigMessageCounter.Add(1)
-				server.bytesSentCounter.Add(uint64(len(messageBytes)))
 			})
 		}
 	}

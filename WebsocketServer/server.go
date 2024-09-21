@@ -49,6 +49,7 @@ type WebsocketServer struct {
 
 	incomingMessageCounter atomic.Uint32
 	outgoigMessageCounter  atomic.Uint32
+	failedMessageCounter   atomic.Uint32
 	bytesSentCounter       atomic.Uint64
 	bytesReceivedCounter   atomic.Uint64
 }

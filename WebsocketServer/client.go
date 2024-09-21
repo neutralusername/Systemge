@@ -117,10 +117,41 @@ func (client *WebsocketClient) GetId() string {
 }
 
 // Sends a message to the client.
-func (client *WebsocketClient) Send(messageBytes []byte) error {
+func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte) *Event.Event {
 	client.sendMutex.Lock()
 	defer client.sendMutex.Unlock()
-	return client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
+	if event := server.onInfo(Event.New(
+		Event.SendingMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType": "websocketWrite",
+			"bytes":       string(messageBytes),
+			"info":        "writing to websocket connection",
+			"targetWebsocketId": client.GetId(),
+		}),
+	)); event.IsError() {
+		return event
+	}
+	err := client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
+	if err != nil {
+		return server.onError(Event.New(
+			Event.FailedToSendMessage,
+			server.GetServerContext().Merge(Event.Context{
+				"messageType": "websocketWrite",
+				"bytes":       string(messageBytes),
+				"error":       "failed to write to websocket connection",
+				"targetWebsocketId": client.GetId(),
+			}),
+		))
+	}
+	return  server.onInfo(Event.New(
+		Event.SentMessage,
+		server.GetServerContext().Merge(Event.Context{
+			"messageType": "websocketWrite",
+			"bytes":       string(messageBytes),
+			"info":        "wrote to websocket connection",
+			"targetWebsocketId": client.GetId(),
+		}),
+	))
 }
 
 func (client *WebsocketClient) receive() ([]byte, *Event.Event) {
