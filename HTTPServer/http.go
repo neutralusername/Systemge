@@ -67,7 +67,7 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 	return server
 }
 
-func (server *HTTPServer) Start() error {
+func (server *HTTPServer) Start() *Event.Event {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 	if server.status != Status.Stoped {

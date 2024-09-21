@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Event"
 )
 
@@ -82,4 +83,32 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			}),
 		))
 	}
+}
+
+func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnection *websocket.Conn) *Event.Event {
+	if event := server.onInfo(Event.New(
+		Event.SendingToChannel,
+		server.GetServerContext().Merge(Event.Context{
+			"info":            "sending upgraded websocket connection to channel",
+			"httpHandlerType": "websocketClient",
+			"channelType":     "websocketConnection",
+			"address":         websocketConnection.RemoteAddr().String(),
+		}),
+	)); event.IsError() {
+		websocketConnection.Close()
+		server.rejectedWebsocketConnectionsCounter.Add(1)
+		return event
+	}
+
+	server.connectionChannel <- websocketConnection
+
+	return server.onInfo(Event.New(
+		Event.SentToChannel,
+		server.GetServerContext().Merge(Event.Context{
+			"info":            "sent upgraded websocket connection to channel",
+			"httpHandlerType": "websocketUpgrade",
+			"channelType":     "websocketConnection",
+			"address":         websocketConnection.RemoteAddr().String(),
+		}),
+	))
 }

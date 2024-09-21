@@ -126,21 +126,14 @@ func (server *WebsocketServer) Start() *Event.Event {
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
-	err := server.httpServer.Start()
-	if err != nil {
+
+	if event := server.httpServer.Start(); event.IsError() {
 		server.ipRateLimiter.Close()
 		server.ipRateLimiter = nil
 		close(server.connectionChannel)
 		server.connectionChannel = nil
 		server.status = Status.Stoped
-		return server.onError(Event.New(
-			Event.FailedStartingService,
-			server.GetServerContext().Merge(Event.Context{
-				"error":             err.Error(),
-				"targetServiceType": Service.HttpServer,
-				"targetServiceName": server.httpServer.GetName(),
-			}),
-		))
+		return event // TODO: context from this service - missing handle this somehow
 	}
 	go server.receiveWebsocketConnectionLoop()
 
