@@ -18,6 +18,12 @@ const HandledHttpRequest = "handledHttpRequest"
 const AcceptClientsRoutineStarted = "acceptClientsRoutineStarted"
 const AcceptClientsRoutineFinished = "acceptClientsRoutineFinished"
 
+const ClientNotAccepted = "clientNotAccepted"
+
+const ClientDoesNotExist = "clientDoesNotExist"
+
+const GroupDoesNotExist = "groupDoesNotExist"
+
 const AcceptingClient = "acceptingConnection"
 const AcceptedClient = "connectionAccepted"
 
