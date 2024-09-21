@@ -10,10 +10,9 @@ import (
 
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.New(
-		Event.ServiceRoutineStarted,
+		Event.AcceptClientsRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "websocketServer started",
-			"serviceRoutineType": "acceptClients",
+			"info": "websocketServer started",
 		}),
 	)); event.IsError() {
 		return
@@ -31,10 +30,9 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	}
 
 	server.onInfo(Event.New(
-		Event.ServiceRoutineFinished,
+		Event.AcceptClientsRoutineFinished,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "websocketServer stopped",
-			"serviceRoutineType": "acceptClients",
+			"info": "websocketServer stopped",
 		}),
 	))
 }
@@ -43,9 +41,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 	if event := server.onInfo(Event.New(
 		Event.ReceivingFromChannel,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "receiving connection from channel",
-			"serviceRoutineType": "acceptClients",
-			"channelType":        "websocketConnection",
+			"info":        "receiving connection from channel",
+			"channelType": "websocketConnection",
 		}),
 	)); event.IsError() {
 		return nil, event
@@ -55,19 +52,17 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 		return nil, server.onError(Event.New(
 			Event.ReceivedNilValueFromChannel,
 			server.GetServerContext().Merge(Event.Context{
-				"error":              "received nil value from channel",
-				"serviceRoutineType": "acceptClients",
-				"channelType":        "websocketConnection",
+				"error":       "received nil value from channel",
+				"channelType": "websocketConnection",
 			}),
 		))
 	}
 	return websocketConnection, server.onInfo(Event.New(
 		Event.ReceivedFromChannel,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "received connection from channel",
-			"serviceRoutineType": "acceptClients",
-			"address":            websocketConnection.RemoteAddr().String(),
-			"channelType":        "websocketConnection",
+			"info":        "received connection from channel",
+			"address":     websocketConnection.RemoteAddr().String(),
+			"channelType": "websocketConnection",
 		}),
 	))
 }
@@ -76,9 +71,8 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 	if event := server.onInfo(Event.New(
 		Event.AcceptingClient,
 		server.GetServerContext().Merge(Event.Context{
-			"info":       "accepting websocket connection",
-			"acceptType": "websocketClient",
-			"address":    websocketConnection.RemoteAddr().String(),
+			"info":    "accepting websocket connection",
+			"address": websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
 		return
@@ -99,7 +93,6 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 		Event.AcceptedClient,
 		server.GetServerContext().Merge(Event.Context{
 			"info":        "websocket connection accepted",
-			"acceptType":  "websocketClient",
 			"address":     websocketConnection.RemoteAddr().String(),
 			"websocketId": websocketId,
 		}),
@@ -112,12 +105,11 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 	if event := server.onInfo(Event.New(
-		Event.ServiceRoutineStarted,
+		Event.ReceiveMessageRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "started receiving messages from client",
-			"serviceRoutineType": "receiveMessages",
-			"address":            client.GetIp(),
-			"websocketId":        client.GetId(),
+			"info":        "started receiving messages from client",
+			"address":     client.GetIp(),
+			"websocketId": client.GetId(),
 		}),
 	)); event.IsError() {
 		return
@@ -138,18 +130,14 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		if event.IsError() {
 			break
 		}
-		if event.IsWarning() {
-			continue
-		}
 	}
 
 	server.onInfo(Event.New(
-		Event.ServiceRoutineFinished,
+		Event.ReceiveMessageRoutineFinished,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "stopped receiving messages from client",
-			"serviceRoutineType": "receiveMessages",
-			"address":            client.GetIp(),
-			"websocketId":        client.GetId(),
+			"info":        "stopped receiving messages from client",
+			"address":     client.GetIp(),
+			"websocketId": client.GetId(),
 		}),
 	))
 }
@@ -158,10 +146,9 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	event := server.onInfo(Event.New(
 		Event.HandlingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"info":               "handling message from client",
-			"serviceRoutineType": "handleMessages",
-			"address":            client.GetIp(),
-			"websocketId":        client.GetId(),
+			"info":        "handling message from client",
+			"address":     client.GetIp(),
+			"websocketId": client.GetId(),
 		}),
 	))
 	if event.IsError() {
@@ -172,11 +159,10 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onWarning(Event.New(
 			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":            "rate limited",
-				"rateLimiterType":    "bytes",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
+				"warning":         "rate limited",
+				"rateLimiterType": "bytes",
+				"address":         client.GetIp(),
+				"websocketId":     client.GetId(),
 			}),
 		))
 	}
@@ -184,23 +170,21 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		return server.onWarning(Event.New(
 			Event.RateLimited,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":            "rate limited",
-				"rateLimiterType":    "messages",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
+				"warning":         "rate limited",
+				"rateLimiterType": "messages",
+				"address":         client.GetIp(),
+				"websocketId":     client.GetId(),
 			}),
 		))
 	}
 	message, err := Message.Deserialize(messageBytes, client.GetId())
 	if err != nil {
 		return server.onError(Event.New(
-			Event.FailedToHandleMessage,
+			Event.FailedToDeserialize,
 			server.GetServerContext().Merge(Event.Context{
-				"error":              "failed to deserialize message",
-				"serviceRoutineType": "handleMessages",
-				"address":            client.GetIp(),
-				"websocketId":        client.GetId(),
+				"error":       "failed to deserialize message",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
 			}),
 		))
 	}

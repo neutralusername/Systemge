@@ -20,8 +20,12 @@ const ExecutingHttpHandler = "executingHttpHandler"
 const ExecutedHttpHandler = "executedHttpHandler"
 const FailedToExecuteHttpHandler = "failedToExecuteHttpHandler"
 
-const ServiceRoutineStarted = "serviceRoutineStarted"
-const ServiceRoutineFinished = "serviceRoutineFinished"
+const AcceptClientsRoutineStarted = "acceptClientsRoutineStarted"
+const AcceptClientsRoutineFinished = "acceptClientsRoutineFinished"
+
+const AcceptingClient = "acceptingConnection"
+const FailedToAcceptClient = "failedToAcceptConnection"
+const AcceptedClient = "connectionAccepted"
 
 const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
@@ -30,9 +34,8 @@ const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
 const SendingToChannel = "sendingToChannel"
 const SentToChannel = "sentToChannel"
 
-const AcceptingClient = "acceptingConnection"
-const FailedToAcceptClient = "failedToAcceptConnection"
-const AcceptedClient = "connectionAccepted"
+const ReceiveMessageRoutineStarted = "receiveMessageRoutineStarted"
+const ReceiveMessageRoutineFinished = "receiveMessageRoutineFinished"
 
 const ReceivingMessage = "receivingMessage"
 const ReceivedMessage = "receivedMessage"
@@ -43,3 +46,5 @@ const HandledMessage = "handledMessage"
 const FailedToHandleMessage = "failedToHandleMessage"
 
 const RateLimited = "rateLimited"
+
+const FailedToDeserialize = "failedToDeserialize"
