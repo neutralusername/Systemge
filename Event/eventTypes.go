@@ -30,3 +30,8 @@ const OnConnectHandlerFinished = "onConnectHandlerFinished"
 
 const OnDisconnectHandlerStarted = "onDisconnectHandlerStarted"
 const OnDisconnectHandlerFinished = "onDisconnectHandlerFinished"
+
+const ServiceRoutineStarted = "serviceRoutineStarted"
+const ServiceRoutineFinished = "serviceRoutineFinished"
+
+const ReceivingFromChannel = "receivingFromChannel"

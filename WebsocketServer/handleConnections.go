@@ -9,16 +9,36 @@ import (
 )
 
 func (server *WebsocketServer) handleWebsocketConnections() {
-	if server.infoLogger != nil {
-		server.infoLogger.Log(Event.New("Starting to handle websocket connections", nil).Error())
+	if event := server.onInfo(Event.New(
+		Event.ServiceRoutineStarted,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "websocketServer started",
+			"serviceRoutineType": "handleWebsocketConnections",
+		}),
+	)); event.IsError() {
+		return
 	}
 	for {
 		websocketConnection := <-server.connectionChannel
 		if websocketConnection == nil {
-			if server.infoLogger != nil {
-				server.infoLogger.Log(Event.New("Stopping to handle websocket connections", nil).Error())
-			}
+			server.onInfo(Event.New(
+				Event.ServiceRoutineFinished,
+				server.GetServerContext().Merge(Event.Context{
+					"info":               "websocketServer stopped",
+					"serviceRoutineType": "handleWebsocketConnections",
+				}),
+			))
 			return
+		}
+		if event := server.onInfo(Event.New(
+			Event.ReceivingFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":               "received connection from channel",
+				"serviceRoutineType": "handleWebsocketConnections",
+				"address":            websocketConnection.RemoteAddr().String(),
+			}),
+		)); event.IsError() {
+			continue
 		}
 		go server.handleWebsocketConnection(websocketConnection)
 	}

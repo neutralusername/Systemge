@@ -107,7 +107,7 @@ func (client *WebsocketClient) Disconnect() error {
 }
 
 // Returns the ip of the client.
-func (client *WebsocketClient) GetIp() string { rename to address when i can
+func (client *WebsocketClient) GetIp() string {
 	return client.websocketConnection.RemoteAddr().String()
 }
 
@@ -123,9 +123,9 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType": "websocketWrite",
-			"bytes":       string(messageBytes),
-			"info":        "writing to websocket connection",
+			"messageType":       "websocketWrite",
+			"bytes":             string(messageBytes),
+			"info":              "writing to websocket connection",
 			"targetWebsocketId": client.GetId(),
 		}),
 	)); event.IsError() {
@@ -136,19 +136,19 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		return server.onError(Event.New(
 			Event.FailedToSendMessage,
 			server.GetServerContext().Merge(Event.Context{
-				"messageType": "websocketWrite",
-				"bytes":       string(messageBytes),
-				"error":       "failed to write to websocket connection",
+				"messageType":       "websocketWrite",
+				"bytes":             string(messageBytes),
+				"error":             "failed to write to websocket connection",
 				"targetWebsocketId": client.GetId(),
 			}),
 		))
 	}
-	return  server.onInfo(Event.New(
+	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
-			"messageType": "websocketWrite",
-			"bytes":       string(messageBytes),
-			"info":        "wrote to websocket connection",
+			"messageType":       "websocketWrite",
+			"bytes":             string(messageBytes),
+			"info":              "wrote to websocket connection",
 			"targetWebsocketId": client.GetId(),
 		}),
 	))
