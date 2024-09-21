@@ -59,12 +59,14 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 	if event := server.onInfo(Event.New(
 		Event.AcceptingClient,
 		server.GetServerContext().Merge(Event.Context{
-			"info":    "accepting connection",
-			"address": websocketConnection.RemoteAddr().String(),
+			"info":       "accepting websocket connection",
+			"acceptType": "websocketClient",
+			"address":    websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
 		return
 	}
+
 	server.clientMutex.Lock()
 	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	for _, exists := server.clients[websocketId]; exists; {
@@ -79,9 +81,10 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id
 		Event.AcceptedClient,
 		server.GetServerContext().Merge(Event.Context{
-			"info":    "connection accepted",
-			"address": websocketConnection.RemoteAddr().String(),
-			"id":      websocketId,
+			"info":       "websocket connection accepted",
+			"acceptType": "websocketClient",
+			"address":    websocketConnection.RemoteAddr().String(),
+			"id":         websocketId,
 		}),
 	)); event.IsError() {
 		return
