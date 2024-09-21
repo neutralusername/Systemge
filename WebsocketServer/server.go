@@ -228,13 +228,14 @@ func (server *WebsocketServer) onError(event *Event.Event) *Event.Event {
 	return event
 }
 
-func (server *WebsocketServer) onWarning(event *Event.Event) *Event.Event {
-	if server.onWarningHandler != nil {
-		return server.onWarningHandler(event)
+/*
+	 func (server *WebsocketServer) onWarning(event *Event.Event) *Event.Event {
+		if server.onWarningHandler != nil {
+			return server.onWarningHandler(event)
+		}
+		return event
 	}
-	return event
-}
-
+*/
 func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
 	if server.onInfoHandler != nil {
 		return server.onInfoHandler(event)

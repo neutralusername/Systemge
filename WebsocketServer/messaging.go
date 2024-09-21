@@ -54,7 +54,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 // Unicast unicasts a message to a specific client by id.
 // Blocking until the message is sent.
 func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Event.Event {
-	server.onInfo(Event.New(
+	if event := server.onInfo(Event.New(
 		Event.SendingMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"messageType":       "websocketUnicast",
@@ -64,7 +64,9 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 			"info":              "unicasting message to client",
 			"targetWebsocketId": id,
 		}),
-	))
+	)); event.IsError() {
+		return event
+	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 	server.clientMutex.RLock()
@@ -73,32 +75,22 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 		return server.onError(Event.New(
 			Event.FailedToSendMessage,
 			server.GetServerContext().Merge(Event.Context{
-				"messageType": "websocketUnicast",
-				"topic":       message.GetTopic(),
-				"payload":     message.GetPayload(),
-				"syncToken":   message.GetSyncToken(),
-				"error":       "Client \"" + id + "\" does not exist",
+				"messageType":       "websocketUnicast",
+				"topic":             message.GetTopic(),
+				"payload":           message.GetPayload(),
+				"syncToken":         message.GetSyncToken(),
+				"error":             "Client does not exist",
+				"targetWebsocketId": id,
 			}),
 		))
 	} else {
 		waitGroup.AddTask(func() {
-			err := client.Send(messageBytes)
-			if err != nil {
-				server.onError(Event.New(
-					Event.FailedToSendMessage,
-					server.GetServerContext().Merge(Event.Context{
-						"messageType":       "websocketUnicast",
-						"topic":             message.GetTopic(),
-						"payload":           message.GetPayload(),
-						"syncToken":         message.GetSyncToken(),
-						"senderWebsocketId": client.GetId(),
-						"senderIp":          client.GetIp(),
-						"error":             err.Error(),
-					}),
-				))
+			if event := server.Send(client, messageBytes); event != nil {
+				server.failedMessageCounter.Add(1)
+			} else {
+				server.outgoigMessageCounter.Add(1)
+				server.bytesSentCounter.Add(uint64(len(messageBytes)))
 			}
-			server.outgoigMessageCounter.Add(1)
-			server.bytesSentCounter.Add(uint64(len(messageBytes)))
 		})
 	}
 	server.clientMutex.RUnlock()

@@ -72,6 +72,10 @@ func (e *Event) AddContext(key, val string) {
 	e.Context[key] = val
 }
 
+func (e *Event) RemoveContext(key string) {
+	delete(e.Context, key)
+}
+
 func (e *Event) GetValue(key string) string {
 	return e.Context[key]
 }
