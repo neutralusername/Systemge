@@ -129,10 +129,12 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			"targetWebsocketId": client.GetId(),
 		}),
 	)); event.IsError() {
+		server.failedMessageCounter.Add(1)
 		return event
 	}
 	err := client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
+		server.failedMessageCounter.Add(1)
 		return server.onError(Event.New(
 			Event.FailedToSendMessage,
 			server.GetServerContext().Merge(Event.Context{
@@ -143,6 +145,8 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			}),
 		))
 	}
+	server.outgoigMessageCounter.Add(1)
+	server.bytesSentCounter.Add(uint64(len(messageBytes)))
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{

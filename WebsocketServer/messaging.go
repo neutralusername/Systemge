@@ -48,12 +48,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) *Event.Event 
 			}
 		}
 		waitGroup.AddTask(func() {
-			if event := server.Send(client, messageBytes); event.IsError() {
-				server.failedMessageCounter.Add(1)
-			} else {
-				server.outgoigMessageCounter.Add(1)
-				server.bytesSentCounter.Add(uint64(len(messageBytes)))
-			}
+			server.Send(client, messageBytes)
 		})
 	}
 	server.clientMutex.RUnlock()
@@ -124,12 +119,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) *Eve
 		}
 	}
 	waitGroup.AddTask(func() {
-		if event := server.Send(client, messageBytes); event.IsError() {
-			server.failedMessageCounter.Add(1)
-		} else {
-			server.outgoigMessageCounter.Add(1)
-			server.bytesSentCounter.Add(uint64(len(messageBytes)))
-		}
+		server.Send(client, messageBytes)
 	})
 	server.clientMutex.RUnlock()
 
@@ -207,12 +197,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			}
 		}
 		waitGroup.AddTask(func() {
-			if event := server.Send(client, messageBytes); event.IsError() {
-				server.failedMessageCounter.Add(1)
-			} else {
-				server.outgoigMessageCounter.Add(1)
-				server.bytesSentCounter.Add(uint64(len(messageBytes)))
-			}
+			server.Send(client, messageBytes)
 		})
 	}
 	server.clientMutex.RUnlock()
@@ -289,12 +274,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			}
 		}
 		waitGroup.AddTask(func() {
-			if event := server.Send(client, messageBytes); event.IsError() {
-				server.failedMessageCounter.Add(1)
-			} else {
-				server.outgoigMessageCounter.Add(1)
-				server.bytesSentCounter.Add(uint64(len(messageBytes)))
-			}
+			server.Send(client, messageBytes)
 		})
 	}
 	server.clientMutex.RUnlock()
