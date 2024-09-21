@@ -79,20 +79,40 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
+
+		server.acceptedWebsocketConnectionsCounter.Add(1)
 		if event := server.onInfo(Event.New(
+			Event.SendingToChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":            "sending upgraded websocket connection to channel",
+				"httpHandlerType": "websocketClient",
+				"channelType":     "websocketConnection",
+				"address":         websocketConnection.RemoteAddr().String(),
+			}),
+		)); event.IsError() {
+			websocketConnection.Close()
+			return
+		}
+		server.connectionChannel <- websocketConnection
+		if event := server.onInfo(Event.New(
+			Event.SentToChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":            "sent upgraded websocket connection to channel",
+				"httpHandlerType": "websocketUpgrade",
+				"channelType":     "websocketConnection",
+				"address":         httpRequest.RemoteAddr,
+			}),
+		)); event.IsError() {
+			websocketConnection.Close()
+		}
+
+		server.onInfo(Event.New(
 			Event.ExecutedHttpHandler,
 			server.GetServerContext().Merge(Event.Context{
 				"info":            "upgraded connection to websocket",
 				"httpHandlerType": "websocketUpgrade",
 				"address":         httpRequest.RemoteAddr,
 			}),
-		)); event.IsError() {
-			websocketConnection.Close()
-			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.rejectedWebsocketConnectionsCounter.Add(1)
-			return
-		}
-		server.acceptedWebsocketConnectionsCounter.Add(1)
-		server.connectionChannel <- websocketConnection
+		))
 	}
 }
