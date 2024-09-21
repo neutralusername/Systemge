@@ -13,7 +13,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 		Event.ServiceRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "websocketServer started",
-			"serviceRoutineType": "handleWebsocketConnections",
+			"serviceRoutineType": "acceptClients",
 		}),
 	)); event.IsError() {
 		return
@@ -23,7 +23,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 			Event.ReceivingFromChannel,
 			server.GetServerContext().Merge(Event.Context{
 				"info":               "receiving connection from channel",
-				"serviceRoutineType": "handleWebsocketConnections",
+				"serviceRoutineType": "acceptClients",
 				"channelType":        "websocketConnection",
 			}),
 		)); event.IsError() {
@@ -35,7 +35,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 				Event.ServiceRoutineFinished,
 				server.GetServerContext().Merge(Event.Context{
 					"info":               "websocketServer stopped",
-					"serviceRoutineType": "handleWebsocketConnections",
+					"serviceRoutineType": "acceptClients",
 				}),
 			))
 			return
@@ -44,7 +44,7 @@ func (server *WebsocketServer) handleWebsocketConnections() {
 			Event.ReceivedFromChannel,
 			server.GetServerContext().Merge(Event.Context{
 				"info":               "received connection from channel",
-				"serviceRoutineType": "handleWebsocketConnections",
+				"serviceRoutineType": "acceptClients",
 				"address":            websocketConnection.RemoteAddr().String(),
 				"channelType":        "websocketConnection",
 			}),
@@ -94,6 +94,16 @@ func (server *WebsocketServer) handleWebsocketConnection(websocketConnection *we
 }
 
 func (server *WebsocketServer) handleMessages(client *WebsocketClient) {
+	if event := server.onInfo(Event.New(
+		Event.ServiceRoutineStarted,
+		server.GetServerContext().Merge(Event.Context{
+			"info":               "handling messages from client",
+			"serviceRoutineType": "handleMessages",
+			"clientId":           client.GetId(),
+		}),
+	)); event.IsError() {
+		return
+	}
 	for {
 		messageBytes, err := client.receive()
 		if err != nil {
