@@ -5,14 +5,12 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/Service"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-
-	"github.com/gorilla/websocket"
 )
 
 type WebsocketServer struct {
@@ -242,7 +240,7 @@ func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	ctx := Event.Context{
-		"serviceType":   Service.WebsocketServer,
+		"serviceType":   Event.ServiceTypeWebsocketServer,
 		"serviceName":   server.name,
 		"serviceStatus": Status.ToString(server.status),
 		//"caller":        Event.GetCallerPath(2),
