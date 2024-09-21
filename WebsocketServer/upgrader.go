@@ -18,6 +18,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			}),
 		)); event.IsError() {
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 		if server.httpServer == nil {
@@ -31,6 +32,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			}
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
@@ -45,6 +47,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			}
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
@@ -58,6 +61,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			)); event.IsError() {
 				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
 			}
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
@@ -72,6 +76,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			}
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
 		if event := server.onInfo(Event.New(
@@ -84,8 +89,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		)); event.IsError() {
 			websocketConnection.Close()
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			return
 		}
+		server.acceptedWebsocketConnectionsCounter.Add(1)
 		server.connectionChannel <- websocketConnection
 	}
 }
