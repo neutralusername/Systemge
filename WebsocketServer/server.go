@@ -135,7 +135,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		close(server.connectionChannel)
 		server.connectionChannel = nil
 		server.status = Status.Stoped
-		return event // TODO: context from this service - missing handle this somehow
+		return event // TODO: context from this service missing - handle this somehow
 	}
 	go server.receiveWebsocketConnectionLoop()
 
