@@ -10,17 +10,34 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
+const (
+	Info = iota
+	Warning
+	Error
+)
+
 type Event struct {
-	Type    string  `json:"type"`
-	Context Context `json:"context"`
+	kind      string
+	specifier string
+	level     int
+	context   Context
+}
+
+type event struct {
+	Kind      string  `json:"kind"`
+	Specifier string  `json:"specifier"`
+	Level     int     `json:"level"`
+	Context   Context `json:"context"`
 }
 
 type Context map[string]string
 
-func New(eventType string, context Context) *Event {
+func New(eventType, specifier string, level int, context Context) *Event {
 	return &Event{
-		Type:    eventType,
-		Context: context,
+		kind:      eventType,
+		specifier: specifier,
+		level:     level,
+		context:   context,
 	}
 }
 
@@ -32,55 +49,100 @@ func (ctx Context) Merge(other Context) Context {
 }
 
 func (e *Event) Marshal() string {
-	return Helpers.JsonMarshal(e)
+	event := event{
+		Kind:      e.kind,
+		Specifier: e.specifier,
+		Level:     e.level,
+		Context:   e.context,
+	}
+	return Helpers.JsonMarshal(event)
 }
 
 func UnmarshalEvent(data []byte) (*Event, error) {
-	event := &Event{}
-	err := json.Unmarshal(data, event)
+	var event event
+	err := json.Unmarshal(data, &event)
 	if err != nil {
 		return nil, err
 	}
-	return event, nil
+	return &Event{
+		kind:      event.Kind,
+		specifier: event.Specifier,
+		level:     event.Level,
+		context:   event.Context,
+	}, nil
 }
 
 func (e *Event) IsInfo() bool {
-	_, ok := e.Context["info"]
-	return ok
+	switch e.level {
+	case Info:
+		return true
+	default:
+		return false
+	}
 }
 
 func (e *Event) IsWarning() bool {
-	_, ok := e.Context["warning"]
-	return ok
+	switch e.level {
+	case Warning:
+		return true
+	default:
+		return false
+	}
 }
 
 func (e *Event) IsError() bool {
-	_, ok := e.Context["error"]
-	return ok
+	switch e.level {
+	case Error:
+		return true
+	default:
+		return false
+	}
 }
 
 func (e *Event) GetError() error {
-	err, ok := e.Context["error"]
-	if !ok {
-		return nil
+	if e.IsError() {
+		return errors.New(e.specifier)
 	}
-	return errors.New(err)
+	return nil
+}
+
+func (e *Event) SetError(specifier string) {
+	e.specifier = specifier
+	e.level = Error
+}
+
+func (e *Event) SetWarning(specifier string) {
+	e.specifier = specifier
+	e.level = Warning
+}
+
+func (e *Event) SetInfo(specifier string) {
+	e.specifier = specifier
+	e.level = Info
+}
+
+func (e *Event) GetSpecifier() string {
+	return e.specifier
+}
+
+func (e *Event) GetLevel() int {
+	return e.level
 }
 
 func (e *Event) AddContext(key, val string) {
-	e.Context[key] = val
+	e.context[key] = val
 }
 
 func (e *Event) RemoveContext(key string) {
-	delete(e.Context, key)
+	delete(e.context, key)
 }
 
 func (e *Event) GetValue(key string) string {
-	return e.Context[key]
+	return e.context[key]
 }
 
 func (e *Event) GetContext() map[string]string {
-	return e.Context
+	return e.context
 }
 
 func GetCallerPath(depth int) string {
