@@ -98,18 +98,22 @@ func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnect
 
 	switch {
 	case <-server.stopChannel:
-
+		return server.onError(Event.New(
+			Event.ServiceAlreadyStopped,
+			server.GetServerContext().Merge(Event.Context{
+				"error": "websocketServer stopped",
+			}),
+		))
 	default:
 		server.waitGroup.Add(1)
 		server.connectionChannel <- websocketConnection
+		return server.onInfo(Event.New(
+			Event.SentToChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":    "sent upgraded websocket connection to channel",
+				"type":    "websocketConnection",
+				"address": websocketConnection.RemoteAddr().String(),
+			}),
+		))
 	}
-
-	return server.onInfo(Event.New(
-		Event.SentToChannel,
-		server.GetServerContext().Merge(Event.Context{
-			"info":    "sent upgraded websocket connection to channel",
-			"type":    "websocketConnection",
-			"address": websocketConnection.RemoteAddr().String(),
-		}),
-	))
 }
