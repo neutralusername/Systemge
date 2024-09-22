@@ -90,30 +90,15 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 }
 
 func (e *Event) IsInfo() bool {
-	switch e.level {
-	case Info:
-		return true
-	default:
-		return false
-	}
+	return e.level == Info
 }
 
 func (e *Event) IsWarning() bool {
-	switch e.level {
-	case Warning:
-		return true
-	default:
-		return false
-	}
+	return e.level == Warning
 }
 
 func (e *Event) IsError() bool {
-	switch e.level {
-	case Error:
-		return true
-	default:
-		return false
-	}
+	return e.level == Error
 }
 
 func (e *Event) GetError() error {
@@ -154,24 +139,6 @@ func (e *Event) GetSpecifier() string {
 func (e *Event) GetLevel() int8 {
 	return e.level
 }
-
-/*
-	func (e *Event) AddContext(key, val string) {
-		e.context[key] = val
-	}
-
-	func (e *Event) RemoveContext(key string) {
-		delete(e.context, key)
-	}
-
-	func (e *Event) GetValue(key string) string {
-		return e.context[key]
-	}
-
-	func (e *Event) GetContext() map[string]string {
-		return e.context
-	}
-*/
 
 func GetCallerPath(depth int) string {
 	_, file, line, ok := runtime.Caller(depth)
