@@ -19,7 +19,7 @@ const (
 type Event struct {
 	kind      string
 	specifier string
-	level     int
+	level     int8
 	context   Context
 }
 
@@ -32,7 +32,7 @@ type event struct {
 
 type Context map[string]string
 
-func New(eventType, specifier string, level int, context Context) *Event {
+func New(eventType, specifier string, level int8, context Context) *Event {
 	return &Event{
 		kind:      eventType,
 		specifier: specifier,
@@ -125,7 +125,7 @@ func (e *Event) GetSpecifier() string {
 	return e.specifier
 }
 
-func (e *Event) GetLevel() int {
+func (e *Event) GetLevel() int8 {
 	return e.level
 }
 
