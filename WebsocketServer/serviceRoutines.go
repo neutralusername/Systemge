@@ -109,6 +109,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 	server.clients[websocketId] = client
 	server.clientGroups[websocketId] = make(map[string]bool)
 	server.clientMutex.Unlock()
+
 	go func() {
 		select {
 		case <-client.stopChannel:
@@ -140,7 +141,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 	}()
 
-	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id
+	if event := server.onInfo(Event.New(
 		Event.AcceptedClient,
 		server.GetServerContext().Merge(Event.Context{
 			"info":        "websocket connection accepted",
@@ -149,6 +150,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 			"websocketId": websocketId,
 		}),
 	)); event.IsError() {
+		client.Close()
 		return
 	}
 	server.acceptedWebsocketConnectionsCounter.Add(1)
