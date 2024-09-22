@@ -11,18 +11,18 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			event := server.onError(Event.New(
+			event := server.onWarning(Event.New(
 				Event.FailedToSplitHostPort,
 				err.Error(),
-				Event.Error,
+				Event.Warning,
 				Event.Cancel,
-				Event.Continue,
+				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
-			if event.IsError() {
+			if !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 				server.rejectedWebsocketConnectionsCounter.Add(1)
 				return
@@ -30,19 +30,19 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			event := server.onError(Event.New(
+			event := server.onWarning(Event.New(
 				Event.RateLimited,
 				"IP rate limit exceeded",
-				Event.Error,
+				Event.Warning,
 				Event.Cancel,
-				Event.Continue,
+				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
 					"type":    "ip",
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
-			if event.IsError() {
+			if !event.IsInfo() {
 				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
 				server.rejectedWebsocketConnectionsCounter.Add(1)
 				return
@@ -90,13 +90,13 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				"sending upgraded websocket connection to channel",
 				Event.Info,
 				Event.Cancel,
-				Event.Continue,
+				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
 					"type":    "websocketConnection",
 					"address": websocketConnection.RemoteAddr().String(),
 				}),
-			)); event.IsError() {
+			)); !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 				websocketConnection.Close()
 				server.rejectedWebsocketConnectionsCounter.Add(1)
