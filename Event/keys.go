@@ -13,3 +13,11 @@ const Payload = "payload"
 const GroupId = "groupId"
 
 const SyncToken = "syncToken"
+
+const Service = "service"
+
+const ServiceName = "serviceName"
+
+const ServiceStatus = "serviceStatus"
+
+const Function = "function"

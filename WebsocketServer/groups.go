@@ -195,9 +195,9 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    Event.WebsocketConnection,
-				Event.GroupId: groupId,
-				"websocket":   Helpers.JsonMarshal(websocketIds),
+				Event.Kind:               Event.WebsocketConnection,
+				Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
+				Event.GroupId:            groupId,
 			}),
 		))
 		return errors.New("group does not exist")
@@ -277,9 +277,9 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    Event.WebsocketConnection,
-				Event.GroupId: groupId,
-				"websocket":   Helpers.JsonMarshal(websocketIds),
+				Event.Kind:               Event.WebsocketConnection,
+				Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
+				Event.GroupId:            groupId,
 			}),
 		))
 		return errors.New("group does not exist")
