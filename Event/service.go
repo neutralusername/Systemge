@@ -1,4 +1,4 @@
 package Event
 
-const ServiceTypeWebsocketServer = "websocketServer"
-const ServiceTypeHttpServer = "httpServer"
+const WebsocketServer = "websocketServer"
+const HttpServer = "httpServer"
