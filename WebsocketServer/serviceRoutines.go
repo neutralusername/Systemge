@@ -60,6 +60,15 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 		return nil, event
 	}
 	select {
+	case websocketConnection := <-server.connectionChannel:
+		return websocketConnection, server.onInfo(Event.New(
+			Event.ReceivedFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":    "received connection from channel",
+				"type":    "websocketConnection",
+				"address": websocketConnection.RemoteAddr().String(),
+			}),
+		))
 	case <-server.stopChannel:
 		func() {
 			for {
@@ -77,15 +86,6 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 			Event.ServiceAlreadyStopped,
 			server.GetServerContext().Merge(Event.Context{
 				"error": "websocketServer stopped",
-			}),
-		))
-	case websocketConnection := <-server.connectionChannel:
-		return websocketConnection, server.onInfo(Event.New(
-			Event.ReceivedFromChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":    "received connection from channel",
-				"type":    "websocketConnection",
-				"address": websocketConnection.RemoteAddr().String(),
 			}),
 		))
 	}

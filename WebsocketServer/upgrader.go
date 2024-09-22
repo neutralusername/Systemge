@@ -65,10 +65,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 
+		server.waitGroup.Add(1)
 		if event := server.sendWebsocketConnectionToChannel(websocketConnection); event.IsError() {
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
 			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.waitGroup.Done()
 			return
 		}
 
@@ -104,7 +106,6 @@ func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnect
 			}),
 		))
 	default:
-		server.waitGroup.Add(1)
 		server.connectionChannel <- websocketConnection
 		return server.onInfo(Event.New(
 			Event.SentToChannel,

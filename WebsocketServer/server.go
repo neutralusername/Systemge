@@ -28,16 +28,17 @@ type WebsocketServer struct {
 	httpServer *HTTPServer.HTTPServer
 
 	connectionChannel chan *websocket.Conn
-	clients           map[string]*WebsocketClient            // websocketId -> client
-	groups            map[string]map[string]*WebsocketClient // groupId -> map[websocketId]client
-	clientGroups      map[string]map[string]bool             // websocketId -> map[groupId]bool
-	messageHandlers   MessageHandlers
-	clientMutex       sync.RWMutex
 
-	messageHandlerMutex sync.Mutex
+	clients         map[string]*WebsocketClient            // websocketId -> client
+	groups          map[string]map[string]*WebsocketClient // groupId -> map[websocketId]client
+	clientGroups    map[string]map[string]bool             // websocketId -> map[groupId]bool
+	messageHandlers MessageHandlers
+	clientMutex     sync.RWMutex
 
 	stopChannel chan bool
 	waitGroup   sync.WaitGroup
+
+	messageHandlerMutex sync.Mutex
 
 	onErrorHandler   func(*Event.Event) *Event.Event
 	onWarningHandler func(*Event.Event) *Event.Event
