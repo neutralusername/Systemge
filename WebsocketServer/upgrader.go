@@ -31,8 +31,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"type":    "ip",
-					"address": httpRequest.RemoteAddr,
+					Event.Kind: "ip",
+					"address":  httpRequest.RemoteAddr,
 				}),
 			))
 			if !event.IsInfo() {
@@ -63,7 +63,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.ReceivedNilValueFromChannel,
 				"rejecting connection because server is stopping",
 				server.GetServerContext().Merge(Event.Context{
-					"type": "stopChannel",
+					Event.Kind: "stopChannel",
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
@@ -79,8 +79,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"type":    "websocketConnection",
-					"address": websocketConnection.RemoteAddr().String(),
+					Event.Kind: "websocketConnection",
+					"address":  websocketConnection.RemoteAddr().String(),
 				}),
 			)); !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
@@ -93,8 +93,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.SentToChannel,
 				"sent upgraded websocket connection to channel",
 				server.GetServerContext().Merge(Event.Context{
-					"type":    "websocketConnection",
-					"address": websocketConnection.RemoteAddr().String(),
+					Event.Kind: "websocketConnection",
+					"address":  websocketConnection.RemoteAddr().String(),
 				}),
 			))
 		}

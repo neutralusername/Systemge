@@ -25,7 +25,7 @@ const (
 )
 
 type Event struct {
-	kind      string
+	event     string
 	specifier string
 	context   Context
 	level     int8
@@ -35,7 +35,7 @@ type Event struct {
 }
 
 type event struct {
-	Kind      string  `json:"kind"`
+	Event     string  `json:"event"`
 	Specifier string  `json:"specifier"`
 	Context   Context `json:"context"`
 	Level     int8    `json:"level"`
@@ -46,9 +46,9 @@ type event struct {
 
 type Context map[string]string
 
-func NewInfo(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
+func NewInfo(event, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
-		kind:      eventType,
+		event:     event,
 		specifier: specifier,
 		level:     Info,
 		onError:   onError,
@@ -57,9 +57,9 @@ func NewInfo(eventType, specifier string, onError, onWarning, onInfo int8, conte
 		context:   context,
 	}
 }
-func NewInfoNoOption(eventType, specifier string, context Context) *Event {
+func NewInfoNoOption(event, specifier string, context Context) *Event {
 	return &Event{
-		kind:      eventType,
+		event:     event,
 		specifier: specifier,
 		level:     Info,
 		onError:   NoOption,
@@ -69,9 +69,9 @@ func NewInfoNoOption(eventType, specifier string, context Context) *Event {
 	}
 }
 
-func NewWarning(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
+func NewWarning(event, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
-		kind:      eventType,
+		event:     event,
 		specifier: specifier,
 		level:     Warning,
 		onError:   onError,
@@ -80,9 +80,9 @@ func NewWarning(eventType, specifier string, onError, onWarning, onInfo int8, co
 		context:   context,
 	}
 }
-func NewWarningNoOption(eventType, specifier string, context Context) *Event {
+func NewWarningNoOption(event, specifier string, context Context) *Event {
 	return &Event{
-		kind:      eventType,
+		event:     event,
 		specifier: specifier,
 		level:     Warning,
 		onError:   NoOption,
@@ -92,9 +92,9 @@ func NewWarningNoOption(eventType, specifier string, context Context) *Event {
 	}
 }
 
-func NewError(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
+func NewError(event, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
-		kind:      eventType,
+		event:     event,
 		specifier: specifier,
 		level:     Error,
 		onError:   onError,
@@ -103,9 +103,9 @@ func NewError(eventType, specifier string, onError, onWarning, onInfo int8, cont
 		context:   context,
 	}
 }
-func NewErrorNoOption(eventType, specifier string, context Context) *Event {
+func NewErrorNoOption(event, specifier string, context Context) *Event {
 	return &Event{
-		kind:      eventType,
+		event:     event,
 		specifier: specifier,
 		level:     Error,
 		onError:   NoOption,
@@ -124,7 +124,7 @@ func (ctx Context) Merge(other Context) Context {
 
 func (e *Event) Marshal() string {
 	event := event{
-		Kind:      e.kind,
+		Event:     e.event,
 		Specifier: e.specifier,
 		Level:     e.level,
 		Context:   e.context,
@@ -139,7 +139,7 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 		return nil, err
 	}
 	return &Event{
-		kind:      event.Kind,
+		event:     event.Event,
 		specifier: event.Specifier,
 		level:     event.Level,
 		context:   event.Context,
@@ -147,7 +147,7 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 }
 
 func (e *Event) GetKind() string {
-	return e.kind
+	return e.event
 }
 
 func (e *Event) GetSpecifier() string {

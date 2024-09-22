@@ -19,7 +19,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"type":      "websocketBroadcast",
+			Event.Kind:  "websocketBroadcast",
 			"topic":     message.GetTopic(),
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
@@ -41,7 +41,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"type":              "websocketBroadcast",
+					Event.Kind:          "websocketBroadcast",
 					"targetWebsocketId": client.GetId(),
 					"topic":             message.GetTopic(),
 					"payload":           message.GetPayload(),
@@ -71,7 +71,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.NoOption,
 		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"type":      "websocketBroadcast",
+			Event.Kind:  "websocketBroadcast",
 			"topic":     message.GetTopic(),
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
@@ -90,7 +90,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"type":              "websocketUnicast",
+			Event.Kind:          "websocketUnicast",
 			"targetWebsocketId": id,
 			"topic":             message.GetTopic(),
 			"payload":           message.GetPayload(),
@@ -113,7 +113,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			Event.NoOption,
 			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"type":              "websocketConnection",
+				Event.Kind:          "websocketConnection",
 				"targetWebsocketId": id,
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
@@ -130,7 +130,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				"type":              "websocketUnicast",
+				Event.Kind:          "websocketUnicast",
 				"targetWebsocketId": id,
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
@@ -156,7 +156,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 		Event.NoOption,
 		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"type":              "websocketUnicast",
+			Event.Kind:          "websocketUnicast",
 			"targetWebsocketId": id,
 			"topic":             message.GetTopic(),
 			"payload":           message.GetPayload(),
@@ -176,7 +176,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"type":               "websocketMulticast",
+			Event.Kind:           "websocketMulticast",
 			"targetWebsocketIds": Helpers.JsonMarshal(ids),
 			"topic":              message.GetTopic(),
 			"payload":            message.GetPayload(),
@@ -199,7 +199,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Skip,
 				server.GetServerContext().Merge(Event.Context{
-					"type":               "websocketConnection",
+					Event.Kind:           "websocketConnection",
 					"targetWebsocketId":  id,
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
 					"topic":              message.GetTopic(),
@@ -222,7 +222,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"type":               "websocketMulticast",
+					Event.Kind:           "websocketMulticast",
 					"targetWebsocketId":  id,
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
 					"topic":              message.GetTopic(),
@@ -253,7 +253,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.NoOption,
 		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"type":               "websocketMulticast",
+			Event.Kind:           "websocketMulticast",
 			"targetWebsocketIds": Helpers.JsonMarshal(ids),
 			"topic":              message.GetTopic(),
 			"payload":            message.GetPayload(),
@@ -273,7 +273,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"type":      "websocketGroupcast",
+			Event.Kind:  "websocketGroupcast",
 			"groupId":   groupId,
 			"topic":     message.GetTopic(),
 			"payload":   message.GetPayload(),
@@ -297,7 +297,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			Event.NoOption,
 			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"type":      "websocketGroupcast",
+				Event.Kind:  "websocketGroupcast",
 				"groupId":   groupId,
 				"topic":     message.GetTopic(),
 				"payload":   message.GetPayload(),
@@ -315,7 +315,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"type":              "websocketGroupcast",
+					Event.Kind:          "websocketGroupcast",
 					"groupId":           groupId,
 					"targetWebsocketId": client.GetId(),
 					"topic":             message.GetTopic(),
@@ -346,7 +346,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.NoOption,
 		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"type":      "websocketGroupcast",
+			Event.Kind:  "websocketGroupcast",
 			"groupId":   groupId,
 			"topic":     message.GetTopic(),
 			"payload":   message.GetPayload(),
