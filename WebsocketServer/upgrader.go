@@ -96,6 +96,7 @@ func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnect
 		return event
 	}
 
+	server.waitGroup.Add(1)
 	server.connectionChannel <- websocketConnection
 
 	return server.onInfo(Event.New(

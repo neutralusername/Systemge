@@ -22,9 +22,19 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan b
 	for {
 		websocketConnection, event := server.receiveWebsocketConnectionFromChannel()
 		if event.IsError() {
+			if websocketConnection != nil {
+				websocketConnection.Close()
+				server.waitGroup.Done()
+				server.rejectedWebsocketConnectionsCounter.Add(1)
+			}
 			break
 		}
 		if event.IsWarning() {
+			if websocketConnection != nil {
+				websocketConnection.Close()
+				server.waitGroup.Done()
+				server.rejectedWebsocketConnectionsCounter.Add(1)
+			}
 			continue
 		}
 		go server.acceptWebsocketConnection(websocketConnection, stopChannel)
@@ -50,15 +60,6 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 		return nil, event
 	}
 	websocketConnection := <-server.connectionChannel
-	if websocketConnection == nil {
-		return nil, server.onError(Event.New(
-			Event.ReceivedNilValueFromChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "received nil value from channel",
-				"type":  "websocketConnection",
-			}),
-		))
-	}
 	return websocketConnection, server.onInfo(Event.New(
 		Event.ReceivedFromChannel,
 		server.GetServerContext().Merge(Event.Context{
@@ -78,6 +79,11 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 			"address": websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
+		if websocketConnection != nil {
+			websocketConnection.Close()
+			server.waitGroup.Done()
+			server.rejectedWebsocketConnectionsCounter.Add(1)
+		}
 		return
 	}
 
