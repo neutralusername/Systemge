@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
+func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan bool) {
 	if event := server.onInfo(Event.New(
 		Event.AcceptClientsRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
@@ -27,7 +27,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		if event.IsWarning() {
 			continue
 		}
-		go server.acceptWebsocketConnection(websocketConnection)
+		go server.acceptWebsocketConnection(websocketConnection, stopChannel)
 	}
 
 	server.onInfo(Event.New(
@@ -69,7 +69,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 	))
 }
 
-func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn) {
+func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn, stopChannel chan bool) {
 	if event := server.onInfo(Event.New(
 		Event.AcceptingClient,
 		server.GetServerContext().Merge(Event.Context{
@@ -102,13 +102,18 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 	server.clientGroups[websocketId] = make(map[string]bool)
 	server.clientMutex.Unlock()
 	go func() {
-		<-client.stopChannel
+		select {
+		case <-client.stopChannel:
+		case <-stopChannel:
+		}
 
 		server.removeClient(client)
 
 		if server.onDisconnectHandler != nil {
 			server.onDisconnectHandler(client)
 		}
+
+		server.waitGroup.Done()
 	}()
 
 	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id

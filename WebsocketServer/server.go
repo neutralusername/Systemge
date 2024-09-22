@@ -36,7 +36,8 @@ type WebsocketServer struct {
 
 	messageHandlerMutex sync.Mutex
 
-	waitGroup sync.WaitGroup
+	stopChannel chan bool
+	waitGroup   sync.WaitGroup
 
 	onErrorHandler   func(*Event.Event) *Event.Event
 	onWarningHandler func(*Event.Event) *Event.Event
@@ -125,20 +126,18 @@ func (server *WebsocketServer) Start() *Event.Event {
 			}),
 		))
 	}
-
 	server.status = Status.Pending
 
 	server.connectionChannel = make(chan *websocket.Conn)
-
 	if event := server.httpServer.Start(); event.IsError() {
-		server.ipRateLimiter.Close()
-		server.ipRateLimiter = nil
 		close(server.connectionChannel)
 		server.connectionChannel = nil
 		server.status = Status.Stoped
 		return event // TODO: context from this service missing - handle this somehow
 	}
-	go server.receiveWebsocketConnectionLoop()
+
+	server.stopChannel = make(chan bool)
+	go server.receiveWebsocketConnectionLoop(server.stopChannel)
 
 	server.status = Status.Started
 	return server.onInfo(Event.New(
@@ -175,21 +174,15 @@ func (server *WebsocketServer) Stop() *Event.Event {
 
 	server.httpServer.Stop()
 	close(server.connectionChannel)
+
 	if server.ipRateLimiter != nil {
 		server.ipRateLimiter.Close()
 		server.ipRateLimiter = nil
 	}
 
-	server.clientMutex.Lock()
-	websocketClientsToDisconnect := make([]*WebsocketClient, 0)
-	for _, websocketClient := range server.clients {
-		websocketClientsToDisconnect = append(websocketClientsToDisconnect, websocketClient)
-	}
-	server.clientMutex.Unlock()
-
-	for _, websocketClient := range websocketClientsToDisconnect {
-		websocketClient.Close()
-	}
+	close(server.stopChannel)
+	server.stopChannel = nil
+	server.waitGroup.Wait()
 
 	server.status = Status.Stoped
 	return server.onInfo(Event.New(
