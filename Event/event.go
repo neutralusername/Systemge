@@ -46,11 +46,35 @@ type event struct {
 
 type Context map[string]string
 
-func New(eventType, specifier string, level, onError, onWarning, onInfo int8, context Context) *Event {
+func NewInfo(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
 		kind:      eventType,
 		specifier: specifier,
-		level:     level,
+		level:     Info,
+		onError:   onError,
+		onWarning: onWarning,
+		onInfo:    onInfo,
+		context:   context,
+	}
+}
+
+func NewWarning(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
+	return &Event{
+		kind:      eventType,
+		specifier: specifier,
+		level:     Warning,
+		onError:   onError,
+		onWarning: onWarning,
+		onInfo:    onInfo,
+		context:   context,
+	}
+}
+
+func NewError(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
+	return &Event{
+		kind:      eventType,
+		specifier: specifier,
+		level:     Error,
 		onError:   onError,
 		onWarning: onWarning,
 		onInfo:    onInfo,

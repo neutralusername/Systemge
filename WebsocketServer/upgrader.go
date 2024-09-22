@@ -11,10 +11,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			event := server.onWarning(Event.New(
+			event := server.onWarning(Event.NewWarning(
 				Event.FailedToSplitHostPort,
 				err.Error(),
-				Event.Warning,
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
