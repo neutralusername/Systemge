@@ -1,5 +1,5 @@
 extract strings after being done w websocketServer package
-create a bunch of wrapper functions with events
+create a bunch of wrapper functions with events (commands, httpRequests etc)
 httpServer is in the case of websocketServer a "serviceRoutine" (defined as a subroutine of a service by me), handle the event somehow to take that into consideration
 (err -> issue and abort; warning -> issue and continue)
 

@@ -9,18 +9,6 @@ import (
 
 func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		if event := server.onInfo(Event.New(
-			Event.HandlingHttpRequest,
-			server.GetServerContext().Merge(Event.Context{
-				"info":    "onConnect handler started",
-				"type":    "websocketUpgrade",
-				"address": httpRequest.RemoteAddr,
-			}),
-		)); event.IsError() {
-			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.rejectedWebsocketConnectionsCounter.Add(1)
-			return
-		}
 
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
@@ -102,14 +90,5 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				}),
 			))
 		}
-
-		server.onInfo(Event.New(
-			Event.HandledHttpRequest,
-			server.GetServerContext().Merge(Event.Context{
-				"info":    "upgraded connection to websocket",
-				"type":    "websocketUpgrade",
-				"address": httpRequest.RemoteAddr,
-			}),
-		))
 	}
 }
