@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan bool) {
+func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.New(
 		Event.AcceptClientsRoutineStarted,
 		server.GetServerContext().Merge(Event.Context{
@@ -60,7 +60,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan b
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			continue
 		}
-		go server.acceptWebsocketConnection(websocketConnection, stopChannel)
+		go server.acceptWebsocketConnection(websocketConnection)
 	}
 
 	server.onInfo(Event.New(
@@ -72,7 +72,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan b
 	))
 }
 
-func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn, stopChannel chan bool) {
+func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn) {
 	if event := server.onInfo(Event.New(
 		Event.AcceptingClient,
 		server.GetServerContext().Merge(Event.Context{
@@ -112,7 +112,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 	go func() {
 		select {
 		case <-client.stopChannel:
-		case <-stopChannel:
+		case <-server.stopChannel:
 		}
 
 		server.removeClient(client)
