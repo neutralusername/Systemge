@@ -82,15 +82,14 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		}
 	}
 	server := &WebsocketServer{
-		name:              name,
-		clients:           make(map[string]*WebsocketClient),
-		groups:            make(map[string]map[string]*WebsocketClient),
-		clientGroups:      make(map[string]map[string]bool),
-		messageHandlers:   messageHandlers,
-		config:            config,
-		mailer:            Tools.NewMailer(config.MailerConfig),
-		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
-		connectionChannel: make(chan *websocket.Conn),
+		name:            name,
+		clients:         make(map[string]*WebsocketClient),
+		groups:          make(map[string]map[string]*WebsocketClient),
+		clientGroups:    make(map[string]map[string]bool),
+		messageHandlers: messageHandlers,
+		config:          config,
+		mailer:          Tools.NewMailer(config.MailerConfig),
+		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	httpServer := HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
@@ -130,6 +129,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 	if server.config.IpRateLimiter != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
+	server.connectionChannel = make(chan *websocket.Conn)
 	if event := server.httpServer.Start(); event.IsError() {
 		if server.ipRateLimiter != nil {
 			server.ipRateLimiter.Close()
@@ -182,6 +182,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 
 	close(server.stopChannel)
 	server.waitGroup.Wait()
+	close(server.connectionChannel)
 
 	server.status = Status.Stoped
 	return server.onInfo(Event.New(

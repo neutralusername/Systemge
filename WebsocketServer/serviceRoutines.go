@@ -20,21 +20,44 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan b
 	}
 
 	for {
-		websocketConnection, event := server.receiveWebsocketConnectionFromChannel()
+		if event := server.onInfo(Event.New(
+			Event.ReceivingFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info": "receiving connection from channel",
+				"type": "websocketConnection",
+			}),
+		)); event.IsError() {
+			break
+		}
+		websocketConnection := <-server.connectionChannel
+		if websocketConnection == nil {
+			server.onInfo(Event.New(
+				Event.ReceivedNilValueFromChannel,
+				server.GetServerContext().Merge(Event.Context{
+					"info": "received nil value from channel",
+					"type": "websocketConnection",
+				}),
+			))
+			break
+		}
+		event := server.onInfo(Event.New(
+			Event.ReceivedFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":    "received connection from channel",
+				"type":    "websocketConnection",
+				"address": websocketConnection.RemoteAddr().String(),
+			}),
+		))
 		if event.IsError() {
-			if websocketConnection != nil {
-				websocketConnection.Close()
-				server.waitGroup.Done()
-				server.rejectedWebsocketConnectionsCounter.Add(1)
-			}
+			websocketConnection.Close()
+			server.waitGroup.Done()
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			break
 		}
 		if event.IsWarning() {
-			if websocketConnection != nil {
-				websocketConnection.Close()
-				server.waitGroup.Done()
-				server.rejectedWebsocketConnectionsCounter.Add(1)
-			}
+			websocketConnection.Close()
+			server.waitGroup.Done()
+			server.rejectedWebsocketConnectionsCounter.Add(1)
 			continue
 		}
 		go server.acceptWebsocketConnection(websocketConnection, stopChannel)
@@ -47,48 +70,6 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop(stopChannel chan b
 			"type": "websocketConnection",
 		}),
 	))
-}
-
-func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websocket.Conn, *Event.Event) {
-	if event := server.onInfo(Event.New(
-		Event.ReceivingFromChannel,
-		server.GetServerContext().Merge(Event.Context{
-			"info": "receiving connection from channel",
-			"type": "websocketConnection",
-		}),
-	)); event.IsError() {
-		return nil, event
-	}
-	select {
-	case websocketConnection := <-server.connectionChannel:
-		return websocketConnection, server.onInfo(Event.New(
-			Event.ReceivedFromChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":    "received connection from channel",
-				"type":    "websocketConnection",
-				"address": websocketConnection.RemoteAddr().String(),
-			}),
-		))
-	case <-server.stopChannel:
-		func() {
-			for {
-				select {
-				case websocketConnection := <-server.connectionChannel:
-					websocketConnection.Close()
-					server.waitGroup.Done()
-					server.rejectedWebsocketConnectionsCounter.Add(1)
-				default:
-					return
-				}
-			}
-		}()
-		return nil, server.onError(Event.New(
-			Event.ServiceAlreadyStopped,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "websocketServer stopped",
-			}),
-		))
-	}
 }
 
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn, stopChannel chan bool) {
