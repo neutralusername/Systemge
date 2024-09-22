@@ -114,12 +114,12 @@ func (server *WebsocketServer) start(lock bool) error {
 	}
 
 	if event := server.onInfo(Event.New(Event.StartingService,
-		server.GetServerContext().Merge(Event.Context{
-			"info":      "starting websocketServer",
-			"onError":   "cancel",
-			"onWarning": "continue",
-			"onInfo":    "continue",
-		}),
+		"starting websocketServer",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{}),
 	)); event.IsError() {
 		return event.GetError()
 	}
@@ -127,9 +127,12 @@ func (server *WebsocketServer) start(lock bool) error {
 	if server.status != Status.Stoped {
 		server.onError(Event.New(
 			Event.ServiceAlreadyStarted,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "failed to start websocketServer",
-			}),
+			"websocketServer already started",
+			Event.Error,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
+			server.GetServerContext().Merge(Event.Context{}),
 		))
 		return errors.New("failed to start websocketServer")
 	}
@@ -156,12 +159,12 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	if event := server.onInfo(Event.New(
 		Event.ServiceStarted,
-		server.GetServerContext().Merge(Event.Context{
-			"info":      "websocketServer started",
-			"onError":   "cancel",
-			"onWarning": "continue",
-			"onInfo":    "continue",
-		}),
+		"websocketServer started",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{}),
 	)); event.IsError() {
 		if err := server.stop(false); err != nil {
 			panic(err)
@@ -181,12 +184,12 @@ func (server *WebsocketServer) stop(lock bool) error {
 
 	if event := server.onInfo(Event.New(
 		Event.StoppingService,
-		server.GetServerContext().Merge(Event.Context{
-			"info":      "stopping websocketServer",
-			"onError":   "cancel",
-			"onWarning": "continue",
-			"onInfo":    "continue",
-		}),
+		"stopping websocketServer",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{}),
 	)); event.IsError() {
 		return event.GetError()
 	}
@@ -194,9 +197,12 @@ func (server *WebsocketServer) stop(lock bool) error {
 	if server.status != Status.Started {
 		server.onError(Event.New(
 			Event.ServiceAlreadyStarted,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "failed to start websocketServer",
-			}),
+			"websocketServer not started",
+			Event.Error,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
+			server.GetServerContext().Merge(Event.Context{}),
 		))
 		return errors.New("websocketServer not started")
 	}
@@ -215,12 +221,12 @@ func (server *WebsocketServer) stop(lock bool) error {
 	server.status = Status.Stoped
 	event := server.onInfo(Event.New(
 		Event.ServiceStopped,
-		server.GetServerContext().Merge(Event.Context{
-			"info":      "websocketServer stopped",
-			"onError":   "cancel",
-			"onWarning": "continue",
-			"onInfo":    "continue",
-		}),
+		"websocketServer stopped",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{}),
 	))
 	if event.IsError() {
 		if err := server.start(false); err != nil {
