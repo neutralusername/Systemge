@@ -134,6 +134,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 		if server.ipRateLimiter != nil {
 			server.ipRateLimiter.Close()
 			server.ipRateLimiter = nil
+			close(server.connectionChannel)
 		}
 		server.status = Status.Stoped
 		return event // TODO: context from this service missing - handle this somehow
