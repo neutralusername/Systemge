@@ -11,12 +11,13 @@ import (
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.New(
 		Event.AcceptClientsRoutineStarted,
+		"websocketServer started",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":      "websocketServer started",
-			"type":      "websocketConnection",
-			"onError":   "cancel",
-			"onWarning": "continue",
-			"onInfo":    "continue",
+			"type": "websocketConnection",
 		}),
 	)); event.IsError() {
 		return
@@ -25,12 +26,13 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	for {
 		if event := server.onInfo(Event.New(
 			Event.ReceivingFromChannel,
+			"receiving connection from channel",
+			Event.Info,
+			Event.Cancel,
+			Event.Continue,
+			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				"info":      "receiving connection from channel",
-				"type":      "websocketConnection",
-				"onError":   "cancel",
-				"onWarning": "continue",
-				"onInfo":    "continue",
+				"type": "websocketConnection",
 			}),
 		)); event.IsError() {
 			break
@@ -39,22 +41,27 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		if websocketConnection == nil {
 			server.onInfo(Event.New(
 				Event.ReceivedNilValueFromChannel,
+				"received nil value from channel",
+				Event.Info,
+				Event.NoOption,
+				Event.NoOption,
+				Event.NoOption,
 				server.GetServerContext().Merge(Event.Context{
-					"error": "received nil value from channel",
-					"type":  "websocketConnection",
+					"type": "websocketConnection",
 				}),
 			))
 			break
 		}
 		event := server.onInfo(Event.New(
 			Event.ReceivedFromChannel,
+			"received connection from channel",
+			Event.Info,
+			Event.Cancel,
+			Event.Skip,
+			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				"info":      "received connection from channel",
-				"type":      "websocketConnection",
-				"address":   websocketConnection.RemoteAddr().String(),
-				"onError":   "cancel",
-				"onWarning": "skip",
-				"onInfo":    "continue",
+				"type":    "websocketConnection",
+				"address": websocketConnection.RemoteAddr().String(),
 			}),
 		))
 		if event.IsError() {
@@ -74,8 +81,12 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 
 	server.onInfo(Event.New(
 		Event.AcceptClientsRoutineFinished,
+		"websocketServer stopped",
+		Event.Info,
+		Event.NoOption,
+		Event.NoOption,
+		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "websocketServer stopped",
 			"type": "websocketConnection",
 		}),
 	))
@@ -84,13 +95,14 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn) {
 	if event := server.onInfo(Event.New(
 		Event.AcceptingClient,
+		"accepting websocket connection",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":      "accepting websocket connection",
-			"type":      "websocketConnection",
-			"address":   websocketConnection.RemoteAddr().String(),
-			"onError":   "cancel",
-			"onWarning": "continue",
-			"onInfo":    "continue",
+			"type":    "websocketConnection",
+			"address": websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
 		if websocketConnection != nil {
@@ -130,8 +142,12 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 		server.onInfo(Event.New(
 			Event.DisconnectingClient,
+			"disconnecting websocket connection",
+			Event.Info,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"info":        "websocket connection disconnected",
 				"type":        "websocketConnection",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
@@ -143,8 +159,12 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 		server.onInfo(Event.New(
 			Event.DisconnectedClient,
+			"websocket connection disconnected",
+			Event.Info,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"info":        "websocket connection disconnected",
 				"type":        "websocketConnection",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
@@ -154,14 +174,15 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 	if event := server.onInfo(Event.New(
 		Event.AcceptedClient,
+		"websocket connection accepted",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "websocket connection accepted",
 			"type":        "websocketConnection",
 			"address":     websocketConnection.RemoteAddr().String(),
 			"websocketId": websocketId,
-			"onError":     "cancel",
-			"onWarning":   "continue",
-			"onInfo":      "continue",
 		}),
 	)); event.IsError() {
 		client.Close()
@@ -175,14 +196,15 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 	if event := server.onInfo(Event.New(
 		Event.ReceiveMessageRoutineStarted,
+		"started receiving messages from client",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "started receiving messages from client",
 			"type":        "websocketConnection",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
-			"onError":     "cancel",
-			"onWarning":   "continue",
-			"onInfo":      "continue",
 		}),
 	)); event.IsError() {
 		return
@@ -228,8 +250,12 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 
 	server.onInfo(Event.New(
 		Event.ReceiveMessageRoutineFinished,
+		"stopped receiving messages from client",
+		Event.Info,
+		Event.NoOption,
+		Event.NoOption,
+		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "stopped receiving messages from client",
 			"type":        "websocketConnection",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
@@ -240,14 +266,15 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, messageBytes []byte) *Event.Event {
 	event := server.onInfo(Event.New(
 		Event.HandlingMessage,
+		"handling message from client",
+		Event.Info,
+		Event.Cancel,
+		Event.Continue,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "handling message from client",
 			"type":        "websocketConnection",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
-			"onError":     "cancel",
-			"onWarning":   "continue",
-			"onInfo":      "continue",
 		}),
 	))
 	if event.IsError() {
@@ -255,35 +282,37 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	}
 
 	if client.rateLimiterBytes != nil && !client.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		if event := server.onWarning(Event.New(
+		if event := server.onError(Event.New(
 			Event.RateLimited,
+			"byte rate limited",
+			Event.Error,
+			Event.Cancel,
+			Event.Continue,
+			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":     "bytes rate limited",
 				"type":        "tokenBucket",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
-				"onError":     "cancel",
-				"onWarning":   "cancel",
-				"onInfo":      "continue",
 			}),
-		)); !event.IsInfo() {
+		)); event.IsError() {
 			return event
 		}
 	}
 
 	if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
-		if server.onWarning(Event.New(
+		if server.onError(Event.New(
 			Event.RateLimited,
+			"message rate limited",
+			Event.Error,
+			Event.Cancel,
+			Event.Continue,
+			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":     "messages rate limited",
 				"type":        "tokenBucket",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
-				"onError":     "cancel",
-				"onWarning":   "cancel",
-				"onInfo":      "continue",
 			}),
-		)); !event.IsInfo() {
+		)); event.IsError() {
 			return event
 		}
 	}
@@ -292,13 +321,14 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	if err != nil {
 		return server.onError(Event.New(
 			Event.FailedToDeserialize,
+			err.Error(),
+			Event.Error,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"error":       err.Error(),
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
-				"onError":     "continue",
-				"onWarning":   "continue",
-				"onInfo":      "cancel",
 			}),
 		))
 	}
@@ -306,12 +336,13 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
 		return server.onInfo(Event.New(
 			Event.HeartbeatReceived,
+			"received heartbeat from client",
+			Event.Info,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"info":      "received heartbeat from client",
-				"type":      "websocketConnection",
-				"onError":   "continue",
-				"onWarning": "continue",
-				"onInfo":    "cancel",
+				"type": "websocketConnection",
 			}),
 		))
 	}
@@ -321,45 +352,48 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 	server.messageHandlerMutex.Unlock()
 
 	if handler == nil {
-		return server.onWarning(Event.New(
+		return server.onError(Event.New(
 			Event.NoHandlerForTopic,
+			"no handler for provided topic",
+			Event.Warning,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":     "no handler for for provided topic",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
 				"topic":       message.GetTopic(),
-				"onError":     "continue",
-				"onWarning":   "continue",
-				"onInfo":      "cancel",
 			}),
 		))
 	}
 
 	if err := handler(client, message); err != nil {
-		return server.onWarning(Event.New(
+		return server.onError(Event.New(
 			Event.HandlerFailed,
+			err.Error(),
+			Event.Warning,
+			Event.NoOption,
+			Event.NoOption,
+			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":     err.Error(),
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
 				"topic":       message.GetTopic(),
-				"onError":     "continue",
-				"onWarning":   "continue",
-				"onInfo":      "cancel",
 			}),
 		))
 	}
 
 	return server.onInfo(Event.New(
 		Event.HandledMessage,
+		"handled message from client",
+		Event.Info,
+		Event.NoOption,
+		Event.NoOption,
+		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "handled message from client",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
 			"topic":       message.GetTopic(),
-			"onError":     "continue",
-			"onWarning":   "continue",
-			"onInfo":      "cancel",
 		}),
 	))
 }
