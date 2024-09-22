@@ -8,3 +8,8 @@ const TokenBucket = "tokenBucket"
 const Messages = "messages"
 
 const StopChannel = "stopChannel"
+
+const Broadcast = "broadcast"
+const Unicast = "unicast"
+const Multicast = "multicast"
+const Groupcast = "groupcast"
