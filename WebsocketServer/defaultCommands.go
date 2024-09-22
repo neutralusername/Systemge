@@ -232,9 +232,9 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		server.clientMutex.Lock()
-		defer server.clientMutex.Unlock()
-		if client, ok := server.clients[id]; ok {
+		server.websocketConnectionMutex.Lock()
+		defer server.websocketConnectionMutex.Unlock()
+		if client, ok := server.websocketConnections[id]; ok {
 			client.Close()
 			return "success", nil
 		}

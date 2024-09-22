@@ -40,16 +40,16 @@ type WebsocketServer struct {
 
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
-	ClientRateLimiterBytes    *TokenBucketRateLimiter `json:"clientRateLimiterBytes"`    // *optional* (rate limiter for clients)
-	ClientRateLimiterMessages *TokenBucketRateLimiter `json:"clientRateLimiterMessages"` // *optional* (rate limiter for clients)
+	WebsocketConnectionRateLimiterBytes    *TokenBucketRateLimiter `json:"websocketConnectionRateLimiterBytes"`    // *optional* (rate limiter for websocketConnections)
+	WebsocketConnectionRateLimiterMessages *TokenBucketRateLimiter `json:"websocketConnectionRateLimiterMessages"` // *optional* (rate limiter for websocketConnections)
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 
-	ExecuteMessageHandlersSequentially bool `json:"handleClientMessagesSequentially"` // default: false (if true, the server will handle messages from the same client sequentially)
-	PropagateMessageHandlerWarnings    bool `json:"propagateMessageHandlerWarnings"`  // default: false (if true, the server will propagate warnings from message handlers to the client)
-	PropagateMessageHandlerErrors      bool `json:"propagateMessageHandlerErrors"`    // default: false (if true, the server will propagate errors from message handlers to the client)
+	ExecuteMessageHandlersSequentially bool `json:"executeMessageHandlersSequentially"` // default: false (if true, the server will handle messages from the same websocketConnection sequentially)
+	PropagateMessageHandlerWarnings    bool `json:"propagateMessageHandlerWarnings"`    // default: false (if true, the server will propagate warnings from message handlers to the websocketConnection)
+	PropagateMessageHandlerErrors      bool `json:"propagateMessageHandlerErrors"`      // default: false (if true, the server will propagate errors from message handlers to the websocketConnection)
 
-	ServerReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect clients that do not send messages within this time)
+	ServerReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 }

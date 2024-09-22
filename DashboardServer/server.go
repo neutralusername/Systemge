@@ -26,14 +26,14 @@ type Server struct {
 
 	frontendPath              string
 	dashboardCommandHandlers  Commands.Handlers
-	dashboardWebsocketClients map[*WebsocketServer.WebsocketClient]bool // websocketClient -> true (websocketClients that are currently on the dashboard page)
+	dashboardWebsocketClients map[*WebsocketServer.WebsocketConnection]bool // websocketClient -> true (websocketClients that are currently on the dashboard page)
 
 	waitGroup sync.WaitGroup
 	mutex     sync.RWMutex
 
 	dashboardClient          *DashboardHelpers.DashboardClient
-	connectedClients         map[string]*connectedClient                 // name/location -> connectedClient
-	websocketClientLocations map[*WebsocketServer.WebsocketClient]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
+	connectedClients         map[string]*connectedClient                     // name/location -> connectedClient
+	websocketClientLocations map[*WebsocketServer.WebsocketConnection]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
 	systemgeServer  *SystemgeServer.SystemgeServer
 	httpServer      *HTTPServer.HTTPServer
@@ -104,8 +104,8 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		mutex:                     sync.RWMutex{},
 		config:                    config,
 		connectedClients:          map[string]*connectedClient{},
-		websocketClientLocations:  map[*WebsocketServer.WebsocketClient]string{},
-		dashboardWebsocketClients: map[*WebsocketServer.WebsocketClient]bool{},
+		websocketClientLocations:  map[*WebsocketServer.WebsocketConnection]string{},
+		dashboardWebsocketClients: map[*WebsocketServer.WebsocketConnection]bool{},
 		responseMessageCache:      map[string]*DashboardHelpers.ResponseMessage{},
 		responseMessageCacheOrder: []*DashboardHelpers.ResponseMessage{},
 		frontendPath:              frontendPath,

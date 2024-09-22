@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketClient) error {
+func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketConnection) error {
 	if server.config.FrontendPassword != "" {
 		err := websocketClient.Send(Message.NewAsync(
 			DashboardHelpers.TOPIC_PASSWORD,
@@ -56,7 +56,7 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 	server.websocketClientLocations[websocketClient] = ""
 	return nil
 }
-func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketClient) {
+func (server *Server) onWebsocketDisconnectHandler(websocketClient *WebsocketServer.WebsocketConnection) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 	delete(server.websocketClientLocations, websocketClient)

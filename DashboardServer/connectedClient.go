@@ -10,14 +10,14 @@ import (
 
 type connectedClient struct {
 	connection       SystemgeConnection.SystemgeConnection
-	websocketClients map[*WebsocketServer.WebsocketClient]bool // websocketClient -> true (websocketClients that are currently on this client's page)
+	websocketClients map[*WebsocketServer.WebsocketConnection]bool // websocketClient -> true (websocketClients that are currently on this client's page)
 	page             *DashboardHelpers.Page
 }
 
 func newConnectedClient(connection SystemgeConnection.SystemgeConnection, page *DashboardHelpers.Page) *connectedClient {
 	return &connectedClient{
 		connection:       connection,
-		websocketClients: make(map[*WebsocketServer.WebsocketClient]bool),
+		websocketClients: make(map[*WebsocketServer.WebsocketConnection]bool),
 		page:             page,
 	}
 }

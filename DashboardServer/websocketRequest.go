@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (server *Server) pageRequestHandler(websocketClient *WebsocketServer.WebsocketConnection, message *Message.Message) error {
 	server.mutex.RLock()
 	currentPage := server.websocketClientLocations[websocketClient]
 	connectedClient := server.connectedClients[currentPage]

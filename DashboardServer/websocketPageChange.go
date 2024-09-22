@@ -7,11 +7,11 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
 
-func (server *Server) changePageHandler(websocketClient *WebsocketServer.WebsocketClient, message *Message.Message) error {
+func (server *Server) changePageHandler(websocketClient *WebsocketServer.WebsocketConnection, message *Message.Message) error {
 	locationAfterChange := message.GetPayload()
 	return server.changePage(websocketClient, locationAfterChange, true)
 }
-func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketClient, locationAfterChange string, lock bool) error {
+func (server *Server) changePage(websocketClient *WebsocketServer.WebsocketConnection, locationAfterChange string, lock bool) error {
 	if lock {
 		server.mutex.Lock()
 		defer server.mutex.Unlock()

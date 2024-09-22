@@ -30,11 +30,11 @@ type WebsocketServer struct {
 
 	connectionChannel chan *websocket.Conn
 
-	clients         map[string]*WebsocketClient            // websocketId -> client
-	groups          map[string]map[string]*WebsocketClient // groupId -> map[websocketId]client
-	clientGroups    map[string]map[string]bool             // websocketId -> map[groupId]bool
-	messageHandlers MessageHandlers
-	clientMutex     sync.RWMutex
+	websocketConnections      map[string]*WebsocketConnection            // websocketId -> websocketConnection
+	groups                    map[string]map[string]*WebsocketConnection // groupId -> map[websocketId]websocketConnection
+	websocketConnectionGroups map[string]map[string]bool                 // websocketId -> map[groupId]bool
+	messageHandlers           MessageHandlers
+	websocketConnectionMutex  sync.RWMutex
 
 	stopChannel chan bool
 	waitGroup   sync.WaitGroup
@@ -83,14 +83,14 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		}
 	}
 	server := &WebsocketServer{
-		name:            name,
-		clients:         make(map[string]*WebsocketClient),
-		groups:          make(map[string]map[string]*WebsocketClient),
-		clientGroups:    make(map[string]map[string]bool),
-		messageHandlers: messageHandlers,
-		config:          config,
-		mailer:          Tools.NewMailer(config.MailerConfig),
-		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
+		name:                      name,
+		websocketConnections:      make(map[string]*WebsocketConnection),
+		groups:                    make(map[string]map[string]*WebsocketConnection),
+		websocketConnectionGroups: make(map[string]map[string]bool),
+		messageHandlers:           messageHandlers,
+		config:                    config,
+		mailer:                    Tools.NewMailer(config.MailerConfig),
+		randomizer:                Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{

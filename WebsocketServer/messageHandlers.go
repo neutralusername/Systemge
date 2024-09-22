@@ -2,10 +2,10 @@ package WebsocketServer
 
 import "github.com/neutralusername/Systemge/Message"
 
-type OnConnectHandler func(*WebsocketClient) error
-type OnDisconnectHandler func(*WebsocketClient)
+type OnConnectHandler func(*WebsocketConnection) error
+type OnDisconnectHandler func(*WebsocketConnection)
 
-type MessageHandler func(*WebsocketClient, *Message.Message) error
+type MessageHandler func(*WebsocketConnection, *Message.Message) error
 type MessageHandlers map[string]MessageHandler
 
 func NewMessageHandlers() MessageHandlers {

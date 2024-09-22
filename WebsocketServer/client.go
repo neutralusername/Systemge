@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WebsocketClient struct {
+type WebsocketConnection struct {
 	id                  string
 	websocketConnection *websocket.Conn
 
@@ -30,39 +30,39 @@ type WebsocketClient struct {
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 }
 
-// Disconnects the client and blocks until the client onDisconnectHandler has finished.
-func (client *WebsocketClient) Close() error {
-	client.closeMutex.Lock()
-	defer client.closeMutex.Unlock()
-	if client.isClosed {
-		return errors.New("client is already closed")
+// Disconnects the websocketConnection and blocks until the websocketConnection onDisconnectHandler has finished.
+func (websocketConnection *WebsocketConnection) Close() error {
+	websocketConnection.closeMutex.Lock()
+	defer websocketConnection.closeMutex.Unlock()
+	if websocketConnection.isClosed {
+		return errors.New("websocketConnection is already closed")
 	}
-	client.isClosed = true
-	client.websocketConnection.Close()
-	if client.rateLimiterBytes != nil {
-		client.rateLimiterBytes.Close()
+	websocketConnection.isClosed = true
+	websocketConnection.websocketConnection.Close()
+	if websocketConnection.rateLimiterBytes != nil {
+		websocketConnection.rateLimiterBytes.Close()
 	}
-	if client.rateLimiterMsgs != nil {
-		client.rateLimiterMsgs.Close()
+	if websocketConnection.rateLimiterMsgs != nil {
+		websocketConnection.rateLimiterMsgs.Close()
 	}
-	close(client.stopChannel)
+	close(websocketConnection.stopChannel)
 	return nil
 }
 
-// Returns the ip of the client.
-func (client *WebsocketClient) GetIp() string {
-	return client.websocketConnection.RemoteAddr().String()
+// Returns the ip of the websocketConnection.
+func (websocketConnection *WebsocketConnection) GetIp() string {
+	return websocketConnection.websocketConnection.RemoteAddr().String()
 }
 
-// Returns the id of the client.
-func (client *WebsocketClient) GetId() string {
-	return client.id
+// Returns the id of the websocketConnection.
+func (websocketConnection *WebsocketConnection) GetId() string {
+	return websocketConnection.id
 }
 
-// Sends a message to the client.
-func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte) error {
-	client.sendMutex.Lock()
-	defer client.sendMutex.Unlock()
+// Sends a message to the websocketConnection.
+func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
+	websocketConnection.sendMutex.Lock()
+	defer websocketConnection.sendMutex.Unlock()
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
@@ -72,8 +72,8 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:              Event.WebsocketConnection,
-			Event.Address:           client.GetIp(),
-			Event.TargetWebsocketId: client.GetId(),
+			Event.Address:           websocketConnection.GetIp(),
+			Event.TargetWebsocketId: websocketConnection.GetId(),
 			Event.Bytes:             string(messageBytes),
 		}),
 	)); !event.IsInfo() {
@@ -81,7 +81,7 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		return event.GetError()
 	}
 
-	err := client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
+	err := websocketConnection.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		server.failedSendCounter.Add(1)
 		server.onWarning(Event.NewWarningNoOption(
@@ -89,8 +89,8 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:              Event.WebsocketConnection,
-				Event.Address:           client.GetIp(),
-				Event.TargetWebsocketId: client.GetId(),
+				Event.Address:           websocketConnection.GetIp(),
+				Event.TargetWebsocketId: websocketConnection.GetId(),
 				Event.Bytes:             string(messageBytes),
 			}),
 		))
@@ -104,17 +104,17 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		"sent message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:              Event.WebsocketConnection,
-			Event.Address:           client.GetIp(),
-			Event.TargetWebsocketId: client.GetId(),
+			Event.Address:           websocketConnection.GetIp(),
+			Event.TargetWebsocketId: websocketConnection.GetId(),
 			Event.Bytes:             string(messageBytes),
 		}),
 	))
 	return nil
 }
 
-func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) {
-	client.receiveMutex.Lock()
-	defer client.receiveMutex.Unlock()
+func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+	websocketConnection.receiveMutex.Lock()
+	defer websocketConnection.receiveMutex.Unlock()
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.ReceivingMessage,
@@ -124,24 +124,24 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     client.GetIp(),
-			Event.WebsocketId: client.GetId(),
+			Event.Address:     websocketConnection.GetIp(),
+			Event.WebsocketId: websocketConnection.GetId(),
 		}),
 	)); !event.IsInfo() {
 		return nil, event.GetError()
 	}
 
-	client.websocketConnection.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
-	_, messageBytes, err := client.websocketConnection.ReadMessage()
+	websocketConnection.websocketConnection.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
+	_, messageBytes, err := websocketConnection.websocketConnection.ReadMessage()
 	if err != nil {
-		client.Close()
+		websocketConnection.Close()
 		server.onWarning(Event.NewWarningNoOption(
 			Event.NetworkError,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:        Event.WebsocketConnection,
-				Event.Address:     client.GetIp(),
-				Event.WebsocketId: client.GetId(),
+				Event.Address:     websocketConnection.GetIp(),
+				Event.WebsocketId: websocketConnection.GetId(),
 			}),
 		))
 		return nil, err
@@ -152,26 +152,26 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 		"received message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     client.GetIp(),
-			Event.WebsocketId: client.GetId(),
+			Event.Address:     websocketConnection.GetIp(),
+			Event.WebsocketId: websocketConnection.GetId(),
 		}),
 	))
 	return messageBytes, nil
 }
 
 // may only be called during the connections onConnectHandler.
-func (server *WebsocketServer) Receive(client *WebsocketClient) ([]byte, error) {
-	if client.isAccepted {
+func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+	if websocketConnection.isAccepted {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.ClientAlreadyAccepted,
-			"client is already accepted",
+			"websocketConnection is already accepted",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:        Event.WebsocketConnection,
-				Event.Address:     client.GetIp(),
-				Event.WebsocketId: client.GetId(),
+				Event.Address:     websocketConnection.GetIp(),
+				Event.WebsocketId: websocketConnection.GetId(),
 			}),
 		))
-		return nil, errors.New("client is already accepted")
+		return nil, errors.New("websocketConnection is already accepted")
 	}
-	return server.receive(client)
+	return server.receive(websocketConnection)
 }
