@@ -64,19 +64,19 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	client.sendMutex.Lock()
 	defer client.sendMutex.Unlock()
 
-	if event := server.onInfo(Event.New(
+	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
+		"sending message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":              "writing to websocket connection",
 			"type":              "websocket",
 			"address":           client.GetIp(),
 			"targetWebsocketId": client.GetId(),
 			"bytes":             string(messageBytes),
-			"onError":           "cancel",
-			"onWarning":         "continue",
-			"onInfo":            "continue",
 		}),
-	)); event.IsError() {
+	)); !event.IsInfo() {
 		server.failedSendCounter.Add(1)
 		return event.GetError()
 	}
@@ -84,10 +84,10 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	err := client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		server.failedSendCounter.Add(1)
-		server.onError(Event.New(
+		server.onWarning(Event.NewWarningNoOption(
 			Event.NetworkError,
+			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
-				"error":             err.Error(),
 				"type":              "websocket",
 				"address":           client.GetIp(),
 				"targetWebsocketId": client.GetId(),
@@ -99,10 +99,10 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 	server.outgoigMessageCounter.Add(1)
 	server.bytesSentCounter.Add(uint64(len(messageBytes)))
 
-	server.onInfo(Event.New(
+	server.onInfo(Event.NewInfoNoOption(
 		Event.SentMessage,
+		"sent message",
 		server.GetServerContext().Merge(Event.Context{
-			"info":              "wrote to websocket connection",
 			"type":              "websocket",
 			"address":           client.GetIp(),
 			"targetWebsocketId": client.GetId(),
@@ -116,18 +116,18 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 	client.receiveMutex.Lock()
 	defer client.receiveMutex.Unlock()
 
-	if event := server.onInfo(Event.New(
+	if event := server.onInfo(Event.NewInfo(
 		Event.ReceivingMessage,
+		"receiving message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "receiving message from client",
 			"type":        "websocket",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
-			"onError":     "cancel",
-			"onWarning":   "continue",
-			"onInfo":      "continue",
 		}),
-	)); event.IsError() {
+	)); !event.IsInfo() {
 		return nil, event.GetError()
 	}
 
@@ -135,10 +135,10 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 	_, messageBytes, err := client.websocketConnection.ReadMessage()
 	if err != nil {
 		client.Close()
-		server.onError(Event.New(
+		server.onWarning(Event.NewWarningNoOption(
 			Event.NetworkError,
+			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
-				"error":       err.Error(),
 				"type":        "websocket",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
@@ -147,10 +147,10 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 		return nil, err
 	}
 
-	server.onInfo(Event.New(
+	server.onInfo(Event.NewInfoNoOption(
 		Event.ReceivedMessage,
+		"received message",
 		server.GetServerContext().Merge(Event.Context{
-			"info":        "received message from client",
 			"type":        "websocket",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
@@ -162,10 +162,10 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 // may only be called during the connections onConnectHandler.
 func (server *WebsocketServer) Receive(client *WebsocketClient) ([]byte, error) {
 	if client.isAccepted {
-		server.onError(Event.New(
+		server.onWarning(Event.NewWarningNoOption(
 			Event.ClientAlreadyAccepted,
+			"client is already accepted",
 			server.GetServerContext().Merge(Event.Context{
-				"error":       "client is already accepted",
 				"type":        "websocket",
 				"address":     client.GetIp(),
 				"websocketId": client.GetId(),
