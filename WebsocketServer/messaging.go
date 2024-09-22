@@ -14,7 +14,7 @@ import (
 func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
-		"broadcasting message to all connected clients",
+		"broadcasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -37,7 +37,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		if !client.isAccepted {
 			event := server.onWarning(Event.NewWarning(
 				Event.ClientNotAccepted,
-				"client is not accepted",
+				"websocketConnection is not accepted",
 				Event.Cancel,
 				Event.Skip,
 				Event.Continue,
@@ -68,7 +68,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	server.onInfo(Event.NewInfo(
 		Event.SentMessage,
-		"broadcasted message to all connected clients",
+		"broadcasted websocketConnection message",
 		Event.NoOption,
 		Event.NoOption,
 		Event.NoOption,
@@ -88,7 +88,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
-		"unicasting message to client",
+		"unicasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -112,7 +112,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 		server.clientMutex.RUnlock()
 		server.onWarning(Event.NewWarning(
 			Event.ClientDoesNotExist,
-			"client does not exist",
+			"websocketConnection does not exist",
 			Event.NoOption,
 			Event.NoOption,
 			Event.NoOption,
@@ -130,7 +130,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	if !client.isAccepted {
 		event := server.onWarning(Event.NewWarning(
 			Event.ClientNotAccepted,
-			"client is not accepted",
+			"websocketConnection is not accepted",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -157,7 +157,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 
 	server.onInfo(Event.NewInfo(
 		Event.SentMessage,
-		"unicasted message to client",
+		"unicasted websocketConnection message",
 		Event.NoOption,
 		Event.NoOption,
 		Event.NoOption,
@@ -178,7 +178,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) error {
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
-		"multicasting message to clients",
+		"multicasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -202,7 +202,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		if !exists {
 			event := server.onWarning(Event.NewWarning(
 				Event.ClientDoesNotExist,
-				"client does not exist",
+				"websocketConnection does not exist",
 				Event.Cancel,
 				Event.Skip,
 				Event.Skip,
@@ -226,7 +226,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		if !client.isAccepted {
 			event := server.onWarning(Event.NewWarning(
 				Event.ClientNotAccepted,
-				"client is not accepted",
+				"websocketConnection is not accepted",
 				Event.Cancel,
 				Event.Skip,
 				Event.Continue,
@@ -258,7 +258,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	server.onInfo(Event.NewInfo(
 		Event.SentMessage,
-		"multicasted message to clients",
+		"multicasted websocketConnection message",
 		Event.NoOption,
 		Event.NoOption,
 		Event.NoOption,
@@ -278,7 +278,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) error {
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
-		"groupcasting message to group",
+		"groupcasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -322,7 +322,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		if !client.isAccepted {
 			event := server.onWarning(Event.NewWarning(
 				Event.ClientNotAccepted,
-				"client is not accepted",
+				"websocketConnection is not accepted",
 				Event.Cancel,
 				Event.Skip,
 				Event.Continue,
@@ -354,7 +354,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 
 	server.onInfo(Event.NewInfo(
 		Event.SentMessage,
-		"groupcasted message to group",
+		"groupcasted websocketConnection message",
 		Event.NoOption,
 		Event.NoOption,
 		Event.NoOption,

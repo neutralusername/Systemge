@@ -11,7 +11,7 @@ import (
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptClientsRoutineStarted,
-		"started accepting websocket connections",
+		"started accepting websocketConnections",
 		Event.Cancel,
 		Event.Continue,
 		Event.Continue,
@@ -25,7 +25,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	for {
 		if event := server.onInfo(Event.NewInfo(
 			Event.ReceivingFromChannel,
-			"receiving from websocket connection channel",
+			"receiving from websocketConnection channel",
 			Event.Cancel,
 			Event.Continue,
 			Event.Continue,
@@ -74,7 +74,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.AcceptClientsRoutineFinished,
-		"stopped accepting websocket connections",
+		"stopped accepting websocketConnections",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind: Event.WebsocketConnection,
 		}),
@@ -84,7 +84,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn) {
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptingClient,
-		"accepting websocket connection",
+		"accepting websocketConnection",
 		Event.Cancel,
 		Event.Continue,
 		Event.Continue,
@@ -130,7 +130,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 		server.onInfo(Event.NewInfoNoOption(
 			Event.DisconnectingClient,
-			"disconnecting websocket connection",
+			"disconnecting websocketConnection",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:        Event.WebsocketConnection,
 				Event.Address:     client.GetIp(),
@@ -143,7 +143,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 		server.onInfo(Event.NewInfoNoOption(
 			Event.DisconnectedClient,
-			"websocket connection disconnected",
+			"websocketConnection disconnected",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:        Event.WebsocketConnection,
 				Event.Address:     client.GetIp(),
@@ -154,7 +154,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptedClient,
-		"websocket connection accepted",
+		"websocketConnection accepted",
 		Event.Cancel,
 		Event.Continue,
 		Event.Continue,
@@ -175,7 +175,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 	if event := server.onInfo(Event.NewInfo(
 		Event.ReceiveMessageRoutineStarted,
-		"started receiving messages from websocket connection",
+		"started receiving messages from websocketConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -228,7 +228,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.ReceiveMessageRoutineFinished,
-		"stopped receiving messages from websocket connection",
+		"stopped receiving messages from websocketConnection",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
 			Event.Address:     client.GetIp(),
@@ -240,7 +240,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, messageBytes []byte) *Event.Event {
 	event := server.onInfo(Event.NewInfo(
 		Event.HandlingMessage,
-		"handling message from websocket connection",
+		"handling message from websocketConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,

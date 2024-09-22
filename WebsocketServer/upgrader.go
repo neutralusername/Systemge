@@ -26,7 +26,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			event := server.onWarning(Event.NewWarning(
 				Event.RateLimited,
-				"websocket connection attempt rate limited",
+				"websocketConnection attempt rate limited",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
@@ -74,7 +74,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		default:
 			if event := server.onInfo(Event.NewInfo(
 				Event.SendingToChannel,
-				"sending new websocket connection to channel",
+				"sending new websocketConnection to channel",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
@@ -91,7 +91,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.connectionChannel <- websocketConnection
 			server.onInfo(Event.NewInfoNoOption(
 				Event.SentToChannel,
-				"sent upgraded websocket connection to channel",
+				"sent upgraded websocketConnection to channel",
 				server.GetServerContext().Merge(Event.Context{
 					Event.Kind:    Event.WebsocketConnection,
 					Event.Address: websocketConnection.RemoteAddr().String(),
