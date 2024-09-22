@@ -180,7 +180,6 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	}
 
 	close(server.stopChannel)
-	server.stopChannel = nil
 	server.waitGroup.Wait()
 
 	server.status = Status.Stoped
