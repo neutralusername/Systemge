@@ -20,8 +20,9 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			"syncToken": message.GetSyncToken(),
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
+
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
@@ -41,7 +42,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			))
 			if event.IsError() {
 				server.clientMutex.RUnlock()
-				return event
+				return event.GetError()
 			}
 			if event.IsWarning() {
 				continue
@@ -54,6 +55,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	server.clientMutex.RUnlock()
 
 	waitGroup.ExecuteTasksConcurrently()
+
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -63,7 +65,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
 		}),
-	))
+	)).GetError()
 }
 
 // Unicast unicasts a message to a specific client by id.
