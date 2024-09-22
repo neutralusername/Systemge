@@ -21,6 +21,8 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
 			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -43,6 +45,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 					"syncToken":         message.GetSyncToken(),
 					"onError":           "cancel",
 					"onWarning":         "skip",
+					"onInfo":            "continue",
 				}),
 			))
 			if event.IsError() {
@@ -87,6 +90,8 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			"payload":           message.GetPayload(),
 			"syncToken":         message.GetSyncToken(),
 			"onError":           "cancel",
+			"onWarning":         "continue",
+			"onInfo":            "continue",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -122,6 +127,8 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 				"payload":           message.GetPayload(),
 				"syncToken":         message.GetSyncToken(),
 				"onError":           "cancel",
+				"onWarning":         "continue",
+				"onInfo":            "continue",
 			}),
 		))
 		if event.IsError() {
@@ -163,6 +170,8 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			"payload":            message.GetPayload(),
 			"syncToken":          message.GetSyncToken(),
 			"onError":            "cancel",
+			"onWarning":          "continue",
+			"onInfo":             "continue",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -254,6 +263,8 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
 			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
 		return event.GetError()
