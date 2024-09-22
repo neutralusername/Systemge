@@ -82,7 +82,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			"syncToken":         message.GetSyncToken(),
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
@@ -101,7 +101,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 				"payload":           message.GetPayload(),
 				"syncToken":         message.GetSyncToken(),
 			}),
-		))
+		)).GetError()
 	}
 	if !client.isAccepted {
 		event := server.onWarning(Event.New(
@@ -117,7 +117,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 		))
 		if event.IsError() {
 			server.clientMutex.RUnlock()
-			return event
+			return event.GetError()
 		}
 	}
 	waitGroup.AddTask(func() {
@@ -126,6 +126,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	server.clientMutex.RUnlock()
 
 	waitGroup.ExecuteTasksConcurrently()
+
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -136,7 +137,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			"payload":           message.GetPayload(),
 			"syncToken":         message.GetSyncToken(),
 		}),
-	))
+	)).GetError()
 }
 
 // Multicast multicasts a message to multiple clients by id.
@@ -153,7 +154,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			"syncToken":          message.GetSyncToken(),
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
@@ -174,7 +175,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				}),
 			)); event.IsError() {
 				server.clientMutex.RUnlock()
-				return event
+				return event.GetError()
 			}
 		}
 		if !client.isAccepted {
@@ -192,7 +193,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			))
 			if event.IsError() {
 				server.clientMutex.RUnlock()
-				return event
+				return event.GetError()
 			}
 			if event.IsWarning() {
 				continue
@@ -205,6 +206,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	server.clientMutex.RUnlock()
 
 	waitGroup.ExecuteTasksConcurrently()
+
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -215,7 +217,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			"payload":            message.GetPayload(),
 			"syncToken":          message.GetSyncToken(),
 		}),
-	))
+	)).GetError()
 }
 
 // Groupcast groupcasts a message to all clients in a group.
@@ -232,7 +234,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			"syncToken": message.GetSyncToken(),
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
@@ -251,7 +253,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				"payload":   message.GetPayload(),
 				"syncToken": message.GetSyncToken(),
 			}),
-		))
+		)).GetError()
 	}
 	for _, client := range group {
 		if !client.isAccepted {
@@ -269,7 +271,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			))
 			if event.IsError() {
 				server.clientMutex.RUnlock()
-				return event
+				return event.GetError()
 			}
 			if event.IsWarning() {
 				continue
@@ -282,6 +284,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	server.clientMutex.RUnlock()
 
 	waitGroup.ExecuteTasksConcurrently()
+
 	return server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
@@ -292,5 +295,5 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
 		}),
-	))
+	)).GetError()
 }

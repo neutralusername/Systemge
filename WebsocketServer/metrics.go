@@ -18,9 +18,11 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 			"outgoing_messages": uint64(server.CheckOutgoingMessageCounter()),
 		}),
 	)
+	clientCount, _ := server.GetClientCount()
+
 	metricsTypes.AddMetrics("websocketServer_stats", Metrics.New(
 		map[string]uint64{
-			"active_connections": uint64(server.GetClientCount()),
+			"active_connections": uint64(clientCount),
 		}),
 	)
 	metricsTypes.Merge(server.httpServer.CheckMetrics())
@@ -41,9 +43,10 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 			"outgoing_messages": uint64(server.GetOutgoingMessageCounter()),
 		}),
 	)
+	clientCount, _ := server.GetClientCount()
 	metricsTypes.AddMetrics("websocketServer_stats", Metrics.New(
 		map[string]uint64{
-			"active_connections": uint64(server.GetClientCount()),
+			"active_connections": uint64(clientCount),
 		}),
 	)
 	metricsTypes.Merge(server.httpServer.GetMetrics())
