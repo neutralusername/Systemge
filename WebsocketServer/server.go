@@ -92,7 +92,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		mailer:          Tools.NewMailer(config.MailerConfig),
 		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 	}
-	httpServer := HTTPServer.New(server.name+"_httpServer",
+	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
 			TcpServerConfig: server.config.TcpServerConfig,
 		},
@@ -101,7 +101,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 			server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 		},
 	)
-	server.httpServer = httpServer
 	return server
 }
 
@@ -116,8 +115,10 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	if event := server.onInfo(Event.New(Event.StartingService,
 		server.GetServerContext().Merge(Event.Context{
-			"info":    "starting websocketServer",
-			"onError": "cancel",
+			"info":      "starting websocketServer",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -156,8 +157,10 @@ func (server *WebsocketServer) start(lock bool) error {
 	if event := server.onInfo(Event.New(
 		Event.ServiceStarted,
 		server.GetServerContext().Merge(Event.Context{
-			"info":    "websocketServer started",
-			"onError": "cancel",
+			"info":      "websocketServer started",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
 		if err := server.stop(false); err != nil {
@@ -179,8 +182,10 @@ func (server *WebsocketServer) stop(lock bool) error {
 	if event := server.onInfo(Event.New(
 		Event.StoppingService,
 		server.GetServerContext().Merge(Event.Context{
-			"info":    "stopping websocketServer",
-			"onError": "cancel",
+			"info":      "stopping websocketServer",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -211,8 +216,10 @@ func (server *WebsocketServer) stop(lock bool) error {
 	event := server.onInfo(Event.New(
 		Event.ServiceStopped,
 		server.GetServerContext().Merge(Event.Context{
-			"info":    "websocketServer stopped",
-			"onError": "cancel",
+			"info":      "websocketServer stopped",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	))
 	if event.IsError() {
