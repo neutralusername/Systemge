@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	Info    = uint8(0)
-	Warning = uint8(1)
-	Error   = uint8(2)
+	Info    = int8(0)
+	Warning = int8(1)
+	Error   = int8(2)
 )
 
 type Event struct {
@@ -26,7 +26,7 @@ type Event struct {
 type event struct {
 	Kind      string  `json:"kind"`
 	Specifier string  `json:"specifier"`
-	Level     int     `json:"level"`
+	Level     int8    `json:"level"`
 	Context   Context `json:"context"`
 }
 
