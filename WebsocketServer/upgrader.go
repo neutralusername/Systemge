@@ -13,12 +13,13 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if err != nil {
 			event := server.onError(Event.New(
 				Event.FailedToSplitHostPort,
+				err.Error(),
+				Event.Error,
+				Event.Cancel,
+				Event.Continue,
+				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"error":     err.Error(),
-					"address":   httpRequest.RemoteAddr,
-					"onError":   "cancel",
-					"onWarning": "continue",
-					"onInfo":    "continue",
+					"address": httpRequest.RemoteAddr,
 				}),
 			))
 			if event.IsError() {
@@ -31,13 +32,14 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			event := server.onError(Event.New(
 				Event.RateLimited,
+				"IP rate limit exceeded",
+				Event.Error,
+				Event.Cancel,
+				Event.Continue,
+				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"error":     "IP rate limit exceeded",
-					"type":      "ip",
-					"address":   httpRequest.RemoteAddr,
-					"onError":   "cancel",
-					"onWarning": "continue",
-					"onInfo":    "continue",
+					"type":    "ip",
+					"address": httpRequest.RemoteAddr,
 				}),
 			))
 			if event.IsError() {
@@ -51,8 +53,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if err != nil {
 			server.onError(Event.New(
 				Event.FailedToUpgradeToWebsocketConnection,
+				err.Error(),
+				Event.Error,
+				Event.NoOption,
+				Event.NoOption,
+				Event.NoOption,
 				server.GetServerContext().Merge(Event.Context{
-					"error":   err.Error(),
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
@@ -66,9 +72,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		case <-server.stopChannel:
 			server.onError(Event.New(
 				Event.ServiceAlreadyStopped,
-				server.GetServerContext().Merge(Event.Context{
-					"error": "websocketServer stopped",
-				}),
+				"websocketServer stopped",
+				Event.Error,
+				Event.NoOption,
+				Event.NoOption,
+				Event.NoOption,
+				server.GetServerContext().Merge(Event.Context{}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
@@ -78,13 +87,14 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		default:
 			if event := server.onInfo(Event.New(
 				Event.SendingToChannel,
+				"sending upgraded websocket connection to channel",
+				Event.Info,
+				Event.Cancel,
+				Event.Continue,
+				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					"info":      "sending upgraded websocket connection to channel",
-					"type":      "websocketConnection",
-					"address":   websocketConnection.RemoteAddr().String(),
-					"onError":   "cancel",
-					"onInfo":    "continue",
-					"onWarning": "continue",
+					"type":    "websocketConnection",
+					"address": websocketConnection.RemoteAddr().String(),
 				}),
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
@@ -95,8 +105,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.connectionChannel <- websocketConnection
 			server.onInfo(Event.New(
 				Event.SentToChannel,
+				"sent upgraded websocket connection to channel",
+				Event.Info,
+				Event.NoOption,
+				Event.NoOption,
+				Event.NoOption,
 				server.GetServerContext().Merge(Event.Context{
-					"info":    "sent upgraded websocket connection to channel",
 					"type":    "websocketConnection",
 					"address": websocketConnection.RemoteAddr().String(),
 				}),

@@ -16,10 +16,21 @@ const (
 	Error   = int8(2)
 )
 
+const (
+	NoOption = int8(-1)
+	Continue = int8(0)
+	Skip     = int8(1)
+	Cancel   = int8(2)
+	Retry    = int8(3)
+)
+
 type Event struct {
 	kind      string
 	specifier string
 	level     int8
+	onError   int8
+	onWarning int8
+	onInfo    int8
 	context   Context
 }
 
@@ -27,16 +38,22 @@ type event struct {
 	Kind      string  `json:"kind"`
 	Specifier string  `json:"specifier"`
 	Level     int8    `json:"level"`
+	OnError   int8    `json:"onError"`
+	OnWarning int8    `json:"onWarning"`
+	OnInfo    int8    `json:"onInfo"`
 	Context   Context `json:"context"`
 }
 
 type Context map[string]string
 
-func New(eventType, specifier string, level int8, context Context) *Event {
+func New(eventType, specifier string, level, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
 		kind:      eventType,
 		specifier: specifier,
 		level:     level,
+		onError:   onError,
+		onWarning: onWarning,
+		onInfo:    onInfo,
 		context:   context,
 	}
 }
