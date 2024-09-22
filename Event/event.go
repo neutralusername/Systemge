@@ -175,10 +175,7 @@ func (e *Event) IsError() bool {
 }
 
 func (e *Event) GetError() error {
-	if e.IsError() {
-		return errors.New(e.specifier)
-	}
-	return nil
+	return errors.New(e.specifier)
 }
 
 func (e *Event) SetError() {
