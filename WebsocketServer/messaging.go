@@ -113,7 +113,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			Event.NoOption,
 			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:          "websocketConnection",
+				Event.Kind:          Event.WebsocketConnection,
 				"targetWebsocketId": id,
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
@@ -199,7 +199,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Skip,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:           "websocketConnection",
+					Event.Kind:           Event.WebsocketConnection,
 					"targetWebsocketId":  id,
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
 					"topic":              message.GetTopic(),

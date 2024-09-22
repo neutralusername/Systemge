@@ -45,7 +45,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			server.onWarning(Event.NewWarningNoOption(
-				Event.FailedToUpgradeToWebsocketConnection,
+				Event.FailedToPerformWebsocketUpgrade,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
 					Event.Address: httpRequest.RemoteAddr,
@@ -61,7 +61,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		case <-server.stopChannel:
 			server.onInfo(Event.NewInfoNoOption(
 				Event.ReceivedNilValueFromChannel,
-				"rejecting connection because server is stopping",
+				"rejecting websocket upgrade request because server is stopping",
 				server.GetServerContext().Merge(Event.Context{
 					Event.Kind: "stopChannel",
 				}),
@@ -79,7 +79,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:    "websocketConnection",
+					Event.Kind:    Event.WebsocketConnection,
 					Event.Address: websocketConnection.RemoteAddr().String(),
 				}),
 			)); !event.IsInfo() {
@@ -93,7 +93,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.SentToChannel,
 				"sent upgraded websocket connection to channel",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:    "websocketConnection",
+					Event.Kind:    Event.WebsocketConnection,
 					Event.Address: websocketConnection.RemoteAddr().String(),
 				}),
 			))

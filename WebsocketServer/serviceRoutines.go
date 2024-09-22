@@ -11,12 +11,12 @@ import (
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptClientsRoutineStarted,
-		"websocketServer started",
+		"started accepting websocket connections",
 		Event.Cancel,
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: "websocketConnection",
+			Event.Kind: Event.WebsocketConnection,
 		}),
 	)); event.IsError() {
 		return
@@ -25,12 +25,12 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	for {
 		if event := server.onInfo(Event.NewInfo(
 			Event.ReceivingFromChannel,
-			"receiving connection from channel",
+			"receiving websocket connection from channel",
 			Event.Cancel,
 			Event.Continue,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind: "websocketConnection",
+				Event.Kind: Event.WebsocketConnection,
 			}),
 		)); event.IsError() {
 			break
@@ -41,7 +41,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 				Event.ReceivedNilValueFromChannel,
 				"received nil value from channel",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: "websocketConnection",
+					Event.Kind: Event.WebsocketConnection,
 				}),
 			))
 			break
@@ -53,7 +53,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.Skip,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    "websocketConnection",
+				Event.Kind:    Event.WebsocketConnection,
 				Event.Address: websocketConnection.RemoteAddr().String(),
 			}),
 		))
@@ -76,7 +76,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		Event.AcceptClientsRoutineFinished,
 		"websocketServer stopped",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: "websocketConnection",
+			Event.Kind: Event.WebsocketConnection,
 		}),
 	))
 }
@@ -89,7 +89,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    "websocketConnection",
+			Event.Kind:    Event.WebsocketConnection,
 			Event.Address: websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
@@ -132,7 +132,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 			Event.DisconnectingClient,
 			"disconnecting websocket connection",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    "websocketConnection",
+				Event.Kind:    Event.WebsocketConnection,
 				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
@@ -145,7 +145,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 			Event.DisconnectedClient,
 			"websocket connection disconnected",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    "websocketConnection",
+				Event.Kind:    Event.WebsocketConnection,
 				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
@@ -159,7 +159,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    "websocketConnection",
+			Event.Kind:    Event.WebsocketConnection,
 			Event.Address: websocketConnection.RemoteAddr().String(),
 			"websocketId": websocketId,
 		}),
@@ -180,7 +180,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    "websocketConnection",
+			Event.Kind:    Event.WebsocketConnection,
 			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
@@ -230,7 +230,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		Event.ReceiveMessageRoutineFinished,
 		"stopped receiving messages from client",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    "websocketConnection",
+			Event.Kind:    Event.WebsocketConnection,
 			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
@@ -245,7 +245,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    "websocketConnection",
+			Event.Kind:    Event.WebsocketConnection,
 			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
@@ -305,7 +305,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.HeartbeatReceived,
 			"received heartbeat from client",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind: "websocketConnection",
+				Event.Kind: Event.WebsocketConnection,
 			}),
 		))
 	}
