@@ -173,7 +173,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	for _, id := range ids {
 		client, exists := server.clients[id]
 		if !exists {
-			if event := server.onError(Event.New(
+			event := server.onError(Event.New(
 				Event.ClientDoesNotExist,
 				server.GetServerContext().Merge(Event.Context{
 					"error":              "Client does not exist",
@@ -184,17 +184,22 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 					"payload":            message.GetPayload(),
 					"syncToken":          message.GetSyncToken(),
 					"onError":            "cancel",
+					"onWarning":          "skip",
+					"onInfo":             "skip",
 				}),
-			)); event.IsError() {
+			))
+			if event.IsError() {
 				server.clientMutex.RUnlock()
 				return event.GetError()
+			} else {
+				continue
 			}
 		}
 		if !client.isAccepted {
-			event := server.onError(Event.New(
+			event := server.onWarning(Event.New(
 				Event.ClientNotAccepted,
 				server.GetServerContext().Merge(Event.Context{
-					"error":              "Client is not accepted",
+					"warning":            "Client is not accepted",
 					"type":               "websocketMulticast",
 					"targetWebsocketId":  id,
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
@@ -203,6 +208,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 					"syncToken":          message.GetSyncToken(),
 					"onError":            "cancel",
 					"onWarning":          "skip",
+					"onInfo":             "continue",
 				}),
 			))
 			if event.IsError() {
@@ -221,7 +227,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "multicasted message to clients",
@@ -231,7 +237,8 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			"payload":            message.GetPayload(),
 			"syncToken":          message.GetSyncToken(),
 		}),
-	)).GetError()
+	))
+	return nil
 }
 
 // Groupcast groupcasts a message to all clients in a group.
@@ -283,6 +290,9 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 					"topic":             message.GetTopic(),
 					"payload":           message.GetPayload(),
 					"syncToken":         message.GetSyncToken(),
+					"onError":           "cancel",
+					"onWarning":         "skip",
+					"onInfo":            "continue",
 				}),
 			))
 			if event.IsError() {
@@ -301,7 +311,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"info":      "groupcasted message to group",
@@ -311,5 +321,6 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
 		}),
-	)).GetError()
+	))
+	return nil
 }
