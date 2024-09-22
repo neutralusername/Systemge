@@ -51,7 +51,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			server.onError(Event.New(
+			server.onWarning(Event.New(
 				Event.FailedToUpgradeToWebsocketConnection,
 				err.Error(),
 				Event.Error,
