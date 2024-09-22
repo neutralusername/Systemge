@@ -81,14 +81,15 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		}
 	}
 	server := &WebsocketServer{
-		name:            name,
-		clients:         make(map[string]*WebsocketClient),
-		groups:          make(map[string]map[string]*WebsocketClient),
-		clientGroups:    make(map[string]map[string]bool),
-		messageHandlers: messageHandlers,
-		config:          config,
-		mailer:          Tools.NewMailer(config.MailerConfig),
-		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
+		name:              name,
+		clients:           make(map[string]*WebsocketClient),
+		groups:            make(map[string]map[string]*WebsocketClient),
+		clientGroups:      make(map[string]map[string]bool),
+		messageHandlers:   messageHandlers,
+		config:            config,
+		mailer:            Tools.NewMailer(config.MailerConfig),
+		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
+		connectionChannel: make(chan *websocket.Conn),
 	}
 	httpServer := HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
@@ -99,9 +100,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 			server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 		},
 	)
-	if server.config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
-	}
 	server.httpServer = httpServer
 	return server
 }
@@ -128,10 +126,14 @@ func (server *WebsocketServer) Start() *Event.Event {
 	}
 	server.status = Status.Pending
 
-	server.connectionChannel = make(chan *websocket.Conn)
+	if server.config.IpRateLimiter != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
+	}
 	if event := server.httpServer.Start(); event.IsError() {
-		close(server.connectionChannel)
-		server.connectionChannel = nil
+		if server.ipRateLimiter != nil {
+			server.ipRateLimiter.Close()
+			server.ipRateLimiter = nil
+		}
 		server.status = Status.Stoped
 		return event // TODO: context from this service missing - handle this somehow
 	}
@@ -169,12 +171,9 @@ func (server *WebsocketServer) Stop() *Event.Event {
 			}),
 		))
 	}
-
 	server.status = Status.Pending
 
 	server.httpServer.Stop()
-	close(server.connectionChannel)
-
 	if server.ipRateLimiter != nil {
 		server.ipRateLimiter.Close()
 		server.ipRateLimiter = nil
