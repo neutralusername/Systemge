@@ -11,27 +11,22 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			event := server.onWarning(Event.NewWarning(
+			server.onWarning(Event.NewWarningNoOption(
 				Event.FailedToSplitHostPort,
 				err.Error(),
-				Event.Cancel,
-				Event.Cancel,
-				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
-			if !event.IsInfo() {
-				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-				server.rejectedWebsocketConnectionsCounter.Add(1)
-				return
-			}
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+			server.rejectedWebsocketConnectionsCounter.Add(1)
+			return
 		}
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			event := server.onWarning(Event.NewWarning(
 				Event.RateLimited,
-				"IP rate limit exceeded",
+				"websocket connection attempt rate limited",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
@@ -65,9 +60,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		switch {
 		case <-server.stopChannel:
 			server.onInfo(Event.NewInfoNoOption(
-				Event.ServiceAlreadyStopped,
-				"websocketServer stopped",
-				server.GetServerContext().Merge(Event.Context{}),
+				Event.ReceivedNilValueFromChannel,
+				"rejecting connection because server is stopping",
+				server.GetServerContext().Merge(Event.Context{
+					"type": "stopChannel",
+				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
@@ -77,7 +74,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		default:
 			if event := server.onInfo(Event.NewInfo(
 				Event.SendingToChannel,
-				"sending upgraded websocket connection to channel",
+				"sending new websocket connection to channel",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,

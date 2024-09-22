@@ -210,3 +210,11 @@ func GetCallerPath(depth int) string {
 	file = path.Base(path.Dir(file)) + "/" + path.Base(file)
 	return file + ":" + strconv.Itoa(line)
 }
+
+func GetCallerFuncName(depth int) string {
+	pc, _, _, ok := runtime.Caller(depth)
+	if !ok {
+		panic("could not get caller information")
+	}
+	return runtime.FuncForPC(pc).Name()
+}

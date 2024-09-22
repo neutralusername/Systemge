@@ -274,7 +274,7 @@ func (server *WebsocketServer) GetServerContext() Event.Context {
 		"service":       Event.WebsocketServer,
 		"serviceName":   server.name,
 		"serviceStatus": Status.ToString(server.status),
-		//"caller":        Event.GetCallerPath(2),
+		"function":      Event.GetCallerFuncName(2),
 	}
 	return ctx
 }
