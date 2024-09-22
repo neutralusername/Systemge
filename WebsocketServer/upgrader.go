@@ -54,7 +54,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.onWarning(Event.New(
 				Event.FailedToUpgradeToWebsocketConnection,
 				err.Error(),
-				Event.Error,
+				Event.Warning,
 				Event.NoOption,
 				Event.NoOption,
 				Event.NoOption,
@@ -70,10 +70,10 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		server.waitGroup.Add(1)
 		switch {
 		case <-server.stopChannel:
-			server.onError(Event.New(
+			server.onInfo(Event.New(
 				Event.ServiceAlreadyStopped,
 				"websocketServer stopped",
-				Event.Error,
+				Event.Info,
 				Event.NoOption,
 				Event.NoOption,
 				Event.NoOption,
