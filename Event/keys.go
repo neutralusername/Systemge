@@ -1,7 +1,11 @@
 package Event
 
 const Kind = "kind"
+const AdditionalKind = "additionalKind"
 const Address = "address"
 const WebsocketId = "websocketId"
-const Ip = "ip"
-const TokenBucket = "tokenBucket"
+const TargetWebsocketId = "targetWebsocketId"
+const TargetWebsocketIds = "targetWebsocketIds"
+
+const Topic = "topic"
+const Payload = "payload"

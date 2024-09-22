@@ -71,10 +71,10 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:          Event.WebsocketConnection,
-			Event.Address:       client.GetIp(),
-			"targetWebsocketId": client.GetId(),
-			"bytes":             string(messageBytes),
+			Event.Kind:              Event.WebsocketConnection,
+			Event.Address:           client.GetIp(),
+			Event.TargetWebsocketId: client.GetId(),
+			"bytes":                 string(messageBytes),
 		}),
 	)); !event.IsInfo() {
 		server.failedSendCounter.Add(1)
@@ -88,10 +88,10 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			Event.NetworkError,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:          Event.WebsocketConnection,
-				Event.Address:       client.GetIp(),
-				"targetWebsocketId": client.GetId(),
-				"bytes":             string(messageBytes),
+				Event.Kind:              Event.WebsocketConnection,
+				Event.Address:           client.GetIp(),
+				Event.TargetWebsocketId: client.GetId(),
+				"bytes":                 string(messageBytes),
 			}),
 		))
 		return err
@@ -103,10 +103,10 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		Event.SentMessage,
 		"sent message",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:          Event.WebsocketConnection,
-			Event.Address:       client.GetIp(),
-			"targetWebsocketId": client.GetId(),
-			"bytes":             string(messageBytes),
+			Event.Kind:              Event.WebsocketConnection,
+			Event.Address:           client.GetIp(),
+			Event.TargetWebsocketId: client.GetId(),
+			"bytes":                 string(messageBytes),
 		}),
 	))
 	return nil
