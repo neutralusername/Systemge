@@ -2,9 +2,9 @@ package WebsocketServer
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -51,7 +51,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["broadcast"] = func(args []string) (string, error) {
 		if len(args) != 2 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -63,7 +63,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["unicast"] = func(args []string) (string, error) {
 		if len(args) != 3 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -76,7 +76,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["multicast"] = func(args []string) (string, error) {
 		if len(args) < 3 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -89,7 +89,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["groupcast"] = func(args []string) (string, error) {
 		if len(args) != 3 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -102,7 +102,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["addClientsToGroup"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
@@ -114,7 +114,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["attemptToAddClientsToGroup"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
@@ -126,7 +126,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["removeClientsFromGroup"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
@@ -138,7 +138,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["attemptToRemoveClientsFromGroup"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
@@ -150,10 +150,13 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["getGroupClients"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
-		clients := server.GetGroupClients(group)
+		clients, err := server.GetGroupClients(group)
+		if err != nil {
+			return "", err
+		}
 		json, err := json.Marshal(clients)
 		if err != nil {
 			return "", err
@@ -162,10 +165,13 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["getClientGroups"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		groups := server.GetClientGroups(id)
+		groups, err := server.GetClientGroups(id)
+		if err != nil {
+			return "", err
+		}
 		json, err := json.Marshal(groups)
 		if err != nil {
 			return "", err
@@ -173,10 +179,17 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		return string(json), nil
 	}
 	commands["getGroupCount"] = func(args []string) (string, error) {
-		return Helpers.IntToString(server.GetGroupCount()), nil
+		groupCount, err := server.GetGroupCount()
+		if err != nil {
+			return "", err
+		}
+		return Helpers.IntToString(groupCount), nil
 	}
 	commands["getGroupIds"] = func(args []string) (string, error) {
-		groups := server.GetGroupIds()
+		groups, err := server.GetGroupIds()
+		if err != nil {
+			return "", err
+		}
 		json, err := json.Marshal(groups)
 		if err != nil {
 			return "", err
@@ -185,45 +198,48 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["isClientInGroup"] = func(args []string) (string, error) {
 		if len(args) != 2 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
 		group := args[1]
-		return Helpers.BoolToString(server.IsClientInGroup(id, group)), nil
+		inGroup, err := server.IsClientInGroup(id, group)
+		if err != nil {
+			return "", err
+		}
+		return Helpers.BoolToString(inGroup), nil
 	}
 	commands["clientExists"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		return Helpers.BoolToString(server.ClientExists(id)), nil
+		clientExists, err := server.ClientExists(id)
+		if err != nil {
+			return "", err
+		}
+		return Helpers.BoolToString(clientExists), nil
 	}
 	commands["getClientGroupCount"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		return Helpers.IntToString(server.GetClientGroupCount(id)), nil
+		clientGroupCount, err := server.GetClientGroupCount(id)
+		if err != nil {
+			return "", err
+		}
+		return Helpers.IntToString(clientGroupCount), nil
 	}
 	commands["getClientCount"] = func(args []string) (string, error) {
-		return Helpers.IntToString(server.GetClientCount()), nil
-	}
-	commands["resetClientWatchdog"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", Event.New("Invalid number of arguments", nil)
+		clientGroupCount, err := server.GetClientCount()
+		if err != nil {
+			return "", err
 		}
-		id := args[0]
-		server.clientMutex.Lock()
-		defer server.clientMutex.Unlock()
-		if client, ok := server.clients[id]; ok {
-			server.ResetWatchdog(client)
-			return "success", nil
-		}
-		return "", Event.New("client with id "+id+" does not exist", nil)
+		return Helpers.IntToString(clientGroupCount), nil
 	}
-	commands["disconnectClient"] = func(args []string) (string, error) {
+	commands["closeClient"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("Invalid number of arguments", nil)
+			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
 		server.clientMutex.Lock()
@@ -232,7 +248,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			client.Close()
 			return "success", nil
 		}
-		return "", Event.New("client with id "+id+" does not exist", nil)
+		return "", errors.New("client does not exist")
 	}
 	return commands
 }
