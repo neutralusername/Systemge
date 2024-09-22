@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 )
@@ -19,14 +21,17 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
 			"groupId":            groupId,
 			"function":           "AddClientsToGroup",
+			"onError":            "cancel",
+			"onWarning":          "continue",
+			"onInfo":             "continue",
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] == nil {
-			return server.onError(Event.New(
+			server.onError(Event.New(
 				Event.ClientDoesNotExist,
 				server.GetServerContext().Merge(Event.Context{
 					"error":             "client does not exist",
@@ -36,9 +41,10 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 					"function":          "AddClientsToGroup",
 				}),
 			))
+			return errors.New("client does not exist")
 		}
 		if server.clientGroups[websocketId][groupId] {
-			return server.onError(Event.New(
+			server.onError(Event.New(
 				Event.ClientAlreadyInGroup,
 				server.GetServerContext().Merge(Event.Context{
 					"error":             "client is already in group",
@@ -48,6 +54,7 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 					"function":          "AddClientsToGroup",
 				}),
 			))
+			return errors.New("client is already in group")
 		}
 	}
 
@@ -60,9 +67,12 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 				"groupId":            groupId,
 				"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
 				"function":           "AddClientsToGroup",
+				"onError":            "cancel",
+				"onWarning":          "continue",
+				"onInfo":             "continue",
 			}),
 		)); event.IsError() {
-			return event
+			return event.GetError()
 		}
 		server.groups[groupId] = make(map[string]*WebsocketClient)
 	}
@@ -72,7 +82,7 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 		server.clientGroups[websocketId][groupId] = true
 	}
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.ClientsAddedToGroup,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "added clients to group",
@@ -82,6 +92,7 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 			"function":           "AddClientsToGroup",
 		}),
 	))
+	return nil
 }
 
 // AttemptToAddClientsToGroup adds websocket clients to a group.
@@ -98,9 +109,12 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
 			"groupId":            groupId,
 			"function":           "AttemptToAddClientsToGroup",
+			"onError":            "cancel",
+			"onWarning":          "continue",
+			"onInfo":             "continue",
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 
 	if server.groups[groupId] == nil {
@@ -114,7 +128,7 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 				"function":           "AttemptToAddClientsToGroup",
 			}),
 		)); event.IsError() {
-			return event
+			return event.GetError()
 		}
 		server.groups[groupId] = make(map[string]*WebsocketClient)
 	}
@@ -132,10 +146,13 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 					"targetWebsocketId": websocketId,
 					"groupId":           groupId,
 					"function":          "AttemptToAddClientsToGroup",
+					"onError":           "cancel",
+					"onWarning":         "continue",
+					"onInfo":            "continue",
 				}),
 			))
 			if event.IsError() {
-				return event
+				return event.GetError()
 			}
 		}
 	}
@@ -144,7 +161,7 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 		delete(server.groups, groupId)
 	}
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.ClientsAddedToGroup,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "added clients to group",
@@ -154,6 +171,7 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 			"function":           "AttemptToAddClientsToGroup",
 		}),
 	))
+	return nil
 }
 
 // RemoveClientsFromGroup removes websocket clients from a group.
@@ -171,13 +189,16 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
 			"groupId":            groupId,
 			"function":           "RemoveClientsFromGroup",
+			"onError":            "cancel",
+			"onWarning":          "continue",
+			"onInfo":             "continue",
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 
 	if server.groups[groupId] == nil {
-		return server.onError(Event.New(
+		server.onError(Event.New(
 			Event.GroupDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":     "group does not exist",
@@ -187,11 +208,12 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 				"function":  "RemoveClientsFromGroup",
 			}),
 		))
+		return errors.New("group does not exist")
 	}
 
 	for _, websocketId := range websocketIds {
 		if server.clients[websocketId] == nil {
-			return server.onError(Event.New(
+			server.onError(Event.New(
 				Event.ClientDoesNotExist,
 				server.GetServerContext().Merge(Event.Context{
 					"error":             "client does not exist",
@@ -201,9 +223,10 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 					"function":          "RemoveClientsFromGroup",
 				}),
 			))
+			return errors.New("client does not exist")
 		}
 		if !server.clientGroups[websocketId][groupId] {
-			return server.onError(Event.New(
+			server.onError(Event.New(
 				Event.ClientNotInGroup,
 				server.GetServerContext().Merge(Event.Context{
 					"error":             "client is not in group",
@@ -213,6 +236,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 					"function":          "RemoveClientsFromGroup",
 				}),
 			))
+			return errors.New("client is not in group")
 		}
 	}
 
@@ -224,7 +248,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 		delete(server.groups, groupId)
 	}
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.ClientsAddedToGroup,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "removed clients from group",
@@ -234,6 +258,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 			"function":           "RemoveClientsFromGroup",
 		}),
 	))
+	return nil
 }
 
 // AttemptToRemoveClientsFromGroup removes websocket clients from a group.
@@ -251,13 +276,16 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 			"targetWebsocketIds": Helpers.JsonMarshal(websocketIds),
 			"groupId":            groupId,
 			"function":           "AttemptToRemoveClientsFromGroup",
+			"onError":            "cancel",
+			"onWarning":          "continue",
+			"onInfo":             "continue",
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 
 	if server.groups[groupId] == nil {
-		return server.onError(Event.New(
+		server.onError(Event.New(
 			Event.GroupDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":     "group does not exist",
@@ -267,6 +295,7 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 				"function":  "AttemptToRemoveClientsFromGroup",
 			}),
 		))
+		return errors.New("group does not exist")
 	}
 
 	for _, websocketId := range websocketIds {
@@ -281,10 +310,13 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 					"targetWebsocketId": websocketId,
 					"groupId":           groupId,
 					"function":          "AttemptToRemoveClientsFromGroup",
+					"onError":           "cancel",
+					"onWarning":         "continue",
+					"onInfo":            "continue",
 				}),
 			))
 			if event.IsError() {
-				return event
+				return event.GetError()
 			}
 		}
 		delete(server.groups[groupId], websocketId)
@@ -294,7 +326,7 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 		delete(server.groups, groupId)
 	}
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.ClientsAddedToGroup,
 		server.GetServerContext().Merge(Event.Context{
 			"info":               "removed clients from group",
@@ -304,6 +336,7 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 			"function":           "AttemptToRemoveClientsFromGroup",
 		}),
 	))
+	return nil
 }
 
 func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error) {
@@ -313,17 +346,20 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 	if event := server.onInfo(Event.New(
 		Event.GettingGroupClients,
 		server.GetServerContext().Merge(Event.Context{
-			"info":     "getting group clients",
-			"type":     "websocketConnection",
-			"groupId":  groupId,
-			"function": "GetGroupClients",
+			"info":      "getting group clients",
+			"type":      "websocketConnection",
+			"groupId":   groupId,
+			"function":  "GetGroupClients",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
-		return nil, event
+		return nil, event.GetError()
 	}
 
 	if server.groups[groupId] == nil {
-		return nil, server.onError(Event.New(
+		server.onError(Event.New(
 			Event.GroupDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":    "group does not exist",
@@ -332,6 +368,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 				"function": "GetGroupClients",
 			}),
 		))
+		return nil, errors.New("group does not exist")
 	}
 
 	groupMembers := make([]string, 0)
@@ -339,7 +376,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 		groupMembers = append(groupMembers, websocketId)
 	}
 
-	return groupMembers, server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.GotGroupClients,
 		server.GetServerContext().Merge(Event.Context{
 			"info":     "got group clients",
@@ -348,6 +385,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 			"function": "GetGroupClients",
 		}),
 	))
+	return groupMembers, nil
 }
 
 func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, error) {
@@ -361,13 +399,16 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, er
 			"type":              "websocketConnection",
 			"targetWebsocketId": websocketId,
 			"function":          "GetClientGroups",
+			"onError":           "cancel",
+			"onWarning":         "continue",
+			"onInfo":            "continue",
 		}),
 	)); event.IsError() {
-		return nil, event
+		return nil, event.GetError()
 	}
 
 	if server.clients[websocketId] == nil {
-		return nil, server.onError(Event.New(
+		server.onError(Event.New(
 			Event.ClientDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":             "client does not exist",
@@ -376,10 +417,11 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, er
 				"function":          "GetClientGroups",
 			}),
 		))
+		return nil, errors.New("client does not exist")
 	}
 
 	if server.clientGroups[websocketId] == nil {
-		return nil, server.onError(Event.New(
+		server.onError(Event.New(
 			Event.ClientNotInGroup,
 			server.GetServerContext().Merge(Event.Context{
 				"error":             "client is not in any group",
@@ -388,6 +430,7 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, er
 				"function":          "GetClientGroups",
 			}),
 		))
+		return nil, errors.New("client is not in any group")
 	}
 
 	groups := make([]string, 0)
@@ -395,7 +438,7 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, er
 		groups = append(groups, groupId)
 	}
 
-	return groups, server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.GotClientGroups,
 		server.GetServerContext().Merge(Event.Context{
 			"info":              "got client groups",
@@ -404,6 +447,7 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, er
 			"function":          "GetClientGroups",
 		}),
 	))
+	return groups, nil
 }
 
 // GetGroupCount returns the number of groups.
@@ -414,14 +458,17 @@ func (server *WebsocketServer) GetGroupCount() (int, error) {
 	if event := server.onInfo(Event.New(
 		Event.GettingGroupCount,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "getting group count",
-			"type": "websocketConnection",
+			"info":      "getting group count",
+			"type":      "websocketConnection",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
-		return 0
+		return -1, event.GetError()
 	}
 
-	return len(server.groups)
+	return len(server.groups), nil
 }
 
 func (server *WebsocketServer) GetGroupIds() ([]string, error) {
@@ -431,11 +478,14 @@ func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 	if event := server.onInfo(Event.New(
 		Event.GettingGroupIds,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "getting group ids",
-			"type": "websocketConnection",
+			"info":      "getting group ids",
+			"type":      "websocketConnection",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
-		return nil, event
+		return nil, event.GetError()
 	}
 
 	groups := make([]string, 0)
@@ -443,13 +493,14 @@ func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 		groups = append(groups, groupId)
 	}
 
-	return groups, server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.GotGroupIds,
 		server.GetServerContext().Merge(Event.Context{
 			"info": "got group ids",
 			"type": "websocketConnection",
 		}),
 	))
+	return groups, nil
 }
 
 func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId string) (bool, error) {
@@ -459,17 +510,20 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 	if event := server.onInfo(Event.New(
 		Event.GettingGroupClients,
 		server.GetServerContext().Merge(Event.Context{
-			"info":     "getting group clients",
-			"type":     "websocketConnection",
-			"groupId":  groupId,
-			"function": "IsClientInGroup",
+			"info":      "getting group clients",
+			"type":      "websocketConnection",
+			"groupId":   groupId,
+			"function":  "IsClientInGroup",
+			"onError":   "cancel",
+			"onWarning": "continue",
+			"onInfo":    "continue",
 		}),
 	)); event.IsError() {
-		return false, event
+		return false, event.GetError()
 	}
 
 	if server.groups[groupId] == nil {
-		return false, server.onError(Event.New(
+		server.onError(Event.New(
 			Event.GroupDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":    "group does not exist",
@@ -478,10 +532,11 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 				"function": "IsClientInGroup",
 			}),
 		))
+		return false, errors.New("group does not exist")
 	}
 
 	if server.groups[groupId][websocketId] == nil {
-		return false, server.onInfo(Event.New(
+		server.onInfo(Event.New(
 			Event.ClientNotInGroup,
 			server.GetServerContext().Merge(Event.Context{
 				"info":              "client is not in group",
@@ -491,9 +546,10 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 				"function":          "IsClientInGroup",
 			}),
 		))
+		return false, errors.New("client is not in group")
 	}
 
-	return true, server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.GotGroupClients,
 		server.GetServerContext().Merge(Event.Context{
 			"info":     "got group clients",
@@ -502,4 +558,5 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 			"function": "IsClientInGroup",
 		}),
 	))
+	return true, nil
 }
