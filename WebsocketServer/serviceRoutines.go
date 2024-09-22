@@ -115,13 +115,29 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 		case <-server.stopChannel:
 		}
 
+		server.onInfo(Event.New(
+			Event.DisconnectingClient,
+			server.GetServerContext().Merge(Event.Context{
+				"info":        "websocket connection disconnected",
+				"type":        "websocketConnection",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
+			}),
+		))
+
 		server.removeClient(client)
-
-		if server.onDisconnectHandler != nil {
-			server.onDisconnectHandler(client)
-		}
-
 		server.waitGroup.Done()
+
+		server.onInfo(Event.New(
+			Event.DisconnectedClient,
+			server.GetServerContext().Merge(Event.Context{
+				"info":        "websocket connection disconnected",
+				"type":        "websocketConnection",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
+			}),
+		))
+
 	}()
 
 	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id

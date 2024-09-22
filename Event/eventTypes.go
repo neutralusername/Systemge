@@ -32,6 +32,9 @@ const ClientNotInGroup = "clientNotInGroup"
 const AcceptingClient = "acceptingConnection"
 const AcceptedClient = "connectionAccepted"
 
+const DisconnectingClient = "disconnectingClient"
+const DisconnectedClient = "clientDisconnected"
+
 const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
 const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
