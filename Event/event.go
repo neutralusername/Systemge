@@ -60,14 +60,7 @@ func (e *Event) IsError() bool {
 }
 
 func (e *Event) GetError() error {
-	if _, ok := e.Context["error"]; !ok {
-		return nil
-	}
-	bytes, err := e.Marshal()
-	if err != nil {
-		return nil
-	}
-	return errors.New(string(bytes))
+	return errors.New(e.Context["error"])
 }
 
 func (e *Event) AddContext(key, val string) {

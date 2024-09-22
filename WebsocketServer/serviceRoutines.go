@@ -186,15 +186,13 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 			event = server.handleClientMessage(client, messageBytes)
 			if event.IsError() {
 				if server.config.PropagateMessageHandlerErrors {
-					bytes, _ := event.Marshal()
-					server.Send(client, Message.NewAsync("error", string(bytes)).Serialize())
+					server.Send(client, Message.NewAsync("error", event.Marshal()).Serialize())
 				}
 				break
 			}
 			if event.IsWarning() {
 				if server.config.PropagateMessageHandlerWarnings {
-					bytes, _ := event.Marshal()
-					server.Send(client, Message.NewAsync("warning", string(bytes)).Serialize())
+					server.Send(client, Message.NewAsync("warning", event.Marshal()).Serialize())
 				}
 			}
 		} else {
@@ -202,14 +200,12 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 				event := server.handleClientMessage(client, messageBytes)
 				if event.IsError() {
 					if server.config.PropagateMessageHandlerErrors {
-						bytes, _ := event.Marshal()
-						server.Send(client, Message.NewAsync("error", string(bytes)).Serialize())
+						server.Send(client, Message.NewAsync("error", event.Marshal()).Serialize())
 					}
 				}
 				if event.IsWarning() {
 					if server.config.PropagateMessageHandlerWarnings {
-						bytes, _ := event.Marshal()
-						server.Send(client, Message.NewAsync("warning", string(bytes)).Serialize())
+						server.Send(client, Message.NewAsync("warning", event.Marshal()).Serialize())
 					}
 				}
 			}()

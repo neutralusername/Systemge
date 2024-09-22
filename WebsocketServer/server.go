@@ -104,8 +104,12 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server
 }
 
-func (server *WebsocketServer) Start() *Event.Event {
-	return server.start(true)
+func (server *WebsocketServer) Start() error {
+	event := server.start(true)
+	if event.IsError() {
+		return event.GetError()
+	}
+	return nil
 }
 func (server *WebsocketServer) start(lock bool) *Event.Event {
 	if lock {
@@ -163,8 +167,12 @@ func (server *WebsocketServer) start(lock bool) *Event.Event {
 	return event
 }
 
-func (server *WebsocketServer) Stop() *Event.Event {
-	return server.stop(true)
+func (server *WebsocketServer) Stop() error {
+	event := server.stop(true)
+	if event.IsError() {
+		return event.GetError()
+	}
+	return nil
 }
 func (server *WebsocketServer) stop(lock bool) *Event.Event {
 	if lock {
