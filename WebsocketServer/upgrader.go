@@ -92,7 +92,6 @@ func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnect
 			"address": websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
-		server.rejectedWebsocketConnectionsCounter.Add(1)
 		return event
 	}
 
