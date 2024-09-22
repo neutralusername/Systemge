@@ -15,7 +15,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.FailedToSplitHostPort,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
-					"address": httpRequest.RemoteAddr,
+					Event.Address: httpRequest.RemoteAddr,
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -31,8 +31,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: "ip",
-					"address":  httpRequest.RemoteAddr,
+					Event.Kind:    "ip",
+					Event.Address: httpRequest.RemoteAddr,
 				}),
 			))
 			if !event.IsInfo() {
@@ -48,7 +48,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.FailedToUpgradeToWebsocketConnection,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
-					"address": httpRequest.RemoteAddr,
+					Event.Address: httpRequest.RemoteAddr,
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -79,8 +79,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: "websocketConnection",
-					"address":  websocketConnection.RemoteAddr().String(),
+					Event.Kind:    "websocketConnection",
+					Event.Address: websocketConnection.RemoteAddr().String(),
 				}),
 			)); !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
@@ -93,8 +93,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.SentToChannel,
 				"sent upgraded websocket connection to channel",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: "websocketConnection",
-					"address":  websocketConnection.RemoteAddr().String(),
+					Event.Kind:    "websocketConnection",
+					Event.Address: websocketConnection.RemoteAddr().String(),
 				}),
 			))
 		}

@@ -72,7 +72,7 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:          "websocket",
-			"address":           client.GetIp(),
+			Event.Address:       client.GetIp(),
 			"targetWebsocketId": client.GetId(),
 			"bytes":             string(messageBytes),
 		}),
@@ -89,7 +89,7 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:          "websocket",
-				"address":           client.GetIp(),
+				Event.Address:       client.GetIp(),
 				"targetWebsocketId": client.GetId(),
 				"bytes":             string(messageBytes),
 			}),
@@ -104,7 +104,7 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 		"sent message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:          "websocket",
-			"address":           client.GetIp(),
+			Event.Address:       client.GetIp(),
 			"targetWebsocketId": client.GetId(),
 			"bytes":             string(messageBytes),
 		}),
@@ -124,7 +124,7 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocket",
-			"address":     client.GetIp(),
+			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
 	)); !event.IsInfo() {
@@ -140,7 +140,7 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "websocket",
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		))
@@ -152,7 +152,7 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, error) 
 		"received message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocket",
-			"address":     client.GetIp(),
+			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
 	))
@@ -167,7 +167,7 @@ func (server *WebsocketServer) Receive(client *WebsocketClient) ([]byte, error) 
 			"client is already accepted",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "websocket",
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		))

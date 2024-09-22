@@ -53,8 +53,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.Skip,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind: "websocketConnection",
-				"address":  websocketConnection.RemoteAddr().String(),
+				Event.Kind:    "websocketConnection",
+				Event.Address: websocketConnection.RemoteAddr().String(),
 			}),
 		))
 		if event.IsError() {
@@ -89,8 +89,8 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: "websocketConnection",
-			"address":  websocketConnection.RemoteAddr().String(),
+			Event.Kind:    "websocketConnection",
+			Event.Address: websocketConnection.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
 		if websocketConnection != nil {
@@ -133,7 +133,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 			"disconnecting websocket connection",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "websocketConnection",
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		))
@@ -146,7 +146,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 			"websocket connection disconnected",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "websocketConnection",
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		))
@@ -160,7 +160,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocketConnection",
-			"address":     websocketConnection.RemoteAddr().String(),
+			Event.Address: websocketConnection.RemoteAddr().String(),
 			"websocketId": websocketId,
 		}),
 	)); event.IsError() {
@@ -181,7 +181,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocketConnection",
-			"address":     client.GetIp(),
+			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
 	)); !event.IsInfo() {
@@ -231,7 +231,7 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		"stopped receiving messages from client",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocketConnection",
-			"address":     client.GetIp(),
+			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
 	))
@@ -246,7 +246,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocketConnection",
-			"address":     client.GetIp(),
+			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
 	))
@@ -263,7 +263,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "tokenBucket",
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		)); !event.IsInfo() {
@@ -280,7 +280,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "tokenBucket",
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		)); !event.IsInfo() {
@@ -294,7 +294,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.FailedToDeserialize,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 			}),
 		))
@@ -319,7 +319,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.NoHandlerForTopic,
 			"no handler for provided topic",
 			server.GetServerContext().Merge(Event.Context{
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 				"topic":       message.GetTopic(),
 			}),
@@ -331,7 +331,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.HandlerFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
-				"address":     client.GetIp(),
+				Event.Address: client.GetIp(),
 				"websocketId": client.GetId(),
 				"topic":       message.GetTopic(),
 			}),
@@ -342,7 +342,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		Event.HandledMessage,
 		"handled message from client",
 		server.GetServerContext().Merge(Event.Context{
-			"address":     client.GetIp(),
+			Event.Address: client.GetIp(),
 			"websocketId": client.GetId(),
 			"topic":       message.GetTopic(),
 		}),
