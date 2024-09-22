@@ -141,7 +141,7 @@ func (server *WebsocketServer) Start() *Event.Event {
 	}
 
 	server.stopChannel = make(chan bool)
-	go server.receiveWebsocketConnectionLoop(server.stopChannel)
+	go server.receiveWebsocketConnectionLoop()
 
 	server.status = Status.Started
 	return server.onInfo(Event.New(
