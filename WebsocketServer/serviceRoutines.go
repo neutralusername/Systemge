@@ -86,12 +86,31 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *we
 	for _, exists := server.clients[websocketId]; exists; {
 		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
 	}
-	client := server.newClient(websocketId, websocketConnection)
+	client := &WebsocketClient{
+		id:                  websocketId,
+		websocketConnection: websocketConnection,
+		stopChannel:         make(chan bool),
+	}
+	if server.config.ClientRateLimiterBytes != nil {
+		client.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.ClientRateLimiterBytes)
+	}
+	if server.config.ClientRateLimiterMessages != nil {
+		client.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.ClientRateLimiterMessages)
+	}
+	client.websocketConnection.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
 	server.clients[websocketId] = client
 	server.clientGroups[websocketId] = make(map[string]bool)
 	server.clientMutex.Unlock()
+	go func() {
+		<-client.stopChannel
 
-	defer client.Disconnect()
+		server.removeClient(client)
+
+		if server.onDisconnectHandler != nil {
+			server.onDisconnectHandler(client)
+		}
+	}()
+
 	if event := server.onInfo(Event.New( // websocketClient can be acquired in the handler function through its id
 		Event.AcceptedClient,
 		server.GetServerContext().Merge(Event.Context{
@@ -202,6 +221,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			}),
 		))
 	}
+
 	if client.rateLimiterMsgs != nil && !client.rateLimiterMsgs.Consume(1) {
 		return server.onWarning(Event.New(
 			Event.RateLimited,
@@ -213,6 +233,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			}),
 		))
 	}
+
 	message, err := Message.Deserialize(messageBytes, client.GetId())
 	if err != nil {
 		return server.onError(Event.New(
@@ -225,9 +246,16 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		))
 	}
 	message = Message.NewAsync(message.GetTopic(), message.GetPayload()) // getting rid of possible syncToken
-
 	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
-		return server.ResetWatchdog(client)
+		return server.onInfo(Event.New(
+			Event.HeartbeatReceived,
+			server.GetServerContext().Merge(Event.Context{
+				"info":        "received heartbeat from client",
+				"type":        "websocketConnection",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
+			}),
+		))
 	}
 
 	server.messageHandlerMutex.Lock()

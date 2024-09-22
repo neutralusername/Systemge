@@ -45,10 +45,11 @@ type WebsocketServer struct {
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 
-	ExecuteMessageHandlersSequentially bool   `json:"handleClientMessagesSequentially"` // default: false (if true, the server will handle messages from the same client sequentially)
-	PropagateMessageHandlerWarnings    bool   `json:"propagateMessageHandlerWarnings"`  // default: false (if true, the server will propagate warnings from message handlers to the client)
-	PropagateMessageHandlerErrors      bool   `json:"propagateMessageHandlerErrors"`    // default: false (if true, the server will propagate errors from message handlers to the client)
-	ClientWatchdogTimeoutMs            uint64 `json:"clientWatchdogTimeoutMs"`          // default: 0 (if a client does not send a heartbeat message within this time, the server will disconnect the client)
+	ExecuteMessageHandlersSequentially bool `json:"handleClientMessagesSequentially"` // default: false (if true, the server will handle messages from the same client sequentially)
+	PropagateMessageHandlerWarnings    bool `json:"propagateMessageHandlerWarnings"`  // default: false (if true, the server will propagate warnings from message handlers to the client)
+	PropagateMessageHandlerErrors      bool `json:"propagateMessageHandlerErrors"`    // default: false (if true, the server will propagate errors from message handlers to the client)
+
+	ServerReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect clients that do not send messages within this time)
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 }

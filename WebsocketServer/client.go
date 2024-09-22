@@ -1,6 +1,7 @@
 package WebsocketServer
 
 import (
+	"errors"
 	"sync"
 	"time"
 
@@ -16,93 +17,35 @@ type WebsocketClient struct {
 
 	isAccepted bool
 
-	watchdogMutex sync.Mutex
-	receiveMutex  sync.Mutex
-	sendMutex     sync.Mutex
-	stopChannel   chan bool
+	receiveMutex sync.Mutex
+	sendMutex    sync.Mutex
+	stopChannel  chan bool
 
-	// the watchdog timer is reset every time a message is received.
-	// if the timer expires, the client is disconnected.
-	// if the timer is nil, the client is already disconnected.
-	watchdog *time.Timer
+	closeMutex sync.Mutex
+	isClosed   bool
+
+	server *WebsocketServer
 
 	rateLimiterBytes *Tools.TokenBucketRateLimiter
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
-
-	expired      bool
-	disconnected bool
-}
-
-func (server *WebsocketServer) newClient(id string, websocketConnection *websocket.Conn) *WebsocketClient {
-	client := &WebsocketClient{
-		id:                  id,
-		websocketConnection: websocketConnection,
-		stopChannel:         make(chan bool),
-	}
-	if server.config.ClientRateLimiterBytes != nil {
-		client.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.ClientRateLimiterBytes)
-	}
-	if server.config.ClientRateLimiterMessages != nil {
-		client.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.ClientRateLimiterMessages)
-	}
-	client.websocketConnection.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
-
-	client.watchdogMutex.Lock()
-	defer client.watchdogMutex.Unlock()
-	client.watchdog = time.AfterFunc(time.Duration(server.config.ClientWatchdogTimeoutMs)*time.Millisecond, func() {
-		client.expired = true
-		client.watchdogMutex.Lock()
-		defer client.watchdogMutex.Unlock()
-		if client.watchdog == nil || (!client.disconnected && !client.expired) {
-			return
-		}
-		client.watchdog.Stop()
-		client.watchdog = nil
-		websocketConnection.Close()
-		if client.rateLimiterBytes != nil {
-			client.rateLimiterBytes.Close()
-		}
-		if client.rateLimiterMsgs != nil {
-			client.rateLimiterMsgs.Close()
-		}
-		if server.onDisconnectHandler != nil {
-			server.onDisconnectHandler(client)
-		}
-		server.removeClient(client)
-		close(client.stopChannel)
-	})
-	return client
-}
-
-// Resets the watchdog timer to its initial value.
-func (server *WebsocketServer) ResetWatchdog(client *WebsocketClient) *Event.Event {
-	if client == nil {
-		return Event.New("client is nil", nil)
-	}
-	client.watchdogMutex.Lock()
-	defer client.watchdogMutex.Unlock()
-	if client.watchdog == nil || client.disconnected {
-		return Event.New("client is disconnected", nil)
-	}
-	client.expired = false
-	client.watchdog.Reset(time.Duration(server.config.ClientWatchdogTimeoutMs) * time.Millisecond)
-	return nil
 }
 
 // Disconnects the client and blocks until the client onDisconnectHandler has finished.
-func (client *WebsocketClient) Disconnect() error {
-	if client == nil {
-		return Event.New("client is nil", nil)
+func (client *WebsocketClient) Close() error {
+	client.closeMutex.Lock()
+	defer client.closeMutex.Unlock()
+	if client.isClosed {
+		return errors.New("client is already closed")
 	}
-	client.watchdogMutex.Lock()
-	if client.watchdog == nil || client.disconnected {
-		client.watchdogMutex.Unlock()
-		return Event.New("client is already disconnected", nil)
+	client.isClosed = true
+	client.websocketConnection.Close()
+	if client.rateLimiterBytes != nil {
+		client.rateLimiterBytes.Close()
 	}
-	client.disconnected = true
-	client.watchdog.Reset(0)
-	client.watchdogMutex.Unlock()
-	<-client.stopChannel
+	if client.rateLimiterMsgs != nil {
+		client.rateLimiterMsgs.Close()
+	}
+	close(client.stopChannel)
 	return nil
 }
 
@@ -130,12 +73,12 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			"bytes":             string(messageBytes),
 		}),
 	)); event.IsError() {
-		server.failedMessageCounter.Add(1)
+		server.failedSendCounter.Add(1)
 		return event
 	}
 	err := client.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
-		server.failedMessageCounter.Add(1)
+		server.failedSendCounter.Add(1)
 		return server.onError(Event.New(
 			Event.NetworkError,
 			server.GetServerContext().Merge(Event.Context{
@@ -175,8 +118,10 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.
 	)); event.IsError() {
 		return nil, event
 	}
+	client.websocketConnection.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
 	_, messageBytes, err := client.websocketConnection.ReadMessage()
 	if err != nil {
+		client.Close()
 		event := server.onError(Event.New(
 			Event.NetworkError,
 			server.GetServerContext().Merge(Event.Context{
@@ -200,9 +145,17 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.
 }
 
 // may only be called during the connections onConnectHandler.
-func (client *WebsocketClient) Receive() ([]byte, error) {
+func (server *WebsocketServer) Receive(client *WebsocketClient) ([]byte, *Event.Event) {
 	if client.isAccepted {
-		return nil, Event.New("may only be called during the connections onConnectHandler", nil)
+		return nil, server.onError(Event.New(
+			Event.ClientAlreadyAccepted,
+			server.GetServerContext().Merge(Event.Context{
+				"error":       "client is already accepted",
+				"type":        "websocket",
+				"address":     client.GetIp(),
+				"websocketId": client.GetId(),
+			}),
+		))
 	}
-	return client.receive()
+	return server.receive(client)
 }

@@ -19,6 +19,7 @@ const AcceptClientsRoutineStarted = "acceptClientsRoutineStarted"
 const AcceptClientsRoutineFinished = "acceptClientsRoutineFinished"
 
 const ClientNotAccepted = "clientNotAccepted"
+const ClientAlreadyAccepted = "clientAlreadyAccepted"
 
 const ClientDoesNotExist = "clientDoesNotExist"
 
@@ -79,3 +80,5 @@ const GettingGroupCount = "gettingGroupCount"
 
 const GettingGroupIds = "gettingGroupIds"
 const GotGroupIds = "gotGroupIds"
+
+const HeartbeatReceived = "heartbeatReceived"

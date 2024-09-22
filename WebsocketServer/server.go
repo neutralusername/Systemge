@@ -36,6 +36,8 @@ type WebsocketServer struct {
 
 	messageHandlerMutex sync.Mutex
 
+	waitGroup sync.WaitGroup
+
 	onErrorHandler   func(*Event.Event) *Event.Event
 	onWarningHandler func(*Event.Event) *Event.Event
 	onInfoHandler    func(*Event.Event) *Event.Event
@@ -47,7 +49,8 @@ type WebsocketServer struct {
 
 	incomingMessageCounter atomic.Uint32
 	outgoigMessageCounter  atomic.Uint32
-	failedMessageCounter   atomic.Uint32
+
+	failedSendCounter atomic.Uint32
 
 	bytesSentCounter     atomic.Uint64
 	bytesReceivedCounter atomic.Uint64
@@ -185,7 +188,7 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	server.clientMutex.Unlock()
 
 	for _, websocketClient := range websocketClientsToDisconnect {
-		websocketClient.Disconnect()
+		websocketClient.Close()
 	}
 
 	server.status = Status.Stoped

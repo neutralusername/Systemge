@@ -229,7 +229,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		server.clientMutex.Lock()
 		defer server.clientMutex.Unlock()
 		if client, ok := server.clients[id]; ok {
-			client.Disconnect()
+			client.Close()
 			return "success", nil
 		}
 		return "", Event.New("client with id "+id+" does not exist", nil)
