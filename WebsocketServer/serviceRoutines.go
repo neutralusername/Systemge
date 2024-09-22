@@ -262,7 +262,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:        "tokenBucket",
+				Event.Kind:        Event.TokenBucket,
 				Event.Address:     client.GetIp(),
 				Event.WebsocketId: client.GetId(),
 			}),
@@ -279,7 +279,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:        "tokenBucket",
+				Event.Kind:        Event.TokenBucket,
 				Event.Address:     client.GetIp(),
 				Event.WebsocketId: client.GetId(),
 			}),

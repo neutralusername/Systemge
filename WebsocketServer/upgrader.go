@@ -31,7 +31,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:    "ip",
+					Event.Kind:    Event.Ip,
 					Event.Address: httpRequest.RemoteAddr,
 				}),
 			))
