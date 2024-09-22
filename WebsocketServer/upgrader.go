@@ -14,9 +14,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			event := server.onError(Event.New(
 				Event.FailedToSplitHostPort,
 				server.GetServerContext().Merge(Event.Context{
-					"error":   err.Error(),
-					"address": httpRequest.RemoteAddr,
-					"onError": "cancel",
+					"error":     err.Error(),
+					"address":   httpRequest.RemoteAddr,
+					"onError":   "cancel",
+					"onWarning": "continue",
+					"onInfo":    "continue",
 				}),
 			))
 			if event.IsError() {
@@ -30,10 +32,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			event := server.onError(Event.New(
 				Event.RateLimited,
 				server.GetServerContext().Merge(Event.Context{
-					"error":   "IP rate limit exceeded",
-					"type":    "ip",
-					"address": httpRequest.RemoteAddr,
-					"onError": "cancel",
+					"error":     "IP rate limit exceeded",
+					"type":      "ip",
+					"address":   httpRequest.RemoteAddr,
+					"onError":   "cancel",
+					"onWarning": "continue",
+					"onInfo":    "continue",
 				}),
 			))
 			if event.IsError() {
@@ -75,10 +79,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			if event := server.onInfo(Event.New(
 				Event.SendingToChannel,
 				server.GetServerContext().Merge(Event.Context{
-					"info":    "sending upgraded websocket connection to channel",
-					"type":    "websocketConnection",
-					"address": websocketConnection.RemoteAddr().String(),
-					"onError": "cancel",
+					"info":      "sending upgraded websocket connection to channel",
+					"type":      "websocketConnection",
+					"address":   websocketConnection.RemoteAddr().String(),
+					"onError":   "cancel",
+					"onInfo":    "continue",
+					"onWarning": "continue",
 				}),
 			)); event.IsError() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
