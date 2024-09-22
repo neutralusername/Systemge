@@ -187,6 +187,12 @@ func (server *WebsocketServer) stop(lock bool) error {
 	}
 
 	if server.status != Status.Started {
+		server.onError(Event.New(
+			Event.ServiceAlreadyStarted,
+			server.GetServerContext().Merge(Event.Context{
+				"error": "failed to start websocketServer",
+			}),
+		))
 		return errors.New("websocketServer not started")
 	}
 	server.status = Status.Pending

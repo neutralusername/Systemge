@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -41,7 +43,6 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 					"syncToken":         message.GetSyncToken(),
 					"onError":           "cancel",
 					"onWarning":         "skip",
-					"onInfo":            "continue",
 				}),
 			))
 			if event.IsError() {
@@ -60,7 +61,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"info":      "broadcasted message to all connected clients",
@@ -69,7 +70,8 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
 		}),
-	)).GetError()
+	))
+	return nil
 }
 
 // Unicast unicasts a message to a specific client by id.
@@ -96,7 +98,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	client, exists := server.clients[id]
 	if !exists {
 		server.clientMutex.RUnlock()
-		return server.onError(Event.New(
+		server.onError(Event.New(
 			Event.ClientDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":             "Client does not exist",
@@ -106,13 +108,14 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 				"payload":           message.GetPayload(),
 				"syncToken":         message.GetSyncToken(),
 			}),
-		)).GetError()
+		))
+		return errors.New("client does not exist")
 	}
 	if !client.isAccepted {
-		event := server.onWarning(Event.New(
+		event := server.onError(Event.New(
 			Event.ClientNotAccepted,
 			server.GetServerContext().Merge(Event.Context{
-				"warning":           "Client is not accepted",
+				"error":             "Client is not accepted",
 				"type":              "websocketUnicast",
 				"targetWebsocketId": id,
 				"topic":             message.GetTopic(),
@@ -133,7 +136,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	return server.onInfo(Event.New(
+	server.onInfo(Event.New(
 		Event.SentMessage,
 		server.GetServerContext().Merge(Event.Context{
 			"info":              "unicasted message to client",
@@ -143,7 +146,8 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			"payload":           message.GetPayload(),
 			"syncToken":         message.GetSyncToken(),
 		}),
-	)).GetError()
+	))
+	return nil
 }
 
 // Multicast multicasts a message to multiple clients by id.
@@ -158,6 +162,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			"topic":              message.GetTopic(),
 			"payload":            message.GetPayload(),
 			"syncToken":          message.GetSyncToken(),
+			"onError":            "cancel",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -178,6 +183,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 					"topic":              message.GetTopic(),
 					"payload":            message.GetPayload(),
 					"syncToken":          message.GetSyncToken(),
+					"onError":            "cancel",
 				}),
 			)); event.IsError() {
 				server.clientMutex.RUnlock()
@@ -185,16 +191,18 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			}
 		}
 		if !client.isAccepted {
-			event := server.onWarning(Event.New(
+			event := server.onError(Event.New(
 				Event.ClientNotAccepted,
 				server.GetServerContext().Merge(Event.Context{
-					"warning":            "Client is not accepted",
+					"error":              "Client is not accepted",
 					"type":               "websocketMulticast",
 					"targetWebsocketId":  id,
 					"targetWebsocketIds": Helpers.JsonMarshal(ids),
 					"topic":              message.GetTopic(),
 					"payload":            message.GetPayload(),
 					"syncToken":          message.GetSyncToken(),
+					"onError":            "cancel",
+					"onWarning":          "skip",
 				}),
 			))
 			if event.IsError() {
@@ -238,6 +246,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			"topic":     message.GetTopic(),
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
+			"onError":   "cancel",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -249,7 +258,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	group, ok := server.groups[groupId]
 	if !ok {
 		server.clientMutex.RUnlock()
-		return server.onError(Event.New(
+		server.onError(Event.New(
 			Event.GroupDoesNotExist,
 			server.GetServerContext().Merge(Event.Context{
 				"error":     "Group does not exist",
@@ -259,7 +268,8 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				"payload":   message.GetPayload(),
 				"syncToken": message.GetSyncToken(),
 			}),
-		)).GetError()
+		))
+		return errors.New("group does not exist")
 	}
 	for _, client := range group {
 		if !client.isAccepted {
