@@ -140,6 +140,14 @@ func (e *Event) GetLevel() int8 {
 	return e.level
 }
 
+func (e *Event) GetKind() string {
+	return e.kind
+}
+
+func (e *Event) GetContext() Context {
+	return e.context
+}
+
 func GetCallerPath(depth int) string {
 	_, file, line, ok := runtime.Caller(depth)
 	if !ok {
