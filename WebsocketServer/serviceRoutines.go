@@ -59,15 +59,36 @@ func (server *WebsocketServer) receiveWebsocketConnectionFromChannel() (*websock
 	)); event.IsError() {
 		return nil, event
 	}
-	websocketConnection := <-server.connectionChannel
-	return websocketConnection, server.onInfo(Event.New(
-		Event.ReceivedFromChannel,
-		server.GetServerContext().Merge(Event.Context{
-			"info":    "received connection from channel",
-			"type":    "websocketConnection",
-			"address": websocketConnection.RemoteAddr().String(),
-		}),
-	))
+	select { // receive until all n remaining httpHandlers sent their connections then go to default and wait for stopChannel (if stopChannel triggers, that means no more connections will be received)
+	case websocketConnection := <-server.connectionChannel:
+		return websocketConnection, server.onInfo(Event.New(
+			Event.ReceivedFromChannel,
+			server.GetServerContext().Merge(Event.Context{
+				"info":    "received connection from channel",
+				"type":    "websocketConnection",
+				"address": websocketConnection.RemoteAddr().String(),
+			}),
+		))
+	default:
+		select {
+		case <-server.stopChannel:
+			return nil, server.onError(Event.New(
+				Event.ServiceAlreadyStopped,
+				server.GetServerContext().Merge(Event.Context{
+					"error": "websocketServer stopped",
+				}),
+			))
+		case websocketConnection := <-server.connectionChannel:
+			return websocketConnection, server.onInfo(Event.New(
+				Event.ReceivedFromChannel,
+				server.GetServerContext().Merge(Event.Context{
+					"info":    "received connection from channel",
+					"type":    "websocketConnection",
+					"address": websocketConnection.RemoteAddr().String(),
+				}),
+			))
+		}
+	}
 }
 
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConnection *websocket.Conn, stopChannel chan bool) {
