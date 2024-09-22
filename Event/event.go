@@ -123,18 +123,15 @@ func (e *Event) GetError() error {
 	return nil
 }
 
-func (e *Event) SetError(specifier string) {
-	e.specifier = specifier
+func (e *Event) SetError() {
 	e.level = Error
 }
 
-func (e *Event) SetWarning(specifier string) {
-	e.specifier = specifier
+func (e *Event) SetWarning() {
 	e.level = Warning
 }
 
-func (e *Event) SetInfo(specifier string) {
-	e.specifier = specifier
+func (e *Event) SetInfo() {
 	e.level = Info
 }
 
@@ -159,21 +156,22 @@ func (e *Event) GetLevel() int8 {
 }
 
 /*
-func (e *Event) AddContext(key, val string) {
-	e.context[key] = val
-}
+	func (e *Event) AddContext(key, val string) {
+		e.context[key] = val
+	}
 
-func (e *Event) RemoveContext(key string) {
-	delete(e.context, key)
-}
+	func (e *Event) RemoveContext(key string) {
+		delete(e.context, key)
+	}
 
-func (e *Event) GetValue(key string) string {
-	return e.context[key]
-}
+	func (e *Event) GetValue(key string) string {
+		return e.context[key]
+	}
 
-func (e *Event) GetContext() map[string]string {
-	return e.context
-} */
+	func (e *Event) GetContext() map[string]string {
+		return e.context
+	}
+*/
 
 func GetCallerPath(depth int) string {
 	_, file, line, ok := runtime.Caller(depth)
