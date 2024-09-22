@@ -1,6 +1,7 @@
 package WebsocketServer
 
 import (
+	"errors"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -105,13 +106,9 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 }
 
 func (server *WebsocketServer) Start() error {
-	event := server.start(true)
-	if event.IsError() {
-		return event.GetError()
-	}
-	return nil
+	return server.start(true)
 }
-func (server *WebsocketServer) start(lock bool) *Event.Event {
+func (server *WebsocketServer) start(lock bool) error {
 	if lock {
 		server.statusMutex.Lock()
 		defer server.statusMutex.Unlock()
@@ -119,19 +116,21 @@ func (server *WebsocketServer) start(lock bool) *Event.Event {
 
 	if event := server.onInfo(Event.New(Event.StartingService,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "starting websocketServer",
+			"info":    "starting websocketServer",
+			"onError": "cancel",
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 
 	if server.status != Status.Stoped {
-		return server.onError(Event.New(
+		server.onError(Event.New(
 			Event.ServiceAlreadyStarted,
 			server.GetServerContext().Merge(Event.Context{
 				"error": "failed to start websocketServer",
 			}),
 		))
+		return errors.New("failed to start websocketServer")
 	}
 	server.status = Status.Pending
 
@@ -139,42 +138,39 @@ func (server *WebsocketServer) start(lock bool) *Event.Event {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
 	server.connectionChannel = make(chan *websocket.Conn)
-	if event := server.httpServer.Start(); event.IsError() {
+	if err := server.httpServer.Start(); err != nil { // TODO: context from this service missing - handle this somehow
 		if server.ipRateLimiter != nil {
 			server.ipRateLimiter.Close()
 			server.ipRateLimiter = nil
 			close(server.connectionChannel)
 		}
 		server.status = Status.Stoped
-		return event // TODO: context from this service missing - handle this somehow
+		return err
 	}
 
 	server.stopChannel = make(chan bool)
 	go server.receiveWebsocketConnectionLoop()
 
 	server.status = Status.Started
-	event := server.onInfo(Event.New(
+
+	if event := server.onInfo(Event.New(
 		Event.ServiceStarted,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "websocketServer started",
+			"info":    "websocketServer started",
+			"onError": "cancel",
 		}),
-	))
-	if event.IsError() {
-		if event := server.stop(false); event.IsError() {
-			panic(event.Marshal())
+	)); event.IsError() {
+		if err := server.stop(false); err != nil {
+			panic(err)
 		}
-	}
-	return event
-}
-
-func (server *WebsocketServer) Stop() error {
-	event := server.stop(true)
-	if event.IsError() {
-		return event.GetError()
 	}
 	return nil
 }
-func (server *WebsocketServer) stop(lock bool) *Event.Event {
+
+func (server *WebsocketServer) Stop() error {
+	return server.stop(true)
+}
+func (server *WebsocketServer) stop(lock bool) error {
 	if lock {
 		server.statusMutex.Lock()
 		defer server.statusMutex.Unlock()
@@ -183,19 +179,15 @@ func (server *WebsocketServer) stop(lock bool) *Event.Event {
 	if event := server.onInfo(Event.New(
 		Event.StoppingService,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "stopping websocketServer",
+			"info":    "stopping websocketServer",
+			"onError": "cancel",
 		}),
 	)); event.IsError() {
-		return event
+		return event.GetError()
 	}
 
 	if server.status != Status.Started {
-		return server.onError(Event.New(
-			Event.ServiceAlreadyStopped,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "failed to stop websocketServer",
-			}),
-		))
+		return errors.New("websocketServer not started")
 	}
 	server.status = Status.Pending
 
@@ -213,15 +205,16 @@ func (server *WebsocketServer) stop(lock bool) *Event.Event {
 	event := server.onInfo(Event.New(
 		Event.ServiceStopped,
 		server.GetServerContext().Merge(Event.Context{
-			"info": "websocketServer stopped",
+			"info":    "websocketServer stopped",
+			"onError": "cancel",
 		}),
 	))
 	if event.IsError() {
-		if event := server.start(false); event.IsError() {
-			panic(event.Marshal())
+		if err := server.start(false); err != nil {
+			panic(err)
 		}
 	}
-	return event
+	return nil
 }
 
 func (server *WebsocketServer) GetName() string {

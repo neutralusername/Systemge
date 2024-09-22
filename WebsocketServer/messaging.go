@@ -18,6 +18,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			"topic":     message.GetTopic(),
 			"payload":   message.GetPayload(),
 			"syncToken": message.GetSyncToken(),
+			"onError":   "cancel",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -38,6 +39,9 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 					"topic":             message.GetTopic(),
 					"payload":           message.GetPayload(),
 					"syncToken":         message.GetSyncToken(),
+					"onError":           "cancel",
+					"onWarning":         "skip",
+					"onInfo":            "continue",
 				}),
 			))
 			if event.IsError() {
@@ -80,6 +84,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 			"topic":             message.GetTopic(),
 			"payload":           message.GetPayload(),
 			"syncToken":         message.GetSyncToken(),
+			"onError":           "cancel",
 		}),
 	)); event.IsError() {
 		return event.GetError()
@@ -113,6 +118,7 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 				"topic":             message.GetTopic(),
 				"payload":           message.GetPayload(),
 				"syncToken":         message.GetSyncToken(),
+				"onError":           "cancel",
 			}),
 		))
 		if event.IsError() {
