@@ -9,14 +9,14 @@ func (server *WebsocketServer) ClientExists(websocketId string) bool {
 }
 
 // GetClientGroupCount returns the number of groups a client is in (0 if the client does not exist).
-func (server *WebsocketServer) GetClientGroupCount(websocketId string) (int, error) {
+func (server *WebsocketServer) GetClientGroupCount(websocketId string) int {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 	return len(server.clientGroups[websocketId])
 }
 
 // GetClientCount returns the number of connected clients.
-func (server *WebsocketServer) GetClientCount() (int, error) {
+func (server *WebsocketServer) GetClientCount() int {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 	return len(server.clients)

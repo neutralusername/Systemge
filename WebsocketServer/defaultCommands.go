@@ -219,17 +219,12 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		clientGroupCount, err := server.GetClientGroupCount(id)
-		if err != nil {
-			return "", err
-		}
+		clientGroupCount := server.GetClientGroupCount(id)
+
 		return Helpers.IntToString(clientGroupCount), nil
 	}
 	commands["getClientCount"] = func(args []string) (string, error) {
-		clientGroupCount, err := server.GetClientCount()
-		if err != nil {
-			return "", err
-		}
+		clientGroupCount := server.GetClientCount()
 		return Helpers.IntToString(clientGroupCount), nil
 	}
 	commands["closeClient"] = func(args []string) (string, error) {
