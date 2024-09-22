@@ -11,20 +11,22 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			server.onError(Event.New(
+			event := server.onError(Event.New(
 				Event.FailedToSplitHostPort,
 				server.GetServerContext().Merge(Event.Context{
 					"error":   err.Error(),
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
-			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.rejectedWebsocketConnectionsCounter.Add(1)
-			return
+			if event.IsError() {
+				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+				server.rejectedWebsocketConnectionsCounter.Add(1)
+				return
+			}
 		}
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			server.onError(Event.New(
+			event := server.onError(Event.New(
 				Event.RateLimited,
 				server.GetServerContext().Merge(Event.Context{
 					"error":   "IP rate limit exceeded",
@@ -32,9 +34,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 					"address": httpRequest.RemoteAddr,
 				}),
 			))
-			http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
-			server.rejectedWebsocketConnectionsCounter.Add(1)
-			return
+			if event.IsError() {
+				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
+				server.rejectedWebsocketConnectionsCounter.Add(1)
+				return
+			}
 		}
 
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
