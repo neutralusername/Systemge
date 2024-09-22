@@ -27,21 +27,21 @@ const (
 type Event struct {
 	kind      string
 	specifier string
+	context   Context
 	level     int8
 	onError   int8
 	onWarning int8
 	onInfo    int8
-	context   Context
 }
 
 type event struct {
 	Kind      string  `json:"kind"`
 	Specifier string  `json:"specifier"`
+	Context   Context `json:"context"`
 	Level     int8    `json:"level"`
 	OnError   int8    `json:"onError"`
 	OnWarning int8    `json:"onWarning"`
 	OnInfo    int8    `json:"onInfo"`
-	Context   Context `json:"context"`
 }
 
 type Context map[string]string
@@ -158,6 +158,7 @@ func (e *Event) GetLevel() int8 {
 	return e.level
 }
 
+/*
 func (e *Event) AddContext(key, val string) {
 	e.context[key] = val
 }
@@ -172,7 +173,7 @@ func (e *Event) GetValue(key string) string {
 
 func (e *Event) GetContext() map[string]string {
 	return e.context
-}
+} */
 
 func GetCallerPath(depth int) string {
 	_, file, line, ok := runtime.Caller(depth)
