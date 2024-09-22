@@ -138,6 +138,18 @@ func (e *Event) SetInfo(specifier string) {
 	e.level = Info
 }
 
+func (e *Event) GetOnError() int8 {
+	return e.onError
+}
+
+func (e *Event) GetOnWarning() int8 {
+	return e.onWarning
+}
+
+func (e *Event) GetOnInfo() int8 {
+	return e.onInfo
+}
+
 func (e *Event) GetSpecifier() string {
 	return e.specifier
 }
