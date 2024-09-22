@@ -4,7 +4,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Event"
 )
 
@@ -66,12 +65,42 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 
 		server.waitGroup.Add(1)
-		if event := server.sendWebsocketConnectionToChannel(websocketConnection); event.IsError() {
+		switch {
+		case <-server.stopChannel:
+			server.onError(Event.New(
+				Event.ServiceAlreadyStopped,
+				server.GetServerContext().Merge(Event.Context{
+					"error": "websocketServer stopped",
+				}),
+			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
 			server.rejectedWebsocketConnectionsCounter.Add(1)
 			server.waitGroup.Done()
 			return
+		default:
+			if event := server.onInfo(Event.New(
+				Event.SendingToChannel,
+				server.GetServerContext().Merge(Event.Context{
+					"info":    "sending upgraded websocket connection to channel",
+					"type":    "websocketConnection",
+					"address": websocketConnection.RemoteAddr().String(),
+				}),
+			)); event.IsError() {
+				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
+				websocketConnection.Close()
+				server.rejectedWebsocketConnectionsCounter.Add(1)
+				server.waitGroup.Done()
+			}
+			server.connectionChannel <- websocketConnection
+			server.onInfo(Event.New(
+				Event.SentToChannel,
+				server.GetServerContext().Merge(Event.Context{
+					"info":    "sent upgraded websocket connection to channel",
+					"type":    "websocketConnection",
+					"address": websocketConnection.RemoteAddr().String(),
+				}),
+			))
 		}
 
 		server.onInfo(Event.New(
@@ -80,39 +109,6 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				"info":    "upgraded connection to websocket",
 				"type":    "websocketUpgrade",
 				"address": httpRequest.RemoteAddr,
-			}),
-		))
-	}
-}
-
-func (server *WebsocketServer) sendWebsocketConnectionToChannel(websocketConnection *websocket.Conn) *Event.Event {
-	if event := server.onInfo(Event.New(
-		Event.SendingToChannel,
-		server.GetServerContext().Merge(Event.Context{
-			"info":    "sending upgraded websocket connection to channel",
-			"type":    "websocketConnection",
-			"address": websocketConnection.RemoteAddr().String(),
-		}),
-	)); event.IsError() {
-		return event
-	}
-
-	switch {
-	case <-server.stopChannel:
-		return server.onError(Event.New(
-			Event.ServiceAlreadyStopped,
-			server.GetServerContext().Merge(Event.Context{
-				"error": "websocketServer stopped",
-			}),
-		))
-	default:
-		server.connectionChannel <- websocketConnection
-		return server.onInfo(Event.New(
-			Event.SentToChannel,
-			server.GetServerContext().Merge(Event.Context{
-				"info":    "sent upgraded websocket connection to channel",
-				"type":    "websocketConnection",
-				"address": websocketConnection.RemoteAddr().String(),
 			}),
 		))
 	}
