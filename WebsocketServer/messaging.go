@@ -274,7 +274,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocketGroupcast",
-			"groupId":     groupId,
+			Event.GroupId: groupId,
 			Event.Topic:   message.GetTopic(),
 			Event.Payload: message.GetPayload(),
 			"syncToken":   message.GetSyncToken(),
@@ -298,7 +298,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:    "websocketGroupcast",
-				"groupId":     groupId,
+				Event.GroupId: groupId,
 				Event.Topic:   message.GetTopic(),
 				Event.Payload: message.GetPayload(),
 				"syncToken":   message.GetSyncToken(),
@@ -316,7 +316,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
 					Event.Kind:              "websocketGroupcast",
-					"groupId":               groupId,
+					Event.GroupId:           groupId,
 					Event.TargetWebsocketId: client.GetId(),
 					Event.Topic:             message.GetTopic(),
 					Event.Payload:           message.GetPayload(),
@@ -347,7 +347,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:    "websocketGroupcast",
-			"groupId":     groupId,
+			Event.GroupId: groupId,
 			Event.Topic:   message.GetTopic(),
 			Event.Payload: message.GetPayload(),
 			"syncToken":   message.GetSyncToken(),

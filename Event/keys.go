@@ -9,3 +9,7 @@ const TargetWebsocketIds = "targetWebsocketIds"
 
 const Topic = "topic"
 const Payload = "payload"
+
+const GroupId = "groupId"
+
+const SyncToken = "syncToken"
