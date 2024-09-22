@@ -60,7 +60,7 @@ func (client *WebsocketClient) GetId() string {
 }
 
 // Sends a message to the client.
-func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte) *Event.Event {
+func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte) error {
 	client.sendMutex.Lock()
 	defer client.sendMutex.Unlock()
 	if event := server.onInfo(Event.New(
@@ -145,7 +145,7 @@ func (server *WebsocketServer) receive(client *WebsocketClient) ([]byte, *Event.
 }
 
 // may only be called during the connections onConnectHandler.
-func (server *WebsocketServer) Receive(client *WebsocketClient) ([]byte, *Event.Event) {
+func (server *WebsocketServer) Receive(client *WebsocketClient) ([]byte, error) {
 	if client.isAccepted {
 		return nil, server.onError(Event.New(
 			Event.ClientAlreadyAccepted,

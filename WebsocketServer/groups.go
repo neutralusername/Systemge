@@ -7,7 +7,7 @@ import (
 
 // AddClientsToGroup adds websocket clients to a group.
 // Returns an error if either of the websocket clients does not exist or is already in the group.
-func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ...string) *Event.Event {
+func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 
@@ -86,7 +86,7 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 
 // AttemptToAddClientsToGroup adds websocket clients to a group.
 // Proceeds even if either of the websocket clients does not exist or is already in the group.
-func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websocketIds ...string) *Event.Event {
+func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 
@@ -159,7 +159,7 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 // RemoveClientsFromGroup removes websocket clients from a group.
 // Returns an error if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketIds ...string) *Event.Event {
+func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 
@@ -239,7 +239,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 // AttemptToRemoveClientsFromGroup removes websocket clients from a group.
 // proceeds even if either of the websocket clients does not exist or is not in the group.
 // Returns an error if the group does not exist.
-func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, websocketIds ...string) *Event.Event {
+func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, websocketIds ...string) error {
 	server.clientMutex.Lock()
 	defer server.clientMutex.Unlock()
 
@@ -306,7 +306,7 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 	))
 }
 
-func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, *Event.Event) {
+func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error) {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 
@@ -350,7 +350,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, *Event
 	))
 }
 
-func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, *Event.Event) {
+func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, error) {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 
@@ -407,7 +407,7 @@ func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, *E
 }
 
 // GetGroupCount returns the number of groups.
-func (server *WebsocketServer) GetGroupCount() int {
+func (server *WebsocketServer) GetGroupCount() (int, error) {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 
@@ -424,7 +424,7 @@ func (server *WebsocketServer) GetGroupCount() int {
 	return len(server.groups)
 }
 
-func (server *WebsocketServer) GetGroupIds() ([]string, *Event.Event) {
+func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 
@@ -452,7 +452,7 @@ func (server *WebsocketServer) GetGroupIds() ([]string, *Event.Event) {
 	))
 }
 
-func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId string) (bool, *Event.Event) {
+func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId string) (bool, error) {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 
