@@ -29,10 +29,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			event := server.onWarning(Event.New(
+			event := server.onWarning(Event.NewWarning(
 				Event.RateLimited,
 				"IP rate limit exceeded",
-				Event.Warning,
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
@@ -50,10 +49,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			server.onWarning(Event.New(
+			server.onWarning(Event.NewWarning(
 				Event.FailedToUpgradeToWebsocketConnection,
 				err.Error(),
-				Event.Warning,
 				Event.NoOption,
 				Event.NoOption,
 				Event.NoOption,
@@ -69,10 +67,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		server.waitGroup.Add(1)
 		switch {
 		case <-server.stopChannel:
-			server.onInfo(Event.New(
+			server.onInfo(Event.NewInfo(
 				Event.ServiceAlreadyStopped,
 				"websocketServer stopped",
-				Event.Info,
 				Event.NoOption,
 				Event.NoOption,
 				Event.NoOption,
@@ -84,10 +81,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.waitGroup.Done()
 			return
 		default:
-			if event := server.onInfo(Event.New(
+			if event := server.onInfo(Event.NewInfo(
 				Event.SendingToChannel,
 				"sending upgraded websocket connection to channel",
-				Event.Info,
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
@@ -102,10 +98,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				server.waitGroup.Done()
 			}
 			server.connectionChannel <- websocketConnection
-			server.onInfo(Event.New(
+			server.onInfo(Event.NewInfo(
 				Event.SentToChannel,
 				"sent upgraded websocket connection to channel",
-				Event.Info,
 				Event.NoOption,
 				Event.NoOption,
 				Event.NoOption,
