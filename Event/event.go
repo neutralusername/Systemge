@@ -89,6 +89,22 @@ func UnmarshalEvent(data []byte) (*Event, error) {
 	}, nil
 }
 
+func (e *Event) GetKind() string {
+	return e.kind
+}
+
+func (e *Event) GetSpecifier() string {
+	return e.specifier
+}
+
+func (e *Event) GetLevel() int8 {
+	return e.level
+}
+
+func (e *Event) GetContext() Context {
+	return e.context
+}
+
 func (e *Event) IsInfo() bool {
 	return e.level == Info
 }
@@ -130,22 +146,6 @@ func (e *Event) GetOnWarning() int8 {
 
 func (e *Event) GetOnInfo() int8 {
 	return e.onInfo
-}
-
-func (e *Event) GetSpecifier() string {
-	return e.specifier
-}
-
-func (e *Event) GetLevel() int8 {
-	return e.level
-}
-
-func (e *Event) GetKind() string {
-	return e.kind
-}
-
-func (e *Event) GetContext() Context {
-	return e.context
 }
 
 func GetCallerPath(depth int) string {
