@@ -177,14 +177,14 @@ func (server *WebsocketServer) receiveMessagesLoop(client *WebsocketClient) {
 		Event.ReceiveMessageRoutineStarted,
 		"started receiving messages from client",
 		Event.Cancel,
-		Event.Continue,
+		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			"type":        "websocketConnection",
 			"address":     client.GetIp(),
 			"websocketId": client.GetId(),
 		}),
-	)); event.IsError() {
+	)); !event.IsInfo() {
 		return
 	}
 
@@ -242,7 +242,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 		Event.HandlingMessage,
 		"handling message from client",
 		Event.Cancel,
-		Event.Continue,
+		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			"type":        "websocketConnection",
@@ -250,7 +250,7 @@ func (server *WebsocketServer) handleClientMessage(client *WebsocketClient, mess
 			"websocketId": client.GetId(),
 		}),
 	))
-	if event.IsError() {
+	if !event.IsInfo() {
 		return event
 	}
 
