@@ -49,12 +49,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			server.onWarning(Event.NewWarning(
+			server.onWarning(Event.NewWarningNoOption(
 				Event.FailedToUpgradeToWebsocketConnection,
 				err.Error(),
-				Event.NoOption,
-				Event.NoOption,
-				Event.NoOption,
 				server.GetServerContext().Merge(Event.Context{
 					"address": httpRequest.RemoteAddr,
 				}),
@@ -67,12 +64,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		server.waitGroup.Add(1)
 		switch {
 		case <-server.stopChannel:
-			server.onInfo(Event.NewInfo(
+			server.onInfo(Event.NewInfoNoOption(
 				Event.ServiceAlreadyStopped,
 				"websocketServer stopped",
-				Event.NoOption,
-				Event.NoOption,
-				Event.NoOption,
 				server.GetServerContext().Merge(Event.Context{}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
@@ -98,12 +92,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				server.waitGroup.Done()
 			}
 			server.connectionChannel <- websocketConnection
-			server.onInfo(Event.NewInfo(
+			server.onInfo(Event.NewInfoNoOption(
 				Event.SentToChannel,
 				"sent upgraded websocket connection to channel",
-				Event.NoOption,
-				Event.NoOption,
-				Event.NoOption,
 				server.GetServerContext().Merge(Event.Context{
 					"type":    "websocketConnection",
 					"address": websocketConnection.RemoteAddr().String(),

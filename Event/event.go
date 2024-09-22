@@ -57,6 +57,17 @@ func NewInfo(eventType, specifier string, onError, onWarning, onInfo int8, conte
 		context:   context,
 	}
 }
+func NewInfoNoOption(eventType, specifier string, context Context) *Event {
+	return &Event{
+		kind:      eventType,
+		specifier: specifier,
+		level:     Info,
+		onError:   NoOption,
+		onWarning: NoOption,
+		onInfo:    NoOption,
+		context:   context,
+	}
+}
 
 func NewWarning(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
@@ -69,6 +80,17 @@ func NewWarning(eventType, specifier string, onError, onWarning, onInfo int8, co
 		context:   context,
 	}
 }
+func NewWarningNoOption(eventType, specifier string, context Context) *Event {
+	return &Event{
+		kind:      eventType,
+		specifier: specifier,
+		level:     Warning,
+		onError:   NoOption,
+		onWarning: NoOption,
+		onInfo:    NoOption,
+		context:   context,
+	}
+}
 
 func NewError(eventType, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
 	return &Event{
@@ -78,6 +100,17 @@ func NewError(eventType, specifier string, onError, onWarning, onInfo int8, cont
 		onError:   onError,
 		onWarning: onWarning,
 		onInfo:    onInfo,
+		context:   context,
+	}
+}
+func NewErrorNoOption(eventType, specifier string, context Context) *Event {
+	return &Event{
+		kind:      eventType,
+		specifier: specifier,
+		level:     Error,
+		onError:   NoOption,
+		onWarning: NoOption,
+		onInfo:    NoOption,
 		context:   context,
 	}
 }
