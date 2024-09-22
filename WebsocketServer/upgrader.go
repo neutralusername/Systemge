@@ -63,7 +63,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.ReceivedNilValueFromChannel,
 				"rejecting websocket upgrade request because server is stopping",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: "stopChannel",
+					Event.Kind: Event.StopChannel,
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade

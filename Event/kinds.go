@@ -6,4 +6,5 @@ const Ip = "ip"
 const TokenBucket = "tokenBucket"
 
 const Messages = "messages"
-const Bytes = "bytes"
+
+const StopChannel = "stopChannel"

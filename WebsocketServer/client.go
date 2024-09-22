@@ -106,7 +106,7 @@ func (server *WebsocketServer) Send(client *WebsocketClient, messageBytes []byte
 			Event.Kind:              Event.WebsocketConnection,
 			Event.Address:           client.GetIp(),
 			Event.TargetWebsocketId: client.GetId(),
-			"bytes":                 string(messageBytes),
+			Event.Bytes:             string(messageBytes),
 		}),
 	))
 	return nil
