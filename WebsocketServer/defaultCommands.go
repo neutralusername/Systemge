@@ -175,8 +175,8 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 	commands["getGroupCount"] = func(args []string) (string, error) {
 		return Helpers.IntToString(server.GetGroupCount()), nil
 	}
-	commands["getGroups"] = func(args []string) (string, error) {
-		groups := server.GetGroups()
+	commands["getGroupIds"] = func(args []string) (string, error) {
+		groups := server.GetGroupIds()
 		json, err := json.Marshal(groups)
 		if err != nil {
 			return "", err

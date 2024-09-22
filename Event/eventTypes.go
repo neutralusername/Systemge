@@ -66,3 +66,16 @@ const ClientsAddedToGroup = "clientsAddedToGroup"
 
 const RemovingClientsFromGroup = "removingClientsFromGroup"
 const ClientsRemovedFromGroup = "clientsRemovedFromGroup"
+
+const GettingGroupClients = "gettingGroupClients"
+const GotGroupClients = "gotGroupClients"
+
+const CreatingGroup = "creatingGroup"
+
+const GettingClientGroups = "gettingClientGroups"
+const GotClientGroups = "gotClientGroups"
+
+const GettingGroupCount = "gettingGroupCount"
+
+const GettingGroupIds = "gettingGroupIds"
+const GotGroupIds = "gotGroupIds"
