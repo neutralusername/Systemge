@@ -1,7 +1,7 @@
 package WebsocketServer
 
 // ClientExists returns true if a client with the given id exists.
-func (server *WebsocketServer) ClientExists(websocketId string) (bool, error) {
+func (server *WebsocketServer) ClientExists(websocketId string) bool {
 	server.clientMutex.RLock()
 	defer server.clientMutex.RUnlock()
 	_, exists := server.clients[websocketId]
