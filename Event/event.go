@@ -6,6 +6,8 @@ import (
 	"path"
 	"runtime"
 	"strconv"
+
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 type Event struct {
@@ -29,8 +31,8 @@ func (ctx Context) Merge(other Context) Context {
 	return ctx
 }
 
-func (e *Event) Marshal() ([]byte, error) {
-	return json.Marshal(e)
+func (e *Event) Marshal() string {
+	return Helpers.JsonMarshal(e)
 }
 
 func UnmarshalEvent(data []byte) (*Event, error) {

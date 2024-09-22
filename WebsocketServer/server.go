@@ -105,8 +105,13 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 }
 
 func (server *WebsocketServer) Start() *Event.Event {
-	server.statusMutex.Lock()
-	defer server.statusMutex.Unlock()
+	return server.start(true)
+}
+func (server *WebsocketServer) start(lock bool) *Event.Event {
+	if lock {
+		server.statusMutex.Lock()
+		defer server.statusMutex.Unlock()
+	}
 
 	if event := server.onInfo(Event.New(Event.StartingService,
 		server.GetServerContext().Merge(Event.Context{
@@ -144,17 +149,28 @@ func (server *WebsocketServer) Start() *Event.Event {
 	go server.receiveWebsocketConnectionLoop()
 
 	server.status = Status.Started
-	return server.onInfo(Event.New(
+	event := server.onInfo(Event.New(
 		Event.ServiceStarted,
 		server.GetServerContext().Merge(Event.Context{
 			"info": "websocketServer started",
 		}),
 	))
+	if event.IsError() {
+		if event := server.stop(false); event.IsError() {
+			panic(event.Marshal())
+		}
+	}
+	return event
 }
 
 func (server *WebsocketServer) Stop() *Event.Event {
-	server.statusMutex.Lock()
-	defer server.statusMutex.Unlock()
+	return server.stop(true)
+}
+func (server *WebsocketServer) stop(lock bool) *Event.Event {
+	if lock {
+		server.statusMutex.Lock()
+		defer server.statusMutex.Unlock()
+	}
 
 	if event := server.onInfo(Event.New(
 		Event.StoppingService,
@@ -186,12 +202,18 @@ func (server *WebsocketServer) Stop() *Event.Event {
 	close(server.connectionChannel)
 
 	server.status = Status.Stoped
-	return server.onInfo(Event.New(
+	event := server.onInfo(Event.New(
 		Event.ServiceStopped,
 		server.GetServerContext().Merge(Event.Context{
 			"info": "websocketServer stopped",
 		}),
 	))
+	if event.IsError() {
+		if event := server.start(false); event.IsError() {
+			panic(event.Marshal())
+		}
+	}
+	return event
 }
 
 func (server *WebsocketServer) GetName() string {
