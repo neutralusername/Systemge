@@ -41,11 +41,12 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:      Event.WebsocketConnection,
-					Event.ClientId:  websocketConnection.GetId(),
-					Event.Topic:     message.GetTopic(),
-					Event.Payload:   message.GetPayload(),
-					Event.SyncToken: message.GetSyncToken(),
+					Event.Kind:         Event.WebsocketConnection,
+					Event.Circumstance: Event.Broadcast,
+					Event.ClientId:     websocketConnection.GetId(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				}),
 			))
 			if event.IsError() {
@@ -108,11 +109,12 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:      Event.WebsocketConnection,
-				Event.ClientId:  websocketId,
-				Event.Topic:     message.GetTopic(),
-				Event.Payload:   message.GetPayload(),
-				Event.SyncToken: message.GetSyncToken(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.Unicast,
+				Event.ClientId:     websocketId,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			}),
 		))
 		return errors.New("websocketConnection does not exist")
@@ -125,11 +127,12 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:      Event.WebsocketConnection,
-				Event.ClientId:  websocketId,
-				Event.Topic:     message.GetTopic(),
-				Event.Payload:   message.GetPayload(),
-				Event.SyncToken: message.GetSyncToken(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.Unicast,
+				Event.ClientId:     websocketId,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			}),
 		))
 		if !event.IsInfo() {
@@ -191,11 +194,12 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Skip,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:      Event.WebsocketConnection,
-					Event.ClientId:  id,
-					Event.Topic:     message.GetTopic(),
-					Event.Payload:   message.GetPayload(),
-					Event.SyncToken: message.GetSyncToken(),
+					Event.Kind:         Event.WebsocketConnection,
+					Event.Circumstance: Event.Unicast,
+					Event.ClientId:     id,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				}),
 			))
 			if event.IsError() {
@@ -213,11 +217,12 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:      Event.WebsocketConnection,
-					Event.ClientId:  id,
-					Event.Topic:     message.GetTopic(),
-					Event.Payload:   message.GetPayload(),
-					Event.SyncToken: message.GetSyncToken(),
+					Event.Kind:         Event.WebsocketConnection,
+					Event.Circumstance: Event.Unicast,
+					Event.ClientId:     id,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				}),
 			))
 			if event.IsError() {
@@ -282,11 +287,12 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:      Event.WebsocketConnection,
-				Event.GroupId:   groupId,
-				Event.Topic:     message.GetTopic(),
-				Event.Payload:   message.GetPayload(),
-				Event.SyncToken: message.GetSyncToken(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.Unicast,
+				Event.GroupId:      groupId,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			}),
 		))
 		return errors.New("group does not exist")
@@ -300,11 +306,12 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:      Event.WebsocketConnection,
-					Event.GroupId:   groupId,
-					Event.Topic:     message.GetTopic(),
-					Event.Payload:   message.GetPayload(),
-					Event.SyncToken: message.GetSyncToken(),
+					Event.Kind:         Event.WebsocketConnection,
+					Event.Circumstance: Event.Unicast,
+					Event.GroupId:      groupId,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				}),
 			))
 			if event.IsError() {
