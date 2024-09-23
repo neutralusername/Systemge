@@ -18,10 +18,11 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.AdditionalKind:     Event.Transactional,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.Runtime,
+			Event.Behaviour:       Event.Transactional,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.GroupId:         groupId,
+			Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -33,9 +34,12 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:              Event.WebsocketConnection,
-					Event.TargetWebsocketId: websocketId,
-					Event.GroupId:           groupId,
+					Event.Circumstance:    Event.Runtime,
+					Event.Behaviour:       Event.Transactional,
+					Event.ClientType:      Event.WebsocketConnection,
+					Event.ClientId:        websocketId,
+					Event.GroupId:         groupId,
+					Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 				}),
 			))
 			return errors.New("client does not exist")
@@ -45,9 +49,12 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 				Event.ClientAlreadyInGroup,
 				"websocketConnection is already in group",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:              Event.WebsocketConnection,
-					Event.TargetWebsocketId: websocketId,
-					Event.GroupId:           groupId,
+					Event.Circumstance:    Event.Runtime,
+					Event.Behaviour:       Event.Transactional,
+					Event.ClientType:      Event.WebsocketConnection,
+					Event.ClientId:        websocketId,
+					Event.GroupId:         groupId,
+					Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 				}),
 			))
 			return errors.New("websocketConnection is already in group")
@@ -55,16 +62,18 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 	}
 
 	if server.groupsWebsocketConnections[groupId] == nil {
-		if event := server.onWarning(Event.NewWarning(
+		if event := server.onInfo(Event.NewInfo(
 			Event.CreatingGroup,
 			"group does not exist",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:               Event.WebsocketConnection,
-				Event.GroupId:            groupId,
-				Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
+				Event.Circumstance:    Event.Runtime,
+				Event.Behaviour:       Event.Transactional,
+				Event.ClientType:      Event.WebsocketConnection,
+				Event.GroupId:         groupId,
+				Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 			}),
 		)); !event.IsInfo() {
 			return event.GetError()
@@ -81,9 +90,11 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 		Event.ClientsAddedToGroup,
 		"added websocketConnections to group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.Runtime,
+			Event.Behaviour:       Event.Transactional,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.GroupId:         groupId,
+			Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 		}),
 	))
 	return nil

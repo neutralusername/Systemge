@@ -62,3 +62,5 @@ Add SyncResponses struct that is returned instead of a message channel. the stru
 change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)
 
 add some functionality to visualize how clients of a dashboardServer are connected to each other (ask them for connected names)
+
+give option to use custom marshallers (idk about implementation details yet)
