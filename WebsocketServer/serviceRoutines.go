@@ -23,14 +23,19 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	}
 
 	for {
-		server.onInfo(Event.NewInfoNoOption(
+		if event := server.onInfo(Event.NewInfo(
 			Event.ReceivingFromChannel,
 			"receiving websocketConnection from channel",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Circumstance: Event.ClientAcceptionRoutine,
 				Event.ChannelType:  Event.WebsocketConnection,
 			}),
-		))
+		)); !event.IsInfo() {
+			break
+		}
 
 		websocketConnection := <-server.connectionChannel
 		if websocketConnection == nil {
@@ -44,11 +49,10 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			))
 			break
 		}
-
-		if event := server.onInfo(Event.NewInfo(
+		event := server.onInfo(Event.NewInfo(
 			Event.ReceivedFromChannel,
 			"received websocketConnection from channel",
-			Event.Skip,
+			Event.Cancel,
 			Event.Skip,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
@@ -56,7 +60,13 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 				Event.ChannelType:   Event.WebsocketConnection,
 				Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 			}),
-		)); !event.IsInfo() {
+		))
+		if event.IsError() {
+			websocketConnection.Close()
+			server.websocketConnectionsRejected.Add(1)
+			break
+		}
+		if event.IsWarning() {
 			websocketConnection.Close()
 			server.websocketConnectionsRejected.Add(1)
 			continue
