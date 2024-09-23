@@ -19,7 +19,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 	netConn, err := listener.listener.Accept()
 	if err != nil {
 		listener.onWarning(Event.NewWarningNoOption(
-			Event.NetworkError,
+			Event.AcceptingClient,
 			"Failed to accept attempt",
 			listener.GetServerContext().Merge(Event.Context{
 				Event.Kind: Event.Tcp,
