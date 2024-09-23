@@ -45,16 +45,16 @@ type WebsocketServer struct {
 
 	// metrics
 
-	acceptedWebsocketConnectionsCounter atomic.Uint32
-	rejectedWebsocketConnectionsCounter atomic.Uint32
+	websocketConnectionsAccepted atomic.Uint32
+	websocketConnectionsRejected atomic.Uint32
 
-	incomingMessageCounter atomic.Uint32
-	outgoigMessageCounter  atomic.Uint32
+	websocketConnectionMessagesReceived atomic.Uint32
+	websocketConnectionMessagesSent     atomic.Uint32
 
-	failedSendCounter atomic.Uint32
+	websocketConnectionMessagesFailed atomic.Uint32
 
-	bytesSentCounter     atomic.Uint64
-	bytesReceivedCounter atomic.Uint64
+	websocketConnectionMessagesBytesReceived atomic.Uint64
+	websocketConnectionMessagesBytesSent     atomic.Uint64
 }
 
 // onConnectHandler, onDisconnectHandler may be nil.

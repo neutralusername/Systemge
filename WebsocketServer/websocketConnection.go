@@ -77,13 +77,13 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 			Event.MessageBytes:      string(messageBytes),
 		}),
 	)); !event.IsInfo() {
-		server.failedSendCounter.Add(1)
+		server.websocketConnectionMessagesFailed.Add(1)
 		return event.GetError()
 	}
 
 	err := websocketConnection.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
-		server.failedSendCounter.Add(1)
+		server.websocketConnectionMessagesFailed.Add(1)
 		server.onWarning(Event.NewWarningNoOption(
 			Event.SendingClientMessageFailed,
 			err.Error(),
@@ -96,8 +96,8 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 		))
 		return err
 	}
-	server.outgoigMessageCounter.Add(1)
-	server.bytesSentCounter.Add(uint64(len(messageBytes)))
+	server.websocketConnectionMessagesSent.Add(1)
+	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.SentClientMessage,

@@ -19,7 +19,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.websocketConnectionsRejected.Add(1)
 			return
 		}
 
@@ -37,7 +37,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			))
 			if !event.IsInfo() {
 				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
-				server.rejectedWebsocketConnectionsCounter.Add(1)
+				server.websocketConnectionsRejected.Add(1)
 				return
 			}
 		}
@@ -52,7 +52,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.websocketConnectionsRejected.Add(1)
 			return
 		}
 
@@ -68,7 +68,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
-			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.websocketConnectionsRejected.Add(1)
 			server.waitGroup.Done()
 			return
 		default:
@@ -85,7 +85,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			)); !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 				websocketConnection.Close()
-				server.rejectedWebsocketConnectionsCounter.Add(1)
+				server.websocketConnectionsRejected.Add(1)
 				server.waitGroup.Done()
 			}
 			server.connectionChannel <- websocketConnection

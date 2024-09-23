@@ -60,13 +60,13 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		if event.IsError() {
 			websocketConnection.Close()
 			server.waitGroup.Done()
-			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.websocketConnectionsRejected.Add(1)
 			break
 		}
 		if event.IsWarning() {
 			websocketConnection.Close()
 			server.waitGroup.Done()
-			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.websocketConnectionsRejected.Add(1)
 			continue
 		}
 		go server.acceptWebsocketConnection(websocketConnection)
@@ -96,7 +96,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		if websocketConn != nil {
 			websocketConn.Close()
 			server.waitGroup.Done()
-			server.rejectedWebsocketConnectionsCounter.Add(1)
+			server.websocketConnectionsRejected.Add(1)
 		}
 		return
 	}
@@ -167,7 +167,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		websocketConnection.Close()
 		return
 	}
-	server.acceptedWebsocketConnectionsCounter.Add(1)
+	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.isAccepted = true
 	go server.receiveMessagesLoop(websocketConnection)
 }
@@ -193,8 +193,8 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		if err != nil {
 			break
 		}
-		server.incomingMessageCounter.Add(1)
-		server.bytesReceivedCounter.Add(uint64(len(messageBytes)))
+		server.websocketConnectionMessagesReceived.Add(1)
+		server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
 
 		if server.config.ExecuteMessageHandlersSequentially {
 			event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)

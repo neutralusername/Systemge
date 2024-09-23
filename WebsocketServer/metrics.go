@@ -54,29 +54,29 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 }
 
 func (server *WebsocketServer) GetBytesSentCounter() uint64 {
-	return server.bytesSentCounter.Swap(0)
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
 }
 func (server *WebsocketServer) CheckBytesSentCounter() uint64 {
-	return server.bytesSentCounter.Load()
+	return server.websocketConnectionMessagesBytesSent.Load()
 }
 
 func (server *WebsocketServer) GetBytesReceivedCounter() uint64 {
-	return server.bytesReceivedCounter.Swap(0)
+	return server.websocketConnectionMessagesBytesReceived.Swap(0)
 }
 func (server *WebsocketServer) CheckBytesReceivedCounter() uint64 {
-	return server.bytesReceivedCounter.Load()
+	return server.websocketConnectionMessagesBytesReceived.Load()
 }
 
 func (server *WebsocketServer) GetIncomingMessageCounter() uint32 {
-	return server.incomingMessageCounter.Swap(0)
+	return server.websocketConnectionMessagesReceived.Swap(0)
 }
 func (server *WebsocketServer) CheckIncomingMessageCounter() uint32 {
-	return server.incomingMessageCounter.Load()
+	return server.websocketConnectionMessagesReceived.Load()
 }
 
 func (server *WebsocketServer) GetOutgoingMessageCounter() uint32 {
-	return server.outgoigMessageCounter.Swap(0)
+	return server.websocketConnectionMessagesSent.Swap(0)
 }
 func (server *WebsocketServer) CheckOutgoingMessageCounter() uint32 {
-	return server.outgoigMessageCounter.Load()
+	return server.websocketConnectionMessagesSent.Load()
 }
