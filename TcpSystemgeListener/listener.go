@@ -16,7 +16,7 @@ import (
 type TcpSystemgeListener struct {
 	name string
 
-	closed      bool
+	isClosed    bool
 	closedMutex sync.Mutex
 
 	config        *Config.TcpSystemgeListener
@@ -81,10 +81,10 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
-	if listener.closed {
+	if listener.isClosed {
 		return errors.New("tcpSystemgeListener is already closed")
 	}
-	listener.closed = true
+	listener.isClosed = true
 	listener.tcpListener.Close()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
@@ -95,7 +95,7 @@ func (listener *TcpSystemgeListener) Close() error {
 func (listener *TcpSystemgeListener) GetStatus() int {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
-	if listener.closed {
+	if listener.isClosed {
 		return Status.Stoped
 	}
 	return Status.Started
