@@ -124,6 +124,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.websocketConnectionGroups[websocketId] = make(map[string]bool)
 	server.websocketConnectionMutex.Unlock()
 
+	websocketConnection.waitGroup.Add(1)
 	go func() {
 		select {
 		case <-websocketConnection.stopChannel:
@@ -153,6 +154,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 				Event.WebsocketId: websocketConnection.GetId(),
 			}),
 		))
+
 		server.waitGroup.Done()
 	}()
 
@@ -169,12 +171,12 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		}),
 	)); event.IsError() {
 		websocketConnection.Close()
+		websocketConnection.waitGroup.Done()
 		return
 	}
 	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.isAccepted = true
 
-	websocketConnection.waitGroup.Add(1)
 	go server.receiveMessagesLoop(websocketConnection)
 }
 
