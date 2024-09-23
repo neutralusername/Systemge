@@ -10,6 +10,7 @@ import (
 
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	defer server.waitGroup.Done()
+
 	if event := server.onInfo(Event.NewInfo(
 		Event.ClientAcceptionRoutineStarted,
 		"started websocketConnections acception",
@@ -61,16 +62,16 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		))
 		if event.IsError() {
 			websocketConnection.Close()
-			server.waitGroup.Done()
 			server.websocketConnectionsRejected.Add(1)
 			break
 		}
 		if event.IsWarning() {
 			websocketConnection.Close()
-			server.waitGroup.Done()
 			server.websocketConnectionsRejected.Add(1)
 			continue
 		}
+
+		server.waitGroup.Add(1)
 		go server.acceptWebsocketConnection(websocketConnection)
 	}
 
@@ -84,6 +85,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 }
 
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocket.Conn) {
+	defer server.waitGroup.Done()
+
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptingClient,
 		"accepting websocketConnection",
@@ -97,7 +100,6 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	)); event.IsError() {
 		if websocketConn != nil {
 			websocketConn.Close()
-			server.waitGroup.Done()
 			server.websocketConnectionsRejected.Add(1)
 		}
 		return
@@ -125,12 +127,16 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.websocketConnectionMutex.Unlock()
 
 	websocketConnection.waitGroup.Add(1)
+	server.waitGroup.Add(1)
 	go func() {
+		defer server.waitGroup.Done()
 		select {
 		case <-websocketConnection.stopChannel:
 		case <-server.stopChannel:
 			websocketConnection.Close()
 		}
+
+		websocketConnection.waitGroup.Wait()
 
 		server.onInfo(Event.NewInfoNoOption(
 			Event.DisconnectingClient,
@@ -141,9 +147,6 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 				Event.WebsocketId: websocketConnection.GetId(),
 			}),
 		))
-
-		websocketConnection.waitGroup.Wait()
-
 		server.removeWebsocketConnection(websocketConnection)
 		server.onInfo(Event.NewInfoNoOption(
 			Event.DisconnectedClient,
@@ -154,26 +157,25 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 				Event.WebsocketId: websocketConnection.GetId(),
 			}),
 		))
-
-		server.waitGroup.Done()
 	}()
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptedClient,
 		"websocketConnection accepted",
 		Event.Cancel,
-		Event.Continue,
+		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
 			Event.Address:     websocketConn.RemoteAddr().String(),
 			Event.WebsocketId: websocketId,
 		}),
-	)); event.IsError() {
+	)); !event.IsInfo() {
 		websocketConnection.Close()
 		websocketConnection.waitGroup.Done()
 		return
 	}
+
 	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.isAccepted = true
 
@@ -182,6 +184,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 
 func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *WebsocketConnection) {
 	defer websocketConnection.waitGroup.Done()
+
 	if event := server.onInfo(Event.NewInfo(
 		Event.MessageReceptionRoutineStarted,
 		"started websocketConnection message reception",
@@ -205,7 +208,7 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		server.websocketConnectionMessagesReceived.Add(1)
 		server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
 
-		if server.config.ExecuteMessageHandlersSequentially {
+		if server.config.HandleMessagesSequentially {
 			event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)
 			if event.IsError() {
 				if server.config.PropagateMessageHandlerErrors {
