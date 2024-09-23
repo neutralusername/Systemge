@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -101,7 +101,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 	return nil
 }
 
-func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -187,7 +187,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 	return nil
 }
 
-func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_transactional(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -279,7 +279,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 	return nil
 }
 
-func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_bestEffort(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -360,7 +360,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 	return nil
 }
 
-func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error) {
+func (server *WebsocketServer) GetGroupWebsocketConnectionIds(groupId string) ([]string, error) {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 
@@ -409,7 +409,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 	return groupMembers, nil
 }
 
-func (server *WebsocketServer) GetClientGroups(websocketId string) ([]string, error) {
+func (server *WebsocketServer) GetWebsocketConnectionGroupIds(websocketId string) ([]string, error) {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 
@@ -524,7 +524,7 @@ func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 	return groups, nil
 }
 
-func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId string) (bool, error) {
+func (server *WebsocketServer) IsWebsocketConnectionInGroup(groupId string, websocketId string) (bool, error) {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 
