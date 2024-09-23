@@ -108,7 +108,6 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 				if server.config.PropagateMessageHandlerErrors {
 					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
 				}
-				break
 			}
 			if event.IsWarning() {
 				if server.config.PropagateMessageHandlerWarnings {
