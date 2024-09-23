@@ -21,3 +21,13 @@ func (server *WebsocketServer) GetClientCount() int {
 	defer server.websocketConnectionMutex.RUnlock()
 	return len(server.websocketConnections)
 }
+
+func (server *WebsocketServer) GetClientIds() []string {
+	server.websocketConnectionMutex.RLock()
+	defer server.websocketConnectionMutex.RUnlock()
+	ids := make([]string, 0, len(server.websocketConnections))
+	for id := range server.websocketConnections {
+		ids = append(ids, id)
+	}
+	return ids
+}

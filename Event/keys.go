@@ -2,6 +2,7 @@ package Event
 
 const Kind = "kind"
 const AdditionalKind = "additionalKind"
+
 const Address = "address"
 const ClientId = "clientId"
 const TargetClientIds = "targetClientIds"
