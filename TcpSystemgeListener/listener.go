@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
@@ -24,6 +25,10 @@ type TcpSystemgeListener struct {
 	whitelist *Tools.AccessControlList
 
 	connectionId uint32
+
+	onErrorHandler   func(*Event.Event) *Event.Event
+	onWarningHandler func(*Event.Event) *Event.Event
+	onInfoHandler    func(*Event.Event) *Event.Event
 
 	// metrics
 
@@ -90,4 +95,34 @@ func (listener *TcpSystemgeListener) GetStatus() int {
 		return Status.Stoped
 	}
 	return Status.Started
+}
+
+func (server *TcpSystemgeListener) onError(event *Event.Event) *Event.Event {
+	if server.onErrorHandler != nil {
+		return server.onErrorHandler(event)
+	}
+	return event
+}
+
+func (server *TcpSystemgeListener) onWarning(event *Event.Event) *Event.Event {
+	if server.onWarningHandler != nil {
+		return server.onWarningHandler(event)
+	}
+	return event
+}
+
+func (server *TcpSystemgeListener) onInfo(event *Event.Event) *Event.Event {
+	if server.onInfoHandler != nil {
+		return server.onInfoHandler(event)
+	}
+	return event
+}
+
+func (server *TcpSystemgeListener) GetServerContext() Event.Context {
+	ctx := Event.Context{
+		Event.Service:       Event.TcpSystemgeListener,
+		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+	}
+	return ctx
 }
