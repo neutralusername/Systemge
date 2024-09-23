@@ -50,19 +50,27 @@ const HandlerFailed = "handlerFailed"
 
 const ClientAlreadyInGroup = "clientAlreadyInGroup"
 const ClientNotInGroup = "clientNotInGroup"
-const GroupDoesNotExist = "groupDoesNotExist"
+
 const AddingClientsToGroup = "addingClientsToGroup"
-const ClientsAddedToGroup = "clientsAddedToGroup"
+const AddedClientsToGroup = "addedClientsToGroup"
+
 const RemovingClientsFromGroup = "removingClientsFromGroup"
-const ClientsRemovedFromGroup = "clientsRemovedFromGroup"
+const RemoveClientsFromGroup = "removedClientsFromGroup"
+
 const GettingGroupClients = "gettingGroupClients"
 const GotGroupClients = "gotGroupClients"
-const CreatingGroup = "creatingGroup"
+
 const GettingClientGroups = "gettingClientGroups"
 const GotClientGroups = "gotClientGroups"
+
 const GettingGroupCount = "gettingGroupCount"
+const GotGroupCount = "gotGroupCount"
+
 const GettingGroupIds = "gettingGroupIds"
 const GotGroupIds = "gotGroupIds"
+
+const CreatingGroup = "creatingGroup"
+const GroupDoesNotExist = "groupDoesNotExist"
 
 const HandlingHttpRequest = "handlingHttpRequest"
 const HandledHttpRequest = "handledHttpRequest"

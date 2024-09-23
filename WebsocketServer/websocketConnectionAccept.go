@@ -17,7 +17,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.AcceptingClient,
 		"accepting websocketConnection",
 		Event.Cancel,
-		Event.Continue,
+		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Circumstance:  Event.ClientAcceptionRoutine,
@@ -25,7 +25,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
 		}),
-	)); event.IsError() {
+	)); !event.IsInfo() {
 		if websocketConn != nil {
 			websocketConn.Close()
 			server.websocketConnectionsRejected.Add(1)

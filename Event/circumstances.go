@@ -22,3 +22,7 @@ const GroupcastRoutine = "groupcastRoutine"
 
 const AddClientsToGroupRoutine = "addClientsToGroupRoutine"
 const RemoveClientsFromGroupRoutine = "removeClientsFromGroupRoutine"
+const GettingGroupClientsRoutine = "gettingGroupClientsRoutine"
+const GettingClientGroupsRoutine = "gettingClientGroupsRoutine"
+const GettingGroupCountRoutine = "gettingGroupCountRoutine"
+const GettingGroupIdsRoutine = "gettingGroupIdsRoutine"

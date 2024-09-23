@@ -207,7 +207,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				Event.Cancel,
-				Event.Skip,
+				Event.Cancel,
 				Event.Skip,
 				server.GetServerContext().Merge(Event.Context{
 					Event.Circumstance:    Event.MulticastRoutine,

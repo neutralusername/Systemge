@@ -12,13 +12,13 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		Event.ClientAcceptionRoutineStarted,
 		"started websocketConnections acception",
 		Event.Cancel,
-		Event.Continue,
+		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Circumstance: Event.ClientAcceptionRoutine,
 			Event.ClientType:   Event.WebsocketConnection,
 		}),
-	)); event.IsError() {
+	)); !event.IsInfo() {
 		return
 	}
 
@@ -27,13 +27,13 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.ReceivingFromChannel,
 			"receiving websocketConnection from channel",
 			Event.Cancel,
-			Event.Continue,
+			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Circumstance: Event.ClientAcceptionRoutine,
 				Event.ChannelType:  Event.WebsocketConnection,
 			}),
-		)); event.IsError() {
+		)); !event.IsInfo() {
 			break
 		}
 
