@@ -14,6 +14,8 @@ import (
 )
 
 type TcpSystemgeListener struct {
+	name string
+
 	closed      bool
 	closedMutex sync.Mutex
 
@@ -50,7 +52,7 @@ func (server *TcpSystemgeListener) GetListener() net.Listener {
 	return server.listener
 }
 
-func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
+func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -58,6 +60,7 @@ func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList,
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpSystemgeListener{
+		name:      name,
 		config:    config,
 		blacklist: blacklist,
 		whitelist: whitelist,
@@ -121,8 +124,13 @@ func (server *TcpSystemgeListener) onInfo(event *Event.Event) *Event.Event {
 func (server *TcpSystemgeListener) GetServerContext() Event.Context {
 	ctx := Event.Context{
 		Event.Service:       Event.TcpSystemgeListener,
+		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),
 	}
 	return ctx
+}
+
+func (server *TcpSystemgeListener) GetName() string {
+	return server.name
 }
