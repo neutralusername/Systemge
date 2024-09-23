@@ -154,6 +154,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	}
 
 	server.stopChannel = make(chan bool)
+	server.waitGroup.Add(1)
 	go server.receiveWebsocketConnectionLoop()
 
 	server.status = Status.Started

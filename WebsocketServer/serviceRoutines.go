@@ -9,6 +9,7 @@ import (
 )
 
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
+	defer server.waitGroup.Done()
 	if event := server.onInfo(Event.NewInfo(
 		Event.ClientAcceptionRoutineStarted,
 		"started websocketConnections acception",
@@ -127,6 +128,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		select {
 		case <-websocketConnection.stopChannel:
 		case <-server.stopChannel:
+			websocketConnection.Close()
 		}
 
 		server.onInfo(Event.NewInfoNoOption(
@@ -139,9 +141,9 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 			}),
 		))
 
-		server.removeWebsocketConnection(websocketConnection)
-		server.waitGroup.Done()
+		websocketConnection.waitGroup.Wait()
 
+		server.removeWebsocketConnection(websocketConnection)
 		server.onInfo(Event.NewInfoNoOption(
 			Event.DisconnectedClient,
 			"websocketConnection disconnected",
@@ -151,6 +153,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 				Event.WebsocketId: websocketConnection.GetId(),
 			}),
 		))
+		server.waitGroup.Done()
 	}()
 
 	if event := server.onInfo(Event.NewInfo(
@@ -170,10 +173,13 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	}
 	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.isAccepted = true
+
+	websocketConnection.waitGroup.Add(1)
 	go server.receiveMessagesLoop(websocketConnection)
 }
 
 func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *WebsocketConnection) {
+	defer websocketConnection.waitGroup.Done()
 	if event := server.onInfo(Event.NewInfo(
 		Event.MessageReceptionRoutineStarted,
 		"started websocketConnection message reception",
@@ -211,7 +217,9 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 				}
 			}
 		} else {
+			websocketConnection.waitGroup.Add(1)
 			go func() {
+				defer websocketConnection.waitGroup.Done()
 				event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)
 				if event.IsError() {
 					if server.config.PropagateMessageHandlerErrors {

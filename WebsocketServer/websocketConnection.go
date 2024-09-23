@@ -20,6 +20,7 @@ type WebsocketConnection struct {
 	receiveMutex sync.Mutex
 	sendMutex    sync.Mutex
 	stopChannel  chan bool
+	waitGroup    sync.WaitGroup
 
 	closeMutex sync.Mutex
 	isClosed   bool
