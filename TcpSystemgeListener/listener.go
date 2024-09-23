@@ -24,11 +24,11 @@ type TcpSystemgeListener struct {
 	config        *Config.TcpSystemgeListener
 	ipRateLimiter *Tools.IpRateLimiter
 
-	listener  net.Listener
-	blacklist *Tools.AccessControlList
-	whitelist *Tools.AccessControlList
+	tcpListener net.Listener
+	blacklist   *Tools.AccessControlList
+	whitelist   *Tools.AccessControlList
 
-	connectionId uint64
+	tcpSystemgeConnectionId uint64
 
 	onErrorHandler   func(*Event.Event) *Event.Event
 	onWarningHandler func(*Event.Event) *Event.Event
@@ -36,10 +36,10 @@ type TcpSystemgeListener struct {
 
 	// metrics
 
-	connectionAttempts         atomic.Uint64
-	failedConnectionAttempts   atomic.Uint64
-	rejectedConnectionAttempts atomic.Uint64
-	acceptedConnectionAttempts atomic.Uint64
+	tcpSystemgeConnectionAttemptsTotal    atomic.Uint64
+	tcpSystemgeConnectionAttemptsFailed   atomic.Uint64
+	tcpSystemgeConnectionAttemptsRejected atomic.Uint64
+	tcpSystemgeConnectionAttemptsAccepted atomic.Uint64
 }
 
 func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
@@ -51,7 +51,7 @@ func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
 }
 
 func (server *TcpSystemgeListener) GetListener() net.Listener {
-	return server.listener
+	return server.tcpListener
 }
 
 func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
@@ -71,7 +71,7 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 	if err != nil {
 		return nil, err
 	}
-	server.listener = tcpListener
+	server.tcpListener = tcpListener
 	if config.IpRateLimiter != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
 	}
@@ -86,7 +86,7 @@ func (listener *TcpSystemgeListener) Close() error {
 		return errors.New("tcpSystemgeListener is already closed")
 	}
 	listener.closed = true
-	listener.listener.Close()
+	listener.tcpListener.Close()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
 	}

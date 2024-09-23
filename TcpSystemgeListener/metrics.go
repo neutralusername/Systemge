@@ -30,29 +30,29 @@ func (listener *TcpSystemgeListener) GetMetrics() Metrics.MetricsTypes {
 }
 
 func (listener *TcpSystemgeListener) CheckConnectionAttempts() uint64 {
-	return listener.connectionAttempts.Load()
+	return listener.tcpSystemgeConnectionAttemptsTotal.Load()
 }
 func (listener *TcpSystemgeListener) GetConnectionAttempts() uint64 {
-	return listener.connectionAttempts.Swap(0)
+	return listener.tcpSystemgeConnectionAttemptsTotal.Swap(0)
 }
 
 func (listener *TcpSystemgeListener) CheckFailedConnectionAttempts() uint64 {
-	return listener.failedConnectionAttempts.Load()
+	return listener.tcpSystemgeConnectionAttemptsFailed.Load()
 }
 func (listener *TcpSystemgeListener) GetFailedConnectionAttempts() uint64 {
-	return listener.failedConnectionAttempts.Swap(0)
+	return listener.tcpSystemgeConnectionAttemptsFailed.Swap(0)
 }
 
 func (listener *TcpSystemgeListener) CheckRejectedConnectionAttempts() uint64 {
-	return listener.rejectedConnectionAttempts.Load()
+	return listener.tcpSystemgeConnectionAttemptsRejected.Load()
 }
 func (listener *TcpSystemgeListener) GetRejectedConnectionAttempts() uint64 {
-	return listener.rejectedConnectionAttempts.Swap(0)
+	return listener.tcpSystemgeConnectionAttemptsRejected.Swap(0)
 }
 
 func (listener *TcpSystemgeListener) CheckAcceptedConnectionAttempts() uint64 {
-	return listener.acceptedConnectionAttempts.Load()
+	return listener.tcpSystemgeConnectionAttemptsAccepted.Load()
 }
 func (listener *TcpSystemgeListener) GetAcceptedConnectionAttempts() uint64 {
-	return listener.acceptedConnectionAttempts.Swap(0)
+	return listener.tcpSystemgeConnectionAttemptsAccepted.Swap(0)
 }
