@@ -1,12 +1,12 @@
 package TcpSystemgeListener
 
 import (
+	"errors"
 	"net"
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
@@ -47,10 +47,10 @@ func (server *TcpSystemgeListener) GetListener() net.Listener {
 
 func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
 	if config == nil {
-		return nil, Event.New("config is nil", nil)
+		return nil, errors.New("config is nil")
 	}
 	if config.TcpServerConfig == nil {
-		return nil, Event.New("listener is nil", nil)
+		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpSystemgeListener{
 		config:    config,
@@ -59,7 +59,7 @@ func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList,
 	}
 	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
 	if err != nil {
-		return nil, Event.New("failed to create listener", err)
+		return nil, err
 	}
 	server.listener = tcpListener
 	if config.IpRateLimiter != nil {
@@ -73,7 +73,7 @@ func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 	if listener.closed {
-		return Event.New("listener is already closed", nil)
+		return errors.New("tcpSystemgeListener is already closed")
 	}
 	listener.closed = true
 	listener.listener.Close()
