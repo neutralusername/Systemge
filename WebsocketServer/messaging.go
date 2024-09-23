@@ -16,7 +16,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	waitGroup := Tools.NewTaskGroup()
 
 	server.websocketConnectionMutex.RLock()
-	targetClientIds := Helpers.JsonMarshal(server.GetClientIds())
+	targetClientIds := Helpers.JsonMarshal(server.GetWebsocketConnectionIds())
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
 		"broadcasting websocketConnection message",

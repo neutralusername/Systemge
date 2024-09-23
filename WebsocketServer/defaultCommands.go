@@ -153,11 +153,11 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
-		clients, err := server.GetGroupWebsocketConnectionIds(group)
+		websocketConnectionIds, err := server.GetGroupWebsocketConnectionIds(group)
 		if err != nil {
 			return "", err
 		}
-		json, err := json.Marshal(clients)
+		json, err := json.Marshal(websocketConnectionIds)
 		if err != nil {
 			return "", err
 		}
@@ -208,37 +208,37 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return Helpers.BoolToString(inGroup), nil
 	}
-	commands["clientExists"] = func(args []string) (string, error) {
+	commands["websocketConnectionExists"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("Invalid number of arguments")
 		}
-		return Helpers.BoolToString(server.ClientExists(args[0])), nil
+		return Helpers.BoolToString(server.WebsocketConnectionExists(args[0])), nil
 	}
-	commands["getClientGroupCount"] = func(args []string) (string, error) {
+	commands["getWebsocketConnectionGroupCount"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		clientGroupCount := server.GetClientGroupCount(id)
+		websocketConnectionGroupCount := server.GetWebsocketConnectionGroupCount(id)
 
-		return Helpers.IntToString(clientGroupCount), nil
+		return Helpers.IntToString(websocketConnectionGroupCount), nil
 	}
-	commands["getClientCount"] = func(args []string) (string, error) {
-		clientGroupCount := server.GetClientCount()
-		return Helpers.IntToString(clientGroupCount), nil
+	commands["getWebsocketConnectionCount"] = func(args []string) (string, error) {
+		websocketConnectionCount := server.GetWebsocketConnectionCount()
+		return Helpers.IntToString(websocketConnectionCount), nil
 	}
-	commands["closeClient"] = func(args []string) (string, error) {
+	commands["closeWebsocketConnection"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
 		server.websocketConnectionMutex.Lock()
 		defer server.websocketConnectionMutex.Unlock()
-		if client, ok := server.websocketConnections[id]; ok {
-			client.Close()
+		if websocketConnection, ok := server.websocketConnections[id]; ok {
+			websocketConnection.Close()
 			return "success", nil
 		}
-		return "", errors.New("client does not exist")
+		return "", errors.New("websocketConnection does not exist")
 	}
 	return commands
 }

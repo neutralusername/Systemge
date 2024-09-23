@@ -1,28 +1,25 @@
 package WebsocketServer
 
-// ClientExists returns true if a client with the given id exists.
-func (server *WebsocketServer) ClientExists(websocketId string) bool {
+func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) bool {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 	_, exists := server.websocketConnections[websocketId]
 	return exists
 }
 
-// GetClientGroupCount returns the number of groups a client is in (0 if the client does not exist).
-func (server *WebsocketServer) GetClientGroupCount(websocketId string) int {
+func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId string) int {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 	return len(server.websocketConnectionGroups[websocketId])
 }
 
-// GetClientCount returns the number of connected clients.
-func (server *WebsocketServer) GetClientCount() int {
+func (server *WebsocketServer) GetWebsocketConnectionCount() int {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 	return len(server.websocketConnections)
 }
 
-func (server *WebsocketServer) GetClientIds() []string {
+func (server *WebsocketServer) GetWebsocketConnectionIds() []string {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
 	ids := make([]string, 0, len(server.websocketConnections))
