@@ -72,6 +72,9 @@ const GotGroupIds = "gotGroupIds"
 const CreatingGroup = "creatingGroup"
 const GroupDoesNotExist = "groupDoesNotExist"
 
+const GettingIsClientInGroup = "gettingIsClientInGroup"
+const GotIsClientInGroup = "gotIsClientInGroup"
+
 const HandlingHttpRequest = "handlingHttpRequest"
 const HandledHttpRequest = "handledHttpRequest"
 

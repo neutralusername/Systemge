@@ -529,14 +529,16 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 	defer server.websocketConnectionMutex.RUnlock()
 
 	if event := server.onInfo(Event.NewInfo(
-		Event.GettingGroupClients,
-		"getting group websocketConnections",
+		Event.GettingIsClientInGroup,
+		"getting is websocketConnection in group",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    Event.WebsocketConnection,
-			Event.GroupId: groupId,
+			Event.Circumstance: Event.IsClientInGroupRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
+			Event.ClientId:     websocketId,
+			Event.GroupId:      groupId,
 		}),
 	)); !event.IsInfo() {
 		return false, event.GetError()
@@ -547,32 +549,23 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    Event.WebsocketConnection,
-				Event.GroupId: groupId,
+				Event.Circumstance: Event.IsClientInGroupRoutine,
+				Event.ClientType:   Event.WebsocketConnection,
+				Event.ClientId:     websocketId,
+				Event.GroupId:      groupId,
 			}),
 		))
 		return false, errors.New("group does not exist")
 	}
 
-	if server.groupsWebsocketConnections[groupId][websocketId] == nil {
-		server.onInfo(Event.NewInfoNoOption(
-			Event.ClientNotInGroup,
-			"websocketConnection is not in group",
-			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:              Event.WebsocketConnection,
-				Event.TargetWebsocketId: websocketId,
-				Event.GroupId:           groupId,
-			}),
-		))
-		return false, errors.New("client is not in group")
-	}
-
 	server.onInfo(Event.NewInfoNoOption(
-		Event.GotGroupClients,
-		"got group websocketConnections",
+		Event.GotIsClientInGroup,
+		"got is websocketConnection in group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    Event.WebsocketConnection,
-			Event.GroupId: groupId,
+			Event.Circumstance: Event.IsClientInGroupRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
+			Event.ClientId:     websocketId,
+			Event.GroupId:      groupId,
 		}),
 	))
 	return true, nil
