@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
@@ -88,7 +89,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		websocketConnections:       make(map[string]*WebsocketConnection),
 		groupsWebsocketConnections: make(map[string]map[string]*WebsocketConnection),
 		websocketConnectionGroups:  make(map[string]map[string]bool),
-		instanceId:                 Tools.GenerateRandomString(32, Tools.ALPHA_NUMERIC),
+		instanceId:                 Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		messageHandlers:            messageHandlers,
 		config:                     config,
 		mailer:                     Tools.NewMailer(config.MailerConfig),
@@ -115,7 +116,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		defer server.statusMutex.Unlock()
 	}
 
-	server.sessionId = Tools.GenerateRandomString(32, Tools.ALPHA_NUMERIC)
+	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.StartingService,
