@@ -27,3 +27,5 @@ const GettingClientGroupsRoutine = "gettingClientGroupsRoutine"
 const GettingGroupCountRoutine = "gettingGroupCountRoutine"
 const GettingGroupIdsRoutine = "gettingGroupIdsRoutine"
 const IsClientInGroupRoutine = "isClientInGroupRoutine"
+
+const ClientExistenceRoutine = "getClientExistenceRoutine"

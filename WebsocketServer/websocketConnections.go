@@ -1,10 +1,44 @@
 package WebsocketServer
 
-func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) bool {
+import "github.com/neutralusername/Systemge/Event"
+
+func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bool, error) {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GettingClientExists,
+		"checking websocketConnection existence",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.ClientExistenceRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
+			Event.ClientId:     websocketId,
+		}),
+	)); !event.IsInfo() {
+		return false, event.GetError()
+	}
+
 	_, exists := server.websocketConnections[websocketId]
-	return exists
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GotClientExists,
+		"checked websocketConnection existence",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.ClientExistenceRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
+			Event.ClientId:     websocketId,
+		}),
+	)); !event.IsInfo() {
+		return false, event.GetError()
+	}
+
+	return exists, nil
 }
 
 func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId string) int {

@@ -89,3 +89,6 @@ const SplittingHostPortFailed = "splittingHostPortFailed"
 const WebsocketUpgradeFailed = "websocketUpgradeFailed"
 
 const HeartbeatReceived = "heartbeatReceived"
+
+const GettingClientExists = "gettingClientExists"
+const GotClientExists = "gotClientExists"
