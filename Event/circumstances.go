@@ -22,10 +22,15 @@ const GroupcastRoutine = "groupcastRoutine"
 
 const AddClientsToGroupRoutine = "addClientsToGroupRoutine"
 const RemoveClientsFromGroupRoutine = "removeClientsFromGroupRoutine"
-const GettingGroupClientsRoutine = "gettingGroupClientsRoutine"
-const GettingClientGroupsRoutine = "gettingClientGroupsRoutine"
-const GettingGroupCountRoutine = "gettingGroupCountRoutine"
-const GettingGroupIdsRoutine = "gettingGroupIdsRoutine"
+const GetGroupClientsRoutine = "getGroupClientsRoutine"
+const GetClientGroupsRoutine = "getClientGroupsRoutine"
+const GetGroupCountRoutine = "getGroupCountRoutine"
+const GetGroupIdsRoutine = "getGroupIdsRoutine"
 const IsClientInGroupRoutine = "isClientInGroupRoutine"
 
-const ClientExistenceRoutine = "getClientExistenceRoutine"
+const ClientExistenceRoutine = "clientExistenceRoutine"
+const ClientGroupCountRoutine = "clientGroupCountRoutine"
+
+const WebsocketConnectionCountRoutine = "websocketConnectionCountRoutine"
+
+const GetWebsocketConnectionIdsRoutine = "getWebsocketConnectionIdsRoutine"

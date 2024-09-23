@@ -92,3 +92,12 @@ const HeartbeatReceived = "heartbeatReceived"
 
 const GettingClientExists = "gettingClientExists"
 const GotClientExists = "gotClientExists"
+
+const GettingClientGroupCount = "gettingClientGroupCount"
+const GotClientGroupCount = "gotClientGroupCount"
+
+const GettingWebsocketConnectionCount = "gettingWebsocketConnectionCount"
+const GotWebsocketConnectionCount = "gotWebsocketConnectionCount"
+
+const GettingWebsocketConnectionIds = "gettingWebsocketConnectionIds"
+const GotWebsocketConnectionIds = "gotWebsocketConnectionIds"

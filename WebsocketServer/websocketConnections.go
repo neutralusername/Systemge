@@ -1,6 +1,11 @@
 package WebsocketServer
 
-import "github.com/neutralusername/Systemge/Event"
+import (
+	"errors"
+
+	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Helpers"
+)
 
 func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bool, error) {
 	server.websocketConnectionMutex.RLock()
@@ -33,6 +38,7 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 			Event.Circumstance: Event.ClientExistenceRoutine,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
+			Event.Result:       Helpers.JsonMarshal(exists),
 		}),
 	)); !event.IsInfo() {
 		return false, event.GetError()
@@ -41,24 +47,128 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 	return exists, nil
 }
 
-func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId string) int {
+func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId string) (int, error) {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
-	return len(server.websocketConnectionGroups[websocketId])
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GettingClientGroupCount,
+		"getting websocketConnection group count",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.ClientGroupCountRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
+			Event.ClientId:     websocketId,
+		}),
+	)); !event.IsInfo() {
+		return -1, event.GetError()
+	}
+
+	if server.websocketConnectionGroups[websocketId] == nil {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ClientDoesNotExist,
+			"websocketConnection not in any group",
+			server.GetServerContext().Merge(Event.Context{
+				Event.Circumstance: Event.ClientGroupCountRoutine,
+				Event.ClientType:   Event.WebsocketConnection,
+				Event.ClientId:     websocketId,
+			}),
+		))
+		return -1, errors.New("websocketConnection not in any group")
+	}
+
+	groupCount := len(server.websocketConnectionGroups[websocketId])
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GotClientGroupCount,
+		"got websocketConnection group count",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.ClientGroupCountRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
+			Event.ClientId:     websocketId,
+			Event.Result:       Helpers.JsonMarshal(groupCount),
+		}),
+	)); !event.IsInfo() {
+		return -1, event.GetError()
+	}
+	return groupCount, nil
 }
 
 func (server *WebsocketServer) GetWebsocketConnectionCount() int {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
-	return len(server.websocketConnections)
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GettingWebsocketConnectionCount,
+		"getting websocketConnection count",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.WebsocketConnectionCountRoutine,
+		}),
+	)); !event.IsInfo() {
+		return -1
+	}
+
+	count := len(server.websocketConnections)
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GotWebsocketConnectionCount,
+		"got websocketConnection count",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.WebsocketConnectionCountRoutine,
+			Event.Result:       Helpers.JsonMarshal(count),
+		}),
+	)); !event.IsInfo() {
+		return -1
+	}
+
+	return count
 }
 
 func (server *WebsocketServer) GetWebsocketConnectionIds() []string {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GettingWebsocketConnectionIds,
+		"getting websocketConnection ids",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.GetWebsocketConnectionIdsRoutine,
+		}),
+	)); !event.IsInfo() {
+		return nil
+	}
+
 	ids := make([]string, 0, len(server.websocketConnections))
 	for id := range server.websocketConnections {
 		ids = append(ids, id)
+	}
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.GotWebsocketConnectionIds,
+		"got websocketConnection ids",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		server.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.GetWebsocketConnectionIdsRoutine,
+			Event.Result:       Helpers.JsonMarshal(ids),
+		}),
+	)); !event.IsInfo() {
+		return nil
 	}
 	return ids
 }
