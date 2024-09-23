@@ -13,20 +13,38 @@ import (
 )
 
 func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
-	listener.connectionAttempts.Add(1)
+	listener.acceptMutex.Lock()
+	defer listener.acceptMutex.Unlock()
+
+	connectionId := listener.connectionId + 1
+	if event := listener.onInfo(Event.NewInfo(
+		Event.AcceptingClient,
+		"accepting TcpSystemgeConnection",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		listener.GetServerContext().Merge(Event.Context{
+			Event.Kind:           Event.TcpSystemgeConnection,
+			Event.AdditionalKind: Helpers.Uint64ToString(connectionId),
+		}),
+	)); !event.IsInfo() {
+		return nil, event.GetError()
+	}
 	listener.connectionId++
-	connectionId := listener.connectionId
+	listener.connectionAttempts.Add(1)
+
 	netConn, err := listener.listener.Accept()
 	if err != nil {
 		listener.onWarning(Event.NewWarningNoOption(
-			Event.AcceptClientFailed,
+			Event.AcceptingClientFailed,
 			"accepting TcpSystemgeConnection",
 			listener.GetServerContext().Merge(Event.Context{
-				Event.Kind: Event.TcpSystemgeConnection,
+				Event.Kind:           Event.TcpSystemgeConnection,
+				Event.AdditionalKind: Helpers.Uint64ToString(connectionId),
 			}),
 		))
 		listener.failedConnectionAttempts.Add(1)
-		return nil, Event.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
+		return nil, err
 	}
 	ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
