@@ -10,7 +10,7 @@ const ClientReceptionRoutine = "clientReceptionRoutine"
 
 const MessageHandlingRoutine = "messageHandlingRoutine"
 
-const Runtime = "runtime"
+const ReceiveRuntime = "receiveRuntime"
 
 const StartRoutine = "startRoutine"
 const StopRoutine = "stopRoutine"

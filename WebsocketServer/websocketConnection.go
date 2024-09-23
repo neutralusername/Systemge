@@ -178,7 +178,7 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 			Event.ClientAlreadyAccepted,
 			"websocketConnection is already accepted",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Circumstance:  Event.Runtime,
+				Event.Circumstance:  Event.ReceiveRuntime,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
@@ -186,5 +186,5 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 		))
 		return nil, errors.New("websocketConnection is already accepted")
 	}
-	return server.receive(websocketConnection, Event.Runtime)
+	return server.receive(websocketConnection, Event.ReceiveRuntime)
 }
