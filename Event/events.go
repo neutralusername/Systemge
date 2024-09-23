@@ -1,13 +1,13 @@
 package Event
 
+const StartingService = "startingService"
+const StoppingService = "stoppingService"
+
 const ServiceAlreadyStarted = "alreadyStarted"
 const ServiceAlreadyStopped = "alreadyStopped"
 
 const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"
-
-const StartingService = "startingService"
-const StoppingService = "stoppingService"
 
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
@@ -16,29 +16,24 @@ const SendingClientMessage = "sendingClientMessage"
 const SentClientMessage = "sentClientMessage"
 const FailedSendingClientMessage = "failedSendingClientMessage"
 
-const HandlingHttpRequest = "handlingHttpRequest"
-const HandledHttpRequest = "handledHttpRequest"
-
 const ClientAcceptionRoutineStarted = "clientAcceptionRoutineStarted"
 const ClientAcceptionRoutineFinished = "clientAcceptionRoutineFinished"
-
-const ClientNotAccepted = "clientNotAccepted"
-const ClientAlreadyAccepted = "clientAlreadyAccepted"
-
-const ClientDoesNotExist = "clientDoesNotExist"
 
 const AcceptingClient = "acceptingConnection"
 const AcceptedClient = "connectionAccepted"
 
+const ClientNotAccepted = "clientNotAccepted"
+const ClientAlreadyAccepted = "clientAlreadyAccepted"
+
 const DisconnectingClient = "disconnectingClient"
 const DisconnectedClient = "clientDisconnected"
+
+const SendingToChannel = "sendingToChannel"
+const SentToChannel = "sentToChannel"
 
 const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
 const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
-
-const SendingToChannel = "sendingToChannel"
-const SentToChannel = "sentToChannel"
 
 const MessageReceptionRoutineStarted = "messageReceptionRoutineStarted"
 const MessageReceptionRoutineFinished = "messageReceptionRoutineFinished"
@@ -49,12 +44,6 @@ const FailedReceivingClientMessage = "failedClientMessageReceive"
 
 const HandlingMessage = "handlingMessage"
 const HandledMessage = "handledMessage"
-
-const RateLimited = "rateLimited"
-const FailedToDeserializeMessage = "failedToDeserializeMessage"
-const FailedToSplitHostPort = "failedToSplitHostPort"
-const FailedToPerformWebsocketUpgrade = "failedToUpgradeToWebsocketConnection"
-
 const NoHandlerForTopic = "noHandlerForTopic"
 const HandlerFailed = "handlerFailed"
 
@@ -73,5 +62,18 @@ const GotClientGroups = "gotClientGroups"
 const GettingGroupCount = "gettingGroupCount"
 const GettingGroupIds = "gettingGroupIds"
 const GotGroupIds = "gotGroupIds"
+
+const HandlingHttpRequest = "handlingHttpRequest"
+const HandledHttpRequest = "handledHttpRequest"
+
+const ClientDoesNotExist = "clientDoesNotExist"
+
+const FailedToDeserializeMessage = "failedToDeserializeMessage"
+
+const RateLimited = "rateLimited"
+
+const FailedToSplitHostPort = "failedToSplitHostPort"
+
+const FailedToPerformWebsocketUpgrade = "failedToUpgradeToWebsocketConnection"
 
 const HeartbeatReceived = "heartbeatReceived"
