@@ -18,8 +18,8 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.BroadcastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -41,8 +41,8 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:         Event.WebsocketConnection,
 					Event.Circumstance: Event.BroadcastRoutine,
+					Event.ClientType:   Event.WebsocketConnection,
 					Event.ClientId:     websocketConnection.GetId(),
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
@@ -69,8 +69,8 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.SentMessage,
 		"broadcasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.BroadcastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -89,8 +89,8 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.UnicastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -109,8 +109,8 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketConnection,
 				Event.Circumstance: Event.UnicastRoutine,
+				Event.ClientType:   Event.WebsocketConnection,
 				Event.ClientId:     websocketId,
 				Event.Topic:        message.GetTopic(),
 				Event.Payload:      message.GetPayload(),
@@ -127,8 +127,8 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketConnection,
 				Event.Circumstance: Event.UnicastRoutine,
+				Event.ClientType:   Event.WebsocketConnection,
 				Event.ClientId:     websocketId,
 				Event.Topic:        message.GetTopic(),
 				Event.Payload:      message.GetPayload(),
@@ -151,8 +151,8 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		Event.SentMessage,
 		"unicasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.UnicastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -171,8 +171,8 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.MulticastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -194,8 +194,8 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Skip,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:         Event.WebsocketConnection,
 					Event.Circumstance: Event.MulticastRoutine,
+					Event.ClientType:   Event.WebsocketConnection,
 					Event.ClientId:     id,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
@@ -217,8 +217,8 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:         Event.WebsocketConnection,
 					Event.Circumstance: Event.MulticastRoutine,
+					Event.ClientType:   Event.WebsocketConnection,
 					Event.ClientId:     id,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
@@ -245,8 +245,8 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.SentMessage,
 		"multicasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.MulticastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -265,8 +265,8 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.GroupcastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.GroupId:      groupId,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
@@ -287,8 +287,8 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketConnection,
 				Event.Circumstance: Event.GroupcastRoutine,
+				Event.ClientType:   Event.WebsocketConnection,
 				Event.GroupId:      groupId,
 				Event.Topic:        message.GetTopic(),
 				Event.Payload:      message.GetPayload(),
@@ -306,8 +306,8 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				Event.Skip,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:         Event.WebsocketConnection,
 					Event.Circumstance: Event.GroupcastRoutine,
+					Event.ClientType:   Event.WebsocketConnection,
 					Event.GroupId:      groupId,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
@@ -334,8 +334,8 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.SentMessage,
 		"groupcasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.GroupcastRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 			Event.GroupId:      groupId,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),

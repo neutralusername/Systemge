@@ -15,8 +15,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.ClientAcceptionRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 		}),
 	)); event.IsError() {
 		return
@@ -30,8 +30,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.Continue,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketConnection,
 				Event.Circumstance: Event.ClientAcceptionRoutine,
+				Event.ChannelType:  Event.WebsocketConnection,
 			}),
 		)); event.IsError() {
 			break
@@ -43,8 +43,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 				Event.ReceivedNilValueFromChannel,
 				"received nil from websocketConnection channel",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:         Event.WebsocketConnection,
 					Event.Circumstance: Event.ClientAcceptionRoutine,
+					Event.ChannelType:  Event.WebsocketConnection,
 				}),
 			))
 			break
@@ -56,9 +56,9 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.Skip,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketConnection,
-				Event.Circumstance: Event.ClientAcceptionRoutine,
-				Event.Address:      websocketConnection.RemoteAddr().String(),
+				Event.Circumstance:  Event.ClientAcceptionRoutine,
+				Event.ChannelType:   Event.WebsocketConnection,
+				Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 			}),
 		))
 		if event.IsError() {
@@ -79,8 +79,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		Event.ClientAcceptionRoutineFinished,
 		"stopped websocketConnections acception",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
 			Event.Circumstance: Event.ClientAcceptionRoutine,
+			Event.ClientType:   Event.WebsocketConnection,
 		}),
 	))
 }
@@ -95,10 +95,10 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
-			Event.Circumstance: Event.ClientReceptionRoutine,
-			Event.ClientId:     websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetIp(),
+			Event.Circumstance:  Event.ClientReceptionRoutine,
+			Event.ClientType:    Event.WebsocketConnection,
+			Event.ClientId:      websocketConnection.GetId(),
+			Event.ClientAddress: websocketConnection.GetIp(),
 		}),
 	)); !event.IsInfo() {
 		return
@@ -148,10 +148,10 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		Event.ClientReceptionRoutineFinished,
 		"stopped websocketConnection message reception",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketConnection,
-			Event.Circumstance: Event.ClientReceptionRoutine,
-			Event.ClientId:     websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetIp(),
+			Event.Circumstance:  Event.ClientReceptionRoutine,
+			Event.ClientType:    Event.WebsocketConnection,
+			Event.ClientId:      websocketConnection.GetId(),
+			Event.ClientAddress: websocketConnection.GetIp(),
 		}),
 	))
 }

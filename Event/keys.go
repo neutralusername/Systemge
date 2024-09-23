@@ -1,10 +1,16 @@
 package Event
 
-const Kind = "kind"
-const AdditionalKind = "additionalKind"
 const Circumstance = "circumstance"
 
-const Address = "address"
+const ClientType = "clientType"
+const ChannelType = "channelType"
+const ServiceType = "serviceType"
+const RateLimiterType = "rateLimiterType"
+const HandlerType = "handlerType"
+const StructType = "structType"
+const TokenBucketType = "tokenBucketType"
+
+const ClientAddress = "address"
 const ClientId = "clientId"
 const TargetClientIds = "targetClientIds"
 const TargetClientId = "targetClientId"
@@ -15,8 +21,6 @@ const Payload = "payload"
 const GroupId = "groupId"
 
 const SyncToken = "syncToken"
-
-const Service = "service"
 
 const ServiceName = "serviceName"
 

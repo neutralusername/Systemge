@@ -125,7 +125,6 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketServer,
 			Event.Circumstance: Event.StartRoutine,
 		}),
 	)); !event.IsInfo() {
@@ -137,7 +136,6 @@ func (server *WebsocketServer) start(lock bool) error {
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketServer,
 				Event.Circumstance: Event.StartRoutine,
 			}),
 		))
@@ -171,7 +169,6 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketServer,
 			Event.Circumstance: Event.StartRoutine,
 		}),
 	)); !event.IsInfo() {
@@ -198,7 +195,6 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketServer,
 			Event.Circumstance: Event.StopRoutine,
 		}),
 	)); !event.IsInfo() {
@@ -210,7 +206,6 @@ func (server *WebsocketServer) stop(lock bool) error {
 			Event.ServiceAlreadyStopped,
 			"service websocketServer already stopped",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:         Event.WebsocketServer,
 				Event.Circumstance: Event.StopRoutine,
 			}),
 		))
@@ -235,7 +230,6 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:         Event.WebsocketServer,
 			Event.Circumstance: Event.StopRoutine,
 		}),
 	))
@@ -290,7 +284,7 @@ func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	ctx := Event.Context{
-		Event.Service:       Event.WebsocketServer,
+		Event.ServiceType:   Event.WebsocketServer,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.status),
 		Event.Function:      Event.GetCallerFuncName(2),
