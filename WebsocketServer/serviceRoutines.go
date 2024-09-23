@@ -130,6 +130,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.waitGroup.Add(1)
 	go func() {
 		defer server.waitGroup.Done()
+
 		select {
 		case <-websocketConnection.stopChannel:
 		case <-server.stopChannel:
