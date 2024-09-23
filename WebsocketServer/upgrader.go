@@ -12,7 +12,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
 			server.onWarning(Event.NewWarningNoOption(
-				Event.FailedToSplitHostPort,
+				Event.SplittingHostPortFailed,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
 					Event.Address: httpRequest.RemoteAddr,
@@ -45,7 +45,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			server.onWarning(Event.NewWarningNoOption(
-				Event.FailedToPerformWebsocketUpgrade,
+				Event.WebsocketUpgradeFailed,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
 					Event.Address: httpRequest.RemoteAddr,

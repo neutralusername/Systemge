@@ -85,7 +85,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 	if err != nil {
 		server.failedSendCounter.Add(1)
 		server.onWarning(Event.NewWarningNoOption(
-			Event.FailedSendingClientMessage,
+			Event.SendingClientMessageFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:              Event.WebsocketConnection,
@@ -136,7 +136,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 	if err != nil {
 		websocketConnection.Close()
 		server.onWarning(Event.NewWarningNoOption(
-			Event.FailedReceivingClientMessage,
+			Event.ReceivingClientMessageFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:        Event.WebsocketConnection,

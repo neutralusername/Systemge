@@ -14,12 +14,13 @@ const SentMessage = "sentMessage"
 
 const SendingClientMessage = "sendingClientMessage"
 const SentClientMessage = "sentClientMessage"
-const FailedSendingClientMessage = "failedSendingClientMessage"
+const SendingClientMessageFailed = "sendingClientMessageFailed"
 
 const ClientAcceptionRoutineStarted = "clientAcceptionRoutineStarted"
 const ClientAcceptionRoutineFinished = "clientAcceptionRoutineFinished"
 
 const AcceptingClient = "acceptingConnection"
+const AcceptingClientFailed = "acceptingConnectionFailed"
 const AcceptedClient = "connectionAccepted"
 
 const ClientNotAccepted = "clientNotAccepted"
@@ -40,7 +41,7 @@ const MessageReceptionRoutineFinished = "messageReceptionRoutineFinished"
 
 const ReceivingClientMessage = "receivingClientMessage"
 const ReceivedClientMessage = "receivedClientMessage"
-const FailedReceivingClientMessage = "failedClientMessageReceive"
+const ReceivingClientMessageFailed = "receivingClientMessageFailed"
 
 const HandlingMessage = "handlingMessage"
 const HandledMessage = "handledMessage"
@@ -68,12 +69,12 @@ const HandledHttpRequest = "handledHttpRequest"
 
 const ClientDoesNotExist = "clientDoesNotExist"
 
-const FailedToDeserializeMessage = "failedToDeserializeMessage"
+const DeserializingMessageFailed = "deserializingMessageFailed"
 
 const RateLimited = "rateLimited"
 
-const FailedToSplitHostPort = "failedToSplitHostPort"
+const SplittingHostPortFailed = "splittingHostPortFailed"
 
-const FailedToPerformWebsocketUpgrade = "failedToUpgradeToWebsocketConnection"
+const WebsocketUpgradeFailed = "websocketUpgradeFailed"
 
 const HeartbeatReceived = "heartbeatReceived"

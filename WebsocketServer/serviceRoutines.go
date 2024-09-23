@@ -293,7 +293,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	message, err := Message.Deserialize(messageBytes, websocketConnection.GetId())
 	if err != nil {
 		return server.onWarning(Event.NewWarningNoOption(
-			Event.FailedToDeserializeMessage,
+			Event.DeserializingMessageFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Address:     websocketConnection.GetIp(),
