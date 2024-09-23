@@ -1,12 +1,12 @@
 package Tools
 
 import (
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
@@ -103,10 +103,10 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	commands := Commands.Handlers{}
 	commands["consume"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("consume expects 1 argument", nil)
+			return "", errors.New("consume expects 1 argument")
 		}
 		if !rateLimiter.Consume(Helpers.StringToUint64(args[0])) {
-			return "", Event.New("failed to consume", nil)
+			return "", errors.New("failed to consume")
 		}
 		return "success", nil
 	}
@@ -119,7 +119,7 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	}
 	commands["setRefillRate"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("setRefillRate expects 1 argument", nil)
+			return "", errors.New("setRefillRate expects 1 argument")
 		}
 		rateLimiter.SetRefillRate(Helpers.StringToUint64(args[0]))
 		return "success", nil
@@ -129,7 +129,7 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	}
 	commands["setRefillInterval"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("setRefillInterval expects 1 argument", nil)
+			return "", errors.New("setRefillInterval expects 1 argument")
 		}
 		rateLimiter.SetRefillInterval(Helpers.StringToUint64(args[0]))
 		return "success", nil
@@ -139,7 +139,7 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 	}
 	commands["setMaxBucketSize"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("setMaxBucketSize expects 1 argument", nil)
+			return "", errors.New("setMaxBucketSize expects 1 argument")
 		}
 		rateLimiter.SetMaxBucketSize(Helpers.StringToUint64(args[0]))
 		return "success", nil

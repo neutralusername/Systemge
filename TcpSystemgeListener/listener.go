@@ -1,15 +1,14 @@
 package TcpSystemgeListener
 
 import (
-	"crypto/tls"
 	"net"
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -32,29 +31,6 @@ type TcpSystemgeListener struct {
 	failedConnectionAttempts   atomic.Uint64
 	rejectedConnectionAttempts atomic.Uint64
 	acceptedConnectionAttempts atomic.Uint64
-}
-
-func (server *TcpSystemgeListener) newListener(config *Config.TcpServer) (net.Listener, error) {
-	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
-		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
-		if err != nil {
-			return nil, Event.New("Failed to listen on port: ", err)
-		}
-		return listener, nil
-	} else {
-		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
-		if err != nil {
-			return nil, Event.New("Failed to load TLS certificate: ", err)
-		}
-		tlsConfig := &tls.Config{
-			Certificates: []tls.Certificate{cert},
-		}
-		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
-		if err != nil {
-			return nil, Event.New("Failed to listen on port: ", err)
-		}
-		return listener, nil
-	}
 }
 
 func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
@@ -81,7 +57,7 @@ func New(config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList,
 		blacklist: blacklist,
 		whitelist: whitelist,
 	}
-	tcpListener, err := server.newListener(config.TcpServerConfig)
+	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
 	if err != nil {
 		return nil, Event.New("failed to create listener", err)
 	}

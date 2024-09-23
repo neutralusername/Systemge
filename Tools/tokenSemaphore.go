@@ -1,9 +1,8 @@
 package Tools
 
 import (
+	"errors"
 	"sync"
-
-	"github.com/neutralusername/Systemge/Event"
 )
 
 type TokenSemaphore struct {
@@ -51,7 +50,7 @@ func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
 	defer tokenSemaphore.mutex.Unlock()
 	_, exists := tokenSemaphore.acquiredTokens[token]
 	if !exists {
-		return Event.New("Token is not valid", nil)
+		return errors.New("Token is not valid")
 	}
 	delete(tokenSemaphore.acquiredTokens, token)
 	tokenSemaphore.channel <- tokenSemaphore.randomizer.GenerateRandomString(tokenSemaphore.tokenSize, ALPHA_NUMERIC)
