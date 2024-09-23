@@ -283,6 +283,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
+	targetClientIds := Helpers.JsonMarshal(websocketIds)
 	if event := server.onInfo(Event.NewInfo(
 		Event.RemovingClientsFromGroup,
 		"removing websocketConnections from group",
@@ -290,10 +291,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.AdditionalKind:     Event.BestEffort,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Behaviour:       Event.BestEffort,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.GroupId:         groupId,
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -304,9 +306,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:               Event.WebsocketConnection,
-				Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-				Event.GroupId:            groupId,
+				Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+				Event.Behaviour:       Event.BestEffort,
+				Event.ClientType:      Event.WebsocketConnection,
+				Event.TargetClientIds: targetClientIds,
+				Event.GroupId:         groupId,
 			}),
 		))
 		return errors.New("group does not exist")
@@ -323,9 +327,12 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:              Event.WebsocketConnection,
-					Event.TargetWebsocketId: websocketId,
-					Event.GroupId:           groupId,
+					Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+					Event.Behaviour:       Event.BestEffort,
+					Event.ClientType:      Event.WebsocketConnection,
+					Event.ClientId:        websocketId,
+					Event.TargetClientIds: targetClientIds,
+					Event.GroupId:         groupId,
 				}),
 			))
 			if !event.IsInfo() {
@@ -343,9 +350,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 		Event.ClientsAddedToGroup,
 		"removed websocketConnections from group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Behaviour:       Event.BestEffort,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.GroupId:         groupId,
 		}),
 	))
 	return nil
