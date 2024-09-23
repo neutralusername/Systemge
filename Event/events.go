@@ -36,8 +36,8 @@ const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
 const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
 
-const MessageReceptionRoutineStarted = "messageReceptionRoutineStarted"
-const MessageReceptionRoutineFinished = "messageReceptionRoutineFinished"
+const ClientMessageReceptionRoutineStarted = "clientMessageReceptionRoutineStarted"
+const ClientMessageReceptionRoutineFinished = "clientMessageReceptionRoutineFinished"
 
 const ReceivingClientMessage = "receivingClientMessage"
 const ReceivedClientMessage = "receivedClientMessage"

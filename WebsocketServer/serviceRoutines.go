@@ -84,7 +84,7 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 	defer websocketConnection.waitGroup.Done()
 
 	if event := server.onInfo(Event.NewInfo(
-		Event.MessageReceptionRoutineStarted,
+		Event.ClientMessageReceptionRoutineStarted,
 		"started websocketConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
@@ -139,7 +139,7 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
-		Event.MessageReceptionRoutineFinished,
+		Event.ClientMessageReceptionRoutineFinished,
 		"stopped websocketConnection message reception",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
