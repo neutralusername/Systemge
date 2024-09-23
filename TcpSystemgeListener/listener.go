@@ -19,16 +19,15 @@ type TcpSystemgeListener struct {
 	closed      bool
 	closedMutex sync.Mutex
 
-	acceptMutex sync.Mutex
-
 	config        *Config.TcpSystemgeListener
 	ipRateLimiter *Tools.IpRateLimiter
 
-	tcpListener net.Listener
-	blacklist   *Tools.AccessControlList
-	whitelist   *Tools.AccessControlList
-
+	tcpListener             net.Listener
+	acceptMutex             sync.Mutex
 	tcpSystemgeConnectionId uint64
+
+	blacklist *Tools.AccessControlList
+	whitelist *Tools.AccessControlList
 
 	onErrorHandler   func(*Event.Event) *Event.Event
 	onWarningHandler func(*Event.Event) *Event.Event
