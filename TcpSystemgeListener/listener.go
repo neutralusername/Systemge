@@ -124,7 +124,7 @@ func (server *TcpSystemgeListener) onInfo(event *Event.Event) *Event.Event {
 
 func (server *TcpSystemgeListener) GetServerContext() Event.Context {
 	ctx := Event.Context{
-		Event.Service:       Event.TcpSystemgeListener,
+		Event.ServiceType:   Event.TcpSystemgeListener,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),

@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -9,9 +10,9 @@ import (
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocket.Conn) {
 	server.websocketConnectionMutex.Lock()
 
-	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+	websocketId := server.randomizer.GenerateRandomString(Constants.ClientIdLength, Tools.ALPHA_NUMERIC)
 	for _, exists := server.websocketConnections[websocketId]; exists; {
-		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+		websocketId = server.randomizer.GenerateRandomString(Constants.ClientIdLength, Tools.ALPHA_NUMERIC)
 	}
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptingClient,
