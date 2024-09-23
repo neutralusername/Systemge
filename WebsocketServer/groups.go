@@ -65,7 +65,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 	if server.groupsWebsocketConnections[groupId] == nil {
 		if event := server.onInfo(Event.NewInfo(
 			Event.CreatingGroup,
-			"group does not exist",
+			"creating group",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -105,6 +105,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
+	targetClientIds := Helpers.JsonMarshal(websocketIds)
 	if event := server.onInfo(Event.NewInfo(
 		Event.AddingClientsToGroup,
 		"adding websocketConnections to group",
@@ -112,10 +113,11 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.AdditionalKind:     Event.BestEffort,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.Runtime,
+			Event.Behaviour:       Event.BestEffort,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.GroupId:         groupId,
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -124,14 +126,16 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 	if server.groupsWebsocketConnections[groupId] == nil {
 		if event := server.onWarning(Event.NewWarning(
 			Event.CreatingGroup,
-			"group does not exist",
+			"creating group",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:               Event.WebsocketConnection,
-				Event.GroupId:            groupId,
-				Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
+				Event.Circumstance:    Event.Runtime,
+				Event.Behaviour:       Event.BestEffort,
+				Event.ClientType:      Event.WebsocketConnection,
+				Event.TargetClientIds: targetClientIds,
+				Event.GroupId:         groupId,
 			}),
 		)); !event.IsInfo() {
 			return event.GetError()
@@ -151,9 +155,12 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:              Event.WebsocketConnection,
-					Event.TargetWebsocketId: websocketId,
-					Event.GroupId:           groupId,
+					Event.Circumstance:    Event.Runtime,
+					Event.Behaviour:       Event.BestEffort,
+					Event.ClientType:      Event.WebsocketConnection,
+					Event.ClientId:        websocketId,
+					Event.TargetClientIds: targetClientIds,
+					Event.GroupId:         groupId,
 				}),
 			))
 			if !event.IsInfo() {
@@ -170,9 +177,11 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		Event.ClientsAddedToGroup,
 		"added websocketConnections to group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.Runtime,
+			Event.Behaviour:       Event.BestEffort,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.GroupId:         groupId,
 		}),
 	))
 	return nil
