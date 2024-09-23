@@ -60,18 +60,18 @@ type WebsocketServer struct {
 }
 
 // onConnectHandler, onDisconnectHandler may be nil.
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers) *WebsocketServer {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers) (*WebsocketServer, error) {
 	if config == nil {
-		panic("config is nil")
+		return nil, errors.New("config is nil")
 	}
 	if config.TcpServerConfig == nil {
-		panic("config.ServerConfig is nil")
+		return nil, errors.New("config.TcpServerConfig is nil")
 	}
 	if config.Pattern == "" {
-		panic("config.Pattern is empty")
+		return nil, errors.New("config.Pattern is empty")
 	}
 	if messageHandlers == nil {
-		panic("messageHandlers is nil")
+		return nil, errors.New("messageHandlers is nil")
 	}
 	if config.Upgrader == nil {
 		config.Upgrader = &websocket.Upgrader{
@@ -101,7 +101,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 			server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 		},
 	)
-	return server
+	return server, nil
 }
 
 func (server *WebsocketServer) Start() error {
