@@ -69,7 +69,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	websocketConnection.sendMutex.Lock()
 	defer websocketConnection.sendMutex.Unlock()
 
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.SendingClientMessage,
 		"sending websocketConnection message",
 		Event.Cancel,
@@ -90,7 +90,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	err := websocketConnection.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		server.websocketConnectionMessagesFailed.Add(1)
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.SendingClientMessageFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
@@ -106,7 +106,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	server.websocketConnectionMessagesSent.Add(1)
 	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.SentClientMessage,
 		"sent websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
@@ -124,7 +124,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 	websocketConnection.receiveMutex.Lock()
 	defer websocketConnection.receiveMutex.Unlock()
 
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.ReceivingClientMessage,
 		"receiving websocketConnection message",
 		Event.Cancel,
@@ -144,7 +144,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 	_, messageBytes, err := websocketConnection.websocketConnection.ReadMessage()
 	if err != nil {
 		websocketConnection.Close()
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.ReceivingClientMessageFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
@@ -157,7 +157,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		return nil, err
 	}
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.ReceivedClientMessage,
 		"received websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
@@ -174,7 +174,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 // may only be called during the connections onConnectHandler.
 func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
 	if websocketConnection.isAccepted {
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.ClientAlreadyAccepted,
 			"websocketConnection is already accepted",
 			server.GetServerContext().Merge(Event.Context{

@@ -11,7 +11,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		ip, _, err := net.SplitHostPort(httpRequest.RemoteAddr)
 		if err != nil {
-			server.onWarning(Event.NewWarningNoOption(
+			server.onEvent(Event.NewWarningNoOption(
 				Event.SplittingHostPortFailed,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
@@ -25,7 +25,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		}
 
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			event := server.onWarning(Event.NewWarning(
+			event := server.onEvent(Event.NewWarning(
 				Event.RateLimited,
 				"websocketConnection attempt ip rate limited",
 				Event.Cancel,
@@ -46,7 +46,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 
 		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
-			server.onWarning(Event.NewWarningNoOption(
+			server.onEvent(Event.NewWarningNoOption(
 				Event.WebsocketUpgradeFailed,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
@@ -59,7 +59,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 
-		if event := server.onInfo(Event.NewInfo(
+		if event := server.onEvent(Event.NewInfo(
 			Event.SendingToChannel,
 			"sending new websocketConnection to channel",
 			Event.Cancel,
@@ -76,7 +76,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.websocketConnectionsRejected.Add(1)
 		}
 		server.connectionChannel <- websocketConnection
-		server.onInfo(Event.NewInfoNoOption(
+		server.onEvent(Event.NewInfoNoOption(
 			Event.SentToChannel,
 			"sent upgraded websocketConnection to channel",
 			server.GetServerContext().Merge(Event.Context{

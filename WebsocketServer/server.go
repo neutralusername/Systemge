@@ -43,9 +43,7 @@ type WebsocketServer struct {
 	messageHandlers     MessageHandlers
 	messageHandlerMutex sync.Mutex
 
-	onErrorHandler   func(*Event.Event) *Event.Event
-	onWarningHandler func(*Event.Event) *Event.Event
-	onInfoHandler    func(*Event.Event) *Event.Event
+	onEventHandler Event.Handler
 
 	// metrics
 
@@ -61,7 +59,7 @@ type WebsocketServer struct {
 	websocketConnectionMessagesBytesSent     atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers, onEventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -118,7 +116,7 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.StartingService,
 		"service websocketServer starting",
 		Event.Cancel,
@@ -132,7 +130,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	}
 
 	if server.status != Status.Stoped {
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
 			server.GetServerContext().Merge(Event.Context{
@@ -162,7 +160,7 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	server.status = Status.Started
 
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.ServiceStarted,
 		"service websocketServer started",
 		Event.Cancel,
@@ -188,7 +186,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 		defer server.statusMutex.Unlock()
 	}
 
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.StoppingService,
 		"service websocketServer stopping",
 		Event.Cancel,
@@ -202,7 +200,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 	}
 
 	if server.status == Status.Stoped {
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStopped,
 			"service websocketServer already stopped",
 			server.GetServerContext().Merge(Event.Context{
@@ -223,7 +221,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 	server.waitGroup.Wait()
 
 	server.status = Status.Stoped
-	event := server.onInfo(Event.NewInfo(
+	event := server.onEvent(Event.NewInfo(
 		Event.ServiceStopped,
 		"service websocketServer stopped",
 		Event.Cancel,
@@ -261,25 +259,11 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) onError(event *Event.Event) *Event.Event {
-	if server.onErrorHandler != nil {
-		return server.onErrorHandler(event)
+func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
+	if server.onEventHandler == nil {
+		return event
 	}
-	return event
-}
-
-func (server *WebsocketServer) onWarning(event *Event.Event) *Event.Event {
-	if server.onWarningHandler != nil {
-		return server.onWarningHandler(event)
-	}
-	return event
-}
-
-func (server *WebsocketServer) onInfo(event *Event.Event) *Event.Event {
-	if server.onInfoHandler != nil {
-		return server.onInfoHandler(event)
-	}
-	return event
+	return server.onEventHandler(event)
 }
 
 func (server *WebsocketServer) GetServerContext() Event.Context {

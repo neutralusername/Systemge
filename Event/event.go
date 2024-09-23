@@ -10,6 +10,8 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
+type Handler func(*Event) *Event
+
 const (
 	Info    = int8(0)
 	Warning = int8(1)

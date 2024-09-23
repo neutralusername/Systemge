@@ -17,7 +17,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	server.websocketConnectionMutex.RLock()
 	targetClientIds := Helpers.JsonMarshal(server.GetWebsocketConnectionIds())
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMessage,
 		"broadcasting websocketConnection message",
 		Event.Cancel,
@@ -38,7 +38,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	for _, websocketConnection := range server.websocketConnections {
 		if !websocketConnection.isAccepted {
-			event := server.onWarning(Event.NewWarning(
+			event := server.onEvent(Event.NewWarning(
 				Event.ClientNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
@@ -70,7 +70,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"broadcasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
@@ -92,7 +92,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 	waitGroup := Tools.NewTaskGroup()
 
 	server.websocketConnectionMutex.RLock()
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMessage,
 		"unicasting websocketConnection message",
 		Event.Cancel,
@@ -114,7 +114,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 	websocketConnection, exists := server.websocketConnections[websocketId]
 	if !exists {
 		server.websocketConnectionMutex.RUnlock()
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
 			server.GetServerContext().Merge(Event.Context{
@@ -130,7 +130,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		return errors.New("websocketConnection does not exist")
 	}
 	if !websocketConnection.isAccepted {
-		event := server.onWarning(Event.NewWarning(
+		event := server.onEvent(Event.NewWarning(
 			Event.ClientNotAccepted,
 			"websocketConnection is not accepted",
 			Event.Cancel,
@@ -158,7 +158,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"unicasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
@@ -181,7 +181,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	server.websocketConnectionMutex.RLock()
 	targetClientIds := Helpers.JsonMarshal(ids)
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMessage,
 		"multicasting websocketConnection message",
 		Event.Cancel,
@@ -203,7 +203,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	for _, id := range ids {
 		websocketConnection, exists := server.websocketConnections[id]
 		if !exists {
-			event := server.onWarning(Event.NewWarning(
+			event := server.onEvent(Event.NewWarning(
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				Event.Cancel,
@@ -227,7 +227,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			}
 		}
 		if !websocketConnection.isAccepted {
-			event := server.onWarning(Event.NewWarning(
+			event := server.onEvent(Event.NewWarning(
 				Event.ClientNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
@@ -259,7 +259,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"multicasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
@@ -281,7 +281,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	waitGroup := Tools.NewTaskGroup()
 
 	server.websocketConnectionMutex.RLock()
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMessage,
 		"groupcasting websocketConnection message",
 		Event.Cancel,
@@ -303,7 +303,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	group, ok := server.groupsWebsocketConnections[groupId]
 	if !ok {
 		server.websocketConnectionMutex.RUnlock()
-		server.onWarning(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
@@ -319,7 +319,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	}
 	for _, websocketConnection := range group {
 		if !websocketConnection.isAccepted {
-			event := server.onWarning(Event.NewWarning(
+			event := server.onEvent(Event.NewWarning(
 				Event.ClientNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
@@ -351,7 +351,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"groupcasted websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{

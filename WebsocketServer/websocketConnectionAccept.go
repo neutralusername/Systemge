@@ -14,7 +14,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	for _, exists := server.websocketConnections[websocketId]; exists; {
 		websocketId = server.randomizer.GenerateRandomString(Constants.ClientIdLength, Tools.ALPHA_NUMERIC)
 	}
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.AcceptingClient,
 		"accepting websocketConnection",
 		Event.Cancel,
@@ -54,7 +54,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.waitGroup.Add(1)
 	go server.websocketConnectionDisconnect(websocketConnection)
 
-	if event := server.onInfo(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.AcceptedClient,
 		"websocketConnection accepted",
 		Event.Cancel,
@@ -89,7 +89,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 
 	websocketConnection.waitGroup.Wait()
 
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.DisconnectingClient,
 		"disconnecting websocketConnection",
 		server.GetServerContext().Merge(Event.Context{
@@ -100,7 +100,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		}),
 	))
 	server.removeWebsocketConnection(websocketConnection)
-	server.onInfo(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.DisconnectedClient,
 		"websocketConnection disconnected",
 		server.GetServerContext().Merge(Event.Context{
