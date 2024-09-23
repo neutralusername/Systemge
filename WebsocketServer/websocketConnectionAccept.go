@@ -75,19 +75,6 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	go server.receiveMessagesLoop(websocketConnection)
 }
 
-func (server *WebsocketServer) removeWebsocketConnection(websocketConnection *WebsocketConnection) {
-	server.websocketConnectionMutex.Lock()
-	defer server.websocketConnectionMutex.Unlock()
-	delete(server.websocketConnections, websocketConnection.GetId())
-	for groupId := range server.websocketConnectionGroups[websocketConnection.GetId()] {
-		delete(server.websocketConnectionGroups[websocketConnection.GetId()], groupId)
-		delete(server.groupsWebsocketConnections[groupId], websocketConnection.GetId())
-		if len(server.groupsWebsocketConnections[groupId]) == 0 {
-			delete(server.groupsWebsocketConnections, groupId)
-		}
-	}
-}
-
 func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection *WebsocketConnection) {
 	defer server.waitGroup.Done()
 
@@ -118,4 +105,16 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 			Event.WebsocketId: websocketConnection.GetId(),
 		}),
 	))
+}
+func (server *WebsocketServer) removeWebsocketConnection(websocketConnection *WebsocketConnection) {
+	server.websocketConnectionMutex.Lock()
+	defer server.websocketConnectionMutex.Unlock()
+	delete(server.websocketConnections, websocketConnection.GetId())
+	for groupId := range server.websocketConnectionGroups[websocketConnection.GetId()] {
+		delete(server.websocketConnectionGroups[websocketConnection.GetId()], groupId)
+		delete(server.groupsWebsocketConnections[groupId], websocketConnection.GetId())
+		if len(server.groupsWebsocketConnections[groupId]) == 0 {
+			delete(server.groupsWebsocketConnections, groupId)
+		}
+	}
 }
