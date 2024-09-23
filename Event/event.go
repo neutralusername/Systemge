@@ -124,30 +124,6 @@ func (ctx Context) Merge(other Context) Context {
 	return ctx
 }
 
-func (e *Event) Marshal() string {
-	event := event{
-		Event:     e.event,
-		Specifier: e.specifier,
-		Level:     e.level,
-		Context:   e.context,
-	}
-	return Helpers.JsonMarshal(event)
-}
-
-func UnmarshalEvent(data []byte) (*Event, error) {
-	var event event
-	err := json.Unmarshal(data, &event)
-	if err != nil {
-		return nil, err
-	}
-	return &Event{
-		event:     event.Event,
-		specifier: event.Specifier,
-		level:     event.Level,
-		context:   event.Context,
-	}, nil
-}
-
 func (e *Event) GetKind() string {
 	return e.event
 }
@@ -202,6 +178,30 @@ func (e *Event) GetOnWarning() int8 {
 
 func (e *Event) GetOnInfo() int8 {
 	return e.onInfo
+}
+
+func (e *Event) Marshal() string {
+	event := event{
+		Event:     e.event,
+		Specifier: e.specifier,
+		Level:     e.level,
+		Context:   e.context,
+	}
+	return Helpers.JsonMarshal(event)
+}
+
+func UnmarshalEvent(data []byte) (*Event, error) {
+	var event event
+	err := json.Unmarshal(data, &event)
+	if err != nil {
+		return nil, err
+	}
+	return &Event{
+		event:     event.Event,
+		specifier: event.Specifier,
+		level:     event.Level,
+		context:   event.Context,
+	}, nil
 }
 
 func GetCallerPath(depth int) string {
