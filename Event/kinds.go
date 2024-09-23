@@ -20,3 +20,8 @@ const Transactional = "transactional"
 const Bytes = "bytes"
 
 const Message = "message"
+
+const WebsocketServer = "websocketServer"
+const HttpServer = "httpServer"
+const TcpSystemgeListener = "tcpSystemgeListener"
+const TcpSystemgeConnection = "tcpSystemgeConnection"

@@ -124,7 +124,9 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{}),
+		server.GetServerContext().Merge(Event.Context{
+			Event.Kind: Event.WebsocketServer,
+		}),
 	)); !event.IsInfo() {
 		return event.GetError()
 	}
@@ -133,7 +135,9 @@ func (server *WebsocketServer) start(lock bool) error {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
-			server.GetServerContext().Merge(Event.Context{}),
+			server.GetServerContext().Merge(Event.Context{
+				Event.Kind: Event.WebsocketServer,
+			}),
 		))
 		return errors.New("failed to start websocketServer")
 	}
@@ -164,7 +168,9 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{}),
+		server.GetServerContext().Merge(Event.Context{
+			Event.Kind: Event.WebsocketServer,
+		}),
 	)); !event.IsInfo() {
 		if err := server.stop(false); err != nil {
 			panic(err)
@@ -188,7 +194,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{}),
+		server.GetServerContext().Merge(Event.Context{
+			Event.Kind: Event.WebsocketServer,
+		}),
 	)); !event.IsInfo() {
 		return event.GetError()
 	}
@@ -197,7 +205,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStopped,
 			"service websocketServer already stopped",
-			server.GetServerContext().Merge(Event.Context{}),
+			server.GetServerContext().Merge(Event.Context{
+				Event.Kind: Event.WebsocketServer,
+			}),
 		))
 		return errors.New("websocketServer not started")
 	}
@@ -219,7 +229,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{}),
+		server.GetServerContext().Merge(Event.Context{
+			Event.Kind: Event.WebsocketServer,
+		}),
 	))
 	if !event.IsInfo() {
 		if err := server.start(false); err != nil {
