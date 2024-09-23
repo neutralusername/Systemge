@@ -65,7 +65,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 	defer websocketConnection.sendMutex.Unlock()
 
 	if event := server.onInfo(Event.NewInfo(
-		Event.SendingMessage,
+		Event.SendingClientMessage,
 		"sending websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -85,7 +85,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 	if err != nil {
 		server.failedSendCounter.Add(1)
 		server.onWarning(Event.NewWarningNoOption(
-			Event.NetworkError,
+			Event.FailedSendingClientMessage,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:              Event.WebsocketConnection,
@@ -100,7 +100,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 	server.bytesSentCounter.Add(uint64(len(messageBytes)))
 
 	server.onInfo(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.SentClientMessage,
 		"sent websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:              Event.WebsocketConnection,
@@ -117,7 +117,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 	defer websocketConnection.receiveMutex.Unlock()
 
 	if event := server.onInfo(Event.NewInfo(
-		Event.ReceivingMessage,
+		Event.ReceivingClientMessage,
 		"receiving websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -136,7 +136,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 	if err != nil {
 		websocketConnection.Close()
 		server.onWarning(Event.NewWarningNoOption(
-			Event.NetworkError,
+			Event.FailedReceivingClientMessage,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:        Event.WebsocketConnection,
@@ -148,7 +148,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
-		Event.ReceivedMessage,
+		Event.ReceivedClientMessage,
 		"received websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,

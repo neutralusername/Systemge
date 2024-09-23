@@ -7,9 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-// AddClientsToGroup adds websocket websocketConnections to a group.
-// Returns an error if either of the websocket websocketConnections does not exist or is already in the group.
-func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -21,6 +19,7 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:               Event.WebsocketConnection,
+			Event.AdditionalKind:     Event.Transactional,
 			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
 			Event.GroupId:            groupId,
 		}),
@@ -90,9 +89,7 @@ func (server *WebsocketServer) AddClientsToGroup(groupId string, websocketIds ..
 	return nil
 }
 
-// AttemptToAddClientsToGroup adds websocket websocketConnections to a group.
-// Proceeds even if either of the websocket websocketConnections does not exist or is already in the group.
-func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -104,6 +101,7 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:               Event.WebsocketConnection,
+			Event.AdditionalKind:     Event.BestEffort,
 			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
 			Event.GroupId:            groupId,
 		}),
@@ -168,10 +166,7 @@ func (server *WebsocketServer) AttemptToAddClientsToGroup(groupId string, websoc
 	return nil
 }
 
-// RemoveClientsFromGroup removes websocket websocketConnections from a group.
-// Returns an error if either of the websocket websocketConnections does not exist or is not in the group.
-// Returns an error if the group does not exist.
-func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -183,6 +178,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:               Event.WebsocketConnection,
+			Event.AdditionalKind:     Event.Transactional,
 			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
 			Event.GroupId:            groupId,
 		}),
@@ -250,10 +246,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup(groupId string, websocketI
 	return nil
 }
 
-// AttemptToRemoveClientsFromGroup removes websocket websocketConnections from a group.
-// proceeds even if either of the websocket websocketConnections does not exist or is not in the group.
-// Returns an error if the group does not exist.
-func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, websocketIds ...string) error {
+func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string, websocketIds ...string) error {
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
@@ -265,6 +258,7 @@ func (server *WebsocketServer) AttemptToRemoveClientsFromGroup(groupId string, w
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:               Event.WebsocketConnection,
+			Event.AdditionalKind:     Event.BestEffort,
 			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
 			Event.GroupId:            groupId,
 		}),

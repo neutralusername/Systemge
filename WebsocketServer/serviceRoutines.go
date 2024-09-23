@@ -10,7 +10,7 @@ import (
 
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.NewInfo(
-		Event.AcceptClientsRoutineStarted,
+		Event.ClientAcceptionRoutineStarted,
 		"started websocketConnections acception",
 		Event.Cancel,
 		Event.Continue,
@@ -73,7 +73,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
-		Event.AcceptClientsRoutineFinished,
+		Event.ClientAcceptionRoutineFinished,
 		"stopped websocketConnections acception",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind: Event.WebsocketConnection,
@@ -174,7 +174,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 
 func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *WebsocketConnection) {
 	if event := server.onInfo(Event.NewInfo(
-		Event.ReceiveMessageRoutineStarted,
+		Event.MessageReceptionRoutineStarted,
 		"started websocketConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
@@ -227,7 +227,7 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
-		Event.ReceiveMessageRoutineFinished,
+		Event.MessageReceptionRoutineFinished,
 		"stopped websocketConnection message reception",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
@@ -293,7 +293,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	message, err := Message.Deserialize(messageBytes, websocketConnection.GetId())
 	if err != nil {
 		return server.onWarning(Event.NewWarningNoOption(
-			Event.FailedToDeserialize,
+			Event.FailedToDeserializeMessage,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Address:     websocketConnection.GetIp(),
@@ -319,8 +319,9 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	if handler == nil {
 		return server.onWarning(Event.NewWarningNoOption(
 			Event.NoHandlerForTopic,
-			"no websocketConnection message handler",
+			"no websocketConnection message handler for topic",
 			server.GetServerContext().Merge(Event.Context{
+				Event.Kind:        Event.WebsocketConnection,
 				Event.Address:     websocketConnection.GetIp(),
 				Event.WebsocketId: websocketConnection.GetId(),
 				Event.Topic:       message.GetTopic(),
@@ -333,6 +334,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 			Event.HandlerFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
+				Event.Kind:        Event.WebsocketConnection,
 				Event.Address:     websocketConnection.GetIp(),
 				Event.WebsocketId: websocketConnection.GetId(),
 				Event.Topic:       message.GetTopic(),
@@ -344,6 +346,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 		Event.HandledMessage,
 		"handled websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
+			Event.Kind:        Event.WebsocketConnection,
 			Event.Address:     websocketConnection.GetIp(),
 			Event.WebsocketId: websocketConnection.GetId(),
 			Event.Topic:       message.GetTopic(),

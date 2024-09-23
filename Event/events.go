@@ -6,28 +6,26 @@ const ServiceAlreadyStopped = "alreadyStopped"
 const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"
 
-const StartingService = "starting"
-const StoppingService = "stopping"
+const StartingService = "startingService"
+const StoppingService = "stoppingService"
 
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
 
+const SendingClientMessage = "sendingClientMessage"
+const SentClientMessage = "sentClientMessage"
+const FailedSendingClientMessage = "failedSendingClientMessage"
+
 const HandlingHttpRequest = "handlingHttpRequest"
 const HandledHttpRequest = "handledHttpRequest"
 
-const AcceptClientsRoutineStarted = "acceptClientsRoutineStarted"
-const AcceptClientsRoutineFinished = "acceptClientsRoutineFinished"
+const ClientAcceptionRoutineStarted = "clientAcceptionRoutineStarted"
+const ClientAcceptionRoutineFinished = "clientAcceptionRoutineFinished"
 
 const ClientNotAccepted = "clientNotAccepted"
 const ClientAlreadyAccepted = "clientAlreadyAccepted"
 
 const ClientDoesNotExist = "clientDoesNotExist"
-
-const ClientAlreadyInGroup = "clientAlreadyInGroup"
-
-const GroupDoesNotExist = "groupDoesNotExist"
-
-const ClientNotInGroup = "clientNotInGroup"
 
 const AcceptingClient = "acceptingConnection"
 const AcceptedClient = "connectionAccepted"
@@ -42,45 +40,37 @@ const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
 const SendingToChannel = "sendingToChannel"
 const SentToChannel = "sentToChannel"
 
-const ReceiveMessageRoutineStarted = "receiveMessageRoutineStarted"
-const ReceiveMessageRoutineFinished = "receiveMessageRoutineFinished"
+const MessageReceptionRoutineStarted = "messageReceptionRoutineStarted"
+const MessageReceptionRoutineFinished = "messageReceptionRoutineFinished"
 
-const ReceivingMessage = "receivingMessage"
-const ReceivedMessage = "receivedMessage"
+const ReceivingClientMessage = "receivingClientMessage"
+const ReceivedClientMessage = "receivedClientMessage"
+const FailedReceivingClientMessage = "failedClientMessageReceive"
 
 const HandlingMessage = "handlingMessage"
 const HandledMessage = "handledMessage"
 
 const RateLimited = "rateLimited"
-
-const FailedToDeserialize = "failedToDeserialize"
-
+const FailedToDeserializeMessage = "failedToDeserializeMessage"
 const FailedToSplitHostPort = "failedToSplitHostPort"
-
 const FailedToPerformWebsocketUpgrade = "failedToUpgradeToWebsocketConnection"
 
-const NetworkError = "networkError"
-
 const NoHandlerForTopic = "noHandlerForTopic"
-
 const HandlerFailed = "handlerFailed"
 
+const ClientAlreadyInGroup = "clientAlreadyInGroup"
+const ClientNotInGroup = "clientNotInGroup"
+const GroupDoesNotExist = "groupDoesNotExist"
 const AddingClientsToGroup = "addingClientsToGroup"
 const ClientsAddedToGroup = "clientsAddedToGroup"
-
 const RemovingClientsFromGroup = "removingClientsFromGroup"
 const ClientsRemovedFromGroup = "clientsRemovedFromGroup"
-
 const GettingGroupClients = "gettingGroupClients"
 const GotGroupClients = "gotGroupClients"
-
 const CreatingGroup = "creatingGroup"
-
 const GettingClientGroups = "gettingClientGroups"
 const GotClientGroups = "gotClientGroups"
-
 const GettingGroupCount = "gettingGroupCount"
-
 const GettingGroupIds = "gettingGroupIds"
 const GotGroupIds = "gotGroupIds"
 

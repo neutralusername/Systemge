@@ -100,49 +100,49 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return "success", nil
 	}
-	commands["addClientsToGroup"] = func(args []string) (string, error) {
+	commands["addClientsToGroup_transactional"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
-		err := server.AddClientsToGroup(group, ids...)
+		err := server.AddClientsToGroup_transactional(group, ids...)
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["attemptToAddClientsToGroup"] = func(args []string) (string, error) {
+	commands["addClientsToGroup_bestEffort"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
-		err := server.AttemptToAddClientsToGroup(group, ids...)
+		err := server.AddClientsToGroup_bestEffort(group, ids...)
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["removeClientsFromGroup"] = func(args []string) (string, error) {
+	commands["removeClientsFromGroup_transactional"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
-		err := server.RemoveClientsFromGroup(group, ids...)
+		err := server.RemoveClientsFromGroup_transactional(group, ids...)
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["attemptToRemoveClientsFromGroup"] = func(args []string) (string, error) {
+	commands["removeClientsFromGroup_bestEffort"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		group := args[0]
 		ids := args[1:]
-		err := server.AttemptToRemoveClientsFromGroup(group, ids...)
+		err := server.RemoveClientsFromGroup_bestEffort(group, ids...)
 		if err != nil {
 			return "", err
 		}

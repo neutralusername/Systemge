@@ -115,7 +115,7 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.StartingService,
-		"starting websocketServer",
+		"service websocketServer starting",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -127,7 +127,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	if server.status != Status.Stoped {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
-			"websocketServer already started",
+			"service websocketServer already started",
 			server.GetServerContext().Merge(Event.Context{}),
 		))
 		return errors.New("failed to start websocketServer")
@@ -155,7 +155,7 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.ServiceStarted,
-		"websocketServer started",
+		"service websocketServer started",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -179,7 +179,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.StoppingService,
-		"stopping websocketServer",
+		"service websocketServer stopping",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -188,10 +188,10 @@ func (server *WebsocketServer) stop(lock bool) error {
 		return event.GetError()
 	}
 
-	if server.status != Status.Started {
+	if server.status == Status.Stoped {
 		server.onWarning(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStarted,
-			"websocketServer not started",
+			Event.ServiceAlreadyStopped,
+			"service websocketServer already stopped",
 			server.GetServerContext().Merge(Event.Context{}),
 		))
 		return errors.New("websocketServer not started")
@@ -211,7 +211,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 	server.status = Status.Stoped
 	event := server.onInfo(Event.NewInfo(
 		Event.ServiceStopped,
-		"websocketServer stopped",
+		"service websocketServer stopped",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,

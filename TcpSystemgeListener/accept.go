@@ -13,11 +13,18 @@ import (
 )
 
 func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
-	netConn, err := listener.listener.Accept()
+	listener.connectionAttempts.Add(1)
 	listener.connectionId++
 	connectionId := listener.connectionId
-	listener.connectionAttempts.Add(1)
+	netConn, err := listener.listener.Accept()
 	if err != nil {
+		listener.onWarning(Event.NewWarningNoOption(
+			Event.NetworkError,
+			"Failed to accept attempt",
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Kind: Event.Tcp,
+			}),
+		))
 		listener.failedConnectionAttempts.Add(1)
 		return nil, Event.New("Failed to accept connection #"+Helpers.Uint32ToString(connectionId), err)
 	}
