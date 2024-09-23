@@ -40,8 +40,6 @@ update oauth2server (add dashboard client etc.)
 
 update readme
 
-improve logging (especially systemge and broker packages)
-
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
 add ChannelConnection and channelListener as more performant alternative for systems within a single process
