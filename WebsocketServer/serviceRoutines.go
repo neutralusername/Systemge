@@ -68,8 +68,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			continue
 		}
 
-		server.waitGroup.Add(1)
-		go server.acceptWebsocketConnection(websocketConnection)
+		server.acceptWebsocketConnection(websocketConnection)
 	}
 
 	server.onInfo(Event.NewInfoNoOption(

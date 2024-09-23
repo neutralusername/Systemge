@@ -7,8 +7,12 @@ import (
 )
 
 func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocket.Conn) {
-	defer server.waitGroup.Done()
+	server.websocketConnectionMutex.Lock()
 
+	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+	for _, exists := server.websocketConnections[websocketId]; exists; {
+		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+	}
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptingClient,
 		"accepting websocketConnection",
@@ -16,8 +20,9 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:    Event.WebsocketConnection,
-			Event.Address: websocketConn.RemoteAddr().String(),
+			Event.Kind:     Event.WebsocketConnection,
+			Event.ClientId: websocketId,
+			Event.Address:  websocketConn.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
 		if websocketConn != nil {
@@ -27,11 +32,6 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		return
 	}
 
-	server.websocketConnectionMutex.Lock()
-	websocketId := server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
-	for _, exists := server.websocketConnections[websocketId]; exists; {
-		websocketId = server.randomizer.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
-	}
 	websocketConnection := &WebsocketConnection{
 		id:                  websocketId,
 		websocketConnection: websocketConn,
@@ -59,9 +59,9 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     websocketConn.RemoteAddr().String(),
-			Event.WebsocketId: websocketId,
+			Event.Kind:     Event.WebsocketConnection,
+			Event.ClientId: websocketId,
+			Event.Address:  websocketConn.RemoteAddr().String(),
 		}),
 	)); !event.IsInfo() {
 		websocketConnection.Close()
@@ -90,9 +90,9 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.DisconnectingClient,
 		"disconnecting websocketConnection",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     websocketConnection.GetIp(),
-			Event.WebsocketId: websocketConnection.GetId(),
+			Event.Kind:     Event.WebsocketConnection,
+			Event.ClientId: websocketConnection.GetId(),
+			Event.Address:  websocketConnection.GetIp(),
 		}),
 	))
 	server.removeWebsocketConnection(websocketConnection)
@@ -100,9 +100,9 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.DisconnectedClient,
 		"websocketConnection disconnected",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     websocketConnection.GetIp(),
-			Event.WebsocketId: websocketConnection.GetId(),
+			Event.Kind:     Event.WebsocketConnection,
+			Event.ClientId: websocketConnection.GetId(),
+			Event.Address:  websocketConnection.GetIp(),
 		}),
 	))
 }
