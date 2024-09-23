@@ -61,7 +61,6 @@ type WebsocketServer struct {
 	websocketConnectionMessagesBytesSent     atomic.Uint64
 }
 
-// onConnectHandler, onDisconnectHandler may be nil.
 func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
