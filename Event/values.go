@@ -5,14 +5,14 @@ const WebsocketConnection = "websocketConnection"
 const Ip = "ip"
 const TokenBucket = "tokenBucket"
 
-const Messages = "messages"
-
 const StopChannel = "stopChannel"
 
 const BestEffort = "bestEffort"
 const Transactional = "transactional"
 
 const Bytes = "bytes"
+const Messages = "messages"
+
 const Message = "message"
 
 const WebsocketServer = "websocketServer"
