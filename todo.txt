@@ -1,4 +1,5 @@
 create a bunch of wrapper functions with events (commands, httpRequests etc)
+events are used for automated routines to offer besides logging also some control over inner workings
 
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
