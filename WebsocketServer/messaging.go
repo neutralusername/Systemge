@@ -66,12 +66,9 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfo(
+	server.onInfo(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"broadcasted websocketConnection message",
-		Event.NoOption,
-		Event.NoOption,
-		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:           Event.WebsocketConnection,
 			Event.AdditionalKind: Event.Broadcast,
@@ -110,12 +107,9 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 	websocketConnection, exists := server.websocketConnections[id]
 	if !exists {
 		server.websocketConnectionMutex.RUnlock()
-		server.onWarning(Event.NewWarning(
+		server.onWarning(Event.NewWarningNoOption(
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
-			Event.NoOption,
-			Event.NoOption,
-			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:              Event.WebsocketConnection,
 				Event.AdditionalKind:    Event.Unicast,
@@ -155,12 +149,9 @@ func (server *WebsocketServer) Unicast(id string, message *Message.Message) erro
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfo(
+	server.onInfo(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"unicasted websocketConnection message",
-		Event.NoOption,
-		Event.NoOption,
-		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:              Event.WebsocketConnection,
 			Event.AdditionalKind:    Event.Unicast,
@@ -256,12 +247,9 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfo(
+	server.onInfo(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"multicasted websocketConnection message",
-		Event.NoOption,
-		Event.NoOption,
-		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:               Event.WebsocketConnection,
 			Event.TargetWebsocketIds: Helpers.JsonMarshal(ids),
@@ -301,12 +289,9 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	group, ok := server.groups[groupId]
 	if !ok {
 		server.websocketConnectionMutex.RUnlock()
-		server.onWarning(Event.NewWarning(
+		server.onWarning(Event.NewWarningNoOption(
 			Event.GroupDoesNotExist,
 			"group does not exist",
-			Event.NoOption,
-			Event.NoOption,
-			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:           Event.WebsocketConnection,
 				Event.AdditionalKind: Event.Groupcast,
@@ -352,12 +337,9 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onInfo(Event.NewInfo(
+	server.onInfo(Event.NewInfoNoOption(
 		Event.SentMessage,
 		"groupcasted websocketConnection message",
-		Event.NoOption,
-		Event.NoOption,
-		Event.NoOption,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:           Event.WebsocketConnection,
 			Event.AdditionalKind: Event.Groupcast,

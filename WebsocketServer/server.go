@@ -189,12 +189,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 	}
 
 	if server.status != Status.Started {
-		server.onWarning(Event.NewWarning(
+		server.onWarning(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"websocketServer not started",
-			Event.NoOption,
-			Event.NoOption,
-			Event.NoOption,
 			server.GetServerContext().Merge(Event.Context{}),
 		))
 		return errors.New("websocketServer not started")
