@@ -212,15 +212,21 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		if len(args) != 1 {
 			return "", errors.New("Invalid number of arguments")
 		}
-		return Helpers.BoolToString(server.WebsocketConnectionExists(args[0])), nil
+		websocketConnectionExists, err := server.WebsocketConnectionExists(args[0])
+		if err != nil {
+			return "", err
+		}
+		return Helpers.BoolToString(websocketConnectionExists), nil
 	}
 	commands["getWebsocketConnectionGroupCount"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("Invalid number of arguments")
 		}
 		id := args[0]
-		websocketConnectionGroupCount := server.GetWebsocketConnectionGroupCount(id)
-
+		websocketConnectionGroupCount, err := server.GetWebsocketConnectionGroupCount(id)
+		if err != nil {
+			return "", err
+		}
 		return Helpers.IntToString(websocketConnectionGroupCount), nil
 	}
 	commands["getWebsocketConnectionCount"] = func(args []string) (string, error) {
