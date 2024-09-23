@@ -19,7 +19,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.websocketConnectionsRejected.Add(1)
+			server.websocketConnectionsFailed.Add(1)
 			return
 		}
 
@@ -52,7 +52,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.websocketConnectionsRejected.Add(1)
+			server.websocketConnectionsFailed.Add(1)
 			return
 		}
 
@@ -68,7 +68,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
-			server.websocketConnectionsRejected.Add(1)
+			server.websocketConnectionsFailed.Add(1)
 			server.waitGroup.Done()
 			return
 		default:
