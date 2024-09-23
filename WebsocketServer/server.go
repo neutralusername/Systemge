@@ -94,6 +94,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		config:                     config,
 		mailer:                     Tools.NewMailer(config.MailerConfig),
 		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
+		connectionChannel:          make(chan *websocket.Conn),
 	}
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
@@ -142,12 +143,10 @@ func (server *WebsocketServer) start(lock bool) error {
 	if server.config.IpRateLimiter != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
-	server.connectionChannel = make(chan *websocket.Conn)
 	if err := server.httpServer.Start(); err != nil { // TODO: context from this service missing - handle this somehow
 		if server.ipRateLimiter != nil {
 			server.ipRateLimiter.Close()
 			server.ipRateLimiter = nil
-			close(server.connectionChannel)
 		}
 		server.status = Status.Stoped
 		return err
@@ -213,7 +212,6 @@ func (server *WebsocketServer) stop(lock bool) error {
 
 	close(server.stopChannel)
 	server.waitGroup.Wait()
-	close(server.connectionChannel)
 
 	server.status = Status.Stoped
 	event := server.onInfo(Event.NewInfo(

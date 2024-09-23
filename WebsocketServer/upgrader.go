@@ -56,47 +56,29 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			return
 		}
 
-		server.waitGroup.Add(1)
-		switch {
-		case <-server.stopChannel:
-			server.onInfo(Event.NewInfoNoOption(
-				Event.ReceivedNilValueFromChannel,
-				"rejecting websocket upgrade request because server is stopping",
-				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: Event.StopChannel,
-				}),
-			))
+		if event := server.onInfo(Event.NewInfo(
+			Event.SendingToChannel,
+			"sending new websocketConnection to channel",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			server.GetServerContext().Merge(Event.Context{
+				Event.Kind:    Event.WebsocketConnection,
+				Event.Address: websocketConnection.RemoteAddr().String(),
+			}),
+		)); !event.IsInfo() {
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
-			server.websocketConnectionsFailed.Add(1)
-			server.waitGroup.Done()
-			return
-		default:
-			if event := server.onInfo(Event.NewInfo(
-				Event.SendingToChannel,
-				"sending new websocketConnection to channel",
-				Event.Cancel,
-				Event.Cancel,
-				Event.Continue,
-				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:    Event.WebsocketConnection,
-					Event.Address: websocketConnection.RemoteAddr().String(),
-				}),
-			)); !event.IsInfo() {
-				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
-				websocketConnection.Close()
-				server.websocketConnectionsRejected.Add(1)
-				server.waitGroup.Done()
-			}
-			server.connectionChannel <- websocketConnection
-			server.onInfo(Event.NewInfoNoOption(
-				Event.SentToChannel,
-				"sent upgraded websocketConnection to channel",
-				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:    Event.WebsocketConnection,
-					Event.Address: websocketConnection.RemoteAddr().String(),
-				}),
-			))
+			server.websocketConnectionsRejected.Add(1)
 		}
+		server.connectionChannel <- websocketConnection
+		server.onInfo(Event.NewInfoNoOption(
+			Event.SentToChannel,
+			"sent upgraded websocketConnection to channel",
+			server.GetServerContext().Merge(Event.Context{
+				Event.Kind:    Event.WebsocketConnection,
+				Event.Address: websocketConnection.RemoteAddr().String(),
+			}),
+		))
 	}
 }
