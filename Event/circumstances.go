@@ -19,3 +19,6 @@ const BroadcastRoutine = "broadcastRoutine"
 const UnicastRoutine = "unicastRoutine"
 const MulticastRoutine = "multicastRoutine"
 const GroupcastRoutine = "groupcastRoutine"
+
+const AddClientsToGroupRoutine = "addClientsToGroupRoutine"
+const RemoveClientsFromGroupRoutine = "removeClientsFromGroupRoutine"

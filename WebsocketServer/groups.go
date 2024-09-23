@@ -19,7 +19,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Circumstance:    Event.Runtime,
+			Event.Circumstance:    Event.AddClientsToGroupRoutine,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -35,7 +35,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Circumstance:    Event.Runtime,
+					Event.Circumstance:    Event.AddClientsToGroupRoutine,
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -50,7 +50,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 				Event.ClientAlreadyInGroup,
 				"websocketConnection is already in group",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Circumstance:    Event.Runtime,
+					Event.Circumstance:    Event.AddClientsToGroupRoutine,
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -70,7 +70,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Circumstance:    Event.Runtime,
+				Event.Circumstance:    Event.AddClientsToGroupRoutine,
 				Event.Behaviour:       Event.Transactional,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.TargetClientIds: targetClientIds,
@@ -91,7 +91,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 		Event.ClientsAddedToGroup,
 		"added websocketConnections to group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Circumstance:    Event.Runtime,
+			Event.Circumstance:    Event.AddClientsToGroupRoutine,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -113,7 +113,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Circumstance:    Event.Runtime,
+			Event.Circumstance:    Event.AddClientsToGroupRoutine,
 			Event.Behaviour:       Event.BestEffort,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -131,7 +131,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Circumstance:    Event.Runtime,
+				Event.Circumstance:    Event.AddClientsToGroupRoutine,
 				Event.Behaviour:       Event.BestEffort,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.TargetClientIds: targetClientIds,
@@ -155,7 +155,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Circumstance:    Event.Runtime,
+					Event.Circumstance:    Event.AddClientsToGroupRoutine,
 					Event.Behaviour:       Event.BestEffort,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -177,7 +177,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		Event.ClientsAddedToGroup,
 		"added websocketConnections to group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Circumstance:    Event.Runtime,
+			Event.Circumstance:    Event.AddClientsToGroupRoutine,
 			Event.Behaviour:       Event.BestEffort,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -191,6 +191,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
+	targetClientIds := Helpers.JsonMarshal(websocketIds)
 	if event := server.onInfo(Event.NewInfo(
 		Event.RemovingClientsFromGroup,
 		"removing websocketConnections from group",
@@ -198,10 +199,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.AdditionalKind:     Event.Transactional,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Behaviour:       Event.Transactional,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.GroupId:         groupId,
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -212,9 +214,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:               Event.WebsocketConnection,
-				Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-				Event.GroupId:            groupId,
+				Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+				Event.Behaviour:       Event.Transactional,
+				Event.ClientType:      Event.WebsocketConnection,
+				Event.TargetClientIds: targetClientIds,
+				Event.GroupId:         groupId,
 			}),
 		))
 		return errors.New("group does not exist")
@@ -226,9 +230,12 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:              Event.WebsocketConnection,
-					Event.TargetWebsocketId: websocketId,
-					Event.GroupId:           groupId,
+					Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+					Event.Behaviour:       Event.Transactional,
+					Event.ClientType:      Event.WebsocketConnection,
+					Event.ClientId:        websocketId,
+					Event.TargetClientIds: targetClientIds,
+					Event.GroupId:         groupId,
 				}),
 			))
 			return errors.New("websocketConnection does not exist")
@@ -238,9 +245,12 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 				Event.ClientNotInGroup,
 				"websocketConnection is not in group",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:              Event.WebsocketConnection,
-					Event.TargetWebsocketId: websocketId,
-					Event.GroupId:           groupId,
+					Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+					Event.Behaviour:       Event.Transactional,
+					Event.ClientType:      Event.WebsocketConnection,
+					Event.ClientId:        websocketId,
+					Event.TargetClientIds: targetClientIds,
+					Event.GroupId:         groupId,
 				}),
 			))
 			return errors.New("websocketConnection is not in group")
@@ -259,9 +269,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 		Event.ClientsAddedToGroup,
 		"removed websocketConnections from group",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:               Event.WebsocketConnection,
-			Event.TargetWebsocketIds: Helpers.JsonMarshal(websocketIds),
-			Event.GroupId:            groupId,
+			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Behaviour:       Event.Transactional,
+			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.GroupId:         groupId,
 		}),
 	))
 	return nil
