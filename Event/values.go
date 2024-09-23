@@ -13,7 +13,6 @@ const BestEffort = "bestEffort"
 const Transactional = "transactional"
 
 const Bytes = "bytes"
-
 const Message = "message"
 
 const WebsocketServer = "websocketServer"
