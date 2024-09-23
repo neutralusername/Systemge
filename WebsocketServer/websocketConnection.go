@@ -60,8 +60,12 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 	return websocketConnection.id
 }
 
-// Sends a message to the websocketConnection.
+/* // Sends a message to the websocketConnection.
 func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
+	return server.send(websocketConnection, messageBytes, Event.Runtime)
+} */
+
+func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
 	websocketConnection.sendMutex.Lock()
 	defer websocketConnection.sendMutex.Unlock()
 
@@ -73,6 +77,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: circumstance,
 			Event.ClientId:     websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetIp(),
 			Event.MessageBytes: string(messageBytes),
@@ -90,6 +95,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: circumstance,
 				Event.ClientId:     websocketConnection.GetId(),
 				Event.Address:      websocketConnection.GetIp(),
 				Event.MessageBytes: string(messageBytes),
@@ -105,6 +111,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 		"sent websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: circumstance,
 			Event.ClientId:     websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetIp(),
 			Event.MessageBytes: string(messageBytes),
@@ -113,7 +120,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 	return nil
 }
 
-func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection, circumstance string) ([]byte, error) {
 	websocketConnection.receiveMutex.Lock()
 	defer websocketConnection.receiveMutex.Unlock()
 
@@ -124,9 +131,10 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketConnection.GetId(),
-			Event.Address:  websocketConnection.GetIp(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: circumstance,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetIp(),
 		}),
 	)); !event.IsInfo() {
 		return nil, event.GetError()
@@ -140,9 +148,10 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 			Event.ReceivingClientMessageFailed,
 			err.Error(),
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:     Event.WebsocketConnection,
-				Event.ClientId: websocketConnection.GetId(),
-				Event.Address:  websocketConnection.GetIp(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: circumstance,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetIp(),
 			}),
 		))
 		return nil, err
@@ -152,9 +161,11 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 		Event.ReceivedClientMessage,
 		"received websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketConnection.GetId(),
-			Event.Address:  websocketConnection.GetIp(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: circumstance,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetIp(),
+			Event.MessageBytes: string(messageBytes),
 		}),
 	))
 	return messageBytes, nil
@@ -167,12 +178,13 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 			Event.ClientAlreadyAccepted,
 			"websocketConnection is already accepted",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:     Event.WebsocketConnection,
-				Event.ClientId: websocketConnection.GetId(),
-				Event.Address:  websocketConnection.GetIp(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.Runtime,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetIp(),
 			}),
 		))
 		return nil, errors.New("websocketConnection is already accepted")
 	}
-	return server.receive(websocketConnection)
+	return server.receive(websocketConnection, Event.Runtime)
 }

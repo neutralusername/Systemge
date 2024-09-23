@@ -20,9 +20,10 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketId,
-			Event.Address:  websocketConn.RemoteAddr().String(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientAcceptionRoutine,
+			Event.ClientId:     websocketId,
+			Event.Address:      websocketConn.RemoteAddr().String(),
 		}),
 	)); event.IsError() {
 		if websocketConn != nil {
@@ -59,9 +60,10 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketId,
-			Event.Address:  websocketConn.RemoteAddr().String(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientAcceptionRoutine,
+			Event.ClientId:     websocketId,
+			Event.Address:      websocketConn.RemoteAddr().String(),
 		}),
 	)); !event.IsInfo() {
 		websocketConnection.Close()
@@ -90,9 +92,10 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.DisconnectingClient,
 		"disconnecting websocketConnection",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketConnection.GetId(),
-			Event.Address:  websocketConnection.GetIp(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientDisconnectionRoutine,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetIp(),
 		}),
 	))
 	server.removeWebsocketConnection(websocketConnection)
@@ -100,9 +103,10 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.DisconnectedClient,
 		"websocketConnection disconnected",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketConnection.GetId(),
-			Event.Address:  websocketConnection.GetIp(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientDisconnectionRoutine,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetIp(),
 		}),
 	))
 }

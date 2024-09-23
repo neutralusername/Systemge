@@ -19,6 +19,9 @@ const SendingClientMessageFailed = "sendingClientMessageFailed"
 const ClientAcceptionRoutineStarted = "clientAcceptionRoutineStarted"
 const ClientAcceptionRoutineFinished = "clientAcceptionRoutineFinished"
 
+const ClientReceptionRoutineStarted = "clientReceptionRoutineStarted"
+const ClientReceptionRoutineFinished = "clientReceptionRoutineFinished"
+
 const AcceptingClient = "acceptingConnection"
 const AcceptingClientFailed = "acceptingConnectionFailed"
 const AcceptedClient = "connectionAccepted"
@@ -35,9 +38,6 @@ const SentToChannel = "sentToChannel"
 const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
 const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
-
-const ClientMessageReceptionRoutineStarted = "clientMessageReceptionRoutineStarted"
-const ClientMessageReceptionRoutineFinished = "clientMessageReceptionRoutineFinished"
 
 const ReceivingClientMessage = "receivingClientMessage"
 const ReceivedClientMessage = "receivedClientMessage"

@@ -9,11 +9,6 @@ const Messages = "messages"
 
 const StopChannel = "stopChannel"
 
-const Broadcast = "broadcast"
-const Unicast = "unicast"
-const Multicast = "multicast"
-const Groupcast = "groupcast"
-
 const BestEffort = "bestEffort"
 const Transactional = "transactional"
 
@@ -25,3 +20,5 @@ const WebsocketServer = "websocketServer"
 const HttpServer = "httpServer"
 const TcpSystemgeListener = "tcpSystemgeListener"
 const TcpSystemgeConnection = "tcpSystemgeConnection"
+
+const HttpRequest = "httpRequest"

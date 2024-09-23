@@ -15,7 +15,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.SplittingHostPortFailed,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
-					Event.Address: httpRequest.RemoteAddr,
+					Event.Kind:         Event.HttpRequest,
+					Event.Circumstance: Event.WebsocketUpgradeRoutine,
+					Event.Address:      httpRequest.RemoteAddr,
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -31,8 +33,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind:    Event.Ip,
-					Event.Address: httpRequest.RemoteAddr,
+					Event.Kind:         Event.Ip,
+					Event.Circumstance: Event.WebsocketUpgradeRoutine,
+					Event.Address:      httpRequest.RemoteAddr,
 				}),
 			))
 			if !event.IsInfo() {
@@ -48,7 +51,8 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.WebsocketUpgradeFailed,
 				err.Error(),
 				server.GetServerContext().Merge(Event.Context{
-					Event.Address: httpRequest.RemoteAddr,
+					Event.Circumstance: Event.WebsocketUpgradeRoutine,
+					Event.Address:      httpRequest.RemoteAddr,
 				}),
 			))
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
@@ -63,8 +67,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			Event.Cancel,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    Event.WebsocketConnection,
-				Event.Address: websocketConnection.RemoteAddr().String(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.WebsocketUpgradeRoutine,
+				Event.Address:      websocketConnection.RemoteAddr().String(),
 			}),
 		)); !event.IsInfo() {
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
@@ -76,8 +81,9 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			Event.SentToChannel,
 			"sent upgraded websocketConnection to channel",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    Event.WebsocketConnection,
-				Event.Address: websocketConnection.RemoteAddr().String(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.WebsocketUpgradeRoutine,
+				Event.Address:      websocketConnection.RemoteAddr().String(),
 			}),
 		))
 	}

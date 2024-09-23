@@ -15,7 +15,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		Event.Continue,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: Event.WebsocketConnection,
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientAcceptionRoutine,
 		}),
 	)); event.IsError() {
 		return
@@ -29,7 +30,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.Continue,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind: Event.WebsocketConnection,
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.ClientAcceptionRoutine,
 			}),
 		)); event.IsError() {
 			break
@@ -41,7 +43,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 				Event.ReceivedNilValueFromChannel,
 				"received nil from websocketConnection channel",
 				server.GetServerContext().Merge(Event.Context{
-					Event.Kind: Event.WebsocketConnection,
+					Event.Kind:         Event.WebsocketConnection,
+					Event.Circumstance: Event.ClientAcceptionRoutine,
 				}),
 			))
 			break
@@ -53,8 +56,9 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 			Event.Skip,
 			Event.Continue,
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:    Event.WebsocketConnection,
-				Event.Address: websocketConnection.RemoteAddr().String(),
+				Event.Kind:         Event.WebsocketConnection,
+				Event.Circumstance: Event.ClientAcceptionRoutine,
+				Event.Address:      websocketConnection.RemoteAddr().String(),
 			}),
 		))
 		if event.IsError() {
@@ -75,7 +79,8 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		Event.ClientAcceptionRoutineFinished,
 		"stopped websocketConnections acception",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: Event.WebsocketConnection,
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientAcceptionRoutine,
 		}),
 	))
 }
@@ -84,22 +89,23 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 	defer websocketConnection.waitGroup.Done()
 
 	if event := server.onInfo(Event.NewInfo(
-		Event.ClientMessageReceptionRoutineStarted,
+		Event.ClientReceptionRoutineStarted,
 		"started websocketConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketConnection.GetId(),
-			Event.Address:  websocketConnection.GetIp(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientReceptionRoutine,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetIp(),
 		}),
 	)); !event.IsInfo() {
 		return
 	}
 
 	for {
-		messageBytes, err := server.receive(websocketConnection)
+		messageBytes, err := server.receive(websocketConnection, Event.ClientReceptionRoutine)
 		if err != nil {
 			break
 		}
@@ -110,13 +116,13 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 			event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)
 			if event.IsError() {
 				if server.config.PropagateMessageHandlerErrors {
-					server.Send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize())
+					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
 				}
 				break
 			}
 			if event.IsWarning() {
 				if server.config.PropagateMessageHandlerWarnings {
-					server.Send(websocketConnection, Message.NewAsync("warning", event.Marshal()).Serialize())
+					server.send(websocketConnection, Message.NewAsync("warning", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
 				}
 			}
 		} else {
@@ -126,12 +132,12 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 				event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)
 				if event.IsError() {
 					if server.config.PropagateMessageHandlerErrors {
-						server.Send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize())
+						server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
 					}
 				}
 				if event.IsWarning() {
 					if server.config.PropagateMessageHandlerWarnings {
-						server.Send(websocketConnection, Message.NewAsync("warning", event.Marshal()).Serialize())
+						server.send(websocketConnection, Message.NewAsync("warning", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
 					}
 				}
 			}()
@@ -139,12 +145,13 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
-		Event.ClientMessageReceptionRoutineFinished,
+		Event.ClientReceptionRoutineFinished,
 		"stopped websocketConnection message reception",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:     Event.WebsocketConnection,
-			Event.ClientId: websocketConnection.GetId(),
-			Event.Address:  websocketConnection.GetIp(),
+			Event.Kind:         Event.WebsocketConnection,
+			Event.Circumstance: Event.ClientReceptionRoutine,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetIp(),
 		}),
 	))
 }

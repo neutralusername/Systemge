@@ -125,7 +125,8 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: Event.WebsocketServer,
+			Event.Kind:         Event.WebsocketServer,
+			Event.Circumstance: Event.StartRoutine,
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -136,7 +137,8 @@ func (server *WebsocketServer) start(lock bool) error {
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind: Event.WebsocketServer,
+				Event.Kind:         Event.WebsocketServer,
+				Event.Circumstance: Event.StartRoutine,
 			}),
 		))
 		return errors.New("failed to start websocketServer")
@@ -169,7 +171,8 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: Event.WebsocketServer,
+			Event.Kind:         Event.WebsocketServer,
+			Event.Circumstance: Event.StartRoutine,
 		}),
 	)); !event.IsInfo() {
 		if err := server.stop(false); err != nil {
@@ -195,7 +198,8 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: Event.WebsocketServer,
+			Event.Kind:         Event.WebsocketServer,
+			Event.Circumstance: Event.StopRoutine,
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -206,7 +210,8 @@ func (server *WebsocketServer) stop(lock bool) error {
 			Event.ServiceAlreadyStopped,
 			"service websocketServer already stopped",
 			server.GetServerContext().Merge(Event.Context{
-				Event.Kind: Event.WebsocketServer,
+				Event.Kind:         Event.WebsocketServer,
+				Event.Circumstance: Event.StopRoutine,
 			}),
 		))
 		return errors.New("websocketServer not started")
@@ -230,7 +235,8 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind: Event.WebsocketServer,
+			Event.Kind:         Event.WebsocketServer,
+			Event.Circumstance: Event.StopRoutine,
 		}),
 	))
 	if !event.IsInfo() {
