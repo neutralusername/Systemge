@@ -50,37 +50,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 
 	websocketConnection.waitGroup.Add(1)
 	server.waitGroup.Add(1)
-	go func() {
-		defer server.waitGroup.Done()
-
-		select {
-		case <-websocketConnection.stopChannel:
-		case <-server.stopChannel:
-			websocketConnection.Close()
-		}
-
-		websocketConnection.waitGroup.Wait()
-
-		server.onInfo(Event.NewInfoNoOption(
-			Event.DisconnectingClient,
-			"disconnecting websocketConnection",
-			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:        Event.WebsocketConnection,
-				Event.Address:     websocketConnection.GetIp(),
-				Event.WebsocketId: websocketConnection.GetId(),
-			}),
-		))
-		server.removeWebsocketConnection(websocketConnection)
-		server.onInfo(Event.NewInfoNoOption(
-			Event.DisconnectedClient,
-			"websocketConnection disconnected",
-			server.GetServerContext().Merge(Event.Context{
-				Event.Kind:        Event.WebsocketConnection,
-				Event.Address:     websocketConnection.GetIp(),
-				Event.WebsocketId: websocketConnection.GetId(),
-			}),
-		))
-	}()
+	go server.websocketConnectionDisconnect(websocketConnection)
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptedClient,
@@ -103,4 +73,49 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	websocketConnection.isAccepted = true
 
 	go server.receiveMessagesLoop(websocketConnection)
+}
+
+func (server *WebsocketServer) removeWebsocketConnection(websocketConnection *WebsocketConnection) {
+	server.websocketConnectionMutex.Lock()
+	defer server.websocketConnectionMutex.Unlock()
+	delete(server.websocketConnections, websocketConnection.GetId())
+	for groupId := range server.websocketConnectionGroups[websocketConnection.GetId()] {
+		delete(server.websocketConnectionGroups[websocketConnection.GetId()], groupId)
+		delete(server.groupsWebsocketConnections[groupId], websocketConnection.GetId())
+		if len(server.groupsWebsocketConnections[groupId]) == 0 {
+			delete(server.groupsWebsocketConnections, groupId)
+		}
+	}
+}
+
+func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection *WebsocketConnection) {
+	defer server.waitGroup.Done()
+
+	select {
+	case <-websocketConnection.stopChannel:
+	case <-server.stopChannel:
+		websocketConnection.Close()
+	}
+
+	websocketConnection.waitGroup.Wait()
+
+	server.onInfo(Event.NewInfoNoOption(
+		Event.DisconnectingClient,
+		"disconnecting websocketConnection",
+		server.GetServerContext().Merge(Event.Context{
+			Event.Kind:        Event.WebsocketConnection,
+			Event.Address:     websocketConnection.GetIp(),
+			Event.WebsocketId: websocketConnection.GetId(),
+		}),
+	))
+	server.removeWebsocketConnection(websocketConnection)
+	server.onInfo(Event.NewInfoNoOption(
+		Event.DisconnectedClient,
+		"websocketConnection disconnected",
+		server.GetServerContext().Merge(Event.Context{
+			Event.Kind:        Event.WebsocketConnection,
+			Event.Address:     websocketConnection.GetIp(),
+			Event.WebsocketId: websocketConnection.GetId(),
+		}),
+	))
 }

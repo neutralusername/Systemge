@@ -21,16 +21,3 @@ func (server *WebsocketServer) GetClientCount() int {
 	defer server.websocketConnectionMutex.RUnlock()
 	return len(server.websocketConnections)
 }
-
-func (server *WebsocketServer) removeWebsocketConnection(websocketConnection *WebsocketConnection) {
-	server.websocketConnectionMutex.Lock()
-	defer server.websocketConnectionMutex.Unlock()
-	delete(server.websocketConnections, websocketConnection.GetId())
-	for groupId := range server.websocketConnectionGroups[websocketConnection.GetId()] {
-		delete(server.websocketConnectionGroups[websocketConnection.GetId()], groupId)
-		delete(server.groupsWebsocketConnections[groupId], websocketConnection.GetId())
-		if len(server.groupsWebsocketConnections[groupId]) == 0 {
-			delete(server.groupsWebsocketConnections, groupId)
-		}
-	}
-}
