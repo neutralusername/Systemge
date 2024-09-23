@@ -31,6 +31,7 @@ type WebsocketServer struct {
 	connectionChannel chan *websocket.Conn
 	ipRateLimiter     *Tools.IpRateLimiter
 
+	websocketConnectionId      uint64
 	websocketConnections       map[string]*WebsocketConnection            // websocketId -> websocketConnection
 	websocketConnectionGroups  map[string]map[string]bool                 // websocketId -> map[groupId]bool
 	groupsWebsocketConnections map[string]map[string]*WebsocketConnection // groupId -> map[websocketId]websocketConnection
