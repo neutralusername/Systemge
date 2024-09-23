@@ -11,6 +11,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 	server.websocketConnectionMutex.Lock()
 	defer server.websocketConnectionMutex.Unlock()
 
+	targetClientIds := Helpers.JsonMarshal(websocketIds)
 	if event := server.onInfo(Event.NewInfo(
 		Event.AddingClientsToGroup,
 		"adding websocketConnection to group",
@@ -21,8 +22,8 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 			Event.Circumstance:    Event.Runtime,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
 			Event.GroupId:         groupId,
-			Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 		}),
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -38,8 +39,8 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
+					Event.TargetClientIds: targetClientIds,
 					Event.GroupId:         groupId,
-					Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 				}),
 			))
 			return errors.New("client does not exist")
@@ -53,8 +54,8 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
+					Event.TargetClientIds: targetClientIds,
 					Event.GroupId:         groupId,
-					Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 				}),
 			))
 			return errors.New("websocketConnection is already in group")
@@ -72,8 +73,8 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 				Event.Circumstance:    Event.Runtime,
 				Event.Behaviour:       Event.Transactional,
 				Event.ClientType:      Event.WebsocketConnection,
+				Event.TargetClientIds: targetClientIds,
 				Event.GroupId:         groupId,
-				Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 			}),
 		)); !event.IsInfo() {
 			return event.GetError()
@@ -93,8 +94,8 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 			Event.Circumstance:    Event.Runtime,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
+			Event.TargetClientIds: targetClientIds,
 			Event.GroupId:         groupId,
-			Event.TargetClientIds: Helpers.JsonMarshal(websocketIds),
 		}),
 	))
 	return nil
