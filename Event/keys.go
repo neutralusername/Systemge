@@ -23,3 +23,6 @@ const ServiceStatus = "serviceStatus"
 const Function = "function"
 
 const MessageBytes = "messageBytes"
+
+const InstanceId = "instanceId"
+const SessionId = "sessionId"

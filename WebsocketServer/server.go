@@ -23,6 +23,9 @@ type WebsocketServer struct {
 	stopChannel chan bool
 	waitGroup   sync.WaitGroup
 
+	instanceId string
+	sessionId  string
+
 	config     *Config.WebsocketServer
 	mailer     *Tools.Mailer
 	randomizer *Tools.Randomizer
@@ -31,7 +34,6 @@ type WebsocketServer struct {
 	connectionChannel chan *websocket.Conn
 	ipRateLimiter     *Tools.IpRateLimiter
 
-	websocketConnectionId      uint64
 	websocketConnections       map[string]*WebsocketConnection            // websocketId -> websocketConnection
 	websocketConnectionGroups  map[string]map[string]bool                 // websocketId -> map[groupId]bool
 	groupsWebsocketConnections map[string]map[string]*WebsocketConnection // groupId -> map[websocketId]websocketConnection
@@ -86,6 +88,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		websocketConnections:       make(map[string]*WebsocketConnection),
 		groupsWebsocketConnections: make(map[string]map[string]*WebsocketConnection),
 		websocketConnectionGroups:  make(map[string]map[string]bool),
+		instanceId:                 Tools.GenerateRandomString(32, Tools.ALPHA_NUMERIC),
 		messageHandlers:            messageHandlers,
 		config:                     config,
 		mailer:                     Tools.NewMailer(config.MailerConfig),
@@ -111,6 +114,8 @@ func (server *WebsocketServer) start(lock bool) error {
 		server.statusMutex.Lock()
 		defer server.statusMutex.Unlock()
 	}
+
+	server.sessionId = Tools.GenerateRandomString(32, Tools.ALPHA_NUMERIC)
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.StartingService,
@@ -271,6 +276,8 @@ func (server *WebsocketServer) GetServerContext() Event.Context {
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.status),
 		Event.Function:      Event.GetCallerFuncName(2),
+		Event.InstanceId:    server.instanceId,
+		Event.SessionId:     server.sessionId,
 	}
 	return ctx
 }

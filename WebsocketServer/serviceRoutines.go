@@ -35,6 +35,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		)); event.IsError() {
 			break
 		}
+
 		websocketConnection := <-server.connectionChannel
 		if websocketConnection == nil {
 			server.onInfo(Event.NewInfoNoOption(
