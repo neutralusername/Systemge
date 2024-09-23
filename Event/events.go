@@ -43,8 +43,8 @@ const ReceivingClientMessage = "receivingClientMessage"
 const ReceivedClientMessage = "receivedClientMessage"
 const ReceivingClientMessageFailed = "receivingClientMessageFailed"
 
-const HandlingMessage = "handlingMessage"
-const HandledMessage = "handledMessage"
+const HandlingClientMessage = "handlingMessage"
+const HandledClientMessage = "handledMessage"
 const NoHandlerForTopic = "noHandlerForTopic"
 const HandlerFailed = "handlerFailed"
 
@@ -69,7 +69,7 @@ const HandledHttpRequest = "handledHttpRequest"
 
 const ClientDoesNotExist = "clientDoesNotExist"
 
-const DeserializingMessageFailed = "deserializingMessageFailed"
+const DeserializingFailed = "deserializingMessageFailed"
 
 const RateLimited = "rateLimited"
 

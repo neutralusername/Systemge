@@ -90,9 +90,9 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		Event.Cancel,
 		Event.Continue,
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     websocketConnection.GetIp(),
-			Event.WebsocketId: websocketConnection.GetId(),
+			Event.Kind:     Event.WebsocketConnection,
+			Event.ClientId: websocketConnection.GetId(),
+			Event.Address:  websocketConnection.GetIp(),
 		}),
 	)); !event.IsInfo() {
 		return
@@ -142,9 +142,9 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		Event.ClientMessageReceptionRoutineFinished,
 		"stopped websocketConnection message reception",
 		server.GetServerContext().Merge(Event.Context{
-			Event.Kind:        Event.WebsocketConnection,
-			Event.Address:     websocketConnection.GetIp(),
-			Event.WebsocketId: websocketConnection.GetId(),
+			Event.Kind:     Event.WebsocketConnection,
+			Event.ClientId: websocketConnection.GetId(),
+			Event.Address:  websocketConnection.GetIp(),
 		}),
 	))
 }
