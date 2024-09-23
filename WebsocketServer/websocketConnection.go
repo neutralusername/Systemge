@@ -66,7 +66,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.SendingMessage,
-		"sending message",
+		"sending websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -101,7 +101,7 @@ func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, me
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.SentMessage,
-		"sent message",
+		"sent websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:              Event.WebsocketConnection,
 			Event.Address:           websocketConnection.GetIp(),
@@ -118,7 +118,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 
 	if event := server.onInfo(Event.NewInfo(
 		Event.ReceivingMessage,
-		"receiving message",
+		"receiving websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -149,7 +149,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection)
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.ReceivedMessage,
-		"received message",
+		"received websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
 			Event.Address:     websocketConnection.GetIp(),

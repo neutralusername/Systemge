@@ -11,7 +11,7 @@ import (
 func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	if event := server.onInfo(Event.NewInfo(
 		Event.AcceptClientsRoutineStarted,
-		"started accepting websocketConnections",
+		"started websocketConnections acception",
 		Event.Cancel,
 		Event.Continue,
 		Event.Continue,
@@ -25,7 +25,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 	for {
 		if event := server.onInfo(Event.NewInfo(
 			Event.ReceivingFromChannel,
-			"receiving from websocketConnection channel",
+			"receiving websocketConnection from channel",
 			Event.Cancel,
 			Event.Continue,
 			Event.Continue,
@@ -39,7 +39,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		if websocketConnection == nil {
 			server.onInfo(Event.NewInfoNoOption(
 				Event.ReceivedNilValueFromChannel,
-				"received nil value from connection channel",
+				"received nil from websocketConnection channel",
 				server.GetServerContext().Merge(Event.Context{
 					Event.Kind: Event.WebsocketConnection,
 				}),
@@ -48,7 +48,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		}
 		event := server.onInfo(Event.NewInfo(
 			Event.ReceivedFromChannel,
-			"received from connection channel",
+			"received websocketConnection from channel",
 			Event.Cancel,
 			Event.Skip,
 			Event.Continue,
@@ -74,7 +74,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.AcceptClientsRoutineFinished,
-		"stopped accepting websocketConnections",
+		"stopped websocketConnections acception",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind: Event.WebsocketConnection,
 		}),
@@ -175,7 +175,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *WebsocketConnection) {
 	if event := server.onInfo(Event.NewInfo(
 		Event.ReceiveMessageRoutineStarted,
-		"started receiving messages from websocketConnection",
+		"started websocketConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -228,7 +228,7 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 
 	server.onInfo(Event.NewInfoNoOption(
 		Event.ReceiveMessageRoutineFinished,
-		"stopped receiving messages from websocketConnection",
+		"stopped websocketConnection message reception",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Kind:        Event.WebsocketConnection,
 			Event.Address:     websocketConnection.GetIp(),
@@ -240,7 +240,7 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnection *WebsocketConnection, messageBytes []byte) *Event.Event {
 	event := server.onInfo(Event.NewInfo(
 		Event.HandlingMessage,
-		"handling message from websocketConnection",
+		"handling websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -257,7 +257,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	if websocketConnection.rateLimiterBytes != nil && !websocketConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		if event := server.onWarning(Event.NewWarning(
 			Event.RateLimited,
-			"byte rate limited",
+			"websocketConnection message byte rate limited",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -275,7 +275,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	if websocketConnection.rateLimiterMsgs != nil && !websocketConnection.rateLimiterMsgs.Consume(1) {
 		if event := server.onWarning(Event.NewWarning(
 			Event.RateLimited,
-			"message rate limited",
+			"websocketConnection message rate limited",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -305,7 +305,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
 		return server.onInfo(Event.NewInfoNoOption(
 			Event.HeartbeatReceived,
-			"received heartbeat from websocketConnection",
+			"received websocketConnection heartbeat",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Kind: Event.WebsocketConnection,
 			}),
@@ -319,7 +319,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 	if handler == nil {
 		return server.onWarning(Event.NewWarningNoOption(
 			Event.NoHandlerForTopic,
-			"no handler for provided topic",
+			"no websocketConnection message handler",
 			server.GetServerContext().Merge(Event.Context{
 				Event.Address:     websocketConnection.GetIp(),
 				Event.WebsocketId: websocketConnection.GetId(),
@@ -342,7 +342,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 
 	return server.onInfo(Event.NewInfoNoOption(
 		Event.HandledMessage,
-		"handled message from websocketConnection",
+		"handled websocketConnection message",
 		server.GetServerContext().Merge(Event.Context{
 			Event.Address:     websocketConnection.GetIp(),
 			Event.WebsocketId: websocketConnection.GetId(),

@@ -26,7 +26,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
 			event := server.onWarning(Event.NewWarning(
 				Event.RateLimited,
-				"websocketConnection attempt rate limited",
+				"websocketConnection attempt ip rate limited",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
