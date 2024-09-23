@@ -54,7 +54,7 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 		}
 	}
 
-	if server.groups[groupId] == nil {
+	if server.groupsWebsocketConnections[groupId] == nil {
 		if event := server.onWarning(Event.NewWarning(
 			Event.CreatingGroup,
 			"group does not exist",
@@ -69,11 +69,11 @@ func (server *WebsocketServer) AddClientsToGroup_transactional(groupId string, w
 		)); !event.IsInfo() {
 			return event.GetError()
 		}
-		server.groups[groupId] = make(map[string]*WebsocketConnection)
+		server.groupsWebsocketConnections[groupId] = make(map[string]*WebsocketConnection)
 	}
 
 	for _, websocketId := range websocketIds {
-		server.groups[groupId][websocketId] = server.websocketConnections[websocketId]
+		server.groupsWebsocketConnections[groupId][websocketId] = server.websocketConnections[websocketId]
 		server.websocketConnectionGroups[websocketId][groupId] = true
 	}
 
@@ -109,7 +109,7 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		return event.GetError()
 	}
 
-	if server.groups[groupId] == nil {
+	if server.groupsWebsocketConnections[groupId] == nil {
 		if event := server.onWarning(Event.NewWarning(
 			Event.CreatingGroup,
 			"group does not exist",
@@ -124,12 +124,12 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		)); !event.IsInfo() {
 			return event.GetError()
 		}
-		server.groups[groupId] = make(map[string]*WebsocketConnection)
+		server.groupsWebsocketConnections[groupId] = make(map[string]*WebsocketConnection)
 	}
 
 	for _, websocketId := range websocketIds {
 		if server.websocketConnections[websocketId] != nil {
-			server.groups[groupId][websocketId] = server.websocketConnections[websocketId]
+			server.groupsWebsocketConnections[groupId][websocketId] = server.websocketConnections[websocketId]
 			server.websocketConnectionGroups[websocketId][groupId] = true
 		} else {
 			event := server.onWarning(Event.NewWarning(
@@ -150,8 +150,8 @@ func (server *WebsocketServer) AddClientsToGroup_bestEffort(groupId string, webs
 		}
 	}
 
-	if len(server.groups[groupId]) == 0 {
-		delete(server.groups, groupId)
+	if len(server.groupsWebsocketConnections[groupId]) == 0 {
+		delete(server.groupsWebsocketConnections, groupId)
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
@@ -186,7 +186,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 		return event.GetError()
 	}
 
-	if server.groups[groupId] == nil {
+	if server.groupsWebsocketConnections[groupId] == nil {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.GroupDoesNotExist,
 			"group does not exist",
@@ -228,10 +228,10 @@ func (server *WebsocketServer) RemoveClientsFromGroup_transactional(groupId stri
 
 	for _, websocketId := range websocketIds {
 		delete(server.websocketConnectionGroups[websocketId], groupId)
-		delete(server.groups[groupId], websocketId)
+		delete(server.groupsWebsocketConnections[groupId], websocketId)
 	}
-	if len(server.groups[groupId]) == 0 {
-		delete(server.groups, groupId)
+	if len(server.groupsWebsocketConnections[groupId]) == 0 {
+		delete(server.groupsWebsocketConnections, groupId)
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
@@ -266,7 +266,7 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 		return event.GetError()
 	}
 
-	if server.groups[groupId] == nil {
+	if server.groupsWebsocketConnections[groupId] == nil {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.GroupDoesNotExist,
 			"group does not exist",
@@ -299,11 +299,11 @@ func (server *WebsocketServer) RemoveClientsFromGroup_bestEffort(groupId string,
 				return event.GetError()
 			}
 		}
-		delete(server.groups[groupId], websocketId)
+		delete(server.groupsWebsocketConnections[groupId], websocketId)
 	}
 
-	if len(server.groups[groupId]) == 0 {
-		delete(server.groups, groupId)
+	if len(server.groupsWebsocketConnections[groupId]) == 0 {
+		delete(server.groupsWebsocketConnections, groupId)
 	}
 
 	server.onInfo(Event.NewInfoNoOption(
@@ -336,7 +336,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 		return nil, event.GetError()
 	}
 
-	if server.groups[groupId] == nil {
+	if server.groupsWebsocketConnections[groupId] == nil {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.GroupDoesNotExist,
 			"group does not exist",
@@ -349,7 +349,7 @@ func (server *WebsocketServer) GetGroupClients(groupId string) ([]string, error)
 	}
 
 	groupMembers := make([]string, 0)
-	for websocketId := range server.groups[groupId] {
+	for websocketId := range server.groupsWebsocketConnections[groupId] {
 		groupMembers = append(groupMembers, websocketId)
 	}
 
@@ -440,7 +440,7 @@ func (server *WebsocketServer) GetGroupCount() (int, error) {
 		return -1, event.GetError()
 	}
 
-	return len(server.groups), nil
+	return len(server.groupsWebsocketConnections), nil
 }
 
 func (server *WebsocketServer) GetGroupIds() ([]string, error) {
@@ -461,7 +461,7 @@ func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 	}
 
 	groups := make([]string, 0)
-	for groupId := range server.groups {
+	for groupId := range server.groupsWebsocketConnections {
 		groups = append(groups, groupId)
 	}
 
@@ -493,7 +493,7 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 		return false, event.GetError()
 	}
 
-	if server.groups[groupId] == nil {
+	if server.groupsWebsocketConnections[groupId] == nil {
 		server.onWarning(Event.NewWarningNoOption(
 			Event.GroupDoesNotExist,
 			"group does not exist",
@@ -505,7 +505,7 @@ func (server *WebsocketServer) IsClientInGroup(groupId string, websocketId strin
 		return false, errors.New("group does not exist")
 	}
 
-	if server.groups[groupId][websocketId] == nil {
+	if server.groupsWebsocketConnections[groupId][websocketId] == nil {
 		server.onInfo(Event.NewInfoNoOption(
 			Event.ClientNotInGroup,
 			"websocketConnection is not in group",

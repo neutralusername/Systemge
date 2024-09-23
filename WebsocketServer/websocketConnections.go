@@ -28,9 +28,9 @@ func (server *WebsocketServer) removeWebsocketConnection(websocketConnection *We
 	delete(server.websocketConnections, websocketConnection.GetId())
 	for groupId := range server.websocketConnectionGroups[websocketConnection.GetId()] {
 		delete(server.websocketConnectionGroups[websocketConnection.GetId()], groupId)
-		delete(server.groups[groupId], websocketConnection.GetId())
-		if len(server.groups[groupId]) == 0 {
-			delete(server.groups, groupId)
+		delete(server.groupsWebsocketConnections[groupId], websocketConnection.GetId())
+		if len(server.groupsWebsocketConnections[groupId]) == 0 {
+			delete(server.groupsWebsocketConnections, groupId)
 		}
 	}
 }

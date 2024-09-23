@@ -286,7 +286,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	waitGroup := Tools.NewTaskGroup()
 
 	server.websocketConnectionMutex.RLock()
-	group, ok := server.groups[groupId]
+	group, ok := server.groupsWebsocketConnections[groupId]
 	if !ok {
 		server.websocketConnectionMutex.RUnlock()
 		server.onWarning(Event.NewWarningNoOption(

@@ -20,25 +20,23 @@ type WebsocketServer struct {
 	status      int
 	statusMutex sync.Mutex
 
+	stopChannel chan bool
+	waitGroup   sync.WaitGroup
+
 	config     *Config.WebsocketServer
 	mailer     *Tools.Mailer
 	randomizer *Tools.Randomizer
 
-	ipRateLimiter *Tools.IpRateLimiter
-
-	httpServer *HTTPServer.HTTPServer
-
+	httpServer        *HTTPServer.HTTPServer
 	connectionChannel chan *websocket.Conn
+	ipRateLimiter     *Tools.IpRateLimiter
 
-	websocketConnections      map[string]*WebsocketConnection            // websocketId -> websocketConnection
-	groups                    map[string]map[string]*WebsocketConnection // groupId -> map[websocketId]websocketConnection
-	websocketConnectionGroups map[string]map[string]bool                 // websocketId -> map[groupId]bool
-	messageHandlers           MessageHandlers
-	websocketConnectionMutex  sync.RWMutex
+	websocketConnections       map[string]*WebsocketConnection            // websocketId -> websocketConnection
+	websocketConnectionGroups  map[string]map[string]bool                 // websocketId -> map[groupId]bool
+	groupsWebsocketConnections map[string]map[string]*WebsocketConnection // groupId -> map[websocketId]websocketConnection
+	websocketConnectionMutex   sync.RWMutex
 
-	stopChannel chan bool
-	waitGroup   sync.WaitGroup
-
+	messageHandlers     MessageHandlers
 	messageHandlerMutex sync.Mutex
 
 	onErrorHandler   func(*Event.Event) *Event.Event
@@ -83,14 +81,14 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		}
 	}
 	server := &WebsocketServer{
-		name:                      name,
-		websocketConnections:      make(map[string]*WebsocketConnection),
-		groups:                    make(map[string]map[string]*WebsocketConnection),
-		websocketConnectionGroups: make(map[string]map[string]bool),
-		messageHandlers:           messageHandlers,
-		config:                    config,
-		mailer:                    Tools.NewMailer(config.MailerConfig),
-		randomizer:                Tools.NewRandomizer(config.RandomizerSeed),
+		name:                       name,
+		websocketConnections:       make(map[string]*WebsocketConnection),
+		groupsWebsocketConnections: make(map[string]map[string]*WebsocketConnection),
+		websocketConnectionGroups:  make(map[string]map[string]bool),
+		messageHandlers:            messageHandlers,
+		config:                     config,
+		mailer:                     Tools.NewMailer(config.MailerConfig),
+		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
 	}
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
