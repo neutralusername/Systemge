@@ -12,8 +12,8 @@ import (
 )
 
 type WebsocketConnection struct {
-	id                  string
-	websocketConnection *websocket.Conn
+	id            string
+	websocketConn *websocket.Conn
 
 	isAccepted bool
 
@@ -39,7 +39,7 @@ func (websocketConnection *WebsocketConnection) Close() error {
 		return errors.New("websocketConnection is already closed")
 	}
 	websocketConnection.isClosed = true
-	websocketConnection.websocketConnection.Close()
+	websocketConnection.websocketConn.Close()
 	if websocketConnection.rateLimiterBytes != nil {
 		websocketConnection.rateLimiterBytes.Close()
 	}
@@ -52,7 +52,7 @@ func (websocketConnection *WebsocketConnection) Close() error {
 
 // Returns the ip of the websocketConnection.
 func (websocketConnection *WebsocketConnection) GetIp() string {
-	return websocketConnection.websocketConnection.RemoteAddr().String()
+	return websocketConnection.websocketConn.RemoteAddr().String()
 }
 
 // Returns the id of the websocketConnection.
@@ -60,6 +60,9 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 	return websocketConnection.id
 }
 
+func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
+	return server.send(websocketConnection, messageBytes, Event.SendRuntime)
+}
 func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
 	websocketConnection.sendMutex.Lock()
 	defer websocketConnection.sendMutex.Unlock()
@@ -82,7 +85,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 		return event.GetError()
 	}
 
-	err := websocketConnection.websocketConnection.WriteMessage(websocket.TextMessage, messageBytes)
+	err := websocketConnection.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		server.websocketConnectionMessagesFailed.Add(1)
 		server.onEvent(Event.NewWarningNoOption(
@@ -115,6 +118,22 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	return nil
 }
 
+func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+	if websocketConnection.isAccepted {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ClientAlreadyAccepted,
+			"websocketConnection is already accepted",
+			server.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.ReceiveRuntime,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientId:      websocketConnection.GetId(),
+				Event.ClientAddress: websocketConnection.GetIp(),
+			}),
+		))
+		return nil, errors.New("websocketConnection is already accepted")
+	}
+	return server.receive(websocketConnection, Event.ReceiveRuntime)
+}
 func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection, circumstance string) ([]byte, error) {
 	websocketConnection.receiveMutex.Lock()
 	defer websocketConnection.receiveMutex.Unlock()
@@ -135,8 +154,8 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		return nil, event.GetError()
 	}
 
-	websocketConnection.websocketConnection.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
-	_, messageBytes, err := websocketConnection.websocketConnection.ReadMessage()
+	websocketConnection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
+	_, messageBytes, err := websocketConnection.websocketConn.ReadMessage()
 	if err != nil {
 		websocketConnection.Close()
 		server.onEvent(Event.NewWarningNoOption(
@@ -164,25 +183,4 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		}),
 	))
 	return messageBytes, nil
-}
-
-func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
-	return server.send(websocketConnection, messageBytes, Event.SendRuntime)
-}
-
-func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
-	if websocketConnection.isAccepted {
-		server.onEvent(Event.NewWarningNoOption(
-			Event.ClientAlreadyAccepted,
-			"websocketConnection is already accepted",
-			server.GetServerContext().Merge(Event.Context{
-				Event.Circumstance:  Event.ReceiveRuntime,
-				Event.ClientType:    Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
-			}),
-		))
-		return nil, errors.New("websocketConnection is already accepted")
-	}
-	return server.receive(websocketConnection, Event.ReceiveRuntime)
 }
