@@ -19,10 +19,10 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		listener.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
 			Event.ClientType:   Event.TcpSystemgeConnection,
-		}),
+		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
 	}
@@ -33,10 +33,10 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.AcceptingClientFailed,
 			"accepting TcpSystemgeConnection",
-			listener.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
 				Event.ClientType:   Event.TcpSystemgeConnection,
-			}),
+			},
 		))
 		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
 		return nil, err
@@ -47,10 +47,10 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.SplittingHostPortFailed,
 			err.Error(),
-			listener.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
-			}),
+			},
 		))
 		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
 		return nil, err
@@ -63,11 +63,11 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
-			listener.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:    Event.TcpSystemgeListenerAcceptRoutine,
 				Event.RateLimiterType: Event.Ip,
 				Event.ClientAddress:   netConn.RemoteAddr().String(),
-			}),
+			},
 		)); !event.IsInfo() {
 			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 			netConn.Close()
@@ -82,10 +82,10 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
-			listener.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
-			}),
+			},
 		)); !event.IsInfo() {
 			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 			netConn.Close()
@@ -100,10 +100,10 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
-			listener.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
-			}),
+			},
 		)); !event.IsInfo() {
 			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 			netConn.Close()
@@ -124,11 +124,11 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		listener.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientAddress: netConn.RemoteAddr().String(),
-		}),
+		},
 	)); !event.IsInfo() {
 		connection.Close()
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
