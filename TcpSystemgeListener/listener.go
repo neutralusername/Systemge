@@ -103,6 +103,7 @@ func (server *TcpSystemgeListener) GetName() string {
 }
 
 func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
+	event.GetContext().Merge(server.GetServerContext())
 	if server.eventHandler == nil {
 		return event
 	}
