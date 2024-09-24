@@ -1,8 +1,6 @@
 package WebsocketServer
 
 import (
-	"errors"
-
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 )
@@ -45,58 +43,6 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 	}
 
 	return exists, nil
-}
-
-func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId string) (int, error) {
-	server.websocketConnectionMutex.RLock()
-	defer server.websocketConnectionMutex.RUnlock()
-
-	if event := server.onEvent(Event.NewInfo(
-		Event.GettingClientGroupCount,
-		"getting websocketConnection group count",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
-			Event.Circumstance: Event.ClientGroupCountRoutine,
-			Event.ClientType:   Event.WebsocketConnection,
-			Event.ClientId:     websocketId,
-		}),
-	)); !event.IsInfo() {
-		return -1, event.GetError()
-	}
-
-	if server.websocketConnectionGroups[websocketId] == nil {
-		server.onEvent(Event.NewWarningNoOption(
-			Event.ClientDoesNotExist,
-			"websocketConnection not in any group",
-			server.GetServerContext().Merge(Event.Context{
-				Event.Circumstance: Event.ClientGroupCountRoutine,
-				Event.ClientType:   Event.WebsocketConnection,
-				Event.ClientId:     websocketId,
-			}),
-		))
-		return -1, errors.New("websocketConnection not in any group")
-	}
-
-	groupCount := len(server.websocketConnectionGroups[websocketId])
-
-	if event := server.onEvent(Event.NewInfo(
-		Event.GotClientGroupCount,
-		"got websocketConnection group count",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
-			Event.Circumstance: Event.ClientGroupCountRoutine,
-			Event.ClientType:   Event.WebsocketConnection,
-			Event.ClientId:     websocketId,
-			Event.Result:       Helpers.JsonMarshal(groupCount),
-		}),
-	)); !event.IsInfo() {
-		return -1, event.GetError()
-	}
-	return groupCount, nil
 }
 
 func (server *WebsocketServer) GetWebsocketConnectionCount() int {
