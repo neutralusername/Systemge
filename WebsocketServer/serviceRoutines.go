@@ -84,10 +84,9 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 	if event.IsWarning() {
 		websocketConnection.Close()
 		server.websocketConnectionsRejected.Add(1)
-		return nil
+	} else {
+		server.acceptWebsocketConnection(websocketConnection)
 	}
-
-	server.acceptWebsocketConnection(websocketConnection)
 	return nil
 }
 
