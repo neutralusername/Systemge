@@ -1,11 +1,9 @@
-package TcpSystemgeConnection
+package Tcp
 
 import (
+	"errors"
 	"net"
 	"sync/atomic"
-
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Tcp"
 )
 
 type BufferedMessageReceiver struct {
@@ -44,23 +42,23 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, er
 	completedMsgBytes := []byte{}
 	for {
 		if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
-			return nil, Event.New("Incoming message byte limit exceeded", nil)
+			return nil, errors.New("Incoming message byte limit exceeded")
 		}
 		for i, b := range messageReceiver.buffer {
-			if b == Tcp.HEARTBEAT {
+			if b == HEARTBEAT {
 				continue
 			}
-			if b == Tcp.ENDOFMESSAGE {
+			if b == ENDOFMESSAGE {
 				messageReceiver.buffer = messageReceiver.buffer[i+1:]
 				if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
 					// i am considering removing this error case and just returning the message instead, even though the limit is exceeded, but only by less than the buffer size
-					return nil, Event.New("Incoming message byte limit exceeded", nil)
+					return nil, errors.New("Incoming message byte limit exceeded")
 				}
 				return completedMsgBytes, nil
 			}
 			completedMsgBytes = append(completedMsgBytes, b)
 		}
-		receivedMessageBytes, _, err := Tcp.Receive(messageReceiver.netConn, messageReceiver.tcpReceiveTimeoutMs, messageReceiver.bufferSize)
+		receivedMessageBytes, _, err := Receive(messageReceiver.netConn, messageReceiver.tcpReceiveTimeoutMs, messageReceiver.bufferSize)
 		if err != nil {
 			return nil, err
 		}
