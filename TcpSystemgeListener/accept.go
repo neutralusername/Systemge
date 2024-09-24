@@ -119,8 +119,25 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 	if err != nil {
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 		netConn.Close()
-		return nil, Event.New("Rejected connection #"+Helpers.Uint32ToString(tcpSystemgeConnectionId)+" due to handshake failure", err)
+		return nil, err
 	}
+
+	if event := listener.onEvent(Event.NewInfo(
+		Event.AcceptedClient,
+		"accepted TcpSystemgeConnection",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		listener.GetServerContext().Merge(Event.Context{
+			Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
+			Event.ClientType:   Event.TcpSystemgeConnection,
+		}),
+	)); !event.IsInfo() {
+		connection.Close()
+		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
+		return nil, event.GetError()
+	}
+
 	listener.tcpSystemgeConnectionAttemptsAccepted.Add(1)
 	return connection, nil
 }
