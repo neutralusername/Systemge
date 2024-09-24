@@ -145,7 +145,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	if event := listener.onEvent(Event.NewInfo(
 		Event.ServerHandshakeStarted,
-		"handshaking TcpSystemgeConnection",
+		"starting handshake",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -264,7 +264,33 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 
 	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.name).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
-		return nil, Event.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.SendingClientMessageFailed,
+			err.Error(),
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.TcpSystemgeListenerHandshakeRoutine,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+				Event.ClientName:    message.GetPayload(),
+			}),
+		))
+		return nil, err
+	}
+
+	if event := listener.onEvent(Event.NewInfo(
+		Event.ServerHandshakeFinished,
+		"finsihed handshake",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		listener.GetServerContext().Merge(Event.Context{
+			Event.Circumstance:  Event.TcpSystemgeListenerHandshakeRoutine,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientAddress: netConn.RemoteAddr().String(),
+			Event.ClientName:    message.GetPayload(),
+		}),
+	)); !event.IsInfo() {
+		return nil, event.GetError()
 	}
 
 	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver), nil

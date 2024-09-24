@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -63,7 +64,7 @@ type TcpSystemgeConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *BufferedMessageReceiver) *TcpSystemgeConnection {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver) *TcpSystemgeConnection {
 	connection := &TcpSystemgeConnection{
 		name:                    name,
 		config:                  config,
