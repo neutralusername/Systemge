@@ -48,7 +48,8 @@ type TcpSystemgeConnection struct {
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
 
 	// metrics
-	bytesSent atomic.Uint64
+	bytesSent     atomic.Uint64
+	bytesReceived atomic.Uint64
 
 	asyncMessagesSent atomic.Uint64
 	syncRequestsSent  atomic.Uint64
