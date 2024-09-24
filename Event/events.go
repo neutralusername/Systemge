@@ -108,6 +108,7 @@ const GotWebsocketConnectionIds = "gotWebsocketConnectionIds"
 
 const ServerHandshakeStarted = "serverHandshakeStarted"
 const ServerHandshakeFinished = "serverHandshakeFinished"
+const ServerHandshakeFailed = "serverHandshakeFailed"
 
 const ExceededMaxClientNameLength = "exceededMaxClientNameLength"
 const ReceivedEmptyClientName = "receivedEmptyClientName"
