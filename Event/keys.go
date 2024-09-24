@@ -35,3 +35,5 @@ const ServiceStatus = "serviceStatus"
 const Function = "function"
 
 const Result = "result"
+
+const ServerName = "serverName"

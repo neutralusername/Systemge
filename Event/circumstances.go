@@ -36,3 +36,4 @@ const WebsocketConnectionCountRoutine = "websocketConnectionCountRoutine"
 const GetWebsocketConnectionIdsRoutine = "getWebsocketConnectionIdsRoutine"
 
 const TcpSystemgeListenerAcceptRoutine = "tcpSystemgeListenerAcceptRoutine"
+const TcpSystemgeListenerHandshakeRoutine = "tcpSystemgeListenerHandshakeRoutine"

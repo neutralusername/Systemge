@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
+func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
@@ -115,7 +115,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 		}
 	}
 
-	connection, err := listener.serverHandshake(connectionConfig, serverName, netConn)
+	connection, err := listener.serverHandshake(connectionConfig, netConn)
 	if err != nil {
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 		netConn.Close()
@@ -142,7 +142,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 	return connection, nil
 }
 
-func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, serverName string, netConn net.Conn) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
+func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	messageReceiver := TcpSystemgeConnection.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
@@ -174,7 +174,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 	if message.GetPayload() == "" {
 		return nil, Event.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
-	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, serverName).Serialize(), connectionConfig.TcpSendTimeoutMs)
+	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.name).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Event.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
