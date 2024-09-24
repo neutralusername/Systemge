@@ -64,6 +64,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		))
 		return errors.New("received nil from websocketConnection channel")
 	}
+
 	event := server.onEvent(Event.NewInfo(
 		Event.ReceivedFromChannel,
 		"received websocketConnection from channel",
@@ -86,6 +87,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		server.websocketConnectionsRejected.Add(1)
 		return nil
 	}
+
 	server.acceptWebsocketConnection(websocketConnection)
 	return nil
 }
