@@ -11,6 +11,7 @@ const ClientReceptionRoutine = "clientReceptionRoutine"
 const MessageHandlingRoutine = "messageHandlingRoutine"
 
 const ReceiveRuntime = "receiveRuntime"
+const SendRuntime = "sendRuntime"
 
 const StartRoutine = "startRoutine"
 const StopRoutine = "stopRoutine"

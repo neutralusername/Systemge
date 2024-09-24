@@ -60,11 +60,6 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 	return websocketConnection.id
 }
 
-/* // Sends a message to the websocketConnection.
-func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
-	return server.send(websocketConnection, messageBytes, Event.Runtime)
-} */
-
 func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
 	websocketConnection.sendMutex.Lock()
 	defer websocketConnection.sendMutex.Unlock()
@@ -171,7 +166,10 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 	return messageBytes, nil
 }
 
-// may only be called during the connections onConnectHandler.
+func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
+	return server.send(websocketConnection, messageBytes, Event.SendRuntime)
+}
+
 func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
 	if websocketConnection.isAccepted {
 		server.onEvent(Event.NewWarningNoOption(
