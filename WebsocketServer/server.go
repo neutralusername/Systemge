@@ -43,7 +43,7 @@ type WebsocketServer struct {
 	messageHandlers     MessageHandlers
 	messageHandlerMutex sync.Mutex
 
-	onEventHandler Event.Handler
+	eventHandler Event.Handler
 
 	// metrics
 
@@ -59,7 +59,7 @@ type WebsocketServer struct {
 	websocketConnectionMessagesBytesSent     atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers, onEventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -260,14 +260,14 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 }
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
-	if server.onEventHandler == nil {
+	if server.eventHandler == nil {
 		return event
 	}
-	return server.onEventHandler(event)
+	return server.eventHandler(event)
 }
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
-	ctx := Event.Context{
+	return Event.Context{
 		Event.ServiceType:   Event.WebsocketServer,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.status),
@@ -275,5 +275,4 @@ func (server *WebsocketServer) GetServerContext() Event.Context {
 		Event.InstanceId:    server.instanceId,
 		Event.SessionId:     server.sessionId,
 	}
-	return ctx
 }
