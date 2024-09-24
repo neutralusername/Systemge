@@ -73,13 +73,13 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
 			Event.Bytes:         string(messageBytes),
-		}),
+		},
 	)); !event.IsInfo() {
 		server.websocketConnectionMessagesFailed.Add(1)
 		return event.GetError()
@@ -91,14 +91,14 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 		server.onEvent(Event.NewWarningNoOption(
 			Event.SendingClientMessageFailed,
 			err.Error(),
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  circumstance,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 				Event.Bytes:         string(messageBytes),
 			}),
-		))
+		)
 		return err
 	}
 	server.websocketConnectionMessagesSent.Add(1)
@@ -107,14 +107,14 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	server.onEvent(Event.NewInfoNoOption(
 		Event.SentClientMessage,
 		"sent websocketConnection message",
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
 			Event.Bytes:         string(messageBytes),
 		}),
-	))
+	)
 	return nil
 }
 
@@ -123,13 +123,13 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ClientAlreadyAccepted,
 			"websocketConnection is already accepted",
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.ReceiveRuntime,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 			}),
-		))
+		)
 		return nil, errors.New("websocketConnection is already accepted")
 	}
 	return server.receive(websocketConnection, Event.ReceiveRuntime)
@@ -144,13 +144,13 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
 		}),
-	)); !event.IsInfo() {
+	); !event.IsInfo() {
 		return nil, event.GetError()
 	}
 
@@ -161,26 +161,26 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ReceivingClientMessageFailed,
 			err.Error(),
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  circumstance,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 			}),
-		))
+		)
 		return nil, err
 	}
 
 	server.onEvent(Event.NewInfoNoOption(
 		Event.ReceivedClientMessage,
 		"received websocketConnection message",
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
 			Event.Bytes:         string(messageBytes),
 		}),
-	))
+	)
 	return messageBytes, nil
 }

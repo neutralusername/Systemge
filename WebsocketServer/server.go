@@ -126,12 +126,12 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 }
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
+	event.GetContext().Merge(server.GetServerContext())
 	if server.eventHandler == nil {
 		return event
 	}
 	return server.eventHandler(event)
 }
-
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:   Event.WebsocketServer,

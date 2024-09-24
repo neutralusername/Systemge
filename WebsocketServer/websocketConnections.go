@@ -15,11 +15,11 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.ClientExistenceRoutine,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
-		}),
+		},
 	)); !event.IsInfo() {
 		return false, event.GetError()
 	}
@@ -32,12 +32,12 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.ClientExistenceRoutine,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 			Event.Result:       Helpers.JsonMarshal(exists),
-		}),
+		},
 	)); !event.IsInfo() {
 		return false, event.GetError()
 	}
@@ -55,9 +55,9 @@ func (server *WebsocketServer) GetWebsocketConnectionCount() int {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.WebsocketConnectionCountRoutine,
-		}),
+		},
 	)); !event.IsInfo() {
 		return -1
 	}
@@ -70,11 +70,11 @@ func (server *WebsocketServer) GetWebsocketConnectionCount() int {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.WebsocketConnectionCountRoutine,
 			Event.Result:       Helpers.JsonMarshal(count),
 		}),
-	)); !event.IsInfo() {
+	); !event.IsInfo() {
 		return -1
 	}
 
@@ -91,10 +91,10 @@ func (server *WebsocketServer) GetWebsocketConnectionIds() []string {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.GetWebsocketConnectionIdsRoutine,
 		}),
-	)); !event.IsInfo() {
+	); !event.IsInfo() {
 		return nil
 	}
 
@@ -109,11 +109,11 @@ func (server *WebsocketServer) GetWebsocketConnectionIds() []string {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.GetWebsocketConnectionIdsRoutine,
 			Event.Result:       Helpers.JsonMarshal(ids),
 		}),
-	)); !event.IsInfo() {
+	); !event.IsInfo() {
 		return nil
 	}
 	return ids

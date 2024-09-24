@@ -38,18 +38,6 @@ type TcpSystemgeListener struct {
 	tcpSystemgeConnectionAttemptsAccepted atomic.Uint64
 }
 
-func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
-func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *TcpSystemgeListener) GetListener() net.Listener {
-	return server.tcpListener
-}
-
 func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
@@ -98,13 +86,16 @@ func (listener *TcpSystemgeListener) GetStatus() int {
 	return Status.Started
 }
 
-func (server *TcpSystemgeListener) GetServerContext() Event.Context {
-	return Event.Context{
-		Event.ServiceType:   Event.TcpSystemgeListener,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.GetStatus()),
-		Event.Function:      Event.GetCallerFuncName(2),
-	}
+func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
+	return server.whitelist
+}
+
+func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
+	return server.blacklist
+}
+
+func (server *TcpSystemgeListener) GetListener() net.Listener {
+	return server.tcpListener
 }
 
 func (server *TcpSystemgeListener) GetName() string {
@@ -116,4 +107,12 @@ func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
 		return event
 	}
 	return server.eventHandler(event)
+}
+func (server *TcpSystemgeListener) GetServerContext() Event.Context {
+	return Event.Context{
+		Event.ServiceType:   Event.TcpSystemgeListener,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+	}
 }

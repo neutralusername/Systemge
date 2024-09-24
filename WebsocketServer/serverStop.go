@@ -22,9 +22,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.StopRoutine,
-		}),
+		},
 	)); !event.IsInfo() {
 		return event.GetError()
 	}
@@ -33,9 +33,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStopped,
 			"service websocketServer already stopped",
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance: Event.StopRoutine,
-			}),
+			},
 		))
 		return errors.New("websocketServer not started")
 	}
@@ -57,9 +57,9 @@ func (server *WebsocketServer) stop(lock bool) error {
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance: Event.StopRoutine,
-		}),
+		},
 	))
 	if !event.IsInfo() {
 		if err := server.start(false); err != nil {

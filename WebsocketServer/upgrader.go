@@ -14,11 +14,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.onEvent(Event.NewWarningNoOption(
 				Event.SplittingHostPortFailed,
 				err.Error(),
-				server.GetServerContext().Merge(Event.Context{
+				Event.Context{
 					Event.Circumstance:  Event.WebsocketUpgradeRoutine,
 					Event.ClientAddress: httpRequest.RemoteAddr,
 				}),
-			))
+			)
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.websocketConnectionsFailed.Add(1)
 			return
@@ -31,12 +31,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
-				server.GetServerContext().Merge(Event.Context{
+				Event.Context{
 					Event.Circumstance:    Event.WebsocketUpgradeRoutine,
 					Event.RateLimiterType: Event.Ip,
 					Event.ClientAddress:   httpRequest.RemoteAddr,
 				}),
-			))
+			)
 			if !event.IsInfo() {
 				http.Error(responseWriter, "Rate limit exceeded", http.StatusTooManyRequests)
 				server.websocketConnectionsRejected.Add(1)
@@ -49,11 +49,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.onEvent(Event.NewWarningNoOption(
 				Event.WebsocketUpgradeFailed,
 				err.Error(),
-				server.GetServerContext().Merge(Event.Context{
+				Event.Context{
 					Event.Circumstance:  Event.WebsocketUpgradeRoutine,
 					Event.ClientAddress: httpRequest.RemoteAddr,
 				}),
-			))
+			)
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.websocketConnectionsFailed.Add(1)
 			return
@@ -65,12 +65,12 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
 				Event.ChannelType:   Event.WebsocketConnection,
 				Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 			}),
-		)); !event.IsInfo() {
+		); !event.IsInfo() {
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 			websocketConnection.Close()
 			server.websocketConnectionsRejected.Add(1)
@@ -79,11 +79,11 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 		server.onEvent(Event.NewInfoNoOption(
 			Event.SentToChannel,
 			"sent upgraded websocketConnection to channel",
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
 				Event.ChannelType:   Event.WebsocketConnection,
 				Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 			}),
-		))
+		)
 	}
 }

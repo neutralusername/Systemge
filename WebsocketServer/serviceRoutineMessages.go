@@ -14,12 +14,12 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  Event.ClientReceptionRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
-		}),
+		},
 	)); !event.IsInfo() {
 		return
 	}
@@ -30,12 +30,12 @@ func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *Websocke
 	server.onEvent(Event.NewInfoNoOption(
 		Event.ClientReceptionRoutineFinished,
 		"stopped websocketConnection message reception",
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  Event.ClientReceptionRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
-		}),
+		},
 	))
 }
 
@@ -88,12 +88,12 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  Event.MessageHandlingRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
-		}),
+		},
 	))
 	if !event.IsInfo() {
 		return event
@@ -106,14 +106,14 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:    Event.MessageHandlingRoutine,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Bytes,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
 				Event.ClientAddress:   websocketConnection.GetIp(),
-			}),
+			},
 		)); !event.IsInfo() {
 			return event
 		}
@@ -126,14 +126,14 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:    Event.MessageHandlingRoutine,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
 				Event.ClientAddress:   websocketConnection.GetIp(),
-			}),
+			},
 		)); !event.IsInfo() {
 			return event
 		}
@@ -144,14 +144,14 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 		return server.onEvent(Event.NewWarningNoOption(
 			Event.DeserializingFailed,
 			err.Error(),
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.MessageHandlingRoutine,
 				Event.StructType:    Event.Message,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 				Event.Bytes:         string(messageBytes),
-			}),
+			},
 		))
 	}
 	message = Message.NewAsync(message.GetTopic(), message.GetPayload()) // getting rid of possible syncToken
@@ -159,12 +159,12 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 		return server.onEvent(Event.NewInfoNoOption(
 			Event.HeartbeatReceived,
 			"received websocketConnection heartbeat",
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.MessageHandlingRoutine,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
-			}),
+			},
 		))
 	}
 
@@ -176,14 +176,14 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 		return server.onEvent(Event.NewWarningNoOption(
 			Event.NoHandlerForTopic,
 			"no websocketConnection message handler for topic",
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.MessageHandlingRoutine,
 				Event.HandlerType:   Event.WebsocketConnection,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 				Event.Topic:         message.GetTopic(),
-			}),
+			},
 		))
 	}
 
@@ -191,27 +191,27 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 		return server.onEvent(Event.NewWarningNoOption(
 			Event.HandlerFailed,
 			err.Error(),
-			server.GetServerContext().Merge(Event.Context{
+			Event.Context{
 				Event.Circumstance:  Event.MessageHandlingRoutine,
 				Event.HandlerType:   Event.WebsocketConnection,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 				Event.Topic:         message.GetTopic(),
-			}),
+			},
 		))
 	}
 
 	return server.onEvent(Event.NewInfoNoOption(
 		Event.HandledClientMessage,
 		"handled websocketConnection message",
-		server.GetServerContext().Merge(Event.Context{
+		Event.Context{
 			Event.Circumstance:  Event.MessageHandlingRoutine,
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
 			Event.Topic:         message.GetTopic(),
-		}),
+		},
 	))
 }
