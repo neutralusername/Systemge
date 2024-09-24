@@ -82,6 +82,8 @@ const ClientDoesNotExist = "clientDoesNotExist"
 
 const DeserializingFailed = "deserializingMessageFailed"
 
+const UnexpectedTopic = "unexpectedTopic"
+
 const RateLimited = "rateLimited"
 const Blacklisted = "blacklisted"
 const NotWhitelisted = "notWhitelisted"
@@ -106,3 +108,6 @@ const GotWebsocketConnectionIds = "gotWebsocketConnectionIds"
 
 const ServerHandshakeStarted = "serverHandshakeStarted"
 const ServerHandshakeFinished = "serverHandshakeFinished"
+
+const ExceededMaxClientNameLength = "exceededMaxClientNameLength"
+const ReceivedEmptyClientName = "receivedEmptyClientName"

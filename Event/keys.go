@@ -35,3 +35,5 @@ const Function = "function"
 const Result = "result"
 
 const ServerName = "serverName"
+
+const ClientName = "clientName"

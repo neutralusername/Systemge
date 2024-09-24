@@ -100,6 +100,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		}),
 	))
 	server.removeWebsocketConnection(websocketConnection)
+
 	server.onEvent(Event.NewInfoNoOption(
 		Event.DisconnectedClient,
 		"websocketConnection disconnected",
