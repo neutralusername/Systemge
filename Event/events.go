@@ -83,6 +83,8 @@ const ClientDoesNotExist = "clientDoesNotExist"
 const DeserializingFailed = "deserializingMessageFailed"
 
 const RateLimited = "rateLimited"
+const Blacklisted = "blacklisted"
+const NotWhitelisted = "notWhitelisted"
 
 const SplittingHostPortFailed = "splittingHostPortFailed"
 

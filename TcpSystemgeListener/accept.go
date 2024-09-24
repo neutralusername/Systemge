@@ -1,6 +1,7 @@
 package TcpSystemgeListener
 
 import (
+	"errors"
 	"net"
 
 	"github.com/neutralusername/Systemge/Config"
@@ -44,6 +45,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
 		return nil, err
 	}
+
 	ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
 	if err != nil {
 		listener.onEvent(Event.NewWarningNoOption(
@@ -59,20 +61,60 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 	}
 
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
-		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
-		netConn.Close()
-		return nil, Event.New("Rejected connection #"+Helpers.Uint32ToString(tcpSystemgeConnectionId)+" due to rate limiting", nil)
+		if event := listener.onEvent(Event.NewWarning(
+			Event.RateLimited,
+			"tcpSystemgeConnection attempt ip rate limited",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:    Event.TcpSystemgeListenerAcceptRoutine,
+				Event.RateLimiterType: Event.Ip,
+				Event.ClientAddress:   netConn.RemoteAddr().String(),
+			}),
+		)); !event.IsInfo() {
+			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
+			netConn.Close()
+			return nil, errors.New("Rate limit exceeded")
+		}
 	}
+
 	if listener.blacklist != nil && listener.blacklist.Contains(ip) {
-		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
-		netConn.Close()
-		return nil, Event.New("Rejected connection #"+Helpers.Uint32ToString(tcpSystemgeConnectionId)+" due to blacklist", nil)
+		if event := listener.onEvent(Event.NewWarning(
+			Event.Blacklisted,
+			"tcpSystemgeConnection attempt ip blacklisted",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+			}),
+		)); !event.IsInfo() {
+			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
+			netConn.Close()
+			return nil, errors.New("Blacklisted")
+		}
 	}
+
 	if listener.whitelist != nil && listener.whitelist.ElementCount() > 0 && !listener.whitelist.Contains(ip) {
-		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
-		netConn.Close()
-		return nil, Event.New("Rejected connection #"+Helpers.Uint32ToString(tcpSystemgeConnectionId)+" due to whitelist", nil)
+		if event := listener.onEvent(Event.NewWarning(
+			Event.NotWhitelisted,
+			"tcpSystemgeConnection attempt ip not whitelisted",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+			}),
+		)); !event.IsInfo() {
+			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
+			netConn.Close()
+			return nil, errors.New("Not whitelisted")
+		}
 	}
+
 	connection, err := listener.serverHandshake(connectionConfig, serverName, netConn)
 	if err != nil {
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
