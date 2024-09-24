@@ -24,11 +24,7 @@ func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
 		return
 	}
 
-	for {
-		err := server.receiveWebsocketConnection()
-		if err != nil {
-			break
-		}
+	for err := server.receiveWebsocketConnection(); err == nil; {
 	}
 
 	server.onEvent(Event.NewInfoNoOption(
