@@ -34,3 +34,5 @@ const ClientGroupCountRoutine = "clientGroupCountRoutine"
 const WebsocketConnectionCountRoutine = "websocketConnectionCountRoutine"
 
 const GetWebsocketConnectionIdsRoutine = "getWebsocketConnectionIdsRoutine"
+
+const TcpSystemgeListenerAcceptRoutine = "tcpSystemgeListenerAcceptRoutine"

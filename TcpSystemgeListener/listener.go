@@ -22,16 +22,13 @@ type TcpSystemgeListener struct {
 	config        *Config.TcpSystemgeListener
 	ipRateLimiter *Tools.IpRateLimiter
 
-	tcpListener             net.Listener
-	acceptMutex             sync.Mutex
-	tcpSystemgeConnectionId uint64
+	tcpListener net.Listener
+	acceptMutex sync.Mutex
 
 	blacklist *Tools.AccessControlList
 	whitelist *Tools.AccessControlList
 
-	onErrorHandler   func(*Event.Event) *Event.Event
-	onWarningHandler func(*Event.Event) *Event.Event
-	onInfoHandler    func(*Event.Event) *Event.Event
+	eventHandler func(*Event.Event) *Event.Event
 
 	// metrics
 
@@ -101,37 +98,22 @@ func (listener *TcpSystemgeListener) GetStatus() int {
 	return Status.Started
 }
 
-func (server *TcpSystemgeListener) onError(event *Event.Event) *Event.Event {
-	if server.onErrorHandler != nil {
-		return server.onErrorHandler(event)
-	}
-	return event
-}
-
-func (server *TcpSystemgeListener) onWarning(event *Event.Event) *Event.Event {
-	if server.onWarningHandler != nil {
-		return server.onWarningHandler(event)
-	}
-	return event
-}
-
-func (server *TcpSystemgeListener) onInfo(event *Event.Event) *Event.Event {
-	if server.onInfoHandler != nil {
-		return server.onInfoHandler(event)
-	}
-	return event
-}
-
 func (server *TcpSystemgeListener) GetServerContext() Event.Context {
-	ctx := Event.Context{
+	return Event.Context{
 		Event.ServiceType:   Event.TcpSystemgeListener,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),
 	}
-	return ctx
 }
 
 func (server *TcpSystemgeListener) GetName() string {
 	return server.name
+}
+
+func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
+	if server.eventHandler == nil {
+		return event
+	}
+	return server.eventHandler(event)
 }

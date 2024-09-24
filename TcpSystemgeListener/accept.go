@@ -16,37 +16,48 @@ func (listener *TcpSystemgeListener) AcceptConnection(serverName string, connect
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
-	tcpSystemgeConnectionId := listener.tcpSystemgeConnectionId + 1
-	if event := listener.onInfo(Event.NewInfo(
+	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptingClient,
 		"accepting TcpSystemgeConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		listener.GetServerContext().Merge(Event.Context{
-			Event.Kind:           Event.TcpSystemgeConnection,
-			Event.AdditionalKind: Helpers.Uint64ToString(tcpSystemgeConnectionId),
+			Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
+			Event.ClientType:   Event.TcpSystemgeConnection,
 		}),
 	)); !event.IsInfo() {
 		return nil, event.GetError()
 	}
-	listener.tcpSystemgeConnectionId++
 	listener.tcpSystemgeConnectionAttemptsTotal.Add(1)
 
 	netConn, err := listener.tcpListener.Accept()
 	if err != nil {
-		listener.onWarning(Event.NewWarningNoOption(
+		listener.onEvent(Event.NewWarningNoOption(
 			Event.AcceptingClientFailed,
 			"accepting TcpSystemgeConnection",
 			listener.GetServerContext().Merge(Event.Context{
-				Event.Kind:           Event.TcpSystemgeConnection,
-				Event.AdditionalKind: Helpers.Uint64ToString(tcpSystemgeConnectionId),
+				Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
+				Event.ClientType:   Event.TcpSystemgeConnection,
 			}),
 		))
 		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
 		return nil, err
 	}
-	ip, _, _ := net.SplitHostPort(netConn.RemoteAddr().String())
+	ip, _, err := net.SplitHostPort(netConn.RemoteAddr().String())
+	if err != nil {
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.SplittingHostPortFailed,
+			err.Error(),
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+			}),
+		))
+		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
+		return nil, err
+	}
+
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 		netConn.Close()
