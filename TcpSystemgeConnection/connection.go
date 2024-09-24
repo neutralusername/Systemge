@@ -29,12 +29,14 @@ type TcpSystemgeConnection struct {
 	closed      bool
 	closedMutex sync.Mutex
 
-	messageReceiver *BufferedMessageReceiver
+	messageReceiver *Tcp.BufferedMessageReceiver
 
 	syncRequests map[string]*syncRequestStruct
 	syncMutex    sync.Mutex
 
 	closeChannel chan bool
+
+	eventHandler Event.Handler
 
 	messageHandlingLoopStopChannel chan<- bool
 	messageMutex                   sync.Mutex
@@ -109,6 +111,17 @@ func (connection *TcpSystemgeConnection) Close() error {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 
+	if event := connection.eventHandler(Event.NewInfo(
+		Event.StoppingService,
+		"Closing connection",
+		Event.Skip,
+		Event.Skip,
+		Event.Continue,
+		Event.Context{},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	if connection.closed {
 		return Event.New("Connection already closed", nil)
 	}
@@ -153,4 +166,20 @@ func (connection *TcpSystemgeConnection) GetCloseChannel() <-chan bool {
 
 func (connection *TcpSystemgeConnection) GetAddress() string {
 	return connection.netConn.RemoteAddr().String()
+}
+
+func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
+	event.GetContext().Merge(server.GetServerContext())
+	if server.eventHandler == nil {
+		return event
+	}
+	return server.eventHandler(event)
+}
+func (server *TcpSystemgeListener) GetServerContext() Event.Context {
+	return Event.Context{
+		Event.ServiceType:   Event.TcpSystemgeListener,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+	}
 }
