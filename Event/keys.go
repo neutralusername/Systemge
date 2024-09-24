@@ -22,8 +22,6 @@ const Topic = "topic"
 const Payload = "payload"
 const SyncToken = "syncToken"
 
-const MessageBytes = "messageBytes"
-
 const GroupId = "groupId"
 
 const InstanceId = "instanceId"

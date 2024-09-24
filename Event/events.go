@@ -103,3 +103,6 @@ const GotWebsocketConnectionCount = "gotWebsocketConnectionCount"
 
 const GettingWebsocketConnectionIds = "gettingWebsocketConnectionIds"
 const GotWebsocketConnectionIds = "gotWebsocketConnectionIds"
+
+const ServerHandshakeStarted = "serverHandshakeStarted"
+const ServerHandshakeFinished = "serverHandshakeFinished"

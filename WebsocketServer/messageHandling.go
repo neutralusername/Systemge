@@ -74,6 +74,7 @@ func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnect
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.Bytes:         string(messageBytes),
 			}),
 		))
 	}

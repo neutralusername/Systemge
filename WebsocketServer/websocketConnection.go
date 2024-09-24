@@ -80,7 +80,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
-			Event.MessageBytes:  string(messageBytes),
+			Event.Bytes:         string(messageBytes),
 		}),
 	)); !event.IsInfo() {
 		server.websocketConnectionMessagesFailed.Add(1)
@@ -98,7 +98,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
-				Event.MessageBytes:  string(messageBytes),
+				Event.Bytes:         string(messageBytes),
 			}),
 		))
 		return err
@@ -114,7 +114,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
-			Event.MessageBytes:  string(messageBytes),
+			Event.Bytes:         string(messageBytes),
 		}),
 	))
 	return nil
@@ -165,7 +165,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
-			Event.MessageBytes:  string(messageBytes),
+			Event.Bytes:         string(messageBytes),
 		}),
 	))
 	return messageBytes, nil

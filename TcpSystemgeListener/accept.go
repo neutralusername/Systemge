@@ -129,8 +129,9 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Cancel,
 		Event.Continue,
 		listener.GetServerContext().Merge(Event.Context{
-			Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
-			Event.ClientType:   Event.TcpSystemgeConnection,
+			Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientAddress: netConn.RemoteAddr().String(),
 		}),
 	)); !event.IsInfo() {
 		connection.Close()
@@ -143,14 +144,36 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 }
 
 func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
-	messageReceiver := TcpSystemgeConnection.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
+	if event := listener.onEvent(Event.NewInfo(
+		Event.ServerHandshakeStarted,
+		"handshaking TcpSystemgeConnection",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		listener.GetServerContext().Merge(Event.Context{
+			Event.Circumstance:  Event.TcpSystemgeListenerHandshakeRoutine,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientAddress: netConn.RemoteAddr().String(),
+		}),
+	)); !event.IsInfo() {
+		return nil, event.GetError()
+	}
+
+	messageReceiver := Tcp.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
 	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
-		return nil, Event.New("Failed to receive \""+Message.TOPIC_NAME+"\" message", err)
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.ReceivingClientMessageFailed,
+			err.Error(),
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.TcpSystemgeListenerHandshakeRoutine,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+			}),
+		))
+		return nil, err
 	}
-	if len(messageBytes) == 0 {
-		return nil, Event.New("Received empty message", nil)
-	}
+
 	filteresMessageBytes := []byte{}
 	for _, b := range messageBytes {
 		if b == Tcp.HEARTBEAT {
@@ -161,22 +184,54 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		}
 		filteresMessageBytes = append(filteresMessageBytes, b)
 	}
+	if event := listener.onEvent(Event.NewInfo(
+		Event.ReceivedClientMessage,
+		"receiving TcpSystemgeConnection message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		listener.GetServerContext().Merge(Event.Context{
+			Event.Circumstance:  Event.TcpSystemgeListenerHandshakeRoutine,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientAddress: netConn.RemoteAddr().String(),
+			Event.Bytes:         string(filteresMessageBytes),
+		}),
+	)); !event.IsInfo() {
+		return nil, event.GetError()
+	}
+
 	message, err := Message.Deserialize(filteresMessageBytes, "")
 	if err != nil {
-		return nil, Event.New("Failed to deserialize \""+Message.TOPIC_NAME+"\" message", err)
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.DeserializingFailed,
+			err.Error(),
+			listener.GetServerContext().Merge(Event.Context{
+				Event.Circumstance:  Event.TcpSystemgeListenerHandshakeRoutine,
+				Event.StructType:    Event.Message,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+				Event.Bytes:         string(filteresMessageBytes),
+			}),
+		))
+		return nil, err
 	}
+
 	if message.GetTopic() != Message.TOPIC_NAME {
 		return nil, Event.New("Received message with unexpected topic \""+message.GetTopic()+"\" instead of \""+Message.TOPIC_NAME+"\"", nil)
 	}
+
 	if int(listener.config.MaxClientNameLength) > 0 && len(message.GetPayload()) > int(listener.config.MaxClientNameLength) {
 		return nil, Event.New("Received client name \""+message.GetPayload()+"\" exceeds maximum size of "+Helpers.Uint64ToString(listener.config.MaxClientNameLength), nil)
 	}
+
 	if message.GetPayload() == "" {
 		return nil, Event.New("Received empty payload in \""+Message.TOPIC_NAME+"\" message", nil)
 	}
+
 	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.name).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		return nil, Event.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
+
 	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver), nil
 }

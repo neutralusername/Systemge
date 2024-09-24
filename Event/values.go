@@ -10,7 +10,6 @@ const StopChannel = "stopChannel"
 const BestEffort = "bestEffort"
 const Transactional = "transactional"
 
-const Bytes = "bytes"
 const Messages = "messages"
 
 const Message = "message"
