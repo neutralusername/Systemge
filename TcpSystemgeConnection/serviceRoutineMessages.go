@@ -50,7 +50,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 	case <-connection.messageChannelSemaphore.GetChannel():
 		if event := connection.onEvent(Event.NewInfo(
 			Event.ReceivingMessage,
-			"receiving websocketConnection message",
+			"receiving tcpSystemgeConnection message",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -204,7 +204,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
 				Event.StructType:    Event.Message,
-				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
 				Event.Bytes:         string(messageBytes),
@@ -221,7 +221,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
-				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
 				Event.Topic:         message.GetTopic(),
