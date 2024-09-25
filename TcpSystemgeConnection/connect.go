@@ -31,8 +31,8 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 	if err != nil {
 		return nil, Event.New("Failed to send \""+Message.TOPIC_NAME+"\" message", err)
 	}
-	messageReceiver := NewBufferedMessageReceiver(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
-	messageBytes, err := messageReceiver.ReceiveNextMessage()
+	messageReceiver := Tcp.NewBufferedMessageReceiver(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
+	messageBytes, _, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		return nil, Event.New("Failed to receive response", err)
 	}

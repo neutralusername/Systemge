@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
+func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.TcpSystemgeConnection, eventHandler Event.Handler) (SystemgeConnection.SystemgeConnection, error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
@@ -111,7 +111,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		}
 	}
 
-	connection, err := listener.serverHandshake(connectionConfig, netConn)
+	connection, err := listener.serverHandshake(connectionConfig, netConn, eventHandler)
 	if err != nil {
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 		netConn.Close()

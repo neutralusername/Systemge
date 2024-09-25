@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
+func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn, eventHandler Event.Handler) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	if event := listener.onEvent(Event.NewInfo(
 		Event.ServerHandshakeStarted,
 		"starting handshake",
@@ -162,5 +162,5 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		return nil, event.GetError()
 	}
 
-	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver), nil
+	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver, eventHandler), nil
 }
