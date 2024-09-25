@@ -1,6 +1,8 @@
 package TcpSystemgeConnection
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
@@ -38,50 +40,32 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 		return
 	}
 
-	for {
-		select {
-		case <-connection.closeChannel:
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Stopped receiving messages")
-			}
-			return
-		case <-connection.messageChannelSemaphore.GetChannel():
-			messageBytes, bytesReceived, err := connection.messageReceiver.ReceiveNextMessage()
-			connection.bytesReceived.Add(uint64(bytesReceived))
-			if err != nil {
-				if Tcp.IsConnectionClosed(err) {
-					connection.Close()
-					return
-				}
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log(Event.New("failed to receive message", err).Error())
-				}
-				continue
-			}
-			if err := connection.addMessageToChannel(messageBytes); err != nil {
-				if connection.warningLogger != nil {
-					connection.warningLogger.Log(Event.New("failed to add message to processing channel", err).Error())
-				}
-				connection.messageChannelSemaphore.ReleaseBlocking()
-			}
-		}
+	for err := connection.receiveMessage(); err == nil; {
 	}
 }
 
-func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
-	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
-		return Event.New("Message sync token exceeds maximum size", nil)
+func (connection *TcpSystemgeConnection) receiveMessage() error {
+	select {
+	case <-connection.closeChannel:
+
+		return errors.New("connection closed")
+	case <-connection.messageChannelSemaphore.GetChannel():
+		messageBytes, bytesReceived, err := connection.messageReceiver.ReceiveNextMessage()
+		connection.bytesReceived.Add(uint64(bytesReceived))
+		if err != nil {
+
+			if Tcp.IsConnectionClosed(err) {
+				connection.Close()
+				return errors.New("connection closed")
+			}
+
+			return nil
+		}
+		if err := connection.addMessageToChannel(messageBytes); err != nil {
+			connection.messageChannelSemaphore.ReleaseBlocking()
+		}
+		return nil
 	}
-	if len(message.GetTopic()) == 0 {
-		return Event.New("Message missing topic", nil)
-	}
-	if maxTopicSize := connection.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return Event.New("Message topic exceeds maximum size", nil)
-	}
-	if maxPayloadSize := connection.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return Event.New("Message payload exceeds maximum size", nil)
-	}
-	return nil
 }
 
 func (connection *TcpSystemgeConnection) addMessageToChannel(messageBytes []byte) error {
@@ -118,4 +102,20 @@ func (connection *TcpSystemgeConnection) addMessageToChannel(messageBytes []byte
 		}
 		return nil
 	}
+}
+
+func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
+	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
+		return Event.New("Message sync token exceeds maximum size", nil)
+	}
+	if len(message.GetTopic()) == 0 {
+		return Event.New("Message missing topic", nil)
+	}
+	if maxTopicSize := connection.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return Event.New("Message topic exceeds maximum size", nil)
+	}
+	if maxPayloadSize := connection.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return Event.New("Message payload exceeds maximum size", nil)
+	}
+	return nil
 }
