@@ -20,7 +20,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
+			Event.Circumstance: Event.TcpSystemgeListenerAccept,
 			Event.ClientType:   Event.TcpSystemgeConnection,
 		},
 	)); !event.IsInfo() {
@@ -34,7 +34,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.AcceptingClientFailed,
 			"accepting TcpSystemgeConnection",
 			Event.Context{
-				Event.Circumstance: Event.TcpSystemgeListenerAcceptRoutine,
+				Event.Circumstance: Event.TcpSystemgeListenerAccept,
 				Event.ClientType:   Event.TcpSystemgeConnection,
 			},
 		))
@@ -48,7 +48,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.SplittingHostPortFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
+				Event.Circumstance:  Event.WebsocketUpgrade,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 			},
 		))
@@ -64,7 +64,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.TcpSystemgeListenerAcceptRoutine,
+				Event.Circumstance:    Event.TcpSystemgeListenerAccept,
 				Event.RateLimiterType: Event.Ip,
 				Event.ClientAddress:   netConn.RemoteAddr().String(),
 			},
@@ -83,7 +83,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
+				Event.Circumstance:  Event.TcpSystemgeListenerAccept,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -101,7 +101,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
+				Event.Circumstance:  Event.TcpSystemgeListenerAccept,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -125,7 +125,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.TcpSystemgeListenerAcceptRoutine,
+			Event.Circumstance:  Event.TcpSystemgeListenerAccept,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientAddress: netConn.RemoteAddr().String(),
 		},

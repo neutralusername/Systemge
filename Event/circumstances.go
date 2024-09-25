@@ -1,40 +1,39 @@
 package Event
 
-const WebsocketUpgradeRoutine = "websocketUpgrade"
+const WebsocketUpgrade = "websocketUpgrade"
 
-const ClientAcceptionRoutine = "clientAcceptionRoutine"
+const AcceptionRoutine = "acceptionRoutine"
+const ReceptionRoutine = "receptionRoutine"
 
-const ClientDisconnectionRoutine = "clientDisconnectionRoutine"
+const Disconnection = "disconnection"
 
-const ClientReceptionRoutine = "clientReceptionRoutine"
-
-const MessageHandlingRoutine = "messageHandlingRoutine"
+const HandleReception = "handleReception"
 
 const ReceiveRuntime = "receiveRuntime"
 const SendRuntime = "sendRuntime"
 
-const StartRoutine = "startRoutine"
-const StopRoutine = "stopRoutine"
+const Start = "start"
+const Stop = "stop"
 
-const BroadcastRoutine = "broadcastRoutine"
-const UnicastRoutine = "unicastRoutine"
-const MulticastRoutine = "multicastRoutine"
-const GroupcastRoutine = "groupcastRoutine"
+const Broadcast = "broadcast"
+const Unicast = "unicast"
+const Multicast = "multicast"
+const Groupcast = "groupcast"
 
-const AddClientsToGroupRoutine = "addClientsToGroupRoutine"
-const RemoveClientsFromGroupRoutine = "removeClientsFromGroupRoutine"
-const GetGroupClientsRoutine = "getGroupClientsRoutine"
-const GetClientGroupsRoutine = "getClientGroupsRoutine"
-const GetGroupCountRoutine = "getGroupCountRoutine"
-const GetGroupIdsRoutine = "getGroupIdsRoutine"
-const IsClientInGroupRoutine = "isClientInGroupRoutine"
+const AddClientsToGroup = "addClientsToGroup"
+const RemoveClientsFromGroup = "removeClientsFromGroup"
+const GetGroupClients = "getGroupClients"
+const GetClientGroups = "getClientGroups"
+const GetGroupCount = "getGroupCount"
+const GetGroupIds = "getGroupIds"
+const IsClientInGroup = "isClientInGroup"
 
-const ClientExistenceRoutine = "clientExistenceRoutine"
-const ClientGroupCountRoutine = "clientGroupCountRoutine"
+const ClientExistence = "clientExistence"
+const ClientGroupCount = "clientGroupCount"
 
-const WebsocketConnectionCountRoutine = "websocketConnectionCountRoutine"
+const WebsocketConnectionCount = "websocketConnectionCount"
 
-const GetWebsocketConnectionIdsRoutine = "getWebsocketConnectionIdsRoutine"
+const GetWebsocketConnectionIds = "getWebsocketConnectionIds"
 
-const TcpSystemgeListenerAcceptRoutine = "tcpSystemgeListenerAcceptRoutine"
-const TcpSystemgeListenerHandshakeRoutine = "tcpSystemgeListenerHandshakeRoutine"
+const TcpSystemgeListenerAccept = "tcpSystemgeListenerAccept"
+const TcpSystemgeListenerHandshake = "tcpSystemgeListenerHandshake"

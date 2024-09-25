@@ -15,7 +15,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.SplittingHostPortFailed,
 				err.Error(),
 				Event.Context{
-					Event.Circumstance:  Event.WebsocketUpgradeRoutine,
+					Event.Circumstance:  Event.WebsocketUpgrade,
 					Event.ClientAddress: httpRequest.RemoteAddr,
 				}),
 			)
@@ -32,7 +32,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:    Event.WebsocketUpgradeRoutine,
+					Event.Circumstance:    Event.WebsocketUpgrade,
 					Event.RateLimiterType: Event.Ip,
 					Event.ClientAddress:   httpRequest.RemoteAddr,
 				}),
@@ -50,7 +50,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.WebsocketUpgradeFailed,
 				err.Error(),
 				Event.Context{
-					Event.Circumstance:  Event.WebsocketUpgradeRoutine,
+					Event.Circumstance:  Event.WebsocketUpgrade,
 					Event.ClientAddress: httpRequest.RemoteAddr,
 				}),
 			)
@@ -66,7 +66,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
+				Event.Circumstance:  Event.WebsocketUpgrade,
 				Event.ChannelType:   Event.WebsocketConnection,
 				Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 			}),
@@ -80,7 +80,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			Event.SentToChannel,
 			"sent upgraded websocketConnection to channel",
 			Event.Context{
-				Event.Circumstance:  Event.WebsocketUpgradeRoutine,
+				Event.Circumstance:  Event.WebsocketUpgrade,
 				Event.ChannelType:   Event.WebsocketConnection,
 				Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 			}),

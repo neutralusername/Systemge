@@ -117,7 +117,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 			Event.ServiceAlreadyStarted,
 			"service tcpSystemgeConnection already started",
 			Event.Context{
-				Event.Circumstance: Event.StartRoutine,
+				Event.Circumstance: Event.Start,
 			},
 		))
 		return errors.New("connection already closed")
@@ -142,7 +142,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 		Event.ServiceStopped,
 		"connection closed",
 		Event.Context{
-			Event.Circumstance: Event.StopRoutine,
+			Event.Circumstance: Event.Stop,
 		},
 	))
 

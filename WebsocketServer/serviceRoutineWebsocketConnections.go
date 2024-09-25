@@ -12,10 +12,10 @@ import (
 func (server *WebsocketServer) acceptRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
-			Event.ClientAcceptionRoutineFinished,
+			Event.AcceptionRoutineFinished,
 			"stopped websocketConnections acception",
 			Event.Context{
-				Event.Circumstance: Event.ClientAcceptionRoutine,
+				Event.Circumstance: Event.AcceptionRoutine,
 				Event.ClientType:   Event.WebsocketConnection,
 			},
 		))
@@ -23,13 +23,13 @@ func (server *WebsocketServer) acceptRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ClientAcceptionRoutineStarted,
+		Event.AcceptionRoutineStarted,
 		"started websocketConnections acception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ClientAcceptionRoutine,
+			Event.Circumstance: Event.AcceptionRoutine,
 			Event.ClientType:   Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
@@ -49,7 +49,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ClientAcceptionRoutine,
+			Event.Circumstance: Event.AcceptionRoutine,
 			Event.ChannelType:  Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
@@ -62,7 +62,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 			Event.ReceivedNilValueFromChannel,
 			"received nil from websocketConnection channel",
 			Event.Context{
-				Event.Circumstance: Event.ClientAcceptionRoutine,
+				Event.Circumstance: Event.AcceptionRoutine,
 				Event.ChannelType:  Event.WebsocketConnection,
 			},
 		))
@@ -76,7 +76,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		Event.Skip,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.ClientAcceptionRoutine,
+			Event.Circumstance:  Event.AcceptionRoutine,
 			Event.ChannelType:   Event.WebsocketConnection,
 			Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 		},
@@ -110,7 +110,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.ClientAcceptionRoutine,
+			Event.Circumstance:  Event.AcceptionRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
@@ -150,7 +150,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.ClientAcceptionRoutine,
+			Event.Circumstance:  Event.AcceptionRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
@@ -182,7 +182,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.DisconnectingClient,
 		"disconnecting websocketConnection",
 		Event.Context{
-			Event.Circumstance:  Event.ClientDisconnectionRoutine,
+			Event.Circumstance:  Event.Disconnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
@@ -194,7 +194,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.DisconnectedClient,
 		"websocketConnection disconnected",
 		Event.Context{
-			Event.Circumstance:  Event.ClientDisconnectionRoutine,
+			Event.Circumstance:  Event.Disconnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),

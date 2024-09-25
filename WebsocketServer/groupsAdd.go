@@ -19,7 +19,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroupRoutine,
+			Event.Circumstance:    Event.AddClientsToGroup,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -35,7 +35,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				Event.Context{
-					Event.Circumstance:    Event.AddClientsToGroupRoutine,
+					Event.Circumstance:    Event.AddClientsToGroup,
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -50,7 +50,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 				Event.ClientAlreadyInGroup,
 				"websocketConnection is already in group",
 				Event.Context{
-					Event.Circumstance:    Event.AddClientsToGroupRoutine,
+					Event.Circumstance:    Event.AddClientsToGroup,
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -70,7 +70,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AddClientsToGroupRoutine,
+				Event.Circumstance:    Event.AddClientsToGroup,
 				Event.Behaviour:       Event.Transactional,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.TargetClientIds: targetClientIds,
@@ -91,7 +91,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 		Event.AddedClientsToGroup,
 		"added websocketConnections to group",
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroupRoutine,
+			Event.Circumstance:    Event.AddClientsToGroup,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -113,7 +113,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroupRoutine,
+			Event.Circumstance:    Event.AddClientsToGroup,
 			Event.Behaviour:       Event.BestEffort,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -131,7 +131,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AddClientsToGroupRoutine,
+				Event.Circumstance:    Event.AddClientsToGroup,
 				Event.Behaviour:       Event.BestEffort,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.TargetClientIds: targetClientIds,
@@ -155,7 +155,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:    Event.AddClientsToGroupRoutine,
+					Event.Circumstance:    Event.AddClientsToGroup,
 					Event.Behaviour:       Event.BestEffort,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -177,7 +177,7 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 		Event.AddedClientsToGroup,
 		"added websocketConnections to group",
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroupRoutine,
+			Event.Circumstance:    Event.AddClientsToGroup,
 			Event.Behaviour:       Event.BestEffort,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,

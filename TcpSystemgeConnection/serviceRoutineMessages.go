@@ -12,10 +12,10 @@ import (
 func (connection *TcpSystemgeConnection) receptionRoutine() {
 	defer func() {
 		connection.onEvent(Event.NewInfoNoOption(
-			Event.ClientReceptionRoutineFinished,
+			Event.ReceptionRoutineFinished,
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
-				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.Circumstance:  Event.ReceptionRoutine,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
@@ -25,13 +25,13 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 	}()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.ClientReceptionRoutineStarted,
+		Event.ReceptionRoutineStarted,
 		"started tcpSystemgeConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.ClientReceptionRoutine,
+			Event.Circumstance:  Event.ReceptionRoutine,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetIp(),
@@ -56,7 +56,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.Circumstance:  Event.ReceptionRoutine,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
@@ -72,7 +72,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 					Event.ReceivingClientMessageFailed,
 					err.Error(),
 					Event.Context{
-						Event.Circumstance:  Event.ClientReceptionRoutine,
+						Event.Circumstance:  Event.ReceptionRoutine,
 						Event.ClientType:    Event.TcpSystemgeConnection,
 						Event.ClientName:    connection.GetName(),
 						Event.ClientAddress: connection.GetIp(),
@@ -88,7 +88,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.ClientReceptionRoutine,
+					Event.Circumstance:  Event.ReceptionRoutine,
 					Event.ClientType:    Event.TcpSystemgeConnection,
 					Event.ClientName:    connection.GetName(),
 					Event.ClientAddress: connection.GetIp(),
@@ -107,7 +107,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.Circumstance:  Event.ReceptionRoutine,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
@@ -118,12 +118,12 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		}
 
 		if connection.config.HandleMessageReceptionSequentially {
-			if err := connection.handleReception(messageBytes); err != nil {
+			if event := connection.handleReception(messageBytes); event != nil {
 				connection.messageChannelSemaphore.ReleaseBlocking()
 			}
 		} else {
 			go func() { // finally possible thanks to semaphore usage
-				if err := connection.handleReception(messageBytes); err != nil {
+				if event := connection.handleReception(messageBytes); event != nil {
 					connection.messageChannelSemaphore.ReleaseBlocking()
 				}
 			}()
@@ -132,20 +132,82 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 	}
 }
 
-func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) error {
+func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *Event.Event {
+	event := connection.onEvent(Event.NewInfo(
+		Event.HandlingReception,
+		"handling tcpSystemgeConnection message reception",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleReception,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetIp(),
+		},
+	))
+	if !event.IsInfo() {
+		connection.messageChannelSemaphore.ReleaseBlocking()
+		return event
+	}
+
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
-		connection.byteRateLimiterExceeded.Add(1)
-		return Event.New("byte rate limiter exceeded", nil)
+		if event := connection.onEvent(Event.NewWarning(
+			Event.RateLimited,
+			"tcpSystemgeConnection byte rate limited",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:    Event.HandleReception,
+				Event.RateLimiterType: Event.TokenBucket,
+				Event.TokenBucketType: Event.Messages,
+				Event.ClientType:      Event.TcpSystemgeConnection,
+				Event.ClientName:      connection.GetName(),
+				Event.ClientAddress:   connection.GetIp(),
+			},
+		)); !event.IsInfo() {
+			connection.byteRateLimiterExceeded.Add(1)
+			return event
+		}
 	}
 	if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
-		connection.messageRateLimiterExceeded.Add(1)
-		return Event.New("message rate limiter exceeded", nil)
+		if event := connection.onEvent(Event.NewWarning(
+			Event.RateLimited,
+			"tcpSystemgeConnection message rate limited",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:    Event.HandleReception,
+				Event.RateLimiterType: Event.TokenBucket,
+				Event.TokenBucketType: Event.Messages,
+				Event.ClientType:      Event.TcpSystemgeConnection,
+				Event.ClientName:      connection.GetName(),
+				Event.ClientAddress:   connection.GetIp(),
+			},
+		)); !event.IsInfo() {
+			connection.messageRateLimiterExceeded.Add(1)
+			return event
+		}
 	}
 	message, err := Message.Deserialize(messageBytes, connection.GetName())
 	if err != nil {
 		connection.invalidMessagesReceived.Add(1)
-		return Event.New("failed to deserialize message", err)
+		return connection.onEvent(Event.NewWarningNoOption(
+			Event.DeserializingFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance:  Event.HandleReception,
+				Event.StructType:    Event.Message,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+				Event.Bytes:         string(messageBytes),
+			},
+		))
 	}
+
 	if err := connection.validateMessage(message); err != nil {
 		connection.invalidMessagesReceived.Add(1)
 		return Event.New("failed to validate message", err)

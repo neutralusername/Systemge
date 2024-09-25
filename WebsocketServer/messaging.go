@@ -24,7 +24,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.BroadcastRoutine,
+			Event.Circumstance:    Event.Broadcast,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
 			Event.Topic:           message.GetTopic(),
@@ -45,7 +45,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:    Event.BroadcastRoutine,
+					Event.Circumstance:    Event.Broadcast,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketConnection.GetId(),
 					Event.TargetClientIds: targetClientIds,
@@ -63,7 +63,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.send(websocketConnection, messageBytes, Event.BroadcastRoutine)
+			server.send(websocketConnection, messageBytes, Event.Broadcast)
 		})
 	}
 	server.websocketConnectionMutex.RUnlock()
@@ -74,7 +74,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.SentMessage,
 		"broadcasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance:    Event.BroadcastRoutine,
+			Event.Circumstance:    Event.Broadcast,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
 			Event.Topic:           message.GetTopic(),
@@ -99,7 +99,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:   Event.UnicastRoutine,
+			Event.Circumstance:   Event.Unicast,
 			Event.ClientType:     Event.WebsocketConnection,
 			Event.TargetClientId: websocketId,
 			Event.Topic:          message.GetTopic(),
@@ -118,7 +118,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
 			Event.Context{
-				Event.Circumstance:   Event.UnicastRoutine,
+				Event.Circumstance:   Event.Unicast,
 				Event.ClientType:     Event.WebsocketConnection,
 				Event.ClientId:       websocketId,
 				Event.TargetClientId: websocketId,
@@ -137,7 +137,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:   Event.UnicastRoutine,
+				Event.Circumstance:   Event.Unicast,
 				Event.ClientType:     Event.WebsocketConnection,
 				Event.ClientId:       websocketId,
 				Event.TargetClientId: websocketId,
@@ -152,7 +152,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		}
 	}
 	waitGroup.AddTask(func() {
-		server.send(websocketConnection, messageBytes, Event.UnicastRoutine)
+		server.send(websocketConnection, messageBytes, Event.Unicast)
 	})
 	server.websocketConnectionMutex.RUnlock()
 
@@ -162,7 +162,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		Event.SentMessage,
 		"unicasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance:   Event.UnicastRoutine,
+			Event.Circumstance:   Event.Unicast,
 			Event.ClientType:     Event.WebsocketConnection,
 			Event.TargetClientId: websocketId,
 			Event.Topic:          message.GetTopic(),
@@ -188,7 +188,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.MulticastRoutine,
+			Event.Circumstance:    Event.Multicast,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
 			Event.Topic:           message.GetTopic(),
@@ -210,7 +210,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Cancel,
 				Event.Skip,
 				Event.Context{
-					Event.Circumstance:    Event.MulticastRoutine,
+					Event.Circumstance:    Event.Multicast,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        id,
 					Event.TargetClientIds: targetClientIds,
@@ -234,7 +234,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:    Event.MulticastRoutine,
+					Event.Circumstance:    Event.Multicast,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        id,
 					Event.TargetClientIds: targetClientIds,
@@ -252,7 +252,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.send(websocketConnection, messageBytes, Event.MulticastRoutine)
+			server.send(websocketConnection, messageBytes, Event.Multicast)
 		})
 	}
 	server.websocketConnectionMutex.RUnlock()
@@ -263,7 +263,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.SentMessage,
 		"multicasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance:    Event.MulticastRoutine,
+			Event.Circumstance:    Event.Multicast,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
 			Event.Topic:           message.GetTopic(),
@@ -288,7 +288,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GroupcastRoutine,
+			Event.Circumstance: Event.Groupcast,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.GroupId:      groupId,
 			Event.Topic:        message.GetTopic(),
@@ -307,7 +307,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			Event.Context{
-				Event.Circumstance: Event.GroupcastRoutine,
+				Event.Circumstance: Event.Groupcast,
 				Event.ClientType:   Event.WebsocketConnection,
 				Event.GroupId:      groupId,
 				Event.Topic:        message.GetTopic(),
@@ -326,7 +326,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance: Event.GroupcastRoutine,
+					Event.Circumstance: Event.Groupcast,
 					Event.ClientType:   Event.WebsocketConnection,
 					Event.ClientId:     websocketConnection.GetId(),
 					Event.GroupId:      groupId,
@@ -344,7 +344,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.send(websocketConnection, messageBytes, Event.GroupcastRoutine)
+			server.send(websocketConnection, messageBytes, Event.Groupcast)
 		})
 	}
 	server.websocketConnectionMutex.RUnlock()
@@ -355,7 +355,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 		Event.SentMessage,
 		"groupcasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance: Event.GroupcastRoutine,
+			Event.Circumstance: Event.Groupcast,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.GroupId:      groupId,
 			Event.Topic:        message.GetTopic(),

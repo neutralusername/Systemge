@@ -18,7 +18,7 @@ func (server *WebsocketServer) GetGroupWebsocketConnectionIds(groupId string) ([
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetGroupClientsRoutine,
+			Event.Circumstance: Event.GetGroupClients,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.GroupId:      groupId,
 		},
@@ -31,7 +31,7 @@ func (server *WebsocketServer) GetGroupWebsocketConnectionIds(groupId string) ([
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			Event.Context{
-				Event.Circumstance: Event.GetGroupClientsRoutine,
+				Event.Circumstance: Event.GetGroupClients,
 				Event.ClientType:   Event.WebsocketConnection,
 				Event.GroupId:      groupId,
 			},
@@ -51,7 +51,7 @@ func (server *WebsocketServer) GetGroupWebsocketConnectionIds(groupId string) ([
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetGroupClientsRoutine,
+			Event.Circumstance: Event.GetGroupClients,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.GroupId:      groupId,
 			Event.Result:       Helpers.JsonMarshal(groupClientIds),
@@ -74,7 +74,7 @@ func (server *WebsocketServer) GetWebsocketConnectionGroupIds(websocketId string
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetClientGroupsRoutine,
+			Event.Circumstance: Event.GetClientGroups,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 		},
@@ -87,7 +87,7 @@ func (server *WebsocketServer) GetWebsocketConnectionGroupIds(websocketId string
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
 			Event.Context{
-				Event.Circumstance: Event.GetClientGroupsRoutine,
+				Event.Circumstance: Event.GetClientGroups,
 				Event.ClientType:   Event.WebsocketConnection,
 				Event.ClientId:     websocketId,
 			},
@@ -107,7 +107,7 @@ func (server *WebsocketServer) GetWebsocketConnectionGroupIds(websocketId string
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetClientGroupsRoutine,
+			Event.Circumstance: Event.GetClientGroups,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 			Event.Result:       Helpers.JsonMarshal(groupIds),
@@ -130,7 +130,7 @@ func (server *WebsocketServer) GetGroupCount() (int, error) {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetGroupCountRoutine,
+			Event.Circumstance: Event.GetGroupCount,
 			Event.ClientType:   Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
@@ -143,7 +143,7 @@ func (server *WebsocketServer) GetGroupCount() (int, error) {
 		Event.GotGroupCount,
 		"got group count",
 		Event.Context{
-			Event.Circumstance: Event.GetGroupCountRoutine,
+			Event.Circumstance: Event.GetGroupCount,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.Result:       Helpers.JsonMarshal(groupCount),
 		},
@@ -164,7 +164,7 @@ func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetGroupIdsRoutine,
+			Event.Circumstance: Event.GetGroupIds,
 			Event.ClientType:   Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
@@ -180,7 +180,7 @@ func (server *WebsocketServer) GetGroupIds() ([]string, error) {
 		Event.GotGroupIds,
 		"got group ids",
 		Event.Context{
-			Event.Circumstance: Event.GetGroupIdsRoutine,
+			Event.Circumstance: Event.GetGroupIds,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.Result:       Helpers.JsonMarshal(groups),
 		},
@@ -201,7 +201,7 @@ func (server *WebsocketServer) IsWebsocketConnectionInGroup(groupId string, webs
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.IsClientInGroupRoutine,
+			Event.Circumstance: Event.IsClientInGroup,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 			Event.GroupId:      groupId,
@@ -215,7 +215,7 @@ func (server *WebsocketServer) IsWebsocketConnectionInGroup(groupId string, webs
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			Event.Context{
-				Event.Circumstance: Event.IsClientInGroupRoutine,
+				Event.Circumstance: Event.IsClientInGroup,
 				Event.ClientType:   Event.WebsocketConnection,
 				Event.ClientId:     websocketId,
 				Event.GroupId:      groupId,
@@ -229,7 +229,7 @@ func (server *WebsocketServer) IsWebsocketConnectionInGroup(groupId string, webs
 		Event.GotIsClientInGroup,
 		"got is websocketConnection in group",
 		Event.Context{
-			Event.Circumstance: Event.IsClientInGroupRoutine,
+			Event.Circumstance: Event.IsClientInGroup,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 			Event.GroupId:      groupId,
@@ -252,7 +252,7 @@ func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId stri
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ClientGroupCountRoutine,
+			Event.Circumstance: Event.ClientGroupCount,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 		},
@@ -265,7 +265,7 @@ func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId stri
 			Event.ClientDoesNotExist,
 			"websocketConnection not in any group",
 			Event.Context{
-				Event.Circumstance: Event.ClientGroupCountRoutine,
+				Event.Circumstance: Event.ClientGroupCount,
 				Event.ClientType:   Event.WebsocketConnection,
 				Event.ClientId:     websocketId,
 			},
@@ -282,7 +282,7 @@ func (server *WebsocketServer) GetWebsocketConnectionGroupCount(websocketId stri
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ClientGroupCountRoutine,
+			Event.Circumstance: Event.ClientGroupCount,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 			Event.Result:       Helpers.JsonMarshal(groupCount),

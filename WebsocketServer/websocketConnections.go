@@ -16,7 +16,7 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ClientExistenceRoutine,
+			Event.Circumstance: Event.ClientExistence,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 		},
@@ -33,7 +33,7 @@ func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) (bo
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ClientExistenceRoutine,
+			Event.Circumstance: Event.ClientExistence,
 			Event.ClientType:   Event.WebsocketConnection,
 			Event.ClientId:     websocketId,
 			Event.Result:       Helpers.JsonMarshal(exists),
@@ -56,7 +56,7 @@ func (server *WebsocketServer) GetWebsocketConnectionCount() int {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.WebsocketConnectionCountRoutine,
+			Event.Circumstance: Event.WebsocketConnectionCount,
 		},
 	)); !event.IsInfo() {
 		return -1
@@ -71,7 +71,7 @@ func (server *WebsocketServer) GetWebsocketConnectionCount() int {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.WebsocketConnectionCountRoutine,
+			Event.Circumstance: Event.WebsocketConnectionCount,
 			Event.Result:       Helpers.JsonMarshal(count),
 		}),
 	); !event.IsInfo() {
@@ -92,7 +92,7 @@ func (server *WebsocketServer) GetWebsocketConnectionIds() []string {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetWebsocketConnectionIdsRoutine,
+			Event.Circumstance: Event.GetWebsocketConnectionIds,
 		}),
 	); !event.IsInfo() {
 		return nil
@@ -110,7 +110,7 @@ func (server *WebsocketServer) GetWebsocketConnectionIds() []string {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.GetWebsocketConnectionIdsRoutine,
+			Event.Circumstance: Event.GetWebsocketConnectionIds,
 			Event.Result:       Helpers.JsonMarshal(ids),
 		}),
 	); !event.IsInfo() {

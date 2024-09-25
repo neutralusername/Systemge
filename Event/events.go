@@ -9,18 +9,18 @@ const ServiceAlreadyStopped = "alreadyStopped"
 const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"
 
+const AcceptionRoutineStarted = "acceptionRoutineStarted"
+const AcceptionRoutineFinished = "acceptionRoutineFinished"
+
+const ReceptionRoutineStarted = "receptionRoutineStarted"
+const ReceptionRoutineFinished = "receptionRoutineFinished"
+
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
 
 const SendingClientMessage = "sendingClientMessage"
 const SentClientMessage = "sentClientMessage"
 const SendingClientMessageFailed = "sendingClientMessageFailed"
-
-const ClientAcceptionRoutineStarted = "clientAcceptionRoutineStarted"
-const ClientAcceptionRoutineFinished = "clientAcceptionRoutineFinished"
-
-const ClientReceptionRoutineStarted = "clientReceptionRoutineStarted"
-const ClientReceptionRoutineFinished = "clientReceptionRoutineFinished"
 
 const AcceptingClient = "acceptingConnection"
 const AcceptingClientFailed = "acceptingConnectionFailed"
@@ -43,8 +43,9 @@ const ReceivingClientMessage = "receivingClientMessage"
 const ReceivedClientMessage = "receivedClientMessage"
 const ReceivingClientMessageFailed = "receivingClientMessageFailed"
 
-const HandlingClientMessage = "handlingMessage"
-const HandledClientMessage = "handledMessage"
+const HandlingReception = "handlingReception"
+const HandledReception = "handledReception"
+
 const NoHandlerForTopic = "noHandlerForTopic"
 const HandlerFailed = "handlerFailed"
 
@@ -55,7 +56,7 @@ const AddingClientsToGroup = "addingClientsToGroup"
 const AddedClientsToGroup = "addedClientsToGroup"
 
 const RemovingClientsFromGroup = "removingClientsFromGroup"
-const RemoveClientsFromGroup = "removedClientsFromGroup"
+const RemovedClientsFromGroup = "removedClientsFromGroup"
 
 const GettingGroupClients = "gettingGroupClients"
 const GotGroupClients = "gotGroupClients"

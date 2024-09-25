@@ -19,7 +19,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_transactional
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Circumstance:    Event.RemoveClientsFromGroup,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -34,7 +34,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_transactional
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			Event.Context{
-				Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+				Event.Circumstance:    Event.RemoveClientsFromGroup,
 				Event.Behaviour:       Event.Transactional,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.TargetClientIds: targetClientIds,
@@ -50,7 +50,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_transactional
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				Event.Context{
-					Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+					Event.Circumstance:    Event.RemoveClientsFromGroup,
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -65,7 +65,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_transactional
 				Event.ClientNotInGroup,
 				"websocketConnection is not in group",
 				Event.Context{
-					Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+					Event.Circumstance:    Event.RemoveClientsFromGroup,
 					Event.Behaviour:       Event.Transactional,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -89,7 +89,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_transactional
 		Event.AddedClientsToGroup,
 		"removed websocketConnections from group",
 		Event.Context{
-			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Circumstance:    Event.RemoveClientsFromGroup,
 			Event.Behaviour:       Event.Transactional,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -111,7 +111,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_bestEffort(gr
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Circumstance:    Event.RemoveClientsFromGroup,
 			Event.Behaviour:       Event.BestEffort,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
@@ -126,7 +126,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_bestEffort(gr
 			Event.GroupDoesNotExist,
 			"group does not exist",
 			Event.Context{
-				Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+				Event.Circumstance:    Event.RemoveClientsFromGroup,
 				Event.Behaviour:       Event.BestEffort,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.TargetClientIds: targetClientIds,
@@ -147,7 +147,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_bestEffort(gr
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+					Event.Circumstance:    Event.RemoveClientsFromGroup,
 					Event.Behaviour:       Event.BestEffort,
 					Event.ClientType:      Event.WebsocketConnection,
 					Event.ClientId:        websocketId,
@@ -170,7 +170,7 @@ func (server *WebsocketServer) RemoveWebsocketConnectionsFromGroup_bestEffort(gr
 		Event.AddedClientsToGroup,
 		"removed websocketConnections from group",
 		Event.Context{
-			Event.Circumstance:    Event.RemoveClientsFromGroupRoutine,
+			Event.Circumstance:    Event.RemoveClientsFromGroup,
 			Event.Behaviour:       Event.BestEffort,
 			Event.ClientType:      Event.WebsocketConnection,
 			Event.TargetClientIds: targetClientIds,
