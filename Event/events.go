@@ -45,6 +45,7 @@ const ReceivingMessageFailed = "receivingMessageFailed"
 
 const SyncResponseReceived = "syncResponseReceived"
 const InvalidSyncResponse = "invalidSyncResponse"
+const ValidSyncResponse = "validSyncResponse"
 
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"

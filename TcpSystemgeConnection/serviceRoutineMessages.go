@@ -233,58 +233,6 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 		}
 	}
 
-	if message.IsResponse() {
-		event := connection.onEvent(Event.NewInfo(
-			Event.SyncResponseReceived,
-			"received sync response",
-			Event.Cancel,
-			Event.Skip,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.ClientType:    Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
-			},
-		))
-		if event.IsError() {
-			connection.invalidSyncResponsesReceived.Add(1)
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			return event
-		}
-		if event.IsInfo() {
-			if err := connection.addSyncResponse(message); err != nil {
-				connection.invalidSyncResponsesReceived.Add(1)
-				if event := connection.onEvent(Event.NewWarning(
-					Event.InvalidSyncResponse,
-					err.Error(),
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
-					Event.Context{
-						Event.Circumstance:  Event.HandleReception,
-						Event.ClientType:    Event.TcpSystemgeConnection,
-						Event.ClientName:    connection.GetName(),
-						Event.ClientAddress: connection.GetIp(),
-						Event.Topic:         message.GetTopic(),
-						Event.Payload:       message.GetPayload(),
-						Event.SyncToken:     message.GetSyncToken(),
-					},
-				)); !event.IsInfo() {
-					return event
-				}
-			} else {
-				// add option to receive sync response and add message to channel
-				connection.validMessagesReceived.Add(1)
-				connection.messageChannelSemaphore.ReleaseBlocking()
-				return nil
-			}
-		}
-	}
-
 	if event := connection.onEvent(Event.NewInfo(
 		Event.SendingToChannel,
 		"sending message to channel",
@@ -342,3 +290,76 @@ func (connection *TcpSystemgeConnection) validateMessage(message *Message.Messag
 	}
 	return nil
 }
+
+/*
+
+if message.IsResponse() {
+		event := connection.onEvent(Event.NewInfo(
+			Event.SyncResponseReceived,
+			"received sync response",
+			Event.Cancel,
+			Event.Skip,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.HandleReception,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+				Event.Topic:         message.GetTopic(),
+				Event.Payload:       message.GetPayload(),
+				Event.SyncToken:     message.GetSyncToken(),
+			},
+		))
+		if event.IsError() {
+			connection.invalidSyncResponsesReceived.Add(1)
+			connection.messageChannelSemaphore.ReleaseBlocking()
+			return event
+		}
+		if event.IsInfo() {
+			if err := connection.addSyncResponse(message); err != nil {
+				connection.invalidSyncResponsesReceived.Add(1)
+				if event := connection.onEvent(Event.NewWarning(
+					Event.InvalidSyncResponse,
+					err.Error(),
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:  Event.HandleReception,
+						Event.ClientType:    Event.TcpSystemgeConnection,
+						Event.ClientName:    connection.GetName(),
+						Event.ClientAddress: connection.GetIp(),
+						Event.Topic:         message.GetTopic(),
+						Event.Payload:       message.GetPayload(),
+						Event.SyncToken:     message.GetSyncToken(),
+					},
+				)); !event.IsInfo() {
+					return event
+				}
+			} else {
+				if event := connection.onEvent(Event.NewInfo(
+					Event.ValidSyncResponse,
+					"valid sync response",
+					Event.Cancel,
+					Event.Cancel,
+					Event.Cancel,
+					Event.Context{
+						Event.Circumstance:  Event.HandleReception,
+						Event.ClientType:    Event.TcpSystemgeConnection,
+						Event.ClientName:    connection.GetName(),
+						Event.ClientAddress: connection.GetIp(),
+						Event.Topic:         message.GetTopic(),
+						Event.Payload:       message.GetPayload(),
+						Event.SyncToken:     message.GetSyncToken(),
+					},
+				)); !event.IsInfo() {
+					return event
+				}
+				connection.validMessagesReceived.Add(1)
+				connection.messageChannelSemaphore.ReleaseBlocking()
+				return nil
+			}
+		}
+	}
+
+*/
