@@ -6,6 +6,7 @@ const Ip = "ip"
 const TokenBucket = "tokenBucket"
 
 const StopChannel = "stopChannel"
+const MessageChannel = "messageChannel"
 
 const BestEffort = "bestEffort"
 const Transactional = "transactional"

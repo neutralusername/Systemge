@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tcp"
 )
@@ -50,7 +49,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		return errors.New("connection closed")
 	case <-connection.messageChannelSemaphore.GetChannel():
 		if event := connection.onEvent(Event.NewInfo(
-			Event.ReceivingClientMessage,
+			Event.ReceivingMessage,
 			"receiving websocketConnection message",
 			Event.Cancel,
 			Event.Cancel,
@@ -69,7 +68,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		if err != nil {
 			if Tcp.IsConnectionClosed(err) {
 				connection.onEvent(Event.NewWarningNoOption(
-					Event.ReceivingClientMessageFailed,
+					Event.ReceivingMessageFailed,
 					err.Error(),
 					Event.Context{
 						Event.Circumstance:  Event.ReceptionRoutine,
@@ -82,7 +81,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				return errors.New("connection closed")
 			}
 			if event := connection.onEvent(Event.NewInfo(
-				Event.ReceivingClientMessageFailed,
+				Event.ReceivingMessageFailed,
 				err.Error(),
 				Event.Cancel,
 				Event.Cancel,
@@ -101,7 +100,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		}
 
 		if event := connection.onEvent(Event.NewInfo(
-			Event.ReceivedClientMessage,
+			Event.ReceivedMessage,
 			"received tcpSystemgeConnection message",
 			Event.Cancel,
 			Event.Cancel,
@@ -172,6 +171,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			return event
 		}
 	}
+
 	if connection.rateLimiterMessages != nil && !connection.rateLimiterMessages.Consume(1) {
 		if event := connection.onEvent(Event.NewWarning(
 			Event.RateLimited,
@@ -193,6 +193,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			return event
 		}
 	}
+
 	message, err := Message.Deserialize(messageBytes, connection.GetName())
 	if err != nil {
 		connection.invalidMessagesReceived.Add(1)
@@ -233,35 +234,110 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 	}
 
 	if message.IsResponse() {
-		if err := connection.addSyncResponse(message); err != nil {
+		event := connection.onEvent(Event.NewInfo(
+			Event.SyncResponseReceived,
+			"received sync response",
+			Event.Cancel,
+			Event.Skip,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.HandleReception,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+				Event.Topic:         message.GetTopic(),
+				Event.Payload:       message.GetPayload(),
+				Event.SyncToken:     message.GetSyncToken(),
+			},
+		))
+		if event.IsError() {
 			connection.invalidSyncResponsesReceived.Add(1)
-			return Event.New("failed to add sync response", err)
+			connection.messageChannelSemaphore.ReleaseBlocking()
+			return event
 		}
-		connection.validMessagesReceived.Add(1)
-		connection.messageChannelSemaphore.ReleaseBlocking()
-		return nil
-	} else {
-		connection.validMessagesReceived.Add(1)
-		connection.messageChannel <- message
-		if connection.infoLogger != nil {
-			connection.infoLogger.Log("Added message \"" + Helpers.GetPointerId(message) + "\" to processing channel")
+		if event.IsInfo() {
+			if err := connection.addSyncResponse(message); err != nil {
+				connection.invalidSyncResponsesReceived.Add(1)
+				if event := connection.onEvent(Event.NewWarning(
+					Event.InvalidSyncResponse,
+					err.Error(),
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:  Event.HandleReception,
+						Event.ClientType:    Event.TcpSystemgeConnection,
+						Event.ClientName:    connection.GetName(),
+						Event.ClientAddress: connection.GetIp(),
+						Event.Topic:         message.GetTopic(),
+						Event.Payload:       message.GetPayload(),
+						Event.SyncToken:     message.GetSyncToken(),
+					},
+				)); !event.IsInfo() {
+					return event
+				}
+			} else {
+				connection.validMessagesReceived.Add(1)
+				connection.messageChannelSemaphore.ReleaseBlocking()
+				return nil
+			}
 		}
-		return nil
 	}
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.SendingToChannel,
+		"sending message to channel",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleReception,
+			Event.ChannelType:   Event.MessageChannel,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetIp(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	)); !event.IsInfo() {
+		connection.messageChannelSemaphore.ReleaseBlocking()
+		return event
+	}
+	connection.validMessagesReceived.Add(1)
+	connection.messageChannel <- message
+
+	return connection.onEvent(Event.NewInfo(
+		Event.SentToChannel,
+		"sent message to channel",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleReception,
+			Event.ChannelType:   Event.MessageChannel,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetIp(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	))
 }
 
 func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
-		return Event.New("Message sync token exceeds maximum size", nil)
+		return errors.New("Message sync token exceeds maximum size")
 	}
 	if len(message.GetTopic()) == 0 {
-		return Event.New("Message missing topic", nil)
+		return errors.New("Message missing topic")
 	}
 	if maxTopicSize := connection.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return Event.New("Message topic exceeds maximum size", nil)
+		return errors.New("Message topic exceeds maximum size")
 	}
 	if maxPayloadSize := connection.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return Event.New("Message payload exceeds maximum size", nil)
+		return errors.New("Message payload exceeds maximum size")
 	}
 	return nil
 }

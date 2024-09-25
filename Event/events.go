@@ -39,9 +39,12 @@ const ReceivingFromChannel = "receivingFromChannel"
 const ReceivedFromChannel = "receivingFromChannel"
 const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
 
-const ReceivingClientMessage = "receivingClientMessage"
-const ReceivedClientMessage = "receivedClientMessage"
-const ReceivingClientMessageFailed = "receivingClientMessageFailed"
+const ReceivingMessage = "receivingMessage"
+const ReceivedMessage = "receivedMessage"
+const ReceivingMessageFailed = "receivingMessageFailed"
+
+const SyncResponseReceived = "syncResponseReceived"
+const InvalidSyncResponse = "invalidSyncResponse"
 
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"
