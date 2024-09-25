@@ -4,6 +4,7 @@ const WebsocketUpgrade = "websocketUpgrade"
 
 const AcceptionRoutine = "acceptionRoutine"
 const ReceptionRoutine = "receptionRoutine"
+const HeartbeatRoutine = "heartbeatRoutine"
 
 const Disconnection = "disconnection"
 
