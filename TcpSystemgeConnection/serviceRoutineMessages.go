@@ -47,20 +47,70 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 func (connection *TcpSystemgeConnection) receiveMessage() error {
 	select {
 	case <-connection.closeChannel:
-
 		return errors.New("connection closed")
 	case <-connection.messageChannelSemaphore.GetChannel():
+		if event := connection.onEvent(Event.NewInfo(
+			Event.ReceivingClientMessage,
+			"receiving websocketConnection message",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+			}),
+		); !event.IsInfo() {
+			return event.GetError()
+		}
 		messageBytes, bytesReceived, err := connection.messageReceiver.ReceiveNextMessage()
 		connection.bytesReceived.Add(uint64(bytesReceived))
 		if err != nil {
-
 			if Tcp.IsConnectionClosed(err) {
+				connection.onEvent(Event.NewWarningNoOption(
+					Event.ReceivingClientMessageFailed,
+					err.Error(),
+					Event.Context{
+						Event.Circumstance:  Event.ClientReceptionRoutine,
+						Event.ClientType:    Event.WebsocketConnection,
+						Event.ClientName:    connection.GetName(),
+						Event.ClientAddress: connection.GetIp(),
+					}),
+				)
 				connection.Close()
 				return errors.New("connection closed")
 			}
-
-			return nil
+			if event := connection.onEvent(Event.NewInfo(
+				Event.ReceivingClientMessageFailed,
+				err.Error(),
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:  Event.ClientReceptionRoutine,
+					Event.ClientType:    Event.WebsocketConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetIp(),
+				}),
+			); !event.IsInfo() {
+				return err
+			} else {
+				return nil
+			}
 		}
+
+		connection.onEvent(Event.NewInfoNoOption(
+			Event.ReceivedClientMessage,
+			"received websocketConnection message",
+			Event.Context{
+				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+				Event.Bytes:         string(messageBytes),
+			}),
+		)
 
 		if connection.config.HandleMessageReceptionSequentially {
 			if err := connection.handleReception(messageBytes); err != nil {
