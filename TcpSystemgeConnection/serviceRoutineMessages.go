@@ -73,7 +73,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 					err.Error(),
 					Event.Context{
 						Event.Circumstance:  Event.ClientReceptionRoutine,
-						Event.ClientType:    Event.WebsocketConnection,
+						Event.ClientType:    Event.TcpSystemgeConnection,
 						Event.ClientName:    connection.GetName(),
 						Event.ClientAddress: connection.GetIp(),
 					}),
@@ -89,7 +89,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance:  Event.ClientReceptionRoutine,
-					Event.ClientType:    Event.WebsocketConnection,
+					Event.ClientType:    Event.TcpSystemgeConnection,
 					Event.ClientName:    connection.GetName(),
 					Event.ClientAddress: connection.GetIp(),
 				}),
@@ -102,13 +102,13 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 
 		if event := connection.onEvent(Event.NewInfo(
 			Event.ReceivedClientMessage,
-			"received websocketConnection message",
+			"received tcpSystemgeConnection message",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:  Event.ClientReceptionRoutine,
-				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
 				Event.Bytes:         string(messageBytes),
