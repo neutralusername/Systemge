@@ -6,7 +6,19 @@ import (
 )
 
 func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketConnection) {
-	defer websocketConnection.waitGroup.Done()
+	defer func() {
+		server.onEvent(Event.NewInfoNoOption(
+			Event.ClientReceptionRoutineFinished,
+			"stopped websocketConnection message reception",
+			Event.Context{
+				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientId:      websocketConnection.GetId(),
+				Event.ClientAddress: websocketConnection.GetIp(),
+			},
+		))
+		websocketConnection.waitGroup.Done()
+	}()
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.ClientReceptionRoutineStarted,
@@ -27,16 +39,6 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 	for err := server.receiveMessage(websocketConnection); err == nil; {
 	}
 
-	server.onEvent(Event.NewInfoNoOption(
-		Event.ClientReceptionRoutineFinished,
-		"stopped websocketConnection message reception",
-		Event.Context{
-			Event.Circumstance:  Event.ClientReceptionRoutine,
-			Event.ClientType:    Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
-		},
-	))
 }
 
 func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConnection) error {

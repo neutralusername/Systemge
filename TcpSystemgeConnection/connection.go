@@ -206,3 +206,7 @@ func (server *TcpSystemgeConnection) GetServerContext() Event.Context {
 		Event.Function:      Event.GetCallerFuncName(2),
 	}
 }
+
+func (connection *TcpSystemgeConnection) GetIp() string {
+	return connection.netConn.RemoteAddr().String()
+}

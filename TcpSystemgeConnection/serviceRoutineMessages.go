@@ -19,8 +19,8 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 		Event.Context{
 			Event.Circumstance:  Event.ClientReceptionRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetIp(),
 		},
 	)); !event.IsInfo() {
 		return

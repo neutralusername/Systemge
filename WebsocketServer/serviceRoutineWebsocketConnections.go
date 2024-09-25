@@ -10,7 +10,17 @@ import (
 )
 
 func (server *WebsocketServer) acceptRoutine() {
-	defer server.waitGroup.Done()
+	defer func() {
+		server.onEvent(Event.NewInfoNoOption(
+			Event.ClientAcceptionRoutineFinished,
+			"stopped websocketConnections acception",
+			Event.Context{
+				Event.Circumstance: Event.ClientAcceptionRoutine,
+				Event.ClientType:   Event.WebsocketConnection,
+			},
+		))
+		server.waitGroup.Done()
+	}()
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.ClientAcceptionRoutineStarted,
@@ -29,14 +39,6 @@ func (server *WebsocketServer) acceptRoutine() {
 	for err := server.receiveWebsocketConnection(); err == nil; {
 	}
 
-	server.onEvent(Event.NewInfoNoOption(
-		Event.ClientAcceptionRoutineFinished,
-		"stopped websocketConnections acception",
-		Event.Context{
-			Event.Circumstance: Event.ClientAcceptionRoutine,
-			Event.ClientType:   Event.WebsocketConnection,
-		},
-	))
 }
 
 func (server *WebsocketServer) receiveWebsocketConnection() error {
