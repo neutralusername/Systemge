@@ -7,6 +7,8 @@ import (
 )
 
 func (connection *TcpSystemgeConnection) heartbeatLoop() {
+	defer connection.waitGroup.Done()
+
 	for {
 		select {
 		case <-connection.closeChannel:

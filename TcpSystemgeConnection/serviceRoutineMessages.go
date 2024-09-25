@@ -8,9 +8,24 @@ import (
 )
 
 func (connection *TcpSystemgeConnection) receiveMessageLoop() {
-	if connection.infoLogger != nil {
-		connection.infoLogger.Log("Started receiving messages")
+	defer connection.waitGroup.Done()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.ClientReceptionRoutineStarted,
+		"started websocketConnection message reception",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.ClientReceptionRoutine,
+			Event.ClientType:    Event.WebsocketConnection,
+			Event.ClientId:      websocketConnection.GetId(),
+			Event.ClientAddress: websocketConnection.GetIp(),
+		},
+	)); !event.IsInfo() {
+		return
 	}
+
 	for {
 		select {
 		case <-connection.closeChannel:

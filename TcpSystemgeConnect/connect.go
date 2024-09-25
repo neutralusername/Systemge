@@ -1,4 +1,4 @@
-package TcpSystemgeConnection
+package TcpSystemgeConnect
 
 import (
 	"net"

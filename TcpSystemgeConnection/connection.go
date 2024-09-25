@@ -36,6 +36,7 @@ type TcpSystemgeConnection struct {
 	syncMutex    sync.Mutex
 
 	closeChannel chan bool
+	waitGroup    sync.WaitGroup
 
 	eventHandler Event.Handler
 
@@ -103,8 +104,11 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 	if config.TcpBufferBytes <= 0 {
 		config.TcpBufferBytes = 1024 * 4
 	}
+
+	connection.waitGroup.Add(1)
 	go connection.receiveMessageLoop()
 	if config.HeartbeatIntervalMs > 0 {
+		connection.waitGroup.Add(1)
 		go connection.heartbeatLoop()
 	}
 	return connection
