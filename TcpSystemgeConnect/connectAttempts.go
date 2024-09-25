@@ -1,6 +1,7 @@
 package TcpSystemgeConnect
 
 import (
+	"errors"
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
@@ -15,13 +16,15 @@ type ConnectionAttempt struct {
 	ongoing            chan bool
 	err                error
 	systemgeConnection SystemgeConnection.SystemgeConnection
+	eventHandler       Event.Handler
 }
 
-func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) *ConnectionAttempt {
+func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt, eventHandler Event.Handler) *ConnectionAttempt {
 	connectionAttempts := &ConnectionAttempt{
-		config:   config,
-		attempts: 0,
-		ongoing:  make(chan bool),
+		config:       config,
+		attempts:     0,
+		ongoing:      make(chan bool),
+		eventHandler: eventHandler,
 	}
 	go connectionAttempts.connectionAttempts(name)
 	return connectionAttempts
@@ -30,7 +33,7 @@ func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionA
 func (connectionAttempt *ConnectionAttempt) AbortAttempts() error {
 	select {
 	case <-connectionAttempt.ongoing:
-		return Event.New("Connection attempt has already ended", nil)
+		return errors.New("connection attempt has already ended")
 	default:
 		connectionAttempt.isAborted = true
 		return nil
@@ -66,24 +69,24 @@ func (connectionAttempt *ConnectionAttempt) GetResultBlocking() (SystemgeConnect
 func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 	for {
 		if connectionAttempt.isAborted {
-			connectionAttempt.err = Event.New("Connection attempt aborted before establishing connection", nil)
+			connectionAttempt.err = errors.New("Connection attempt aborted before establishing connection")
 			close(connectionAttempt.ongoing)
 			return
 		}
 		if connectionAttempt.config.MaxConnectionAttempts > 0 && connectionAttempt.attempts >= connectionAttempt.config.MaxConnectionAttempts {
-			connectionAttempt.err = Event.New("Max connection attempts reached", nil)
+			connectionAttempt.err = errors.New("Max connection attempts reached")
 			close(connectionAttempt.ongoing)
 			return
 		}
 		connectionAttempt.attempts++
-		connection, err := EstablishConnection(connectionAttempt.config.TcpSystemgeConnectionConfig, connectionAttempt.config.TcpClientConfig, name, connectionAttempt.config.MaxServerNameLength)
+		connection, err := EstablishConnection(connectionAttempt.config.TcpSystemgeConnectionConfig, connectionAttempt.config.TcpClientConfig, name, connectionAttempt.config.MaxServerNameLength, connectionAttempt.eventHandler)
 		if err != nil {
 			time.Sleep(time.Duration(connectionAttempt.config.RetryIntervalMs) * time.Millisecond)
 			continue
 		}
 		if connectionAttempt.isAborted {
 			connection.Close()
-			connectionAttempt.err = Event.New("Connection attempt aborted after establishing connection", nil)
+			connectionAttempt.err = errors.New("Connection attempt aborted after establishing connection")
 			close(connectionAttempt.ongoing)
 			return
 		}
