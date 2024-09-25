@@ -16,6 +16,8 @@ build specialized "dashboards" for various packages. for example to add topics t
 consider/support config changes at runtime.
 right now this is not officially supported and works for some fields, but not for others.
 
+split up websocketServer into listener, server and connection like systemge
+
 display error responses somehow on dashboard
 hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
 add status for non-landing pages
