@@ -21,7 +21,7 @@ add sync messaging system between websocketServer and its clients
 
 add authentication/key mechanism for listeners
 
-create timeout for message handlers (abbandon goroutine after x ms and continue)
+create timeout mechanism for message handlers (abbandon goroutine after x ms and continue)
 
 display error responses somehow on dashboard
 hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
