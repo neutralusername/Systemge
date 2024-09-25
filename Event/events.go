@@ -83,6 +83,8 @@ const ClientDoesNotExist = "clientDoesNotExist"
 
 const DeserializingFailed = "deserializingMessageFailed"
 
+const InvalidMessage = "invalidMessage"
+
 const UnexpectedTopic = "unexpectedTopic"
 
 const RateLimited = "rateLimited"

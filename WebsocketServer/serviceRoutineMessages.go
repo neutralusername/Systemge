@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 )
@@ -156,7 +158,28 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			},
 		))
 	}
-	message = Message.NewAsync(message.GetTopic(), message.GetPayload()) // getting rid of possible syncToken
+
+	if err := server.validateMessage(message); err != nil {
+		if event := server.onEvent(Event.NewWarning(
+			Event.InvalidMessage,
+			err.Error(),
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.HandleReception,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientId:      websocketConnection.GetId(),
+				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.Topic:         message.GetTopic(),
+				Event.Payload:       message.GetPayload(),
+				Event.SyncToken:     message.GetSyncToken(),
+			},
+		)); !event.IsInfo() {
+			return event
+		}
+	}
+
 	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
 		return server.onEvent(Event.NewInfoNoOption(
 			Event.HeartbeatReceived,
@@ -216,4 +239,20 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.Topic:         message.GetTopic(),
 		},
 	))
+}
+
+func (server *WebsocketServer) validateMessage(message *Message.Message) error {
+	if len(message.GetSyncToken()) != 0 {
+		return errors.New("Message contains sync token")
+	}
+	if len(message.GetTopic()) == 0 {
+		return errors.New("Message missing topic")
+	}
+	if maxTopicSize := server.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return errors.New("Message topic exceeds maximum size")
+	}
+	if maxPayloadSize := server.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return errors.New("Message payload exceeds maximum size")
+	}
+	return nil
 }

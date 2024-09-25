@@ -94,8 +94,7 @@ type TcpSystemgeConnection struct {
 
 	HeartbeatIntervalMs uint64 `json:"heartbeatIntervalMs"` // default: 0 == no heartbeat (a disconnect will definitely be detected after this interval) (if 0, a disconnect might be detected but there is no guarantee)
 
-	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
+	TcpBufferBytes uint32 `json:"tcpBufferBytes"` // default: 0 == default (4KB)
 
 	ProcessingChannelCapacity uint32 `json:"processingChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
 
@@ -104,9 +103,10 @@ type TcpSystemgeConnection struct {
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional*
 	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*
 
-	MaxPayloadSize   int `json:"maxPayloadSize"`   // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxTopicSize     int `json:"maxTopicSize"`     // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
+	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 }
 
 func UnmarshalTcpSystemgeConnection(data string) *TcpSystemgeConnection {
