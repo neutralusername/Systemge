@@ -76,18 +76,6 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 		messageChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
 		eventHandler:            eventHandler,
 	}
-	if config.InfoLoggerPath != "" {
-		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
-	}
-	if config.WarningLoggerPath != "" {
-		connection.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		connection.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
-	}
-	if config.MailerConfig != nil {
-		connection.mailer = Tools.NewMailer(config.MailerConfig)
-	}
 	if config.RateLimiterBytes != nil {
 		connection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
 	}
@@ -127,7 +115,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 	if connection.closed {
 		connection.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
-			"service websocketServer already started",
+			"service tcpSystemgeConnection already started",
 			Event.Context{
 				Event.Circumstance: Event.StartRoutine,
 			},

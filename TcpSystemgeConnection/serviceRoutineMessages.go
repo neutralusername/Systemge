@@ -14,7 +14,7 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
 				Event.Circumstance:  Event.ClientReceptionRoutine,
-				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
 			},
@@ -30,7 +30,7 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.ClientReceptionRoutine,
-			Event.ClientType:    Event.WebsocketConnection,
+			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetIp(),
 		},
