@@ -118,12 +118,12 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 
 		if connection.config.HandleMessageReceptionSequentially {
 			if event := connection.handleReception(messageBytes); event != nil {
-
+				// handle error/warning
 			}
 		} else {
-			go func() { // finally possible thanks to semaphore usage
+			go func() {
 				if event := connection.handleReception(messageBytes); event != nil {
-
+					// handle error/warning
 				}
 			}()
 		}
@@ -277,6 +277,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 					return event
 				}
 			} else {
+				// add option to receive sync response and add message to channel
 				connection.validMessagesReceived.Add(1)
 				connection.messageChannelSemaphore.ReleaseBlocking()
 				return nil
