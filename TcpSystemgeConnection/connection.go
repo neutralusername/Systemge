@@ -1,6 +1,7 @@
 package TcpSystemgeConnection
 
 import (
+	"errors"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -124,7 +125,14 @@ func (connection *TcpSystemgeConnection) Close() error {
 	}
 
 	if connection.closed {
-		return Event.New("Connection already closed", nil)
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStarted,
+			"service websocketServer already started",
+			Event.Context{
+				Event.Circumstance: Event.StartRoutine,
+			},
+		))
+		return errors.New("Connection already closed")
 	}
 
 	connection.closed = true
@@ -141,6 +149,15 @@ func (connection *TcpSystemgeConnection) Close() error {
 	}
 	<-connection.receiveLoopStopChannel
 	close(connection.messageChannel)
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStopped,
+		"Connection closed",
+		Event.Context{
+			Event.Circumstance: Event.StopRoutine,
+		},
+	))
+
 	return nil
 }
 
@@ -169,14 +186,14 @@ func (connection *TcpSystemgeConnection) GetAddress() string {
 	return connection.netConn.RemoteAddr().String()
 }
 
-func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
+func (server *TcpSystemgeConnection) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
 	if server.eventHandler == nil {
 		return event
 	}
 	return server.eventHandler(event)
 }
-func (server *TcpSystemgeListener) GetServerContext() Event.Context {
+func (server *TcpSystemgeConnection) GetServerContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:   Event.TcpSystemgeListener,
 		Event.ServiceName:   server.name,
