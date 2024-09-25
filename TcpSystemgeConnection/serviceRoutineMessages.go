@@ -61,14 +61,14 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 
 			return nil
 		}
-		if err := connection.addMessageToChannel(messageBytes); err != nil {
+		if err := connection.handleReception(messageBytes); err != nil {
 			connection.messageChannelSemaphore.ReleaseBlocking()
 		}
 		return nil
 	}
 }
 
-func (connection *TcpSystemgeConnection) addMessageToChannel(messageBytes []byte) error {
+func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) error {
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		connection.byteRateLimiterExceeded.Add(1)
 		return Event.New("byte rate limiter exceeded", nil)

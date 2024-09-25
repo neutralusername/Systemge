@@ -50,7 +50,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
 
 	if server.config.HandleMessagesSequentially {
-		event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)
+		event := server.handleReception(websocketConnection, messageBytes)
 		if event.IsError() {
 			if server.config.PropagateMessageHandlerErrors {
 				server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
@@ -66,7 +66,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 		websocketConnection.waitGroup.Add(1)
 		go func() {
 			defer websocketConnection.waitGroup.Done()
-			event := server.handleWebsocketConnectionMessage(websocketConnection, messageBytes)
+			event := server.handleReception(websocketConnection, messageBytes)
 			if event.IsError() {
 				if server.config.PropagateMessageHandlerErrors {
 					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ClientReceptionRoutine)
@@ -83,7 +83,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	return nil
 }
 
-func (server *WebsocketServer) handleWebsocketConnectionMessage(websocketConnection *WebsocketConnection, messageBytes []byte) *Event.Event {
+func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte) *Event.Event {
 	event := server.onEvent(Event.NewInfo(
 		Event.HandlingClientMessage,
 		"handling websocketConnection message",
