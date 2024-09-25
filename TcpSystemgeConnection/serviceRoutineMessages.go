@@ -67,7 +67,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				connection.messageChannelSemaphore.ReleaseBlocking()
 			}
 		} else {
-			go func() {
+			go func() { // finally possible thanks to semaphore usage
 				if err := connection.handleReception(messageBytes); err != nil {
 					connection.messageChannelSemaphore.ReleaseBlocking()
 				}
