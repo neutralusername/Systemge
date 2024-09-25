@@ -19,6 +19,8 @@ right now this is not officially supported and works for some fields, but not fo
 split up websocketServer into listener, server and connection like systemge
 add sync messaging system between websocketServer and its clients
 
+add authentication/key mechanism for listeners
+
 display error responses somehow on dashboard
 hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
 add status for non-landing pages
