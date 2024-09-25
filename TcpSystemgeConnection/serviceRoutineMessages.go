@@ -7,10 +7,10 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpSystemgeConnection) receiveMessageLoop() {
+func (connection *TcpSystemgeConnection) receptionRoutine() {
 	defer connection.waitGroup.Done()
 
-	if event := server.onEvent(Event.NewInfo(
+	if event := connection.onEvent(Event.NewInfo(
 		Event.ClientReceptionRoutineStarted,
 		"started websocketConnection message reception",
 		Event.Cancel,

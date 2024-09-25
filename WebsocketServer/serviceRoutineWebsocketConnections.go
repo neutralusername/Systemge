@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (server *WebsocketServer) receiveWebsocketConnectionLoop() {
+func (server *WebsocketServer) acceptRoutine() {
 	defer server.waitGroup.Done()
 
 	if event := server.onEvent(Event.NewInfo(
@@ -162,7 +162,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.isAccepted = true
 
-	go server.receiveMessagesLoop(websocketConnection)
+	go server.receptionRoutine(websocketConnection)
 }
 
 func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection *WebsocketConnection) {

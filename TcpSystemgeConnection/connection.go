@@ -106,7 +106,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 	}
 
 	connection.waitGroup.Add(1)
-	go connection.receiveMessageLoop()
+	go connection.receptionRoutine()
 	if config.HeartbeatIntervalMs > 0 {
 		connection.waitGroup.Add(1)
 		go connection.heartbeatLoop()

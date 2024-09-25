@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (server *WebsocketServer) receiveMessagesLoop(websocketConnection *WebsocketConnection) {
+func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketConnection) {
 	defer websocketConnection.waitGroup.Done()
 
 	if event := server.onEvent(Event.NewInfo(
