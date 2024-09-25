@@ -8,7 +8,19 @@ import (
 )
 
 func (connection *TcpSystemgeConnection) receptionRoutine() {
-	defer connection.waitGroup.Done()
+	defer func() {
+		connection.onEvent(Event.NewInfoNoOption(
+			Event.ClientReceptionRoutineFinished,
+			"stopped websocketConnection message reception",
+			Event.Context{
+				Event.Circumstance:  Event.ClientReceptionRoutine,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+			},
+		))
+		connection.waitGroup.Done()
+	}()
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.ClientReceptionRoutineStarted,
