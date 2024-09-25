@@ -51,16 +51,14 @@ type TcpSystemgeConnection struct {
 	syncRequestsSent  atomic.Uint64
 	syncResponsesSent atomic.Uint64
 
+	messagesReceived        atomic.Uint64
+	invalidMessagesReceived atomic.Uint64
+	rejectedMessages        atomic.Uint64
+
 	syncSuccessResponsesReceived atomic.Uint64
 	syncFailureResponsesReceived atomic.Uint64
 	noSyncResponseReceived       atomic.Uint64
 	invalidSyncResponsesReceived atomic.Uint64
-
-	invalidMessagesReceived atomic.Uint64
-	validMessagesReceived   atomic.Uint64
-
-	messageRateLimiterExceeded atomic.Uint64
-	byteRateLimiterExceeded    atomic.Uint64
 }
 
 func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver, eventHandler Event.Handler) *TcpSystemgeConnection {

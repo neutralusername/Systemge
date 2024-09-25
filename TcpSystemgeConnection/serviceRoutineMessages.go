@@ -113,17 +113,23 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.Bytes:         string(messageBytes),
 			}),
 		); !event.IsInfo() {
+			connection.rejectedMessages.Add(1)
 			return event.GetError()
 		}
+		connection.messagesReceived.Add(1)
 
 		if connection.config.HandleMessageReceptionSequentially {
 			if event := connection.handleReception(messageBytes); event != nil {
-				// handle error/warning
+				if event.IsError() {
+					connection.Close()
+				}
 			}
 		} else {
 			go func() {
 				if event := connection.handleReception(messageBytes); event != nil {
-					// handle error/warning
+					if event.IsError() {
+						connection.Close()
+					}
 				}
 			}()
 		}
@@ -146,6 +152,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 		},
 	))
 	if !event.IsInfo() {
+		connection.rejectedMessages.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
 		return event
 	}
@@ -166,7 +173,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 				Event.ClientAddress:   connection.GetIp(),
 			},
 		)); !event.IsInfo() {
-			connection.byteRateLimiterExceeded.Add(1)
+			connection.rejectedMessages.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event
 		}
@@ -188,7 +195,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 				Event.ClientAddress:   connection.GetIp(),
 			},
 		)); !event.IsInfo() {
-			connection.messageRateLimiterExceeded.Add(1)
+			connection.rejectedMessages.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event
 		}
@@ -229,6 +236,8 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 				Event.SyncToken:     message.GetSyncToken(),
 			},
 		)); !event.IsInfo() {
+			connection.invalidMessagesReceived.Add(1)
+			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event
 		}
 	}
@@ -250,10 +259,10 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			Event.SyncToken:     message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
+		connection.rejectedMessages.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
 		return event
 	}
-	connection.validMessagesReceived.Add(1)
 	connection.messageChannel <- message
 
 	return connection.onEvent(Event.NewInfo(
