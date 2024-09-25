@@ -38,7 +38,7 @@ type TcpSystemgeListener struct {
 	tcpSystemgeConnectionAttemptsAccepted atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) (*TcpSystemgeListener, error) {
+func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*TcpSystemgeListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -46,10 +46,11 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpSystemgeListener{
-		name:      name,
-		config:    config,
-		blacklist: blacklist,
-		whitelist: whitelist,
+		name:         name,
+		config:       config,
+		blacklist:    blacklist,
+		whitelist:    whitelist,
+		eventHandler: eventHandler,
 	}
 	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
 	if err != nil {

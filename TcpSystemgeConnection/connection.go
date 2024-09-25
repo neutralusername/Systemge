@@ -68,7 +68,7 @@ type TcpSystemgeConnection struct {
 	byteRateLimiterExceeded    atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver) *TcpSystemgeConnection {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver, eventHandler Event.Handler) *TcpSystemgeConnection {
 	connection := &TcpSystemgeConnection{
 		name:                    name,
 		config:                  config,
@@ -80,6 +80,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 		messageChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		messageChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
 		receiveLoopStopChannel:  make(chan bool),
+		eventHandler:            eventHandler,
 	}
 	if config.InfoLoggerPath != "" {
 		connection.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
