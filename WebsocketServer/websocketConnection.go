@@ -171,9 +171,12 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		return nil, err
 	}
 
-	server.onEvent(Event.NewInfoNoOption(
+	if event := server.onEvent(Event.NewInfo(
 		Event.ReceivedClientMessage,
 		"received websocketConnection message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
@@ -181,6 +184,8 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 			Event.ClientAddress: websocketConnection.GetIp(),
 			Event.Bytes:         string(messageBytes),
 		}),
-	)
+	); !event.IsInfo() {
+		return nil, event.GetError()
+	}
 	return messageBytes, nil
 }
