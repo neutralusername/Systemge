@@ -100,9 +100,12 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			}
 		}
 
-		connection.onEvent(Event.NewInfoNoOption(
+		if event := connection.onEvent(Event.NewInfo(
 			Event.ReceivedClientMessage,
 			"received websocketConnection message",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
 			Event.Context{
 				Event.Circumstance:  Event.ClientReceptionRoutine,
 				Event.ClientType:    Event.WebsocketConnection,
@@ -110,7 +113,9 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.ClientAddress: connection.GetIp(),
 				Event.Bytes:         string(messageBytes),
 			}),
-		)
+		); !event.IsInfo() {
+			return event.GetError()
+		}
 
 		if connection.config.HandleMessageReceptionSequentially {
 			if err := connection.handleReception(messageBytes); err != nil {
