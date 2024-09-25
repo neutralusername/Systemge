@@ -120,7 +120,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 
 	if event := connection.eventHandler(Event.NewInfo(
 		Event.StoppingService,
-		"Closing connection",
+		"closing tcpSystemgeConnection",
 		Event.Skip,
 		Event.Skip,
 		Event.Continue,
@@ -137,7 +137,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 				Event.Circumstance: Event.StartRoutine,
 			},
 		))
-		return errors.New("Connection already closed")
+		return errors.New("connection already closed")
 	}
 
 	connection.closed = true
@@ -157,7 +157,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 
 	connection.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStopped,
-		"Connection closed",
+		"connection closed",
 		Event.Context{
 			Event.Circumstance: Event.StopRoutine,
 		},

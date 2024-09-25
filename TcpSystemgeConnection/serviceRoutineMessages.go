@@ -11,7 +11,7 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 	defer func() {
 		connection.onEvent(Event.NewInfoNoOption(
 			Event.ClientReceptionRoutineFinished,
-			"stopped websocketConnection message reception",
+			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
 				Event.Circumstance:  Event.ClientReceptionRoutine,
 				Event.ClientType:    Event.WebsocketConnection,
@@ -24,7 +24,7 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.ClientReceptionRoutineStarted,
-		"started websocketConnection message reception",
+		"started tcpSystemgeConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
