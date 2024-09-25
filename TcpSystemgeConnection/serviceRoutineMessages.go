@@ -119,12 +119,12 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 
 		if connection.config.HandleMessageReceptionSequentially {
 			if event := connection.handleReception(messageBytes); event != nil {
-				connection.messageChannelSemaphore.ReleaseBlocking()
+
 			}
 		} else {
 			go func() { // finally possible thanks to semaphore usage
 				if event := connection.handleReception(messageBytes); event != nil {
-					connection.messageChannelSemaphore.ReleaseBlocking()
+
 				}
 			}()
 		}
@@ -168,6 +168,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			},
 		)); !event.IsInfo() {
 			connection.byteRateLimiterExceeded.Add(1)
+			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event
 		}
 	}
@@ -188,12 +189,14 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			},
 		)); !event.IsInfo() {
 			connection.messageRateLimiterExceeded.Add(1)
+			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event
 		}
 	}
 	message, err := Message.Deserialize(messageBytes, connection.GetName())
 	if err != nil {
 		connection.invalidMessagesReceived.Add(1)
+		connection.messageChannelSemaphore.ReleaseBlocking()
 		return connection.onEvent(Event.NewWarningNoOption(
 			Event.DeserializingFailed,
 			err.Error(),
@@ -209,9 +212,26 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 	}
 
 	if err := connection.validateMessage(message); err != nil {
-		connection.invalidMessagesReceived.Add(1)
-		return Event.New("failed to validate message", err)
+		if event := connection.onEvent(Event.NewWarning(
+			Event.InvalidMessage,
+			err.Error(),
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.HandleReception,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetIp(),
+				Event.Topic:         message.GetTopic(),
+				Event.Payload:       message.GetPayload(),
+				Event.SyncToken:     message.GetSyncToken(),
+			},
+		)); !event.IsInfo() {
+			return event
+		}
 	}
+
 	if message.IsResponse() {
 		if err := connection.addSyncResponse(message); err != nil {
 			connection.invalidSyncResponsesReceived.Add(1)
