@@ -286,16 +286,16 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 
 func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
 	if maxSyncTokenSize := connection.config.MaxSyncTokenSize; maxSyncTokenSize > 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
-		return errors.New("Message sync token exceeds maximum size")
+		return errors.New("message sync token exceeds maximum size")
 	}
 	if len(message.GetTopic()) == 0 {
-		return errors.New("Message missing topic")
+		return errors.New("message missing topic")
 	}
 	if maxTopicSize := connection.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return errors.New("Message topic exceeds maximum size")
+		return errors.New("message topic exceeds maximum size")
 	}
 	if maxPayloadSize := connection.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return errors.New("Message payload exceeds maximum size")
+		return errors.New("message payload exceeds maximum size")
 	}
 	return nil
 }
@@ -303,72 +303,72 @@ func (connection *TcpSystemgeConnection) validateMessage(message *Message.Messag
 /*
 
 if message.IsResponse() {
-		event := connection.onEvent(Event.NewInfo(
-			Event.SyncResponseReceived,
-			"received sync response",
-			Event.Cancel,
-			Event.Skip,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.ClientType:    Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
-			},
-		))
-		if event.IsError() {
+	event := connection.onEvent(Event.NewInfo(
+		Event.SyncResponseReceived,
+		"received sync response",
+		Event.Cancel,
+		Event.Skip,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleReception,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetIp(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	))
+	if event.IsError() {
+		connection.invalidSyncResponsesReceived.Add(1)
+		connection.messageChannelSemaphore.ReleaseBlocking()
+		return event
+	}
+	if event.IsInfo() {
+		if err := connection.addSyncResponse(message); err != nil {
 			connection.invalidSyncResponsesReceived.Add(1)
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			return event
-		}
-		if event.IsInfo() {
-			if err := connection.addSyncResponse(message); err != nil {
-				connection.invalidSyncResponsesReceived.Add(1)
-				if event := connection.onEvent(Event.NewWarning(
-					Event.InvalidSyncResponse,
-					err.Error(),
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
-					Event.Context{
-						Event.Circumstance:  Event.HandleReception,
-						Event.ClientType:    Event.TcpSystemgeConnection,
-						Event.ClientName:    connection.GetName(),
-						Event.ClientAddress: connection.GetIp(),
-						Event.Topic:         message.GetTopic(),
-						Event.Payload:       message.GetPayload(),
-						Event.SyncToken:     message.GetSyncToken(),
-					},
-				)); !event.IsInfo() {
-					return event
-				}
-			} else {
-				if event := connection.onEvent(Event.NewInfo(
-					Event.ValidSyncResponse,
-					"valid sync response",
-					Event.Cancel,
-					Event.Cancel,
-					Event.Cancel,
-					Event.Context{
-						Event.Circumstance:  Event.HandleReception,
-						Event.ClientType:    Event.TcpSystemgeConnection,
-						Event.ClientName:    connection.GetName(),
-						Event.ClientAddress: connection.GetIp(),
-						Event.Topic:         message.GetTopic(),
-						Event.Payload:       message.GetPayload(),
-						Event.SyncToken:     message.GetSyncToken(),
-					},
-				)); !event.IsInfo() {
-					return event
-				}
-				connection.validMessagesReceived.Add(1)
-				connection.messageChannelSemaphore.ReleaseBlocking()
-				return nil
+			if event := connection.onEvent(Event.NewWarning(
+				Event.InvalidSyncResponse,
+				err.Error(),
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:  Event.HandleReception,
+					Event.ClientType:    Event.TcpSystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetIp(),
+					Event.Topic:         message.GetTopic(),
+					Event.Payload:       message.GetPayload(),
+					Event.SyncToken:     message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				return event
 			}
+		} else {
+			if event := connection.onEvent(Event.NewInfo(
+				Event.ValidSyncResponse,
+				"valid sync response",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Cancel,
+				Event.Context{
+					Event.Circumstance:  Event.HandleReception,
+					Event.ClientType:    Event.TcpSystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetIp(),
+					Event.Topic:         message.GetTopic(),
+					Event.Payload:       message.GetPayload(),
+					Event.SyncToken:     message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				return event
+			}
+			connection.validMessagesReceived.Add(1)
+			connection.messageChannelSemaphore.ReleaseBlocking()
+			return nil
 		}
 	}
+}
 
 */
