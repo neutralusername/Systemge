@@ -61,8 +61,17 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 
 			return nil
 		}
-		if err := connection.handleReception(messageBytes); err != nil {
-			connection.messageChannelSemaphore.ReleaseBlocking()
+
+		if connection.config.HandleMessageReceptionSequentially {
+			if err := connection.handleReception(messageBytes); err != nil {
+				connection.messageChannelSemaphore.ReleaseBlocking()
+			}
+		} else {
+			go func() {
+				if err := connection.handleReception(messageBytes); err != nil {
+					connection.messageChannelSemaphore.ReleaseBlocking()
+				}
+			}()
 		}
 		return nil
 	}

@@ -99,6 +99,8 @@ type TcpSystemgeConnection struct {
 
 	ProcessingChannelCapacity uint32 `json:"processingChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
 
+	HandleMessageReceptionSequentially bool `json:"handleMessagesSequentially"` // default: false (if true, the server will handle messages from the same connection sequentially)
+
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional*
 	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*
 

@@ -49,7 +49,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	server.websocketConnectionMessagesReceived.Add(1)
 	server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
 
-	if server.config.HandleMessagesSequentially {
+	if server.config.HandleMessageReceptionSequentially {
 		event := server.handleReception(websocketConnection, messageBytes)
 		if event.IsError() {
 			if server.config.PropagateMessageHandlerErrors {
