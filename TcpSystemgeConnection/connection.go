@@ -20,11 +20,6 @@ type TcpSystemgeConnection struct {
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
-
 	sendMutex sync.Mutex
 
 	closed      bool
@@ -44,7 +39,6 @@ type TcpSystemgeConnection struct {
 	messageMutex                   sync.Mutex
 	messageChannel                 chan *Message.Message
 	messageChannelSemaphore        *Tools.Semaphore
-	receiveLoopStopChannel         chan bool
 
 	rateLimiterBytes    *Tools.TokenBucketRateLimiter
 	rateLimiterMessages *Tools.TokenBucketRateLimiter
@@ -80,7 +74,6 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 		syncRequests:            make(map[string]*syncRequestStruct),
 		messageChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		messageChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
-		receiveLoopStopChannel:  make(chan bool),
 		eventHandler:            eventHandler,
 	}
 	if config.InfoLoggerPath != "" {
@@ -115,7 +108,9 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 }
 
 func (connection *TcpSystemgeConnection) Close() error {
-	connection.closedMutex.Lock()
+	if !connection.closedMutex.TryLock() {
+		return errors.New("connection already closing")
+	}
 	defer connection.closedMutex.Unlock()
 
 	if event := connection.eventHandler(Event.NewInfo(
@@ -141,8 +136,9 @@ func (connection *TcpSystemgeConnection) Close() error {
 	}
 
 	connection.closed = true
-	close(connection.closeChannel)
 	connection.netConn.Close()
+	close(connection.closeChannel)
+	connection.waitGroup.Wait()
 
 	if connection.rateLimiterBytes != nil {
 		connection.rateLimiterBytes.Close()
@@ -152,7 +148,6 @@ func (connection *TcpSystemgeConnection) Close() error {
 		connection.rateLimiterMessages.Close()
 		connection.rateLimiterMessages = nil
 	}
-	<-connection.receiveLoopStopChannel
 	close(connection.messageChannel)
 
 	connection.onEvent(Event.NewInfoNoOption(

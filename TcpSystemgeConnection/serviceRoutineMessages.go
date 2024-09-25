@@ -44,38 +44,26 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 			if connection.infoLogger != nil {
 				connection.infoLogger.Log("Stopped receiving messages")
 			}
-			close(connection.receiveLoopStopChannel)
 			return
-		default:
-			select {
-			case <-connection.closeChannel:
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Stopped receiving messages")
+		case <-connection.messageChannelSemaphore.GetChannel():
+			messageBytes, bytesReceived, err := connection.messageReceiver.ReceiveNextMessage()
+			connection.bytesReceived.Add(uint64(bytesReceived))
+			if err != nil {
+				if Tcp.IsConnectionClosed(err) {
+					connection.Close()
+					return
 				}
-				close(connection.receiveLoopStopChannel)
-				return
-			case <-connection.messageChannelSemaphore.GetChannel():
-				messageBytes, bytesReceived, err := connection.messageReceiver.ReceiveNextMessage()
-				connection.bytesReceived.Add(uint64(bytesReceived))
-				if err != nil {
-					if Tcp.IsConnectionClosed(err) {
-						close(connection.receiveLoopStopChannel)
-						connection.Close()
-						return
-					}
-					if connection.warningLogger != nil {
-						connection.warningLogger.Log(Event.New("failed to receive message", err).Error())
-					}
-					continue
+				if connection.warningLogger != nil {
+					connection.warningLogger.Log(Event.New("failed to receive message", err).Error())
 				}
-				if err := connection.addMessageToChannel(messageBytes); err != nil {
-					if connection.warningLogger != nil {
-						connection.warningLogger.Log(Event.New("failed to add message to processing channel", err).Error())
-					}
-					connection.messageChannelSemaphore.ReleaseBlocking()
-				}
+				continue
 			}
-
+			if err := connection.addMessageToChannel(messageBytes); err != nil {
+				if connection.warningLogger != nil {
+					connection.warningLogger.Log(Event.New("failed to add message to processing channel", err).Error())
+				}
+				connection.messageChannelSemaphore.ReleaseBlocking()
+			}
 		}
 	}
 }

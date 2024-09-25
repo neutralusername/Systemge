@@ -28,7 +28,6 @@ type WebsocketServer struct {
 	sessionId  string
 
 	config     *Config.WebsocketServer
-	mailer     *Tools.Mailer
 	randomizer *Tools.Randomizer
 
 	httpServer        *HTTPServer.HTTPServer
@@ -89,7 +88,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		instanceId:                 Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		messageHandlers:            messageHandlers,
 		config:                     config,
-		mailer:                     Tools.NewMailer(config.MailerConfig),
 		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
 		connectionChannel:          make(chan *websocket.Conn),
 	}

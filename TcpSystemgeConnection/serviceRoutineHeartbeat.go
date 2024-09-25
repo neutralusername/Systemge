@@ -13,7 +13,7 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 		select {
 		case <-connection.closeChannel:
 			return
-		default:
+		case <-time.After(time.Duration(connection.config.HeartbeatIntervalMs) * time.Millisecond):
 			connection.sendMutex.Lock()
 			err := Tcp.SendHeartbeat(connection.netConn, connection.config.TcpSendTimeoutMs)
 			connection.sendMutex.Unlock()
@@ -25,7 +25,6 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 				continue
 			}
 			connection.bytesSent.Add(1)
-			time.Sleep(time.Duration(connection.config.HeartbeatIntervalMs) * time.Millisecond)
 		}
 	}
 }
