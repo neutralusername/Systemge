@@ -228,6 +228,10 @@ func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
 	return connection.messageHandlingLoopStopChannel != nil
 }
 
+func (connection *TcpSystemgeConnection) AvailableMessageCount() uint32 {
+	return connection.messageChannelSemaphore.AvailableAcquires()
+}
+
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
@@ -251,10 +255,6 @@ func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, err
 	case <-timeout:
 		return nil, errors.New("Timeout while waiting for message")
 	}
-}
-
-func (connection *TcpSystemgeConnection) AvailableMessageCount() uint32 {
-	return connection.messageChannelSemaphore.AvailableAcquires()
 }
 
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
