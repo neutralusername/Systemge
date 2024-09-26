@@ -3,9 +3,7 @@ package WebsocketServer
 func (server *WebsocketServer) WebsocketConnectionExists(websocketId string) bool {
 	server.websocketConnectionMutex.RLock()
 	defer server.websocketConnectionMutex.RUnlock()
-
 	_, exists := server.websocketConnections[websocketId]
-
 	return exists
 }
 

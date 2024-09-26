@@ -232,7 +232,7 @@ func (connection *TcpSystemgeConnection) AvailableMessageCount() uint32 {
 	return connection.messageChannelSemaphore.AvailableAcquires()
 }
 
-func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
+func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	if connection.messageHandlingLoopStopChannel != nil {

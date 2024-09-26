@@ -12,7 +12,7 @@ type SystemgeConnection interface {
 	GetStatus() int
 	Close() error
 	GetCloseChannel() <-chan bool
-	GetNextMessage() (*Message.Message, error)
+	RetrieveNextMessage() (*Message.Message, error)
 	AvailableMessageCount() uint32
 
 	StartMessageHandlingLoop(MessageHandler, bool) error
