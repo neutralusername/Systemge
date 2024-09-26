@@ -12,7 +12,7 @@ import (
 
 // A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
 // errorChannel will send all errors that occur during message processing.
-func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	var behaviour string
