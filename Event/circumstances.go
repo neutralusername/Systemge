@@ -21,6 +21,10 @@ const Unicast = "unicast"
 const Multicast = "multicast"
 const Groupcast = "groupcast"
 
+const SyncResponse = "syncResponse"
+const AsyncMessage = "asyncMessage"
+const SyncRequest = "syncRequest"
+
 const AddClientsToGroup = "addClientsToGroup"
 const RemoveClientsFromGroup = "removeClientsFromGroup"
 const GetGroupClients = "getGroupClients"

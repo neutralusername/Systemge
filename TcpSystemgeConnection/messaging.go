@@ -11,12 +11,50 @@ import (
 )
 
 func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
+	if event := connection.onEvent(Event.NewInfo(
+		Event.SendingMessage,
+		"sending sync response",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.SyncResponse,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+		},
+	)); !event.IsInfo() {
+		return errors.New("event is not info")
+	}
+
 	if message == nil {
-		return Event.New("Message is nil", nil)
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.UnexpectedNilValue,
+			"received nil message in SyncResponse",
+			Event.Context{
+				Event.Circumstance:  Event.SyncResponse,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.name,
+				Event.ClientAddress: connection.GetAddress(),
+			},
+		))
+		return errors.New("received nil message in SyncResponse")
 	}
+
 	if message.GetSyncToken() == "" {
-		return Event.New("SyncToken is empty", nil)
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.NoSyncToken,
+			"no sync token",
+			Event.Context{
+				Event.Circumstance:  Event.SyncResponse,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.name,
+				Event.ClientAddress: connection.GetAddress(),
+			},
+		))
+		return errors.New("no sync token")
 	}
+
 	var response *Message.Message
 	if success {
 		response = message.NewSuccessResponse(payload)
@@ -28,6 +66,18 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 		return err
 	}
 	connection.syncResponsesSent.Add(1)
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.SentMessage,
+		"sync response sent",
+		Event.Context{
+			Event.Circumstance:  Event.SyncResponse,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+		},
+	))
+
 	return nil
 }
 

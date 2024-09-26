@@ -319,9 +319,29 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler and send a response if necessary.
 func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.UnexpectedNilValue,
+			"messageHandler is nil",
+			Event.Context{
+				Event.Circumstance:  Event.HandleMessage,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+			},
+		))
 		return errors.New("no message handler provided")
 	}
 	if message == nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.UnexpectedNilValue,
+			"message is nil",
+			Event.Context{
+				Event.Circumstance:  Event.HandleMessage,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+			},
+		))
 		return errors.New("no message provided")
 	}
 
@@ -333,7 +353,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleMessage,
-			Event.ChannelType:   Event.MessageChannel,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
@@ -352,7 +371,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 				err.Error(),
 				Event.Context{
 					Event.Circumstance:  Event.HandleMessage,
-					Event.ChannelType:   Event.MessageChannel,
 					Event.ClientType:    Event.TcpSystemgeConnection,
 					Event.ClientName:    connection.GetName(),
 					Event.ClientAddress: connection.GetAddress(),

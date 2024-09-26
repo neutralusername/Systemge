@@ -111,3 +111,7 @@ const HandledMessage = "handledMessage"
 
 const NoHandlerForTopic = "noHandlerForTopic"
 const HandlerFailed = "handlerFailed"
+
+const UnexpectedNilValue = "unexpectedNilValue"
+
+const NoSyncToken = "noSyncToken"
