@@ -2,9 +2,9 @@ package TcpSystemgeConnection
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
@@ -26,7 +26,7 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 		metrics := connection.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Event.New("failed to marshal metrics to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
@@ -34,7 +34,7 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 		metrics := connection.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Event.New("failed to marshal metrics to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
@@ -50,7 +50,7 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 	}
 	commands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) != 2 {
-			return "", Event.New("expected at least 2 arguments", nil)
+			return "", errors.New("expected at least 2 arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -62,7 +62,7 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 	}
 	commands["syncRequest"] = func(args []string) (string, error) {
 		if len(args) != 2 {
-			return "", Event.New("expected at least 2 arguments", nil)
+			return "", errors.New("expected at least 2 arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -74,11 +74,11 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 	}
 	commands["syncResponse"] = func(args []string) (string, error) {
 		if len(args) != 3 {
-			return "", Event.New("expected 2 arguments", nil)
+			return "", errors.New("expected 2 arguments")
 		}
 		message, err := Message.Deserialize([]byte(args[0]), "")
 		if err != nil {
-			return "", Event.New("failed to deserialize message", err)
+			return "", err
 		}
 		responsePayload := args[1]
 		success := args[2] == "true"
@@ -92,13 +92,13 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 		openSyncRequest := connection.GetOpenSyncRequests()
 		json, err := json.Marshal(openSyncRequest)
 		if err != nil {
-			return "", Event.New("failed to marshal open sync requests to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
 	commands["abortSyncRequest"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("expected 1 argument", nil)
+			return "", errors.New("expected 1 argument")
 		}
 		err := connection.AbortSyncRequest(args[0])
 		if err != nil {
