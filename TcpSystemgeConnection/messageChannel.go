@@ -253,16 +253,16 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.ReceivingFromChannel,
-		"retrieving message",
+		"receiving from message channel",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.RetrievingNextMessage,
+			Event.ChannelType:   Event.MessageChannel,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
-			Event.ChannelType:   Event.MessageChannel,
 		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
