@@ -10,25 +10,63 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
+func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance string) error {
+	connection.sendMutex.Lock()
+	defer connection.sendMutex.Unlock()
+
 	if event := connection.onEvent(Event.NewInfo(
-		Event.SendingMessage,
-		"sending sync response",
+		Event.SendingClientMessage,
+		"sending message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.SyncResponse,
+			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
-			Event.Message:       string(message.Serialize()),
-			Event.ResponseType:  Event.Success,
-			Event.Payload:       payload,
+			Event.Bytes:         string(messageBytes),
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
 	}
+
+	bytesSent, err := Tcp.Send(connection.netConn, messageBytes, connection.config.TcpSendTimeoutMs)
+	if err != nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.SendingClientMessageFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance:  circumstance,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientName:    connection.name,
+				Event.ClientAddress: connection.GetIp(),
+				Event.Bytes:         string(messageBytes),
+			}),
+		)
+		if Tcp.IsConnectionClosed(err) {
+			connection.Close()
+		}
+		return err
+	}
+	connection.bytesSent.Add(bytesSent)
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.SentClientMessage,
+		"message sent",
+		Event.Context{
+			Event.Circumstance:  circumstance,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Bytes:         string(messageBytes),
+		},
+	))
+
+	return nil
+}
+
+func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, success bool, payload string) error {
 
 	if message == nil {
 		connection.onEvent(Event.NewWarningNoOption(
@@ -70,36 +108,34 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 	} else {
 		response = message.NewFailureResponse(payload)
 	}
-	err := connection.send(response.Serialize())
-	if err != nil {
+
+	if err := connection.send(response.Serialize(), Event.SyncResponse); err != nil {
 		return err
 	}
 	connection.syncResponsesSent.Add(1)
-
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
-		"sync response sent",
-		Event.Context{
-			Event.Circumstance:  Event.SyncResponse,
-			Event.ClientType:    Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.name,
-			Event.ClientAddress: connection.GetAddress(),
-		},
-	))
-
 	return nil
 }
 
 func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) error {
+	if err := connection.send(Message.NewAsync(topic, payload).Serialize(), Event.AsyncMessage); err != nil {
+		return err
+	}
+	connection.asyncMessagesSent.Add(1)
+	return nil
+}
 
+// blocks until the sending attempt is completed. returns error if sending request fails.
+// nil result from response channel indicates either connection closed before receiving response, timeout or manual abortion.
+func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
 	if event := connection.onEvent(Event.NewInfo(
 		Event.SendingMessage,
-		"sending async message",
+		"sending sync request",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.AsyncMessage,
+			Event.Circumstance:  Event.SyncRequest,
+			Event.Behaviour:     Event.NonBlocking,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
@@ -107,36 +143,11 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 			Event.Payload:       payload,
 		},
 	)); !event.IsInfo() {
-		return event.GetError()
+		return nil, event.GetError()
 	}
 
-	err := connection.send(Message.NewAsync(topic, payload).Serialize())
-	if err != nil {
-		return err
-	}
-	connection.asyncMessagesSent.Add(1)
-
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
-		"async message sent",
-		Event.Context{
-			Event.Circumstance:  Event.AsyncMessage,
-			Event.ClientType:    Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.name,
-			Event.ClientAddress: connection.GetAddress(),
-			Event.Topic:         topic,
-			Event.Payload:       payload,
-		},
-	))
-	return nil
-}
-
-// blocks until the sending attempt is completed. returns error if sending request fails.
-// nil result from response channel indicates either connection closed before receiving response, timeout or manual abortion.
-func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
 	synctoken, syncRequestStruct := connection.initResponseChannel()
-	err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize())
-	if err != nil {
+	if err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize(), Event.AsyncMessage); err != nil {
 		connection.removeSyncRequest(synctoken)
 		return nil, err
 	}
@@ -174,47 +185,36 @@ func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-c
 			close(resChan)
 		}
 	}()
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.SentMessage,
+		"sync request sent",
+		Event.Context{
+			Event.Circumstance:  Event.SyncRequest,
+			Event.Behaviour:     Event.NonBlocking,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Topic:         topic,
+			Event.Payload:       payload,
+		},
+	))
+
 	return resChan, nil
 }
 
 // blocks until response is received, connection is closed, timeout or manual abortion.
 func (connection *TcpSystemgeConnection) SyncRequestBlocking(topic, payload string) (*Message.Message, error) {
-	synctoken, syncRequestStruct := connection.initResponseChannel()
-	err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize())
+	resChan, err := connection.SyncRequest(topic, payload)
 	if err != nil {
-		connection.removeSyncRequest(synctoken)
 		return nil, err
 	}
-	connection.syncRequestsSent.Add(1)
 
-	var timeout <-chan time.Time
-	if connection.config.SyncRequestTimeoutMs > 0 {
-		timeout = time.After(time.Duration(connection.config.SyncRequestTimeoutMs) * time.Millisecond)
+	responseMessage, ok := <-resChan
+	if !ok {
+		return nil, errors.New("no response received")
 	}
-	select {
-	case responseMessage := <-syncRequestStruct.responseChannel:
-		if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
-			connection.syncSuccessResponsesReceived.Add(1)
-		} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
-			connection.syncFailureResponsesReceived.Add(1)
-		}
-		return responseMessage, nil
-
-	case <-syncRequestStruct.abortChannel:
-		connection.noSyncResponseReceived.Add(1)
-		return nil, Event.New("SyncRequest aborted", nil)
-
-	case <-connection.closeChannel:
-		connection.noSyncResponseReceived.Add(1)
-		connection.removeSyncRequest(synctoken)
-		return nil, Event.New("SystemgeClient stopped before receiving response", nil)
-
-	case <-timeout:
-		connection.noSyncResponseReceived.Add(1)
-		connection.removeSyncRequest(synctoken)
-		return nil, Event.New("Timeout before receiving response", nil)
-
-	}
+	return responseMessage, nil
 }
 
 func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) error {
@@ -282,18 +282,4 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 type syncRequestStruct struct {
 	responseChannel chan *Message.Message
 	abortChannel    chan bool
-}
-
-func (connection *TcpSystemgeConnection) send(bytes []byte) error {
-	connection.sendMutex.Lock()
-	defer connection.sendMutex.Unlock()
-	bytesSent, err := Tcp.Send(connection.netConn, bytes, connection.config.TcpSendTimeoutMs)
-	if err != nil {
-		if Tcp.IsConnectionClosed(err) {
-			connection.Close()
-		}
-		return err
-	}
-	connection.bytesSent.Add(bytesSent)
-	return nil
 }

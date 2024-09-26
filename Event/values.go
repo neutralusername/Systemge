@@ -25,3 +25,6 @@ const Concurrent = "concurrent"
 
 const Success = "success"
 const Failure = "failure"
+
+const Blocking = "blocking"
+const NonBlocking = "nonBlocking"
