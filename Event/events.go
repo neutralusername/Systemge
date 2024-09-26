@@ -106,3 +106,5 @@ const MessageHandlingLoopStopped = "messageHandlingLoopStopped"
 
 const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
 const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped"
+
+const Timeout = "timeout"

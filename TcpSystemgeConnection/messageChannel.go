@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -275,14 +274,52 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 	select {
 	case message := <-connection.messageChannel:
 		if message == nil {
-			return nil, errors.New("Connection closed and no remaining messages")
+			connection.onEvent(Event.NewWarningNoOption(
+				Event.ReceivedNilValueFromChannel,
+				"received nil value from message channel",
+				Event.Context{
+					Event.Circumstance:  Event.RetrievingNextMessage,
+					Event.ChannelType:   Event.MessageChannel,
+					Event.ClientType:    Event.TcpSystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
+				},
+			))
+			return nil, errors.New("received nil value from message channel")
+		}
+		if event := connection.onEvent(Event.NewInfo(
+			Event.ReceivedFromChannel,
+			"received message from message channel",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.RetrievingNextMessage,
+				Event.ChannelType:   Event.MessageChannel,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+				Event.Topic:         message.GetTopic(),
+				Event.Payload:       message.GetPayload(),
+				Event.SyncToken:     message.GetSyncToken(),
+			},
+		)); !event.IsInfo() {
+			return nil, event.GetError()
 		}
 		connection.messageChannelSemaphore.ReleaseBlocking()
-		if connection.infoLogger != nil {
-			connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
-		}
 		return message, nil
 	case <-timeout:
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.Timeout,
+			"timeout while waiting for message",
+			Event.Context{
+				Event.Circumstance:  Event.RetrievingNextMessage,
+				Event.ChannelType:   Event.MessageChannel,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+			},
+		))
 		return nil, errors.New("Timeout while waiting for message")
 	}
 }
