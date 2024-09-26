@@ -333,6 +333,20 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 		return errors.New("no message provided")
 	}
 
+	defer connection.onEvent(Event.NewInfoNoOption(
+		Event.HandledMessage,
+		"handled message",
+		Event.Context{
+			Event.Circumstance:  Event.HandleMessage,
+			Event.ChannelType:   Event.MessageChannel,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	))
 	if event := connection.onEvent(Event.NewInfo(
 		Event.HandlingMessage,
 		"handling message",
@@ -396,21 +410,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 			}
 		}
 	}
-
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.HandledMessage,
-		"handled message",
-		Event.Context{
-			Event.Circumstance:  Event.HandleMessage,
-			Event.ChannelType:   Event.MessageChannel,
-			Event.ClientType:    Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetAddress(),
-			Event.Topic:         message.GetTopic(),
-			Event.Payload:       message.GetPayload(),
-			Event.SyncToken:     message.GetSyncToken(),
-		},
-	))
 
 	return nil
 }
