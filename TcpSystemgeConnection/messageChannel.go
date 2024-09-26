@@ -58,11 +58,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 	stopChannel := make(chan bool)
 	connection.messageHandlingLoopStopChannel = stopChannel
 
-	if behaviour == Event.Sequential {
-		go connection.messageHandlingLoopSequentially(stopChannel, messageHandler)
-	} else {
-		go connection.messageHandlingLoopConcurrently(stopChannel, messageHandler)
-	}
+	go connection.messageHandlingLoop(stopChannel, messageHandler, sequentially)
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.MessageHandlingLoopStarted,
@@ -87,7 +83,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) messageHandlingLoopSequentially(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler) {
+func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler, sequentially bool) {
 	for {
 		select {
 		case <-stopChannel:
@@ -107,41 +103,21 @@ func (connection *TcpSystemgeConnection) messageHandlingLoopSequentially(stopCha
 			if connection.infoLogger != nil {
 				connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
 			}
-			if err := connection.HandleMessage(message, messageHandler); err != nil {
-				if connection.errorLogger != nil {
-					connection.errorLogger.Log(err.Error())
-				}
-			}
-		}
-	}
-}
-func (connection *TcpSystemgeConnection) messageHandlingLoopConcurrently(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler) {
-	for {
-		select {
-		case <-stopChannel:
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Message handling loop stopped")
-			}
-			return
-		case message := <-connection.messageChannel:
-			if message == nil {
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Connection closed and no remaining messages")
-				}
-				connection.StopMessageHandlingLoop()
-				return
-			}
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
-			}
-			go func() {
+			if sequentially {
 				if err := connection.HandleMessage(message, messageHandler); err != nil {
 					if connection.errorLogger != nil {
 						connection.errorLogger.Log(err.Error())
 					}
 				}
-			}()
+			} else {
+				go func() {
+					if err := connection.HandleMessage(message, messageHandler); err != nil {
+						if connection.errorLogger != nil {
+							connection.errorLogger.Log(err.Error())
+						}
+					}
+				}()
+			}
 		}
 	}
 }
