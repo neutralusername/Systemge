@@ -1,10 +1,10 @@
 package SystemgeConnection
 
 import (
+	"errors"
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 )
@@ -12,8 +12,8 @@ import (
 type ConcurrentMessageHandler struct {
 	asyncMessageHandlers AsyncMessageHandlers
 	syncMessageHandlers  SyncMessageHandlers
-	syncMutex            sync.Mutex
-	asyncMutex           sync.Mutex
+	syncMutex            sync.RWMutex
+	asyncMutex           sync.RWMutex
 
 	unknwonAsyncTopicHandler AsyncMessageHandler
 	unknwonSyncTopicHandler  SyncMessageHandler
@@ -42,9 +42,9 @@ func NewConcurrentMessageHandler(asyncMessageHandlers AsyncMessageHandlers, sync
 }
 
 func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
-	messageHandler.asyncMutex.Lock()
+	messageHandler.asyncMutex.RLock()
 	handler, exists := messageHandler.asyncMessageHandlers[message.GetTopic()]
-	messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RUnlock()
 	if !exists {
 		if messageHandler.unknwonAsyncTopicHandler != nil {
 			messageHandler.asyncMessagesHandled.Add(1)
@@ -52,7 +52,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 			return nil
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
-			return Event.New("No handler for async message", nil)
+			return errors.New("No handler for async message")
 		}
 	}
 	messageHandler.asyncMessagesHandled.Add(1)
@@ -61,16 +61,16 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 }
 
 func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
-	messageHandler.syncMutex.Lock()
+	messageHandler.syncMutex.RLock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
-	messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RUnlock()
 	if !exists {
 		if messageHandler.unknwonSyncTopicHandler != nil {
 			messageHandler.syncRequestsHandled.Add(1)
 			return messageHandler.unknwonSyncTopicHandler(connection, message)
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
-			return "", Event.New("No handler for sync message", nil)
+			return "", errors.New("No handler for sync message")
 		}
 	}
 	messageHandler.syncRequestsHandled.Add(1)
@@ -110,20 +110,20 @@ func (messageHandler *ConcurrentMessageHandler) SetUnknownSyncHandler(handler Sy
 }
 
 func (messageHandler *ConcurrentMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
-	messageHandler.asyncMutex.Lock()
-	defer messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RLock()
+	defer messageHandler.asyncMutex.RUnlock()
 	return messageHandler.asyncMessageHandlers[topic]
 }
 
 func (messageHandler *ConcurrentMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
-	messageHandler.syncMutex.Lock()
-	defer messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RLock()
+	defer messageHandler.syncMutex.RUnlock()
 	return messageHandler.syncMessageHandlers[topic]
 }
 
 func (messageHandler *ConcurrentMessageHandler) GetAsyncTopics() []string {
-	messageHandler.asyncMutex.Lock()
-	defer messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RLock()
+	defer messageHandler.asyncMutex.RUnlock()
 	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
 	for topic := range messageHandler.asyncMessageHandlers {
 		topics = append(topics, topic)
@@ -132,8 +132,8 @@ func (messageHandler *ConcurrentMessageHandler) GetAsyncTopics() []string {
 }
 
 func (messageHandler *ConcurrentMessageHandler) GetSyncTopics() []string {
-	messageHandler.syncMutex.Lock()
-	defer messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RLock()
+	defer messageHandler.syncMutex.RUnlock()
 	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
 	for topic := range messageHandler.syncMessageHandlers {
 		topics = append(topics, topic)
