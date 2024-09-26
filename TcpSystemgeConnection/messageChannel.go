@@ -361,7 +361,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 					Event.SyncToken:     message.GetSyncToken(),
 				},
 			))
-			return err
 		}
 	} else {
 		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
@@ -379,13 +378,9 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 					Event.SyncToken:     message.GetSyncToken(),
 				},
 			))
-			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
-				return err
-			}
+			connection.SyncResponse(message, false, err.Error())
 		} else {
-			if err := connection.SyncResponse(message, true, responsePayload); err != nil {
-				return err
-			}
+			connection.SyncResponse(message, true, responsePayload)
 		}
 	}
 
