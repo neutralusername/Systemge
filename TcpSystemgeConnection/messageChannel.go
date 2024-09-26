@@ -150,18 +150,10 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 			}
 
 			if sequentially {
-				if err := connection.HandleMessage(message, messageHandler); err != nil {
-					if connection.errorLogger != nil {
-						connection.errorLogger.Log(err.Error())
-					}
-				}
+				connection.HandleMessage(message, messageHandler)
 			} else {
 				go func() {
-					if err := connection.HandleMessage(message, messageHandler); err != nil {
-						if connection.errorLogger != nil {
-							connection.errorLogger.Log(err.Error())
-						}
-					}
+					connection.HandleMessage(message, messageHandler)
 				}()
 			}
 		}
