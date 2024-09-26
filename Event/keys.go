@@ -11,6 +11,7 @@ const RateLimiterType = "rateLimiterType"
 const HandlerType = "handlerType"
 const StructType = "structType"
 const TokenBucketType = "tokenBucketType"
+const ResponseType = "responseType"
 
 const ClientAddress = "clientAddress"
 const ClientId = "clientId"

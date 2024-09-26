@@ -13,8 +13,6 @@ const Transactional = "transactional"
 
 const Messages = "messages"
 
-const Message = "message"
-
 const WebsocketServer = "websocketServer"
 const HttpServer = "httpServer"
 const TcpSystemgeListener = "tcpSystemgeListener"
@@ -24,3 +22,6 @@ const HttpRequest = "httpRequest"
 
 const Sequential = "sequential"
 const Concurrent = "concurrent"
+
+const Success = "success"
+const Failure = "failure"

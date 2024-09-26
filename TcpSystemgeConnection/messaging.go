@@ -22,6 +22,9 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
+			Event.Message:       string(message.Serialize()),
+			Event.ResponseType:  Event.Success,
+			Event.Payload:       payload,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -36,6 +39,9 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
+				Event.Message:       string(message.Serialize()),
+				Event.ResponseType:  Event.Success,
+				Event.Payload:       payload,
 			},
 		))
 		return errors.New("received nil message in SyncResponse")
@@ -50,6 +56,9 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
+				Event.Message:       string(message.Serialize()),
+				Event.ResponseType:  Event.Success,
+				Event.Payload:       payload,
 			},
 		))
 		return errors.New("no sync token")
@@ -94,6 +103,8 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
+			Event.Topic:         topic,
+			Event.Payload:       payload,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -104,6 +115,19 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 		return err
 	}
 	connection.asyncMessagesSent.Add(1)
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.SentMessage,
+		"async message sent",
+		Event.Context{
+			Event.Circumstance:  Event.AsyncMessage,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Topic:         topic,
+			Event.Payload:       payload,
+		},
+	))
 	return nil
 }
 
