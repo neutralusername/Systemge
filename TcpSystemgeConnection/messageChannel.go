@@ -12,9 +12,15 @@ import (
 
 // A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
 // errorChannel will send all errors that occur during message processing.
-func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(messageHandler SystemgeConnection.MessageHandler) error {
+func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
+	var behaviour string
+	if sequentially {
+		behaviour = Event.Sequential
+	} else {
+		behaviour = Event.Concurrent
+	}
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.MessageHandlingLoopStarting,
@@ -24,7 +30,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.MessageHandlingLoop,
-			Event.Behaviour:     Event.Sequential,
+			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
@@ -52,34 +58,11 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 	stopChannel := make(chan bool)
 	connection.messageHandlingLoopStopChannel = stopChannel
 
-	go func() {
-		for {
-			select {
-			case <-stopChannel:
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Message handling loop stopped")
-				}
-				return
-			case message := <-connection.messageChannel:
-				if message == nil {
-					if connection.infoLogger != nil {
-						connection.infoLogger.Log("Connection closed and no remaining messages")
-					}
-					connection.StopMessageHandlingLoop()
-					return
-				}
-				connection.messageChannelSemaphore.ReleaseBlocking()
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
-				}
-				if err := connection.HandleMessage(message, messageHandler); err != nil {
-					if connection.errorLogger != nil {
-						connection.errorLogger.Log(err.Error())
-					}
-				}
-			}
-		}
-	}()
+	if behaviour == Event.Sequential {
+		go connection.messageHandlingLoopSequentially(stopChannel, messageHandler)
+	} else {
+		go connection.messageHandlingLoopConcurrently(stopChannel, messageHandler)
+	}
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.MessageHandlingLoopStarted,
@@ -104,47 +87,63 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 	return nil
 }
 
-// A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
-// errorChannel will send all errors that occur during message processing.
-func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(messageHandler SystemgeConnection.MessageHandler) error {
-	connection.messageMutex.Lock()
-	defer connection.messageMutex.Unlock()
-	if connection.messageHandlingLoopStopChannel != nil {
-		return errors.New("Message handling loop already started")
-	}
-	stopChannel := make(chan bool)
-	connection.messageHandlingLoopStopChannel = stopChannel
-	go func() {
-		for {
-			select {
-			case <-stopChannel:
+func (connection *TcpSystemgeConnection) messageHandlingLoopSequentially(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler) {
+	for {
+		select {
+		case <-stopChannel:
+			if connection.infoLogger != nil {
+				connection.infoLogger.Log("Message handling loop stopped")
+			}
+			return
+		case message := <-connection.messageChannel:
+			if message == nil {
 				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Message handling loop stopped")
+					connection.infoLogger.Log("Connection closed and no remaining messages")
 				}
+				connection.StopMessageHandlingLoop()
 				return
-			case message := <-connection.messageChannel:
-				if message == nil {
-					if connection.infoLogger != nil {
-						connection.infoLogger.Log("Connection closed and no remaining messages")
-					}
-					connection.StopMessageHandlingLoop()
-					return
+			}
+			connection.messageChannelSemaphore.ReleaseBlocking()
+			if connection.infoLogger != nil {
+				connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
+			}
+			if err := connection.HandleMessage(message, messageHandler); err != nil {
+				if connection.errorLogger != nil {
+					connection.errorLogger.Log(err.Error())
 				}
-				connection.messageChannelSemaphore.ReleaseBlocking()
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
-				}
-				go func() {
-					if err := connection.HandleMessage(message, messageHandler); err != nil {
-						if connection.errorLogger != nil {
-							connection.errorLogger.Log(err.Error())
-						}
-					}
-				}()
 			}
 		}
-	}()
-	return nil
+	}
+}
+func (connection *TcpSystemgeConnection) messageHandlingLoopConcurrently(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler) {
+	for {
+		select {
+		case <-stopChannel:
+			if connection.infoLogger != nil {
+				connection.infoLogger.Log("Message handling loop stopped")
+			}
+			return
+		case message := <-connection.messageChannel:
+			if message == nil {
+				if connection.infoLogger != nil {
+					connection.infoLogger.Log("Connection closed and no remaining messages")
+				}
+				connection.StopMessageHandlingLoop()
+				return
+			}
+			connection.messageChannelSemaphore.ReleaseBlocking()
+			if connection.infoLogger != nil {
+				connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
+			}
+			go func() {
+				if err := connection.HandleMessage(message, messageHandler); err != nil {
+					if connection.errorLogger != nil {
+						connection.errorLogger.Log(err.Error())
+					}
+				}
+			}()
+		}
+	}
 }
 
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
