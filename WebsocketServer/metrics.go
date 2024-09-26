@@ -8,20 +8,24 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
-			"bytes_sent":     server.CheckBytesSentCounter(),
-			"bytes_received": server.CheckBytesReceivedCounter(),
+			"bytes_sent":     server.CheckWebsocketConnectionMessagesBytesSent(),
+			"bytes_received": server.CheckWebsocketConnectionMessagesBytesReceived(),
 		}),
 	)
 	metricsTypes.AddMetrics("websocketServer_messageTransmissions", Metrics.New(
 		map[string]uint64{
-			"incoming_messages": uint64(server.CheckIncomingMessageCounter()),
-			"outgoing_messages": uint64(server.CheckOutgoingMessageCounter()),
+			"incoming_messages": server.CheckWebsocketConnectionMessagesReceived(),
+			"outgoing_messages": server.CheckWebsocketConnectionMessagesSent(),
+			"failed_messages":   server.CheckWebsocketConnectionMessagesFailed(),
 		}),
 	)
 
 	metricsTypes.AddMetrics("websocketServer_stats", Metrics.New(
 		map[string]uint64{
-			"active_connections": uint64(server.GetWebsocketConnectionCount()),
+			"active_connections":   uint64(server.GetWebsocketConnectionCount()),
+			"connections_accepted": server.CheckWebsocketConnectionsAccepted(),
+			"connections_failed":   server.CheckWebsocketConnectionsFailed(),
+			"connections_rejected": server.CheckWebsocketConnectionsRejected(),
 		}),
 	)
 	metricsTypes.Merge(server.httpServer.CheckMetrics())
@@ -32,49 +36,81 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
-			"bytes_sent":     server.GetBytesSentCounter(),
-			"bytes_received": server.GetBytesReceivedCounter(),
+			"bytes_sent":     uint64(server.GetWebsocketConnectionMessagesBytesSent()),
+			"bytes_received": uint64(server.GetWebsocketConnectionMessagesBytesReceived()),
 		}),
 	)
 	metricsTypes.AddMetrics("websocketServer_messageTransmissions", Metrics.New(
 		map[string]uint64{
-			"incoming_messages": uint64(server.GetIncomingMessageCounter()),
-			"outgoing_messages": uint64(server.GetOutgoingMessageCounter()),
+			"incoming_messages": uint64(server.GetWebsocketConnectionMessagesReceived()),
+			"outgoing_messages": uint64(server.GetWebsocketConnectionMessagesSent()),
+			"failed_messages":   uint64(server.GetWebsocketConnectionMessagesFailed()),
 		}),
 	)
 	metricsTypes.AddMetrics("websocketServer_stats", Metrics.New(
 		map[string]uint64{
-			"active_connections": uint64(server.GetWebsocketConnectionCount()),
+			"active_connections":   uint64(server.GetWebsocketConnectionCount()),
+			"connections_accepted": server.GetWebsocketConnectionsAccepted(),
+			"connections_failed":   server.GetWebsocketConnectionsFailed(),
+			"connections_rejected": server.GetWebsocketConnectionsRejected(),
 		}),
 	)
 	metricsTypes.Merge(server.httpServer.GetMetrics())
 	return metricsTypes
 }
 
-func (server *WebsocketServer) GetBytesSentCounter() uint64 {
+func (server *WebsocketServer) GetWebsocketConnectionsAccepted() uint64 {
 	return server.websocketConnectionMessagesBytesSent.Swap(0)
 }
-func (server *WebsocketServer) CheckBytesSentCounter() uint64 {
+func (server *WebsocketServer) CheckWebsocketConnectionsAccepted() uint64 {
 	return server.websocketConnectionMessagesBytesSent.Load()
 }
 
-func (server *WebsocketServer) GetBytesReceivedCounter() uint64 {
-	return server.websocketConnectionMessagesBytesReceived.Swap(0)
+func (server *WebsocketServer) GetWebsocketConnectionsFailed() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
 }
-func (server *WebsocketServer) CheckBytesReceivedCounter() uint64 {
-	return server.websocketConnectionMessagesBytesReceived.Load()
-}
-
-func (server *WebsocketServer) GetIncomingMessageCounter() uint32 {
-	return server.websocketConnectionMessagesReceived.Swap(0)
-}
-func (server *WebsocketServer) CheckIncomingMessageCounter() uint32 {
-	return server.websocketConnectionMessagesReceived.Load()
+func (server *WebsocketServer) CheckWebsocketConnectionsFailed() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
 }
 
-func (server *WebsocketServer) GetOutgoingMessageCounter() uint32 {
-	return server.websocketConnectionMessagesSent.Swap(0)
+func (server *WebsocketServer) GetWebsocketConnectionsRejected() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
 }
-func (server *WebsocketServer) CheckOutgoingMessageCounter() uint32 {
-	return server.websocketConnectionMessagesSent.Load()
+func (server *WebsocketServer) CheckWebsocketConnectionsRejected() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
+}
+
+func (server *WebsocketServer) GetWebsocketConnectionMessagesReceived() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
+}
+func (server *WebsocketServer) CheckWebsocketConnectionMessagesReceived() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
+}
+
+func (server *WebsocketServer) GetWebsocketConnectionMessagesSent() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
+}
+func (server *WebsocketServer) CheckWebsocketConnectionMessagesSent() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
+}
+
+func (server *WebsocketServer) GetWebsocketConnectionMessagesFailed() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
+}
+func (server *WebsocketServer) CheckWebsocketConnectionMessagesFailed() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
+}
+
+func (server *WebsocketServer) GetWebsocketConnectionMessagesBytesReceived() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
+}
+func (server *WebsocketServer) CheckWebsocketConnectionMessagesBytesReceived() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
+}
+
+func (server *WebsocketServer) GetWebsocketConnectionMessagesBytesSent() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Swap(0)
+}
+func (server *WebsocketServer) CheckWebsocketConnectionMessagesBytesSent() uint64 {
+	return server.websocketConnectionMessagesBytesSent.Load()
 }
