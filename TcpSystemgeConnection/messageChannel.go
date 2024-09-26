@@ -94,10 +94,10 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 		Event.Context{
 			Event.Circumstance:  Event.MessageHandlingLoop,
 			Event.Behaviour:     behaviour,
+			Event.ChannelType:   Event.MessageChannel,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
-			Event.ChannelType:   Event.MessageChannel,
 		},
 	)); !event.IsInfo() {
 		connection.StopMessageHandlingLoop()
@@ -116,11 +116,11 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 					"received nil value from message channel",
 					Event.Context{
 						Event.Circumstance:  Event.MessageHandlingLoop,
+						Event.ChannelType:   Event.MessageChannel,
 						Event.Behaviour:     behaviour,
 						Event.ClientType:    Event.TcpSystemgeConnection,
 						Event.ClientName:    connection.GetName(),
 						Event.ClientAddress: connection.GetAddress(),
-						Event.ChannelType:   Event.MessageChannel,
 					},
 				))
 				connection.StopMessageHandlingLoop()
@@ -137,10 +137,10 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 				Event.Context{
 					Event.Circumstance:  Event.MessageHandlingLoop,
 					Event.Behaviour:     behaviour,
+					Event.ChannelType:   Event.MessageChannel,
 					Event.ClientType:    Event.TcpSystemgeConnection,
 					Event.ClientName:    connection.GetName(),
 					Event.ClientAddress: connection.GetAddress(),
-					Event.ChannelType:   Event.MessageChannel,
 					Event.Topic:         message.GetTopic(),
 					Event.Payload:       message.GetPayload(),
 					Event.SyncToken:     message.GetSyncToken(),
