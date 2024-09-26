@@ -24,7 +24,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 			Event.ClientAddress: connection.GetAddress(),
 		},
 	)); !event.IsInfo() {
-		return errors.New("event is not info")
+		return event.GetError()
 	}
 
 	if message == nil {
@@ -82,6 +82,23 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 }
 
 func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) error {
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.SendingMessage,
+		"sending async message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.AsyncMessage,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	err := connection.send(Message.NewAsync(topic, payload).Serialize())
 	if err != nil {
 		return err
