@@ -17,7 +17,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 	defer connection.messageMutex.Unlock()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.StartingMessageHandlingLoop,
+		Event.MessageHandlingLoopStarting,
 		"starting message handling loop",
 		Event.Cancel,
 		Event.Cancel,
@@ -80,6 +80,27 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 			}
 		}
 	}()
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.MessageHandlingLoopStarted,
+		"message handling loop started",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.MessageHandlingLoop,
+			Event.Behaviour:     Event.Sequential,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.ChannelType:   Event.MessageChannel,
+		},
+	)); !event.IsInfo() {
+		close(connection.messageHandlingLoopStopChannel)
+		connection.messageHandlingLoopStopChannel = nil
+		return event.GetError()
+	}
+
 	return nil
 }
 
