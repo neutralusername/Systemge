@@ -126,24 +126,24 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
 func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
-		return Event.New("no message handler set", nil)
+		return errors.New("no message handler set")
 	}
 	if message.GetSyncToken() == "" {
 		err := messageHandler.HandleAsyncMessage(connection, message)
 		if err != nil {
-			return Event.New("failed to handle async message", err)
+			return err
 		}
 	} else {
 		if message.IsResponse() {
-			return Event.New("message is a response, cannot handle", nil)
+			return errors.New("message is a response, cannot handle")
 		}
 		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
 			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
-				return Event.New("failed to send failure response", err)
+				return err
 			}
 		} else {
 			if err := connection.SyncResponse(message, true, responsePayload); err != nil {
-				return Event.New("failed to send success response", err)
+				return err
 			}
 		}
 	}
@@ -160,7 +160,7 @@ func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	if connection.messageHandlingLoopStopChannel == nil {
-		return Event.New("Message handling loop not registered", nil)
+		return errors.New("Message handling loop not registered")
 	}
 	close(connection.messageHandlingLoopStopChannel)
 	connection.messageHandlingLoopStopChannel = nil
@@ -171,7 +171,7 @@ func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, err
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	if connection.messageHandlingLoopStopChannel != nil {
-		return nil, Event.New("Message handling loop is registered", nil)
+		return nil, errors.New("Message handling loop is registered")
 	}
 	var timeout <-chan time.Time
 	if connection.config.TcpReceiveTimeoutMs > 0 {
@@ -180,7 +180,7 @@ func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, err
 	select {
 	case message := <-connection.messageChannel:
 		if message == nil {
-			return nil, Event.New("Connection closed and no remaining messages", nil)
+			return nil, errors.New("Connection closed and no remaining messages")
 		}
 		connection.messageChannelSemaphore.ReleaseBlocking()
 		if connection.infoLogger != nil {
@@ -188,7 +188,7 @@ func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, err
 		}
 		return message, nil
 	case <-timeout:
-		return nil, Event.New("Timeout while waiting for message", nil)
+		return nil, errors.New("Timeout while waiting for message")
 	}
 }
 
