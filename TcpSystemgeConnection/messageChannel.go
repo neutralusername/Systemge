@@ -15,15 +15,47 @@ import (
 func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(messageHandler SystemgeConnection.MessageHandler) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.messageHandlingLoopStopChannel != nil {
-		return errors.New("Message handling loop already started")
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.StartingMessageHandlingLoop,
+		"starting message handling loop",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.MessageHandlingLoop,
+			Event.Behaviour:     Event.Sequential,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.ChannelType:   Event.MessageChannel,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
 	}
-	stopChann := make(chan bool)
-	connection.messageHandlingLoopStopChannel = stopChann
+
+	if connection.messageHandlingLoopStopChannel != nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.MessageHandlingLoopAlreadyStarted,
+			"message handling loop already started",
+			Event.Context{
+				Event.Circumstance:  Event.MessageHandlingLoop,
+				Event.Behaviour:     Event.Sequential,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+				Event.ChannelType:   Event.MessageChannel,
+			},
+		))
+		return errors.New("message handling loop already started")
+	}
+	stopChannel := make(chan bool)
+	connection.messageHandlingLoopStopChannel = stopChannel
+
 	go func() {
 		for {
 			select {
-			case <-stopChann:
+			case <-stopChannel:
 				if connection.infoLogger != nil {
 					connection.infoLogger.Log("Message handling loop stopped")
 				}

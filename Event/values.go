@@ -21,3 +21,6 @@ const TcpSystemgeListener = "tcpSystemgeListener"
 const TcpSystemgeConnection = "tcpSystemgeConnection"
 
 const HttpRequest = "httpRequest"
+
+const Sequential = "sequential"
+const Concurrent = "concurrent"
