@@ -1,6 +1,7 @@
 package TcpSystemgeConnection
 
 import (
+	"errors"
 	"time"
 
 	"github.com/neutralusername/Systemge/Event"
@@ -15,7 +16,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Sequentially(m
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	if connection.messageHandlingLoopStopChannel != nil {
-		return Event.New("Message handling loop already registered", nil)
+		return errors.New("Message handling loop already started")
 	}
 	stopChann := make(chan bool)
 	connection.messageHandlingLoopStopChannel = stopChann
@@ -56,7 +57,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop_Concurrently(m
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	if connection.messageHandlingLoopStopChannel != nil {
-		return Event.New("Message handling loop already registered", nil)
+		return errors.New("Message handling loop already started")
 	}
 	stopChannel := make(chan bool)
 	connection.messageHandlingLoopStopChannel = stopChannel

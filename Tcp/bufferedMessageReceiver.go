@@ -42,7 +42,7 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, er
 	completedMsgBytes := []byte{}
 	for {
 		if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
-			return nil, errors.New("Incoming message byte limit exceeded")
+			return nil, errors.New("incoming message byte limit exceeded")
 		}
 		for i, b := range messageReceiver.buffer {
 			if b == HEARTBEAT {
@@ -52,7 +52,7 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, er
 				messageReceiver.buffer = messageReceiver.buffer[i+1:]
 				if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
 					// i am considering removing this error case and just returning the message instead, even though the limit is exceeded, but only by less than the buffer size
-					return nil, errors.New("Incoming message byte limit exceeded")
+					return nil, errors.New("incoming message byte limit exceeded")
 				}
 				return completedMsgBytes, nil
 			}

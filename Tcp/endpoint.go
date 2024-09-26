@@ -3,10 +3,10 @@ package Tcp
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"net"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 )
 
 func NewClient(config *Config.TcpClient) (net.Conn, error) {
@@ -15,7 +15,7 @@ func NewClient(config *Config.TcpClient) (net.Conn, error) {
 	}
 	rootCAs := x509.NewCertPool()
 	if !rootCAs.AppendCertsFromPEM([]byte(config.TlsCert)) {
-		return nil, Event.New("Error adding certificate to root CAs", nil)
+		return nil, errors.New("error adding certificate to root CAs")
 	}
 	return tls.Dial("tcp", config.Address, &tls.Config{
 		RootCAs:    rootCAs,
