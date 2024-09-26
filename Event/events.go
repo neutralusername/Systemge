@@ -62,23 +62,8 @@ const AddedClientsToGroup = "addedClientsToGroup"
 const RemovingClientsFromGroup = "removingClientsFromGroup"
 const RemovedClientsFromGroup = "removedClientsFromGroup"
 
-const GettingGroupClients = "gettingGroupClients"
-const GotGroupClients = "gotGroupClients"
-
-const GettingClientGroups = "gettingClientGroups"
-const GotClientGroups = "gotClientGroups"
-
-const GettingGroupCount = "gettingGroupCount"
-const GotGroupCount = "gotGroupCount"
-
-const GettingGroupIds = "gettingGroupIds"
-const GotGroupIds = "gotGroupIds"
-
 const CreatingGroup = "creatingGroup"
 const GroupDoesNotExist = "groupDoesNotExist"
-
-const GettingIsClientInGroup = "gettingIsClientInGroup"
-const GotIsClientInGroup = "gotIsClientInGroup"
 
 const HandlingHttpRequest = "handlingHttpRequest"
 const HandledHttpRequest = "handledHttpRequest"
@@ -105,18 +90,6 @@ const SentHeartbeat = "sentHeartbeat"
 
 const HeartbeatRoutineFinished = "heartbeatRoutineFinished"
 const HeartbeatRoutineStarted = "heartbeatRoutineStarted"
-
-const GettingClientExists = "gettingClientExists"
-const GotClientExists = "gotClientExists"
-
-const GettingClientGroupCount = "gettingClientGroupCount"
-const GotClientGroupCount = "gotClientGroupCount"
-
-const GettingWebsocketConnectionCount = "gettingWebsocketConnectionCount"
-const GotWebsocketConnectionCount = "gotWebsocketConnectionCount"
-
-const GettingWebsocketConnectionIds = "gettingWebsocketConnectionIds"
-const GotWebsocketConnectionIds = "gotWebsocketConnectionIds"
 
 const ServerHandshakeStarted = "serverHandshakeStarted"
 const ServerHandshakeFinished = "serverHandshakeFinished"
