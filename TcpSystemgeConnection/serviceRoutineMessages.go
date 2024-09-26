@@ -63,8 +63,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		); !event.IsInfo() {
 			return event.GetError()
 		}
-		messageBytes, bytesReceived, err := connection.messageReceiver.ReceiveNextMessage()
-		connection.bytesReceived.Add(uint64(bytesReceived))
+		messageBytes, err := connection.messageReceiver.ReceiveNextMessage()
 		if err != nil {
 			if Tcp.IsConnectionClosed(err) {
 				connection.onEvent(Event.NewWarningNoOption(

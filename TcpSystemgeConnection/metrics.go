@@ -136,13 +136,6 @@ func (connection *TcpSystemgeConnection) GetNoSyncResponseReceived() uint64 {
 	return connection.noSyncResponseReceived.Swap(0)
 }
 
-func (receiver *TcpSystemgeConnection) CheckInvalidMessagesReceived() uint64 {
-	return receiver.invalidMessagesReceived.Load()
-}
-func (receiver *TcpSystemgeConnection) GetInvalidMessagesReceived() uint64 {
-	return receiver.invalidMessagesReceived.Swap(0)
-}
-
 func (receiver *TcpSystemgeConnection) CheckInvalidSyncResponsesReceived() uint64 {
 	return receiver.invalidSyncResponsesReceived.Load()
 }
@@ -150,23 +143,23 @@ func (receiver *TcpSystemgeConnection) GetInvalidSyncResponsesReceived() uint64 
 	return receiver.invalidSyncResponsesReceived.Swap(0)
 }
 
-func (receiver *TcpSystemgeConnection) CheckValidMessagesReceived() uint64 {
-	return receiver.validMessagesReceived.Load()
+func (receiver *TcpSystemgeConnection) CheckMessagesReceived() uint64 {
+	return receiver.messagesReceived.Load()
 }
-func (receiver *TcpSystemgeConnection) GetValidMessagesReceived() uint64 {
-	return receiver.validMessagesReceived.Swap(0)
-}
-
-func (receiver *TcpSystemgeConnection) CheckMessageRateLimiterExceeded() uint64 {
-	return receiver.messageRateLimiterExceeded.Load()
-}
-func (receiver *TcpSystemgeConnection) GetMessageRateLimiterExceeded() uint64 {
-	return receiver.messageRateLimiterExceeded.Swap(0)
+func (receiver *TcpSystemgeConnection) GetMessagesReceived() uint64 {
+	return receiver.messagesReceived.Swap(0)
 }
 
-func (receiver *TcpSystemgeConnection) CheckByteRateLimiterExceeded() uint64 {
-	return receiver.byteRateLimiterExceeded.Load()
+func (receiver *TcpSystemgeConnection) CheckInvalidMessagesReceived() uint64 {
+	return receiver.invalidMessagesReceived.Load()
 }
-func (receiver *TcpSystemgeConnection) GetByteRateLimiterExceeded() uint64 {
-	return receiver.byteRateLimiterExceeded.Swap(0)
+func (receiver *TcpSystemgeConnection) GetInvalidMessagesReceived() uint64 {
+	return receiver.invalidMessagesReceived.Swap(0)
+}
+
+func (receiver *TcpSystemgeConnection) CheckRejectedMessages() uint64 {
+	return receiver.rejectedMessages.Load()
+}
+func (receiver *TcpSystemgeConnection) GetRejectedMessages() uint64 {
+	return receiver.rejectedMessages.Swap(0)
 }

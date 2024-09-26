@@ -29,33 +29,32 @@ type SystemgeConnection interface {
 
 	GetDefaultCommands() Commands.Handlers
 
+	CheckBytesSent() uint64
+	CheckBytesReceived() uint64
+	CheckAsyncMessagesSent() uint64
+	CheckSyncRequestsSent() uint64
+	CheckSyncResponsesSent() uint64
+	CheckMessagesReceived() uint64
 	CheckInvalidMessagesReceived() uint64
+	CheckRejectedMessages() uint64
 	CheckInvalidSyncResponsesReceived() uint64
-	CheckMessageRateLimiterExceeded() uint64
-	CheckMetrics() Metrics.MetricsTypes
 	CheckNoSyncResponseReceived() uint64
 	CheckSyncFailureResponsesReceived() uint64
-	CheckSyncRequestsSent() uint64
 	CheckSyncSuccessResponsesReceived() uint64
-	CheckValidMessagesReceived() uint64
-	CheckAsyncMessagesSent() uint64
-	CheckSyncResponsesSent() uint64
-	CheckByteRateLimiterExceeded() uint64
-	CheckBytesReceived() uint64
-	CheckBytesSent() uint64
 
-	GetAsyncMessagesSent() uint64
-	GetSyncResponsesSent() uint64
-	GetByteRateLimiterExceeded() uint64
-	GetBytesReceived() uint64
 	GetBytesSent() uint64
+	GetBytesReceived() uint64
+	GetAsyncMessagesSent() uint64
+	GetSyncRequestsSent() uint64
+	GetSyncResponsesSent() uint64
+	GetMessagesReceived() uint64
 	GetInvalidMessagesReceived() uint64
+	GetRejectedMessages() uint64
 	GetInvalidSyncResponsesReceived() uint64
-	GetMessageRateLimiterExceeded() uint64
-	GetMetrics() Metrics.MetricsTypes
 	GetNoSyncResponseReceived() uint64
 	GetSyncFailureResponsesReceived() uint64
-	GetSyncRequestsSent() uint64
 	GetSyncSuccessResponsesReceived() uint64
-	GetValidMessagesReceived() uint64
+
+	GetMetrics() Metrics.MetricsTypes
+	CheckMetrics() Metrics.MetricsTypes
 }

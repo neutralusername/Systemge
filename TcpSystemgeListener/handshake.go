@@ -28,7 +28,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 	}
 
 	messageReceiver := Tcp.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
-	messageBytes, _, err := messageReceiver.ReceiveNextMessage()
+	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.ReceivingMessageFailed,

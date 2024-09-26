@@ -38,12 +38,11 @@ func NewBufferedMessageReceiver(netConn net.Conn, incomingMessageByteLimit uint6
 	}
 }
 
-func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, int, error) {
+func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, error) {
 	completedMsgBytes := []byte{}
-	bytesReceived := 0
 	for {
 		if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
-			return nil, bytesReceived, errors.New("Incoming message byte limit exceeded")
+			return nil, errors.New("Incoming message byte limit exceeded")
 		}
 		for i, b := range messageReceiver.buffer {
 			if b == HEARTBEAT {
@@ -53,18 +52,17 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, in
 				messageReceiver.buffer = messageReceiver.buffer[i+1:]
 				if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
 					// i am considering removing this error case and just returning the message instead, even though the limit is exceeded, but only by less than the buffer size
-					return nil, bytesReceived, errors.New("Incoming message byte limit exceeded")
+					return nil, errors.New("Incoming message byte limit exceeded")
 				}
-				return completedMsgBytes, bytesReceived, nil
+				return completedMsgBytes, nil
 			}
 			completedMsgBytes = append(completedMsgBytes, b)
 		}
 		receivedMessageBytes, newBytesReceived, err := Receive(messageReceiver.netConn, messageReceiver.tcpReceiveTimeoutMs, messageReceiver.bufferSize)
 		if err != nil {
-			return nil, bytesReceived, err
+			return nil, err
 		}
-		bytesReceived += newBytesReceived
 		messageReceiver.buffer = receivedMessageBytes
-		messageReceiver.bytesReceived.Add(uint64(len(receivedMessageBytes)))
+		messageReceiver.bytesReceived.Add(uint64(newBytesReceived))
 	}
 }
