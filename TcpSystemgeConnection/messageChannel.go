@@ -15,6 +15,7 @@ import (
 func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
+
 	var behaviour string
 	if sequentially {
 		behaviour = Event.Sequential
@@ -46,7 +47,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 			"message handling loop already started",
 			Event.Context{
 				Event.Circumstance:  Event.MessageHandlingLoop,
-				Event.Behaviour:     Event.Sequential,
+				Event.Behaviour:     behaviour,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetAddress(),
@@ -68,7 +69,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.MessageHandlingLoop,
-			Event.Behaviour:     Event.Sequential,
+			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
