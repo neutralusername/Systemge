@@ -59,7 +59,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 	stopChannel := make(chan bool)
 	connection.messageHandlingLoopStopChannel = stopChannel
 
-	go connection.messageHandlingLoop(stopChannel, messageHandler, sequentially)
+	go connection.messageHandlingLoop(stopChannel, messageHandler, sequentially, behaviour)
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.MessageHandlingLoopStarted,
@@ -84,26 +84,72 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler, sequentially bool) {
+func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler, sequentially bool, behaviour string) {
+	if event := connection.onEvent(Event.NewInfo(
+		Event.ReceivingFromChannel,
+		"message handling loop running",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.MessageHandlingLoop,
+			Event.Behaviour:     behaviour,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.ChannelType:   Event.MessageChannel,
+		},
+	)); !event.IsInfo() {
+		connection.StopMessageHandlingLoop()
+		return
+	}
+
 	for {
 		select {
 		case <-stopChannel:
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Message handling loop stopped")
-			}
 			return
 		case message := <-connection.messageChannel:
+
 			if message == nil {
-				if connection.infoLogger != nil {
-					connection.infoLogger.Log("Connection closed and no remaining messages")
-				}
+				connection.onEvent(Event.NewInfoNoOption(
+					Event.ReceivedNilValueFromChannel,
+					"received nil value from message channel",
+					Event.Context{
+						Event.Circumstance:  Event.MessageHandlingLoop,
+						Event.Behaviour:     behaviour,
+						Event.ClientType:    Event.TcpSystemgeConnection,
+						Event.ClientName:    connection.GetName(),
+						Event.ClientAddress: connection.GetAddress(),
+						Event.ChannelType:   Event.MessageChannel,
+					},
+				))
 				connection.StopMessageHandlingLoop()
 				return
 			}
+
 			connection.messageChannelSemaphore.ReleaseBlocking()
-			if connection.infoLogger != nil {
-				connection.infoLogger.Log("Retrieved message \"" + Helpers.GetPointerId(message) + "\" in GetNextMessage()")
+			if event := connection.onEvent(Event.NewInfo(
+				Event.ReceivedFromChannel,
+				"received message from message channel",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:  Event.MessageHandlingLoop,
+					Event.Behaviour:     behaviour,
+					Event.ClientType:    Event.TcpSystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
+					Event.ChannelType:   Event.MessageChannel,
+					Event.Topic:         message.GetTopic(),
+					Event.Payload:       message.GetPayload(),
+					Event.SyncToken:     message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				connection.StopMessageHandlingLoop()
+				return
 			}
+
 			if sequentially {
 				if err := connection.HandleMessage(message, messageHandler); err != nil {
 					if connection.errorLogger != nil {

@@ -40,3 +40,5 @@ const TcpSystemgeListenerAccept = "tcpSystemgeListenerAccept"
 const TcpSystemgeListenerHandshake = "tcpSystemgeListenerHandshake"
 
 const StartMessageHandlingLoop = "startMessageHandlingLoop"
+
+const MessageHandlingLoop = "messageHandlingLoop"
