@@ -126,7 +126,10 @@ const ExceededMaxClientNameLength = "exceededMaxClientNameLength"
 const ReceivedEmptyClientName = "receivedEmptyClientName"
 
 const MessageHandlingLoopStarting = "messageHandlingLoopStarting"
-const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
-const MessageHandlingLoopStopped = "messageHandlingLoopStopped"
-const MessageHandlingLoopStopping = "messageHandlingLoopStopping"
 const MessageHandlingLoopStarted = "messageHandlingLoopStarted"
+
+const MessageHandlingLoopStopping = "messageHandlingLoopStopping"
+const MessageHandlingLoopStopped = "messageHandlingLoopStopped"
+
+const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
+const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped"

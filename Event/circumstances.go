@@ -39,6 +39,7 @@ const GetWebsocketConnectionIds = "getWebsocketConnectionIds"
 const TcpSystemgeListenerAccept = "tcpSystemgeListenerAccept"
 const TcpSystemgeListenerHandshake = "tcpSystemgeListenerHandshake"
 
-const StartMessageHandlingLoop = "startMessageHandlingLoop"
+const MessageHandlingLoopStart = "messageHandlingLoopStart"
+const MessageHandlingLoopStop = "messageHandlingLoopStop"
 
 const MessageHandlingLoop = "messageHandlingLoop"

@@ -30,7 +30,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.StartMessageHandlingLoop,
+			Event.Circumstance:  Event.MessageHandlingLoopStart,
 			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
@@ -46,7 +46,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 			Event.MessageHandlingLoopAlreadyStarted,
 			"message handling loop already started",
 			Event.Context{
-				Event.Circumstance:  Event.StartMessageHandlingLoop,
+				Event.Circumstance:  Event.MessageHandlingLoopStart,
 				Event.Behaviour:     behaviour,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
@@ -68,7 +68,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.StartMessageHandlingLoop,
+			Event.Circumstance:  Event.MessageHandlingLoopStart,
 			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
@@ -172,11 +172,53 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
-	if connection.messageHandlingLoopStopChannel == nil {
-		return errors.New("Message handling loop not registered")
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.MessageHandlingLoopStopping,
+		"stopping message handling loop",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.MessageHandlingLoopStop,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.ChannelType:   Event.MessageChannel,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
 	}
+
+	if connection.messageHandlingLoopStopChannel == nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.MessageHandlingLoopAlreadyStopped,
+			"message handling loop already stopped",
+			Event.Context{
+				Event.Circumstance:  Event.MessageHandlingLoopStop,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+				Event.ChannelType:   Event.MessageChannel,
+			},
+		))
+		return errors.New("message handling loop already stopped")
+	}
+
 	close(connection.messageHandlingLoopStopChannel)
 	connection.messageHandlingLoopStopChannel = nil
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.MessageHandlingLoopStopped,
+		"message handling loop stopped",
+		Event.Context{
+			Event.Circumstance:  Event.MessageHandlingLoopStop,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.ChannelType:   Event.MessageChannel,
+		},
+	))
 	return nil
 }
 
