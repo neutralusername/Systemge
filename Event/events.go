@@ -50,9 +50,6 @@ const AddedSyncResponse = "addedSyncResponse"
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"
 
-const NoHandlerForTopic = "noHandlerForTopic"
-const HandlerFailed = "handlerFailed"
-
 const ClientAlreadyInGroup = "clientAlreadyInGroup"
 const ClientNotInGroup = "clientNotInGroup"
 
@@ -108,3 +105,9 @@ const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
 const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped"
 
 const Timeout = "timeout"
+
+const HandlingMessage = "handlingMessage"
+const HandledMessage = "handledMessage"
+
+const NoHandlerForTopic = "noHandlerForTopic"
+const HandlerFailed = "handlerFailed"

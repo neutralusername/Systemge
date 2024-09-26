@@ -61,6 +61,9 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 }
 
 func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
+	if message.IsResponse() {
+		return "", errors.New("Message is response")
+	}
 	messageHandler.syncMutex.RLock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
 	messageHandler.syncMutex.RUnlock()

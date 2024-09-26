@@ -102,6 +102,9 @@ func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connectio
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
+	if message.IsResponse() {
+		return "", errors.New("Message is response")
+	}
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{

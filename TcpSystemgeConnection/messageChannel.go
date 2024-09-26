@@ -327,18 +327,66 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
 func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
-		return errors.New("no message handler set")
+		return errors.New("no message handler provided")
 	}
+	if message == nil {
+		return errors.New("no message provided")
+	}
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.HandlingMessage,
+		"handling message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleMessage,
+			Event.ChannelType:   Event.MessageChannel,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	if message.GetSyncToken() == "" {
-		err := messageHandler.HandleAsyncMessage(connection, message)
-		if err != nil {
+		if err := messageHandler.HandleAsyncMessage(connection, message); err != nil {
+			connection.onEvent(Event.NewWarningNoOption(
+				Event.HandlerFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance:  Event.HandleMessage,
+					Event.ChannelType:   Event.MessageChannel,
+					Event.ClientType:    Event.TcpSystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
+					Event.Topic:         message.GetTopic(),
+					Event.Payload:       message.GetPayload(),
+					Event.SyncToken:     message.GetSyncToken(),
+				},
+			))
 			return err
 		}
 	} else {
-		if message.IsResponse() {
-			return errors.New("message is a response, cannot handle")
-		}
 		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
+			connection.onEvent(Event.NewWarningNoOption(
+				Event.HandlerFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance:  Event.HandleMessage,
+					Event.ChannelType:   Event.MessageChannel,
+					Event.ClientType:    Event.TcpSystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
+					Event.Topic:         message.GetTopic(),
+					Event.Payload:       message.GetPayload(),
+					Event.SyncToken:     message.GetSyncToken(),
+				},
+			))
 			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
 				return err
 			}
@@ -348,5 +396,21 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 			}
 		}
 	}
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.HandledMessage,
+		"handled message",
+		Event.Context{
+			Event.Circumstance:  Event.HandleMessage,
+			Event.ChannelType:   Event.MessageChannel,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	))
+
 	return nil
 }

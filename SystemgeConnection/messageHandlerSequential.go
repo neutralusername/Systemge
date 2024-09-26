@@ -125,6 +125,9 @@ func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection Sy
 }
 
 func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
+	if message.IsResponse() {
+		return "", errors.New("Message is response")
+	}
 	response := make(chan *syncResponseStruct)
 	select {
 	case messageHandler.messageQueue <- &queueStruct{

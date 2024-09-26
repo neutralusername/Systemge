@@ -86,6 +86,25 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 }
 
 func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte) *Event.Event {
+	event := server.onEvent(Event.NewInfo(
+		Event.HandlingReception,
+		"handling message reception",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleReception,
+			Event.HandlerType:   Event.WebsocketConnection,
+			Event.ClientType:    Event.WebsocketConnection,
+			Event.ClientId:      websocketConnection.GetId(),
+			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.Bytes:         string(messageBytes),
+		},
+	))
+	if !event.IsInfo() {
+		return event
+	}
+
 	if websocketConnection.rateLimiterBytes != nil && !websocketConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
 		if event := server.onEvent(Event.NewWarning(
 			Event.RateLimited,
@@ -100,6 +119,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
 				Event.ClientAddress:   websocketConnection.GetIp(),
+				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
 			return event
@@ -120,6 +140,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
 				Event.ClientAddress:   websocketConnection.GetIp(),
+				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
 			return event
@@ -191,12 +212,14 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetIp(),
 				Event.Topic:         message.GetTopic(),
+				Event.Payload:       message.GetPayload(),
+				Event.SyncToken:     message.GetSyncToken(),
 			},
 		))
 	}
 
-	event := server.onEvent(Event.NewInfo(
-		Event.HandlingReception,
+	if event := server.onEvent(Event.NewInfo(
+		Event.HandlingMessage,
 		"handling websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -211,8 +234,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.Payload:       message.GetPayload(),
 			Event.SyncToken:     message.GetSyncToken(),
 		},
-	))
-	if !event.IsInfo() {
+	)); !event.IsInfo() {
 		return event
 	}
 
@@ -233,6 +255,21 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		))
 	}
 
+	server.onEvent(Event.NewInfoNoOption(
+		Event.HandledMessage,
+		"handled websocketConnection message",
+		Event.Context{
+			Event.Circumstance:  Event.HandleReception,
+			Event.HandlerType:   Event.WebsocketConnection,
+			Event.ClientType:    Event.WebsocketConnection,
+			Event.ClientId:      websocketConnection.GetId(),
+			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
+		},
+	))
+
 	return server.onEvent(Event.NewInfoNoOption(
 		Event.HandledReception,
 		"handled websocketConnection message",
@@ -243,6 +280,8 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetIp(),
 			Event.Topic:         message.GetTopic(),
+			Event.Payload:       message.GetPayload(),
+			Event.SyncToken:     message.GetSyncToken(),
 		},
 	))
 }
