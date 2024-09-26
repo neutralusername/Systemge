@@ -30,7 +30,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.MessageHandlingLoop,
+			Event.Circumstance:  Event.StartMessageHandlingLoop,
 			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
@@ -46,7 +46,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 			Event.MessageHandlingLoopAlreadyStarted,
 			"message handling loop already started",
 			Event.Context{
-				Event.Circumstance:  Event.MessageHandlingLoop,
+				Event.Circumstance:  Event.StartMessageHandlingLoop,
 				Event.Behaviour:     behaviour,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
@@ -68,7 +68,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.MessageHandlingLoop,
+			Event.Circumstance:  Event.StartMessageHandlingLoop,
 			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
@@ -123,39 +123,6 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 	}
 }
 
-// HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
-func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
-	if messageHandler == nil {
-		return errors.New("no message handler set")
-	}
-	if message.GetSyncToken() == "" {
-		err := messageHandler.HandleAsyncMessage(connection, message)
-		if err != nil {
-			return err
-		}
-	} else {
-		if message.IsResponse() {
-			return errors.New("message is a response, cannot handle")
-		}
-		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
-			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
-				return err
-			}
-		} else {
-			if err := connection.SyncResponse(message, true, responsePayload); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
-	connection.messageMutex.Lock()
-	defer connection.messageMutex.Unlock()
-	return connection.messageHandlingLoopStopChannel != nil
-}
-
 func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
@@ -165,6 +132,12 @@ func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	close(connection.messageHandlingLoopStopChannel)
 	connection.messageHandlingLoopStopChannel = nil
 	return nil
+}
+
+func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
+	connection.messageMutex.Lock()
+	defer connection.messageMutex.Unlock()
+	return connection.messageHandlingLoopStopChannel != nil
 }
 
 func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, error) {
@@ -194,4 +167,31 @@ func (connection *TcpSystemgeConnection) GetNextMessage() (*Message.Message, err
 
 func (connection *TcpSystemgeConnection) AvailableMessageCount() uint32 {
 	return connection.messageChannelSemaphore.AvailableAcquires()
+}
+
+// HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler.
+func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
+	if messageHandler == nil {
+		return errors.New("no message handler set")
+	}
+	if message.GetSyncToken() == "" {
+		err := messageHandler.HandleAsyncMessage(connection, message)
+		if err != nil {
+			return err
+		}
+	} else {
+		if message.IsResponse() {
+			return errors.New("message is a response, cannot handle")
+		}
+		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
+			if err := connection.SyncResponse(message, false, err.Error()); err != nil {
+				return err
+			}
+		} else {
+			if err := connection.SyncResponse(message, true, responsePayload); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
