@@ -1,6 +1,8 @@
 package Commands
 
-import "github.com/neutralusername/Systemge/Event"
+import (
+	"errors"
+)
 
 type Handler func([]string) (string, error)
 type Handlers map[string]Handler
@@ -46,13 +48,13 @@ func (map1 Handlers) GetKeyBoolMap() map[string]bool {
 	return keyBoolMap
 }
 
-func (handlers *Handlers) Execute(key string, args []string) (string, error) {
+func (handlers Handlers) Execute(key string, args []string) (string, error) {
 	if handlers == nil {
-		return "", Event.New("Handlers is nil", nil)
+		return "", errors.New("handlers is nil")
 	}
-	handler, ok := (*handlers)[key]
+	handler, ok := handlers[key]
 	if !ok {
-		return "", Event.New("Command not found", nil)
+		return "", errors.New("command not found")
 	}
 	return handler(args)
 }
