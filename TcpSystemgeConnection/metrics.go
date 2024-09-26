@@ -30,13 +30,8 @@ func (connection *TcpSystemgeConnection) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes.AddMetrics("tcpSystemgeConnection_messagesReceived", Metrics.New(
 		map[string]uint64{
 			"invalid_messages_received": connection.CheckInvalidMessagesReceived(),
-			"valid_messages_received":   connection.CheckValidMessagesReceived(),
-		},
-	))
-	metricsTypes.AddMetrics("tcpSystemgeConnection_rateLimiter", Metrics.New(
-		map[string]uint64{
-			"message_rate_limiter_exceeded": connection.CheckMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":    connection.CheckByteRateLimiterExceeded(),
+			"messages_received":         connection.CheckMessagesReceived(),
+			"rejected_messages":         connection.CheckRejectedMessages(),
 		},
 	))
 	return metricsTypes
@@ -67,14 +62,9 @@ func (connection *TcpSystemgeConnection) GetMetrics() Metrics.MetricsTypes {
 	))
 	metricsTypes.AddMetrics("tcpSystemgeConnection_messagesReceived", Metrics.New(
 		map[string]uint64{
-			"valid_messages_received":   connection.GetValidMessagesReceived(),
+			"valid_messages_received":   connection.GetMessagesReceived(),
 			"invalid_messages_received": connection.GetInvalidMessagesReceived(),
-		},
-	))
-	metricsTypes.AddMetrics("tcpSystemgeConnection_rateLimiter", Metrics.New(
-		map[string]uint64{
-			"message_rate_limiter_exceeded": connection.GetMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":    connection.GetByteRateLimiterExceeded(),
+			"rejected_messages":         connection.GetRejectedMessages(),
 		},
 	))
 	return metricsTypes
