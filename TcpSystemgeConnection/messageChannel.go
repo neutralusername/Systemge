@@ -235,9 +235,39 @@ func (connection *TcpSystemgeConnection) AvailableMessageCount() uint32 {
 func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
+
 	if connection.messageHandlingLoopStopChannel != nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.MessageHandlingLoopAlreadyStarted,
+			"message handling loop is registered",
+			Event.Context{
+				Event.Circumstance:  Event.RetrievingNextMessage,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
+				Event.ChannelType:   Event.MessageChannel,
+			},
+		))
 		return nil, errors.New("Message handling loop is registered")
 	}
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.ReceivingFromChannel,
+		"retrieving message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.RetrievingNextMessage,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+			Event.ChannelType:   Event.MessageChannel,
+		},
+	)); !event.IsInfo() {
+		return nil, event.GetError()
+	}
+
 	var timeout <-chan time.Time
 	if connection.config.TcpReceiveTimeoutMs > 0 {
 		timeout = time.After(time.Duration(connection.config.TcpReceiveTimeoutMs) * time.Millisecond)

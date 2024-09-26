@@ -43,3 +43,5 @@ const MessageHandlingLoopStart = "messageHandlingLoopStart"
 const MessageHandlingLoopStop = "messageHandlingLoopStop"
 
 const MessageHandlingLoop = "messageHandlingLoop"
+
+const RetrievingNextMessage = "retrievingNextMessage"
