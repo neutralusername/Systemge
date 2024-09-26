@@ -22,7 +22,7 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 	commands["getStatus"] = func(args []string) (string, error) {
 		return Status.ToString(connection.GetStatus()), nil
 	}
-	commands["getMetrics"] = func(args []string) (string, error) {
+	commands["checkMetrics"] = func(args []string) (string, error) {
 		metrics := connection.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
@@ -30,7 +30,7 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 		}
 		return string(json), nil
 	}
-	commands["retrieveMetrics"] = func(args []string) (string, error) {
+	commands["getMetrics"] = func(args []string) (string, error) {
 		metrics := connection.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
@@ -41,8 +41,8 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 	commands["unprocessedMessageCount"] = func(args []string) (string, error) {
 		return Helpers.Uint32ToString(connection.messageChannelSemaphore.AvailableAcquires()), nil
 	}
-	commands["getNextMessage"] = func(args []string) (string, error) {
-		message, err := connection.GetNextMessage()
+	commands["retrieveNextMessage"] = func(args []string) (string, error) {
+		message, err := connection.RetrieveNextMessage()
 		if err != nil {
 			return "", err
 		}
