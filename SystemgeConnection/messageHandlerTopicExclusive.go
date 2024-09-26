@@ -13,8 +13,8 @@ type TopicExclusiveMessageHandler struct {
 	asyncMessageHandlers map[string]*asyncMessageHandler
 	syncMessageHandlers  map[string]*syncMessageHandler
 
-	syncMutex  sync.Mutex
-	asyncMutex sync.Mutex
+	syncMutex  sync.RWMutex
+	asyncMutex sync.RWMutex
 
 	messageQueue chan *queueStruct
 
@@ -123,9 +123,9 @@ func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
 			return
 		}
 		if messageStruct.syncResponseChannel != nil {
-			messageHandler.syncMutex.Lock()
+			messageHandler.syncMutex.RLock()
 			handler, exists := messageHandler.syncMessageHandlers[messageStruct.message.GetTopic()]
-			messageHandler.syncMutex.Unlock()
+			messageHandler.syncMutex.RUnlock()
 			if !exists {
 				if unknownMessageHandler := messageHandler.unknownSyncTopicHandler; unknownMessageHandler != nil {
 					unknownMessageHandler.messageQueue <- messageStruct
@@ -137,9 +137,9 @@ func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
 				handler.messageQueue <- messageStruct
 			}
 		} else {
-			messageHandler.asyncMutex.Lock()
+			messageHandler.asyncMutex.RLock()
 			handler, exists := messageHandler.asyncMessageHandlers[messageStruct.message.GetTopic()]
-			messageHandler.asyncMutex.Unlock()
+			messageHandler.asyncMutex.RUnlock()
 			if !exists {
 				if unknownMessageHandler := messageHandler.unknownAsyncTopicHandler; unknownMessageHandler != nil {
 					unknownMessageHandler.messageQueue <- messageStruct
@@ -281,8 +281,8 @@ func (messageHandler *TopicExclusiveMessageHandler) RemoveSyncMessageHandler(top
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
-	messageHandler.asyncMutex.Lock()
-	defer messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RLock()
+	defer messageHandler.asyncMutex.RUnlock()
 	if handler, exists := messageHandler.asyncMessageHandlers[topic]; exists {
 		return handler.messageHandler
 	}
@@ -290,8 +290,8 @@ func (messageHandler *TopicExclusiveMessageHandler) GetAsyncMessageHandler(topic
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
-	messageHandler.syncMutex.Lock()
-	defer messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RLock()
+	defer messageHandler.syncMutex.RUnlock()
 	if handler, exists := messageHandler.syncMessageHandlers[topic]; exists {
 		return handler.messageHandler
 	}
@@ -299,8 +299,8 @@ func (messageHandler *TopicExclusiveMessageHandler) GetSyncMessageHandler(topic 
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) GetAsyncTopics() []string {
-	messageHandler.asyncMutex.Lock()
-	defer messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RLock()
+	defer messageHandler.asyncMutex.RUnlock()
 	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
 	for topic := range messageHandler.asyncMessageHandlers {
 		topics = append(topics, topic)
@@ -309,8 +309,8 @@ func (messageHandler *TopicExclusiveMessageHandler) GetAsyncTopics() []string {
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) GetSyncTopics() []string {
-	messageHandler.syncMutex.Lock()
-	defer messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RLock()
+	defer messageHandler.syncMutex.RUnlock()
 	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
 	for topic := range messageHandler.syncMessageHandlers {
 		topics = append(topics, topic)

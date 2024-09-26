@@ -13,8 +13,8 @@ type SequentialMessageHandler struct {
 	asyncMessageHandlers AsyncMessageHandlers
 	syncMessageHandlers  SyncMessageHandlers
 
-	syncMutex  sync.Mutex
-	asyncMutex sync.Mutex
+	syncMutex  sync.RWMutex
+	asyncMutex sync.RWMutex
 
 	messageQueue chan *queueStruct
 
@@ -71,9 +71,9 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 			return
 		}
 		if messageStruct.syncResponseChannel != nil {
-			messageHandler.syncMutex.Lock()
+			messageHandler.syncMutex.RLock()
 			handler, exists := messageHandler.syncMessageHandlers[messageStruct.message.GetTopic()]
-			messageHandler.syncMutex.Unlock()
+			messageHandler.syncMutex.RUnlock()
 			if !exists {
 				if unknownMessageHandler := messageHandler.unknwonSyncTopicHandler; unknownMessageHandler != nil {
 					messageHandler.syncRequestsHandled.Add(1)
@@ -89,9 +89,9 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 				messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
 			}
 		} else {
-			messageHandler.asyncMutex.Lock()
+			messageHandler.asyncMutex.RLock()
 			handler, exists := messageHandler.asyncMessageHandlers[messageStruct.message.GetTopic()]
-			messageHandler.asyncMutex.Unlock()
+			messageHandler.asyncMutex.RUnlock()
 			if !exists {
 				if unknownMessageHandler := messageHandler.unknwonAsyncTopicHandler; unknownMessageHandler != nil {
 					messageHandler.asyncMessagesHandled.Add(1)
@@ -164,8 +164,8 @@ func (messageHandler *SequentialMessageHandler) RemoveSyncMessageHandler(topic s
 }
 
 func (messageHandler *SequentialMessageHandler) GetAsyncTopics() []string {
-	messageHandler.asyncMutex.Lock()
-	defer messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RLock()
+	defer messageHandler.asyncMutex.RUnlock()
 	topics := make([]string, 0, len(messageHandler.asyncMessageHandlers))
 	for topic := range messageHandler.asyncMessageHandlers {
 		topics = append(topics, topic)
@@ -174,8 +174,8 @@ func (messageHandler *SequentialMessageHandler) GetAsyncTopics() []string {
 }
 
 func (messageHandler *SequentialMessageHandler) GetSyncTopics() []string {
-	messageHandler.syncMutex.Lock()
-	defer messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RLock()
+	defer messageHandler.syncMutex.RUnlock()
 	topics := make([]string, 0, len(messageHandler.syncMessageHandlers))
 	for topic := range messageHandler.syncMessageHandlers {
 		topics = append(topics, topic)
@@ -192,14 +192,14 @@ func (messageHandler *SequentialMessageHandler) SetUnknownSyncHandler(handler Sy
 }
 
 func (messageHandler *SequentialMessageHandler) GetAsyncMessageHandler(topic string) AsyncMessageHandler {
-	messageHandler.asyncMutex.Lock()
-	defer messageHandler.asyncMutex.Unlock()
+	messageHandler.asyncMutex.RLock()
+	defer messageHandler.asyncMutex.RUnlock()
 	return messageHandler.asyncMessageHandlers[topic]
 }
 
 func (messageHandler *SequentialMessageHandler) GetSyncMessageHandler(topic string) SyncMessageHandler {
-	messageHandler.syncMutex.Lock()
-	defer messageHandler.syncMutex.Unlock()
+	messageHandler.syncMutex.RLock()
+	defer messageHandler.syncMutex.RUnlock()
 	return messageHandler.syncMessageHandlers[topic]
 }
 
