@@ -1,6 +1,7 @@
 package TcpSystemgeConnection
 
 import (
+	"errors"
 	"time"
 
 	"github.com/neutralusername/Systemge/Event"
@@ -164,13 +165,17 @@ func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncReq
 func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Message) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
-	if syncRequestStruct, ok := connection.syncRequests[message.GetSyncToken()]; ok {
-		syncRequestStruct.responseChannel <- message
-		close(syncRequestStruct.responseChannel)
-		delete(connection.syncRequests, message.GetSyncToken())
-		return nil
+
+	syncRequestStruct, ok := connection.syncRequests[message.GetSyncToken()]
+	if !ok {
+		return errors.New("no response channel found")
 	}
-	return Event.New("No response channel found", nil)
+
+	syncRequestStruct.responseChannel <- message
+	close(syncRequestStruct.responseChannel)
+	delete(connection.syncRequests, message.GetSyncToken())
+
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) error {

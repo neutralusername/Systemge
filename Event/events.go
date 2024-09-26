@@ -43,9 +43,9 @@ const ReceivingMessage = "receivingMessage"
 const ReceivedMessage = "receivedMessage"
 const ReceivingMessageFailed = "receivingMessageFailed"
 
-const SyncResponseReceived = "syncResponseReceived"
-const InvalidSyncResponse = "invalidSyncResponse"
-const ValidSyncResponse = "validSyncResponse"
+const AddingSyncResponse = "addingSyncResponse"
+const UnknownSyncKey = "unknownSyncKey"
+const AddedSyncResponse = "addedSyncResponse"
 
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"
