@@ -109,7 +109,7 @@ func (server *HTTPServer) Start() error {
 					errorChannel <- err
 				} else if http.ErrServerClosed != err {
 					if event := server.onEvent(Event.NewError(
-						Event.UnexpectedError,
+						Event.UnexpectedClosure,
 						err.Error(),
 						Event.Panic,
 						Event.Panic,
@@ -129,7 +129,7 @@ func (server *HTTPServer) Start() error {
 					errorChannel <- err
 				} else if http.ErrServerClosed != err {
 					if event := server.onEvent(Event.NewError(
-						Event.UnexpectedError,
+						Event.UnexpectedClosure,
 						err.Error(),
 						Event.Panic,
 						Event.Panic,
@@ -150,7 +150,7 @@ func (server *HTTPServer) Start() error {
 	case err := <-errorChannel:
 		server.status = Status.Stoped
 		server.onEvent(Event.NewErrorNoOption(
-			Event.UnexpectedError,
+			Event.UnexpectedClosure,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance: Event.Start,
