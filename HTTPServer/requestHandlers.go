@@ -39,6 +39,15 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
+			server.onEvent(Event.NewWarningNoOption(
+				Event.SplittingHostPortFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance:  Event.HttpRequest,
+					Event.ClientType:    Event.HttpRequest,
+					Event.ClientAddress: r.RemoteAddr,
+				}),
+			)
 			Send403(w, r)
 			return
 		}
