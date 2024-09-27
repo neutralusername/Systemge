@@ -124,9 +124,8 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 	return nil
 }
 
-// blocks until the sending attempt is completed. returns error if sending request fails.
-// nil result from response channel indicates either connection closed before receiving response, timeout or manual abortion.
 func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
+	synctoken, syncRequestStruct := connection.initResponseChannel()
 	if event := connection.onEvent(Event.NewInfo(
 		Event.SendingMessage,
 		"sending sync request",
@@ -135,18 +134,18 @@ func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-c
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.SyncRequest,
-			Event.Behaviour:     Event.NonBlocking,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.Topic:         topic,
 			Event.Payload:       payload,
+			Event.SyncToken:     synctoken,
 		},
 	)); !event.IsInfo() {
+		connection.removeSyncRequest(synctoken)
 		return nil, event.GetError()
 	}
 
-	synctoken, syncRequestStruct := connection.initResponseChannel()
 	if err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize(), Event.AsyncMessage); err != nil {
 		connection.removeSyncRequest(synctoken)
 		return nil, err
@@ -162,11 +161,6 @@ func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-c
 	go func() {
 		select {
 		case responseMessage := <-syncRequestStruct.responseChannel:
-			if responseMessage.GetTopic() == Message.TOPIC_SUCCESS {
-				connection.syncSuccessResponsesReceived.Add(1)
-			} else if responseMessage.GetTopic() == Message.TOPIC_FAILURE {
-				connection.syncFailureResponsesReceived.Add(1)
-			}
 			resChan <- responseMessage
 			close(resChan)
 
@@ -191,12 +185,12 @@ func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-c
 		"sync request sent",
 		Event.Context{
 			Event.Circumstance:  Event.SyncRequest,
-			Event.Behaviour:     Event.NonBlocking,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.Topic:         topic,
 			Event.Payload:       payload,
+			Event.SyncToken:     synctoken,
 		},
 	))
 
@@ -220,28 +214,76 @@ func (connection *TcpSystemgeConnection) SyncRequestBlocking(topic, payload stri
 func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
-	if syncRequestStruct, ok := connection.syncRequests[syncToken]; ok {
-		close(syncRequestStruct.abortChannel)
-		delete(connection.syncRequests, syncToken)
-		return nil
-	}
-	return Event.New("No response channel found", nil)
-}
 
-// returns a slice of syncTokens of open sync requests
-func (connection *TcpSystemgeConnection) GetOpenSyncRequests() []string {
-	connection.syncMutex.Lock()
-	defer connection.syncMutex.Unlock()
-	syncTokens := make([]string, 0, len(connection.syncRequests))
-	for k := range connection.syncRequests {
-		syncTokens = append(syncTokens, k)
+	if event := connection.onEvent(Event.NewInfo(
+		Event.AbortingSyncRequest,
+		"aborting sync request",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.AbortSyncRequest,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.SyncToken:     syncToken,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
 	}
-	return syncTokens
+	syncRequestStruct, ok := connection.syncRequests[syncToken]
+	if !ok {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.SyncTokenDoesNotExist,
+			"no sync token",
+			Event.Context{
+				Event.Circumstance:  Event.AbortSyncRequest,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.name,
+				Event.ClientAddress: connection.GetAddress(),
+				Event.SyncToken:     syncToken,
+			},
+		))
+		return Event.New("No response channel found", nil)
+	}
+
+	close(syncRequestStruct.abortChannel)
+	delete(connection.syncRequests, syncToken)
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.AbortedSyncRequest,
+		"sync request aborted",
+		Event.Context{
+			Event.Circumstance:  Event.AbortSyncRequest,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.SyncToken:     syncToken,
+		},
+	))
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncRequestStruct) {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
+
+	if event := connection.onEvent(Event.NewInfo(
+		Event.InitializingSyncRequest,
+		"initializing response channel",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.SyncRequest,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+		},
+	)); !event.IsInfo() {
+		return "", nil
+	}
+
 	syncToken := connection.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
 	for _, ok := connection.syncRequests[syncToken]; ok; {
 		syncToken = connection.randomizer.GenerateRandomString(10, Tools.ALPHA_NUMERIC)
@@ -250,6 +292,22 @@ func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncReq
 		responseChannel: make(chan *Message.Message, 1),
 		abortChannel:    make(chan bool),
 	}
+
+	if event := connection.onEvent(Event.NewInfoNoOption(
+		Event.InitializedSyncRequest,
+		"response channel initialized",
+		Event.Context{
+			Event.Circumstance:  Event.SyncRequest,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.SyncToken:     syncToken,
+		},
+	)); !event.IsInfo() {
+		delete(connection.syncRequests, syncToken)
+		return "", nil
+	}
+
 	return syncToken, connection.syncRequests[syncToken]
 }
 
@@ -257,15 +315,59 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
 
+	if event := connection.onEvent(Event.NewInfo(
+		Event.AddingSyncResponse,
+		"adding sync response",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.SyncResponse,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Message:       string(message.Serialize()),
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	syncRequestStruct, ok := connection.syncRequests[message.GetSyncToken()]
 	if !ok {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.UnknownSyncKey,
+			"unknown sync key",
+			Event.Context{
+				Event.Circumstance:  Event.SyncResponse,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.name,
+				Event.ClientAddress: connection.GetAddress(),
+				Event.Message:       string(message.Serialize()),
+			},
+		))
 		return errors.New("no response channel found")
 	}
 
 	syncRequestStruct.responseChannel <- message
 	close(syncRequestStruct.responseChannel)
 	delete(connection.syncRequests, message.GetSyncToken())
+	if message.GetTopic() == Message.TOPIC_SUCCESS {
+		connection.syncSuccessResponsesReceived.Add(1)
+	} else if message.GetTopic() == Message.TOPIC_FAILURE {
+		connection.syncFailureResponsesReceived.Add(1)
+	}
 
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.AddedSyncResponse,
+		"sync response added",
+		Event.Context{
+			Event.Circumstance:  Event.SyncResponse,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.Message:       string(message.Serialize()),
+		},
+	))
 	return nil
 }
 
@@ -282,4 +384,15 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 type syncRequestStruct struct {
 	responseChannel chan *Message.Message
 	abortChannel    chan bool
+}
+
+// returns a slice of syncTokens of open sync requests
+func (connection *TcpSystemgeConnection) GetOpenSyncRequests() []string {
+	connection.syncMutex.Lock()
+	defer connection.syncMutex.Unlock()
+	syncTokens := make([]string, 0, len(connection.syncRequests))
+	for k := range connection.syncRequests {
+		syncTokens = append(syncTokens, k)
+	}
+	return syncTokens
 }

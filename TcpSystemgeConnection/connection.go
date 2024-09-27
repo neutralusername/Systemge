@@ -57,7 +57,6 @@ type TcpSystemgeConnection struct {
 	syncSuccessResponsesReceived atomic.Uint64
 	syncFailureResponsesReceived atomic.Uint64
 	noSyncResponseReceived       atomic.Uint64
-	invalidSyncResponsesReceived atomic.Uint64
 }
 
 func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver, eventHandler Event.Handler) *TcpSystemgeConnection {

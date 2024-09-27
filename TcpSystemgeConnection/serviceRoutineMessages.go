@@ -118,17 +118,13 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		connection.messagesReceived.Add(1)
 
 		if connection.config.HandleMessageReceptionSequentially {
-			if event := connection.handleReception(messageBytes); event != nil {
-				if event.IsError() {
-					connection.Close()
-				}
+			if err := connection.handleReception(messageBytes); err != nil {
+				connection.Close()
 			}
 		} else {
 			go func() {
-				if event := connection.handleReception(messageBytes); event != nil {
-					if event.IsError() {
-						connection.Close()
-					}
+				if err := connection.handleReception(messageBytes); err != nil {
+					connection.Close()
 				}
 			}()
 		}
@@ -136,7 +132,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 	}
 }
 
-func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *Event.Event {
+func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) error {
 	event := connection.onEvent(Event.NewInfo(
 		Event.HandlingReception,
 		"handling tcpSystemgeConnection message reception",
@@ -153,7 +149,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 	if !event.IsInfo() {
 		connection.rejectedMessages.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
-		return event
+		return event.GetError()
 	}
 
 	if connection.rateLimiterBytes != nil && !connection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
@@ -174,7 +170,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 		)); !event.IsInfo() {
 			connection.rejectedMessages.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
-			return event
+			return event.GetError()
 		}
 	}
 
@@ -196,7 +192,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 		)); !event.IsInfo() {
 			connection.rejectedMessages.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
-			return event
+			return event.GetError()
 		}
 	}
 
@@ -204,7 +200,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 	if err != nil {
 		connection.invalidMessagesReceived.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
-		return connection.onEvent(Event.NewWarningNoOption(
+		connection.onEvent(Event.NewWarningNoOption(
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
@@ -216,6 +212,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 				Event.Bytes:         string(messageBytes),
 			},
 		))
+		return err
 	}
 
 	if err := connection.validateMessage(message); err != nil {
@@ -237,62 +234,17 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 		)); !event.IsInfo() {
 			connection.invalidMessagesReceived.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
-			return event
+			return event.GetError()
 		}
 	}
 
 	if message.IsResponse() {
-		if event := connection.onEvent(Event.NewInfo(
-			Event.AddingSyncResponse,
-			"received sync response",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.ClientType:    Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
-			},
-		)); !event.IsInfo() {
-			connection.invalidSyncResponsesReceived.Add(1)
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			return event
-		}
-
+		connection.messageChannelSemaphore.ReleaseBlocking()
 		if err := connection.addSyncResponse(message); err != nil {
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			return connection.onEvent(Event.NewWarningNoOption(
-				Event.UnknownSyncKey,
-				"no response channel found",
-				Event.Context{
-					Event.Circumstance:  Event.HandleReception,
-					Event.ClientType:    Event.TcpSystemgeConnection,
-					Event.ClientName:    connection.GetName(),
-					Event.ClientAddress: connection.GetIp(),
-					Event.Topic:         message.GetTopic(),
-					Event.Payload:       message.GetPayload(),
-					Event.SyncToken:     message.GetSyncToken(),
-				},
-			))
+			connection.invalidMessagesReceived.Add(1)
+			return err
 		} else {
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			return connection.onEvent(Event.NewInfoNoOption(
-				Event.AddedSyncResponse,
-				"added sync response",
-				Event.Context{
-					Event.Circumstance:  Event.HandleReception,
-					Event.ClientType:    Event.TcpSystemgeConnection,
-					Event.ClientName:    connection.GetName(),
-					Event.ClientAddress: connection.GetIp(),
-					Event.Topic:         message.GetTopic(),
-					Event.Payload:       message.GetPayload(),
-					Event.SyncToken:     message.GetSyncToken(),
-				},
-			))
+			return nil
 		}
 	}
 
@@ -315,16 +267,13 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 	)); !event.IsInfo() {
 		connection.rejectedMessages.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
-		return event
+		return event.GetError()
 	}
 	connection.messageChannel <- message
 
-	return connection.onEvent(Event.NewInfo(
+	connection.onEvent(Event.NewInfoNoOption(
 		Event.SentToChannel,
 		"sent message to channel",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
 			Event.ChannelType:   Event.MessageChannel,
@@ -336,6 +285,8 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) *E
 			Event.SyncToken:     message.GetSyncToken(),
 		},
 	))
+
+	return nil
 }
 
 func (connection *TcpSystemgeConnection) validateMessage(message *Message.Message) error {
