@@ -206,7 +206,7 @@ func (server *HTTPServer) Stop() error {
 	err := server.httpServer.Close()
 	if err != nil {
 		server.onEvent(Event.NewErrorNoOption(
-			Event.UnexpectedError,
+			Event.CloseFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance: Event.Stop,

@@ -126,6 +126,6 @@ const InitializedSyncRequest = "initializedSyncRequest"
 
 const UnknownSyncToken = "unknownSyncToken"
 
-const UnexpectedError = "unexpectedError"
-
 const UnexpectedClosure = "unexpectedClosure"
+
+const CloseFailed = "closeFailed"
