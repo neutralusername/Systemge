@@ -17,6 +17,23 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			return
 		}
 
+		if event := server.onEvent(Event.NewInfo(
+			Event.HandlingHttpRequest,
+			"Handling http request",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:  Event.HttpRequest,
+				Event.Pattern:       pattern,
+				Event.ClientType:    Event.HttpRequest,
+				Event.ClientAddress: r.RemoteAddr,
+			},
+		)); !event.IsInfo() {
+			Send403(w, r)
+			return
+		}
+
 		server.requestCounter.Add(1)
 		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
 
@@ -36,23 +53,6 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 				Send403(w, r)
 				return
 			}
-		}
-
-		if event := server.onEvent(Event.NewInfo(
-			Event.HandlingHttpRequest,
-			"Handling http request",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance:  Event.HttpRequest,
-				Event.Pattern:       pattern,
-				Event.ClientType:    Event.HttpRequest,
-				Event.ClientAddress: r.RemoteAddr,
-			},
-		)); !event.IsInfo() {
-			Send403(w, r)
-			return
 		}
 
 		handler(w, r)
