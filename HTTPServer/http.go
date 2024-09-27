@@ -1,6 +1,7 @@
 package HTTPServer
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -20,15 +21,14 @@ type HTTPServer struct {
 	name string
 
 	status      int
-	statusMutex sync.Mutex
-
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
+	statusMutex sync.RWMutex
 
 	config     *Config.HTTPServer
 	httpServer *http.Server
 	blacklist  *Tools.AccessControlList
 	whitelist  *Tools.AccessControlList
+
+	eventHandler Event.Handler
 
 	mux *CustomMux
 
@@ -58,25 +58,37 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 		file := Helpers.OpenFileAppend(config.ErrorLoggerPath)
 		server.httpServer.ErrorLog = log.New(file, "[Error: \""+server.GetName()+"\"] ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
-	if config.WarningLoggerPath != "" {
-		server.warningLogger = Tools.NewLogger("[Warning: \""+server.GetName()+"\"] ", config.WarningLoggerPath)
-	}
-	if config.InfoLoggerPath != "" {
-		server.infoLogger = Tools.NewLogger("[Info: \""+server.GetName()+"\"] ", config.InfoLoggerPath)
-	}
 	return server
 }
 
 func (server *HTTPServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.StartingService,
+		"Starting HTTP server",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.Start,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	if server.status != Status.Stoped {
-		return Event.New("http server not stopped", nil)
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStarted,
+			"HTTP server not stopped",
+			Event.Context{
+				Event.Circumstance: Event.Start,
+			},
+		))
+		return errors.New("failed to start http server")
 	}
 	server.status = Status.Pending
-	if server.infoLogger != nil {
-		server.infoLogger.Log("starting http server")
-	}
 
 	server.httpServer = &http.Server{
 		MaxHeaderBytes:    int(server.config.MaxHeaderBytes),
@@ -151,7 +163,7 @@ func (server *HTTPServer) Stop() error {
 }
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
-	server.mux.AddRoute(pattern, server.httpRequestWrapper(handlerFunc))
+	server.mux.AddRoute(pattern, server.httpRequestWrapper(pattern, handlerFunc))
 }
 
 func (server *HTTPServer) RemoveRoute(pattern string) {
@@ -172,4 +184,20 @@ func (server *HTTPServer) GetName() string {
 
 func (server *HTTPServer) GetStatus() int {
 	return server.status
+}
+
+func (server *HTTPServer) onEvent(event *Event.Event) *Event.Event {
+	event.GetContext().Merge(server.GetServerContext())
+	if server.eventHandler == nil {
+		return event
+	}
+	return server.eventHandler(event)
+}
+func (server *HTTPServer) GetServerContext() Event.Context {
+	return Event.Context{
+		Event.ServiceType:   Event.TcpSystemgeListener,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+	}
 }

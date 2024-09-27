@@ -38,3 +38,5 @@ const Result = "result"
 const ServerName = "serverName"
 
 const ClientName = "clientName"
+
+const Pattern = "pattern"

@@ -3,10 +3,20 @@ package HTTPServer
 import (
 	"net"
 	"net/http"
+
+	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Status"
 )
 
-func (server *HTTPServer) httpRequestWrapper(handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		server.statusMutex.RLock()
+		defer server.statusMutex.RUnlock()
+		if server.status != Status.Started {
+			Send403(w, r)
+			return
+		}
+
 		server.requestCounter.Add(1)
 		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
 
@@ -27,7 +37,30 @@ func (server *HTTPServer) httpRequestWrapper(handler func(w http.ResponseWriter,
 				return
 			}
 		}
+
+		if event := server.onEvent(Event.NewInfo(
+			Event.HandlingHttpRequest,
+			"Handling HTTP request",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Pattern: pattern,
+			},
+		)); !event.IsInfo() {
+			Send403(w, r)
+			return
+		}
+
 		handler(w, r)
+
+		server.onEvent(Event.NewInfoNoOption(
+			Event.HandledHttpRequest,
+			"Handled HTTP request",
+			Event.Context{
+				Event.Pattern: pattern,
+			},
+		))
 	}
 }
 
