@@ -174,7 +174,13 @@ func (server *HTTPServer) Stop() error {
 
 	err := server.httpServer.Close()
 	if err != nil {
-		return err
+		server.onEvent(Event.NewErrorNoOption(
+			Event.UnexpectedError,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance: Event.Stop,
+			},
+		))
 	}
 	server.httpServer = nil
 

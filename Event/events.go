@@ -125,3 +125,5 @@ const InitializingSyncRequest = "initializingSyncRequest"
 const InitializedSyncRequest = "initializedSyncRequest"
 
 const UnknownSyncToken = "unknownSyncToken"
+
+const UnexpectedError = "unexpectedError"
