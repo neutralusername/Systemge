@@ -36,7 +36,6 @@ type SystemgeConnection interface {
 	CheckMessagesReceived() uint64
 	CheckInvalidMessagesReceived() uint64
 	CheckRejectedMessages() uint64
-	CheckInvalidSyncResponsesReceived() uint64
 	CheckNoSyncResponseReceived() uint64
 	CheckSyncFailureResponsesReceived() uint64
 	CheckSyncSuccessResponsesReceived() uint64
@@ -49,7 +48,6 @@ type SystemgeConnection interface {
 	GetMessagesReceived() uint64
 	GetInvalidMessagesReceived() uint64
 	GetRejectedMessages() uint64
-	GetInvalidSyncResponsesReceived() uint64
 	GetNoSyncResponseReceived() uint64
 	GetSyncFailureResponsesReceived() uint64
 	GetSyncSuccessResponsesReceived() uint64
