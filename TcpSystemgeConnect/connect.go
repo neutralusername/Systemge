@@ -34,7 +34,7 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 		return nil, err
 	}
 	messageReceiver := Tcp.NewBufferedMessageReceiver(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes)
-	messageBytes, _, err := messageReceiver.ReceiveNextMessage()
+	messageBytes, err := messageReceiver.ReceiveNextMessage()
 	if err != nil {
 		return nil, err
 	}
