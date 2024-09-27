@@ -55,3 +55,5 @@ const HandleMessage = "handleMessage"
 const AddSyncResponse = "addSyncResponse"
 
 const RemoveSyncRequest = "removeSyncRequest"
+
+const AbortSyncRequest = "abortSyncRequest"

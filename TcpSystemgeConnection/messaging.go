@@ -234,7 +234,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 	syncRequestStruct, ok := connection.syncRequests[syncToken]
 	if !ok {
 		connection.onEvent(Event.NewWarningNoOption(
-			Event.SyncTokenDoesNotExist,
+			Event.UnknownSyncToken,
 			"no sync token",
 			Event.Context{
 				Event.Circumstance:  Event.AbortSyncRequest,
@@ -244,7 +244,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 				Event.SyncToken:     syncToken,
 			},
 		))
-		return Event.New("No response channel found", nil)
+		return errors.New("No response channel found")
 	}
 
 	close(syncRequestStruct.abortChannel)
@@ -335,7 +335,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 	syncRequestStruct, ok := connection.syncRequests[message.GetSyncToken()]
 	if !ok {
 		connection.onEvent(Event.NewWarningNoOption(
-			Event.UnknownSyncKey,
+			Event.UnknownSyncToken,
 			"unknown sync key",
 			Event.Context{
 				Event.Circumstance:  Event.AddSyncResponse,
@@ -390,7 +390,7 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 	_, ok := connection.syncRequests[syncToken]
 	if !ok {
 		connection.onEvent(Event.NewWarningNoOption(
-			Event.UnknownSyncKey,
+			Event.UnknownSyncToken,
 			"unknown sync key",
 			Event.Context{
 				Event.Circumstance:  Event.RemoveSyncRequest,

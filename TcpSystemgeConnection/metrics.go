@@ -24,7 +24,6 @@ func (connection *TcpSystemgeConnection) CheckMetrics() Metrics.MetricsTypes {
 			"sync_success_responses_received": connection.CheckSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": connection.CheckSyncFailureResponsesReceived(),
 			"no_sync_response_received":       connection.CheckNoSyncResponseReceived(),
-			"invalid_sync_responses_received": connection.CheckInvalidSyncResponsesReceived(),
 		},
 	))
 	metricsTypes.AddMetrics("tcpSystemgeConnection_messagesReceived", Metrics.New(
@@ -57,7 +56,6 @@ func (connection *TcpSystemgeConnection) GetMetrics() Metrics.MetricsTypes {
 			"sync_success_responses_received": connection.GetSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": connection.GetSyncFailureResponsesReceived(),
 			"no_sync_response_received":       connection.GetNoSyncResponseReceived(),
-			"invalid_sync_responses_received": connection.GetInvalidSyncResponsesReceived(),
 		},
 	))
 	metricsTypes.AddMetrics("tcpSystemgeConnection_messagesReceived", Metrics.New(
@@ -124,13 +122,6 @@ func (connection *TcpSystemgeConnection) CheckNoSyncResponseReceived() uint64 {
 }
 func (connection *TcpSystemgeConnection) GetNoSyncResponseReceived() uint64 {
 	return connection.noSyncResponseReceived.Swap(0)
-}
-
-func (receiver *TcpSystemgeConnection) CheckInvalidSyncResponsesReceived() uint64 {
-	return receiver.invalidSyncResponsesReceived.Load()
-}
-func (receiver *TcpSystemgeConnection) GetInvalidSyncResponsesReceived() uint64 {
-	return receiver.invalidSyncResponsesReceived.Swap(0)
 }
 
 func (receiver *TcpSystemgeConnection) CheckMessagesReceived() uint64 {

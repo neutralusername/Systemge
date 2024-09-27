@@ -118,7 +118,10 @@ const AddedSyncResponse = "addedSyncResponse"
 const RemovingSyncRequest = "removingSyncRequest"
 const RemovedSyncRequest = "removedSyncRequest"
 
+const AbortingSyncRequest = "abortingSyncRequest"
+const AbortedSyncRequest = "abortedSyncRequest"
+
 const InitializingSyncRequest = "initializingSyncRequest"
 const InitializedSyncRequest = "initializedSyncRequest"
 
-const UnknownSyncKey = "unknownSyncKey"
+const UnknownSyncToken = "unknownSyncToken"
