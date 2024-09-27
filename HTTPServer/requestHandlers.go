@@ -44,14 +44,42 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 		}
 		if server.GetBlacklist() != nil {
 			if server.GetBlacklist().Contains(ip) {
-				Send403(w, r)
-				return
+				if event := server.onEvent(Event.NewWarning(
+					Event.Blacklisted,
+					"Client not accepted",
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:  Event.HttpRequest,
+						Event.Pattern:       pattern,
+						Event.ClientType:    Event.HttpRequest,
+						Event.ClientAddress: r.RemoteAddr,
+					},
+				)); !event.IsWarning() {
+					Send403(w, r)
+					return
+				}
 			}
 		}
 		if server.GetWhitelist() != nil && server.GetWhitelist().ElementCount() > 0 {
 			if !server.GetWhitelist().Contains(ip) {
-				Send403(w, r)
-				return
+				if event := server.onEvent(Event.NewWarning(
+					Event.NotWhitelisted,
+					"Client not accepted",
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:  Event.HttpRequest,
+						Event.Pattern:       pattern,
+						Event.ClientType:    Event.HttpRequest,
+						Event.ClientAddress: r.RemoteAddr,
+					},
+				)); !event.IsWarning() {
+					Send403(w, r)
+					return
+				}
 			}
 		}
 
