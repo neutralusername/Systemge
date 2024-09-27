@@ -40,7 +40,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 
 		if event := server.onEvent(Event.NewInfo(
 			Event.HandlingHttpRequest,
-			"Handling HTTP request",
+			"Handling http request",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -59,7 +59,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 
 		server.onEvent(Event.NewInfoNoOption(
 			Event.HandledHttpRequest,
-			"Handled HTTP request",
+			"Handled http request",
 			Event.Context{
 				Event.Circumstance:  Event.HttpRequest,
 				Event.Pattern:       pattern,
