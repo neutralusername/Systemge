@@ -45,7 +45,8 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Pattern: pattern,
+				Event.Circumstance: Event.HttpRequest,
+				Event.Pattern:      pattern,
 			},
 		)); !event.IsInfo() {
 			Send403(w, r)
@@ -58,7 +59,8 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Event.HandledHttpRequest,
 			"Handled HTTP request",
 			Event.Context{
-				Event.Pattern: pattern,
+				Event.Circumstance: Event.HttpRequest,
+				Event.Pattern:      pattern,
 			},
 		))
 	}
