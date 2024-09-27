@@ -24,6 +24,7 @@ const (
 	Skip     = int8(1)
 	Cancel   = int8(2)
 	Retry    = int8(3)
+	Panic    = int8(4)
 )
 
 type Event struct {

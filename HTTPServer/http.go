@@ -108,9 +108,12 @@ func (server *HTTPServer) Start() error {
 				if !ended {
 					errorChannel <- err
 				} else if http.ErrServerClosed != err {
-					if event := server.onEvent(Event.NewErrorNoOption(
+					if event := server.onEvent(Event.NewError(
 						Event.UnexpectedError,
 						err.Error(),
+						Event.Panic,
+						Event.Panic,
+						Event.Cancel,
 						Event.Context{
 							Event.Circumstance: Event.Start,
 						},
@@ -125,9 +128,12 @@ func (server *HTTPServer) Start() error {
 				if !ended {
 					errorChannel <- err
 				} else if http.ErrServerClosed != err {
-					if event := server.onEvent(Event.NewErrorNoOption(
+					if event := server.onEvent(Event.NewError(
 						Event.UnexpectedError,
 						err.Error(),
+						Event.Panic,
+						Event.Panic,
+						Event.Cancel,
 						Event.Context{
 							Event.Circumstance: Event.Start,
 						},
