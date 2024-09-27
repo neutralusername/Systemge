@@ -43,10 +43,6 @@ const ReceivingMessage = "receivingMessage"
 const ReceivedMessage = "receivedMessage"
 const ReceivingMessageFailed = "receivingMessageFailed"
 
-const AddingSyncResponse = "addingSyncResponse"
-const UnknownSyncKey = "unknownSyncKey"
-const AddedSyncResponse = "addedSyncResponse"
-
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"
 
@@ -115,3 +111,14 @@ const HandlerFailed = "handlerFailed"
 const UnexpectedNilValue = "unexpectedNilValue"
 
 const NoSyncToken = "noSyncToken"
+
+const AddingSyncResponse = "addingSyncResponse"
+const AddedSyncResponse = "addedSyncResponse"
+
+const RemovingSyncRequest = "removingSyncRequest"
+const RemovedSyncRequest = "removedSyncRequest"
+
+const InitializingSyncRequest = "initializingSyncRequest"
+const InitializedSyncRequest = "initializedSyncRequest"
+
+const UnknownSyncKey = "unknownSyncKey"

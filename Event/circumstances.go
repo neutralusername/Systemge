@@ -51,3 +51,7 @@ const MessageHandlingLoop = "messageHandlingLoop"
 const RetrievingNextMessage = "retrievingNextMessage"
 
 const HandleMessage = "handleMessage"
+
+const AddSyncResponse = "addSyncResponse"
+
+const RemoveSyncRequest = "removeSyncRequest"

@@ -322,7 +322,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.SyncResponse,
+			Event.Circumstance:  Event.AddSyncResponse,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
@@ -338,7 +338,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 			Event.UnknownSyncKey,
 			"unknown sync key",
 			Event.Context{
-				Event.Circumstance:  Event.SyncResponse,
+				Event.Circumstance:  Event.AddSyncResponse,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
@@ -361,7 +361,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 		Event.AddedSyncResponse,
 		"sync response added",
 		Event.Context{
-			Event.Circumstance:  Event.SyncResponse,
+			Event.Circumstance:  Event.AddSyncResponse,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
@@ -374,11 +374,49 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) error {
 	connection.syncMutex.Lock()
 	defer connection.syncMutex.Unlock()
-	if _, ok := connection.syncRequests[syncToken]; ok {
-		delete(connection.syncRequests, syncToken)
-		return nil
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.RemovingSyncRequest,
+		"removing sync request",
+		Event.Context{
+			Event.Circumstance:  Event.RemoveSyncRequest,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.SyncToken:     syncToken,
+		},
+	))
+
+	_, ok := connection.syncRequests[syncToken]
+	if !ok {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.UnknownSyncKey,
+			"unknown sync key",
+			Event.Context{
+				Event.Circumstance:  Event.RemoveSyncRequest,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientName:    connection.name,
+				Event.ClientAddress: connection.GetAddress(),
+				Event.SyncToken:     syncToken,
+			},
+		))
+		return errors.New("No response channel found")
 	}
-	return Event.New("No response channel found", nil)
+	delete(connection.syncRequests, syncToken)
+
+	connection.onEvent(Event.NewInfoNoOption(
+		Event.RemovedSyncRequest,
+		"sync request removed",
+		Event.Context{
+			Event.Circumstance:  Event.RemoveSyncRequest,
+			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.ClientName:    connection.name,
+			Event.ClientAddress: connection.GetAddress(),
+			Event.SyncToken:     syncToken,
+		},
+	))
+
+	return nil
 }
 
 type syncRequestStruct struct {
