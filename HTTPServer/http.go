@@ -127,6 +127,15 @@ func (server *HTTPServer) Start() error {
 	select {
 	case err := <-errorChannel:
 		server.status = Status.Stoped
+		server.onEvent(Event.NewErrorNoOption(
+			Event.UnexpectedError,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance: Event.Start,
+			},
+		))
+		server.httpServer = nil
+		server.status = Status.Stoped
 		return err
 	default:
 	}
