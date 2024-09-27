@@ -67,7 +67,7 @@ func (server *HTTPServer) Start() error {
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.StartingService,
-		"Starting HTTP server",
+		"Starting http server",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -81,7 +81,7 @@ func (server *HTTPServer) Start() error {
 	if server.status != Status.Stoped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
-			"HTTP server not stopped",
+			"http server not stopped",
 			Event.Context{
 				Event.Circumstance: Event.Start,
 			},
@@ -127,13 +127,18 @@ func (server *HTTPServer) Start() error {
 	select {
 	case err := <-errorChannel:
 		server.status = Status.Stoped
-		return Event.New("failed to start http server", err)
+		return err
 	default:
 	}
 
-	if server.infoLogger != nil {
-		server.infoLogger.Log("http server started")
-	}
+	server.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStarted,
+		"http server started",
+		Event.Context{
+			Event.Circumstance: Event.Start,
+		},
+	))
+
 	server.status = Status.Started
 	return nil
 }
@@ -141,23 +146,45 @@ func (server *HTTPServer) Start() error {
 func (server *HTTPServer) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.StoppingService,
+		"Stopping http server",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.Stop,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	if server.status != Status.Started {
-		return Event.New("http server not started", nil)
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"http server not started",
+			Event.Context{
+				Event.Circumstance: Event.Stop,
+			},
+		))
+		return errors.New("http server not started")
 	}
 	server.status = Status.Pending
-	if server.infoLogger != nil {
-		server.infoLogger.Log("stopping http server")
-	}
 
 	err := server.httpServer.Close()
 	if err != nil {
-		return Event.New("failed stopping http server", err)
+		return err
 	}
 	server.httpServer = nil
 
-	if server.infoLogger != nil {
-		server.infoLogger.Log("http server stopped")
-	}
+	server.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStopped,
+		"http server stopped",
+		Event.Context{
+			Event.Circumstance: Event.Stop,
+		},
+	))
 	server.status = Status.Stoped
 	return nil
 }
