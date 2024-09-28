@@ -173,9 +173,9 @@ func (server *SystemgeServer) GetAcceptedConnectionAttempts() uint64 {
 
 func (server *SystemgeServer) CheckBytesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -187,9 +187,9 @@ func (server *SystemgeServer) CheckBytesSent() uint64 {
 }
 func (server *SystemgeServer) GetBytesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -202,9 +202,9 @@ func (server *SystemgeServer) GetBytesSent() uint64 {
 
 func (server *SystemgeServer) CheckBytesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -216,9 +216,9 @@ func (server *SystemgeServer) CheckBytesReceived() uint64 {
 }
 func (server *SystemgeServer) GetBytesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -231,9 +231,9 @@ func (server *SystemgeServer) GetBytesReceived() uint64 {
 
 func (server *SystemgeServer) CheckAsyncMessagesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -245,9 +245,9 @@ func (server *SystemgeServer) CheckAsyncMessagesSent() uint64 {
 }
 func (server *SystemgeServer) GetAsyncMessagesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -260,9 +260,9 @@ func (server *SystemgeServer) GetAsyncMessagesSent() uint64 {
 
 func (server *SystemgeServer) CheckSyncRequestsSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -274,9 +274,9 @@ func (server *SystemgeServer) CheckSyncRequestsSent() uint64 {
 }
 func (server *SystemgeServer) GetSyncRequestsSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -289,9 +289,9 @@ func (server *SystemgeServer) GetSyncRequestsSent() uint64 {
 
 func (server *SystemgeServer) CheckSyncSuccessResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -303,9 +303,9 @@ func (server *SystemgeServer) CheckSyncSuccessResponsesReceived() uint64 {
 }
 func (server *SystemgeServer) GetSyncSuccessResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -318,9 +318,9 @@ func (server *SystemgeServer) GetSyncSuccessResponsesReceived() uint64 {
 
 func (server *SystemgeServer) CheckSyncFailureResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -332,9 +332,9 @@ func (server *SystemgeServer) CheckSyncFailureResponsesReceived() uint64 {
 }
 func (server *SystemgeServer) GetSyncFailureResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -347,9 +347,9 @@ func (server *SystemgeServer) GetSyncFailureResponsesReceived() uint64 {
 
 func (server *SystemgeServer) CheckNoSyncResponseReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -361,9 +361,9 @@ func (server *SystemgeServer) CheckNoSyncResponseReceived() uint64 {
 }
 func (server *SystemgeServer) GetNoSyncResponseReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -376,9 +376,9 @@ func (server *SystemgeServer) GetNoSyncResponseReceived() uint64 {
 
 func (server *SystemgeServer) CheckInvalidMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -390,9 +390,9 @@ func (server *SystemgeServer) CheckInvalidMessagesReceived() uint64 {
 }
 func (server *SystemgeServer) GetInvalidMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -405,9 +405,9 @@ func (server *SystemgeServer) GetInvalidMessagesReceived() uint64 {
 
 func (server *SystemgeServer) CheckSyncResponsesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -419,9 +419,9 @@ func (server *SystemgeServer) CheckSyncResponsesSent() uint64 {
 }
 func (server *SystemgeServer) GetSyncResponsesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -434,9 +434,9 @@ func (server *SystemgeServer) GetSyncResponsesSent() uint64 {
 
 func (server *SystemgeServer) CheckMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -448,9 +448,9 @@ func (server *SystemgeServer) CheckMessagesReceived() uint64 {
 }
 func (server *SystemgeServer) GetMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -463,9 +463,9 @@ func (server *SystemgeServer) GetMessagesReceived() uint64 {
 
 func (server *SystemgeServer) CheckRejectedMessages() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 
@@ -477,9 +477,9 @@ func (server *SystemgeServer) CheckRejectedMessages() uint64 {
 }
 func (server *SystemgeServer) GetRejectedMessages() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 

@@ -9,9 +9,9 @@ import (
 
 func (server *SystemgeServer) RemoveConnection(name string) error {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 	if server.status != Status.Started {
@@ -26,9 +26,9 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 
 func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 	if server.status != Status.Started {
@@ -43,9 +43,9 @@ func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string
 
 func (Server *SystemgeServer) GetConnections() []SystemgeConnection.SystemgeConnection {
 	Server.statusMutex.RLock()
-	Server.mutex.Lock()
+	Server.mutex.RLock()
 	defer func() {
-		Server.mutex.Unlock()
+		Server.mutex.RUnlock()
 		Server.statusMutex.RUnlock()
 	}()
 	if Server.status != Status.Started {
@@ -60,9 +60,9 @@ func (Server *SystemgeServer) GetConnections() []SystemgeConnection.SystemgeConn
 
 func (server *SystemgeServer) GetConnection(name string) SystemgeConnection.SystemgeConnection {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 	if server.status != Status.Started {
@@ -76,9 +76,9 @@ func (server *SystemgeServer) GetConnection(name string) SystemgeConnection.Syst
 
 func (server *SystemgeServer) GetConnectionCount() int {
 	server.statusMutex.RLock()
-	server.mutex.Lock()
+	server.mutex.RLock()
 	defer func() {
-		server.mutex.Unlock()
+		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
 	if server.status != Status.Started {

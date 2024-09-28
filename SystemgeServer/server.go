@@ -31,7 +31,7 @@ type SystemgeServer struct {
 	listener SystemgeListener.SystemgeListener
 
 	clients     map[string]SystemgeConnection.SystemgeConnection // name -> connection
-	mutex       sync.Mutex
+	mutex       sync.RWMutex
 	stopChannel chan bool
 
 	waitGroup sync.WaitGroup
