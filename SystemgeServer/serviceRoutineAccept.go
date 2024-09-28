@@ -108,7 +108,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		go func() {
 			select {
 			case <-connection.GetCloseChannel():
-			case <-stopChannel:
+			case <-server.stopChannel:
 				connection.Close()
 			}
 			server.mutex.Lock()
@@ -122,22 +122,15 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			}
 
 			server.waitGroup.Done()
-
-			if server.infoLogger != nil {
-				server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
-			}
 		}()
 
 		if server.onConnectHandler != nil {
 			if err := server.onConnectHandler(connection); err != nil {
 				connection.Close()
-				return
+				return err // !!
 			}
 		}
 		isAccepted = true
-
-		if server.infoLogger != nil {
-			server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
-		}
+		return nil
 	}
 }
