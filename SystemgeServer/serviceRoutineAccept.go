@@ -55,8 +55,8 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		)); !event.IsInfo() {
 			return event.GetError()
 		}
-		server.waitGroup.Add(1)
 
+		server.waitGroup.Add(1)
 		connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 		if err != nil {
 			if event := server.onEvent(Event.NewInfo(
@@ -74,7 +74,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 				return event.GetError()
 			} else {
 				server.waitGroup.Done()
-				return err
+				return nil
 			}
 		}
 
