@@ -66,7 +66,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	defer websocketConnection.sendMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.SendingClientMessage,
+		Event.SendingMessage,
 		"sending websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -87,7 +87,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	if err != nil {
 		server.websocketConnectionMessagesFailed.Add(1)
 		server.onEvent(Event.NewWarningNoOption(
-			Event.SendingClientMessageFailed,
+			Event.SendingMessageFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  circumstance,
@@ -103,7 +103,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.SentClientMessage,
+		Event.SentMessage,
 		"sent websocketConnection message",
 		Event.Context{
 			Event.Circumstance:  circumstance,

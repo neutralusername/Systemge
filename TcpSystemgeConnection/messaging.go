@@ -15,7 +15,7 @@ func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance 
 	defer connection.sendMutex.Unlock()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.SendingClientMessage,
+		Event.SendingMessage,
 		"sending message",
 		Event.Cancel,
 		Event.Cancel,
@@ -34,7 +34,7 @@ func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance 
 	bytesSent, err := Tcp.Send(connection.netConn, messageBytes, connection.config.TcpSendTimeoutMs)
 	if err != nil {
 		connection.onEvent(Event.NewWarningNoOption(
-			Event.SendingClientMessageFailed,
+			Event.SendingMessageFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  circumstance,
@@ -52,7 +52,7 @@ func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance 
 	connection.bytesSent.Add(bytesSent)
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentClientMessage,
+		Event.SentMessage,
 		"message sent",
 		Event.Context{
 			Event.Circumstance:  circumstance,
@@ -127,7 +127,7 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
 	synctoken, syncRequestStruct := connection.initResponseChannel()
 	if event := connection.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.SendingMultiMessage,
 		"sending sync request",
 		Event.Cancel,
 		Event.Cancel,
@@ -181,7 +181,7 @@ func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-c
 	}()
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.SentMultiMessage,
 		"sync request sent",
 		Event.Context{
 			Event.Circumstance:  Event.SyncRequest,

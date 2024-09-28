@@ -15,12 +15,12 @@ const AcceptionRoutineFinished = "acceptionRoutineFinished"
 const ReceptionRoutineStarted = "receptionRoutineStarted"
 const ReceptionRoutineFinished = "receptionRoutineFinished"
 
+const SendingMultiMessage = "sendingMultiMessage"
+const SentMultiMessage = "sentMultiMessage"
+
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
-
-const SendingClientMessage = "sendingClientMessage"
-const SentClientMessage = "sentClientMessage"
-const SendingClientMessageFailed = "sendingClientMessageFailed"
+const SendingMessageFailed = "sendingMessageFailed"
 
 const AcceptingClient = "acceptingConnection"
 const AcceptingClientFailed = "acceptingConnectionFailed"

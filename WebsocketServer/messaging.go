@@ -18,7 +18,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	server.websocketConnectionMutex.RLock()
 	targetClientIds := Helpers.JsonMarshal(server.GetWebsocketConnectionIds())
 	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.SendingMultiMessage,
 		"broadcasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -71,7 +71,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	waitGroup.ExecuteTasksConcurrently()
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.SentMultiMessage,
 		"broadcasted websocketConnection message",
 		Event.Context{
 			Event.Circumstance:    Event.Broadcast,
@@ -93,7 +93,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 
 	server.websocketConnectionMutex.RLock()
 	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.SendingMultiMessage,
 		"unicasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -159,7 +159,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 	waitGroup.ExecuteTasksConcurrently()
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.SentMultiMessage,
 		"unicasted websocketConnection message",
 		Event.Context{
 			Event.Circumstance:   Event.Unicast,
@@ -182,7 +182,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	server.websocketConnectionMutex.RLock()
 	targetClientIds := Helpers.JsonMarshal(ids)
 	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.SendingMultiMessage,
 		"multicasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -260,7 +260,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	waitGroup.ExecuteTasksConcurrently()
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.SentMultiMessage,
 		"multicasted websocketConnection message",
 		Event.Context{
 			Event.Circumstance:    Event.Multicast,
@@ -282,7 +282,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 
 	server.websocketConnectionMutex.RLock()
 	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.SendingMultiMessage,
 		"groupcasting websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -352,7 +352,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 	waitGroup.ExecuteTasksConcurrently()
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.SentMultiMessage,
 		"groupcasted websocketConnection message",
 		Event.Context{
 			Event.Circumstance: Event.Groupcast,

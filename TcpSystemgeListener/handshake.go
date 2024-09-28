@@ -134,7 +134,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 	_, err = Tcp.Send(netConn, Message.NewAsync(Message.TOPIC_NAME, listener.name).Serialize(), connectionConfig.TcpSendTimeoutMs)
 	if err != nil {
 		listener.onEvent(Event.NewWarningNoOption(
-			Event.SendingClientMessageFailed,
+			Event.SendingMessageFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
