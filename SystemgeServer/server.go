@@ -1,6 +1,7 @@
 package SystemgeServer
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
@@ -41,18 +42,18 @@ type SystemgeServer struct {
 	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) *SystemgeServer {
+func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) (*SystemgeServer, error) {
 	if config == nil {
-		panic("config is nil")
+		return nil, errors.New("config is nil")
 	}
 	if config.TcpSystemgeConnectionConfig == nil {
-		panic("config.ConnectionConfig is nil")
+		return nil, errors.New("config.ConnectionConfig is nil")
 	}
 	if config.TcpSystemgeListenerConfig == nil {
-		panic("listener is nil")
+		return nil, errors.New("config.ListenerConfig is nil")
 	}
 	if config.TcpSystemgeListenerConfig.TcpServerConfig == nil {
-		panic("listener.ListenerConfig is nil")
+		return nil, errors.New("config.ListenerConfig.ServerConfig is nil")
 	}
 
 	server := &SystemgeServer{
@@ -67,7 +68,7 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 
 		clients: make(map[string]SystemgeConnection.SystemgeConnection),
 	}
-	return server
+	return server, nil
 }
 
 func (server *SystemgeServer) GetName() string {

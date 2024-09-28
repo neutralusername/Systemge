@@ -21,7 +21,7 @@ func (server *SystemgeServer) Start() error {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("starting server")
 	}
-	listener, err := TcpSystemgeListener.New(server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist)
+	listener, err := TcpSystemgeListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
 		server.status = Status.Stoped
 		return Event.New("failed to create listener", err)
