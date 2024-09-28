@@ -116,10 +116,8 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
 		},
 	)); !event.IsInfo() {
-		if websocketConn != nil {
-			websocketConn.Close()
-			server.websocketConnectionsRejected.Add(1)
-		}
+		websocketConn.Close()
+		server.websocketConnectionsRejected.Add(1)
 		return
 	}
 
