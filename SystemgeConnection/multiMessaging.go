@@ -51,7 +51,10 @@ func MultiSyncRequestBlocking(topic, payload string, connections ...SystemgeConn
 		waitgroup.Add(1)
 		go func(connection SystemgeConnection) {
 			defer waitgroup.Done()
-			response, _ := connection.SyncRequestBlocking(topic, payload)
+			response, err := connection.SyncRequestBlocking(topic, payload)
+			if err != nil {
+				return
+			}
 			responses = append(responses, response)
 		}(connection)
 	}
