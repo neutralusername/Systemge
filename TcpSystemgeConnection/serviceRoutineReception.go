@@ -128,7 +128,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 					Event.Context{
 						Event.Circumstance:  Event.HandleReception,
 						Event.Behaviour:     Event.Sequential,
-						Event.ClientType:    Event.WebsocketConnection,
+						Event.ClientType:    Event.TcpSystemgeConnection,
 						Event.ClientName:    connection.GetName(),
 						Event.ClientAddress: connection.GetAddress(),
 					},
@@ -152,7 +152,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 						Event.Context{
 							Event.Circumstance:  Event.HandleReception,
 							Event.Behaviour:     Event.Concurrent,
-							Event.ClientType:    Event.WebsocketConnection,
+							Event.ClientType:    Event.TcpSystemgeConnection,
 							Event.ClientName:    connection.GetName(),
 							Event.ClientAddress: connection.GetAddress(),
 						},
