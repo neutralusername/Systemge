@@ -14,8 +14,6 @@ func (server *SystemgeServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 
-	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
-
 	if event := server.onEvent(Event.NewInfo(
 		Event.ServiceStarting,
 		"starting systemgeServer",
@@ -39,6 +37,7 @@ func (server *SystemgeServer) Start() error {
 		))
 		return errors.New("failed to start systemge server")
 	}
+	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
 
 	listener, err := TcpSystemgeListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)

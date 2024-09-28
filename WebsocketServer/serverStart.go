@@ -18,8 +18,6 @@ func (server *WebsocketServer) start(lock bool) error {
 		defer server.statusMutex.Unlock()
 	}
 
-	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
-
 	if event := server.onEvent(Event.NewInfo(
 		Event.ServiceStarting,
 		"service websocketServer starting",
@@ -43,6 +41,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		))
 		return errors.New("failed to start websocketServer")
 	}
+	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
 
 	if server.config.IpRateLimiter != nil {
