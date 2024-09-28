@@ -78,24 +78,25 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 		websocketConnection.waitGroup.Add(1)
 		go func() {
 			defer websocketConnection.waitGroup.Done()
-			err := server.handleReception(websocketConnection, messageBytes)
-			if event := server.onEvent(Event.NewInfo(
-				Event.HandleReceptionFailed,
-				err.Error(),
-				Event.Cancel,
-				Event.Cancel,
-				Event.Continue,
-				Event.Context{
-					Event.Circumstance:  Event.HandleReception,
-					Event.ClientType:    Event.WebsocketConnection,
-					Event.ClientId:      websocketConnection.GetId(),
-					Event.ClientAddress: websocketConnection.GetAddress(),
-				},
-			)); !event.IsInfo() {
-				websocketConnection.Close()
-			} else {
-				if server.config.PropagateMessageHandlerErrors {
-					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+			if err := server.handleReception(websocketConnection, messageBytes); err != nil {
+				if event := server.onEvent(Event.NewInfo(
+					Event.HandleReceptionFailed,
+					err.Error(),
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:  Event.HandleReception,
+						Event.ClientType:    Event.WebsocketConnection,
+						Event.ClientId:      websocketConnection.GetId(),
+						Event.ClientAddress: websocketConnection.GetAddress(),
+					},
+				)); !event.IsInfo() {
+					websocketConnection.Close()
+				} else {
+					if server.config.PropagateMessageHandlerErrors {
+						server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+					}
 				}
 			}
 		}()
