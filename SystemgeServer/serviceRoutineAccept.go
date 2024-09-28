@@ -38,8 +38,10 @@ func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
 }
 
 func (server *SystemgeServer) acceptSystemgeConnection() error {
+	server.waitGroup.Add(1)
 	select {
 	case <-server.stopChannel:
+		server.waitGroup.Done()
 		return errors.New("systemgeServer stopped")
 	default:
 		if event := server.onEvent(Event.NewInfo(
@@ -53,10 +55,10 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 				Event.ClientType:   Event.SystemgeConnection,
 			},
 		)); !event.IsInfo() {
+			server.waitGroup.Done()
 			return event.GetError()
 		}
 
-		server.waitGroup.Add(1)
 		connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 		if err != nil {
 			event := server.onEvent(Event.NewInfo(
