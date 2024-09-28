@@ -120,16 +120,12 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	))
 	if event.IsError() {
 		connection.Close()
-		server.mutex.Lock()
-		delete(server.clients, connection.GetName())
-		server.mutex.Unlock()
+		server.removeSystemgeConnection(connection.GetName())
 		return event.GetError()
 	}
 	if event.IsWarning() {
 		connection.Close()
-		server.mutex.Lock()
-		delete(server.clients, connection.GetName())
-		server.mutex.Unlock()
+		server.removeSystemgeConnection(connection.GetName())
 		return nil
 	}
 
@@ -163,9 +159,7 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 		},
 	))
 
-	server.mutex.Lock()
-	delete(server.clients, connection.GetName())
-	server.mutex.Unlock()
+	server.removeSystemgeConnection(connection.GetName())
 
 	server.onEvent(Event.NewInfoNoOption(
 		Event.DisconnectedClient,
@@ -177,4 +171,10 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 			Event.ClientAddress: connection.GetAddress(),
 		},
 	))
+}
+
+func (server *SystemgeServer) removeSystemgeConnection(name string) {
+	server.mutex.Lock()
+	defer server.mutex.Unlock()
+	delete(server.clients, name)
 }

@@ -23,18 +23,17 @@ type SystemgeServer struct {
 
 	status      int
 	statusMutex sync.RWMutex
-
-	whitelist *Tools.AccessControlList
-	blacklist *Tools.AccessControlList
+	stopChannel chan bool
+	waitGroup   sync.WaitGroup
 
 	config   *Config.SystemgeServer
 	listener SystemgeListener.SystemgeListener
 
-	clients     map[string]SystemgeConnection.SystemgeConnection // name -> connection
-	mutex       sync.RWMutex
-	stopChannel chan bool
+	whitelist *Tools.AccessControlList
+	blacklist *Tools.AccessControlList
 
-	waitGroup sync.WaitGroup
+	clients map[string]SystemgeConnection.SystemgeConnection // name -> connection
+	mutex   sync.RWMutex
 
 	eventHandler Event.Handler
 }
