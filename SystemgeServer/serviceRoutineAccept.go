@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
@@ -144,41 +145,43 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	server.clients[connection.GetName()] = connection
 	server.mutex.Unlock()
 
-	go func() {
-		defer server.waitGroup.Done()
-
-		select {
-		case <-connection.GetCloseChannel():
-		case <-server.stopChannel:
-			connection.Close()
-		}
-
-		server.onEvent(Event.NewInfoNoOption(
-			Event.DisconnectingClient,
-			"disconnecting systemgeConnection",
-			Event.Context{
-				Event.Circumstance:  Event.Disconnection,
-				Event.ClientType:    Event.SystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetAddress(),
-			},
-		))
-
-		server.mutex.Lock()
-		delete(server.clients, connection.GetName())
-		server.mutex.Unlock()
-
-		server.onEvent(Event.NewInfoNoOption(
-			Event.DisconnectedClient,
-			"systemgeConnection disconnected",
-			Event.Context{
-				Event.Circumstance:  Event.Disconnection,
-				Event.ClientType:    Event.SystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetAddress(),
-			},
-		))
-	}()
+	go server.handleSystemgeDisconnect(connection)
 
 	return nil
+}
+
+func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnection.SystemgeConnection) {
+	defer server.waitGroup.Done()
+
+	select {
+	case <-connection.GetCloseChannel():
+	case <-server.stopChannel:
+		connection.Close()
+	}
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.DisconnectingClient,
+		"disconnecting systemgeConnection",
+		Event.Context{
+			Event.Circumstance:  Event.Disconnection,
+			Event.ClientType:    Event.SystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+		},
+	))
+
+	server.mutex.Lock()
+	delete(server.clients, connection.GetName())
+	server.mutex.Unlock()
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.DisconnectedClient,
+		"systemgeConnection disconnected",
+		Event.Context{
+			Event.Circumstance:  Event.Disconnection,
+			Event.ClientType:    Event.SystemgeConnection,
+			Event.ClientName:    connection.GetName(),
+			Event.ClientAddress: connection.GetAddress(),
+		},
+	))
 }
