@@ -61,6 +61,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance:  Event.HandleReception,
+					Event.Behaviour:     Event.Sequential,
 					Event.ClientType:    Event.WebsocketConnection,
 					Event.ClientId:      websocketConnection.GetId(),
 					Event.ClientAddress: websocketConnection.GetAddress(),
@@ -87,6 +88,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 					Event.Continue,
 					Event.Context{
 						Event.Circumstance:  Event.HandleReception,
+						Event.Behaviour:     Event.Concurrent,
 						Event.ClientType:    Event.WebsocketConnection,
 						Event.ClientId:      websocketConnection.GetId(),
 						Event.ClientAddress: websocketConnection.GetAddress(),
