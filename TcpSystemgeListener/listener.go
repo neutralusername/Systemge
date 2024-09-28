@@ -67,9 +67,6 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
-	if listener.isClosed {
-		return errors.New("tcpSystemgeListener is already closed")
-	}
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.StoppingService,
@@ -82,6 +79,17 @@ func (listener *TcpSystemgeListener) Close() error {
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
+	}
+
+	if listener.isClosed {
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"tcpSystemgeListener is already closed",
+			Event.Context{
+				Event.Circumstance: Event.StoppingService,
+			},
+		))
+		return errors.New("tcpSystemgeListener is already closed")
 	}
 
 	listener.isClosed = true

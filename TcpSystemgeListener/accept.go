@@ -71,7 +71,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		)); !event.IsInfo() {
 			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 			netConn.Close()
-			return nil, errors.New("Rate limit exceeded")
+			return nil, errors.New("rate limit exceeded")
 		}
 	}
 
@@ -107,7 +107,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		)); !event.IsInfo() {
 			listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 			netConn.Close()
-			return nil, errors.New("Not whitelisted")
+			return nil, errors.New("not whitelisted")
 		}
 	}
 
