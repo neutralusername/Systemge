@@ -36,6 +36,7 @@ func (server *SystemgeServer) Stop() error {
 	}
 
 	server.status = Status.Pending
+	close(server.stopChannel)
 	if err := server.listener.Close(); err != nil {
 		server.onEvent(Event.NewErrorNoOption(
 			Event.CloseFailed,
@@ -45,7 +46,6 @@ func (server *SystemgeServer) Stop() error {
 			},
 		))
 	}
-	close(server.stopChannel)
 	server.waitGroup.Wait()
 	server.status = Status.Stopped
 
