@@ -104,22 +104,19 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 	server.mutex.Unlock()
 	server.statusMutex.RUnlock()
 
-	errorChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
-	go func() {
-		for err := range errorChannel {
-			if server.errorLogger != nil {
-				server.errorLogger.Log(err.Error())
-			}
-			if server.mailer != nil {
-				err := server.mailer.Send(Tools.NewMail(nil, "error", err.Error()))
-				if err != nil {
-					if server.errorLogger != nil {
-						server.errorLogger.Log(Event.New("failed sending mail", err).Error())
-					}
-				}
-			}
-		}
-	}()
+	SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.SentMultiMessage,
+		"multi async message sent",
+		Event.Context{
+			Event.Circumstance:    Event.AsyncMessage,
+			Event.ClientType:      Event.SystemgeConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.Topic:           topic,
+			Event.Payload:         payload,
+		},
+	))
 	return nil
 }
 
