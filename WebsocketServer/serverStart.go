@@ -33,7 +33,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		return event.GetError()
 	}
 
-	if server.status != Status.Stoped {
+	if server.status != Status.Stopped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
@@ -53,7 +53,7 @@ func (server *WebsocketServer) start(lock bool) error {
 			server.ipRateLimiter.Close()
 			server.ipRateLimiter = nil
 		}
-		server.status = Status.Stoped
+		server.status = Status.Stopped
 		return err
 	}
 

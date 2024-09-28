@@ -1,6 +1,8 @@
 package SystemgeServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
@@ -14,25 +16,56 @@ func (server *SystemgeServer) Start() error {
 
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
-	if server.status != Status.Stoped {
-		return Event.New("server is already started", nil)
+	if event := server.onEvent(Event.NewInfo(
+		Event.StartingService,
+		"starting systemge server",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.Start,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
+	if server.status != Status.Stopped {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStarted,
+			"systemge server not stopped",
+			Event.Context{
+				Event.Circumstance: Event.Start,
+			},
+		))
+		return errors.New("failed to start systemge server")
 	}
 	server.status = Status.Pending
-	if server.infoLogger != nil {
-		server.infoLogger.Log("starting server")
-	}
 	listener, err := TcpSystemgeListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
-		server.status = Status.Stoped
-		return Event.New("failed to create listener", err)
+		server.onEvent(Event.NewErrorNoOption(
+			Event.InitializationFailed,
+			"failed to initialize tcp systemge listener",
+			Event.Context{
+				Event.Circumstance: Event.Start,
+			},
+		))
+		server.status = Status.Stopped
+		return err
 	}
 	server.listener = listener
 	server.stopChannel = make(chan bool)
 	go server.handleConnections(server.stopChannel)
 
-	if infoLogger := server.infoLogger; infoLogger != nil {
-		infoLogger.Log("server started")
-	}
+	server.onEvent(Event.NewInfo(
+		Event.ServiceStarted,
+		"systemge server started",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.Start,
+		},
+	))
 	server.status = Status.Started
 	return nil
 }

@@ -3,12 +3,13 @@ package SystemgeListener
 import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 type SystemgeListener interface {
-	AcceptConnection(serverName string, connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error)
+	AcceptConnection(connectionConfig *Config.TcpSystemgeConnection, eventHandler Event.Handler) (SystemgeConnection.SystemgeConnection, error)
 	Close() error
 
 	GetDefaultCommands() Commands.Handlers

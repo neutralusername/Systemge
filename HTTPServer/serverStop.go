@@ -55,6 +55,6 @@ func (server *HTTPServer) Stop() error {
 			Event.Circumstance: Event.Stop,
 		},
 	))
-	server.status = Status.Stoped
+	server.status = Status.Stopped
 	return nil
 }

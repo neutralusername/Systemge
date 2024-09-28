@@ -31,7 +31,7 @@ func (server *HTTPServer) Start() error {
 		return event.GetError()
 	}
 
-	if server.status != Status.Stoped {
+	if server.status != Status.Stopped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"http server not stopped",
@@ -101,16 +101,16 @@ func (server *HTTPServer) Start() error {
 	ended = true
 	select {
 	case err := <-errorChannel:
-		server.status = Status.Stoped
+		server.status = Status.Stopped
 		server.onEvent(Event.NewErrorNoOption(
-			Event.UnexpectedClosure,
+			Event.InitializationFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance: Event.Start,
 			},
 		))
 		server.httpServer = nil
-		server.status = Status.Stoped
+		server.status = Status.Stopped
 		return err
 	default:
 	}

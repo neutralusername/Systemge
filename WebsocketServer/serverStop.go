@@ -29,7 +29,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 		return event.GetError()
 	}
 
-	if server.status == Status.Stoped {
+	if server.status == Status.Stopped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStopped,
 			"service websocketServer already stopped",
@@ -50,7 +50,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 	close(server.stopChannel)
 	server.waitGroup.Wait()
 
-	server.status = Status.Stoped
+	server.status = Status.Stopped
 	event := server.onEvent(Event.NewInfo(
 		Event.ServiceStopped,
 		"service websocketServer stopped",

@@ -149,7 +149,7 @@ func (connection *TcpSystemgeConnection) GetStatus() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 	if connection.closed {
-		return Status.Stoped
+		return Status.Stopped
 	} else {
 		return Status.Started
 	}

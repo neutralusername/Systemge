@@ -93,7 +93,7 @@ func (client *SystemgeClient) GetStatus() int {
 func (client *SystemgeClient) Start() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
-	if client.status != Status.Stoped {
+	if client.status != Status.Stopped {
 		return Event.New("client not stopped", nil)
 	}
 	if client.infoLogger != nil {
@@ -125,7 +125,7 @@ func (client *SystemgeClient) Start() error {
 func (client *SystemgeClient) Stop() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
-	if client.status == Status.Stoped {
+	if client.status == Status.Stopped {
 		return Event.New("client already stopped", nil)
 	}
 	if client.infoLogger != nil {
@@ -137,6 +137,6 @@ func (client *SystemgeClient) Stop() error {
 	if client.infoLogger != nil {
 		client.infoLogger.Log("client stopped")
 	}
-	client.status = Status.Stoped
+	client.status = Status.Stopped
 	return nil
 }

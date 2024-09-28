@@ -129,6 +129,7 @@ const UnknownSyncToken = "unknownSyncToken"
 const UnexpectedClosure = "unexpectedClosure"
 
 const CloseFailed = "closeFailed"
+const InitializationFailed = "initializationFailed"
 
 const AddingRoute = "addingRoute"
 const AddedRoute = "addedRoute"

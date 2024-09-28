@@ -88,7 +88,7 @@ func New(name string, config *Config.MessageBrokerClient, messageHandler Systemg
 		subscribedAsyncTopics: make(map[string]bool),
 		subscribedSyncTopics:  make(map[string]bool),
 
-		status: Status.Stoped,
+		status: Status.Stopped,
 	}
 	if config.InfoLoggerPath != "" {
 		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
@@ -117,7 +117,7 @@ func New(name string, config *Config.MessageBrokerClient, messageHandler Systemg
 func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
-	if messageBrokerClient.status != Status.Stoped {
+	if messageBrokerClient.status != Status.Stopped {
 		return Event.New("Already started", nil)
 	}
 	messageBrokerClient.status = Status.Pending
@@ -138,7 +138,7 @@ func (messageBrokerClient *Client) stop() {
 	close(messageBrokerClient.stopChannel)
 	messageBrokerClient.stopChannel = nil
 	messageBrokerClient.waitGroup.Wait()
-	messageBrokerClient.status = Status.Stoped
+	messageBrokerClient.status = Status.Stopped
 }
 func (messageBrokerClient *Client) Stop() error {
 	messageBrokerClient.statusMutex.Lock()

@@ -19,7 +19,7 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status == Status.Stoped {
+	if client.status == Status.Stopped {
 		return Event.New("client stopped", nil)
 	}
 	if _, ok := client.addressConnections[connection.GetAddress()]; ok {
@@ -42,7 +42,7 @@ func (client *SystemgeClient) AddConnectionAttempt(tcpClientConfig *Config.TcpCl
 	}
 	client.statusMutex.RLock()
 	defer client.statusMutex.RUnlock()
-	if client.status == Status.Stoped {
+	if client.status == Status.Stopped {
 		return Event.New("client stopped", nil)
 	}
 	return client.startConnectionAttempts(tcpClientConfig)
@@ -59,7 +59,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status == Status.Stoped {
+	if client.status == Status.Stopped {
 		return Event.New("client stopped", nil)
 	}
 	if connection, ok := client.addressConnections[address]; ok {

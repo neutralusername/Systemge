@@ -69,14 +69,14 @@ func (server *Server) GetName() string {
 func (server *Server) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.Stoped {
+	if server.status != Status.Stopped {
 		return Event.New("Server is not in stopped state", nil)
 	}
 	server.status = Status.Pending
 	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
 	err := server.httpServer.Start()
 	if err != nil {
-		server.status = Status.Stoped
+		server.status = Status.Stopped
 		close(server.sessionRequestChannel)
 		server.sessionRequestChannel = nil
 		return err
@@ -105,7 +105,7 @@ func (server *Server) Stop() error {
 	}
 	server.mutex.Unlock()
 
-	server.status = Status.Stoped
+	server.status = Status.Stopped
 	return nil
 }
 
