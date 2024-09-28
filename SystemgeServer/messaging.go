@@ -59,18 +59,42 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 		}
 	} else {
 		for _, clientName := range clientNames {
-			connection := server.clients[clientName]
-			if connection == nil {
-				if server.errorLogger != nil {
-					server.errorLogger.Log(Event.New("Client \""+clientName+"\" not found", nil).Error())
+			connection, ok := server.clients[clientName]
+			if !ok {
+				if event := server.onEvent(Event.NewWarning(
+					Event.ClientDoesNotExist,
+					"client does not exist",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.AsyncMessage,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return event.GetError()
 				}
-				if server.mailer != nil {
-					err := server.mailer.Send(Tools.NewMail(nil, "error", Event.New("Client \""+clientName+"\" not found", nil).Error()))
-					if err != nil {
-						if server.errorLogger != nil {
-							server.errorLogger.Log(Event.New("failed sending mail", err).Error())
-						}
-					}
+				continue
+			}
+			if connection == nil {
+				if event := server.onEvent(Event.NewWarning(
+					Event.ClientNotAccepted,
+					"client not accepted",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.AsyncMessage,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return event.GetError()
 				}
 				continue
 			}
