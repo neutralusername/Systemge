@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
+func (server *SystemgeServer) acceptRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.AcceptionRoutineFinished,
