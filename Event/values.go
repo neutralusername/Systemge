@@ -17,6 +17,7 @@ const WebsocketServer = "websocketServer"
 const HttpServer = "httpServer"
 const TcpSystemgeListener = "tcpSystemgeListener"
 const TcpSystemgeConnection = "tcpSystemgeConnection"
+const SystemgeConnection = "systemgeConnection"
 
 const HttpRequest = "httpRequest"
 
