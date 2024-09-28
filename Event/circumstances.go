@@ -13,6 +13,8 @@ const HandleReception = "handleReception"
 const ReceiveRuntime = "receiveRuntime"
 const SendRuntime = "sendRuntime"
 
+const DisconnectClientRuntime = "disconnectClientRuntime"
+
 const Start = "start"
 const Stop = "stop"
 
