@@ -50,7 +50,6 @@ func (server *SystemgeServer) Stop() error {
 	server.waitGroup.Wait()
 	server.stopChannel = nil
 	server.listener = nil
-
 	server.status = Status.Stopped
 
 	server.onEvent(Event.NewInfoNoOption(

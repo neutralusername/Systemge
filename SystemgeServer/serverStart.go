@@ -40,6 +40,7 @@ func (server *SystemgeServer) Start() error {
 		return errors.New("failed to start systemge server")
 	}
 	server.status = Status.Pending
+
 	listener, err := TcpSystemgeListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
 		server.onEvent(Event.NewErrorNoOption(
@@ -55,6 +56,7 @@ func (server *SystemgeServer) Start() error {
 	server.listener = listener
 	server.stopChannel = make(chan bool)
 	go server.handleConnections(server.stopChannel)
+	server.status = Status.Started
 
 	server.onEvent(Event.NewInfo(
 		Event.ServiceStarted,
@@ -66,6 +68,5 @@ func (server *SystemgeServer) Start() error {
 			Event.Circumstance: Event.Start,
 		},
 	))
-	server.status = Status.Started
 	return nil
 }

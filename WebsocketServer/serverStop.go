@@ -49,8 +49,8 @@ func (server *WebsocketServer) stop(lock bool) error {
 
 	close(server.stopChannel)
 	server.waitGroup.Wait()
-
 	server.status = Status.Stopped
+
 	event := server.onEvent(Event.NewInfo(
 		Event.ServiceStopped,
 		"service websocketServer stopped",

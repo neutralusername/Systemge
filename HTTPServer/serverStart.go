@@ -114,6 +114,7 @@ func (server *HTTPServer) Start() error {
 		return err
 	default:
 	}
+	server.status = Status.Started
 
 	server.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStarted,
@@ -123,6 +124,5 @@ func (server *HTTPServer) Start() error {
 		},
 	))
 
-	server.status = Status.Started
 	return nil
 }

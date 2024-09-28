@@ -61,7 +61,6 @@ func (server *WebsocketServer) start(lock bool) error {
 
 	server.waitGroup.Add(1)
 	go server.acceptRoutine()
-
 	server.status = Status.Started
 
 	if event := server.onEvent(Event.NewInfo(
