@@ -47,7 +47,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 				Event.Payload:         payload,
 			},
 		))
-		server.statusMutex.RUnlock()
+		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 		return errors.New("systemgeServer already stopped")
 	}
