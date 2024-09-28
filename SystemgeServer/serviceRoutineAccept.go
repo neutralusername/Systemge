@@ -107,7 +107,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 
 	event := server.onEvent(Event.NewInfo(
 		Event.AcceptedClient,
-		err.Error(),
+		"systemgeConnection accepted",
 		Event.Cancel,
 		Event.Skip,
 		Event.Continue,
