@@ -239,7 +239,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 				Event.ChannelType:   Event.MessageChannel,
 			},
 		))
-		return nil, errors.New("Message handling loop is registered")
+		return nil, errors.New("message handling loop is registered")
 	}
 
 	if event := connection.onEvent(Event.NewInfo(
@@ -312,7 +312,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 				Event.ClientAddress: connection.GetAddress(),
 			},
 		))
-		return nil, errors.New("Timeout while waiting for message")
+		return nil, errors.New("timeout while waiting for message")
 	}
 }
 

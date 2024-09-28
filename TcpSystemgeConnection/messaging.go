@@ -244,7 +244,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 				Event.SyncToken:     syncToken,
 			},
 		))
-		return errors.New("No response channel found")
+		return errors.New("no response channel found")
 	}
 
 	close(syncRequestStruct.abortChannel)
@@ -400,7 +400,7 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 				Event.SyncToken:     syncToken,
 			},
 		))
-		return errors.New("No response channel found")
+		return errors.New("no response channel found")
 	}
 	delete(connection.syncRequests, syncToken)
 
