@@ -20,7 +20,7 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 	}
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.DisconnectedClient,
+		Event.DisconnectingClient,
 		"disconnecting systemgeConnection",
 		Event.Cancel,
 		Event.Cancel,
