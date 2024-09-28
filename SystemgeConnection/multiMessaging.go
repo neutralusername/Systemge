@@ -7,9 +7,14 @@ import (
 )
 
 func MultiAsyncMessage(topic, payload string, connections ...SystemgeConnection) {
+	waitgroup := sync.WaitGroup{}
 	for _, connection := range connections {
-		connection.AsyncMessage(topic, payload)
+		waitgroup.Add(1)
+		go func(connection SystemgeConnection) {
+			connection.AsyncMessage(topic, payload)
+		}(connection)
 	}
+	waitgroup.Wait()
 }
 
 func MultiSyncRequest(topic, payload string, connections ...SystemgeConnection) <-chan *Message.Message {
