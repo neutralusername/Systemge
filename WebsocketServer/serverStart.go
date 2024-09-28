@@ -63,19 +63,12 @@ func (server *WebsocketServer) start(lock bool) error {
 	go server.acceptRoutine()
 	server.status = Status.Started
 
-	if event := server.onEvent(Event.NewInfo(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStarted,
 		"service websocketServer started",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.Start,
 		},
-	)); !event.IsInfo() {
-		if err := server.stop(false); err != nil {
-			panic(err)
-		}
-	}
+	))
 	return nil
 }

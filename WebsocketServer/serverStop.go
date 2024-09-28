@@ -51,20 +51,12 @@ func (server *WebsocketServer) stop(lock bool) error {
 	server.waitGroup.Wait()
 	server.status = Status.Stopped
 
-	event := server.onEvent(Event.NewInfo(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStopped,
 		"service websocketServer stopped",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.Stop,
 		},
 	))
-	if !event.IsInfo() {
-		if err := server.start(false); err != nil {
-			panic(err)
-		}
-	}
 	return nil
 }
