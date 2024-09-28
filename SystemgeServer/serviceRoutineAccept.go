@@ -101,7 +101,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 				return nil
 			}
 		}
-		server.clients[connection.GetName()] = connection
+		server.clients[connection.GetName()] = nil
 		server.mutex.Unlock()
 
 		event := server.onEvent(Event.NewInfo(
@@ -132,6 +132,10 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			server.mutex.Unlock()
 			return nil
 		}
+
+		server.mutex.Lock()
+		server.clients[connection.GetName()] = connection
+		server.mutex.Unlock()
 
 		go func() {
 			defer server.waitGroup.Done()
