@@ -39,11 +39,8 @@ func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
 }
 
 func (server *SystemgeServer) acceptSystemgeConnection() error {
-	server.waitGroup.Add(1)
-
 	select {
 	case <-server.stopChannel:
-		server.waitGroup.Done()
 		return errors.New("systemgeServer stopped")
 	default:
 	}
@@ -59,7 +56,6 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			Event.ClientType:   Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
-		server.waitGroup.Done()
 		return event.GetError()
 	}
 
@@ -76,7 +72,6 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 				Event.ClientType:   Event.SystemgeConnection,
 			},
 		))
-		server.waitGroup.Done()
 		if !event.IsInfo() {
 			return event.GetError()
 		} else {
@@ -101,7 +96,6 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		))
 		server.mutex.Unlock()
 		connection.Close()
-		server.waitGroup.Done()
 		if !event.IsInfo() {
 			return errors.New("duplicate name")
 		} else {
@@ -126,7 +120,6 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	))
 	if event.IsError() {
 		connection.Close()
-		server.waitGroup.Done()
 		server.mutex.Lock()
 		delete(server.clients, connection.GetName())
 		server.mutex.Unlock()
@@ -134,7 +127,6 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	}
 	if event.IsWarning() {
 		connection.Close()
-		server.waitGroup.Done()
 		server.mutex.Lock()
 		delete(server.clients, connection.GetName())
 		server.mutex.Unlock()
@@ -145,6 +137,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	server.clients[connection.GetName()] = connection
 	server.mutex.Unlock()
 
+	server.waitGroup.Add(1)
 	go server.handleSystemgeDisconnect(connection)
 
 	return nil
