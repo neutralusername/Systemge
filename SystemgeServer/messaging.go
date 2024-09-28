@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -11,6 +12,7 @@ import (
 )
 
 func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ...string) error {
+	targetClientIds := Helpers.JsonMarshal(clientNames)
 	server.statusMutex.RLock()
 	server.mutex.RLock()
 
@@ -21,8 +23,9 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AsyncMessage,
-			Event.ClientType:   Event.SystemgeConnection,
+			Event.Circumstance:    Event.AsyncMessage,
+			Event.ClientType:      Event.SystemgeConnection,
+			Event.TargetClientIds: targetClientIds,
 		},
 	)); !event.IsInfo() {
 		server.mutex.Unlock()
@@ -35,8 +38,9 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 			Event.ServiceAlreadyStopped,
 			"systemgeServer already stopped",
 			Event.Context{
-				Event.Circumstance: Event.AsyncMessage,
-				Event.ClientType:   Event.SystemgeConnection,
+				Event.Circumstance:    Event.AsyncMessage,
+				Event.ClientType:      Event.SystemgeConnection,
+				Event.TargetClientIds: targetClientIds,
 			},
 		))
 		server.statusMutex.RUnlock()
