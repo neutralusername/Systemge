@@ -89,9 +89,10 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 				Event.Cancel,
 				Event.Skip,
 				Event.Context{
-					Event.Circumstance: Event.AcceptionRoutine,
-					Event.ClientType:   Event.SystemgeConnection,
-					Event.ClientName:   connection.GetName(),
+					Event.Circumstance:  Event.AcceptionRoutine,
+					Event.ClientType:    Event.SystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
 				},
 			))
 			server.mutex.Unlock()
@@ -113,9 +114,10 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			Event.Skip,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptionRoutine,
-				Event.ClientType:   Event.SystemgeConnection,
-				Event.ClientName:   connection.GetName(),
+				Event.Circumstance:  Event.AcceptionRoutine,
+				Event.ClientType:    Event.SystemgeConnection,
+				Event.ClientName:    connection.GetName(),
+				Event.ClientAddress: connection.GetAddress(),
 			},
 		))
 		if event.IsError() {
