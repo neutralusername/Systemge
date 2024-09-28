@@ -106,6 +106,8 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 
 		isAccepted := false
 		go func() {
+			defer server.waitGroup.Done()
+
 			select {
 			case <-connection.GetCloseChannel():
 			case <-server.stopChannel:
@@ -114,10 +116,10 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 
 			server.onEvent(Event.NewInfoNoOption(
 				Event.DisconnectingClient,
-				"disconnecting websocketConnection",
+				"disconnecting systemgeConnection",
 				Event.Context{
 					Event.Circumstance:  Event.Disconnection,
-					Event.ClientType:    Event.WebsocketConnection,
+					Event.ClientType:    Event.SystemgeConnection,
 					Event.ClientName:    connection.GetName(),
 					Event.ClientAddress: connection.GetAddress(),
 				},
@@ -127,7 +129,16 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			delete(server.clients, connection.GetName())
 			server.mutex.Unlock()
 
-			server.waitGroup.Done()
+			server.onEvent(Event.NewInfoNoOption(
+				Event.DisconnectedClient,
+				"systemgeConnection disconnected",
+				Event.Context{
+					Event.Circumstance:  Event.Disconnection,
+					Event.ClientType:    Event.SystemgeConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
+				},
+			))
 		}()
 
 		event := server.onEvent(Event.NewInfo(
