@@ -21,11 +21,6 @@ func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt 
 }
 
 type SystemgeClient struct {
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	TcpClientConfigs            []*TcpClient           `json:"tcpClientConfigs"`
 
@@ -46,11 +41,6 @@ func UnmarshalSystemgeClient(data string) *SystemgeClient {
 }
 
 type SystemgeServer struct {
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-
 	TcpSystemgeListenerConfig   *TcpSystemgeListener   `json:"tcpSystemgeListenerConfig"`   // *required*
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
@@ -81,11 +71,6 @@ func UnmarshalTcpSystemgeListener(data string) *TcpSystemgeListener {
 }
 
 type TcpSystemgeConnection struct {
-	MailerConfig      *Mailer `json:"mailerConfig"`      // *optional*
-	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
-	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
-	ErrorLoggerPath   string  `json:"errorLoggerPath"`   // *optional*
-
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
 	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeoutMs"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak

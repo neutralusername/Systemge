@@ -56,8 +56,8 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 	for pattern, handler := range handlers {
 		server.AddRoute(pattern, handler)
 	}
-	if config.ErrorLoggerPath != "" {
-		file := Helpers.OpenFileAppend(config.ErrorLoggerPath)
+	if config.HttpErrorPath != "" {
+		file := Helpers.OpenFileAppend(config.HttpErrorPath)
 		server.httpServer.ErrorLog = log.New(file, "[Error: \""+server.GetName()+"\"] ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 	return server
