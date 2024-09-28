@@ -3,6 +3,7 @@ package SystemgeServer
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -14,15 +15,67 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 		server.mutex.RUnlock()
 		server.statusMutex.RUnlock()
 	}()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.DisconnectingClient,
+		"disconnecting systemgeConnection",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.DisconnectClientRuntime,
+			Event.ClientType:   Event.SystemgeConnection,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	if server.status != Status.Started {
-		return errors.New("server is not started")
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"systemgeServer already stopped",
+			Event.Context{
+				Event.Circumstance: Event.DisconnectClientRuntime,
+				Event.ClientType:   Event.SystemgeConnection,
+			},
+		))
+		return errors.New("systemgeServer already stopped")
 	}
 
 	connection, ok := server.clients[name]
 	if !ok {
-		return errors.New("connection not found")
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ClientDoesNotExist,
+			"systemgeConnection does not exist",
+			Event.Context{
+				Event.Circumstance: Event.DisconnectClientRuntime,
+				Event.ClientType:   Event.SystemgeConnection,
+			},
+		))
+		return errors.New("systemgeConnection not found")
+	}
+	if connection == nil {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ClientNotAccepted,
+			"systemgeConnection not accepted",
+			Event.Context{
+				Event.Circumstance: Event.DisconnectClientRuntime,
+				Event.ClientType:   Event.SystemgeConnection,
+			},
+		))
+		return errors.New("systemgeConnection not accepted")
 	}
 	connection.Close()
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.DisconnectedClient,
+		"systemgeConnection disconnected",
+		Event.Context{
+			Event.Circumstance: Event.DisconnectClientRuntime,
+			Event.ClientType:   Event.SystemgeConnection,
+			Event.ClientName:   name,
+		},
+	))
 	return nil
 }
 
