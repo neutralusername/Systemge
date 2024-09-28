@@ -85,7 +85,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 				"duplicate name",
 				Event.Cancel,
 				Event.Cancel,
-				Event.Continue,
+				Event.Skip,
 				Event.Context{
 					Event.Circumstance: Event.AcceptionRoutine,
 					Event.ClientType:   Event.SystemgeConnection,
@@ -111,15 +111,21 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			case <-server.stopChannel:
 				connection.Close()
 			}
+
+			server.onEvent(Event.NewInfoNoOption(
+				Event.DisconnectingClient,
+				"disconnecting websocketConnection",
+				Event.Context{
+					Event.Circumstance:  Event.Disconnection,
+					Event.ClientType:    Event.WebsocketConnection,
+					Event.ClientName:    connection.GetName(),
+					Event.ClientAddress: connection.GetAddress(),
+				},
+			))
+
 			server.mutex.Lock()
 			delete(server.clients, connection.GetName())
 			server.mutex.Unlock()
-
-			if isAccepted {
-				if server.onDisconnectHandler != nil {
-					server.onDisconnectHandler(connection)
-				}
-			}
 
 			server.waitGroup.Done()
 		}()

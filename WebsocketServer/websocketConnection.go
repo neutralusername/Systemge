@@ -49,7 +49,7 @@ func (websocketConnection *WebsocketConnection) Close() error {
 }
 
 // Returns the ip of the websocketConnection.
-func (websocketConnection *WebsocketConnection) GetIp() string {
+func (websocketConnection *WebsocketConnection) GetAddress() string {
 	return websocketConnection.websocketConn.RemoteAddr().String()
 }
 
@@ -75,7 +75,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Bytes:         string(messageBytes),
 		},
 	)); !event.IsInfo() {
@@ -93,7 +93,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 				Event.Circumstance:  circumstance,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 				Event.Bytes:         string(messageBytes),
 			}),
 		)
@@ -109,7 +109,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Bytes:         string(messageBytes),
 		}),
 	)
@@ -125,7 +125,7 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 				Event.Circumstance:  Event.ReceiveRuntime,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 			}),
 		)
 		return nil, errors.New("websocketConnection is already accepted")
@@ -146,7 +146,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 		}),
 	); !event.IsInfo() {
 		return nil, event.GetError()
@@ -163,7 +163,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 				Event.Circumstance:  circumstance,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 			}),
 		)
 		return nil, err
@@ -179,7 +179,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 			Event.Circumstance:  circumstance,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Bytes:         string(messageBytes),
 		}),
 	); !event.IsInfo() {

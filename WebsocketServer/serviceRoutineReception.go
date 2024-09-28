@@ -16,7 +16,7 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 				Event.Circumstance:  Event.ReceptionRoutine,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 			},
 		))
 		websocketConnection.waitGroup.Done()
@@ -32,7 +32,7 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 			Event.Circumstance:  Event.ReceptionRoutine,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 		},
 	)); !event.IsInfo() {
 		return
@@ -97,7 +97,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Bytes:         string(messageBytes),
 		},
 	))
@@ -118,7 +118,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.TokenBucketType: Event.Bytes,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
-				Event.ClientAddress:   websocketConnection.GetIp(),
+				Event.ClientAddress:   websocketConnection.GetAddress(),
 				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
@@ -139,7 +139,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.TokenBucketType: Event.Messages,
 				Event.ClientType:      Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
-				Event.ClientAddress:   websocketConnection.GetIp(),
+				Event.ClientAddress:   websocketConnection.GetAddress(),
 				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
@@ -157,7 +157,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.StructType:    Event.Message,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 				Event.Bytes:         string(messageBytes),
 			},
 		))
@@ -174,7 +174,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.Circumstance:  Event.HandleReception,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 				Event.Topic:         message.GetTopic(),
 				Event.Payload:       message.GetPayload(),
 				Event.SyncToken:     message.GetSyncToken(),
@@ -192,7 +192,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.Circumstance:  Event.HandleReception,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 			},
 		))
 	}
@@ -210,7 +210,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.HandlerType:   Event.WebsocketConnection,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 				Event.Topic:         message.GetTopic(),
 				Event.Payload:       message.GetPayload(),
 				Event.SyncToken:     message.GetSyncToken(),
@@ -229,7 +229,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Topic:         message.GetTopic(),
 			Event.Payload:       message.GetPayload(),
 			Event.SyncToken:     message.GetSyncToken(),
@@ -247,7 +247,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.HandlerType:   Event.WebsocketConnection,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetIp(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
 				Event.Topic:         message.GetTopic(),
 				Event.Payload:       message.GetPayload(),
 				Event.SyncToken:     message.GetSyncToken(),
@@ -263,7 +263,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Topic:         message.GetTopic(),
 			Event.Payload:       message.GetPayload(),
 			Event.SyncToken:     message.GetSyncToken(),
@@ -278,7 +278,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 			Event.Topic:         message.GetTopic(),
 			Event.Payload:       message.GetPayload(),
 			Event.SyncToken:     message.GetSyncToken(),
