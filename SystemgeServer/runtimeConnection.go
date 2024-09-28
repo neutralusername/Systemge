@@ -33,11 +33,12 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 		return event.GetError()
 	}
 
-	if connection, ok := server.clients[name]; ok {
-		connection.Close()
-		return nil
+	connection, ok := server.clients[name]
+	if !ok {
+		return errors.New("connection not found")
 	}
-	return errors.New("connection not found")
+	connection.Close()
+	return nil
 }
 
 func (server *SystemgeServer) GetConnectionNamesAndAddresses() map[string]string {
