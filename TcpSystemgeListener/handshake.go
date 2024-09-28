@@ -162,5 +162,5 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		return nil, event.GetError()
 	}
 
-	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver, eventHandler), nil
+	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver, eventHandler)
 }

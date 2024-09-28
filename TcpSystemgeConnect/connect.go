@@ -14,7 +14,7 @@ import (
 
 func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient, clientName string, maxServerNameLength int, eventHandler Event.Handler) (SystemgeConnection.SystemgeConnection, error) {
 	if config == nil {
-		return nil, errors.New("Config is nil")
+		return nil, errors.New("config is nil")
 	}
 	netConn, err := Tcp.NewClient(tcpClientConfig)
 	if err != nil {
@@ -56,13 +56,13 @@ func clientHandshake(config *Config.TcpSystemgeConnection, clientName string, ma
 		return nil, err
 	}
 	if message.GetTopic() != Message.TOPIC_NAME {
-		return nil, errors.New("Expected \"" + Message.TOPIC_NAME + "\" message, but got \"" + message.GetTopic() + "\" message")
+		return nil, errors.New("expected \"" + Message.TOPIC_NAME + "\" message, but got \"" + message.GetTopic() + "\" message")
 	}
 	if maxServerNameLength > 0 && len(message.GetPayload()) > maxServerNameLength {
-		return nil, errors.New("Server name is too long")
+		return nil, errors.New("server name is too long")
 	}
 	if message.GetPayload() == "" {
-		return nil, errors.New("Server did not respond with a name")
+		return nil, errors.New("server did not respond with a name")
 	}
-	return TcpSystemgeConnection.New(message.GetPayload(), config, netConn, messageReceiver, eventHandler), nil
+	return TcpSystemgeConnection.New(message.GetPayload(), config, netConn, messageReceiver, eventHandler)
 }

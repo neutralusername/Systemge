@@ -59,7 +59,17 @@ type TcpSystemgeConnection struct {
 	noSyncResponseReceived       atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver, eventHandler Event.Handler) *TcpSystemgeConnection {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver, eventHandler Event.Handler) (*TcpSystemgeConnection, error) {
+	if config == nil {
+		return nil, errors.New("config is nil")
+	}
+	if netConn == nil {
+		return nil, errors.New("netConn is nil")
+	}
+	if messageReceiver == nil {
+		return nil, errors.New("messageReceiver is nil")
+	}
+
 	connection := &TcpSystemgeConnection{
 		name:                    name,
 		config:                  config,
@@ -88,7 +98,7 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 		connection.waitGroup.Add(1)
 		go connection.heartbeatLoop()
 	}
-	return connection
+	return connection, nil
 }
 
 func (connection *TcpSystemgeConnection) Close() error {

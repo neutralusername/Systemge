@@ -69,12 +69,12 @@ func (connectionAttempt *ConnectionAttempt) GetResultBlocking() (SystemgeConnect
 func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 	for {
 		if connectionAttempt.isAborted {
-			connectionAttempt.err = errors.New("Connection attempt aborted before establishing connection")
+			connectionAttempt.err = errors.New("connection attempt aborted before establishing connection")
 			close(connectionAttempt.ongoing)
 			return
 		}
 		if connectionAttempt.config.MaxConnectionAttempts > 0 && connectionAttempt.attempts >= connectionAttempt.config.MaxConnectionAttempts {
-			connectionAttempt.err = errors.New("Max connection attempts reached")
+			connectionAttempt.err = errors.New("max connection attempts reached")
 			close(connectionAttempt.ongoing)
 			return
 		}
@@ -86,7 +86,7 @@ func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 		}
 		if connectionAttempt.isAborted {
 			connection.Close()
-			connectionAttempt.err = errors.New("Connection attempt aborted after establishing connection")
+			connectionAttempt.err = errors.New("connection attempt aborted after establishing connection")
 			close(connectionAttempt.ongoing)
 			return
 		}
