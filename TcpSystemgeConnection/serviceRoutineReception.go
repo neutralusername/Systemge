@@ -118,13 +118,51 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		connection.messagesReceived.Add(1)
 
 		if connection.config.HandleMessageReceptionSequentially {
-			if err := connection.handleReception(messageBytes); err != nil {
-				connection.Close()
+			if err := connection.handleReception(messageBytes, Event.Sequential); err != nil {
+				if event := connection.onEvent(Event.NewInfo(
+					Event.HandleReceptionFailed,
+					err.Error(),
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:  Event.HandleReception,
+						Event.Behaviour:     Event.Sequential,
+						Event.ClientType:    Event.WebsocketConnection,
+						Event.ClientName:    connection.GetName(),
+						Event.ClientAddress: connection.GetAddress(),
+					},
+				)); !event.IsInfo() {
+					connection.Close()
+				} else {
+					/* if server.config.PropagateMessageHandlerErrors {
+						server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+					} */
+				}
 			}
 		} else {
 			go func() {
-				if err := connection.handleReception(messageBytes); err != nil {
-					connection.Close()
+				if err := connection.handleReception(messageBytes, Event.Concurrent); err != nil {
+					if event := connection.onEvent(Event.NewInfo(
+						Event.HandleReceptionFailed,
+						err.Error(),
+						Event.Cancel,
+						Event.Cancel,
+						Event.Continue,
+						Event.Context{
+							Event.Circumstance:  Event.HandleReception,
+							Event.Behaviour:     Event.Concurrent,
+							Event.ClientType:    Event.WebsocketConnection,
+							Event.ClientName:    connection.GetName(),
+							Event.ClientAddress: connection.GetAddress(),
+						},
+					)); !event.IsInfo() {
+						connection.Close()
+					} else {
+						/* if server.config.PropagateMessageHandlerErrors {
+							server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+						} */
+					}
 				}
 			}()
 		}
@@ -132,7 +170,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 	}
 }
 
-func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) error {
+func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, behaviour string) error {
 	event := connection.onEvent(Event.NewInfo(
 		Event.HandlingReception,
 		"handling tcpSystemgeConnection message reception",
@@ -141,6 +179,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetIp(),
@@ -161,6 +200,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:    Event.HandleReception,
+				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
 				Event.ClientType:      Event.TcpSystemgeConnection,
@@ -183,6 +223,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:    Event.HandleReception,
+				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
 				Event.ClientType:      Event.TcpSystemgeConnection,
@@ -205,6 +246,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.StructType:    Event.Message,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
@@ -224,6 +266,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetIp(),
@@ -256,6 +299,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.ChannelType:   Event.MessageChannel,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
@@ -276,6 +320,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte) er
 		"sent message to channel",
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.ChannelType:   Event.MessageChannel,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
