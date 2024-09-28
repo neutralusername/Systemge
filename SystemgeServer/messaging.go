@@ -1,6 +1,9 @@
 package SystemgeServer
 
 import (
+	"errors"
+
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
@@ -9,11 +12,38 @@ import (
 
 func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ...string) error {
 	server.statusMutex.RLock()
-	if server.status == Status.Stopped {
+	server.mutex.RLock()
+
+	if event := server.onEvent(Event.NewInfo(
+		Event.SendingMultiMessage,
+		"sending mutli async message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.AsyncMessage,
+			Event.ClientType:   Event.SystemgeConnection,
+		},
+	)); !event.IsInfo() {
+		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
-		return Event.New("Server stopped", nil)
+		return event.GetError()
 	}
-	server.mutex.Lock()
+
+	if server.status == Status.Stopped {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"systemgeServer already stopped",
+			Event.Context{
+				Event.Circumstance: Event.AsyncMessage,
+				Event.ClientType:   Event.SystemgeConnection,
+			},
+		))
+		server.statusMutex.RUnlock()
+		server.statusMutex.RUnlock()
+		return errors.New("systemgeServer already stopped")
+	}
+
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range server.clients {
@@ -65,7 +95,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 	server.statusMutex.RLock()
 	if server.status == Status.Stopped {
 		server.statusMutex.RUnlock()
-		return nil, Event.New("Server stopped", nil)
+		return nil, errors.New("Server stopped")
 	}
 	server.mutex.Lock()
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
@@ -119,7 +149,7 @@ func (server *SystemgeServer) SyncRequestBlocking(topic, payload string, clientN
 	server.statusMutex.RLock()
 	if server.status == Status.Stopped {
 		server.statusMutex.RUnlock()
-		return nil, Event.New("Server stopped", nil)
+		return nil, errors.New("Server stopped")
 	}
 	server.mutex.Lock()
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
