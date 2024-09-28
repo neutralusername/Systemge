@@ -91,6 +91,8 @@ const ServerHandshakeFailed = "serverHandshakeFailed"
 const ExceededMaxClientNameLength = "exceededMaxClientNameLength"
 const ReceivedEmptyClientName = "receivedEmptyClientName"
 
+const DuplicateName = "duplicateName"
+
 const MessageHandlingLoopStarting = "messageHandlingLoopStarting"
 const MessageHandlingLoopStarted = "messageHandlingLoopStarted"
 

@@ -80,10 +80,26 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 
 		server.mutex.Lock()
 		if _, ok := server.clients[connection.GetName()]; ok {
+			event := server.onEvent(Event.NewInfo(
+				Event.DuplicateName,
+				"duplicate name",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance: Event.AcceptionRoutine,
+					Event.ClientType:   Event.SystemgeConnection,
+					Event.ClientName:   connection.GetName(),
+				},
+			))
 			server.mutex.Unlock()
 			connection.Close()
 			server.waitGroup.Done()
-			return errors.New("duplicate name")
+			if !event.IsInfo() {
+				return errors.New("duplicate name")
+			} else {
+				return nil
+			}
 		}
 		server.clients[connection.GetName()] = connection
 		server.mutex.Unlock()
