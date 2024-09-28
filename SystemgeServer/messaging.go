@@ -145,7 +145,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMultiMessage,
-		"sending mutli async message",
+		"sending mutli sync message",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
