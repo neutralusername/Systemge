@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) handleConnections(stopChannel chan bool) {
+func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
 	if server.infoLogger != nil {
 		server.infoLogger.Log("connection handler started")
 	}

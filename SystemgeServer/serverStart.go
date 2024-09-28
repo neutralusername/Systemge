@@ -55,7 +55,7 @@ func (server *SystemgeServer) Start() error {
 	}
 	server.listener = listener
 	server.stopChannel = make(chan bool)
-	go server.handleConnections(server.stopChannel)
+	go server.acceptRoutine(server.stopChannel)
 	server.status = Status.Started
 
 	server.onEvent(Event.NewInfo(
