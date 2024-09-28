@@ -70,11 +70,34 @@ func (listener *TcpSystemgeListener) Close() error {
 	if listener.isClosed {
 		return errors.New("tcpSystemgeListener is already closed")
 	}
+
+	if event := listener.onEvent(Event.NewInfo(
+		Event.StoppingService,
+		"stopping tcpSystemgeListener",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.StoppingService,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	listener.isClosed = true
 	listener.tcpListener.Close()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
 	}
+
+	listener.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStopped,
+		"tcpSystemgeListener stopped",
+		Event.Context{
+			Event.Circumstance: Event.StoppingService,
+		},
+	))
+
 	return nil
 }
 
