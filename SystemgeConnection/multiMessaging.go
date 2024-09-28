@@ -11,6 +11,7 @@ func MultiAsyncMessage(topic, payload string, connections ...SystemgeConnection)
 	for _, connection := range connections {
 		waitgroup.Add(1)
 		go func(connection SystemgeConnection) {
+			defer waitgroup.Done()
 			connection.AsyncMessage(topic, payload)
 		}(connection)
 	}
@@ -19,28 +20,38 @@ func MultiAsyncMessage(topic, payload string, connections ...SystemgeConnection)
 
 func MultiSyncRequest(topic, payload string, connections ...SystemgeConnection) <-chan *Message.Message {
 	responsesChannel := make(chan *Message.Message, len(connections))
-	waitGroup := sync.WaitGroup{}
+	responseWaitGroup := sync.WaitGroup{}
+	sendWaitGroup := sync.WaitGroup{}
 	for _, connection := range connections {
-		responseChannel, _ := connection.SyncRequest(topic, payload)
-		waitGroup.Add(1)
-		go func(connection SystemgeConnection, responseChannel <-chan *Message.Message) {
-			responsesChannel <- <-responseChannel
-			waitGroup.Done()
+		sendWaitGroup.Add(1)
+		go func(connection SystemgeConnection) {
+			defer sendWaitGroup.Done()
+			responseChannel, _ := connection.SyncRequest(topic, payload)
+			responseWaitGroup.Add(1)
+			go func(connection SystemgeConnection, responseChannel <-chan *Message.Message) {
+				responsesChannel <- <-responseChannel
+				responseWaitGroup.Done()
 
-		}(connection, responseChannel)
+			}(connection, responseChannel)
+		}(connection)
 	}
 	go func() {
-		waitGroup.Wait()
+		responseWaitGroup.Wait()
 		close(responsesChannel)
 	}()
 	return responsesChannel
 }
 
 func MultiSyncRequestBlocking(topic, payload string, connections ...SystemgeConnection) []*Message.Message {
-	responses := make([]*Message.Message, len(connections))
-	for i, connection := range connections {
-		response, _ := connection.SyncRequestBlocking(topic, payload)
-		responses[i] = response
+	responses := []*Message.Message{}
+	waitgroup := sync.WaitGroup{}
+	for _, connection := range connections {
+		waitgroup.Add(1)
+		go func(connection SystemgeConnection) {
+			defer waitgroup.Done()
+			response, _ := connection.SyncRequestBlocking(topic, payload)
+			responses = append(responses, response)
+		}(connection)
 	}
 	return responses
 }
