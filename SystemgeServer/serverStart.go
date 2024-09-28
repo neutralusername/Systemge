@@ -18,7 +18,7 @@ func (server *SystemgeServer) Start() error {
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.StartingService,
-		"starting systemge server",
+		"starting systemgeServer",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -32,7 +32,7 @@ func (server *SystemgeServer) Start() error {
 	if server.status != Status.Stopped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
-			"systemge server not stopped",
+			"systemgeServer not stopped",
 			Event.Context{
 				Event.Circumstance: Event.Start,
 			},
@@ -63,7 +63,7 @@ func (server *SystemgeServer) Start() error {
 
 	server.onEvent(Event.NewInfo(
 		Event.ServiceStarted,
-		"systemge server started",
+		"systemgeServer started",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
