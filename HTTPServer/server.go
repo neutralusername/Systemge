@@ -136,7 +136,7 @@ func (server *HTTPServer) onEvent(event *Event.Event) *Event.Event {
 }
 func (server *HTTPServer) GetServerContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.TcpSystemgeListener,
+		Event.ServiceType:   Event.HttpServer,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),
