@@ -12,7 +12,7 @@ func (server *HTTPServer) Stop() error {
 	defer server.statusMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.StoppingService,
+		Event.ServiceStopping,
 		"Stopping http server",
 		Event.Cancel,
 		Event.Cancel,

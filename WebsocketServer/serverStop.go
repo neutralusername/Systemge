@@ -17,7 +17,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 	}
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.StoppingService,
+		Event.ServiceStopping,
 		"service websocketServer stopping",
 		Event.Cancel,
 		Event.Cancel,

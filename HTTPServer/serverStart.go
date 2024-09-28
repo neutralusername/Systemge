@@ -19,7 +19,7 @@ func (server *HTTPServer) Start() error {
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.StartingService,
+		Event.ServiceStarting,
 		"Starting http server",
 		Event.Cancel,
 		Event.Cancel,

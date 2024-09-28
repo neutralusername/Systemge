@@ -108,7 +108,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 	defer connection.closedMutex.Unlock()
 
 	if event := connection.eventHandler(Event.NewInfo(
-		Event.StoppingService,
+		Event.ServiceStopping,
 		"closing tcpSystemgeConnection",
 		Event.Skip,
 		Event.Skip,

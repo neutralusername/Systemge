@@ -1,43 +1,29 @@
 package Event
 
-const StartingService = "startingService"
-const StoppingService = "stoppingService"
+const ServiceStarting = "serviceStarting"
+const ServiceStopping = "serviceStopping"
 
-const ServiceAlreadyStarted = "alreadyStarted"
-const ServiceAlreadyStopped = "alreadyStopped"
+const ServiceAlreadyStarted = "serverAlreadyStarted"
+const ServiceAlreadyStopped = "serverAlreadyStopped"
 
 const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"
 
+const HandlingDisconnection = "handlingDisconnection"
+const HandledDisconnection = "handledDisconnection"
+
 const AcceptionRoutineStarted = "acceptionRoutineStarted"
 const AcceptionRoutineFinished = "acceptionRoutineFinished"
 
-const ReceptionRoutineStarted = "receptionRoutineStarted"
-const ReceptionRoutineFinished = "receptionRoutineFinished"
-
-const SendingMultiMessage = "sendingMultiMessage"
-const SentMultiMessage = "sentMultiMessage"
-
-const SendingMessage = "sendingMessage"
-const SentMessage = "sentMessage"
-const SendingMessageFailed = "sendingMessageFailed"
-
-const AcceptingClient = "acceptingConnection"
-const AcceptingClientFailed = "acceptingConnectionFailed"
-const AcceptedClient = "connectionAccepted"
+const HandlingAcception = "handlingAcception"
+const HandledAcception = "handledAcception"
+const HandleAcceptionFailed = "handleAcceptionFailed"
 
 const ClientNotAccepted = "clientNotAccepted"
 const ClientAlreadyAccepted = "clientAlreadyAccepted"
 
-const DisconnectingClient = "disconnectingClient"
-const DisconnectedClient = "clientDisconnected"
-
-const SendingToChannel = "sendingToChannel"
-const SentToChannel = "sentToChannel"
-
-const ReceivingFromChannel = "receivingFromChannel"
-const ReceivedFromChannel = "receivingFromChannel"
-const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
+const ReceptionRoutineStarted = "receptionRoutineStarted"
+const ReceptionRoutineFinished = "receptionRoutineFinished"
 
 const ReceivingMessage = "receivingMessage"
 const ReceivedMessage = "receivedMessage"
@@ -46,6 +32,32 @@ const ReceivingMessageFailed = "receivingMessageFailed"
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"
 const HandleReceptionFailed = "handleReceptionFailed"
+
+const HandlingMessage = "handlingMessage"
+const HandledMessage = "handledMessage"
+
+const MessageHandlingLoopStarting = "messageHandlingLoopStarting"
+const MessageHandlingLoopStarted = "messageHandlingLoopStarted"
+
+const MessageHandlingLoopStopping = "messageHandlingLoopStopping"
+const MessageHandlingLoopStopped = "messageHandlingLoopStopped"
+
+const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
+const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped"
+
+const ReceivingFromChannel = "receivingFromChannel"
+const ReceivedFromChannel = "receivingFromChannel"
+const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
+
+const SendingMessage = "sendingMessage"
+const SentMessage = "sentMessage"
+const SendingMessageFailed = "sendingMessageFailed"
+
+const SendingMultiMessage = "sendingMultiMessage"
+const SentMultiMessage = "sentMultiMessage"
+
+const SendingToChannel = "sendingToChannel"
+const SentToChannel = "sentToChannel"
 
 const ClientAlreadyInGroup = "clientAlreadyInGroup"
 const ClientNotInGroup = "clientNotInGroup"
@@ -94,19 +106,7 @@ const ReceivedEmptyClientName = "receivedEmptyClientName"
 
 const DuplicateName = "duplicateName"
 
-const MessageHandlingLoopStarting = "messageHandlingLoopStarting"
-const MessageHandlingLoopStarted = "messageHandlingLoopStarted"
-
-const MessageHandlingLoopStopping = "messageHandlingLoopStopping"
-const MessageHandlingLoopStopped = "messageHandlingLoopStopped"
-
-const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
-const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped"
-
 const Timeout = "timeout"
-
-const HandlingMessage = "handlingMessage"
-const HandledMessage = "handledMessage"
 
 const NoHandlerForTopic = "noHandlerForTopic"
 const HandlerFailed = "handlerFailed"

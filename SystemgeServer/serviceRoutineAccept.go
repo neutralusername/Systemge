@@ -46,13 +46,13 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	}
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptingClient,
+		Event.HandlingAcception,
 		"accepting systemgeConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptionRoutine,
+			Event.Circumstance: Event.HandleAcception,
 			Event.ClientType:   Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
@@ -62,13 +62,13 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 	if err != nil {
 		event := server.onEvent(Event.NewInfo(
-			Event.AcceptingClientFailed,
+			Event.HandleAcceptionFailed,
 			err.Error(),
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptionRoutine,
+				Event.Circumstance: Event.HandleAcception,
 				Event.ClientType:   Event.SystemgeConnection,
 			},
 		))
@@ -88,7 +88,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			Event.Cancel,
 			Event.Skip,
 			Event.Context{
-				Event.Circumstance:  Event.AcceptionRoutine,
+				Event.Circumstance:  Event.HandleAcception,
 				Event.ClientType:    Event.SystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetAddress(),
@@ -106,13 +106,13 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	server.mutex.Unlock()
 
 	event := server.onEvent(Event.NewInfo(
-		Event.AcceptedClient,
+		Event.HandledAcception,
 		"systemgeConnection accepted",
 		Event.Cancel,
 		Event.Skip,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.AcceptionRoutine,
+			Event.Circumstance:  Event.HandleAcception,
 			Event.ClientType:    Event.SystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
@@ -149,7 +149,7 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 	}
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.DisconnectingClient,
+		Event.HandlingDisconnection,
 		"disconnecting systemgeConnection",
 		Event.Context{
 			Event.Circumstance:  Event.Disconnection,
@@ -162,7 +162,7 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 	server.removeSystemgeConnection(connection.GetName())
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.DisconnectedClient,
+		Event.HandledDisconnection,
 		"systemgeConnection disconnected",
 		Event.Context{
 			Event.Circumstance:  Event.Disconnection,

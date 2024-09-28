@@ -9,6 +9,7 @@ const HeartbeatRoutine = "heartbeatRoutine"
 const Disconnection = "disconnection"
 
 const HandleReception = "handleReception"
+const HandleAcception = "handleAcception"
 
 const ReceiveRuntime = "receiveRuntime"
 const SendRuntime = "sendRuntime"
@@ -42,8 +43,7 @@ const WebsocketConnectionCount = "websocketConnectionCount"
 
 const GetWebsocketConnectionIds = "getWebsocketConnectionIds"
 
-const TcpSystemgeListenerAccept = "tcpSystemgeListenerAccept"
-const TcpSystemgeListenerHandshake = "tcpSystemgeListenerHandshake"
+const ServerHandshake = "serverHandshake"
 
 const MessageHandlingLoopStart = "messageHandlingLoopStart"
 const MessageHandlingLoopStop = "messageHandlingLoopStop"

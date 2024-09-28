@@ -21,7 +21,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.StartingService,
+		Event.ServiceStarting,
 		"service websocketServer starting",
 		Event.Cancel,
 		Event.Cancel,

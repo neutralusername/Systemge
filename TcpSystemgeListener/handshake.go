@@ -19,7 +19,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+			Event.Circumstance:  Event.ServerHandshake,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientAddress: netConn.RemoteAddr().String(),
 		},
@@ -34,7 +34,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.ReceivingMessageFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+				Event.Circumstance:  Event.ServerHandshake,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 			},
@@ -59,7 +59,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+			Event.Circumstance:  Event.ServerHandshake,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientAddress: netConn.RemoteAddr().String(),
 			Event.Bytes:         string(filteresMessageBytes),
@@ -74,7 +74,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+				Event.Circumstance:  Event.ServerHandshake,
 				Event.StructType:    Event.Message,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
@@ -89,7 +89,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.UnexpectedTopic,
 			"received message with unexpected topic",
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+				Event.Circumstance:  Event.ServerHandshake,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 				Event.Topic:         message.GetTopic(),
@@ -107,7 +107,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+				Event.Circumstance:  Event.ServerHandshake,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 				Event.ClientName:    message.GetPayload(),
@@ -122,7 +122,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.ReceivedEmptyClientName,
 			"received empty payload in message",
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+				Event.Circumstance:  Event.ServerHandshake,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 			},
@@ -137,7 +137,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.SendingMessageFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+				Event.Circumstance:  Event.ServerHandshake,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 				Event.ClientName:    message.GetPayload(),
@@ -153,7 +153,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.TcpSystemgeListenerHandshake,
+			Event.Circumstance:  Event.ServerHandshake,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientAddress: netConn.RemoteAddr().String(),
 			Event.ClientName:    message.GetPayload(),

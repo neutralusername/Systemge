@@ -104,13 +104,13 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		websocketId = server.randomizer.GenerateRandomString(Constants.ClientIdLength, Tools.ALPHA_NUMERIC)
 	}
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptingClient,
+		Event.HandlingAcception,
 		"accepting websocketConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.AcceptionRoutine,
+			Event.Circumstance:  Event.HandleAcception,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
@@ -138,13 +138,13 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.websocketConnectionMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptedClient,
+		Event.HandledAcception,
 		"websocketConnection accepted",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.AcceptionRoutine,
+			Event.Circumstance:  Event.HandleAcception,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
@@ -177,7 +177,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 	websocketConnection.waitGroup.Wait()
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.DisconnectingClient,
+		Event.HandlingDisconnection,
 		"disconnecting websocketConnection",
 		Event.Context{
 			Event.Circumstance:  Event.Disconnection,
@@ -189,7 +189,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 	server.removeWebsocketConnection(websocketConnection)
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.DisconnectedClient,
+		Event.HandledDisconnection,
 		"websocketConnection disconnected",
 		Event.Context{
 			Event.Circumstance:  Event.Disconnection,

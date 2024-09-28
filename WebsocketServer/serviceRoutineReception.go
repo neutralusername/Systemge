@@ -60,7 +60,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.HandleReception,
+					Event.Circumstance:  Event.ReceptionRoutine,
 					Event.Behaviour:     Event.Sequential,
 					Event.ClientType:    Event.WebsocketConnection,
 					Event.ClientId:      websocketConnection.GetId(),
@@ -87,7 +87,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:  Event.HandleReception,
+						Event.Circumstance:  Event.ReceptionRoutine,
 						Event.Behaviour:     Event.Concurrent,
 						Event.ClientType:    Event.WebsocketConnection,
 						Event.ClientId:      websocketConnection.GetId(),

@@ -12,7 +12,7 @@ func (server *SystemgeServer) Stop() error {
 	defer server.statusMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.StoppingService,
+		Event.ServiceStopping,
 		"stopping systemgeServer",
 		Event.Cancel,
 		Event.Cancel,

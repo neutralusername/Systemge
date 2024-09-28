@@ -69,13 +69,13 @@ func (listener *TcpSystemgeListener) Close() error {
 	defer listener.closedMutex.Unlock()
 
 	if event := listener.onEvent(Event.NewInfo(
-		Event.StoppingService,
+		Event.ServiceStopping,
 		"stopping tcpSystemgeListener",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.StoppingService,
+			Event.Circumstance: Event.ServiceStopping,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -86,7 +86,7 @@ func (listener *TcpSystemgeListener) Close() error {
 			Event.ServiceAlreadyStopped,
 			"tcpSystemgeListener is already closed",
 			Event.Context{
-				Event.Circumstance: Event.StoppingService,
+				Event.Circumstance: Event.ServiceStopping,
 			},
 		))
 		return errors.New("tcpSystemgeListener is already closed")
@@ -102,7 +102,7 @@ func (listener *TcpSystemgeListener) Close() error {
 		Event.ServiceStopped,
 		"tcpSystemgeListener stopped",
 		Event.Context{
-			Event.Circumstance: Event.StoppingService,
+			Event.Circumstance: Event.ServiceStopping,
 		},
 	))
 

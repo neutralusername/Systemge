@@ -17,7 +17,7 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.DisconnectingClient,
+		Event.HandlingDisconnection,
 		"disconnecting systemgeConnection",
 		Event.Cancel,
 		Event.Cancel,
@@ -68,7 +68,7 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 	connection.Close()
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.DisconnectedClient,
+		Event.HandledDisconnection,
 		"systemgeConnection disconnected",
 		Event.Context{
 			Event.Circumstance: Event.DisconnectClientRuntime,
