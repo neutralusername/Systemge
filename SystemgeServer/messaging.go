@@ -55,6 +55,25 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range server.clients {
+			if connection == nil {
+				if event := server.onEvent(Event.NewWarning(
+					Event.ClientNotAccepted,
+					"client not accepted",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.AsyncMessage,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return event.GetError()
+				}
+				continue
+			}
 			connections = append(connections, connection)
 		}
 	} else {
