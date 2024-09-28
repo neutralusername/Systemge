@@ -126,25 +126,6 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 
 func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
 	synctoken, syncRequestStruct := connection.initResponseChannel()
-	if event := connection.onEvent(Event.NewInfo(
-		Event.SendingMultiMessage,
-		"sending sync request",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance:  Event.SyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.name,
-			Event.ClientAddress: connection.GetAddress(),
-			Event.Topic:         topic,
-			Event.Payload:       payload,
-			Event.SyncToken:     synctoken,
-		},
-	)); !event.IsInfo() {
-		connection.removeSyncRequest(synctoken)
-		return nil, event.GetError()
-	}
 
 	if err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize(), Event.AsyncMessage); err != nil {
 		connection.removeSyncRequest(synctoken)
@@ -179,20 +160,6 @@ func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-c
 			close(resChan)
 		}
 	}()
-
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentMultiMessage,
-		"sync request sent",
-		Event.Context{
-			Event.Circumstance:  Event.SyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.name,
-			Event.ClientAddress: connection.GetAddress(),
-			Event.Topic:         topic,
-			Event.Payload:       payload,
-			Event.SyncToken:     synctoken,
-		},
-	))
 
 	return resChan, nil
 }
