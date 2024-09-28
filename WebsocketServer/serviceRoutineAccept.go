@@ -185,7 +185,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 			Event.Circumstance:  Event.Disconnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 		},
 	))
 	server.removeWebsocketConnection(websocketConnection)
@@ -197,7 +197,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 			Event.Circumstance:  Event.Disconnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetIp(),
+			Event.ClientAddress: websocketConnection.GetAddress(),
 		},
 	))
 }
