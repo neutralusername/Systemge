@@ -129,3 +129,9 @@ const UnknownSyncToken = "unknownSyncToken"
 const UnexpectedClosure = "unexpectedClosure"
 
 const CloseFailed = "closeFailed"
+
+const AddingRoute = "addingRoute"
+const AddedRoute = "addedRoute"
+
+const RemovingRoute = "removingRoute"
+const RemovedRoute = "removedRoute"

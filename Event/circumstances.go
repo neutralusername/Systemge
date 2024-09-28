@@ -57,3 +57,6 @@ const AddSyncResponse = "addSyncResponse"
 const RemoveSyncRequest = "removeSyncRequest"
 
 const AbortSyncRequest = "abortSyncRequest"
+
+const AddRoute = "addRoute"
+const RemoveRoute = "removeRoute"

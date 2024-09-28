@@ -60,11 +60,55 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 }
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
+	if event := server.onEvent(Event.NewInfo(
+		Event.AddingRoute,
+		"Adding route",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.AddRoute,
+			Event.Pattern:      pattern,
+		},
+	)); !event.IsInfo() {
+		return
+	}
 	server.mux.AddRoute(pattern, server.httpRequestWrapper(pattern, handlerFunc))
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.AddedRoute,
+		"Added route",
+		Event.Context{
+			Event.Circumstance: Event.AddRoute,
+			Event.Pattern:      pattern,
+		},
+	))
 }
 
 func (server *HTTPServer) RemoveRoute(pattern string) {
+	if event := server.onEvent(Event.NewInfo(
+		Event.RemovingRoute,
+		"Removing route",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.RemoveRoute,
+			Event.Pattern:      pattern,
+		},
+	)); !event.IsInfo() {
+		return
+	}
 	server.mux.RemoveRoute(pattern)
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.RemovedRoute,
+		"Removed route",
+		Event.Context{
+			Event.Circumstance: Event.RemoveRoute,
+			Event.Pattern:      pattern,
+		},
+	))
 }
 
 func (server *HTTPServer) GetBlacklist() *Tools.AccessControlList {
