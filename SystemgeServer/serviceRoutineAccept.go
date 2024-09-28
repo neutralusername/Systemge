@@ -104,7 +104,29 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		server.clients[connection.GetName()] = connection
 		server.mutex.Unlock()
 
-		isAccepted := false
+		event := server.onEvent(Event.NewInfo(
+			Event.AcceptedClient,
+			err.Error(),
+			Event.Cancel,
+			Event.Skip,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.AcceptionRoutine,
+				Event.ClientType:   Event.SystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+			},
+		))
+		if event.IsError() {
+			connection.Close()
+			server.waitGroup.Done()
+			return event.GetError()
+		}
+		if event.IsWarning() {
+			connection.Close()
+			server.waitGroup.Done()
+			return nil
+		}
+
 		go func() {
 			defer server.waitGroup.Done()
 
@@ -141,29 +163,6 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			))
 		}()
 
-		event := server.onEvent(Event.NewInfo(
-			Event.AcceptedClient,
-			err.Error(),
-			Event.Cancel,
-			Event.Skip,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.AcceptionRoutine,
-				Event.ClientType:   Event.SystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-			},
-		))
-		if event.IsError() {
-			connection.Close()
-			server.waitGroup.Done()
-			return event.GetError()
-		}
-		if event.IsWarning() {
-			connection.Close()
-			server.waitGroup.Done()
-			return nil
-		}
-		isAccepted = true
 		return nil
 	}
 }
