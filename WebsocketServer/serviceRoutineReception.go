@@ -52,7 +52,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
 
 	if server.config.HandleMessageReceptionSequentially {
-		if err := server.handleReception(websocketConnection, messageBytes); err != nil {
+		if err := server.handleReception(websocketConnection, messageBytes, Event.Sequential); err != nil {
 			if event := server.onEvent(Event.NewInfo(
 				Event.HandleReceptionFailed,
 				err.Error(),
@@ -79,7 +79,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 		websocketConnection.waitGroup.Add(1)
 		go func() {
 			defer websocketConnection.waitGroup.Done()
-			if err := server.handleReception(websocketConnection, messageBytes); err != nil {
+			if err := server.handleReception(websocketConnection, messageBytes, Event.Concurrent); err != nil {
 				if event := server.onEvent(Event.NewInfo(
 					Event.HandleReceptionFailed,
 					err.Error(),
@@ -106,7 +106,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	return nil
 }
 
-func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte) error {
+func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) error {
 	event := server.onEvent(Event.NewInfo(
 		Event.HandlingReception,
 		"handling message reception",
@@ -115,6 +115,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
@@ -135,6 +136,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:    Event.HandleReception,
+				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Bytes,
 				Event.ClientType:      Event.WebsocketConnection,
@@ -156,6 +158,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:    Event.HandleReception,
+				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
 				Event.ClientType:      Event.WebsocketConnection,
@@ -175,6 +178,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.StructType:    Event.Message,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
@@ -194,6 +198,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetAddress(),
@@ -212,6 +217,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			"received websocketConnection heartbeat",
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
 				Event.ClientAddress: websocketConnection.GetAddress(),
@@ -230,6 +236,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			"no websocketConnection message handler for topic",
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.HandlerType:   Event.WebsocketConnection,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
@@ -250,6 +257,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
@@ -268,6 +276,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.HandleReception,
+				Event.Behaviour:     behaviour,
 				Event.HandlerType:   Event.WebsocketConnection,
 				Event.ClientType:    Event.WebsocketConnection,
 				Event.ClientId:      websocketConnection.GetId(),
@@ -285,6 +294,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		"handled websocketConnection message",
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
@@ -300,6 +310,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		"handled websocketConnection message",
 		Event.Context{
 			Event.Circumstance:  Event.HandleReception,
+			Event.Behaviour:     behaviour,
 			Event.HandlerType:   Event.WebsocketConnection,
 			Event.ClientType:    Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
