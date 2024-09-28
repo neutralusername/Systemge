@@ -42,6 +42,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	case <-server.stopChannel:
 		return errors.New("systemgeServer stopped")
 	default:
+
 		server.waitGroup.Add(1)
 
 		connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
