@@ -104,47 +104,40 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		server.clients[connection.GetName()] = connection
 		server.mutex.Unlock()
 
-		if err != nil {
+		isAccepted := false
+		go func() {
+			select {
+			case <-connection.GetCloseChannel():
+			case <-stopChannel:
+				connection.Close()
+			}
+			server.mutex.Lock()
+			delete(server.clients, connection.GetName())
+			server.mutex.Unlock()
+
+			if isAccepted {
+				if server.onDisconnectHandler != nil {
+					server.onDisconnectHandler(connection)
+				}
+			}
+
 			server.waitGroup.Done()
-			if server.errorLogger != nil {
-				server.errorLogger.Log(err.Error())
-			}
-		} else {
-			pastOnConnectHandler := false
-			go func() {
-				select {
-				case <-connection.GetCloseChannel():
-				case <-stopChannel:
-					connection.Close()
-				}
-				server.mutex.Lock()
-				delete(server.clients, connection.GetName())
-				server.mutex.Unlock()
-
-				if pastOnConnectHandler {
-					if server.onDisconnectHandler != nil {
-						server.onDisconnectHandler(connection)
-					}
-				}
-
-				server.waitGroup.Done()
-
-				if server.infoLogger != nil {
-					server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
-				}
-			}()
-
-			if server.onConnectHandler != nil {
-				if err := server.onConnectHandler(connection); err != nil {
-					connection.Close()
-					return
-				}
-			}
-			pastOnConnectHandler = true
 
 			if server.infoLogger != nil {
-				server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
+				server.infoLogger.Log("connection \"" + connection.GetName() + "\" closed")
 			}
+		}()
+
+		if server.onConnectHandler != nil {
+			if err := server.onConnectHandler(connection); err != nil {
+				connection.Close()
+				return
+			}
+		}
+		isAccepted = true
+
+		if server.infoLogger != nil {
+			server.infoLogger.Log("connection \"" + connection.GetName() + "\" accepted")
 		}
 	}
 }
