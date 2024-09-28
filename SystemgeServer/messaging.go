@@ -26,6 +26,8 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 			Event.Circumstance:    Event.AsyncMessage,
 			Event.ClientType:      Event.SystemgeConnection,
 			Event.TargetClientIds: targetClientIds,
+			Event.Topic:           topic,
+			Event.Payload:         payload,
 		},
 	)); !event.IsInfo() {
 		server.mutex.Unlock()
@@ -41,6 +43,8 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, clientNames ..
 				Event.Circumstance:    Event.AsyncMessage,
 				Event.ClientType:      Event.SystemgeConnection,
 				Event.TargetClientIds: targetClientIds,
+				Event.Topic:           topic,
+				Event.Payload:         payload,
 			},
 		))
 		server.statusMutex.RUnlock()
