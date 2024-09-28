@@ -42,12 +42,40 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	case <-server.stopChannel:
 		return errors.New("systemgeServer stopped")
 	default:
-
+		if event := server.onEvent(Event.NewInfo(
+			Event.AcceptingClient,
+			"accepting systemge connection",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.AcceptionRoutine,
+				Event.ClientType:   Event.SystemgeConnection,
+			},
+		)); !event.IsInfo() {
+			return event.GetError()
+		}
 		server.waitGroup.Add(1)
 
 		connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 		if err != nil {
-			return err
+			if event := server.onEvent(Event.NewInfo(
+				Event.AcceptingClientFailed,
+				err.Error(),
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance: Event.AcceptionRoutine,
+					Event.ClientType:   Event.SystemgeConnection,
+				},
+			)); !event.IsInfo() {
+				server.waitGroup.Done()
+				return event.GetError()
+			} else {
+				server.waitGroup.Done()
+				return err
+			}
 		}
 
 		server.mutex.Lock()
