@@ -52,32 +52,50 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
 
 	if server.config.HandleMessageReceptionSequentially {
-		event := server.handleReception(websocketConnection, messageBytes)
-		if event.IsError() {
-			if server.config.PropagateMessageHandlerErrors {
-				server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
-			}
-			websocketConnection.Close()
-		}
-		if event.IsWarning() {
-			if server.config.PropagateMessageHandlerWarnings {
-				server.send(websocketConnection, Message.NewAsync("warning", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+		if err := server.handleReception(websocketConnection, messageBytes); err != nil {
+			if event := server.onEvent(Event.NewInfo(
+				Event.HandleReceptionFailed,
+				err.Error(),
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:  Event.HandleReception,
+					Event.ClientType:    Event.WebsocketConnection,
+					Event.ClientId:      websocketConnection.GetId(),
+					Event.ClientAddress: websocketConnection.GetAddress(),
+				},
+			)); !event.IsInfo() {
+				websocketConnection.Close()
+				return event.GetError()
+			} else {
+				if server.config.PropagateMessageHandlerErrors {
+					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+				}
 			}
 		}
 	} else {
 		websocketConnection.waitGroup.Add(1)
 		go func() {
 			defer websocketConnection.waitGroup.Done()
-			event := server.handleReception(websocketConnection, messageBytes)
-			if event.IsError() {
+			err := server.handleReception(websocketConnection, messageBytes)
+			if event := server.onEvent(Event.NewInfo(
+				Event.HandleReceptionFailed,
+				err.Error(),
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:  Event.HandleReception,
+					Event.ClientType:    Event.WebsocketConnection,
+					Event.ClientId:      websocketConnection.GetId(),
+					Event.ClientAddress: websocketConnection.GetAddress(),
+				},
+			)); !event.IsInfo() {
+				websocketConnection.Close()
+			} else {
 				if server.config.PropagateMessageHandlerErrors {
 					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
-				}
-				websocketConnection.Close()
-			}
-			if event.IsWarning() {
-				if server.config.PropagateMessageHandlerWarnings {
-					server.send(websocketConnection, Message.NewAsync("warning", event.Marshal()).Serialize(), Event.ReceptionRoutine)
 				}
 			}
 		}()
@@ -85,7 +103,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 	return nil
 }
 
-func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte) *Event.Event {
+func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte) error {
 	event := server.onEvent(Event.NewInfo(
 		Event.HandlingReception,
 		"handling message reception",
@@ -102,7 +120,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		},
 	))
 	if !event.IsInfo() {
-		return event
+		return event.GetError()
 	}
 
 	if websocketConnection.rateLimiterBytes != nil && !websocketConnection.rateLimiterBytes.Consume(uint64(len(messageBytes))) {
@@ -122,7 +140,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
-			return event
+			return event.GetError()
 		}
 	}
 
@@ -143,13 +161,13 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
-			return event
+			return event.GetError()
 		}
 	}
 
 	message, err := Message.Deserialize(messageBytes, websocketConnection.GetId())
 	if err != nil {
-		return server.onEvent(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
@@ -161,6 +179,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.Bytes:         string(messageBytes),
 			},
 		))
+		return err
 	}
 
 	if err := server.validateMessage(message); err != nil {
@@ -180,12 +199,12 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.SyncToken:     message.GetSyncToken(),
 			},
 		)); !event.IsInfo() {
-			return event
+			return event.GetError()
 		}
 	}
 
 	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
-		return server.onEvent(Event.NewInfoNoOption(
+		server.onEvent(Event.NewInfoNoOption(
 			Event.HeartbeatReceived,
 			"received websocketConnection heartbeat",
 			Event.Context{
@@ -195,6 +214,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.ClientAddress: websocketConnection.GetAddress(),
 			},
 		))
+		return errors.New("received heartbeat")
 	}
 
 	server.messageHandlerMutex.Lock()
@@ -202,7 +222,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 	server.messageHandlerMutex.Unlock()
 
 	if handler == nil {
-		return server.onEvent(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.NoHandlerForTopic,
 			"no websocketConnection message handler for topic",
 			Event.Context{
@@ -216,6 +236,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.SyncToken:     message.GetSyncToken(),
 			},
 		))
+		return errors.New("no handler for topic")
 	}
 
 	if event := server.onEvent(Event.NewInfo(
@@ -235,11 +256,11 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.SyncToken:     message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
-		return event
+		return event.GetError()
 	}
 
 	if err := handler(websocketConnection, message); err != nil {
-		return server.onEvent(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.HandlerFailed,
 			err.Error(),
 			Event.Context{
@@ -253,6 +274,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.SyncToken:     message.GetSyncToken(),
 			},
 		))
+		return err
 	}
 
 	server.onEvent(Event.NewInfoNoOption(
@@ -270,7 +292,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		},
 	))
 
-	return server.onEvent(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.HandledReception,
 		"handled websocketConnection message",
 		Event.Context{
@@ -284,6 +306,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.SyncToken:     message.GetSyncToken(),
 		},
 	))
+	return nil
 }
 
 func (server *WebsocketServer) validateMessage(message *Message.Message) error {

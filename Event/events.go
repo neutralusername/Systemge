@@ -45,6 +45,7 @@ const ReceivingMessageFailed = "receivingMessageFailed"
 
 const HandlingReception = "handlingReception"
 const HandledReception = "handledReception"
+const HandleReceptionFailed = "handleReceptionFailed"
 
 const ClientAlreadyInGroup = "clientAlreadyInGroup"
 const ClientNotInGroup = "clientNotInGroup"
