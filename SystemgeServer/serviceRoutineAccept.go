@@ -119,11 +119,17 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		if event.IsError() {
 			connection.Close()
 			server.waitGroup.Done()
+			server.mutex.Lock()
+			delete(server.clients, connection.GetName())
+			server.mutex.Unlock()
 			return event.GetError()
 		}
 		if event.IsWarning() {
 			connection.Close()
 			server.waitGroup.Done()
+			server.mutex.Lock()
+			delete(server.clients, connection.GetName())
+			server.mutex.Unlock()
 			return nil
 		}
 
