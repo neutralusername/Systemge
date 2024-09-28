@@ -36,9 +36,7 @@ func (server *SystemgeServer) Stop() error {
 	}
 
 	server.status = Status.Pending
-	close(server.stopChannel)
-	err := server.listener.Close()
-	if err != nil {
+	if err := server.listener.Close(); err != nil {
 		server.onEvent(Event.NewErrorNoOption(
 			Event.CloseFailed,
 			"failed to close listener",
@@ -47,9 +45,8 @@ func (server *SystemgeServer) Stop() error {
 			},
 		))
 	}
+	close(server.stopChannel)
 	server.waitGroup.Wait()
-	server.stopChannel = nil
-	server.listener = nil
 	server.status = Status.Stopped
 
 	server.onEvent(Event.NewInfoNoOption(
