@@ -124,11 +124,27 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 			server.waitGroup.Done()
 		}()
 
-		if server.onConnectHandler != nil {
-			if err := server.onConnectHandler(connection); err != nil {
-				connection.Close()
-				return err // !!
-			}
+		event := server.onEvent(Event.NewInfo(
+			Event.AcceptedClient,
+			err.Error(),
+			Event.Cancel,
+			Event.Skip,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.AcceptionRoutine,
+				Event.ClientType:   Event.SystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+			},
+		))
+		if event.IsError() {
+			connection.Close()
+			server.waitGroup.Done()
+			return event.GetError()
+		}
+		if event.IsWarning() {
+			connection.Close()
+			server.waitGroup.Done()
+			return nil
 		}
 		isAccepted = true
 		return nil

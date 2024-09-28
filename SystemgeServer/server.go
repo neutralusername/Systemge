@@ -30,9 +30,6 @@ type SystemgeServer struct {
 	config   *Config.SystemgeServer
 	listener SystemgeListener.SystemgeListener
 
-	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
-
 	clients     map[string]SystemgeConnection.SystemgeConnection // name -> connection
 	mutex       sync.Mutex
 	stopChannel chan bool
@@ -42,7 +39,7 @@ type SystemgeServer struct {
 	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, onConnectHandler func(SystemgeConnection.SystemgeConnection) error, onDisconnectHandler func(SystemgeConnection.SystemgeConnection)) (*SystemgeServer, error) {
+func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*SystemgeServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -57,11 +54,10 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 	}
 
 	server := &SystemgeServer{
-		name:                name,
-		config:              config,
-		onConnectHandler:    onConnectHandler,
-		onDisconnectHandler: onDisconnectHandler,
-		instanceId:          Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:         name,
+		config:       config,
+		eventHandler: eventHandler,
+		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		whitelist: whitelist,
 		blacklist: blacklist,
