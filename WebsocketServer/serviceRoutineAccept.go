@@ -139,10 +139,6 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 	server.websocketConnectionGroups[websocketId] = make(map[string]bool)
 	server.websocketConnectionMutex.Unlock()
 
-	websocketConnection.waitGroup.Add(1)
-	server.waitGroup.Add(1)
-	go server.websocketConnectionDisconnect(websocketConnection)
-
 	if event := server.onEvent(Event.NewInfo(
 		Event.AcceptedClient,
 		"websocketConnection accepted",
@@ -157,13 +153,17 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		},
 	)); !event.IsInfo() {
 		websocketConnection.Close()
-		websocketConnection.waitGroup.Done()
+		server.removeWebsocketConnection(websocketConnection)
+		server.websocketConnectionsRejected.Add(1)
 		return
 	}
 
 	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.isAccepted = true
 
+	websocketConnection.waitGroup.Add(1)
+	server.waitGroup.Add(1)
+	go server.websocketConnectionDisconnect(websocketConnection)
 	go server.receptionRoutine(websocketConnection)
 }
 
