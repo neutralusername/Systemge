@@ -52,7 +52,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 			return nil
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
-			return errors.New("No handler for async message")
+			return errors.New("no handler for async message")
 		}
 	}
 	messageHandler.asyncMessagesHandled.Add(1)
@@ -62,7 +62,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleAsyncMessage(connection Sy
 
 func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	if message.IsResponse() {
-		return "", errors.New("Message is response")
+		return "", errors.New("message is response")
 	}
 	messageHandler.syncMutex.RLock()
 	handler, exists := messageHandler.syncMessageHandlers[message.GetTopic()]
@@ -73,7 +73,7 @@ func (messageHandler *ConcurrentMessageHandler) HandleSyncRequest(connection Sys
 			return messageHandler.unknwonSyncTopicHandler(connection, message)
 		} else {
 			messageHandler.unknownTopicsReceived.Add(1)
-			return "", errors.New("No handler for sync message")
+			return "", errors.New("no handler for sync message")
 		}
 	}
 	messageHandler.syncRequestsHandled.Add(1)

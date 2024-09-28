@@ -81,7 +81,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 					messageStruct.syncResponseChannel <- &syncResponseStruct{response: response, err: err}
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
-					messageStruct.syncResponseChannel <- &syncResponseStruct{response: "", err: errors.New("No handler for sync message")}
+					messageStruct.syncResponseChannel <- &syncResponseStruct{response: "", err: errors.New("no handler for sync message")}
 				}
 			} else {
 				messageHandler.syncRequestsHandled.Add(1)
@@ -99,7 +99,7 @@ func (messageHandler *SequentialMessageHandler) handleMessages() {
 					messageStruct.asyncErrorChannel <- nil
 				} else {
 					messageHandler.unknownTopicsReceived.Add(1)
-					messageStruct.asyncErrorChannel <- errors.New("No handler for async message")
+					messageStruct.asyncErrorChannel <- errors.New("no handler for async message")
 				}
 			} else {
 				messageHandler.asyncMessagesHandled.Add(1)
@@ -120,13 +120,13 @@ func (messageHandler *SequentialMessageHandler) HandleAsyncMessage(connection Sy
 	}:
 		return <-response
 	default:
-		return errors.New("Message queue is full")
+		return errors.New("message queue is full")
 	}
 }
 
 func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
 	if message.IsResponse() {
-		return "", errors.New("Message is response")
+		return "", errors.New("message is response")
 	}
 	response := make(chan *syncResponseStruct)
 	select {
@@ -138,7 +138,7 @@ func (messageHandler *SequentialMessageHandler) HandleSyncRequest(connection Sys
 		responseStruct := <-response
 		return responseStruct.response, responseStruct.err
 	default:
-		return "", errors.New("Message queue is full")
+		return "", errors.New("message queue is full")
 	}
 }
 
