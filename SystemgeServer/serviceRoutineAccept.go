@@ -59,7 +59,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		server.waitGroup.Add(1)
 		connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 		if err != nil {
-			if event := server.onEvent(Event.NewInfo(
+			event := server.onEvent(Event.NewInfo(
 				Event.AcceptingClientFailed,
 				err.Error(),
 				Event.Cancel,
@@ -69,11 +69,11 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 					Event.Circumstance: Event.AcceptionRoutine,
 					Event.ClientType:   Event.SystemgeConnection,
 				},
-			)); !event.IsInfo() {
-				server.waitGroup.Done()
+			))
+			server.waitGroup.Done()
+			if !event.IsInfo() {
 				return event.GetError()
 			} else {
-				server.waitGroup.Done()
 				return nil
 			}
 		}
@@ -81,8 +81,8 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		server.mutex.Lock()
 		if _, ok := server.clients[connection.GetName()]; ok {
 			server.mutex.Unlock()
-
 			connection.Close()
+			server.waitGroup.Done()
 			return errors.New("duplicate name")
 		}
 		server.clients[connection.GetName()] = connection
