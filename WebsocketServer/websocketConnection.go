@@ -25,8 +25,6 @@ type WebsocketConnection struct {
 	closeMutex sync.Mutex
 	isClosed   bool
 
-	server *WebsocketServer
-
 	rateLimiterBytes *Tools.TokenBucketRateLimiter
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 }
