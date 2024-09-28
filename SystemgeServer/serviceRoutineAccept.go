@@ -10,7 +10,7 @@ func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.AcceptionRoutineFinished,
-			"stopped systemgeServer acception",
+			"stopped systemgeServer acception routine",
 			Event.Context{
 				Event.Circumstance: Event.AcceptionRoutine,
 				Event.ClientType:   Event.SystemgeConnection,
@@ -21,7 +21,7 @@ func (server *SystemgeServer) acceptRoutine(stopChannel chan bool) {
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.AcceptionRoutineStarted,
-		"started systemgeServer acception",
+		"started systemgeServer acception routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -44,7 +44,7 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	default:
 		if event := server.onEvent(Event.NewInfo(
 			Event.AcceptingClient,
-			"accepting systemge connection",
+			"accepting systemgeConnection",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,

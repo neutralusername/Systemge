@@ -11,7 +11,7 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.ReceptionRoutineFinished,
-			"reception routine finished",
+			"stopped websocketConnection reception routine",
 			Event.Context{
 				Event.Circumstance:  Event.ReceptionRoutine,
 				Event.ClientType:    Event.WebsocketConnection,
@@ -24,7 +24,7 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.ReceptionRoutineStarted,
-		"reception routine started",
+		"started websocketConnection reception routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,

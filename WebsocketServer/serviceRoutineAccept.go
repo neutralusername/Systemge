@@ -13,7 +13,7 @@ func (server *WebsocketServer) acceptRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.AcceptionRoutineFinished,
-			"stopped websocketConnections acception",
+			"stopped websocketConnection acception routine",
 			Event.Context{
 				Event.Circumstance: Event.AcceptionRoutine,
 				Event.ClientType:   Event.WebsocketConnection,
@@ -24,7 +24,7 @@ func (server *WebsocketServer) acceptRoutine() {
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.AcceptionRoutineStarted,
-		"started websocketConnections acception",
+		"started websocketConnection acception routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
