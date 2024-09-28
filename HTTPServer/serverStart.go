@@ -5,14 +5,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (server *HTTPServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
+
+	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.StartingService,

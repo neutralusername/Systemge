@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
@@ -16,7 +17,9 @@ import (
 type Handlers map[string]http.HandlerFunc
 
 type HTTPServer struct {
-	name string
+	instanceId string
+	sessionId  string
+	name       string
 
 	status      int
 	statusMutex sync.RWMutex
@@ -43,11 +46,12 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 		panic("config.TcpListenerConfig is nil")
 	}
 	server := &HTTPServer{
-		name:      name,
-		mux:       NewCustomMux(),
-		config:    config,
-		blacklist: blacklist,
-		whitelist: whitelist,
+		name:       name,
+		mux:        NewCustomMux(),
+		config:     config,
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		blacklist:  blacklist,
+		whitelist:  whitelist,
 	}
 	for pattern, handler := range handlers {
 		server.AddRoute(pattern, handler)
@@ -140,5 +144,7 @@ func (server *HTTPServer) GetServerContext() Event.Context {
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),
+		Event.InstanceId:    server.instanceId,
+		Event.SessionId:     server.sessionId,
 	}
 }
