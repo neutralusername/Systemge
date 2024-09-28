@@ -16,6 +16,10 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
+	if tcpClientConfig == nil {
+		return nil, errors.New("tcpClientConfig is nil")
+	}
+
 	netConn, err := Tcp.NewClient(tcpClientConfig)
 	if err != nil {
 		return nil, err

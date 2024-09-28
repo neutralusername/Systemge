@@ -20,6 +20,9 @@ type ConnectionAttempt struct {
 }
 
 func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt, eventHandler Event.Handler) *ConnectionAttempt {
+	if config == nil {
+		return nil
+	}
 	connectionAttempts := &ConnectionAttempt{
 		config:       config,
 		attempts:     0,
