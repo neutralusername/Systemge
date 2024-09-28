@@ -3,7 +3,6 @@ package SystemgeServer
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -17,20 +16,6 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 	}()
 	if server.status != Status.Started {
 		return errors.New("server is not started")
-	}
-
-	if event := server.onEvent(Event.NewInfo(
-		Event.DisconnectingClient,
-		"disconnecting systemgeConnection",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.DisconnectClientRuntime,
-			Event.ClientType:   Event.SystemgeConnection,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
 	}
 
 	connection, ok := server.clients[name]
