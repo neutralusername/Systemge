@@ -2,9 +2,9 @@ package SystemgeServer
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
@@ -38,7 +38,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 	}
 	serverCommands["removeConnection"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("expected 1 argument", nil)
+			return "", errors.New("expected 1 argument")
 		}
 		err := server.RemoveConnection(args[0])
 		if err != nil {
@@ -50,7 +50,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		names := server.GetConnectionNamesAndAddresses()
 		json, err := json.Marshal(names)
 		if err != nil {
-			return "", Event.New("failed to marshal map to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
@@ -59,7 +59,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 	}
 	serverCommands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("expected at least 2 arguments", nil)
+			return "", errors.New("expected at least 2 arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -72,7 +72,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 	}
 	serverCommands["syncRequest"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("expected at least 2 arguments", nil)
+			return "", errors.New("expected at least 2 arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -83,7 +83,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		}
 		json, err := json.Marshal(messages)
 		if err != nil {
-			return "", Event.New("failed to marshal messages to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
@@ -91,7 +91,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		metrics := server.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Event.New("failed to marshal metrics to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
@@ -99,7 +99,7 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		metrics := server.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Event.New("failed to marshal metrics to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
