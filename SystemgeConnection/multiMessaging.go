@@ -26,12 +26,14 @@ func MultiSyncRequest(topic, payload string, connections ...SystemgeConnection) 
 		sendWaitGroup.Add(1)
 		go func(connection SystemgeConnection) {
 			defer sendWaitGroup.Done()
-			responseChannel, _ := connection.SyncRequest(topic, payload)
+			responseChannel, err := connection.SyncRequest(topic, payload)
+			if err != nil {
+				return
+			}
 			responseWaitGroup.Add(1)
 			go func(connection SystemgeConnection, responseChannel <-chan *Message.Message) {
 				responsesChannel <- <-responseChannel
 				responseWaitGroup.Done()
-
 			}(connection, responseChannel)
 		}(connection)
 	}
