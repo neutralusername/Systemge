@@ -37,6 +37,7 @@ func NewSessionManager(onExpire func(*Session), onCreate func(*Session)) *Sessio
 }
 
 func (manager *SessionManager) CreateSession(identityString string) *Session {
+	manager.mutex.Lock()
 	identity, ok := manager.identities[identityString]
 	if !ok {
 		identity = &Identity{
@@ -58,8 +59,14 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 
 	identity.sessions[session.id] = session
 	manager.sessions[session.id] = session
+	manager.mutex.Unlock()
 
 	manager.onCreate(session)
+	go manager.handleSessionLifetime(session)
 
 	return session
+}
+
+func (manager *SessionManager) handleSessionLifetime(session *Session) {
+
 }
