@@ -46,16 +46,21 @@ func (session *Session) Set(key string, value any) {
 	session.keyValuePairs[key] = value
 }
 
-func (session *Session) Get(key string) any {
+func (session *Session) Get(key string) (any, bool) {
 	session.mutex.RLock()
 	defer session.mutex.RUnlock()
-	return session.keyValuePairs[key]
+	val, ok := session.keyValuePairs[key]
+	return val, ok
 }
 
-func (session *Session) Remove(key string) {
+func (session *Session) Remove(key string) error {
 	session.mutex.Lock()
 	defer session.mutex.Unlock()
+	if _, ok := session.keyValuePairs[key]; !ok {
+		return errors.New("key not found")
+	}
 	delete(session.keyValuePairs, key)
+	return nil
 }
 
 func (session *Session) GetId() string {
