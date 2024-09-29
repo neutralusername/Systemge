@@ -113,6 +113,15 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 
 	connection, err := listener.serverHandshake(connectionConfig, netConn, eventHandler)
 	if err != nil {
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.ServerHandshakeFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance:  Event.HandleAcception,
+				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.ClientAddress: netConn.RemoteAddr().String(),
+			},
+		))
 		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
 		netConn.Close()
 		return nil, err

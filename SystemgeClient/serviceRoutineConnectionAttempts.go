@@ -84,7 +84,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 	)
 	if err != nil {
 		client.onEvent(Event.NewErrorNoOption(
-			Event.InitializationFailed,
+			Event.ServiceStartFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.StartConnectionAttempts,
@@ -131,7 +131,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		client.connectionAttemptsFailed.Add(uint64(connectionAttempt.GetAttemptsCount()))
 
 		client.onEvent(Event.NewInfoNoOption(
-			Event.HandleConnectionAttemptsFailed,
+			Event.HandleConnectionAttemptFailed,
 			"start connection attempts failed",
 			Event.Context{
 				Event.Circumstance:  Event.HandleConnectionAttempts,
@@ -142,7 +142,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	}
 
 	if event := client.onEvent(Event.NewInfo(
-		Event.HandlingConnectionAttempts,
+		Event.HandlingConnectionAttempt,
 		"handling connection attempt",
 		Event.Cancel,
 		Event.Cancel,

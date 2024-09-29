@@ -23,7 +23,7 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 	}()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.HeartbeatRoutineStarted,
+		Event.HeartbeatRoutineBegins,
 		"started tcpSystemgeConnection message reception",
 		Event.Cancel,
 		Event.Cancel,

@@ -103,7 +103,7 @@ func (server *HTTPServer) Start() error {
 	case err := <-errorChannel:
 		server.status = Status.Stopped
 		server.onEvent(Event.NewErrorNoOption(
-			Event.InitializationFailed,
+			Event.ServiceStartFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance: Event.ServiceStart,

@@ -39,7 +39,7 @@ func (server *HTTPServer) Stop() error {
 	err := server.httpServer.Close()
 	if err != nil {
 		server.onEvent(Event.NewErrorNoOption(
-			Event.CloseFailed,
+			Event.ServiceStopFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance: Event.ServiceStop,

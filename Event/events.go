@@ -35,6 +35,9 @@ const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception
 const HandlingMessage = "handlingMessage" // before handling a message
 const HandledMessage = "handledMessage"   // after handling a message
 
+const NoHandlerForTopic = "noHandlerForTopic" // when no message handler is found for a particular topic
+const HandlerFailed = "handlerFailed"         // when a message handling operation returns an error
+
 const MessageHandlingLoopStarting = "messageHandlingLoopStarting" // before starting the message handling loop
 const MessageHandlingLoopStarted = "messageHandlingLoopStarted"   // after starting the message handling loop
 
@@ -91,69 +94,62 @@ const RateLimited = "rateLimited"       // when a client is rate limited
 const Blacklisted = "blacklisted"       // when a client is blacklisted
 const NotWhitelisted = "notWhitelisted" // when a client is not whitelisted (and whitelisting is required)
 
-const SplittingHostPortFailed = "splittingHostPortFailed" // when a address string cannot be split into host and port
+const SplittingHostPortFailed = "splittingHostPortFailed"   // when a address string cannot be split into host and port
+const NormalizingAddressFailed = "normalizingAddressFailed" // when a normalizing address operation returns an error
 
 const WebsocketUpgradeFailed = "websocketUpgradeFailed" // when a websocket upgrade operation returns an error
 
-const HeartbeatReceived = "heartbeatReceived"
-const SendingHeartbeat = "sendingHeartbeat"
-const SentHeartbeat = "sentHeartbeat"
+const SendingHeartbeat = "sendingHeartbeat" // before sending a heartbeat
+const SentHeartbeat = "sentHeartbeat"       // after sending a heartbeat
 
-const HeartbeatRoutineFinished = "heartbeatRoutineFinished"
-const HeartbeatRoutineStarted = "heartbeatRoutineStarted"
+const HeartbeatReceived = "heartbeatReceived" // when a heartbeat is received
 
-const ServerHandshakeStarted = "serverHandshakeStarted"
-const ServerHandshakeFinished = "serverHandshakeFinished"
-const ServerHandshakeFailed = "serverHandshakeFailed"
+const HeartbeatRoutineBegins = "heartbeatRoutineBegins"     // when a heartbeat routine begins
+const HeartbeatRoutineFinished = "heartbeatRoutineFinished" // when a heartbeat routine finishes
 
-const ExceededMaxClientNameLength = "exceededMaxClientNameLength"
-const ReceivedEmptyClientName = "receivedEmptyClientName"
+const ServerHandshakeStarted = "serverHandshakeStarted"   // when a server handshake is started
+const ServerHandshakeFinished = "serverHandshakeFinished" // when a server handshake is finished
+const ServerHandshakeFailed = "serverHandshakeFailed"     // when a server handshake returns an error
 
-const DuplicateName = "duplicateName"
-const DuplicateAddress = "duplicateAddress"
+const ExceededMaxClientNameLength = "exceededMaxClientNameLength" // when a client name exceeds the maximum size
+const ReceivedEmptyClientName = "receivedEmptyClientName"         // when a client name is empty
 
-const Timeout = "timeout"
+const DuplicateName = "duplicateName"       // when a name is already in use
+const DuplicateAddress = "duplicateAddress" // when an address is already in use
 
-const NoHandlerForTopic = "noHandlerForTopic"
-const HandlerFailed = "handlerFailed"
+const Timeout = "timeout" // when a timeout occurs
 
-const UnexpectedNilValue = "unexpectedNilValue"
+const UnexpectedNilValue = "unexpectedNilValue" // when a value is nil when it should not be
 
-const NoSyncToken = "noSyncToken"
+const AddingSyncResponse = "addingSyncResponse" // before adding a sync response
+const AddedSyncResponse = "addedSyncResponse"   // after adding a sync response
 
-const AddingSyncResponse = "addingSyncResponse"
-const AddedSyncResponse = "addedSyncResponse"
+const RemovingSyncRequest = "removingSyncRequest" // before removing a sync request
+const RemovedSyncRequest = "removedSyncRequest"   // after removing a sync request
 
-const RemovingSyncRequest = "removingSyncRequest"
-const RemovedSyncRequest = "removedSyncRequest"
+const AbortingSyncRequest = "abortingSyncRequest" // before aborting a sync request
+const AbortedSyncRequest = "abortedSyncRequest"   // after aborting a sync request
 
-const AbortingSyncRequest = "abortingSyncRequest"
-const AbortedSyncRequest = "abortedSyncRequest"
+const InitializingSyncRequest = "initializingSyncRequest" // before initializing a sync request
+const InitializedSyncRequest = "initializedSyncRequest"   // after initializing a sync request
 
-const InitializingSyncRequest = "initializingSyncRequest"
-const InitializedSyncRequest = "initializedSyncRequest"
+const UnknownSyncToken = "unknownSyncToken" // when a sync token is not recognized
+const NoSyncToken = "noSyncToken"           // when a sync token is required but not provided
 
-const UnknownSyncToken = "unknownSyncToken"
+const UnexpectedClosure = "unexpectedClosure" // when a service is unexpectedly closed/stopped
 
-const UnexpectedClosure = "unexpectedClosure"
+const AddingRoute = "addingRoute" // before adding a route
+const AddedRoute = "addedRoute"   // after adding a route
 
-const CloseFailed = "closeFailed"
-const InitializationFailed = "initializationFailed"
+const RemovingRoute = "removingRoute" // before removing a route
+const RemovedRoute = "removedRoute"   // after removing a route
 
-const AddingRoute = "addingRoute"
-const AddedRoute = "addedRoute"
+const StartingConnectionAttempts = "startingConnectionAttempts"       // before starting connection attempts
+const StartedConnectionAttempts = "startedConnectionAttempts"         // after starting connection attempts
+const StartConnectionAttemptsFailed = "startConnectionAttemptsFailed" // when a start connection attempts operation returns an error
 
-const RemovingRoute = "removingRoute"
-const RemovedRoute = "removedRoute"
+const HandlingConnectionAttempt = "handlingConnectionAttempt"         // before handling a connection attempt
+const HandledConnectionAttempt = "handledConnectionAttempt"           // after handling a connection attempt
+const HandleConnectionAttemptFailed = "handleConnectionAttemptFailed" // when a handle connection attempt operation returns an error
 
-const StartingConnectionAttempts = "startingConnectionAttempts"
-const StartedConnectionAttempts = "startedConnectionAttempts"
-const StartConnectionAttemptsFailed = "startConnectionAttemptsFailed"
-
-const HandlingConnectionAttempts = "handlingConnectionAttempt"
-const HandledConnectionAttempts = "handledConnectionAttempt"
-const HandleConnectionAttemptsFailed = "handleConnectionAttemptsFailed"
-
-const NormalizingAddressFailed = "normalizingAddressFailed"
-
-const ContextDoesNotExist = "eventContextDoesNotExist"
+const ContextDoesNotExist = "eventContextDoesNotExist" // when a particular context does not exist

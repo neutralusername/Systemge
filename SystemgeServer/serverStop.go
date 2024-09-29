@@ -39,7 +39,7 @@ func (server *SystemgeServer) Stop() error {
 	close(server.stopChannel)
 	if err := server.listener.Close(); err != nil {
 		server.onEvent(Event.NewErrorNoOption(
-			Event.CloseFailed,
+			Event.ServiceStopFailed,
 			"failed to close listener",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStop,

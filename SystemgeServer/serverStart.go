@@ -43,7 +43,7 @@ func (server *SystemgeServer) Start() error {
 	listener, err := TcpSystemgeListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
 		server.onEvent(Event.NewErrorNoOption(
-			Event.InitializationFailed,
+			Event.ServiceStartFailed,
 			"failed to initialize tcp systemge listener",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStart,
