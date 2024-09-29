@@ -90,11 +90,17 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		identity: identity,
 	}
 
+	identity.sessions[session.GetId()] = session
+	manager.sessions[session.GetId()] = session
+	manager.mutex.Unlock()
+
 	if err := manager.onCreate(session); err != nil {
+		manager.mutex.Lock()
+		delete(identity.sessions, session.id)
+		delete(manager.sessions, session.id)
 		if len(identity.sessions) == 0 {
 			delete(manager.identities, identity.GetId())
 		}
-		manager.mutex.Unlock()
 		return nil, err
 	}
 
@@ -113,9 +119,6 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		},
 		false,
 	)
-	identity.sessions[session.GetId()] = session
-	manager.sessions[session.GetId()] = session
-	manager.mutex.Unlock()
 
 	return session, nil
 }
