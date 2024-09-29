@@ -120,8 +120,32 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	endAttempt := func() {
 		connectionAttempt.AbortAttempts()
 		client.mutex.Lock()
-		defer client.mutex.Unlock()
 		delete(client.connectionAttemptsMap, connectionAttempt.GetTcpClientConfig().Address)
+		client.mutex.Unlock()
+
+		client.onEvent(Event.NewInfoNoOption(
+			Event.HandleConnectionAttemptFailed,
+			"start connection attempts failed",
+			Event.Context{
+				Event.Circumstance: Event.HandleConnectionAttempt,
+				Event.Address:      connectionAttempt.GetTcpClientConfig().Address,
+			},
+		))
+	}
+
+	if event := client.onEvent(Event.NewInfo(
+		Event.HandlingConnectionAttempt,
+		"handling connection attempt",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.HandleConnectionAttempt,
+			Event.Address:      connectionAttempt.GetTcpClientConfig().Address,
+		},
+	)); !event.IsInfo() {
+		endAttempt()
+		return
 	}
 
 	select {
@@ -131,14 +155,16 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	case <-connectionAttempt.GetOngoingChannel():
 	}
 
-	systemgeConnection, err := connectionAttempt.GetResultBlocking()
-	if err != nil {
-		if client.errorLogger != nil {
-			client.errorLogger.Log(Event.New("Connection attempt failed", err).Error())
-		}
+	systemgeConnection := connectionAttempt.GetResultBlocking()
+	if systemgeConnection == nil {
 		endAttempt()
 		return
 	}
+
+	err := client.handleAcception(systemgeConnection)
+}
+
+func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection) error {
 	client.connectionAttemptsSuccess.Add(1)
 
 	client.mutex.Lock()
