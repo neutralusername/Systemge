@@ -6,7 +6,39 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
+	"golang.org/x/oauth2"
 )
+
+func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, successRedirectUrl string, failureRedirectUrl string, tokenHandler func(*oauth2.Token) error) http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+		state := httpRequest.FormValue("state")
+		if state != oauth2State {
+			http.Redirect(responseWriter, httpRequest, failureRedirectUrl, http.StatusMovedPermanently)
+			return
+		}
+		code := httpRequest.FormValue("code")
+		token, err := oauth2Config.Exchange(httpRequest.Context(), code)
+		if err != nil {
+			http.Redirect(responseWriter, httpRequest, failureRedirectUrl, http.StatusMovedPermanently)
+			return
+		}
+		if err := tokenHandler(token); err != nil {
+			http.Redirect(responseWriter, httpRequest, failureRedirectUrl, http.StatusMovedPermanently)
+			return
+		}
+		http.Redirect(responseWriter, httpRequest, successRedirectUrl, http.StatusMovedPermanently)
+	}
+}
+
+func Oauth2Auth(oauth2Config *oauth2.Config, oauth2State string, redirectUrl string) http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+		url := redirectUrl
+		if url == "" {
+			url = oauth2Config.AuthCodeURL(oauth2State)
+		}
+		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
+	}
+}
 
 func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
