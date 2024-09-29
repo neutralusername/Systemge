@@ -10,11 +10,6 @@ import (
 
 func (server *Server) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("singleRequestServer_invalidRequests", Metrics.New(
-		map[string]uint64{
-			"invalid_requests": server.CheckInvalidRequests(),
-		},
-	))
 	metricsTypes.AddMetrics("single_request_syncMessages", Metrics.New(
 		map[string]uint64{
 			"succeeded_sync_messages": server.CheckSucceededSyncMessages(),
@@ -32,11 +27,6 @@ func (server *Server) CheckMetrics() Metrics.MetricsTypes {
 }
 func (server *Server) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("singleRequestServer_invalidRequests", Metrics.New(
-		map[string]uint64{
-			"invalid_requests": server.GetInvalidRequests(),
-		},
-	))
 	metricsTypes.AddMetrics("single_request_syncMessages", Metrics.New(
 		map[string]uint64{
 			"succeeded_sync_messages": server.GetSucceededSyncMessages(),
@@ -51,13 +41,6 @@ func (server *Server) GetMetrics() Metrics.MetricsTypes {
 	))
 	metricsTypes.Merge(server.systemgeServer.GetMetrics())
 	return metricsTypes
-}
-
-func (server *Server) CheckInvalidRequests() uint64 {
-	return server.invalidRequests.Load()
-}
-func (server *Server) GetInvalidRequests() uint64 {
-	return server.invalidRequests.Swap(0)
 }
 
 func (server *Server) CheckSucceededAsyncMessages() uint64 {

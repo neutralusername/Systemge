@@ -17,7 +17,6 @@ type Server struct {
 	systemgeServer *SystemgeServer.SystemgeServer
 
 	// metrics
-	invalidRequests atomic.Uint64
 
 	succeededAsyncMessages atomic.Uint64
 	failedAsyncMessages    atomic.Uint64
