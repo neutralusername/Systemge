@@ -18,7 +18,7 @@ func (server *SystemgeServer) Stop() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Stop,
+			Event.Circumstance: Event.ServiceStop,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -29,7 +29,7 @@ func (server *SystemgeServer) Stop() error {
 			Event.ServiceAlreadyStopped,
 			"systemgeServer is already stopped",
 			Event.Context{
-				Event.Circumstance: Event.Stop,
+				Event.Circumstance: Event.ServiceStop,
 			},
 		))
 		return errors.New("server is already stopped")
@@ -42,7 +42,7 @@ func (server *SystemgeServer) Stop() error {
 			Event.CloseFailed,
 			"failed to close listener",
 			Event.Context{
-				Event.Circumstance: Event.Stop,
+				Event.Circumstance: Event.ServiceStop,
 			},
 		))
 	}
@@ -53,7 +53,7 @@ func (server *SystemgeServer) Stop() error {
 		Event.ServiceStopped,
 		"systemgeServer stopped",
 		Event.Context{
-			Event.Circumstance: Event.Stop,
+			Event.Circumstance: Event.ServiceStop,
 		},
 	))
 	return nil

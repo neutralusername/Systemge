@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -84,33 +85,19 @@ func (server *Server) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *Server) handleSessionRequests() {
-	for sessionRequest := range server.sessionRequestChannel {
-		if sessionRequest == nil {
-			return
-		}
-		if infoLogger := server.infoLogger; infoLogger != nil {
-			infoLogger.Log(Event.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
-		}
-		server.handleSessionRequest(sessionRequest)
+func (server *Server) onEvent(event *Event.Event) *Event.Event {
+	if server.eventHandler != nil {
+		server.eventHandler(event)
 	}
+	return event
 }
-
-func (server *Server) handleSessionRequest(sessionRequest *oauth2SessionRequest) {
-	identity, keyValuePairs, err := server.config.TokenHandler(server.config.OAuth2Config, sessionRequest.token)
-	if err != nil {
-		sessionRequest.sessionChannel <- nil
-		if warningLogger := server.warningLogger; warningLogger != nil {
-			warningLogger.Log(Event.New("Failed handling session request for access token \""+sessionRequest.token.AccessToken+"\"", err).Error())
-		}
-		return
+func (server *Server) GetContext() Event.Context {
+	return Event.Context{
+		Event.ServiceType:   Event.SingleRequestServer,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+		Event.InstanceId:    server.GetInstanceId(),
+		Event.SessionId:     server.GetSessionId(),
 	}
-	if identity == "" {
-		sessionRequest.sessionChannel <- nil
-		if warningLogger := server.warningLogger; warningLogger != nil {
-			warningLogger.Log(Event.New("No session identity for access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
-		}
-		return
-	}
-	sessionRequest.sessionChannel <- server.getSessionForIdentity(identity, keyValuePairs)
 }

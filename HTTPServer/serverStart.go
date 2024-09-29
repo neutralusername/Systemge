@@ -25,7 +25,7 @@ func (server *HTTPServer) Start() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -36,7 +36,7 @@ func (server *HTTPServer) Start() error {
 			Event.ServiceAlreadyStarted,
 			"http server not stopped",
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStart,
 			},
 		))
 		return errors.New("failed to start http server")
@@ -68,7 +68,7 @@ func (server *HTTPServer) Start() error {
 						Event.Panic,
 						Event.Cancel,
 						Event.Context{
-							Event.Circumstance: Event.Start,
+							Event.Circumstance: Event.ServiceStart,
 						},
 					)); !event.IsInfo() {
 						panic(err)
@@ -88,7 +88,7 @@ func (server *HTTPServer) Start() error {
 						Event.Panic,
 						Event.Cancel,
 						Event.Context{
-							Event.Circumstance: Event.Start,
+							Event.Circumstance: Event.ServiceStart,
 						},
 					)); !event.IsInfo() {
 						panic(err)
@@ -106,7 +106,7 @@ func (server *HTTPServer) Start() error {
 			Event.InitializationFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStart,
 			},
 		))
 		server.httpServer = nil
@@ -120,7 +120,7 @@ func (server *HTTPServer) Start() error {
 		Event.ServiceStarted,
 		"http server started",
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	))
 

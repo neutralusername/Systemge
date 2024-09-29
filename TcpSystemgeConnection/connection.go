@@ -113,7 +113,9 @@ func (connection *TcpSystemgeConnection) Close() error {
 		Event.Skip,
 		Event.Skip,
 		Event.Continue,
-		Event.Context{},
+		Event.Context{
+			Event.Circumstance: Event.ServiceStop,
+		},
 	)); !event.IsInfo() {
 		return event.GetError()
 	}
@@ -123,7 +125,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 			Event.ServiceAlreadyStarted,
 			"service tcpSystemgeConnection already started",
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStop,
 			},
 		))
 		return errors.New("connection already closed")
@@ -148,7 +150,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 		Event.ServiceStopped,
 		"connection closed",
 		Event.Context{
-			Event.Circumstance: Event.Stop,
+			Event.Circumstance: Event.ServiceStop,
 		},
 	))
 

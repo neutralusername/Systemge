@@ -16,8 +16,8 @@ const SendRuntime = "sendRuntime"
 
 const DisconnectClientRuntime = "disconnectClientRuntime"
 
-const Start = "start"
-const Stop = "stop"
+const ServiceStart = "start"
+const ServiceStop = "stop"
 
 const Broadcast = "broadcast"
 const Unicast = "unicast"

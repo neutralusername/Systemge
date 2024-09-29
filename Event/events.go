@@ -2,9 +2,11 @@ package Event
 
 const ServiceStarting = "serviceStarting"
 const ServiceStopping = "serviceStopping"
+const ServiceStartFailed = "serviceStartFailed"
 
 const ServiceAlreadyStarted = "serverAlreadyStarted"
 const ServiceAlreadyStopped = "serverAlreadyStopped"
+const ServiceStopFailed = "serviceStopFailed"
 
 const ServiceStopped = "serviceStopped"
 const ServiceStarted = "serviceStarted"

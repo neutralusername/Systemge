@@ -18,7 +18,7 @@ func (server *HTTPServer) Stop() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Stop,
+			Event.Circumstance: Event.ServiceStop,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -29,7 +29,7 @@ func (server *HTTPServer) Stop() error {
 			Event.ServiceAlreadyStopped,
 			"http server not started",
 			Event.Context{
-				Event.Circumstance: Event.Stop,
+				Event.Circumstance: Event.ServiceStop,
 			},
 		))
 		return errors.New("http server not started")
@@ -42,7 +42,7 @@ func (server *HTTPServer) Stop() error {
 			Event.CloseFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.Stop,
+				Event.Circumstance: Event.ServiceStop,
 			},
 		))
 	}
@@ -53,7 +53,7 @@ func (server *HTTPServer) Stop() error {
 		Event.ServiceStopped,
 		"http server stopped",
 		Event.Context{
-			Event.Circumstance: Event.Stop,
+			Event.Circumstance: Event.ServiceStop,
 		},
 	))
 	return nil

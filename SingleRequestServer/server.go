@@ -160,7 +160,6 @@ func (server *Server) onEvent(event *Event.Event) *Event.Event {
 	}
 	return event
 }
-
 func (server *Server) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:   Event.SingleRequestServer,

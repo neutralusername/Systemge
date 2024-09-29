@@ -16,6 +16,8 @@ const ResponseType = "responseType"
 const ClientAddress = "clientAddress"
 const ClientId = "clientId"
 
+const TargetServiceType = "targetServiceType"
+
 const TargetClientId = "targetClientId"
 const TargetClientIds = "targetClientIds"
 

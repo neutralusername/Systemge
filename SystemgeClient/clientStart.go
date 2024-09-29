@@ -20,7 +20,7 @@ func (client *SystemgeClient) Start() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -31,7 +31,7 @@ func (client *SystemgeClient) Start() error {
 			Event.ServiceAlreadyStarted,
 			"systemgeServer not stopped",
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStart,
 			},
 		))
 		return errors.New("failed to start systemge server")
@@ -49,7 +49,7 @@ func (client *SystemgeClient) Start() error {
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.Start,
+					Event.Circumstance:  Event.ServiceStart,
 					Event.ClientAddress: tcpClientConfig.Address,
 				},
 			)); !event.IsInfo() {
@@ -65,7 +65,7 @@ func (client *SystemgeClient) Start() error {
 		Event.ServiceStarted,
 		"systemgeClient started",
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	))
 

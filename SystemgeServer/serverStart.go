@@ -21,7 +21,7 @@ func (server *SystemgeServer) Start() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -32,7 +32,7 @@ func (server *SystemgeServer) Start() error {
 			Event.ServiceAlreadyStarted,
 			"systemgeServer not stopped",
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStart,
 			},
 		))
 		return errors.New("failed to start systemge server")
@@ -46,7 +46,7 @@ func (server *SystemgeServer) Start() error {
 			Event.InitializationFailed,
 			"failed to initialize tcp systemge listener",
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStart,
 			},
 		))
 		server.status = Status.Stopped
@@ -67,7 +67,7 @@ func (server *SystemgeServer) Start() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	))
 	return nil

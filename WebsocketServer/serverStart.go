@@ -25,7 +25,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -36,7 +36,7 @@ func (server *WebsocketServer) start(lock bool) error {
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
 			Event.Context{
-				Event.Circumstance: Event.Start,
+				Event.Circumstance: Event.ServiceStart,
 			},
 		))
 		return errors.New("failed to start websocketServer")
@@ -66,7 +66,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		Event.ServiceStarted,
 		"service websocketServer started",
 		Event.Context{
-			Event.Circumstance: Event.Start,
+			Event.Circumstance: Event.ServiceStart,
 		},
 	))
 	return nil
