@@ -9,24 +9,23 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, successRedirectUrl string, failureRedirectUrl string, tokenHandler func(*oauth2.Token) error) http.HandlerFunc {
+func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, tokenHandler func(*oauth2.Token, http.ResponseWriter) error) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
-			http.Redirect(responseWriter, httpRequest, failureRedirectUrl, http.StatusMovedPermanently)
+			Send403(responseWriter, httpRequest)
 			return
 		}
 		code := httpRequest.FormValue("code")
 		token, err := oauth2Config.Exchange(httpRequest.Context(), code)
 		if err != nil {
-			http.Redirect(responseWriter, httpRequest, failureRedirectUrl, http.StatusMovedPermanently)
+			Send403(responseWriter, httpRequest)
 			return
 		}
-		if err := tokenHandler(token); err != nil {
-			http.Redirect(responseWriter, httpRequest, failureRedirectUrl, http.StatusMovedPermanently)
+		if err := tokenHandler(token, responseWriter); err != nil {
+			Send403(responseWriter, httpRequest)
 			return
 		}
-		http.Redirect(responseWriter, httpRequest, successRedirectUrl, http.StatusMovedPermanently)
 	}
 }
 
