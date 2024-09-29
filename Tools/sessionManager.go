@@ -76,3 +76,11 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 func (manager *SessionManager) handleSessionLifetime(session *Session) {
 
 }
+
+func (manager *SessionManager) ExpireSession(sessionId string) {
+
+}
+
+func (manager *SessionManager) RefreshSession(sessionId string) {
+
+}
