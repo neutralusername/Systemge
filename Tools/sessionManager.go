@@ -91,9 +91,12 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	session := &Session{
 		id:       sessionId,
 		identity: identity,
-		timeout: NewTimeout(manager.config.SessionLifetimeMs, func() {
+		timeout: NewTimeout(
+			manager.config.SessionLifetimeMs,
+			func() {
 
-		}),
+			},
+		),
 	}
 
 	identity.sessions[session.id] = session
