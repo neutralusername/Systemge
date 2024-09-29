@@ -55,3 +55,5 @@ const RemoveRoute = "removeRoute"
 
 const StartConnectionAttempts = "startConnectionAttempts"
 const HandleConnectionAttempts = "handleConnectionAttempts"
+
+const SingleRequestServerRequest = "singleRequestServerRequest"

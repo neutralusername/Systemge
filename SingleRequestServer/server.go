@@ -59,16 +59,41 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			event.SetWarning()
 			clientName, ok := event.GetContextValue(Event.ClientName)
 			if !ok {
+				eventHandler(Event.NewErrorNoOption(
+					Event.ContextDoesNotExist,
+					"client name context does not exist",
+					Event.Context{
+						Event.Circumstance: Event.SingleRequestServerRequest,
+						Event.ClientType:   Event.SystemgeConnection,
+					},
+				))
 				break
 			}
 			systemgeConnection := server.systemgeServer.GetConnection(clientName)
 			if systemgeConnection == nil {
+				eventHandler(Event.NewErrorNoOption(
+					Event.ClientDoesNotExist,
+					"client does not exist",
+					Event.Context{
+						Event.Circumstance: Event.SingleRequestServerRequest,
+						Event.ClientType:   Event.SystemgeConnection,
+						Event.ClientName:   clientName,
+					},
+				))
 				break
 			}
 			message, err := systemgeConnection.RetrieveNextMessage()
 			if err != nil {
-				systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
-				return err
+				eventHandler(Event.NewWarningNoOption(
+					Event.ReceivingMessageFailed,
+					err.Error(),
+					Event.Context{
+						Event.Circumstance: Event.SingleRequestServerRequest,
+						Event.ClientType:   Event.SystemgeConnection,
+						Event.ClientName:   clientName,
+					},
+				))
+				return
 			}
 			switch message.GetTopic() {
 			case "command":

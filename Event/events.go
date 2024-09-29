@@ -150,3 +150,5 @@ const HandledConnectionAttempts = "handledConnectionAttempt"
 const HandleConnectionAttemptsFailed = "handleConnectionAttemptsFailed"
 
 const NormalizingAddressFailed = "normalizingAddressFailed"
+
+const ContextDoesNotExist = "eventContextDoesNotExist"
