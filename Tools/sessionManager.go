@@ -1,12 +1,15 @@
 package Tools
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 )
+
+var ErrMaxSessionsPerIdentityExceeded = errors.New("max sessions per identity exceeded")
 
 type SessionManager struct {
 	config *Config.SessionManager
@@ -35,6 +38,10 @@ type Session struct {
 	id       string
 	lifetime uint64
 	identity *Identity
+
+	isExpired bool
+	expired   chan bool
+	mutex     sync.Mutex
 }
 
 func (session *Session) GetId() string {
@@ -45,7 +52,7 @@ func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
 }
 
-func (session *Session) ExpireSession() {
+func (session *Session) ExpireSession() error {
 
 }
 
@@ -75,7 +82,7 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), o
 	}
 }
 
-func (manager *SessionManager) CreateSession(identityString string) *Session {
+func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
 	identity, ok := manager.identities[identityString]
 	if !ok {
@@ -85,6 +92,11 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 		}
 
 		manager.identities[identity.id] = identity
+	}
+
+	if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
+		manager.mutex.Unlock()
+		return nil, ErrMaxSessionsPerIdentityExceeded
 	}
 
 	sessionId := GenerateRandomString(Constants.SessionIdLength, ALPHA_NUMERIC)
@@ -104,7 +116,7 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 	manager.onCreate(session)
 	go manager.handleSessionLifetime(session)
 
-	return session
+	return session, nil
 }
 func (manager *SessionManager) handleSessionLifetime(session *Session) {
 
