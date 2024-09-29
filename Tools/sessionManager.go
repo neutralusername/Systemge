@@ -52,14 +52,6 @@ func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
 }
 
-func (session *Session) ExpireSession() error {
-
-}
-
-func (session *Session) RefreshSession() {
-
-}
-
 func (session *Session) SetLifetime(lifetimeMs uint64) {
 
 }

@@ -55,6 +55,12 @@ func (timeout *Timeout) SetDuration(duration uint64) {
 	timeout.duration = duration
 }
 
+func (timeout *Timeout) IsTriggered() bool {
+	timeout.mutex.Lock()
+	defer timeout.mutex.Unlock()
+	return timeout.triggered
+}
+
 func (timeout *Timeout) Trigger() error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
