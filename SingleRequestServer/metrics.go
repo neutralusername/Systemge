@@ -15,12 +15,6 @@ func (server *Server) CheckMetrics() Metrics.MetricsTypes {
 			"invalid_requests": server.CheckInvalidRequests(),
 		},
 	))
-	metricsTypes.AddMetrics("singleRequestServer_commands", Metrics.New(
-		map[string]uint64{
-			"succeeded_commands": server.CheckSucceededCommands(),
-			"failed_commands":    server.CheckFailedCommands(),
-		},
-	))
 	metricsTypes.AddMetrics("single_request_syncMessages", Metrics.New(
 		map[string]uint64{
 			"succeeded_sync_messages": server.CheckSucceededSyncMessages(),
@@ -41,12 +35,6 @@ func (server *Server) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes.AddMetrics("singleRequestServer_invalidRequests", Metrics.New(
 		map[string]uint64{
 			"invalid_requests": server.GetInvalidRequests(),
-		},
-	))
-	metricsTypes.AddMetrics("singleRequestServer_commands", Metrics.New(
-		map[string]uint64{
-			"succeeded_commands": server.GetSucceededCommands(),
-			"failed_commands":    server.GetFailedCommands(),
 		},
 	))
 	metricsTypes.AddMetrics("single_request_syncMessages", Metrics.New(
@@ -70,20 +58,6 @@ func (server *Server) CheckInvalidRequests() uint64 {
 }
 func (server *Server) GetInvalidRequests() uint64 {
 	return server.invalidRequests.Swap(0)
-}
-
-func (server *Server) CheckSucceededCommands() uint64 {
-	return server.succeededCommands.Load()
-}
-func (server *Server) GetSucceededCommands() uint64 {
-	return server.succeededCommands.Swap(0)
-}
-
-func (server *Server) CheckFailedCommands() uint64 {
-	return server.failedCommands.Load()
-}
-func (server *Server) GetFailedCommands() uint64 {
-	return server.failedCommands.Swap(0)
 }
 
 func (server *Server) CheckSucceededAsyncMessages() uint64 {

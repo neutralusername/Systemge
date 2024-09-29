@@ -4,26 +4,20 @@ import (
 	"errors"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Server struct {
-	config          *Config.SingleRequestServer
-	commandHandlers Commands.Handlers
-	messageHandler  SystemgeConnection.MessageHandler
-	systemgeServer  *SystemgeServer.SystemgeServer
+	config         *Config.SingleRequestServer
+	messageHandler SystemgeConnection.MessageHandler
+	systemgeServer *SystemgeServer.SystemgeServer
 
 	// metrics
 	invalidRequests atomic.Uint64
-
-	succeededCommands atomic.Uint64
-	failedCommands    atomic.Uint64
 
 	succeededAsyncMessages atomic.Uint64
 	failedAsyncMessages    atomic.Uint64
@@ -32,7 +26,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is required")
 	}
@@ -45,11 +39,13 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 	if config.SystemgeServerConfig.TcpSystemgeListenerConfig == nil {
 		return nil, errors.New("tcpSystemgeListenerConfig is required")
 	}
+	if messageHandler == nil {
+		return nil, errors.New("messageHandler is required")
+	}
 
 	server := &Server{
-		config:          config,
-		commandHandlers: commands,
-		messageHandler:  messageHandler,
+		config:         config,
+		messageHandler: messageHandler,
 	}
 	systemgeServer, err := SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
 		eventHandler(event)
@@ -95,74 +91,42 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 				))
 				return
 			}
-			switch message.GetTopic() {
-			case "command":
-				command := unmarshalCommandStruct(message.GetPayload())
-				if command == nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
-					server.failedCommands.Add(1)
-					return errors.New("invalid command")
-				}
-				handler := server.commandHandlers[command.Command]
-				if handler == nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
-					server.failedCommands.Add(1)
-					return errors.New("Command not found")
-				}
-				result, err := handler(command.Args)
-				if err != nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
-					server.failedCommands.Add(1)
-					return err
-				}
-				server.succeededCommands.Add(1)
-				systemgeConnection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
-				systemgeConnection.Close()
-				return nil
-			case "async":
-				if server.messageHandler == nil {
-					server.failedAsyncMessages.Add(1)
-					return errors.New("no message handler available on this server")
-				}
-				asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
+			if message.GetSyncToken() == "" {
+				err = server.messageHandler.HandleAsyncMessage(systemgeConnection, message)
 				if err != nil {
 					server.failedAsyncMessages.Add(1)
-					return err
-				}
-				err = server.messageHandler.HandleAsyncMessage(systemgeConnection, asyncMessage)
-				if err != nil {
-					server.failedAsyncMessages.Add(1)
-					return err
+					eventHandler(Event.NewWarningNoOption(
+						Event.HandlerFailed,
+						err.Error(),
+						Event.Context{
+							Event.Circumstance: Event.SingleRequestServerRequest,
+							Event.HandlerType:  Event.AsyncMessage,
+							Event.ClientType:   Event.SystemgeConnection,
+							Event.ClientName:   clientName,
+						},
+					))
+					return
 				}
 				server.succeededAsyncMessages.Add(1)
-				systemgeConnection.Close()
-				return nil
-			case "sync":
-				if server.messageHandler == nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
-					server.failedSyncMessages.Add(1)
-					return errors.New("no message handler available on this server")
-				}
-				syncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
+			} else {
+				payload, err := server.messageHandler.HandleSyncRequest(systemgeConnection, message)
 				if err != nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
+					systemgeConnection.SyncResponse(message, false, err.Error())
 					server.failedSyncMessages.Add(1)
-					return err
-				}
-				payload, err := server.messageHandler.HandleSyncRequest(systemgeConnection, syncMessage)
-				if err != nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
-					server.failedSyncMessages.Add(1)
-					return err
+					eventHandler(Event.NewWarningNoOption(
+						Event.HandlerFailed,
+						err.Error(),
+						Event.Context{
+							Event.Circumstance: Event.SingleRequestServerRequest,
+							Event.HandlerType:  Event.AsyncMessage,
+							Event.ClientType:   Event.SystemgeConnection,
+							Event.ClientName:   clientName,
+						},
+					))
+					return
 				}
 				server.succeededSyncMessages.Add(1)
-				systemgeConnection.SyncRequestBlocking(Message.TOPIC_SUCCESS, payload)
-				systemgeConnection.Close()
-				return nil
-			default:
-				server.invalidRequests.Add(1)
-				systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
-				return errors.New("invalid topic")
+				systemgeConnection.SyncResponse(message, true, payload)
 			}
 		}
 	})
