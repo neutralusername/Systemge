@@ -2,10 +2,10 @@ package SystemgeClient
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -31,7 +31,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		metrics := client.CheckMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Event.New("failed to marshal metrics to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
@@ -39,17 +39,17 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		metrics := client.GetMetrics()
 		json, err := json.Marshal(metrics)
 		if err != nil {
-			return "", Event.New("failed to marshal metrics to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
 	commands["addConnectionAttempt"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("expected 1 argument", nil)
+			return "", errors.New("expected 1 argument")
 		}
 		tcpClientConfig := Config.UnmarshalTcpClient(args[0])
 		if tcpClientConfig == nil {
-			return "", Event.New("failed unmarshalling tcpClientConfig", nil)
+			return "", errors.New("failed unmarshalling tcpClientConfig")
 		}
 		if err := client.AddConnectionAttempt(tcpClientConfig); err != nil {
 			return "", err
@@ -58,7 +58,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["removeConnection"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("expected 1 argument", nil)
+			return "", errors.New("expected 1 argument")
 		}
 		if err := client.RemoveConnection(args[0]); err != nil {
 			return "", err
@@ -69,27 +69,27 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		connectionNamesAndAddress := client.GetConnectionNamesAndAddresses()
 		json, err := json.Marshal(connectionNamesAndAddress)
 		if err != nil {
-			return "", Event.New("failed to marshal connectionNamesAndAddress to json", err)
+			return "", err
 		}
 		return string(json), nil
 	}
 	commands["getConnectionName"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("expected 1 argument", nil)
+			return "", errors.New("expected 1 argument")
 		}
 		connectionName := client.GetConnectionName(args[0])
 		if connectionName == "" {
-			return "", Event.New("failed to get connection name", nil)
+			return "", errors.New("failed to get connection name")
 		}
 		return connectionName, nil
 	}
 	commands["getConnectionAddress"] = func(args []string) (string, error) {
 		if len(args) != 1 {
-			return "", Event.New("expected 1 argument", nil)
+			return "", errors.New("expected 1 argument")
 		}
 		connectionAddress := client.GetConnectionAddress(args[0])
 		if connectionAddress == "" {
-			return "", Event.New("failed to get connection address", nil)
+			return "", errors.New("failed to get connection address")
 		}
 		return connectionAddress, nil
 	}
@@ -98,7 +98,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("expected at least 2 arguments", nil)
+			return "", errors.New("expected at least 2 arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -110,7 +110,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["syncRequest"] = func(args []string) (string, error) {
 		if len(args) < 2 {
-			return "", Event.New("expected at least 2 arguments", nil)
+			return "", errors.New("expected at least 2 arguments")
 		}
 		topic := args[0]
 		payload := args[1]
@@ -121,7 +121,7 @@ func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
 		}
 		json, err := json.Marshal(messages)
 		if err != nil {
-			return "", Event.New("failed to marshal messages to json", err)
+			return "", errors.New("failed to marshal messages to json")
 		}
 		return string(json), nil
 	}

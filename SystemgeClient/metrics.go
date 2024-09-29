@@ -30,19 +30,13 @@ func (client *SystemgeClient) CheckMetrics() Metrics.MetricsTypes {
 			"sync_success_responses_received": client.CheckSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": client.CheckSyncFailureResponsesReceived(),
 			"no_sync_response_received":       client.CheckNoSyncResponseReceived(),
-			"invalid_sync_responses_received": client.CheckInvalidSyncResponsesReceived(),
 		},
 	))
 	metricsTypes.AddMetrics("systemgeClient_messagesReceived", Metrics.New(
 		map[string]uint64{
 			"invalid_messages_received": client.CheckInvalidMessagesReceived(),
-			"valid_messages_received":   client.CheckValidMessagesReceived(),
-		},
-	))
-	metricsTypes.AddMetrics("systemgeClient_rateLimiter", Metrics.New(
-		map[string]uint64{
-			"message_rate_limiter_exceeded": client.CheckMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":    client.CheckByteRateLimiterExceeded(),
+			"messages_received":         client.CheckMessagesReceived(),
+			"rejected_messages":         client.CheckRejectedMessages(),
 		},
 	))
 	return metricsTypes
@@ -74,19 +68,13 @@ func (client *SystemgeClient) GetMetrics() Metrics.MetricsTypes {
 			"sync_success_responses_received": client.GetSyncSuccessResponsesReceived(),
 			"sync_failure_responses_received": client.GetSyncFailureResponsesReceived(),
 			"no_sync_response_received":       client.GetNoSyncResponseReceived(),
-			"invalid_sync_responses_received": client.GetInvalidSyncResponsesReceived(),
 		},
 	))
 	metricsTypes.AddMetrics("systemgeClient_messagesReceived", Metrics.New(
 		map[string]uint64{
 			"invalid_messages_received": client.GetInvalidMessagesReceived(),
-			"valid_messages_received":   client.GetValidMessagesReceived(),
-		},
-	))
-	metricsTypes.AddMetrics("systemgeClient_rateLimiter", Metrics.New(
-		map[string]uint64{
-			"message_rate_limiter_exceeded": client.GetMessageRateLimiterExceeded(),
-			"byte_rate_limiter_exceeded":    client.GetByteRateLimiterExceeded(),
+			"messages_received":         client.GetMessagesReceived(),
+			"rejected_messages":         client.GetRejectedMessages(),
 		},
 	))
 	return metricsTypes
@@ -367,7 +355,7 @@ func (client *SystemgeClient) GetInvalidMessagesReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckInvalidSyncResponsesReceived() uint64 {
+func (client *SystemgeClient) CheckMessagesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -377,11 +365,11 @@ func (client *SystemgeClient) CheckInvalidSyncResponsesReceived() uint64 {
 
 	sum := uint64(0)
 	for _, connection := range client.nameConnections {
-		sum += connection.CheckInvalidSyncResponsesReceived()
+		sum += connection.CheckMessagesReceived()
 	}
 	return sum
 }
-func (client *SystemgeClient) GetInvalidSyncResponsesReceived() uint64 {
+func (client *SystemgeClient) GetMessagesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -391,41 +379,12 @@ func (client *SystemgeClient) GetInvalidSyncResponsesReceived() uint64 {
 
 	sum := uint64(0)
 	for _, connection := range client.nameConnections {
-		sum += connection.GetInvalidSyncResponsesReceived()
-	}
-	return sum
-}
-
-func (client *SystemgeClient) CheckValidMessagesReceived() uint64 {
-	client.statusMutex.RLock()
-	client.mutex.Lock()
-	defer func() {
-		client.mutex.Unlock()
-		client.statusMutex.RUnlock()
-	}()
-
-	sum := uint64(0)
-	for _, connection := range client.nameConnections {
-		sum += connection.CheckValidMessagesReceived()
-	}
-	return sum
-}
-func (client *SystemgeClient) GetValidMessagesReceived() uint64 {
-	client.statusMutex.RLock()
-	client.mutex.Lock()
-	defer func() {
-		client.mutex.Unlock()
-		client.statusMutex.RUnlock()
-	}()
-
-	sum := uint64(0)
-	for _, connection := range client.nameConnections {
-		sum += connection.GetValidMessagesReceived()
+		sum += connection.GetMessagesReceived()
 	}
 	return sum
 }
 
-func (client *SystemgeClient) CheckMessageRateLimiterExceeded() uint64 {
+func (client *SystemgeClient) CheckRejectedMessages() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -435,11 +394,11 @@ func (client *SystemgeClient) CheckMessageRateLimiterExceeded() uint64 {
 
 	sum := uint64(0)
 	for _, connection := range client.nameConnections {
-		sum += connection.CheckMessageRateLimiterExceeded()
+		sum += connection.CheckRejectedMessages()
 	}
 	return sum
 }
-func (client *SystemgeClient) GetMessageRateLimiterExceeded() uint64 {
+func (client *SystemgeClient) GetRejectedMessages() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -449,36 +408,7 @@ func (client *SystemgeClient) GetMessageRateLimiterExceeded() uint64 {
 
 	sum := uint64(0)
 	for _, connection := range client.nameConnections {
-		sum += connection.GetMessageRateLimiterExceeded()
-	}
-	return sum
-}
-
-func (client *SystemgeClient) CheckByteRateLimiterExceeded() uint64 {
-	client.statusMutex.RLock()
-	client.mutex.Lock()
-	defer func() {
-		client.mutex.Unlock()
-		client.statusMutex.RUnlock()
-	}()
-
-	sum := uint64(0)
-	for _, connection := range client.nameConnections {
-		sum += connection.CheckByteRateLimiterExceeded()
-	}
-	return sum
-}
-func (client *SystemgeClient) GetByteRateLimiterExceeded() uint64 {
-	client.statusMutex.RLock()
-	client.mutex.Lock()
-	defer func() {
-		client.mutex.Unlock()
-		client.statusMutex.RUnlock()
-	}()
-
-	sum := uint64(0)
-	for _, connection := range client.nameConnections {
-		sum += connection.GetByteRateLimiterExceeded()
+		sum += connection.GetRejectedMessages()
 	}
 	return sum
 }
