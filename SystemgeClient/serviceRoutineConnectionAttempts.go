@@ -62,6 +62,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			Event.Context{
 				Event.Circumstance: Event.StartConnectionAttempts,
 				Event.Address:      tcpClientConfig.Address,
+				// distinguish this and the previous warning
 			},
 		))
 		return errors.New("Connection attempt already in progress")
