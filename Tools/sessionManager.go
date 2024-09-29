@@ -57,9 +57,6 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 	if config.SessionIdLength == 0 {
 		config.SessionIdLength = 32
 	}
-	if config.SessionLifetimeMs == 0 {
-		config.SessionLifetimeMs = 1000 * 60 * 60
-	}
 	return &SessionManager{
 		config: config,
 
