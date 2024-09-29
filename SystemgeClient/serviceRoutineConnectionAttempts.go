@@ -232,7 +232,7 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	client.connectionAttemptsSuccess.Add(1)
 	client.waitGroup.Add(1)
 
-	if client.config.Reconnect {
+	if client.config.AutoReconnectAttempts {
 		go client.handleDisconnect(systemgeConnection, clientConfig)
 	} else {
 		go client.handleDisconnect(systemgeConnection, nil)
