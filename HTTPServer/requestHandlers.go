@@ -9,7 +9,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, tokenHandler func(*oauth2.Token, http.ResponseWriter) error) http.HandlerFunc {
+func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, tokenHandler func(*oauth2.Token, http.ResponseWriter)) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		state := httpRequest.FormValue("state")
 		if state != oauth2State {
@@ -22,10 +22,7 @@ func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, tokenHa
 			Send403(responseWriter, httpRequest)
 			return
 		}
-		if err := tokenHandler(token, responseWriter); err != nil {
-			Send403(responseWriter, httpRequest)
-			return
-		}
+		tokenHandler(token, responseWriter)
 	}
 }
 
