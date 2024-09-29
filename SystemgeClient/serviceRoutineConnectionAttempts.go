@@ -205,23 +205,22 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	client.nameConnections[systemgeConnection.GetName()] = systemgeConnection
 	client.mutex.Unlock()
 
-	if client.onConnectHandler != nil {
-		if err := client.onConnectHandler(systemgeConnection); err != nil {
-			if client.warningLogger != nil {
-				client.warningLogger.Log(Event.New("onConnectHandler failed for connection \""+systemgeConnection.GetName()+"\"", err).Error())
-			}
-
-			client.mutex.Lock()
-			delete(client.addressConnections, systemgeConnection.GetAddress())
-			delete(client.nameConnections, systemgeConnection.GetName())
-			client.mutex.Unlock()
-
-			return
-		}
-	}
-
-	if infoLogger := client.infoLogger; infoLogger != nil {
-		infoLogger.Log("Connection established to \"" + clientConfig.Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttemptsCount()))
+	if event := client.onEvent(Event.NewInfo(
+		Event.HandledAcception,
+		"handled acception",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleAcception,
+			Event.ClientAddress: clientConfig.Address,
+		},
+	)); !event.IsInfo() {
+		client.mutex.Lock()
+		delete(client.addressConnections, systemgeConnection.GetAddress())
+		delete(client.nameConnections, systemgeConnection.GetName())
+		client.mutex.Unlock()
+		return event.GetError()
 	}
 
 	client.connectionAttemptsSuccess.Add(1)

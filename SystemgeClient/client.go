@@ -28,9 +28,6 @@ type SystemgeClient struct {
 
 	config *Config.SystemgeClient
 
-	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
-	onDisconnectHandler func(SystemgeConnection.SystemgeConnection)
-
 	mutex                 sync.RWMutex
 	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
 	nameConnections       map[string]SystemgeConnection.SystemgeConnection // name -> connection
