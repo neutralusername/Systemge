@@ -1,55 +1,52 @@
 package Event
 
-const ServiceStarting = "serviceStarting"
-const ServiceStopping = "serviceStopping"
-const ServiceStartFailed = "serviceStartFailed"
+const ServiceStarting = "serviceStarting" // at the beginning of the service start
+const ServiceStopping = "serviceStopping" // at the beginning of the service stop
 
-const ServiceAlreadyStarted = "serverAlreadyStarted"
-const ServiceAlreadyStopped = "serverAlreadyStopped"
-const ServiceStopFailed = "serviceStopFailed"
+const ServiceStopped = "serviceStopped" // at the end of the service stop
+const ServiceStarted = "serviceStarted" // at the end of the service start
 
-const ServiceStopped = "serviceStopped"
-const ServiceStarted = "serviceStarted"
+const ServiceStartFailed = "serviceStartFailed" // when serviceStart returns an error
+const ServiceStopFailed = "serviceStopFailed"   // when serviceStop returns an error
 
-const HandlingDisconnection = "handlingDisconnection"
-const HandledDisconnection = "handledDisconnection"
+const ServiceAlreadyStarted = "serverAlreadyStarted" // when attempting an operation that requires the service to be stopped
+const ServiceAlreadyStopped = "serverAlreadyStopped" // when attempting an operation that requires the service to be started
 
-const AcceptionRoutineStarted = "acceptionRoutineStarted"
-const AcceptionRoutineFinished = "acceptionRoutineFinished"
+const HandlingAcception = "handlingAcception"         // before handling a client acception
+const HandledAcception = "handledAcception"           // after handling a client acception
+const HandleAcceptionFailed = "handleAcceptionFailed" // when handleAcception returns an error
 
-const HandlingAcception = "handlingAcception"
-const HandledAcception = "handledAcception"
-const HandleAcceptionFailed = "handleAcceptionFailed"
+const HandlingDisconnection = "handlingDisconnection" // before handling a client disconnection
+const HandledDisconnection = "handledDisconnection"   // after handling a client disconnection
 
-const ClientNotAccepted = "clientNotAccepted"
-const ClientAlreadyAccepted = "clientAlreadyAccepted"
+const AcceptionRoutineBegins = "acceptionRoutineBegins"     // when a acception routine begins
+const AcceptionRoutineFinished = "acceptionRoutineFinished" // when a acception routine finishes
 
-const ReceptionRoutineStarted = "receptionRoutineStarted"
-const ReceptionRoutineFinished = "receptionRoutineFinished"
+const ClientNotAccepted = "clientNotAccepted"         // when attempting an operation that requires the client to be accepted
+const ClientAlreadyAccepted = "clientAlreadyAccepted" // when attempting an operation that requires the client to be not accepted
 
-const ReceivingMessage = "receivingMessage"
-const ReceivedMessage = "receivedMessage"
-const ReceivingMessageFailed = "receivingMessageFailed"
+const ReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
+const ReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes
 
-const HandlingReception = "handlingReception"
-const HandledReception = "handledReception"
-const HandleReceptionFailed = "handleReceptionFailed"
+const ReadingMessage = "receivingMessage"     // before reading a message from a client
+const ReadMessage = "receivedMessage"         // after reading a message from a client
+const ReadMessageFailed = "readMessageFailed" // when a reading operation returns an error
 
-const HandlingMessage = "handlingMessage"
-const HandledMessage = "handledMessage"
+const HandlingReception = "handlingReception"         // before handling a reception
+const HandledReception = "handledReception"           // after handling a reception
+const HandleReceptionFailed = "handleReceptionFailed" // when handleReception returns an error
 
-const MessageHandlingLoopStarting = "messageHandlingLoopStarting"
-const MessageHandlingLoopStarted = "messageHandlingLoopStarted"
+const HandlingMessage = "handlingMessage" // before handling a message
+const HandledMessage = "handledMessage"   // after handling a message
 
-const MessageHandlingLoopStopping = "messageHandlingLoopStopping"
-const MessageHandlingLoopStopped = "messageHandlingLoopStopped"
+const MessageHandlingLoopStarting = "messageHandlingLoopStarting" // before starting the message handling loop
+const MessageHandlingLoopStarted = "messageHandlingLoopStarted"   // after starting the message handling loop
 
-const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted"
-const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped"
+const MessageHandlingLoopStopping = "messageHandlingLoopStopping" // before stopping the message handling loop
+const MessageHandlingLoopStopped = "messageHandlingLoopStopped"   // after stopping the message handling loop
 
-const ReceivingFromChannel = "receivingFromChannel"
-const ReceivedFromChannel = "receivingFromChannel"
-const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
+const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted" // when attempting an operation that requires the message handling loop to be stopped
+const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped" // when attempting an operation that requires the message handling loop to be started
 
 const SendingMessage = "sendingMessage"
 const SentMessage = "sentMessage"
@@ -57,6 +54,13 @@ const SendingMessageFailed = "sendingMessageFailed"
 
 const SendingMultiMessage = "sendingMultiMessage"
 const SentMultiMessage = "sentMultiMessage"
+
+const InvalidMessage = "invalidMessage"
+
+const ReceivingFromChannel = "receivingFromChannel"
+const ReceivedFromChannel = "receivingFromChannel"
+const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
+const ReceivingFromChannelFailed = "receivingFromChannelFailed"
 
 const SendingToChannel = "sendingToChannel"
 const SentToChannel = "sentToChannel"
@@ -78,9 +82,7 @@ const HandledHttpRequest = "handledHttpRequest"
 
 const ClientDoesNotExist = "clientDoesNotExist"
 
-const DeserializingFailed = "deserializingMessageFailed"
-
-const InvalidMessage = "invalidMessage"
+const DeserializingFailed = "deserializingFailed"
 
 const UnexpectedTopic = "unexpectedTopic"
 

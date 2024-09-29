@@ -137,7 +137,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 	defer websocketConnection.receiveMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ReceivingMessage,
+		Event.ReadingMessage,
 		"receiving websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -156,21 +156,11 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 	_, messageBytes, err := websocketConnection.websocketConn.ReadMessage()
 	if err != nil {
 		websocketConnection.Close()
-		server.onEvent(Event.NewWarningNoOption(
-			Event.ReceivingMessageFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance:  circumstance,
-				Event.ClientType:    Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
-			}),
-		)
 		return nil, err
 	}
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ReceivedMessage,
+		Event.ReadMessage,
 		"received websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,

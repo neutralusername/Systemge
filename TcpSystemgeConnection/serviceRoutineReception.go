@@ -24,7 +24,7 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 	}()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.ReceptionRoutineStarted,
+		Event.ReceptionRoutineBegins,
 		"started tcpSystemgeConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
@@ -49,7 +49,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		return errors.New("connection closed")
 	case <-connection.messageChannelSemaphore.GetChannel():
 		if event := connection.onEvent(Event.NewInfo(
-			Event.ReceivingMessage,
+			Event.ReadingMessage,
 			"receiving tcpSystemgeConnection message",
 			Event.Cancel,
 			Event.Cancel,
@@ -63,24 +63,14 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		); !event.IsInfo() {
 			return event.GetError()
 		}
-		messageBytes, err := connection.messageReceiver.ReceiveNextMessage()
+		messageBytes, err := connection.messageReceiver.ReadNextMessage()
 		if err != nil {
 			if Tcp.IsConnectionClosed(err) {
-				connection.onEvent(Event.NewWarningNoOption(
-					Event.ReceivingMessageFailed,
-					err.Error(),
-					Event.Context{
-						Event.Circumstance:  Event.ReceptionRoutine,
-						Event.ClientType:    Event.TcpSystemgeConnection,
-						Event.ClientName:    connection.GetName(),
-						Event.ClientAddress: connection.GetIp(),
-					}),
-				)
 				connection.Close()
 				return errors.New("connection closed")
 			}
 			if event := connection.onEvent(Event.NewInfo(
-				Event.ReceivingMessageFailed,
+				Event.ReadMessageFailed,
 				err.Error(),
 				Event.Cancel,
 				Event.Cancel,
@@ -99,7 +89,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 		}
 
 		if event := connection.onEvent(Event.NewInfo(
-			Event.ReceivedMessage,
+			Event.ReadMessage,
 			"received tcpSystemgeConnection message",
 			Event.Cancel,
 			Event.Cancel,

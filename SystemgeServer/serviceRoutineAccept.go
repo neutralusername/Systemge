@@ -21,7 +21,7 @@ func (server *SystemgeServer) acceptRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptionRoutineStarted,
+		Event.AcceptionRoutineBegins,
 		"started systemgeServer acception routine",
 		Event.Cancel,
 		Event.Cancel,

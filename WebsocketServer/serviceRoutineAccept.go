@@ -23,7 +23,7 @@ func (server *WebsocketServer) acceptRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptionRoutineStarted,
+		Event.AcceptionRoutineBegins,
 		"started websocketConnection acception routine",
 		Event.Cancel,
 		Event.Cancel,

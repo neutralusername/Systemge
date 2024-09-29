@@ -86,7 +86,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			message, err := systemgeConnection.RetrieveNextMessage()
 			if err != nil {
 				server.onEvent(Event.NewWarningNoOption(
-					Event.ReceivingMessageFailed,
+					Event.ReceivingFromChannelFailed,
 					err.Error(),
 					Event.Context{
 						Event.Circumstance: Event.SingleRequestServerRequest,

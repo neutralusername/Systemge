@@ -25,7 +25,7 @@ type TcpSystemgeConnection struct {
 	closed      bool
 	closedMutex sync.Mutex
 
-	messageReceiver *Tcp.BufferedMessageReceiver
+	messageReceiver *Tcp.BufferedMessageReader
 
 	syncRequests map[string]*syncRequestStruct
 	syncMutex    sync.Mutex
@@ -59,7 +59,7 @@ type TcpSystemgeConnection struct {
 	noSyncResponseReceived       atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReceiver, eventHandler Event.Handler) (*TcpSystemgeConnection, error) {
+func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReader, eventHandler Event.Handler) (*TcpSystemgeConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

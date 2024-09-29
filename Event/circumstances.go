@@ -1,6 +1,6 @@
 package Event
 
-const WebsocketUpgrade = "websocketUpgrade"
+const WebsocketUpgrade = "websocketUpgrade" // during the upgrade of a http request to a websocket connection
 
 const AcceptionRoutine = "acceptionRoutine"
 const ReceptionRoutine = "receptionRoutine"

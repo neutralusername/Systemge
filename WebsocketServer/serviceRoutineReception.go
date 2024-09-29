@@ -23,7 +23,7 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ReceptionRoutineStarted,
+		Event.ReceptionRoutineBegins,
 		"started websocketConnection reception routine",
 		Event.Cancel,
 		Event.Cancel,
@@ -46,6 +46,16 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConnection) error {
 	messageBytes, err := server.receive(websocketConnection, Event.ReceptionRoutine)
 	if err != nil {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.ReadMessageFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance:  Event.ReceptionRoutine,
+				Event.ClientType:    Event.WebsocketConnection,
+				Event.ClientId:      websocketConnection.GetId(),
+				Event.ClientAddress: websocketConnection.GetAddress(),
+			},
+		))
 		return err
 	}
 	server.websocketConnectionMessagesReceived.Add(1)

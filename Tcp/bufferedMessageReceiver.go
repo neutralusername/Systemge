@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 )
 
-type BufferedMessageReceiver struct {
+type BufferedMessageReader struct {
 	buffer                   []byte
 	incomingMessageByteLimit uint64
 	tcpReceiveTimeoutMs      uint64
@@ -17,19 +17,19 @@ type BufferedMessageReceiver struct {
 	bytesReceived atomic.Uint64
 }
 
-func (buffer *BufferedMessageReceiver) GetBytesReceived() uint64 {
+func (buffer *BufferedMessageReader) GetBytesReceived() uint64 {
 	return buffer.bytesReceived.Swap(0)
 }
 
-func (buffer *BufferedMessageReceiver) CheckBytesReceived() uint64 {
+func (buffer *BufferedMessageReader) CheckBytesReceived() uint64 {
 	return buffer.bytesReceived.Load()
 }
 
-func NewBufferedMessageReceiver(netConn net.Conn, incomingMessageByteLimit uint64, tcpReceiveTimeoutMs uint64, bufferSize uint32) *BufferedMessageReceiver {
+func NewBufferedMessageReader(netConn net.Conn, incomingMessageByteLimit uint64, tcpReceiveTimeoutMs uint64, bufferSize uint32) *BufferedMessageReader {
 	if bufferSize == 0 {
 		bufferSize = 1024 * 4
 	}
-	return &BufferedMessageReceiver{
+	return &BufferedMessageReader{
 		buffer:                   []byte{},
 		incomingMessageByteLimit: incomingMessageByteLimit,
 		netConn:                  netConn,
@@ -38,7 +38,7 @@ func NewBufferedMessageReceiver(netConn net.Conn, incomingMessageByteLimit uint6
 	}
 }
 
-func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, error) {
+func (messageReceiver *BufferedMessageReader) ReadNextMessage() ([]byte, error) {
 	completedMsgBytes := []byte{}
 	for {
 		if messageReceiver.incomingMessageByteLimit > 0 && uint64(len(completedMsgBytes)) > messageReceiver.incomingMessageByteLimit {
@@ -58,7 +58,7 @@ func (messageReceiver *BufferedMessageReceiver) ReceiveNextMessage() ([]byte, er
 			}
 			completedMsgBytes = append(completedMsgBytes, b)
 		}
-		receivedMessageBytes, newBytesReceived, err := Receive(messageReceiver.netConn, messageReceiver.tcpReceiveTimeoutMs, messageReceiver.bufferSize)
+		receivedMessageBytes, newBytesReceived, err := Read(messageReceiver.netConn, messageReceiver.tcpReceiveTimeoutMs, messageReceiver.bufferSize)
 		if err != nil {
 			return nil, err
 		}

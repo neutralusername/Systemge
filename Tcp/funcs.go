@@ -44,7 +44,7 @@ func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
 	return nil
 }
 
-func Receive(netConn net.Conn, timeoutMs uint64, bufferSize uint32) ([]byte, int, error) {
+func Read(netConn net.Conn, timeoutMs uint64, bufferSize uint32) ([]byte, int, error) {
 	if netConn == nil {
 		return nil, 0, errors.New("net.Conn is nil")
 	}

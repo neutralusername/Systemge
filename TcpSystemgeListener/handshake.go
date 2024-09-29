@@ -27,11 +27,11 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		return nil, event.GetError()
 	}
 
-	messageReceiver := Tcp.NewBufferedMessageReceiver(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
-	messageBytes, err := messageReceiver.ReceiveNextMessage()
+	messageReceiver := Tcp.NewBufferedMessageReader(netConn, connectionConfig.IncomingMessageByteLimit, connectionConfig.TcpReceiveTimeoutMs, connectionConfig.TcpBufferBytes)
+	messageBytes, err := messageReceiver.ReadNextMessage()
 	if err != nil {
 		listener.onEvent(Event.NewWarningNoOption(
-			Event.ReceivingMessageFailed,
+			Event.ReadMessageFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.ServerHandshake,
@@ -53,7 +53,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 		filteresMessageBytes = append(filteresMessageBytes, b)
 	}
 	if event := listener.onEvent(Event.NewInfo(
-		Event.ReceivedMessage,
+		Event.ReadMessage,
 		"receiving TcpSystemgeConnection message",
 		Event.Cancel,
 		Event.Cancel,
