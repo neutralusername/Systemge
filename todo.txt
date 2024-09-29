@@ -76,4 +76,4 @@ add some functionality to visualize how clients of a dashboardServer are connect
 
 give option to use custom marshallers (idk about implementation details yet)
 
-offer some kind of support for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
+offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
