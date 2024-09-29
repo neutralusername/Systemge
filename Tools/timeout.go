@@ -47,7 +47,7 @@ func (timeout *Timeout) handleTrigger() {
 				return
 			case 1:
 			case 2:
-				timeout.onTrigger()
+				close(timeout.triggeredChannel)
 				return
 			}
 		case <-timeoutChannel:
