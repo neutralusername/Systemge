@@ -19,8 +19,8 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.StartConnectionAttempts,
-			Event.Address:      tcpClientConfig.Address,
+			Event.Circumstance:  Event.StartConnectionAttempts,
+			Event.ClientAddress: tcpClientConfig.Address,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -32,8 +32,8 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			Event.NormalizingAddressFailed,
 			"normalizing address failed",
 			Event.Context{
-				Event.Circumstance: Event.StartConnectionAttempts,
-				Event.Address:      tcpClientConfig.Address,
+				Event.Circumstance:  Event.StartConnectionAttempts,
+				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
 		return err
@@ -48,8 +48,8 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			Event.DuplicateAddress,
 			"duplicate address",
 			Event.Context{
-				Event.Circumstance: Event.StartConnectionAttempts,
-				Event.Address:      tcpClientConfig.Address,
+				Event.Circumstance:  Event.StartConnectionAttempts,
+				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
 		return errors.New("Connection already exists")
@@ -60,8 +60,8 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			Event.DuplicateAddress,
 			"duplicate address",
 			Event.Context{
-				Event.Circumstance: Event.StartConnectionAttempts,
-				Event.Address:      tcpClientConfig.Address,
+				Event.Circumstance:  Event.StartConnectionAttempts,
+				Event.ClientAddress: tcpClientConfig.Address,
 				// distinguish this and the previous warning
 			},
 		))
@@ -83,8 +83,8 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			Event.InitializationFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.StartConnectionAttempts,
-				Event.Address:      tcpClientConfig.Address,
+				Event.Circumstance:  Event.StartConnectionAttempts,
+				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
 		return err
@@ -99,8 +99,8 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 		Event.StartedConnectionAttempts,
 		"started connection attempts",
 		Event.Context{
-			Event.Circumstance: Event.StartConnectionAttempts,
-			Event.Address:      tcpClientConfig.Address,
+			Event.Circumstance:  Event.StartConnectionAttempts,
+			Event.ClientAddress: tcpClientConfig.Address,
 		},
 	))
 	return nil
@@ -128,8 +128,8 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 			Event.HandleConnectionAttemptsFailed,
 			"start connection attempts failed",
 			Event.Context{
-				Event.Circumstance: Event.HandleConnectionAttempts,
-				Event.Address:      connectionAttempt.GetTcpClientConfig().Address,
+				Event.Circumstance:  Event.HandleConnectionAttempts,
+				Event.ClientAddress: connectionAttempt.GetTcpClientConfig().Address,
 			},
 		))
 	}
@@ -141,8 +141,8 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleConnectionAttempts,
-			Event.Address:      connectionAttempt.GetTcpClientConfig().Address,
+			Event.Circumstance:  Event.HandleConnectionAttempts,
+			Event.ClientAddress: connectionAttempt.GetTcpClientConfig().Address,
 		},
 	)); !event.IsInfo() {
 		endAttempt()
@@ -168,6 +168,20 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 }
 
 func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection, clientConfig *Config.TcpClient) error {
+
+	if event := client.onEvent(Event.NewInfo(
+		Event.HandlingAcception,
+		"handling acception",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:  Event.HandleAcception,
+			Event.ClientAddress: clientConfig.Address,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
 
 	client.mutex.Lock()
 	delete(client.connectionAttemptsMap, clientConfig.Address)

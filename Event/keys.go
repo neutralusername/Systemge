@@ -13,8 +13,6 @@ const StructType = "structType"
 const TokenBucketType = "tokenBucketType"
 const ResponseType = "responseType"
 
-const Address = "address"
-
 const ClientAddress = "clientAddress"
 const ClientId = "clientId"
 
