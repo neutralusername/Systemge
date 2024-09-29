@@ -51,7 +51,6 @@ func (server *Server) Start() error {
 		))
 		server.status = Status.Stopped
 		close(server.sessionRequestChannel)
-		server.sessionRequestChannel = nil
 		return err
 	}
 
