@@ -278,8 +278,21 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 
 	if tcpClientConfig != nil {
 		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
-			if client.errorLogger != nil {
-				client.errorLogger.Log(Event.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
+			if event := client.onEvent(Event.NewInfo(
+				Event.StartConnectionAttemptsFailed,
+				"start connection attempts failed",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:  Event.HandleDisconnection,
+					Event.ClientAddress: tcpClientConfig.Address,
+				},
+			)); !event.IsInfo() {
+				if err := client.stop(false); err != nil {
+					panic(err)
+				}
+				return
 			}
 		}
 	}
