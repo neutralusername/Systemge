@@ -9,6 +9,8 @@ import (
 )
 
 type SessionManager struct {
+	config *Config.SessionManager
+
 	sessions   map[string]*Session
 	identities map[string]*Identity
 
@@ -41,6 +43,7 @@ func (identity *Identity) GetSessions() []*Session {
 
 type Session struct {
 	id       string
+	lifetime uint64
 	identity *Identity
 }
 
@@ -70,6 +73,8 @@ func (session *Session) GetRemainingLifetime() uint64 {
 
 func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
 	return &SessionManager{
+		config: config,
+
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
 
@@ -98,6 +103,7 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 	}
 	session := &Session{
 		id:       sessionId,
+		lifetime: manager.config.SessionLifetimeMs,
 		identity: identity,
 	}
 
@@ -112,4 +118,14 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 }
 func (manager *SessionManager) handleSessionLifetime(session *Session) {
 
+}
+
+func (manager *SessionManager) GetSession(sessionId string) *Session {
+	manager.mutex.RLock()
+	session, ok := manager.sessions[sessionId]
+	manager.mutex.RUnlock()
+	if !ok {
+		return nil
+	}
+	return session
 }
