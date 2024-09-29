@@ -42,9 +42,9 @@ type SystemgeClient struct {
 
 	// metrics
 
-	connectionAttemptsFailed  atomic.Uint64
-	connectionsRejected       atomic.Uint64
-	connectionAttemptsSuccess atomic.Uint64
+	connectionAttemptsFailed   atomic.Uint64
+	connectionAttemptsRejected atomic.Uint64
+	connectionAttemptsSuccess  atomic.Uint64
 }
 
 func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler) (*SystemgeClient, error) {

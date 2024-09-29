@@ -165,6 +165,9 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	client.connectionAttemptsSuccess.Add(1)
 
 	err := client.handleAcception(systemgeConnection, connectionAttempt.GetTcpClientConfig())
+	if err != nil {
+		client.connectionAttemptsRejected.Add(1)
+	}
 }
 
 func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection, clientConfig *Config.TcpClient) error {
