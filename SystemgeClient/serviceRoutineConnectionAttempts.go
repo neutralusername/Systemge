@@ -162,7 +162,6 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		return
 	}
 	client.connectionAttemptsFailed.Add(uint64(connectionAttempt.GetAttemptsCount()) - 1)
-	client.connectionAttemptsSuccess.Add(1)
 
 	err := client.handleAcception(systemgeConnection, connectionAttempt.GetTcpClientConfig())
 	if err != nil {
@@ -216,6 +215,7 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 		infoLogger.Log("Connection established to \"" + clientConfig.Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttemptsCount()))
 	}
 
+	client.connectionAttemptsSuccess.Add(1)
 	client.waitGroup.Add(1)
 
 	if client.config.Reconnect {
