@@ -33,6 +33,16 @@ func NewTokenSemaphore(poolSize int, tokenSize uint32, randomizerSeed int64) *To
 	}
 }
 
+func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
+	tokenSemaphore.mutex.Lock()
+	defer tokenSemaphore.mutex.Unlock()
+	acquiredTokens := make([]string, 0, len(tokenSemaphore.acquiredTokens))
+	for token := range tokenSemaphore.acquiredTokens {
+		acquiredTokens = append(acquiredTokens, token)
+	}
+	return acquiredTokens
+}
+
 // AcquireToken returns a token from the pool.
 // If the pool is empty, it will block until a token is available.
 func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
@@ -50,7 +60,7 @@ func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
 	defer tokenSemaphore.mutex.Unlock()
 	_, exists := tokenSemaphore.acquiredTokens[token]
 	if !exists {
-		return errors.New("Token is not valid")
+		return errors.New("token is not valid")
 	}
 	delete(tokenSemaphore.acquiredTokens, token)
 	tokenSemaphore.channel <- tokenSemaphore.randomizer.GenerateRandomString(tokenSemaphore.tokenSize, ALPHA_NUMERIC)
