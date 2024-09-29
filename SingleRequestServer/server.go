@@ -53,6 +53,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 	}
 	systemgeServer, err := SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
 		eventHandler(event)
+
 		switch event.GetEvent() {
 		case Event.HandledAcception:
 			event.SetWarning()
@@ -61,9 +62,87 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 				break
 			}
 			systemgeConnection := server.systemgeServer.GetConnection(clientName)
-			err := server.onConnect(systemgeConnection)
-			if err != nil {
+			if systemgeConnection == nil {
 				break
+			}
+			message, err := systemgeConnection.RetrieveNextMessage()
+			if err != nil {
+				systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
+				return err
+			}
+			switch message.GetTopic() {
+			case "command":
+				if server.commandHandlers == nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No commands available")
+					server.failedCommands.Add(1)
+					return errors.New("no commands available on this server")
+				}
+				command := unmarshalCommandStruct(message.GetPayload())
+				if command == nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
+					server.failedCommands.Add(1)
+					return errors.New("invalid command")
+				}
+				handler := server.commandHandlers[command.Command]
+				if handler == nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
+					server.failedCommands.Add(1)
+					return errors.New("Command not found")
+				}
+				result, err := handler(command.Args)
+				if err != nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
+					server.failedCommands.Add(1)
+					return err
+				}
+				server.succeededCommands.Add(1)
+				systemgeConnection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
+				systemgeConnection.Close()
+				return nil
+			case "async":
+				if server.messageHandler == nil {
+					server.failedAsyncMessages.Add(1)
+					return errors.New("no message handler available on this server")
+				}
+				asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
+				if err != nil {
+					server.failedAsyncMessages.Add(1)
+					return err
+				}
+				err = server.messageHandler.HandleAsyncMessage(systemgeConnection, asyncMessage)
+				if err != nil {
+					server.failedAsyncMessages.Add(1)
+					return err
+				}
+				server.succeededAsyncMessages.Add(1)
+				systemgeConnection.Close()
+				return nil
+			case "sync":
+				if server.messageHandler == nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
+					server.failedSyncMessages.Add(1)
+					return errors.New("no message handler available on this server")
+				}
+				syncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
+				if err != nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
+					server.failedSyncMessages.Add(1)
+					return err
+				}
+				payload, err := server.messageHandler.HandleSyncRequest(systemgeConnection, syncMessage)
+				if err != nil {
+					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
+					server.failedSyncMessages.Add(1)
+					return err
+				}
+				server.succeededSyncMessages.Add(1)
+				systemgeConnection.SyncRequestBlocking(Message.TOPIC_SUCCESS, payload)
+				systemgeConnection.Close()
+				return nil
+			default:
+				server.invalidRequests.Add(1)
+				systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
+				return errors.New("invalid topic")
 			}
 		}
 	})
@@ -72,88 +151,6 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 	}
 	server.systemgeServer = systemgeServer
 	return server, nil
-}
-
-func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection) error {
-	message, err := connection.RetrieveNextMessage()
-	if err != nil {
-		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
-		return err
-	}
-	switch message.GetTopic() {
-	case "command":
-		if server.commandHandlers == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No commands available")
-			server.failedCommands.Add(1)
-			return errors.New("no commands available on this server")
-		}
-		command := unmarshalCommandStruct(message.GetPayload())
-		if command == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
-			server.failedCommands.Add(1)
-			return errors.New("invalid command")
-		}
-		handler := server.commandHandlers[command.Command]
-		if handler == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
-			server.failedCommands.Add(1)
-			return errors.New("Command not found")
-		}
-		result, err := handler(command.Args)
-		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
-			server.failedCommands.Add(1)
-			return err
-		}
-		server.succeededCommands.Add(1)
-		connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
-		connection.Close()
-		return nil
-	case "async":
-		if server.messageHandler == nil {
-			server.failedAsyncMessages.Add(1)
-			return errors.New("no message handler available on this server")
-		}
-		asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
-		if err != nil {
-			server.failedAsyncMessages.Add(1)
-			return err
-		}
-		err = server.messageHandler.HandleAsyncMessage(connection, asyncMessage)
-		if err != nil {
-			server.failedAsyncMessages.Add(1)
-			return err
-		}
-		server.succeededAsyncMessages.Add(1)
-		connection.Close()
-		return nil
-	case "sync":
-		if server.messageHandler == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
-			server.failedSyncMessages.Add(1)
-			return errors.New("no message handler available on this server")
-		}
-		syncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
-		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
-			server.failedSyncMessages.Add(1)
-			return err
-		}
-		payload, err := server.messageHandler.HandleSyncRequest(connection, syncMessage)
-		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
-			server.failedSyncMessages.Add(1)
-			return err
-		}
-		server.succeededSyncMessages.Add(1)
-		connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, payload)
-		connection.Close()
-		return nil
-	default:
-		server.invalidRequests.Add(1)
-		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
-		return errors.New("invalid topic")
-	}
 }
 
 func (server *Server) Start() error {
