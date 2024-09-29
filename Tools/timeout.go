@@ -15,6 +15,7 @@ type Timeout struct {
 	triggered          bool
 	mutex              sync.Mutex
 	mayBeCancelled     bool
+	triggeredChannel   chan bool
 }
 
 // duration 0 == must be triggered manually
@@ -25,6 +26,7 @@ func NewTimeout(duration uint64, onTrigger func(), mayBeCancelled bool) *Timeout
 		triggered:          false,
 		interactionChannel: make(chan uint64),
 		mayBeCancelled:     mayBeCancelled,
+		triggeredChannel:   make(chan bool),
 	}
 	go timeout.handleTrigger()
 	return timeout
@@ -41,9 +43,11 @@ func (timeout *Timeout) handleTrigger() {
 			switch val {
 			case 0:
 				timeout.onTrigger()
+				close(timeout.triggeredChannel)
 				return
 			case 1:
 			case 2:
+				timeout.onTrigger()
 				return
 			}
 		case <-timeoutChannel:
@@ -56,6 +60,7 @@ func (timeout *Timeout) handleTrigger() {
 			timeout.mutex.Unlock()
 
 			timeout.onTrigger()
+			close(timeout.triggeredChannel)
 			return
 		}
 	}
@@ -73,6 +78,10 @@ func (timeout *Timeout) IsTriggered() bool {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
 	return timeout.triggered
+}
+
+func (timeout *Timeout) GetTriggeredChannel() <-chan bool {
+	return timeout.triggeredChannel
 }
 
 func (timeout *Timeout) Trigger() error {
