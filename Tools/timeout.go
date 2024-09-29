@@ -4,8 +4,8 @@ package Tools
 
 // may be refreshed to delay the trigger.
 // may be cancelled to prevent the trigger.
-
 // may be triggered manually.
+
 // timeout may only be triggered/cancelled once.
 
 type Timeout struct {
