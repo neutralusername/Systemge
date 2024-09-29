@@ -63,7 +63,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.send(websocketConnection, messageBytes, Event.Broadcast)
+			server.write(websocketConnection, messageBytes, Event.Broadcast)
 		})
 	}
 	server.websocketConnectionMutex.RUnlock()
@@ -152,7 +152,7 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		}
 	}
 	waitGroup.AddTask(func() {
-		server.send(websocketConnection, messageBytes, Event.Unicast)
+		server.write(websocketConnection, messageBytes, Event.Unicast)
 	})
 	server.websocketConnectionMutex.RUnlock()
 
@@ -252,7 +252,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.send(websocketConnection, messageBytes, Event.Multicast)
+			server.write(websocketConnection, messageBytes, Event.Multicast)
 		})
 	}
 	server.websocketConnectionMutex.RUnlock()
@@ -344,7 +344,7 @@ func (server *WebsocketServer) Groupcast(groupId string, message *Message.Messag
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.send(websocketConnection, messageBytes, Event.Groupcast)
+			server.write(websocketConnection, messageBytes, Event.Groupcast)
 		})
 	}
 	server.websocketConnectionMutex.RUnlock()

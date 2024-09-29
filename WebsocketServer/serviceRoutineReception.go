@@ -81,7 +81,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 				return event.GetError()
 			} else {
 				if server.config.PropagateMessageHandlerErrors {
-					server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+					server.write(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
 				}
 			}
 		}
@@ -107,7 +107,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 					websocketConnection.Close()
 				} else {
 					if server.config.PropagateMessageHandlerErrors {
-						server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+						server.write(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
 					}
 				}
 			}

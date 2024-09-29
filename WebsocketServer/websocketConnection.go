@@ -59,14 +59,14 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 }
 
 func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
-	return server.send(websocketConnection, messageBytes, Event.SendRuntime)
+	return server.write(websocketConnection, messageBytes, Event.SendRuntime)
 }
-func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
+func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
 	websocketConnection.sendMutex.Lock()
 	defer websocketConnection.sendMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.WritingMessage,
 		"sending websocketConnection message",
 		Event.Cancel,
 		Event.Cancel,
@@ -87,7 +87,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	if err != nil {
 		server.websocketConnectionMessagesFailed.Add(1)
 		server.onEvent(Event.NewWarningNoOption(
-			Event.SendingMessageFailed,
+			Event.WriteMessageFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  circumstance,
@@ -103,7 +103,7 @@ func (server *WebsocketServer) send(websocketConnection *WebsocketConnection, me
 	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.WroteMessage,
 		"sent websocketConnection message",
 		Event.Context{
 			Event.Circumstance:  circumstance,

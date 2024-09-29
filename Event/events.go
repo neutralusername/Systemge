@@ -6,15 +6,15 @@ const ServiceStopping = "serviceStopping" // at the beginning of the service sto
 const ServiceStopped = "serviceStopped" // at the end of the service stop
 const ServiceStarted = "serviceStarted" // at the end of the service start
 
-const ServiceStartFailed = "serviceStartFailed" // when serviceStart returns an error
-const ServiceStopFailed = "serviceStopFailed"   // when serviceStop returns an error
+const ServiceStartFailed = "serviceStartFailed" // when a service start operation returns an error
+const ServiceStopFailed = "serviceStopFailed"   // when a service stop operation returns an error
 
 const ServiceAlreadyStarted = "serverAlreadyStarted" // when attempting an operation that requires the service to be stopped
 const ServiceAlreadyStopped = "serverAlreadyStopped" // when attempting an operation that requires the service to be started
 
 const HandlingAcception = "handlingAcception"         // before handling a client acception
 const HandledAcception = "handledAcception"           // after handling a client acception
-const HandleAcceptionFailed = "handleAcceptionFailed" // when handleAcception returns an error
+const HandleAcceptionFailed = "handleAcceptionFailed" // when a handle acception operation returns an error
 
 const HandlingDisconnection = "handlingDisconnection" // before handling a client disconnection
 const HandledDisconnection = "handledDisconnection"   // after handling a client disconnection
@@ -28,13 +28,9 @@ const ClientAlreadyAccepted = "clientAlreadyAccepted" // when attempting an oper
 const ReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
 const ReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes
 
-const ReadingMessage = "receivingMessage"     // before reading a message from a client
-const ReadMessage = "receivedMessage"         // after reading a message from a client
-const ReadMessageFailed = "readMessageFailed" // when a reading operation returns an error
-
 const HandlingReception = "handlingReception"         // before handling a reception
 const HandledReception = "handledReception"           // after handling a reception
-const HandleReceptionFailed = "handleReceptionFailed" // when handleReception returns an error
+const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception operation returns an error
 
 const HandlingMessage = "handlingMessage" // before handling a message
 const HandledMessage = "handledMessage"   // after handling a message
@@ -48,9 +44,13 @@ const MessageHandlingLoopStopped = "messageHandlingLoopStopped"   // after stopp
 const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted" // when attempting an operation that requires the message handling loop to be stopped
 const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped" // when attempting an operation that requires the message handling loop to be started
 
-const SendingMessage = "sendingMessage"
-const SentMessage = "sentMessage"
-const SendingMessageFailed = "sendingMessageFailed"
+const ReadingMessage = "receivingMessage"     // before reading a message from a client
+const ReadMessage = "receivedMessage"         // after reading a message from a client
+const ReadMessageFailed = "readMessageFailed" // when a reading operation returns an error
+
+const WritingMessage = "writingMessage"         // before writing a message to a client
+const WroteMessage = "wroteMessage"             // after writing a message to a client
+const WriteMessageFailed = "writeMessageFailed" // when a writing operation returns an error
 
 const SendingMultiMessage = "sendingMultiMessage"
 const SentMultiMessage = "sentMultiMessage"

@@ -12,7 +12,7 @@ import (
 const ENDOFMESSAGE = '\x04'
 const HEARTBEAT = '\x05'
 
-func Send(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {
+func Write(netConn net.Conn, bytes []byte, timeoutMs uint64) (uint64, error) {
 	if netConn == nil {
 		return 0, errors.New("net.Conn is nil")
 	}

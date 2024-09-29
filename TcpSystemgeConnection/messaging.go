@@ -10,12 +10,12 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance string) error {
+func (connection *TcpSystemgeConnection) write(messageBytes []byte, circumstance string) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.SendingMessage,
+		Event.WritingMessage,
 		"sending message",
 		Event.Cancel,
 		Event.Cancel,
@@ -31,10 +31,10 @@ func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance 
 		return event.GetError()
 	}
 
-	bytesSent, err := Tcp.Send(connection.netConn, messageBytes, connection.config.TcpSendTimeoutMs)
+	bytesSent, err := Tcp.Write(connection.netConn, messageBytes, connection.config.TcpSendTimeoutMs)
 	if err != nil {
 		connection.onEvent(Event.NewWarningNoOption(
-			Event.SendingMessageFailed,
+			Event.WriteMessageFailed,
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  circumstance,
@@ -52,7 +52,7 @@ func (connection *TcpSystemgeConnection) send(messageBytes []byte, circumstance 
 	connection.bytesSent.Add(bytesSent)
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentMessage,
+		Event.WroteMessage,
 		"message sent",
 		Event.Context{
 			Event.Circumstance:  circumstance,
@@ -109,7 +109,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 		response = message.NewFailureResponse(payload)
 	}
 
-	if err := connection.send(response.Serialize(), Event.SyncResponse); err != nil {
+	if err := connection.write(response.Serialize(), Event.SyncResponse); err != nil {
 		return err
 	}
 	connection.syncResponsesSent.Add(1)
@@ -117,7 +117,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 }
 
 func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) error {
-	if err := connection.send(Message.NewAsync(topic, payload).Serialize(), Event.AsyncMessage); err != nil {
+	if err := connection.write(Message.NewAsync(topic, payload).Serialize(), Event.AsyncMessage); err != nil {
 		return err
 	}
 	connection.asyncMessagesSent.Add(1)
@@ -127,7 +127,7 @@ func (connection *TcpSystemgeConnection) AsyncMessage(topic, payload string) err
 func (connection *TcpSystemgeConnection) SyncRequest(topic, payload string) (<-chan *Message.Message, error) {
 	synctoken, syncRequestStruct := connection.initResponseChannel()
 
-	if err := connection.send(Message.NewSync(topic, payload, synctoken).Serialize(), Event.AsyncMessage); err != nil {
+	if err := connection.write(Message.NewSync(topic, payload, synctoken).Serialize(), Event.AsyncMessage); err != nil {
 		connection.removeSyncRequest(synctoken)
 		return nil, err
 	}
