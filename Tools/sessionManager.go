@@ -80,6 +80,10 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 			return nil, errors.New("max sessions per identity exceeded")
 		}
 	} else {
+		if manager.config.MaxIdentities > 0 && uint32(len(manager.identities)) >= manager.config.MaxIdentities {
+			manager.mutex.Unlock()
+			return nil, errors.New("max identities exceeded")
+		}
 		identity = &Identity{
 			id:       identityString,
 			sessions: make(map[string]*Session),
