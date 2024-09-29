@@ -112,12 +112,11 @@ func (manager *SessionManager) handleSessionLifetime(session *Session) {
 
 func (manager *SessionManager) GetSession(sessionId string) *Session {
 	manager.mutex.RLock()
-	session, ok := manager.sessions[sessionId]
-	manager.mutex.RUnlock()
-	if !ok {
-		return nil
+	defer manager.mutex.RUnlock()
+	if session, ok := manager.sessions[sessionId]; ok {
+		return session
 	}
-	return session
+	return nil
 }
 
 func (manager *SessionManager) GetSessions(identityString string) []*Session {
