@@ -1,6 +1,7 @@
 package SingleRequestServer
 
 import (
+	"errors"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Commands"
@@ -91,21 +92,18 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		return nil
 	case "async":
 		if server.messageHandler == nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
 			server.failedAsyncMessages.Add(1)
-			return Event.New("No message handler available on this server", nil)
+			return errors.New("No message handler available on this server")
 		}
 		asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
 		if err != nil {
-			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to deserialize message")
 			server.failedAsyncMessages.Add(1)
 			return err
 		}
-		connection.AsyncMessage(Message.TOPIC_SUCCESS, "")
 		err = server.messageHandler.HandleAsyncMessage(connection, asyncMessage)
 		if err != nil {
 			server.failedAsyncMessages.Add(1)
-			return Event.New("Message handler failed", err)
+			return err
 		}
 		server.succeededAsyncMessages.Add(1)
 		connection.Close()

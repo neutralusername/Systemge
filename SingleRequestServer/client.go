@@ -5,10 +5,9 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
 )
 
 type commandStruct struct {
@@ -26,55 +25,54 @@ func unmarshalCommandStruct(data string) *commandStruct {
 }
 
 func Command(name string, config *Config.SingleRequestClient, command string, args ...string) (string, error) {
-	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
 	if err != nil {
-		return "", Event.New("Failed to establish connection", err)
+		return "", err
 	}
 	err = connection.AsyncMessage("command", Helpers.JsonMarshal(commandStruct{
 		Command: command,
 		Args:    args,
 	}))
 	if err != nil {
-		return "", Event.New("Failed to send command", err)
+		return "", err
 	}
-	message, err := connection.GetNextMessage()
+	message, err := connection.RetrieveNextMessage()
 	if err != nil {
-		return "", Event.New("Failed to get response", err)
+		return "", err
 	}
 	connection.SyncResponse(message, true, "")
 	if message.GetTopic() != Message.TOPIC_SUCCESS {
-		return "", Event.New("Command failed", errors.New(message.GetPayload()))
+		return "", errors.New(message.GetPayload())
 	}
 	connection.Close()
 	return message.GetPayload(), nil
 }
 
 func AsyncMessage(name string, config *Config.SingleRequestClient, topic string, payload string) error {
-	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
 	if err != nil {
-		return Event.New("Failed to establish connection", err)
+		return err
 	}
 	err = connection.AsyncMessage("async", string(Message.NewAsync(topic, payload).Serialize()))
 	if err != nil {
-		return Event.New("Failed to send message", err)
+		return err
 	}
-	connection.GetNextMessage()
 	connection.Close()
 	return nil
 }
 
 func SyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (*Message.Message, error) {
-	connection, err := TcpSystemgeConnection.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
 	if err != nil {
-		return nil, Event.New("Failed to establish connection", err)
+		return nil, err
 	}
 	err = connection.AsyncMessage("sync", string(Message.NewAsync(topic, payload).Serialize()))
 	if err != nil {
-		return nil, Event.New("Failed to send request", err)
+		return nil, err
 	}
-	message, err := connection.GetNextMessage()
+	message, err := connection.RetrieveNextMessage()
 	if err != nil {
-		return nil, Event.New("Failed to get response", err)
+		return nil, err
 	}
 	connection.SyncResponse(message, true, "")
 	connection.Close()
