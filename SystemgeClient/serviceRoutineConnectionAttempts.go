@@ -237,6 +237,8 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	} else {
 		go client.handleDisconnect(systemgeConnection, nil)
 	}
+
+	return nil
 }
 
 func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, tcpClientConfig *Config.TcpClient) {

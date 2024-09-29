@@ -1,3 +1,4 @@
+specifier field is pretty redundant
 create a bunch of wrapper functions with events (commands, httpRequests etc)
 make sure http server stop only returns after all its http requests finished!!
 only create events where some sort of state is altered (or error occurs)
