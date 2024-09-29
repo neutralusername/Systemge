@@ -96,6 +96,7 @@ type Oauth2 struct {
 	OAuth2Config               *oauth2.Config `json:"oAuth2Config"`               // *required*
 	AuthRedirectUrl            string         `json:"authRedirectUrl"`            // *optional*
 	CallbackFailureRedirectUrl string         `json:"callbackFailureRedirectUrl"` // *required*
+	CallbackSuccessRedirectUrl string         `json:"callbackSuccessRedirectUrl"` // *required*
 	Oauth2State                string         `json:"oauth2State"`                // *required*
 }
 

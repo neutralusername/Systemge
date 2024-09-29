@@ -21,6 +21,7 @@ func (server *Server) oauth2AuthCallback() http.HandlerFunc {
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)
 			return
 		}
+		http.Redirect(responseWriter, httpRequest, server.config.CallbackSuccessRedirectUrl, http.StatusMovedPermanently)
 	}
 }
 
