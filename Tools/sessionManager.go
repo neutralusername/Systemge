@@ -34,20 +34,27 @@ func (identity *Identity) GetId() string {
 type Session struct {
 	id            string
 	identity      *Identity
+	mutex         sync.RWMutex
 	keyValuePairs map[string]any
 
 	timeout *Timeout
 }
 
 func (session *Session) Set(key string, value any) {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 	session.keyValuePairs[key] = value
 }
 
 func (session *Session) Get(key string) any {
+	session.mutex.RLock()
+	defer session.mutex.RUnlock()
 	return session.keyValuePairs[key]
 }
 
 func (session *Session) Remove(key string) {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 	delete(session.keyValuePairs, key)
 }
 
