@@ -46,11 +46,11 @@ const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped" //
 
 const ReadingMessage = "receivingMessage"     // before reading a message from a client
 const ReadMessage = "receivedMessage"         // after reading a message from a client
-const ReadMessageFailed = "readMessageFailed" // when a reading operation returns an error
+const ReadMessageFailed = "readMessageFailed" // when a write operation returns an error
 
 const WritingMessage = "writingMessage"         // before writing a message to a client
 const WroteMessage = "wroteMessage"             // after writing a message to a client
-const WriteMessageFailed = "writeMessageFailed" // when a writing operation returns an error
+const WriteMessageFailed = "writeMessageFailed" // when a write operation returns an error
 
 const SendingMultiMessage = "sendingMultiMessage"
 const SentMultiMessage = "sentMultiMessage"
