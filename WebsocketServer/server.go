@@ -125,10 +125,10 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler == nil {
-		return event
+	if server.eventHandler != nil {
+		server.eventHandler(event)
 	}
-	return server.eventHandler(event)
+	return event
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{

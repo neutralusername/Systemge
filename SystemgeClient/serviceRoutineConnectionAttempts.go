@@ -80,7 +80,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			TcpClientConfig:             tcpClientConfig,
 			TcpSystemgeConnectionConfig: client.config.TcpSystemgeConnectionConfig,
 		},
-		client.onEvent,
+		client.eventHandler,
 	)
 	if err != nil {
 		client.onEvent(Event.NewErrorNoOption(

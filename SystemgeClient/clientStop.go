@@ -43,7 +43,6 @@ func (client *SystemgeClient) stop(lock bool) error {
 
 	close(client.stopChannel)
 	client.waitGroup.Wait()
-	client.stopChannel = nil
 	client.status = Status.Stopped
 
 	client.onEvent(Event.NewInfoNoOption(

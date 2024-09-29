@@ -81,10 +81,10 @@ func (client *SystemgeClient) GetStatus() int {
 
 func (server *SystemgeClient) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetContext())
-	if server.eventHandler == nil {
-		return event
+	if server.eventHandler != nil {
+		server.eventHandler(event)
 	}
-	return server.eventHandler(event)
+	return event
 }
 func (server *SystemgeClient) GetContext() Event.Context {
 	return Event.Context{

@@ -107,7 +107,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 	}
 	defer connection.closedMutex.Unlock()
 
-	if event := connection.eventHandler(Event.NewInfo(
+	if event := connection.onEvent(Event.NewInfo(
 		Event.ServiceStopping,
 		"closing tcpSystemgeConnection",
 		Event.Skip,
@@ -182,10 +182,10 @@ func (connection *TcpSystemgeConnection) GetAddress() string {
 
 func (server *TcpSystemgeConnection) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler == nil {
-		return event
+	if server.eventHandler != nil {
+		server.eventHandler(event)
 	}
-	return server.eventHandler(event)
+	return event
 }
 func (server *TcpSystemgeConnection) GetServerContext() Event.Context {
 	return Event.Context{

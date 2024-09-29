@@ -32,18 +32,18 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler) *Server {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, commands Commands.Handlers, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
-		panic("Config is required")
+		return nil, errors.New("config is required")
 	}
 	if config.SystemgeServerConfig == nil {
-		panic("SystemgeServerConfig is required")
+		return nil, errors.New("systemgeServerConfig is required")
 	}
 	if config.SystemgeServerConfig.TcpSystemgeConnectionConfig == nil {
-		panic("ConnectionConfig is required")
+		return nil, errors.New("tcpSystemgeConnectionConfig is required")
 	}
 	if config.SystemgeServerConfig.TcpSystemgeListenerConfig == nil {
-		panic("TcpServerConfig is required")
+		return nil, errors.New("tcpSystemgeListenerConfig is required")
 	}
 
 	server := &Server{
@@ -51,12 +51,31 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 		commandHandlers: commands,
 		messageHandler:  messageHandler,
 	}
-	server.systemgeServer = SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, server.onConnect, nil)
-	return server
+	systemgeServer, err := SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
+		switch event.GetEvent() {
+		case Event.HandledAcception:
+			event.SetWarning()
+			clientName, ok := event.GetContextValue(Event.ClientName)
+			if !ok {
+				break
+			}
+			systemgeConnection := server.systemgeServer.GetConnection(clientName)
+			err := server.onConnect(systemgeConnection)
+			if err != nil {
+				break
+			}
+		}
+		eventHandler(event)
+	})
+	if err != nil {
+		return nil, err
+	}
+	server.systemgeServer = systemgeServer
+	return server, nil
 }
 
 func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection) error {
-	message, err := connection.GetNextMessage()
+	message, err := connection.RetrieveNextMessage()
 	if err != nil {
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Failed to get message")
 		return err
@@ -66,25 +85,25 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		if server.commandHandlers == nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No commands available")
 			server.failedCommands.Add(1)
-			return Event.New("No commands available on this server", nil)
+			return errors.New("no commands available on this server")
 		}
 		command := unmarshalCommandStruct(message.GetPayload())
 		if command == nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")
 			server.failedCommands.Add(1)
-			return Event.New("Invalid command", nil)
+			return errors.New("invalid command")
 		}
 		handler := server.commandHandlers[command.Command]
 		if handler == nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Command not found")
 			server.failedCommands.Add(1)
-			return Event.New("Command not found", nil)
+			return errors.New("Command not found")
 		}
 		result, err := handler(command.Args)
 		if err != nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
 			server.failedCommands.Add(1)
-			return Event.New("Command failed", err)
+			return err
 		}
 		server.succeededCommands.Add(1)
 		connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, result)
@@ -93,7 +112,7 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 	case "async":
 		if server.messageHandler == nil {
 			server.failedAsyncMessages.Add(1)
-			return errors.New("No message handler available on this server")
+			return errors.New("no message handler available on this server")
 		}
 		asyncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
 		if err != nil {
@@ -112,7 +131,7 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		if server.messageHandler == nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No message handler available")
 			server.failedSyncMessages.Add(1)
-			return Event.New("No message handler available on this server", nil)
+			return errors.New("no message handler available on this server")
 		}
 		syncMessage, err := Message.Deserialize([]byte(message.GetPayload()), message.GetOrigin())
 		if err != nil {
@@ -124,7 +143,7 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 		if err != nil {
 			connection.SyncRequestBlocking(Message.TOPIC_FAILURE, err.Error())
 			server.failedSyncMessages.Add(1)
-			return Event.New("Message handler failed", err)
+			return err
 		}
 		server.succeededSyncMessages.Add(1)
 		connection.SyncRequestBlocking(Message.TOPIC_SUCCESS, payload)
@@ -133,7 +152,7 @@ func (server *Server) onConnect(connection SystemgeConnection.SystemgeConnection
 	default:
 		server.invalidRequests.Add(1)
 		connection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid topic")
-		return Event.New("Invalid topic", nil)
+		return errors.New("invalid topic")
 	}
 }
 

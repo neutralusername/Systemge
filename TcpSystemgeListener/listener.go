@@ -28,7 +28,7 @@ type TcpSystemgeListener struct {
 	blacklist *Tools.AccessControlList
 	whitelist *Tools.AccessControlList
 
-	eventHandler func(*Event.Event) *Event.Event
+	eventHandler Event.Handler
 
 	// metrics
 
@@ -136,10 +136,10 @@ func (server *TcpSystemgeListener) GetName() string {
 
 func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler == nil {
-		return event
+	if server.eventHandler != nil {
+		server.eventHandler(event)
 	}
-	return server.eventHandler(event)
+	return event
 }
 func (server *TcpSystemgeListener) GetServerContext() Event.Context {
 	return Event.Context{

@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-type Handler func(*Event) *Event
+type Handler func(*Event)
 
 const (
 	Info    = int8(0)
@@ -125,7 +125,7 @@ func (ctx Context) Merge(other Context) Context {
 	return ctx
 }
 
-func (e *Event) GetKind() string {
+func (e *Event) GetEvent() string {
 	return e.event
 }
 
@@ -139,6 +139,11 @@ func (e *Event) GetLevel() int8 {
 
 func (e *Event) GetContext() Context {
 	return e.context
+}
+
+func (e *Event) GetContextValue(key string) (string, bool) {
+	val, ok := e.context[key]
+	return val, ok
 }
 
 func (e *Event) IsInfo() bool {
