@@ -29,7 +29,6 @@ func NewTimeout(duration uint64, onTrigger func()) *Timeout {
 
 func (timeout *Timeout) handleTrigger() {
 	for {
-		durationChannel := time.After(time.Duration(timeout.duration))
 		select {
 		case val := <-timeout.interactionChannel:
 			switch val {
@@ -40,7 +39,7 @@ func (timeout *Timeout) handleTrigger() {
 			case 2:
 				return
 			}
-		case <-durationChannel:
+		case <-time.After(time.Duration(timeout.duration)):
 			timeout.triggered = true
 			timeout.onTrigger()
 			return
@@ -73,7 +72,6 @@ func (timeout *Timeout) Refresh() error {
 	if timeout.triggered {
 		return ErrAlreadyTriggered
 	}
-	timeout.triggered = true
 	timeout.interactionChannel <- 1
 	return nil
 }
