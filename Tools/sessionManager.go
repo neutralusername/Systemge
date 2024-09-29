@@ -31,16 +31,6 @@ func (identity *Identity) GetId() string {
 	return identity.id
 }
 
-func (identity *Identity) GetSessions() []*Session {
-	sessions := make([]*Session, len(identity.sessions))
-	i := 0
-	for _, session := range identity.sessions {
-		sessions[i] = session
-		i++
-	}
-	return sessions
-}
-
 type Session struct {
 	id       string
 	lifetime uint64
@@ -128,4 +118,19 @@ func (manager *SessionManager) GetSession(sessionId string) *Session {
 		return nil
 	}
 	return session
+}
+
+func (manager *SessionManager) GetSessions(identityString string) []*Session {
+	manager.mutex.RLock()
+	identity, ok := manager.identities[identityString]
+	manager.mutex.RUnlock()
+	if !ok {
+		return nil
+	}
+
+	sessions := make([]*Session, 0, len(identity.sessions))
+	for _, session := range identity.sessions {
+		sessions = append(sessions, session)
+	}
+	return sessions
 }
