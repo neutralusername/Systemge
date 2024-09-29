@@ -23,6 +23,9 @@ type SystemgeClient struct {
 	status      int
 	statusMutex sync.RWMutex
 
+	stopChannel chan bool
+	waitGroup   sync.WaitGroup
+
 	config *Config.SystemgeClient
 
 	onConnectHandler    func(SystemgeConnection.SystemgeConnection) error
@@ -32,10 +35,6 @@ type SystemgeClient struct {
 	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
 	nameConnections       map[string]SystemgeConnection.SystemgeConnection // name -> connection
 	connectionAttemptsMap map[string]*TcpSystemgeConnect.ConnectionAttempt // address -> connection attempt
-
-	stopChannel chan bool
-
-	waitGroup sync.WaitGroup
 
 	eventHandler Event.Handler
 

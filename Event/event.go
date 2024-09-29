@@ -221,3 +221,7 @@ func GetCallerFuncName(depth int) string {
 	}
 	return runtime.FuncForPC(pc).Name()
 }
+
+func (event *Event) GetFormattedEvent() string {
+	return ""
+}

@@ -139,3 +139,5 @@ const AddedRoute = "addedRoute"
 
 const RemovingRoute = "removingRoute"
 const RemovedRoute = "removedRoute"
+
+const StartingConnectionAttemptsFailed = "startingConnectionAttemptsFailed"

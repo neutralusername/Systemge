@@ -1,6 +1,8 @@
 package SystemgeClient
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -8,18 +10,43 @@ import (
 func (client *SystemgeClient) Stop() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
+
+	if event := client.onEvent(Event.NewInfo(
+		Event.ServiceStopping,
+		"stopping systemgeClient",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.Stop,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	if client.status == Status.Stopped {
-		return Event.New("client already stopped", nil)
+		client.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"systemgeClient already stopped",
+			Event.Context{
+				Event.Circumstance: Event.Stop,
+			},
+		))
+		return errors.New("systemgeClient already stopped")
 	}
-	if client.infoLogger != nil {
-		client.infoLogger.Log("stopping client")
-	}
+
 	close(client.stopChannel)
 	client.waitGroup.Wait()
 	client.stopChannel = nil
-	if client.infoLogger != nil {
-		client.infoLogger.Log("client stopped")
-	}
 	client.status = Status.Stopped
+
+	client.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStopped,
+		"systemgeClient stopped",
+		Event.Context{
+			Event.Circumstance: Event.Stop,
+		},
+	))
+
 	return nil
 }
