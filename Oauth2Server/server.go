@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -71,50 +70,21 @@ func (server *Server) GetName() string {
 	return server.name
 }
 
-func (server *Server) Start() error {
+func (server *Server) GetStatus() int {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status != Status.Stopped {
-		return Event.New("Server is not in stopped state", nil)
-	}
-	server.status = Status.Pending
-	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
-	err := server.httpServer.Start()
-	if err != nil {
-		server.status = Status.Stopped
-		close(server.sessionRequestChannel)
-		server.sessionRequestChannel = nil
-		return err
-	}
-	go handleSessionRequests(server)
-	server.status = Status.Started
-	return nil
+	return server.status
 }
 
-func (server *Server) Stop() error {
-	server.statusMutex.Lock()
-	defer server.statusMutex.Unlock()
-	if server.status != Status.Started {
-		return Event.New("Server is not in started state", nil)
-	}
-	server.status = Status.Pending
-	server.httpServer.Stop()
-	close(server.sessionRequestChannel)
-
-	server.mutex.Lock()
-	for _, session := range server.sessions {
-		session.watchdog.Stop()
-		session.watchdog = nil
-		delete(server.sessions, session.sessionId)
-		delete(server.identities, session.identity)
-	}
-	server.mutex.Unlock()
-
-	server.status = Status.Stopped
-	return nil
+func (server *Server) GetInstanceId() string {
+	return server.instanceId
 }
 
-func handleSessionRequests(server *Server) {
+func (server *Server) GetSessionId() string {
+	return server.sessionId
+}
+
+func (server *Server) handleSessionRequests() {
 	for sessionRequest := range server.sessionRequestChannel {
 		if sessionRequest == nil {
 			return
@@ -122,11 +92,11 @@ func handleSessionRequests(server *Server) {
 		if infoLogger := server.infoLogger; infoLogger != nil {
 			infoLogger.Log(Event.New("Handling session request with access token \""+sessionRequest.token.AccessToken+"\"", nil).Error())
 		}
-		handleSessionRequest(server, sessionRequest)
+		server.handleSessionRequest(sessionRequest)
 	}
 }
 
-func handleSessionRequest(server *Server, sessionRequest *oauth2SessionRequest) {
+func (server *Server) handleSessionRequest(sessionRequest *oauth2SessionRequest) {
 	identity, keyValuePairs, err := server.config.TokenHandler(server.config.OAuth2Config, sessionRequest.token)
 	if err != nil {
 		sessionRequest.sessionChannel <- nil
