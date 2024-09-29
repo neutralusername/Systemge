@@ -84,3 +84,7 @@ func (manager *SessionManager) ExpireSession(sessionId string) {
 func (manager *SessionManager) RefreshSession(sessionId string) {
 
 }
+
+func (manager *SessionManager) SetSessionLifetime(sessionId string, lifetimeMs uint64) {
+
+}
