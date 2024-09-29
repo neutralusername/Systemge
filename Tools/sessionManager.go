@@ -101,6 +101,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		if len(identity.sessions) == 0 {
 			delete(manager.identities, identity.GetId())
 		}
+		manager.mutex.Unlock()
 		return nil, err
 	}
 
