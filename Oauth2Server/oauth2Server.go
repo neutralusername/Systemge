@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
@@ -15,6 +16,9 @@ type Server struct {
 	name        string
 	status      int
 	statusMutex sync.Mutex
+
+	instanceId string
+	sessionId  string
 
 	sessionRequestChannel chan *oauth2SessionRequest
 	config                *Config.Oauth2
@@ -43,6 +47,8 @@ func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList,
 		sessions:   make(map[string]*session),
 		identities: make(map[string]*session),
 		httpServer: nil,
+
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		eventHandler: eventHandler,
 
