@@ -17,6 +17,7 @@ type Timeout struct {
 	mayBeCancelled     bool
 }
 
+// duration 0 == must be triggered manually
 func NewTimeout(duration uint64, onTrigger func(), mayBeCancelled bool) *Timeout {
 	timeout := &Timeout{
 		duration:           duration,
