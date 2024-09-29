@@ -49,8 +49,8 @@ func (client *SystemgeClient) Start() error {
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance: Event.Start,
-					Event.Address:      tcpClientConfig.Address,
+					Event.Circumstance:  Event.Start,
+					Event.ClientAddress: tcpClientConfig.Address,
 				},
 			)); !event.IsInfo() {
 				if err := client.stop(false); err != nil {

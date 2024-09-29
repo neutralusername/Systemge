@@ -190,7 +190,16 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	delete(client.connectionAttemptsMap, clientConfig.Address)
 	if client.nameConnections[systemgeConnection.GetName()] != nil {
 		client.mutex.Unlock()
-		return
+		client.onEvent(Event.NewWarningNoOption(
+			Event.DuplicateName,
+			"duplicate name",
+			Event.Context{
+				Event.Circumstance:  Event.HandleAcception,
+				Event.ClientAddress: clientConfig.Address,
+				Event.ClientName:    systemgeConnection.GetName(),
+			},
+		))
+		return errors.New("duplicate name")
 	}
 	client.addressConnections[clientConfig.Address] = systemgeConnection
 	client.nameConnections[systemgeConnection.GetName()] = systemgeConnection
