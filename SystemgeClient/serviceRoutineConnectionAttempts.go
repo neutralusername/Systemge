@@ -124,23 +124,23 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		client.mutex.Unlock()
 
 		client.onEvent(Event.NewInfoNoOption(
-			Event.HandleConnectionAttemptFailed,
+			Event.HandleConnectionAttemptsFailed,
 			"start connection attempts failed",
 			Event.Context{
-				Event.Circumstance: Event.HandleConnectionAttempt,
+				Event.Circumstance: Event.HandleConnectionAttempts,
 				Event.Address:      connectionAttempt.GetTcpClientConfig().Address,
 			},
 		))
 	}
 
 	if event := client.onEvent(Event.NewInfo(
-		Event.HandlingConnectionAttempt,
+		Event.HandlingConnectionAttempts,
 		"handling connection attempt",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleConnectionAttempt,
+			Event.Circumstance: Event.HandleConnectionAttempts,
 			Event.Address:      connectionAttempt.GetTcpClientConfig().Address,
 		},
 	)); !event.IsInfo() {

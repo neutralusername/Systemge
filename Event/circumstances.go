@@ -54,3 +54,4 @@ const AddRoute = "addRoute"
 const RemoveRoute = "removeRoute"
 
 const StartConnectionAttempts = "startConnectionAttempts"
+const HandleConnectionAttempts = "handleConnectionAttempts"

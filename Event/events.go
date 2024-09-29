@@ -145,8 +145,8 @@ const StartingConnectionAttempts = "startingConnectionAttempts"
 const StartedConnectionAttempts = "startedConnectionAttempts"
 const StartConnectionAttemptsFailed = "startConnectionAttemptsFailed"
 
-const HandlingConnectionAttempt = "handlingConnectionAttempt"
-const HandledConnectionAttempt = "handledConnectionAttempt"
-const HandleConnectionAttemptFailed = "handleConnectionAttmeptFailed"
+const HandlingConnectionAttempts = "handlingConnectionAttempt"
+const HandledConnectionAttempts = "handledConnectionAttempt"
+const HandleConnectionAttemptsFailed = "handleConnectionAttemptsFailed"
 
 const NormalizingAddressFailed = "normalizingAddressFailed"
