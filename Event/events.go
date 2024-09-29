@@ -52,47 +52,48 @@ const WritingMessage = "writingMessage"         // before writing a message to a
 const WroteMessage = "wroteMessage"             // after writing a message to a client
 const WriteMessageFailed = "writeMessageFailed" // when a write operation returns an error
 
-const SendingMultiMessage = "sendingMultiMessage"
-const SentMultiMessage = "sentMultiMessage"
+const SendingMultiMessage = "sendingMultiMessage" // when starting a multi message send operation
+const SentMultiMessage = "sentMultiMessage"       // when finishing a multi message send operation
 
-const InvalidMessage = "invalidMessage"
+const InvalidMessage = "invalidMessage" // when a message is determined to be invalid
 
-const ReceivingFromChannel = "receivingFromChannel"
-const ReceivedFromChannel = "receivingFromChannel"
-const ReceivedNilValueFromChannel = "receivedNilValueFromChannel"
-const ReceivingFromChannelFailed = "receivingFromChannelFailed"
+const ReceivingFromChannel = "receivingFromChannel"               // before receiving an item from a channel
+const ReceivedFromChannel = "receivingFromChannel"                // after receiving an item from a channel
+const ReceivedNilValueFromChannel = "receivedNilValueFromChannel" // after receiving a nil value from a channel
+const ReceivingFromChannelFailed = "receivingFromChannelFailed"   // when a receive operation returns an error
 
-const SendingToChannel = "sendingToChannel"
-const SentToChannel = "sentToChannel"
+const SendingToChannel = "sendingToChannel" // before sending an item to a channel
+const SentToChannel = "sentToChannel"       // after sending an item to a channel
 
-const ClientAlreadyInGroup = "clientAlreadyInGroup"
-const ClientNotInGroup = "clientNotInGroup"
+const ClientAlreadyInGroup = "clientAlreadyInGroup" // when attempting an operation that requires the client to be not in a particular group
+const ClientNotInGroup = "clientNotInGroup"         // when attempting an operation that requires the client to be in a particular group
 
-const AddingClientsToGroup = "addingClientsToGroup"
-const AddedClientsToGroup = "addedClientsToGroup"
+const AddingClientsToGroup = "addingClientsToGroup" // before adding clients to a group
+const AddedClientsToGroup = "addedClientsToGroup"   // after adding clients to a group
 
-const RemovingClientsFromGroup = "removingClientsFromGroup"
-const RemovedClientsFromGroup = "removedClientsFromGroup"
+const RemovingClientsFromGroup = "removingClientsFromGroup" // before removing clients from a group
+const RemovedClientsFromGroup = "removedClientsFromGroup"   // after removing clients from a group
 
-const CreatingGroup = "creatingGroup"
-const GroupDoesNotExist = "groupDoesNotExist"
+const CreatingGroup = "creatingGroup" // before creating a group
 
-const HandlingHttpRequest = "handlingHttpRequest"
-const HandledHttpRequest = "handledHttpRequest"
+const GroupDoesNotExist = "groupDoesNotExist" // when attempting an operation that requires a particular group to exist
 
-const ClientDoesNotExist = "clientDoesNotExist"
+const HandlingHttpRequest = "handlingHttpRequest" // before handling an http request
+const HandledHttpRequest = "handledHttpRequest"   // after handling an http request
 
-const DeserializingFailed = "deserializingFailed"
+const ClientDoesNotExist = "clientDoesNotExist" // when attempting an operation that requires a particular client to exist
 
-const UnexpectedTopic = "unexpectedTopic"
+const DeserializingFailed = "deserializingFailed" // when a deserialization operation returns an error
 
-const RateLimited = "rateLimited"
-const Blacklisted = "blacklisted"
-const NotWhitelisted = "notWhitelisted"
+const UnexpectedTopic = "unexpectedTopic" // when a particular topic is not recognized
 
-const SplittingHostPortFailed = "splittingHostPortFailed"
+const RateLimited = "rateLimited"       // when a client is rate limited
+const Blacklisted = "blacklisted"       // when a client is blacklisted
+const NotWhitelisted = "notWhitelisted" // when a client is not whitelisted (and whitelisting is required)
 
-const WebsocketUpgradeFailed = "websocketUpgradeFailed"
+const SplittingHostPortFailed = "splittingHostPortFailed" // when a address string cannot be split into host and port
+
+const WebsocketUpgradeFailed = "websocketUpgradeFailed" // when a websocket upgrade operation returns an error
 
 const HeartbeatReceived = "heartbeatReceived"
 const SendingHeartbeat = "sendingHeartbeat"
