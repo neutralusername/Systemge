@@ -144,3 +144,17 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	}
 	return nil
 }
+
+func (manager *SessionManager) HasActiveSession(identityString string) bool {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+
+	if identity, ok := manager.identities[identityString]; ok {
+		for _, session := range identity.sessions {
+			if !session.isExpired {
+				return true
+			}
+		}
+	}
+	return false
+}
