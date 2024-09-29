@@ -29,7 +29,7 @@ func (server *Server) Start() error {
 	if server.status != Status.Stopped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
-			"Service oauth2 server already started",
+			"oauth2 server already started",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStart,
 			},
