@@ -91,16 +91,24 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	session := &Session{
 		id:       sessionId,
 		identity: identity,
-		timeout: NewTimeout(
-			manager.config.SessionLifetimeMs,
-			func() {
-
-			},
-		),
 	}
+	session.timeout = NewTimeout(
+		manager.config.SessionLifetimeMs,
+		func() {
+			manager.mutex.Lock()
+			defer manager.mutex.Unlock()
 
-	identity.sessions[session.id] = session
-	manager.sessions[session.id] = session
+			delete(identity.sessions, session.id)
+			delete(manager.sessions, session.id)
+			if len(identity.sessions) == 0 {
+				delete(manager.identities, identity.GetId())
+			}
+		},
+		false,
+	)
+
+	identity.sessions[session.GetId()] = session
+	manager.sessions[session.GetId()] = session
 	manager.mutex.Unlock()
 
 	manager.onCreate(session)
