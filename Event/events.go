@@ -117,8 +117,6 @@ const ReceivedEmptyClientName = "receivedEmptyClientName"         // when a clie
 const DuplicateName = "duplicateName"       // when a name is already in use
 const DuplicateAddress = "duplicateAddress" // when an address is already in use
 
-const Timeout = "timeout" // when a timeout occurs
-
 const UnexpectedNilValue = "unexpectedNilValue" // when a value is nil when it should not be
 
 const AddingSyncResponse = "addingSyncResponse" // before adding a sync response
@@ -137,6 +135,8 @@ const UnknownSyncToken = "unknownSyncToken" // when a sync token is not recogniz
 const NoSyncToken = "noSyncToken"           // when a sync token is required but not provided
 
 const UnexpectedClosure = "unexpectedClosure" // when a service is unexpectedly closed/stopped
+
+const Timeout = "timeout" // when a timeout occurs
 
 const AddingRoute = "addingRoute" // before adding a route
 const AddedRoute = "addedRoute"   // after adding a route
