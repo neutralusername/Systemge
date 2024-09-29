@@ -36,7 +36,7 @@ func NewSessionManager(onExpire func(*Session), onCreate func(*Session)) *Sessio
 	}
 }
 
-func (manager *SessionManager) CreateSession(identityString string) *Session {
+func (manager *SessionManager) CreateSession(identityString string, lifetimeMs uint64) *Session {
 	manager.mutex.Lock()
 	identity, ok := manager.identities[identityString]
 	if !ok {
@@ -62,11 +62,11 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 	manager.mutex.Unlock()
 
 	manager.onCreate(session)
-	go manager.handleSessionLifetime(session)
+	go manager.handleSessionLifetime(session, lifetimeMs)
 
 	return session
 }
 
-func (manager *SessionManager) handleSessionLifetime(session *Session) {
+func (manager *SessionManager) handleSessionLifetime(session *Session, lifetimeMs uint64) {
 
 }
