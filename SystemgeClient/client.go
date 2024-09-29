@@ -79,6 +79,14 @@ func (client *SystemgeClient) GetStatus() int {
 	return client.status
 }
 
+func (server *SystemgeClient) GetInstanceId() string {
+	return server.instanceId
+}
+
+func (server *SystemgeClient) GetSessionId() string {
+	return server.sessionId
+}
+
 func (server *SystemgeClient) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetContext())
 	if server.eventHandler != nil {
@@ -88,7 +96,7 @@ func (server *SystemgeClient) onEvent(event *Event.Event) *Event.Event {
 }
 func (server *SystemgeClient) GetContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.WebsocketServer,
+		Event.ServiceType:   Event.SystemgeClient,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.status),
 		Event.Function:      Event.GetCallerFuncName(2),

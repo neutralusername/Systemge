@@ -111,6 +111,14 @@ func (server *WebsocketServer) GetStatus() int {
 	return server.status
 }
 
+func (server *WebsocketServer) GetInstanceId() string {
+	return server.instanceId
+}
+
+func (server *WebsocketServer) GetSessionId() string {
+	return server.sessionId
+}
+
 func (server *WebsocketServer) AddMessageHandler(topic string, handler MessageHandler) {
 	server.messageHandlerMutex.Lock()
 	server.messageHandlers[topic] = handler

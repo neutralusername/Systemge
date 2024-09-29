@@ -22,16 +22,15 @@ type Server struct {
 	sessions   map[string]*session
 	identities map[string]*session
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-
 	randomizer *Tools.Randomizer
 	httpServer *HTTPServer.HTTPServer
+
+	eventHandler Event.Handler
 
 	mutex sync.Mutex
 }
 
-func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
+func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) *Server {
 	if config.TokenHandler == nil {
 		panic("TokenHandler is required")
 	}
@@ -39,13 +38,13 @@ func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList,
 		panic("OAuth2Config is required")
 	}
 	server := &Server{
-		name:          name,
-		config:        config,
-		sessions:      make(map[string]*session),
-		identities:    make(map[string]*session),
-		infoLogger:    Tools.NewLogger("[Info: \"Oauth2\"]", config.InfoLoggerPath),
-		warningLogger: Tools.NewLogger("[Warning: \"Oauth2\"]", config.WarningLoggerPath),
-		httpServer:    nil,
+		name:       name,
+		config:     config,
+		sessions:   make(map[string]*session),
+		identities: make(map[string]*session),
+		httpServer: nil,
+
+		eventHandler: eventHandler,
 
 		randomizer: Tools.NewRandomizer(config.RandomizerSeed),
 	}

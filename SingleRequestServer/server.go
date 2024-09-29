@@ -6,15 +6,19 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Server struct {
+	name           string
 	config         *Config.SingleRequestServer
 	messageHandler SystemgeConnection.MessageHandler
 	systemgeServer *SystemgeServer.SystemgeServer
+
+	eventHandler Event.Handler
 
 	// metrics
 
@@ -43,8 +47,10 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 	}
 
 	server := &Server{
+		name:           name,
 		config:         config,
 		messageHandler: messageHandler,
+		eventHandler:   eventHandler,
 	}
 	systemgeServer, err := SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
 		eventHandler(event)
@@ -54,7 +60,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			event.SetWarning()
 			clientName, ok := event.GetContextValue(Event.ClientName)
 			if !ok {
-				eventHandler(Event.NewErrorNoOption(
+				server.onEvent(Event.NewErrorNoOption(
 					Event.ContextDoesNotExist,
 					"client name context does not exist",
 					Event.Context{
@@ -66,7 +72,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			}
 			systemgeConnection := server.systemgeServer.GetConnection(clientName)
 			if systemgeConnection == nil {
-				eventHandler(Event.NewErrorNoOption(
+				server.onEvent(Event.NewErrorNoOption(
 					Event.ClientDoesNotExist,
 					"client does not exist",
 					Event.Context{
@@ -79,7 +85,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			}
 			message, err := systemgeConnection.RetrieveNextMessage()
 			if err != nil {
-				eventHandler(Event.NewWarningNoOption(
+				server.onEvent(Event.NewWarningNoOption(
 					Event.ReceivingMessageFailed,
 					err.Error(),
 					Event.Context{
@@ -94,7 +100,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 				err = server.messageHandler.HandleAsyncMessage(systemgeConnection, message)
 				if err != nil {
 					server.failedAsyncMessages.Add(1)
-					eventHandler(Event.NewWarningNoOption(
+					server.onEvent(Event.NewWarningNoOption(
 						Event.HandlerFailed,
 						err.Error(),
 						Event.Context{
@@ -112,7 +118,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 				if err != nil {
 					systemgeConnection.SyncResponse(message, false, err.Error())
 					server.failedSyncMessages.Add(1)
-					eventHandler(Event.NewWarningNoOption(
+					server.onEvent(Event.NewWarningNoOption(
 						Event.HandlerFailed,
 						err.Error(),
 						Event.Context{
@@ -146,4 +152,22 @@ func (server *Server) Stop() error {
 
 func (server *Server) GetStatus() int {
 	return server.systemgeServer.GetStatus()
+}
+
+func (server *Server) onEvent(event *Event.Event) *Event.Event {
+	if server.eventHandler != nil {
+		server.eventHandler(event)
+	}
+	return event
+}
+
+func (server *Server) GetContext() Event.Context {
+	return Event.Context{
+		Event.ServiceType:   Event.SingleRequestServer,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.systemgeServer.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+		Event.InstanceId:    server.systemgeServer.GetInstanceId(),
+		Event.SessionId:     server.systemgeServer.GetSessionId(),
+	}
 }

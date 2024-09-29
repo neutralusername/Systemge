@@ -18,6 +18,9 @@ const HttpServer = "httpServer"
 const TcpSystemgeListener = "tcpSystemgeListener"
 const TcpSystemgeConnection = "tcpSystemgeConnection"
 const SystemgeConnection = "systemgeConnection"
+const SystemgeServer = "systemgeServer"
+const SystemgeClient = "systemgeClient"
+const SingleRequestServer = "singleRequestServer"
 
 const HttpRequest = "httpRequest"
 
