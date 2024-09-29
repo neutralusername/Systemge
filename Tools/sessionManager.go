@@ -70,18 +70,17 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), o
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
 	identity, ok := manager.identities[identityString]
-	if !ok {
+	if ok {
+		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
+			manager.mutex.Unlock()
+			return nil, ErrMaxSessionsPerIdentityExceeded
+		}
+	} else {
 		identity = &Identity{
 			id:       identityString,
 			sessions: make(map[string]*Session),
 		}
-
 		manager.identities[identity.id] = identity
-	}
-
-	if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
-		manager.mutex.Unlock()
-		return nil, ErrMaxSessionsPerIdentityExceeded
 	}
 
 	sessionId := GenerateRandomString(Constants.SessionIdLength, ALPHA_NUMERIC)
@@ -107,7 +106,6 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		},
 		false,
 	)
-
 	identity.sessions[session.GetId()] = session
 	manager.sessions[session.GetId()] = session
 	manager.mutex.Unlock()
