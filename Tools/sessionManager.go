@@ -3,6 +3,7 @@ package Tools
 import (
 	"sync"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 )
 
@@ -26,7 +27,7 @@ type Session struct {
 	identity *Identity
 }
 
-func NewSessionManager(onExpire func(*Session), onCreate func(*Session)) *SessionManager {
+func NewSessionManager(config *Config.SessionManager, onExpire func(*Session), onCreate func(*Session)) *SessionManager {
 	return &SessionManager{
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
@@ -36,7 +37,7 @@ func NewSessionManager(onExpire func(*Session), onCreate func(*Session)) *Sessio
 	}
 }
 
-func (manager *SessionManager) CreateSession(identityString string, lifetimeMs uint64) *Session {
+func (manager *SessionManager) CreateSession(identityString string) *Session {
 	manager.mutex.Lock()
 	identity, ok := manager.identities[identityString]
 	if !ok {
@@ -62,11 +63,11 @@ func (manager *SessionManager) CreateSession(identityString string, lifetimeMs u
 	manager.mutex.Unlock()
 
 	manager.onCreate(session)
-	go manager.handleSessionLifetime(session, lifetimeMs)
+	go manager.handleSessionLifetime(session)
 
 	return session
 }
 
-func (manager *SessionManager) handleSessionLifetime(session *Session, lifetimeMs uint64) {
+func (manager *SessionManager) handleSessionLifetime(session *Session) {
 
 }
