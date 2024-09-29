@@ -26,7 +26,7 @@ func Oauth2AuthCallback(oauth2Config *oauth2.Config, oauth2State string, tokenHa
 	}
 }
 
-func Oauth2Redirect(oauth2Config *oauth2.Config, oauth2State string, redirectUrl string) http.HandlerFunc {
+func Oauth2AuthRedirect(oauth2Config *oauth2.Config, oauth2State string, redirectUrl string) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		url := redirectUrl
 		if url == "" {
