@@ -25,9 +25,47 @@ type Identity struct {
 	sessions map[string]*Session
 }
 
+func (identity *Identity) GetId() string {
+	return identity.id
+}
+
+func (identity *Identity) GetSessions() []*Session {
+	sessions := make([]*Session, len(identity.sessions))
+	i := 0
+	for _, session := range identity.sessions {
+		sessions[i] = session
+		i++
+	}
+	return sessions
+}
+
 type Session struct {
 	id       string
 	identity *Identity
+}
+
+func (session *Session) GetId() string {
+	return session.id
+}
+
+func (session *Session) GetIdentity() *Identity {
+	return session.identity
+}
+
+func (session *Session) ExpireSession() {
+
+}
+
+func (session *Session) RefreshSession() {
+
+}
+
+func (session *Session) SetLifetime(lifetimeMs uint64) {
+
+}
+
+func (session *Session) GetRemainingLifetime() uint64 {
+
 }
 
 func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
@@ -72,19 +110,6 @@ func (manager *SessionManager) CreateSession(identityString string) *Session {
 
 	return session
 }
-
 func (manager *SessionManager) handleSessionLifetime(session *Session) {
-
-}
-
-func (manager *SessionManager) ExpireSession(sessionId string) {
-
-}
-
-func (manager *SessionManager) RefreshSession(sessionId string) {
-
-}
-
-func (manager *SessionManager) SetSessionLifetime(sessionId string, lifetimeMs uint64) {
 
 }
