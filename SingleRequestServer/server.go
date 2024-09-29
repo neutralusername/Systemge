@@ -63,7 +63,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 						Event.ClientType:   Event.SystemgeConnection,
 					},
 				))
-				break
+				return
 			}
 			systemgeConnection := server.systemgeServer.GetConnection(clientName)
 			if systemgeConnection == nil {
@@ -76,7 +76,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 						Event.ClientName:   clientName,
 					},
 				))
-				break
+				return
 			}
 			message, err := systemgeConnection.RetrieveNextMessage()
 			if err != nil {
