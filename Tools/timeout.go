@@ -47,7 +47,14 @@ func (timeout *Timeout) handleTrigger() {
 				return
 			}
 		case <-timeoutChannel:
+			timeout.mutex.Lock()
+			if timeout.triggered {
+				timeout.mutex.Unlock()
+				return
+			}
 			timeout.triggered = true
+			timeout.mutex.Unlock()
+
 			timeout.onTrigger()
 			return
 		}
