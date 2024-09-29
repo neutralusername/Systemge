@@ -51,8 +51,8 @@ func (session *Session) GetId() string {
 	return session.id
 }
 
-func (session *Session) GetIdentity() *Identity {
-	return session.identity
+func (session *Session) GetIdentity() string {
+	return session.identity.GetId()
 }
 
 func (session *Session) ExpireSession() {
