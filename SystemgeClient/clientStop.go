@@ -8,8 +8,14 @@ import (
 )
 
 func (client *SystemgeClient) Stop() error {
-	client.statusMutex.Lock()
-	defer client.statusMutex.Unlock()
+	return client.stop(true)
+}
+
+func (client *SystemgeClient) stop(lock bool) error {
+	if lock {
+		client.statusMutex.Lock()
+		defer client.statusMutex.Unlock()
+	}
 
 	if event := client.onEvent(Event.NewInfo(
 		Event.ServiceStopping,

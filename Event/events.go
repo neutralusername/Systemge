@@ -143,5 +143,6 @@ const RemovedRoute = "removedRoute"
 
 const StartingConnectionAttempts = "startingConnectionAttempts"
 const StartedConnectionAttempts = "startedConnectionAttempts"
+const StartConnectionAttemptsFailed = "startConnectionAttemptsFailed"
 
 const NormalizingAddressFailed = "normalizingAddressFailed"
