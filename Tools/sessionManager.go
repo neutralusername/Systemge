@@ -32,10 +32,19 @@ func (identity *Identity) GetId() string {
 }
 
 type Session struct {
-	id       string
-	identity *Identity
+	id            string
+	identity      *Identity
+	keyValuePairs map[string]any
 
 	timeout *Timeout
+}
+
+func (session *Session) Set(key string, value any) {
+	session.keyValuePairs[key] = value
+}
+
+func (session *Session) Get(key string) any {
+	return session.keyValuePairs[key]
 }
 
 func (session *Session) GetId() string {
