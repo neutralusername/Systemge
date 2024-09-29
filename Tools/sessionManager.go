@@ -96,13 +96,14 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		manager.config.SessionLifetimeMs,
 		func() {
 			manager.mutex.Lock()
-			defer manager.mutex.Unlock()
-
 			delete(identity.sessions, session.id)
 			delete(manager.sessions, session.id)
 			if len(identity.sessions) == 0 {
 				delete(manager.identities, identity.GetId())
 			}
+			manager.mutex.Unlock()
+
+			manager.onExpire(session)
 		},
 		false,
 	)
