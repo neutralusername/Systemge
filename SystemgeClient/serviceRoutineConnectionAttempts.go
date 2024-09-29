@@ -122,6 +122,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		client.mutex.Lock()
 		delete(client.connectionAttemptsMap, connectionAttempt.GetTcpClientConfig().Address)
 		client.mutex.Unlock()
+		client.connectionAttemptsFailed.Add(uint64(connectionAttempt.GetAttemptsCount()))
 
 		client.onEvent(Event.NewInfoNoOption(
 			Event.HandleConnectionAttemptsFailed,
