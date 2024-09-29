@@ -59,7 +59,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 			id:       identityString,
 			sessions: make(map[string]*Session),
 		}
-		manager.identities[identity.id] = identity
+		manager.identities[identity.GetId()] = identity
 	}
 	sessionId := GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
 	for _, ok := manager.sessions[sessionId]; ok; {
