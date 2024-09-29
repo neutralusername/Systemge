@@ -8,6 +8,10 @@ import (
 
 var ErrAlreadyTriggered = errors.New("timeout already triggered")
 
+const cancelTimeout = 2
+const refreshTimeout = 1
+const triggerTimeout = 0
+
 type Timeout struct {
 	duration           uint64
 	onTrigger          func()
@@ -41,12 +45,12 @@ func (timeout *Timeout) handleTrigger() {
 		select {
 		case val := <-timeout.interactionChannel:
 			switch val {
-			case 0:
+			case triggerTimeout:
 				timeout.onTrigger()
 				close(timeout.triggeredChannel)
 				return
-			case 1:
-			case 2:
+			case refreshTimeout:
+			case cancelTimeout:
 				close(timeout.triggeredChannel)
 				return
 			}
@@ -91,7 +95,7 @@ func (timeout *Timeout) Trigger() error {
 		return ErrAlreadyTriggered
 	}
 	timeout.triggered = true
-	timeout.interactionChannel <- 0
+	timeout.interactionChannel <- triggerTimeout
 	return nil
 }
 
@@ -101,7 +105,7 @@ func (timeout *Timeout) Refresh() error {
 	if timeout.triggered {
 		return ErrAlreadyTriggered
 	}
-	timeout.interactionChannel <- 1
+	timeout.interactionChannel <- refreshTimeout
 	return nil
 }
 
@@ -115,6 +119,6 @@ func (timeout *Timeout) Cancel() error {
 		return errors.New("timeout cannot be cancelled")
 	}
 	timeout.triggered = true
-	timeout.interactionChannel <- 2
+	timeout.interactionChannel <- cancelTimeout
 	return nil
 }
