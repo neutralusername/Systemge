@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/Event"
 )
 
 type SessionManager struct {
@@ -13,6 +14,8 @@ type SessionManager struct {
 
 	onExpire func(*Session)
 	onCreate func(*Session)
+
+	eventHandler Event.Handler
 
 	mutex sync.RWMutex
 }
@@ -27,13 +30,15 @@ type Session struct {
 	identity *Identity
 }
 
-func NewSessionManager(config *Config.SessionManager, onExpire func(*Session), onCreate func(*Session)) *SessionManager {
+func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
 	return &SessionManager{
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
 
-		onExpire: onExpire,
 		onCreate: onCreate,
+		onExpire: onExpire,
+
+		eventHandler: eventHandler,
 	}
 }
 
