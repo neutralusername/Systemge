@@ -11,8 +11,8 @@ import (
 type SessionManager struct {
 	config *Config.SessionManager
 
-	sessions   map[string]*Session
 	identities map[string]*Identity
+	sessions   map[string]*Session
 
 	onExpire func(*Session)
 	onCreate func(*Session) error
@@ -20,84 +20,6 @@ type SessionManager struct {
 	eventHandler Event.Handler
 
 	mutex sync.RWMutex
-}
-
-type Identity struct {
-	id       string
-	sessions map[string]*Session
-}
-
-func (identity *Identity) GetId() string {
-	return identity.id
-}
-
-type Session struct {
-	id            string
-	identity      *Identity
-	mutex         sync.RWMutex
-	keyValuePairs map[string]any
-
-	timeout *Timeout
-}
-
-func (session *Session) Set(key string, value any) {
-	session.mutex.Lock()
-	defer session.mutex.Unlock()
-	session.keyValuePairs[key] = value
-}
-
-func (session *Session) Get(key string) (any, bool) {
-	session.mutex.RLock()
-	defer session.mutex.RUnlock()
-	val, ok := session.keyValuePairs[key]
-	return val, ok
-}
-
-func (session *Session) Remove(key string) error {
-	session.mutex.Lock()
-	defer session.mutex.Unlock()
-	if _, ok := session.keyValuePairs[key]; !ok {
-		return errors.New("key not found")
-	}
-	delete(session.keyValuePairs, key)
-	return nil
-}
-
-func (session *Session) GetMap() map[string]any {
-	return session.keyValuePairs
-}
-
-func (session *Session) GetId() string {
-	return session.id
-}
-
-func (session *Session) GetIdentity() string {
-	return session.identity.GetId()
-}
-
-// is nil until the onCreate is finished
-func (session *Session) GetTimeout() *Timeout {
-	return session.timeout
-}
-
-func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
-	if config == nil {
-		config = &Config.SessionManager{}
-	}
-	if config.SessionIdLength == 0 {
-		config.SessionIdLength = 32
-	}
-	return &SessionManager{
-		config: config,
-
-		sessions:   make(map[string]*Session),
-		identities: make(map[string]*Identity),
-
-		onCreate: onCreate,
-		onExpire: onExpire,
-
-		eventHandler: eventHandler,
-	}
 }
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
@@ -203,4 +125,82 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 		return true
 	}
 	return false
+}
+
+func (session *Session) Set(key string, value any) {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
+	session.keyValuePairs[key] = value
+}
+
+func (session *Session) Get(key string) (any, bool) {
+	session.mutex.RLock()
+	defer session.mutex.RUnlock()
+	val, ok := session.keyValuePairs[key]
+	return val, ok
+}
+
+func (session *Session) Remove(key string) error {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
+	if _, ok := session.keyValuePairs[key]; !ok {
+		return errors.New("key not found")
+	}
+	delete(session.keyValuePairs, key)
+	return nil
+}
+
+func (session *Session) GetMap() map[string]any {
+	return session.keyValuePairs
+}
+
+func (session *Session) GetId() string {
+	return session.id
+}
+
+func (session *Session) GetIdentity() string {
+	return session.identity.GetId()
+}
+
+// is nil until the onCreate is finished
+func (session *Session) GetTimeout() *Timeout {
+	return session.timeout
+}
+
+func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
+	if config == nil {
+		config = &Config.SessionManager{}
+	}
+	if config.SessionIdLength == 0 {
+		config.SessionIdLength = 32
+	}
+	return &SessionManager{
+		config: config,
+
+		sessions:   make(map[string]*Session),
+		identities: make(map[string]*Identity),
+
+		onCreate: onCreate,
+		onExpire: onExpire,
+
+		eventHandler: eventHandler,
+	}
+}
+
+type Identity struct {
+	id       string
+	sessions map[string]*Session
+}
+
+func (identity *Identity) GetId() string {
+	return identity.id
+}
+
+type Session struct {
+	id            string
+	identity      *Identity
+	mutex         sync.RWMutex
+	keyValuePairs map[string]any
+
+	timeout *Timeout
 }
