@@ -16,7 +16,7 @@ type SessionManager struct {
 	identities map[string]*Identity
 
 	onExpire func(*Session)
-	onCreate func(*Session)
+	onCreate func(*Session) error
 
 	eventHandler Event.Handler
 
@@ -51,7 +51,7 @@ func (session *Session) GetTimeout() *Timeout {
 	return session.timeout
 }
 
-func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
+func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
 	return &SessionManager{
 		config: config,
 
@@ -67,6 +67,7 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), o
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
+
 	identity, ok := manager.identities[identityString]
 	if ok {
 		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
@@ -89,6 +90,15 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		id:       sessionId,
 		identity: identity,
 	}
+
+	if err := manager.onCreate(session); err != nil {
+		if len(identity.sessions) == 0 {
+			delete(manager.identities, identity.GetId())
+		}
+		manager.mutex.Unlock()
+		return nil, err
+	}
+
 	session.timeout = NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
@@ -107,8 +117,6 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	identity.sessions[session.GetId()] = session
 	manager.sessions[session.GetId()] = session
 	manager.mutex.Unlock()
-
-	manager.onCreate(session)
 
 	return session, nil
 }
