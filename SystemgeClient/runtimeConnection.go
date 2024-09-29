@@ -26,9 +26,9 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 	if _, ok := client.addressConnections[connection.GetAddress()]; ok {
 		return errors.New("connection already exists")
 	}
+	client.waitGroup.Add(1)
 	client.addressConnections[connection.GetAddress()] = connection
 	client.nameConnections[connection.GetName()] = connection
-	client.waitGroup.Add(1)
 	go client.handleDisconnect(connection, reconnectTcpClientConfig)
 	return nil
 }

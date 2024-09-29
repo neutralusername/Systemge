@@ -152,7 +152,7 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 		Event.HandlingDisconnection,
 		"disconnecting systemgeConnection",
 		Event.Context{
-			Event.Circumstance:  Event.Disconnection,
+			Event.Circumstance:  Event.HandleDisconnection,
 			Event.ClientType:    Event.SystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
@@ -165,7 +165,7 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 		Event.HandledDisconnection,
 		"systemgeConnection disconnected",
 		Event.Context{
-			Event.Circumstance:  Event.Disconnection,
+			Event.Circumstance:  Event.HandleDisconnection,
 			Event.ClientType:    Event.SystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),

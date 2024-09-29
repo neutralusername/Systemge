@@ -9,7 +9,7 @@ const HeartbeatRoutine = "heartbeatRoutine"
 const HandleReception = "handleReception"
 const HandleAcception = "handleAcception"
 
-const Disconnection = "disconnection"
+const HandleDisconnection = "handleDisconnection"
 
 const ReceiveRuntime = "receiveRuntime"
 const SendRuntime = "sendRuntime"
