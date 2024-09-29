@@ -133,10 +133,10 @@ func (server *HTTPServer) GetStatus() int {
 
 func (server *HTTPServer) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler == nil {
-		return event
+	if server.eventHandler != nil {
+		server.eventHandler(event)
 	}
-	return server.eventHandler(event)
+	return event
 }
 func (server *HTTPServer) GetServerContext() Event.Context {
 	return Event.Context{

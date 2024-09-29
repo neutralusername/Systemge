@@ -4,6 +4,11 @@ import (
 	"errors"
 )
 
+type Command struct {
+	Command string   `json:"command"`
+	Args    []string `json:"args"`
+}
+
 type Handler func([]string) (string, error)
 type Handlers map[string]Handler
 

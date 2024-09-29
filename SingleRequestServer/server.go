@@ -97,11 +97,6 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			}
 			switch message.GetTopic() {
 			case "command":
-				if server.commandHandlers == nil {
-					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "No commands available")
-					server.failedCommands.Add(1)
-					return errors.New("no commands available on this server")
-				}
 				command := unmarshalCommandStruct(message.GetPayload())
 				if command == nil {
 					systemgeConnection.SyncRequestBlocking(Message.TOPIC_FAILURE, "Invalid command")

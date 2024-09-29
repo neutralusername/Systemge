@@ -4,24 +4,20 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
 )
 
-type commandStruct struct {
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
-}
-
-func unmarshalCommandStruct(data string) *commandStruct {
-	var command commandStruct
-	err := json.Unmarshal([]byte(data), &command)
+func unmarshalCommandStruct(data string) *Commands.Command {
+	var command *Commands.Command
+	err := json.Unmarshal([]byte(data), command)
 	if err != nil {
 		return nil
 	}
-	return &command
+	return command
 }
 
 func Command(name string, config *Config.SingleRequestClient, command string, args ...string) (string, error) {
@@ -29,7 +25,7 @@ func Command(name string, config *Config.SingleRequestClient, command string, ar
 	if err != nil {
 		return "", err
 	}
-	err = connection.AsyncMessage("command", Helpers.JsonMarshal(commandStruct{
+	err = connection.AsyncMessage("command", Helpers.JsonMarshal(Commands.Command{
 		Command: command,
 		Args:    args,
 	}))
