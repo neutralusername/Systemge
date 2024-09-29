@@ -92,7 +92,16 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		id:       sessionId,
 		identity: identity,
 		timeout: NewTimeout(manager.config.SessionLifetimeMs, func() {
+			manager.mutex.Lock()
+			if session, ok := manager.sessions[sessionId]; ok {
+				delete(manager.sessions, sessionId)
+				delete(identity.sessions, sessionId)
+				manager.mutex.Unlock()
 
+				manager.onExpire(session)
+			} else {
+				manager.mutex.Unlock()
+			}
 		}),
 	}
 

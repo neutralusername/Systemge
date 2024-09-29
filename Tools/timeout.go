@@ -14,14 +14,16 @@ type Timeout struct {
 	interactionChannel chan uint64
 	triggered          bool
 	mutex              sync.Mutex
+	mayBeCancelled     bool
 }
 
-func NewTimeout(duration uint64, onTrigger func()) *Timeout {
+func NewTimeout(duration uint64, onTrigger func(), mayBeCancelled bool) *Timeout {
 	timeout := &Timeout{
 		duration:           duration,
 		onTrigger:          onTrigger,
 		triggered:          false,
 		interactionChannel: make(chan uint64),
+		mayBeCancelled:     mayBeCancelled,
 	}
 	go timeout.handleTrigger()
 	return timeout
@@ -87,6 +89,9 @@ func (timeout *Timeout) Cancel() error {
 	defer timeout.mutex.Unlock()
 	if timeout.triggered {
 		return ErrAlreadyTriggered
+	}
+	if !timeout.mayBeCancelled {
+		return errors.New("timeout cannot be cancelled")
 	}
 	timeout.triggered = true
 	timeout.interactionChannel <- 2
