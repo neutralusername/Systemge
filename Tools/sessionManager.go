@@ -8,6 +8,8 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 )
 
+// can be theoretically used "recursively" to represent groups as identities and members as sessions. think about how to generalize the naming
+
 type SessionManager struct {
 	config *Config.SessionManager
 
