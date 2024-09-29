@@ -9,8 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 )
 
-var ErrMaxSessionsPerIdentityExceeded = errors.New("max sessions per identity exceeded")
-
 type SessionManager struct {
 	config *Config.SessionManager
 
@@ -73,7 +71,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	if ok {
 		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
 			manager.mutex.Unlock()
-			return nil, ErrMaxSessionsPerIdentityExceeded
+			return nil, errors.New("max sessions per identity exceeded")
 		}
 	} else {
 		identity = &Identity{
