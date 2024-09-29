@@ -75,3 +75,5 @@ change syncRequests/tokens to either stay alive until a certain time passed, or 
 add some functionality to visualize how clients of a dashboardServer are connected to each other (ask them for connected names)
 
 give option to use custom marshallers (idk about implementation details yet)
+
+offer some kind of support for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)

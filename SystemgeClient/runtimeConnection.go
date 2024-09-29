@@ -1,8 +1,9 @@
 package SystemgeClient
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
@@ -11,7 +12,7 @@ import (
 // if reconnectTcpClientConfig is not nil, the connection will attempt to reconnect
 func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectTcpClientConfig *Config.TcpClient) error {
 	if connection == nil {
-		return Event.New("connection is nil", nil)
+		return errors.New("connection is nil")
 	}
 	client.statusMutex.RLock()
 	client.mutex.Lock()
@@ -20,10 +21,10 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 		client.statusMutex.RUnlock()
 	}()
 	if client.status == Status.Stopped {
-		return Event.New("client stopped", nil)
+		return errors.New("client stopped")
 	}
 	if _, ok := client.addressConnections[connection.GetAddress()]; ok {
-		return Event.New("connection already exists", nil)
+		return errors.New("connection already exists")
 	}
 	client.addressConnections[connection.GetAddress()] = connection
 	client.nameConnections[connection.GetName()] = connection
@@ -35,15 +36,15 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 // AddConnectionAttempt attempts to connect to a server and add it to the client
 func (client *SystemgeClient) AddConnectionAttempt(tcpClientConfig *Config.TcpClient) error {
 	if tcpClientConfig == nil {
-		return Event.New("tcpClientConfig is nil", nil)
+		return errors.New("tcpClientConfig is nil")
 	}
 	if tcpClientConfig.Address == "" {
-		return Event.New("tcpClientConfig.Address is empty", nil)
+		return errors.New("tcpClientConfig.Address is empty")
 	}
 	client.statusMutex.RLock()
 	defer client.statusMutex.RUnlock()
 	if client.status == Status.Stopped {
-		return Event.New("client stopped", nil)
+		return errors.New("client stopped")
 	}
 	return client.startConnectionAttempts(tcpClientConfig)
 }
@@ -51,7 +52,7 @@ func (client *SystemgeClient) AddConnectionAttempt(tcpClientConfig *Config.TcpCl
 // RemoveConnection attempts to remove a connection from the client
 func (client *SystemgeClient) RemoveConnection(address string) error {
 	if address == "" {
-		return Event.New("address is empty", nil)
+		return errors.New("address is empty")
 	}
 	client.statusMutex.RLock()
 	client.mutex.Lock()
@@ -60,7 +61,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 		client.statusMutex.RUnlock()
 	}()
 	if client.status == Status.Stopped {
-		return Event.New("client stopped", nil)
+		return errors.New("client stopped")
 	}
 	if connection, ok := client.addressConnections[address]; ok {
 		connection.Close()
@@ -69,7 +70,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	if connectionAttempt, ok := client.connectionAttemptsMap[address]; ok {
 		return connectionAttempt.AbortAttempts()
 	}
-	return Event.New("connection not found", nil)
+	return errors.New("connection not found")
 }
 
 func (client *SystemgeClient) GetConnectionByName(name string) SystemgeConnection.SystemgeConnection {

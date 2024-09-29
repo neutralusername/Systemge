@@ -1,19 +1,42 @@
 package SystemgeClient
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
 )
 
 func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {
+	if event := client.onEvent(Event.NewInfo(
+		Event.StartingConnectionAttempts,
+		"starting connection attempts",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.StartConnectionAttempts,
+			Event.Address:      tcpClientConfig.Address,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
 	normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
 	if err != nil {
-		return Event.New("failed normalizing address", err)
+		client.onEvent(Event.NewWarningNoOption(
+			Event.NormalizingAddressFailed,
+			"normalizing address failed",
+			Event.Context{
+				Event.Circumstance: Event.StartConnectionAttempts,
+				Event.Address:      tcpClientConfig.Address,
+			},
+		))
+		return err
 	}
 	tcpClientConfig.Address = normalizedAddress
 
@@ -21,37 +44,78 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 	defer client.mutex.Unlock()
 
 	if client.addressConnections[tcpClientConfig.Address] != nil {
-		return Event.New("Connection already exists", nil)
+		client.onEvent(Event.NewWarningNoOption(
+			Event.DuplicateAddress,
+			"duplicate address",
+			Event.Context{
+				Event.Circumstance: Event.StartConnectionAttempts,
+				Event.Address:      tcpClientConfig.Address,
+			},
+		))
+		return errors.New("Connection already exists")
 	}
+
 	if client.connectionAttemptsMap[tcpClientConfig.Address] != nil {
-		return Event.New("Connection attempt already in progress", nil)
+		client.onEvent(Event.NewWarningNoOption(
+			Event.DuplicateAddress,
+			"duplicate address",
+			Event.Context{
+				Event.Circumstance: Event.StartConnectionAttempts,
+				Event.Address:      tcpClientConfig.Address,
+			},
+		))
+		return errors.New("Connection attempt already in progress")
 	}
-	connectionAttempt := TcpSystemgeConnection.EstablishConnectionAttempts(client.name, &Config.SystemgeConnectionAttempt{
-		MaxServerNameLength:         client.config.MaxServerNameLength,
-		MaxConnectionAttempts:       client.config.MaxConnectionAttempts,
-		RetryIntervalMs:             uint32(client.config.ConnectionAttemptDelayMs),
-		TcpClientConfig:             tcpClientConfig,
-		TcpSystemgeConnectionConfig: client.config.TcpSystemgeConnectionConfig,
-	})
+
+	connectionAttempt, err := TcpSystemgeConnect.EstablishConnectionAttempts(client.name,
+		&Config.SystemgeConnectionAttempt{
+			MaxServerNameLength:         client.config.MaxServerNameLength,
+			MaxConnectionAttempts:       client.config.MaxConnectionAttempts,
+			RetryIntervalMs:             uint32(client.config.ConnectionAttemptDelayMs),
+			TcpClientConfig:             tcpClientConfig,
+			TcpSystemgeConnectionConfig: client.config.TcpSystemgeConnectionConfig,
+		},
+		client.onEvent,
+	)
+	if err != nil {
+		client.onEvent(Event.NewErrorNoOption(
+			Event.InitializationFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance: Event.StartConnectionAttempts,
+				Event.Address:      tcpClientConfig.Address,
+			},
+		))
+		return err
+	}
+
 	client.connectionAttemptsMap[tcpClientConfig.Address] = connectionAttempt
 	client.waitGroup.Add(1)
 
-	go func() {
-		client.ongoingConnectionAttempts.Add(1)
+	go client.handleConnectionAttempt(connectionAttempt)
+
+	client.onEvent(Event.NewInfoNoOption(
+		Event.StartedConnectionAttempts,
+		"started connection attempts",
+		Event.Context{
+			Event.Circumstance: Event.StartConnectionAttempts,
+			Event.Address:      tcpClientConfig.Address,
+		},
+	))
+	return nil
+}
+
+func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSystemgeConnect.ConnectionAttempt) {
+	if client.ongoingConnectionAttempts.Add(1) == 1 {
 		client.status = Status.Pending
-
-		client.handleConnectionAttempt(connectionAttempt)
-
-		val := client.ongoingConnectionAttempts.Add(-1)
-		if val == 0 {
+	}
+	defer func() {
+		if client.ongoingConnectionAttempts.Add(-1) == 0 {
 			client.status = Status.Started
 		}
 		client.waitGroup.Done()
 	}()
-	return nil
-}
 
-func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSystemgeConnection.ConnectionAttempt) {
 	endAttempt := func() {
 		connectionAttempt.AbortAttempts()
 		client.mutex.Lock()
@@ -70,14 +134,6 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 	if err != nil {
 		if client.errorLogger != nil {
 			client.errorLogger.Log(Event.New("Connection attempt failed", err).Error())
-		}
-		if client.mailer != nil {
-			err := client.mailer.Send(Tools.NewMail(nil, "error", Event.New("Connection attempt failed", err).Error()))
-			if err != nil {
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Event.New("failed sending mail", err).Error())
-				}
-			}
 		}
 		endAttempt()
 		return
@@ -145,14 +201,6 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
 			if client.errorLogger != nil {
 				client.errorLogger.Log(Event.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error())
-			}
-			if client.mailer != nil {
-				err := client.mailer.Send(Tools.NewMail(nil, "error", Event.New("failed starting (re-)connection attempts to \""+tcpClientConfig.Address+"\"", err).Error()))
-				if err != nil {
-					if client.errorLogger != nil {
-						client.errorLogger.Log(Event.New("failed sending mail", err).Error())
-					}
-				}
 			}
 		}
 	}

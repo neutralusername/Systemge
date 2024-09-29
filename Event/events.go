@@ -105,6 +105,7 @@ const ExceededMaxClientNameLength = "exceededMaxClientNameLength"
 const ReceivedEmptyClientName = "receivedEmptyClientName"
 
 const DuplicateName = "duplicateName"
+const DuplicateAddress = "duplicateAddress"
 
 const Timeout = "timeout"
 
@@ -140,4 +141,7 @@ const AddedRoute = "addedRoute"
 const RemovingRoute = "removingRoute"
 const RemovedRoute = "removedRoute"
 
-const StartingConnectionAttemptsFailed = "startingConnectionAttemptsFailed"
+const StartingConnectionAttempts = "startingConnectionAttempts"
+const StartedConnectionAttempts = "startedConnectionAttempts"
+
+const NormalizingAddressFailed = "normalizingAddressFailed"

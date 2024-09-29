@@ -232,7 +232,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 			Event.MessageHandlingLoopAlreadyStarted,
 			"message handling loop is registered",
 			Event.Context{
-				Event.Circumstance:  Event.RetrievingNextMessage,
+				Event.Circumstance:  Event.RetrieveNextMessage,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetAddress(),
@@ -249,7 +249,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.RetrievingNextMessage,
+			Event.Circumstance:  Event.RetrieveNextMessage,
 			Event.ChannelType:   Event.MessageChannel,
 			Event.ClientType:    Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.GetName(),
@@ -270,7 +270,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 				Event.ReceivedNilValueFromChannel,
 				"received nil value from message channel",
 				Event.Context{
-					Event.Circumstance:  Event.RetrievingNextMessage,
+					Event.Circumstance:  Event.RetrieveNextMessage,
 					Event.ChannelType:   Event.MessageChannel,
 					Event.ClientType:    Event.TcpSystemgeConnection,
 					Event.ClientName:    connection.GetName(),
@@ -286,7 +286,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.RetrievingNextMessage,
+				Event.Circumstance:  Event.RetrieveNextMessage,
 				Event.ChannelType:   Event.MessageChannel,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),
@@ -305,7 +305,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 			Event.Timeout,
 			"timeout while waiting for message",
 			Event.Context{
-				Event.Circumstance:  Event.RetrievingNextMessage,
+				Event.Circumstance:  Event.RetrieveNextMessage,
 				Event.ChannelType:   Event.MessageChannel,
 				Event.ClientType:    Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.GetName(),

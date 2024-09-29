@@ -19,9 +19,9 @@ type ConnectionAttempt struct {
 	eventHandler       Event.Handler
 }
 
-func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt, eventHandler Event.Handler) *ConnectionAttempt {
+func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt, eventHandler Event.Handler) (*ConnectionAttempt, error) {
 	if config == nil {
-		return nil
+		return nil, errors.New("config is nil")
 	}
 	connectionAttempts := &ConnectionAttempt{
 		config:       config,
@@ -30,7 +30,7 @@ func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionA
 		eventHandler: eventHandler,
 	}
 	go connectionAttempts.connectionAttempts(name)
-	return connectionAttempts
+	return connectionAttempts, nil
 }
 
 func (connectionAttempt *ConnectionAttempt) AbortAttempts() error {
