@@ -44,7 +44,7 @@ func (client *SystemgeClient) Start() error {
 		if err := client.startConnectionAttempts(tcpClientConfig); err != nil {
 			if event := client.onEvent(Event.NewInfo(
 				Event.StartConnectionAttemptsFailed,
-				"starting connection attempts failed",
+				"start connection attempts failed",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
