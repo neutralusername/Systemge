@@ -2,14 +2,7 @@ package Oauth2Server
 
 import (
 	"net/http"
-
-	"golang.org/x/oauth2"
 )
-
-type oauth2SessionRequest struct {
-	token          *oauth2.Token
-	sessionChannel chan<- *session
-}
 
 func (server *Server) oauth2AuthCallback() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
@@ -24,18 +17,10 @@ func (server *Server) oauth2AuthCallback() http.HandlerFunc {
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)
 			return
 		}
-		sessionChannel := make(chan *session)
-		oauth2SessionRequest := &oauth2SessionRequest{
-			token:          token,
-			sessionChannel: sessionChannel,
-		}
-		server.sessionRequestChannel <- oauth2SessionRequest
-		session := <-sessionChannel
-		if session == nil {
+		if err := server.tokenHandler(server.config.OAuth2Config, token); err != nil {
 			http.Redirect(responseWriter, httpRequest, server.config.CallbackFailureRedirectUrl, http.StatusMovedPermanently)
 			return
 		}
-		http.Redirect(responseWriter, httpRequest, server.config.CallbackSuccessRedirectUrl+"?sessionId="+session.sessionId, http.StatusMovedPermanently)
 	}
 }
 

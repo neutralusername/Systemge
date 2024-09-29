@@ -46,16 +46,6 @@ func (server *Server) Stop() error {
 			},
 		))
 	}
-	close(server.sessionRequestChannel)
-
-	server.mutex.Lock()
-	for _, session := range server.sessions {
-		session.watchdog.Stop()
-		session.watchdog = nil
-		delete(server.sessions, session.sessionId)
-		delete(server.identities, session.identity)
-	}
-	server.mutex.Unlock()
 
 	server.status = Status.Stopped
 

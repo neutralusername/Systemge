@@ -10,7 +10,10 @@ import (
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"golang.org/x/oauth2"
 )
+
+type TokenHandler func(*oauth2.Config, *oauth2.Token) error
 
 type Server struct {
 	name        string
@@ -20,22 +23,18 @@ type Server struct {
 	instanceId string
 	sessionId  string
 
-	sessionRequestChannel chan *oauth2SessionRequest
-	config                *Config.Oauth2
+	config *Config.Oauth2
 
-	sessions   map[string]*session
-	identities map[string]*session
+	tokenHandler TokenHandler
 
 	randomizer *Tools.Randomizer
 	httpServer *HTTPServer.HTTPServer
 
 	eventHandler Event.Handler
-
-	mutex sync.Mutex
 }
 
-func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) *Server {
-	if config.TokenHandler == nil {
+func New(name string, config *Config.Oauth2, tokenHandler TokenHandler, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) *Server {
+	if tokenHandler == nil {
 		panic("TokenHandler is required")
 	}
 	if config.OAuth2Config == nil {
@@ -44,11 +43,11 @@ func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList,
 	server := &Server{
 		name:       name,
 		config:     config,
-		sessions:   make(map[string]*session),
-		identities: make(map[string]*session),
 		httpServer: nil,
 
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+
+		tokenHandler: tokenHandler,
 
 		eventHandler: eventHandler,
 

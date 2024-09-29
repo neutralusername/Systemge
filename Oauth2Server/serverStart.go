@@ -39,7 +39,6 @@ func (server *Server) Start() error {
 	server.sessionId = server.randomizer.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
 
-	server.sessionRequestChannel = make(chan *oauth2SessionRequest)
 	if err := server.httpServer.Start(); err != nil {
 		server.onEvent(Event.NewErrorNoOption(
 			Event.ServiceStartFailed,
@@ -50,11 +49,9 @@ func (server *Server) Start() error {
 			},
 		))
 		server.status = Status.Stopped
-		close(server.sessionRequestChannel)
 		return err
 	}
 
-	go server.handleSessionRequests()
 	server.status = Status.Started
 
 	server.onEvent(Event.NewInfoNoOption(
