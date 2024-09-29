@@ -55,7 +55,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
-		return errors.New("Connection already exists")
+		return errors.New("connection already exists")
 	}
 
 	if client.connectionAttemptsMap[tcpClientConfig.Address] != nil {
@@ -69,7 +69,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 				// distinguish this and the previous warning
 			},
 		))
-		return errors.New("Connection attempt already in progress")
+		return errors.New("connection attempt already in progress")
 	}
 
 	connectionAttempt, err := TcpSystemgeConnect.EstablishConnectionAttempts(client.name,

@@ -1,32 +1,119 @@
 package SystemgeClient
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ...string) error {
+	targetClientIds := Helpers.JsonMarshal(clientNames)
 	client.statusMutex.RLock()
-	if client.status == Status.Stopped {
+	client.mutex.RLock()
+
+	if event := client.onEvent(Event.NewInfo(
+		Event.SendingMultiMessage,
+		"sending mutli async message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:    Event.AsyncMessage,
+			Event.ClientType:      Event.SystemgeConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.Topic:           topic,
+			Event.Payload:         payload,
+		},
+	)); !event.IsInfo() {
+		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
-		return Event.New("Client stopped", nil)
+		return event.GetError()
 	}
-	client.mutex.Lock()
+
+	if client.status == Status.Stopped {
+		client.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"systemgeClient already stopped",
+			Event.Context{
+				Event.Circumstance:    Event.AsyncMessage,
+				Event.ClientType:      Event.SystemgeConnection,
+				Event.TargetClientIds: targetClientIds,
+				Event.Topic:           topic,
+				Event.Payload:         payload,
+			},
+		))
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+		return errors.New("systemgeClient already stopped")
+	}
+
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range client.nameConnections {
+			if connection == nil {
+				if event := client.onEvent(Event.NewWarning(
+					Event.ClientNotAccepted,
+					"client not accepted",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.AsyncMessage,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return event.GetError()
+				}
+				continue
+			}
 			connections = append(connections, connection)
 		}
 	} else {
 		for _, clientName := range clientNames {
-			connection := client.nameConnections[clientName]
-			if connection == nil {
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Event.New("Client \""+clientName+"\" not found for async message", nil).Error())
+			connection, ok := client.nameConnections[clientName]
+			if !ok {
+				if event := client.onEvent(Event.NewWarning(
+					Event.ClientDoesNotExist,
+					"client does not exist",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.AsyncMessage,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return event.GetError()
 				}
-
+				continue
+			}
+			if connection == nil {
+				if event := client.onEvent(Event.NewWarning(
+					Event.ClientNotAccepted,
+					"client not accepted",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.AsyncMessage,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return event.GetError()
+				}
 				continue
 			}
 			connections = append(connections, connection)
@@ -35,38 +122,126 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	errorChannel := SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
-	go func() {
-		for err := range errorChannel {
-			if client.errorLogger != nil {
-				client.errorLogger.Log(err.Error())
-			}
+	SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
 
-		}
-	}()
+	client.onEvent(Event.NewInfoNoOption(
+		Event.SentMultiMessage,
+		"multi async message sent",
+		Event.Context{
+			Event.Circumstance:    Event.AsyncMessage,
+			Event.ClientType:      Event.SystemgeConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.Topic:           topic,
+			Event.Payload:         payload,
+		},
+	))
 	return nil
 }
 
-func (client *SystemgeClient) SyncRequestBlocking(topic, payload string, clientNames ...string) ([]*Message.Message, error) {
+func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
+	targetClientIds := Helpers.JsonMarshal(clientNames)
 	client.statusMutex.RLock()
-	if client.status == Status.Stopped {
+	client.mutex.RLock()
+
+	if event := client.onEvent(Event.NewInfo(
+		Event.SendingMultiMessage,
+		"sending mutli sync message",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance:    Event.SyncRequest,
+			Event.ClientType:      Event.SystemgeConnection,
+			Event.TargetClientIds: targetClientIds,
+			Event.Topic:           topic,
+			Event.Payload:         payload,
+		},
+	)); !event.IsInfo() {
+		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
-		return nil, Event.New("Client stopped", nil)
+		return nil, event.GetError()
 	}
-	client.mutex.Lock()
+
+	if client.status == Status.Stopped {
+		client.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"systemgeClient already stopped",
+			Event.Context{
+				Event.Circumstance:    Event.SyncRequest,
+				Event.ClientType:      Event.SystemgeConnection,
+				Event.TargetClientIds: targetClientIds,
+				Event.Topic:           topic,
+				Event.Payload:         payload,
+			},
+		))
+		client.mutex.Unlock()
+		client.statusMutex.RUnlock()
+		return nil, errors.New("systemgeClient already stopped")
+	}
+
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
 	if len(clientNames) == 0 {
 		for _, connection := range client.nameConnections {
+			if connection == nil {
+				if event := client.onEvent(Event.NewWarning(
+					Event.ClientNotAccepted,
+					"client not accepted",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.SyncRequest,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return nil, event.GetError()
+				}
+				continue
+			}
 			connections = append(connections, connection)
 		}
 	} else {
 		for _, clientName := range clientNames {
-			connection := client.nameConnections[clientName]
-			if connection == nil {
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Event.New("Client \""+clientName+"\" not found for sync request", nil).Error())
+			connection, ok := client.nameConnections[clientName]
+			if !ok {
+				if event := client.onEvent(Event.NewWarning(
+					Event.ClientDoesNotExist,
+					"client does not exist",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.SyncRequest,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return nil, event.GetError()
 				}
-
+				continue
+			}
+			if connection == nil {
+				if event := client.onEvent(Event.NewWarning(
+					Event.ClientNotAccepted,
+					"client not accepted",
+					Event.Cancel,
+					Event.Skip,
+					Event.Skip,
+					Event.Context{
+						Event.Circumstance:    Event.SyncRequest,
+						Event.ClientType:      Event.SystemgeConnection,
+						Event.TargetClientIds: targetClientIds,
+						Event.Topic:           topic,
+						Event.Payload:         payload,
+					},
+				)); !event.IsInfo() {
+					return nil, event.GetError()
+				}
 				continue
 			}
 			connections = append(connections, connection)
@@ -75,56 +250,17 @@ func (client *SystemgeClient) SyncRequestBlocking(topic, payload string, clientN
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	responseChannel, errorChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
-	responses := make([]*Message.Message, 0)
+	return SystemgeConnection.MultiSyncRequest(topic, payload, connections...), nil
+}
+
+func (client *SystemgeClient) SyncRequestBlocking(topic, payload string, clientNames ...string) ([]*Message.Message, error) {
+	responseChannel, err := client.SyncRequest(topic, payload, clientNames...)
+	if err != nil {
+		return nil, err
+	}
+	responses := []*Message.Message{}
 	for response := range responseChannel {
 		responses = append(responses, response)
 	}
-	for err := range errorChannel {
-		if client.errorLogger != nil {
-			client.errorLogger.Log(err.Error())
-
-		}
-	}
 	return responses, nil
-}
-
-func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
-	client.statusMutex.RLock()
-	if client.status == Status.Stopped {
-		client.statusMutex.RUnlock()
-		return nil, nil
-	}
-	client.mutex.Lock()
-	connections := make([]SystemgeConnection.SystemgeConnection, 0)
-	if len(clientNames) == 0 {
-		for _, connection := range client.nameConnections {
-			connections = append(connections, connection)
-		}
-	} else {
-		for _, clientName := range clientNames {
-			connection := client.nameConnections[clientName]
-			if connection == nil {
-				if client.errorLogger != nil {
-					client.errorLogger.Log(Event.New("Client \""+clientName+"\" not found for sync request", nil).Error())
-				}
-
-				continue
-			}
-			connections = append(connections, connection)
-		}
-	}
-	client.mutex.Unlock()
-	client.statusMutex.RUnlock()
-
-	responseChannel, errorChannel := SystemgeConnection.MultiSyncRequest(topic, payload, connections...)
-	go func() {
-		for err := range errorChannel {
-			if client.errorLogger != nil {
-				client.errorLogger.Log(err.Error())
-			}
-
-		}
-	}()
-	return responseChannel, nil
 }
