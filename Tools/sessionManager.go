@@ -122,13 +122,13 @@ func (manager *SessionManager) GetSession(sessionId string) *Session {
 func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
-	identity, ok := manager.identities[identityString]
-	if !ok {
-		return nil
+
+	if identity, ok := manager.identities[identityString]; ok {
+		sessions := make([]*Session, 0, len(identity.sessions))
+		for _, session := range identity.sessions {
+			sessions = append(sessions, session)
+		}
+		return sessions
 	}
-	sessions := make([]*Session, 0, len(identity.sessions))
-	for _, session := range identity.sessions {
-		sessions = append(sessions, session)
-	}
-	return sessions
+	return nil
 }
