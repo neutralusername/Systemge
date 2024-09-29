@@ -1,6 +1,8 @@
 package Tools
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Constants"
 )
 
@@ -10,6 +12,8 @@ type SessionManager struct {
 
 	onExpire func(*Session)
 	onCreate func(*Session)
+
+	mutex sync.RWMutex
 }
 
 type Identity struct {
