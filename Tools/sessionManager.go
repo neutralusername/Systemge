@@ -22,6 +22,26 @@ type SessionManager struct {
 	mutex sync.RWMutex
 }
 
+func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
+	if config == nil {
+		config = &Config.SessionManager{}
+	}
+	if config.SessionIdLength == 0 {
+		config.SessionIdLength = 32
+	}
+	return &SessionManager{
+		config: config,
+
+		sessions:   make(map[string]*Session),
+		identities: make(map[string]*Identity),
+
+		onCreate: onCreate,
+		onExpire: onExpire,
+
+		eventHandler: eventHandler,
+	}
+}
+
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
 	identity, ok := manager.identities[identityString]
@@ -127,6 +147,24 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	return false
 }
 
+type Identity struct {
+	id       string
+	sessions map[string]*Session
+}
+
+func (identity *Identity) GetId() string {
+	return identity.id
+}
+
+type Session struct {
+	id            string
+	identity      *Identity
+	mutex         sync.RWMutex
+	keyValuePairs map[string]any
+
+	timeout *Timeout
+}
+
 func (session *Session) Set(key string, value any) {
 	session.mutex.Lock()
 	defer session.mutex.Unlock()
@@ -165,42 +203,4 @@ func (session *Session) GetIdentity() string {
 // is nil until the onCreate is finished
 func (session *Session) GetTimeout() *Timeout {
 	return session.timeout
-}
-
-func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
-	if config == nil {
-		config = &Config.SessionManager{}
-	}
-	if config.SessionIdLength == 0 {
-		config.SessionIdLength = 32
-	}
-	return &SessionManager{
-		config: config,
-
-		sessions:   make(map[string]*Session),
-		identities: make(map[string]*Identity),
-
-		onCreate: onCreate,
-		onExpire: onExpire,
-
-		eventHandler: eventHandler,
-	}
-}
-
-type Identity struct {
-	id       string
-	sessions map[string]*Session
-}
-
-func (identity *Identity) GetId() string {
-	return identity.id
-}
-
-type Session struct {
-	id            string
-	identity      *Identity
-	mutex         sync.RWMutex
-	keyValuePairs map[string]any
-
-	timeout *Timeout
 }
