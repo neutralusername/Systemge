@@ -161,6 +161,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		endAttempt()
 		return
 	}
+	client.connectionAttemptsFailed.Add(uint64(connectionAttempt.GetAttemptsCount()) - 1)
 	client.connectionAttemptsSuccess.Add(1)
 
 	err := client.handleAcception(systemgeConnection, connectionAttempt.GetTcpClientConfig())
