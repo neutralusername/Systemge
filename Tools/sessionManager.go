@@ -101,12 +101,8 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	manager.mutex.Unlock()
 
 	manager.onCreate(session)
-	go manager.handleSessionLifetime(session)
 
 	return session, nil
-}
-func (manager *SessionManager) handleSessionLifetime(session *Session) {
-
 }
 
 func (manager *SessionManager) GetSession(sessionId string) *Session {
