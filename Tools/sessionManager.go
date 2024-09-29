@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 )
 
@@ -52,6 +51,15 @@ func (session *Session) GetTimeout() *Timeout {
 }
 
 func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
+	if config == nil {
+		config = &Config.SessionManager{}
+	}
+	if config.SessionIdLength == 0 {
+		config.SessionIdLength = 32
+	}
+	if config.SessionLifetimeMs == 0 {
+		config.SessionLifetimeMs = 1000 * 60 * 60
+	}
 	return &SessionManager{
 		config: config,
 
@@ -80,16 +88,14 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		}
 		manager.identities[identity.id] = identity
 	}
-
-	sessionId := GenerateRandomString(Constants.SessionIdLength, ALPHA_NUMERIC)
+	sessionId := GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
 	for _, ok := manager.sessions[sessionId]; ok; {
-		sessionId = GenerateRandomString(Constants.SessionIdLength, ALPHA_NUMERIC)
+		sessionId = GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
 	}
 	session := &Session{
 		id:       sessionId,
 		identity: identity,
 	}
-
 	identity.sessions[session.GetId()] = session
 	manager.sessions[session.GetId()] = session
 	manager.mutex.Unlock()
