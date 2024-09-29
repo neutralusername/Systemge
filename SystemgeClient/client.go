@@ -43,6 +43,7 @@ type SystemgeClient struct {
 	// metrics
 
 	connectionAttemptsFailed  atomic.Uint64
+	connectionsRejected       atomic.Uint64
 	connectionAttemptsSuccess atomic.Uint64
 }
 
