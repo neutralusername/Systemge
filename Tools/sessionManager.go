@@ -36,12 +36,9 @@ func (identity *Identity) GetId() string {
 
 type Session struct {
 	id       string
-	lifetime uint64
 	identity *Identity
 
-	isExpired bool
-	expired   chan bool
-	mutex     sync.Mutex
+	timeout *Timeout
 }
 
 func (session *Session) GetId() string {
@@ -52,12 +49,8 @@ func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
 }
 
-func (session *Session) SetLifetime(lifetimeMs uint64) {
-
-}
-
-func (session *Session) GetRemainingLifetime() uint64 {
-
+func (session *Session) GetTimeout() *Timeout {
+	return session.timeout
 }
 
 func NewSessionManager(config *Config.SessionManager, onCreate func(*Session), onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
@@ -97,8 +90,10 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	}
 	session := &Session{
 		id:       sessionId,
-		lifetime: manager.config.SessionLifetimeMs,
 		identity: identity,
+		timeout: NewTimeout(manager.config.SessionLifetimeMs, func() {
+
+		}),
 	}
 
 	identity.sessions[session.id] = session
@@ -152,12 +147,8 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
-	if identity, ok := manager.identities[identityString]; ok {
-		for _, session := range identity.sessions {
-			if !session.isExpired {
-				return true
-			}
-		}
+	if _, ok := manager.identities[identityString]; ok {
+		return true
 	}
 	return false
 }
