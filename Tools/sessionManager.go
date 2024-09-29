@@ -63,6 +63,12 @@ func (session *Session) Remove(key string) error {
 	return nil
 }
 
+func (session *Session) GetMap() map[string]any {
+	session.mutex.RLock()
+	defer session.mutex.RUnlock()
+	return session.keyValuePairs
+}
+
 func (session *Session) GetId() string {
 	return session.id
 }
