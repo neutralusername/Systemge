@@ -47,6 +47,10 @@ func (session *Session) Get(key string) any {
 	return session.keyValuePairs[key]
 }
 
+func (session *Session) Remove(key string) {
+	delete(session.keyValuePairs, key)
+}
+
 func (session *Session) GetId() string {
 	return session.id
 }
