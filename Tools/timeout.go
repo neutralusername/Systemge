@@ -13,7 +13,6 @@ type Timeout struct {
 	onTrigger          func()
 	interactionChannel chan uint64
 	triggered          bool
-	deadline           time.Time
 	mutex              sync.Mutex
 }
 
@@ -23,7 +22,6 @@ func NewTimeout(duration uint64, onTrigger func()) *Timeout {
 		onTrigger:          onTrigger,
 		triggered:          false,
 		interactionChannel: make(chan uint64),
-		deadline:           time.Now().Add(time.Duration(duration)),
 	}
 	go timeout.handleTrigger()
 	return timeout
@@ -39,7 +37,6 @@ func (timeout *Timeout) handleTrigger() {
 				timeout.onTrigger()
 				return
 			case 1:
-				timeout.deadline = time.Now().Add(time.Duration(timeout.duration))
 			case 2:
 				return
 			}
@@ -57,15 +54,6 @@ func (timeout *Timeout) GetDuration() uint64 {
 
 func (timeout *Timeout) SetDuration(duration uint64) {
 	timeout.duration = duration
-}
-
-func (timeout *Timeout) TimeLeft() uint64 {
-	timeout.mutex.Lock()
-	defer timeout.mutex.Unlock()
-	if timeout.triggered {
-		return 0
-	}
-	return uint64(timeout.deadline.Sub(time.Now()).Nanoseconds())
 }
 
 func (timeout *Timeout) Trigger() error {
