@@ -46,6 +46,7 @@ func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
 }
 
+// is nil until the onCreate is finished
 func (session *Session) GetTimeout() *Timeout {
 	return session.timeout
 }
