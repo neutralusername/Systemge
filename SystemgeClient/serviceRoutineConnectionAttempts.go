@@ -166,6 +166,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 
 	err := client.handleAcception(systemgeConnection, connectionAttempt.GetTcpClientConfig())
 	if err != nil {
+		systemgeConnection.Close()
 		client.connectionAttemptsRejected.Add(1)
 	}
 }
@@ -190,7 +191,6 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	delete(client.connectionAttemptsMap, clientConfig.Address)
 	if client.nameConnections[systemgeConnection.GetName()] != nil {
 		client.mutex.Unlock()
-		systemgeConnection.Close()
 		return
 	}
 	client.addressConnections[clientConfig.Address] = systemgeConnection
@@ -202,7 +202,6 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 			if client.warningLogger != nil {
 				client.warningLogger.Log(Event.New("onConnectHandler failed for connection \""+systemgeConnection.GetName()+"\"", err).Error())
 			}
-			systemgeConnection.Close()
 
 			client.mutex.Lock()
 			delete(client.addressConnections, systemgeConnection.GetAddress())
