@@ -161,20 +161,20 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		return
 	}
 
-	err := client.handleAcception(systemgeConnection)
+	err := client.handleAcception(systemgeConnection, connectionAttempt.GetTcpClientConfig())
 }
 
-func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection) error {
+func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection, clientConfig *Config.TcpClient) error {
 	client.connectionAttemptsSuccess.Add(1)
 
 	client.mutex.Lock()
-	delete(client.connectionAttemptsMap, connectionAttempt.GetTcpClientConfig().Address)
+	delete(client.connectionAttemptsMap, clientConfig.Address)
 	if client.nameConnections[systemgeConnection.GetName()] != nil {
 		client.mutex.Unlock()
 		systemgeConnection.Close()
 		return
 	}
-	client.addressConnections[connectionAttempt.GetTcpClientConfig().Address] = systemgeConnection
+	client.addressConnections[clientConfig.Address] = systemgeConnection
 	client.nameConnections[systemgeConnection.GetName()] = systemgeConnection
 	client.mutex.Unlock()
 
@@ -195,13 +195,13 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	}
 
 	if infoLogger := client.infoLogger; infoLogger != nil {
-		infoLogger.Log("Connection established to \"" + connectionAttempt.GetTcpClientConfig().Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttemptsCount()))
+		infoLogger.Log("Connection established to \"" + clientConfig.Address + "\" with name \"" + systemgeConnection.GetName() + "\" on attempt #" + Helpers.Uint32ToString(connectionAttempt.GetAttemptsCount()))
 	}
 
 	client.waitGroup.Add(1)
 
 	if client.config.Reconnect {
-		go client.handleDisconnect(systemgeConnection, connectionAttempt.GetTcpClientConfig())
+		go client.handleDisconnect(systemgeConnection, clientConfig)
 	} else {
 		go client.handleDisconnect(systemgeConnection, nil)
 	}
