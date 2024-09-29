@@ -47,7 +47,15 @@ func (server *WebsocketServer) start(lock bool) error {
 	if server.config.IpRateLimiter != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
-	if err := server.httpServer.Start(); err != nil { // TODO: context from this service missing - handle this somehow
+	if err := server.httpServer.Start(); err != nil {
+		server.onEvent(Event.NewErrorNoOption(
+			Event.ServiceStartFailed,
+			"failed to start websocketServer's http server",
+			Event.Context{
+				Event.Circumstance:      Event.ServiceStart,
+				Event.TargetServiceType: Event.HttpServer,
+			},
+		))
 		if server.ipRateLimiter != nil {
 			server.ipRateLimiter.Close()
 			server.ipRateLimiter = nil

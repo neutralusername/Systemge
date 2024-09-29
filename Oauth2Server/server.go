@@ -63,6 +63,7 @@ func New(name string, config *Config.Oauth2, whitelist *Tools.AccessControlList,
 			server.config.AuthPath:         server.oauth2Auth(),
 			server.config.AuthCallbackPath: server.oauth2AuthCallback(),
 		},
+		eventHandler,
 	)
 	return server
 }

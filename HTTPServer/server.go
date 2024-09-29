@@ -38,7 +38,7 @@ type HTTPServer struct {
 	requestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handlers Handlers) *HTTPServer {
+func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handlers Handlers, eventHandler Event.Handler) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -52,6 +52,8 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		blacklist:  blacklist,
 		whitelist:  whitelist,
+
+		eventHandler: eventHandler,
 	}
 	for pattern, handler := range handlers {
 		server.AddRoute(pattern, handler)

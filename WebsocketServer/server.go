@@ -99,6 +99,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		map[string]http.HandlerFunc{
 			server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
 		},
+		eventHandler,
 	)
 	return server, nil
 }
