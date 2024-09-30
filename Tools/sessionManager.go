@@ -90,15 +90,15 @@ func (manager *SessionManager) RejectSessions() error {
 }
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
-	manager.waitgroup.Add(1)
-	defer manager.waitgroup.Done()
-
 	manager.mutex.Lock()
-
 	if !manager.acceptSessions {
 		manager.mutex.Unlock()
 		return nil, errors.New("session manager not accepting sessions")
 	}
+
+	manager.waitgroup.Add(1)
+	defer manager.waitgroup.Done()
+
 	if len(manager.sessions) >= int(manager.maxTotalSessions) {
 		manager.mutex.Unlock()
 		return nil, errors.New("max total sessions exceeded")
