@@ -7,7 +7,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 // can be theoretically used "recursively" to represent groups as identities and members as sessions. think about how to generalize the naming
@@ -43,7 +42,7 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 		onCreate: onCreate,
 		onExpire: onExpire,
 
-		maxTotalSessions: math.Pow(float64(len(Tools.ALPHA_NUMERIC)), float64(config.SessionIdLength)),
+		maxTotalSessions: math.Pow(float64(len(ALPHA_NUMERIC)), float64(config.SessionIdLength)),
 
 		eventHandler: eventHandler,
 	}
