@@ -57,11 +57,43 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 	}
 }
 
-func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
-	manager.mutex.Lock()
+func (manager *SessionManager) AcceptSessions() error {
+	manager.acceptSessionsMutex.Lock()
+	defer manager.acceptSessionsMutex.Unlock()
 
+	manager.mutex.Lock()
+	if manager.acceptSessions {
+		manager.mutex.Unlock()
+		return errors.New("session manager already accepting sessions")
+	}
+	manager.acceptSessions = true
+	manager.mutex.Unlock()
+
+	return nil
+}
+
+// rejects all new sessions and blocks until all ongoing session creations are finished
+func (manager *SessionManager) RejectSessions() error {
+	manager.acceptSessionsMutex.Lock()
+	defer manager.acceptSessionsMutex.Unlock()
+
+	manager.mutex.Lock()
+	if !manager.acceptSessions {
+		manager.mutex.Unlock()
+		return errors.New("session manager already rejecting sessions")
+	}
+	manager.acceptSessions = false
+	manager.mutex.Unlock()
+
+	manager.waitgroup.Wait()
+	return nil
+}
+
+func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.waitgroup.Add(1)
 	defer manager.waitgroup.Done()
+
+	manager.mutex.Lock()
 
 	if !manager.acceptSessions {
 		manager.mutex.Unlock()
@@ -181,38 +213,6 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 		return true
 	}
 	return false
-}
-
-func (manager *SessionManager) AcceptSessions() error {
-	manager.acceptSessionsMutex.Lock()
-	defer manager.acceptSessionsMutex.Unlock()
-
-	manager.mutex.Lock()
-	if manager.acceptSessions {
-		manager.mutex.Unlock()
-		return errors.New("session manager already accepting sessions")
-	}
-	manager.acceptSessions = true
-	manager.mutex.Unlock()
-
-	return nil
-}
-
-// rejects all new sessions and blocks until all ongoing session creations are finished
-func (manager *SessionManager) RejectSessions() error {
-	manager.acceptSessionsMutex.Lock()
-	defer manager.acceptSessionsMutex.Unlock()
-
-	manager.mutex.Lock()
-	if !manager.acceptSessions {
-		manager.mutex.Unlock()
-		return errors.New("session manager already rejecting sessions")
-	}
-	manager.acceptSessions = false
-	manager.mutex.Unlock()
-
-	manager.waitgroup.Wait()
-	return nil
 }
 
 type Identity struct {
