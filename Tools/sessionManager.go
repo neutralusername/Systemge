@@ -12,22 +12,21 @@ import (
 // can be theoretically used "recursively" to represent groups as identities and members as sessions. think about how to generalize the naming
 
 type SessionManager struct {
-	config *Config.SessionManager
-
-	identities map[string]*Identity
-	sessions   map[string]*Session
-
-	onExpire         func(*Session)
-	onCreate         func(*Session) error
+	config           *Config.SessionManager
 	maxTotalSessions float64
+
+	sessionMutex sync.RWMutex
+	identities   map[string]*Identity
+	sessions     map[string]*Session
+
+	onExpire func(*Session)
+	onCreate func(*Session) error
 
 	acceptSessions      bool
 	waitgroup           sync.WaitGroup
 	acceptSessionsMutex sync.Mutex
 
 	eventHandler Event.Handler
-
-	mutex sync.RWMutex
 }
 
 func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
@@ -58,9 +57,9 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 }
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
-	manager.mutex.Lock()
+	manager.sessionMutex.Lock()
 	if !manager.acceptSessions {
-		manager.mutex.Unlock()
+		manager.sessionMutex.Unlock()
 		return nil, errors.New("session manager not accepting sessions")
 	}
 
@@ -68,18 +67,18 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	defer manager.waitgroup.Done()
 
 	if len(manager.sessions) >= int(manager.maxTotalSessions) {
-		manager.mutex.Unlock()
+		manager.sessionMutex.Unlock()
 		return nil, errors.New("max total sessions exceeded")
 	}
 	identity, ok := manager.identities[identityString]
 	if ok {
 		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
-			manager.mutex.Unlock()
+			manager.sessionMutex.Unlock()
 			return nil, errors.New("max sessions per identity exceeded")
 		}
 	} else {
 		if manager.config.MaxIdentities > 0 && uint32(len(manager.identities)) >= manager.config.MaxIdentities {
-			manager.mutex.Unlock()
+			manager.sessionMutex.Unlock()
 			return nil, errors.New("max identities exceeded")
 		}
 		identity = &Identity{
@@ -101,33 +100,33 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	}
 	identity.sessions[session.GetId()] = nil
 	manager.sessions[session.GetId()] = nil
-	manager.mutex.Unlock()
+	manager.sessionMutex.Unlock()
 
 	if err := manager.onCreate(session); err != nil {
-		manager.mutex.Lock()
+		manager.sessionMutex.Lock()
 		delete(identity.sessions, session.id)
 		delete(manager.sessions, session.id)
-		manager.mutex.Unlock()
+		manager.sessionMutex.Unlock()
 		return nil, err
 	} else {
-		manager.mutex.Lock()
+		manager.sessionMutex.Lock()
 		manager.identities[identity.GetId()] = identity
 		identity.sessions[session.GetId()] = session
 		manager.sessions[session.GetId()] = session
-		manager.mutex.Unlock()
+		manager.sessionMutex.Unlock()
 	}
 
 	session.timeout = NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
-			manager.mutex.Lock()
+			manager.sessionMutex.Lock()
 			identity := session.identity
 			delete(identity.sessions, session.id)
 			delete(manager.sessions, session.id)
 			if len(identity.sessions) == 0 {
 				delete(manager.identities, identity.GetId())
 			}
-			manager.mutex.Unlock()
+			manager.sessionMutex.Unlock()
 
 			manager.onExpire(session)
 		},
@@ -141,13 +140,13 @@ func (manager *SessionManager) AcceptSessions() error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
 
-	manager.mutex.Lock()
+	manager.sessionMutex.Lock()
 	if manager.acceptSessions {
-		manager.mutex.Unlock()
+		manager.sessionMutex.Unlock()
 		return errors.New("session manager already accepting sessions")
 	}
 	manager.acceptSessions = true
-	manager.mutex.Unlock()
+	manager.sessionMutex.Unlock()
 
 	return nil
 }
@@ -157,21 +156,21 @@ func (manager *SessionManager) RejectSessions() error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
 
-	manager.mutex.Lock()
+	manager.sessionMutex.Lock()
 	if !manager.acceptSessions {
-		manager.mutex.Unlock()
+		manager.sessionMutex.Unlock()
 		return errors.New("session manager already rejecting sessions")
 	}
 	manager.acceptSessions = false
-	manager.mutex.Unlock()
+	manager.sessionMutex.Unlock()
 
 	manager.waitgroup.Wait()
 	return nil
 }
 
 func (manager *SessionManager) GetSession(sessionId string) *Session {
-	manager.mutex.RLock()
-	defer manager.mutex.RUnlock()
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
 	if session, ok := manager.sessions[sessionId]; ok && session != nil {
 		return session
 	}
@@ -179,8 +178,8 @@ func (manager *SessionManager) GetSession(sessionId string) *Session {
 }
 
 func (manager *SessionManager) GetIdentities() []string {
-	manager.mutex.RLock()
-	defer manager.mutex.RUnlock()
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
 
 	identities := make([]string, 0, len(manager.identities))
 	for identity := range manager.identities {
@@ -190,8 +189,8 @@ func (manager *SessionManager) GetIdentities() []string {
 }
 
 func (manager *SessionManager) GetSessions(identityString string) []*Session {
-	manager.mutex.RLock()
-	defer manager.mutex.RUnlock()
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
 
 	if identity, ok := manager.identities[identityString]; ok {
 		sessions := []*Session{}
@@ -206,8 +205,8 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 }
 
 func (manager *SessionManager) HasActiveSession(identityString string) bool {
-	manager.mutex.RLock()
-	defer manager.mutex.RUnlock()
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
 
 	if _, ok := manager.identities[identityString]; ok {
 		return true
