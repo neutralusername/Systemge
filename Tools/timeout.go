@@ -8,9 +8,11 @@ import (
 
 var ErrAlreadyTriggered = errors.New("timeout already triggered")
 
-const cancelTimeout = 2
-const refreshTimeout = 1
-const triggerTimeout = 0
+const (
+	cancelTimeout = iota
+	refreshTimeout
+	triggerTimeout
+)
 
 type Timeout struct {
 	durationMs         uint64
