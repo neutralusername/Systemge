@@ -215,6 +215,7 @@ func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
 }
 
+// false until the onCreate is finished and the timeout is set. stays false if rejected
 func (session *Session) IsAccepted() bool {
 	return session.isAccepted
 }
