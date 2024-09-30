@@ -47,6 +47,8 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 		onCreate: onCreate,
 		onExpire: onExpire,
 
+		acceptSessions: true,
+
 		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)),
 
 		eventHandler: eventHandler,
@@ -175,16 +177,12 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	return false
 }
 
-func (manager *SessionManager) GetAcceptSessions() bool {
-	manager.mutex.RLock()
-	defer manager.mutex.RUnlock()
-	return manager.acceptSessions
-}
-
-func (manager *SessionManager) SetAcceptSessions(accept bool) {
+// default is true. returns the new value
+func (manager *SessionManager) ToggleAcceptSeccions() bool {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
-	manager.acceptSessions = accept
+	manager.acceptSessions = !manager.acceptSessions
+	return manager.acceptSessions
 }
 
 type Identity struct {
