@@ -15,7 +15,7 @@ type SystemgeConnection interface {
 	RetrieveNextMessage() (*Message.Message, error)
 	AvailableMessageCount() uint32
 
-	StartMessageHandlingLoop(MessageHandler, bool) error
+	StartMessageHandlingLoop(messageHandler MessageHandler, sequentially bool) error
 	IsMessageHandlingLoopStarted() bool
 	StopMessageHandlingLoop() error
 	HandleMessage(message *Message.Message, messageHandler MessageHandler) error

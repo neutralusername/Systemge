@@ -5,13 +5,14 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers) *DashboardClient.Client {
+func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
 	if startFunc == nil {
 		panic("startFunc is nil")
 	}
@@ -34,10 +35,11 @@ func New_(name string, config *Config.DashboardClient, startFunc func() error, s
 			getMetricsFunc: getMetricsFunc,
 		},
 		commands,
+		eventHandler,
 	)
 }
 
-func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, customService customService, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -102,5 +104,6 @@ func New(name string, config *Config.DashboardClient, customService customServic
 			}
 			return string(pageMarshalled), nil
 		},
+		eventHandler,
 	)
 }

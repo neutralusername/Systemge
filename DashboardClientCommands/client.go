@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
@@ -12,7 +13,7 @@ import (
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
-func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
 	var metrics DashboardHelpers.DashboardMetrics
 	if getMetricsFunc != nil {
 		metrics = DashboardHelpers.NewDashboardMetrics(getMetricsFunc())
@@ -54,5 +55,6 @@ func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[
 			}
 			return string(pageMarshalled), nil
 		},
+		eventHandler,
 	)
 }

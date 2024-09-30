@@ -1,6 +1,7 @@
 package DashboardClient
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
@@ -8,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
 )
 
 type Client struct {
@@ -20,22 +21,24 @@ type Client struct {
 	syncMessageHandlerFuncs           SystemgeConnection.SyncMessageHandlers
 	introductionHandler               func() (string, error)
 
+	eventHandler Event.Handler
+
 	status int
 	mutex  sync.Mutex
 }
 
-func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs SystemgeConnection.AsyncMessageHandlers, syncMessageHandlerFuncs SystemgeConnection.SyncMessageHandlers, introductionHandler func() (string, error)) *Client {
+func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs SystemgeConnection.AsyncMessageHandlers, syncMessageHandlerFuncs SystemgeConnection.SyncMessageHandlers, introductionHandler func() (string, error), eventHandler Event.Handler) (*Client, error) {
 	if config == nil {
-		panic("config is nil")
+		return nil, errors.New("config is nil")
 	}
 	if name == "" {
-		panic("config.Name is empty")
+		return nil, errors.New("name is empty")
 	}
 	if config.TcpSystemgeConnectionConfig == nil {
-		panic("config.ConnectionConfig is nil")
+		return nil, errors.New("config.TcpSystemgeConnectionConfig is nil")
 	}
 	if config.TcpClientConfig == nil {
-		panic("config.TcpClientConfig is nil")
+		return nil, errors.New("config.TcpClientConfig is nil")
 	}
 
 	app := &Client{
@@ -44,40 +47,42 @@ func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs S
 		asyncMessageHandlerFuncs: asyncMessageHandlerFuncs,
 		syncMessageHandlerFuncs:  syncMessageHandlerFuncs,
 		introductionHandler:      introductionHandler,
+
+		eventHandler: eventHandler,
 	}
-	return app
+	return app, nil
 }
 
 func (app *Client) Start() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 	if app.status == Status.Started {
-		return Event.New("Already started", nil)
+		return errors.New("Already started")
 	}
-	connection, err := TcpSystemgeConnection.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength)
+	connection, err := TcpSystemgeConnect.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength, app.eventHandler)
 	if err != nil {
-		return Event.New("Failed to establish connection", err)
+		return err
 	}
 	app.dashboardServerSystemgeConnection = connection
 
-	message, err := connection.GetNextMessage()
+	message, err := connection.RetrieveNextMessage()
 	if err != nil {
 		connection.Close()
-		return Event.New("Failed to get introduction message", err)
+		return err
 	}
 	if message.GetTopic() != DashboardHelpers.TOPIC_INTRODUCTION {
 		connection.Close()
-		return Event.New("Expected introduction message", nil)
+		return errors.New("Expected introduction message")
 	}
 	response, err := app.introductionHandler()
 	if err != nil {
 		connection.Close()
-		return Event.New("Failed to handle introduction message", err)
+		return err
 	}
 	err = connection.SyncResponse(message, true, response)
 	if err != nil {
 		connection.Close()
-		return Event.New("Failed to send introduction response", err)
+		return err
 	}
 
 	app.messageHandler = SystemgeConnection.NewSequentialMessageHandler(
@@ -87,10 +92,10 @@ func (app *Client) Start() error {
 		app.config.MessageHandlerQueueSize,
 	)
 
-	err = connection.StartMessageHandlingLoop_Sequentially(app.messageHandler)
+	err = connection.StartMessageHandlingLoop(app.messageHandler, true)
 	if err != nil {
 		connection.Close()
-		return Event.New("Failed to start message handling loop", err)
+		return err
 	}
 	app.status = Status.Started
 	return nil
@@ -100,7 +105,7 @@ func (app *Client) Stop() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 	if app.status == Status.Stopped {
-		return Event.New("Already stopped", nil)
+		return errors.New("Already stopped")
 	}
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil

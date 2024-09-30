@@ -2,8 +2,7 @@ package DashboardHelpers
 
 import (
 	"encoding/json"
-
-	"github.com/neutralusername/Systemge/Event"
+	"errors"
 )
 
 type Page struct {
@@ -41,7 +40,7 @@ func (page *Page) Marshal() ([]byte, error) {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		data = string(page.Data.(*SystemgeServerClient).Marshal())
 	default:
-		return nil, Event.New("Unknown client type", nil)
+		return nil, errors.New("unknown client type")
 	}
 	bytes, err := json.Marshal(&Page{
 		Data: data,
@@ -60,7 +59,7 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 		return nil, err
 	}
 	if _, ok := page.Data.(string); !ok {
-		return nil, Event.New("Data field is not a string", nil)
+		return nil, errors.New("data field is not a string")
 	}
 	var client interface{}
 	switch page.Type {
@@ -85,7 +84,7 @@ func UnmarshalPage(pageData []byte) (*Page, error) {
 			return nil, err
 		}
 	default:
-		return nil, Event.New("Unknown client type", nil)
+		return nil, errors.New("unknown client type")
 	}
 	page.Data = client
 	return &page, nil

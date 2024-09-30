@@ -1,6 +1,8 @@
 package DashboardClientSystemgeServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardClient"
@@ -15,7 +17,7 @@ import (
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
-func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeServer.SystemgeServer, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
 	if systemgeServer == nil {
 		panic("customService is nil")
 	}
@@ -79,22 +81,22 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				messageWithRecipients, err := DashboardHelpers.UnmarshalMultiMessage([]byte(message.GetPayload()))
 				if err != nil {
-					return "", Event.New("Failed to deserialize message", err)
+					return "", err
 				}
 				responses, err := systemgeServer.SyncRequestBlocking(messageWithRecipients.Message.GetTopic(), messageWithRecipients.Message.GetPayload(), messageWithRecipients.Recipients...)
 				if err != nil {
-					return "", Event.New("Failed to complete sync request", err)
+					return "", err
 				}
 				return string(Helpers.JsonMarshal(responses)), nil
 			},
 			DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				messageWithRecipients, err := DashboardHelpers.UnmarshalMultiMessage([]byte(message.GetPayload()))
 				if err != nil {
-					return "", Event.New("Failed to deserialize message", err)
+					return "", err
 				}
 				err = systemgeServer.AsyncMessage(messageWithRecipients.Message.GetTopic(), messageWithRecipients.Message.GetPayload(), messageWithRecipients.Recipients...)
 				if err != nil {
-					return "", Event.New("Failed to handle async message", err)
+					return "", err
 				}
 				return "", nil
 			},
@@ -102,7 +104,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			DashboardHelpers.TOPIC_CLOSE_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 				if systemgeConnection == nil {
-					return "", Event.New("Connection not found", nil)
+					return "", errors.New("Connection not found")
 				}
 				err := systemgeConnection.Close()
 				if err != nil {
@@ -113,9 +115,9 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 				if systemgeConnection == nil {
-					return "", Event.New("Connection not found", nil)
+					return "", errors.New("Connection not found")
 				}
-				err := systemgeConnection.StartMessageHandlingLoop_Sequentially(messageHandler)
+				err := systemgeConnection.StartMessageHandlingLoop(messageHandler, true)
 				if err != nil {
 					return "", err
 				}
@@ -124,9 +126,9 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 				if systemgeConnection == nil {
-					return "", Event.New("Connection not found", nil)
+					return "", errors.New("Connection not found")
 				}
-				err := systemgeConnection.StartMessageHandlingLoop_Concurrently(messageHandler)
+				err := systemgeConnection.StartMessageHandlingLoop(messageHandler, false)
 				if err != nil {
 					return "", err
 				}
@@ -135,7 +137,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 				if systemgeConnection == nil {
-					return "", Event.New("Connection not found", nil)
+					return "", errors.New("Connection not found")
 				}
 				err := systemgeConnection.StopMessageHandlingLoop()
 				if err != nil {
@@ -146,11 +148,11 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())
 				if systemgeConnection == nil {
-					return "", Event.New("Connection not found", nil)
+					return "", errors.New("Connection not found")
 				}
-				message, err := systemgeConnection.GetNextMessage()
+				message, err := systemgeConnection.RetrieveNextMessage()
 				if err != nil {
-					return "", Event.New("Failed to get next message", err)
+					return "", err
 				}
 				handleNextMessageResult := DashboardHelpers.HandleNextMessageResult{
 					Message: message,
@@ -197,5 +199,6 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 			}
 			return string(pageMarshalled), nil
 		},
+		eventHandler,
 	)
 }

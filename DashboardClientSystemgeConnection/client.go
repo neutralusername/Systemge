@@ -14,7 +14,7 @@ import (
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
-func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers) *DashboardClient.Client {
+func New(name string, config *Config.DashboardClient, systemgeConnection SystemgeConnection.SystemgeConnection, messageHandler SystemgeConnection.MessageHandler, getMetricsFunc func() map[string]*Metrics.Metrics, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
 	if systemgeConnection == nil {
 		panic("customService is nil")
 	}
@@ -63,30 +63,30 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 				return Helpers.IntToString(Status.Stopped), nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				err := systemgeConnection.StartMessageHandlingLoop_Sequentially(messageHandler)
+				err := systemgeConnection.StartMessageHandlingLoop(messageHandler, true)
 				if err != nil {
-					return "", Event.New("Failed to start processing loop", err)
+					return "", err
 				}
 				return "", nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_CONCURRENTLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				err := systemgeConnection.StartMessageHandlingLoop_Concurrently(messageHandler)
+				err := systemgeConnection.StartMessageHandlingLoop(messageHandler, false)
 				if err != nil {
-					return "", Event.New("Failed to start processing loop", err)
+					return "", err
 				}
 				return "", nil
 			},
 			DashboardHelpers.TOPIC_STOP_MESSAGE_HANDLING_LOOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeConnection.StopMessageHandlingLoop()
 				if err != nil {
-					return "", Event.New("Failed to stop processing loop", err)
+					return "", err
 				}
 				return "", nil
 			},
 			DashboardHelpers.TOPIC_HANDLE_NEXT_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				message, err := systemgeConnection.GetNextMessage()
+				message, err := systemgeConnection.RetrieveNextMessage()
 				if err != nil {
-					return "", Event.New("Failed to get next message", err)
+					return "", err
 				}
 				handleNextMessageResult := DashboardHelpers.HandleNextMessageResult{
 					Message: message,
@@ -120,22 +120,22 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			DashboardHelpers.TOPIC_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 				if err != nil {
-					return "", Event.New("Failed to deserialize message", err)
+					return "", err
 				}
 				response, err := systemgeConnection.SyncRequestBlocking(message.GetTopic(), message.GetPayload())
 				if err != nil {
-					return "", Event.New("Failed to complete sync request", err)
+					return "", err
 				}
 				return string(response.Serialize()), nil
 			},
 			DashboardHelpers.TOPIC_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				message, err := Message.Deserialize([]byte(message.GetPayload()), connection.GetName())
 				if err != nil {
-					return "", Event.New("Failed to deserialize message", err)
+					return "", err
 				}
 				err = systemgeConnection.AsyncMessage(message.GetTopic(), message.GetPayload())
 				if err != nil {
-					return "", Event.New("Failed to handle async message", err)
+					return "", err
 				}
 				return "", nil
 			},
@@ -157,5 +157,6 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 			}
 			return string(pageMarshalled), nil
 		},
+		eventHandler,
 	)
 }

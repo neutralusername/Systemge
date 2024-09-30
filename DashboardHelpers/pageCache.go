@@ -1,7 +1,8 @@
 package DashboardHelpers
 
 import (
-	"github.com/neutralusername/Systemge/Event"
+	"errors"
+
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
 )
@@ -22,7 +23,7 @@ func (page *Page) GetCachedCommands() map[string]bool {
 }
 func (page *Page) SetCachedCommands(commands map[string]bool) error {
 	if commands == nil {
-		return Event.New("Commands is nil", nil)
+		return errors.New("commands is nil")
 	}
 	switch page.Type {
 	case CLIENT_TYPE_COMMAND:
@@ -34,7 +35,7 @@ func (page *Page) SetCachedCommands(commands map[string]bool) error {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		page.Data.(*SystemgeServerClient).Commands = commands
 	default:
-		return Event.New("Unknown client type", nil)
+		return errors.New("unknown client type")
 	}
 	return nil
 }
@@ -60,7 +61,7 @@ func (page *Page) SetCachedStatus(status int) error {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		page.Data.(*SystemgeServerClient).Status = status
 	default:
-		return Event.New("Unknown client type", nil)
+		return errors.New("unknown client type")
 	}
 	return nil
 }
@@ -75,13 +76,13 @@ func (page *Page) GetCachedSystemgeConnectionChildren() map[string]*SystemgeConn
 }
 func (page *Page) SetCachedSystemgeConnectionChildren(systemgeConnections map[string]*SystemgeConnectionChild) error {
 	if systemgeConnections == nil {
-		return Event.New("SystemgeConnections is nil", nil)
+		return errors.New("systemgeConnections is nil")
 	}
 	switch page.Type {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		page.Data.(*SystemgeServerClient).SystemgeConnectionChildren = systemgeConnections
 	default:
-		return Event.New("Unknown client type", nil)
+		return errors.New("unknown client type")
 	}
 	return nil
 }
@@ -99,7 +100,7 @@ func (page *Page) SetCachedIsProcessingLoopRunning(isProcessingLoopRunning bool)
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
 		page.Data.(*SystemgeConnectionClient).IsMessageHandlingLoopStarted = isProcessingLoopRunning
 	default:
-		return Event.New("Unknown client type", nil)
+		return errors.New("unknown client type")
 	}
 	return nil
 }
@@ -117,7 +118,7 @@ func (page *Page) SetCachedUnprocessedMessageCount(unprocessedMessageCount uint3
 	case CLIENT_TYPE_SYSTEMGECONNECTION:
 		page.Data.(*SystemgeConnectionClient).UnhandledMessageCount = unprocessedMessageCount
 	default:
-		return Event.New("Unknown client type", nil)
+		return errors.New("unknown client type")
 	}
 	return nil
 }
@@ -138,7 +139,7 @@ func (page *Page) GetCachedMetrics() DashboardMetrics {
 }
 func (page *Page) SetCachedMetrics(metrics DashboardMetrics) error {
 	if metrics == nil {
-		return Event.New("Metrics is nil", nil)
+		return errors.New("metrics is nil")
 	}
 	switch page.Type {
 	case CLIENT_TYPE_COMMAND:
@@ -150,7 +151,7 @@ func (page *Page) SetCachedMetrics(metrics DashboardMetrics) error {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		page.Data.(*SystemgeServerClient).Metrics = metrics
 	default:
-		return Event.New("Unknown client type", nil)
+		return errors.New("unknown client type")
 	}
 	return nil
 }
