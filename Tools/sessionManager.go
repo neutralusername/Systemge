@@ -136,6 +136,12 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	return session, nil
 }
 
+func (manager *SessionManager) IsAcceptingSessions() bool {
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
+	return manager.acceptSessions
+}
+
 func (manager *SessionManager) AcceptSessions() error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
