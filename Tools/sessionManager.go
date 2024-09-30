@@ -72,7 +72,6 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 			id:       identityString,
 			sessions: make(map[string]*Session),
 		}
-		manager.identities[identity.GetId()] = identity
 	}
 	sessionId := GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	for {
@@ -85,44 +84,48 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		id:            sessionId,
 		identity:      identity,
 		keyValuePairs: make(map[string]any),
-		isAccepted:    false,
 	}
-	identity.sessions[session.GetId()] = session
-	manager.sessions[session.GetId()] = session
+	identity.sessions[session.GetId()] = nil
+	manager.sessions[session.GetId()] = nil
 	manager.mutex.Unlock()
 
 	if err := manager.onCreate(session); err != nil {
-		manager.cleanupSession(session)
+		manager.mutex.Lock()
+		delete(identity.sessions, session.id)
+		delete(manager.sessions, session.id)
+		manager.mutex.Unlock()
 		return nil, err
+	} else {
+		manager.mutex.Lock()
+		manager.identities[identity.GetId()] = identity
+		identity.sessions[session.GetId()] = session
+		manager.sessions[session.GetId()] = session
+		manager.mutex.Unlock()
 	}
 
 	session.timeout = NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
-			manager.cleanupSession(session)
+			manager.mutex.Lock()
+			identity := session.identity
+			delete(identity.sessions, session.id)
+			delete(manager.sessions, session.id)
+			if len(identity.sessions) == 0 {
+				delete(manager.identities, identity.GetId())
+			}
+			manager.mutex.Unlock()
 			manager.onExpire(session)
 		},
 		false,
 	)
-	session.isAccepted = true
 
 	return session, nil
-}
-func (manager *SessionManager) cleanupSession(session *Session) {
-	manager.mutex.Lock()
-	defer manager.mutex.Unlock()
-	identity := session.identity
-	delete(identity.sessions, session.id)
-	delete(manager.sessions, session.id)
-	if len(identity.sessions) == 0 {
-		delete(manager.identities, identity.GetId())
-	}
 }
 
 func (manager *SessionManager) GetSession(sessionId string) *Session {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
-	if session, ok := manager.sessions[sessionId]; ok {
+	if session, ok := manager.sessions[sessionId]; ok && session != nil {
 		return session
 	}
 	return nil
@@ -146,7 +149,9 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	if identity, ok := manager.identities[identityString]; ok {
 		sessions := []*Session{}
 		for _, session := range identity.sessions {
-			sessions = append(sessions, session)
+			if session != nil {
+				sessions = append(sessions, session)
+			}
 		}
 		return sessions
 	}
@@ -157,8 +162,10 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
-	_, ok := manager.identities[identityString]
-	return ok
+	if _, ok := manager.identities[identityString]; ok {
+		return true
+	}
+	return false
 }
 
 type Identity struct {
@@ -175,7 +182,6 @@ type Session struct {
 	identity      *Identity
 	mutex         sync.RWMutex
 	keyValuePairs map[string]any
-	isAccepted    bool
 
 	timeout *Timeout
 }
@@ -213,11 +219,6 @@ func (session *Session) GetId() string {
 
 func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
-}
-
-// false until the onCreate is finished and the timeout is set. stays false if rejected
-func (session *Session) IsAccepted() bool {
-	return session.isAccepted
 }
 
 // is nil until the onCreate is finished
