@@ -13,7 +13,7 @@ const refreshTimeout = 1
 const triggerTimeout = 0
 
 type Timeout struct {
-	duration           uint64
+	durationMs         uint64
 	onTrigger          func()
 	interactionChannel chan uint64
 	triggered          bool
@@ -23,9 +23,9 @@ type Timeout struct {
 }
 
 // duration 0 == must be triggered manually
-func NewTimeout(duration uint64, onTrigger func(), mayBeCancelled bool) *Timeout {
+func NewTimeout(durationMs uint64, onTrigger func(), mayBeCancelled bool) *Timeout {
 	timeout := &Timeout{
-		duration:           duration,
+		durationMs:         durationMs,
 		onTrigger:          onTrigger,
 		triggered:          false,
 		interactionChannel: make(chan uint64),
@@ -39,8 +39,8 @@ func NewTimeout(duration uint64, onTrigger func(), mayBeCancelled bool) *Timeout
 func (timeout *Timeout) handleTrigger() {
 	for {
 		var timeoutChannel <-chan time.Time
-		if timeout.duration > 0 {
-			timeoutChannel = time.After(time.Duration(timeout.duration))
+		if timeout.durationMs > 0 {
+			timeoutChannel = time.After(time.Duration(timeout.durationMs) * time.Millisecond)
 		}
 		select {
 		case val := <-timeout.interactionChannel:
@@ -71,11 +71,11 @@ func (timeout *Timeout) handleTrigger() {
 }
 
 func (timeout *Timeout) GetDuration() uint64 {
-	return timeout.duration
+	return timeout.durationMs
 }
 
 func (timeout *Timeout) SetDuration(duration uint64) {
-	timeout.duration = duration
+	timeout.durationMs = duration
 }
 
 func (timeout *Timeout) IsTriggered() bool {
