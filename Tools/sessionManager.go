@@ -111,7 +111,6 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 
 	return session, nil
 }
-
 func (manager *SessionManager) cleanupSession(session *Session) {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
