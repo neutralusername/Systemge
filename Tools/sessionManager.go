@@ -21,7 +21,9 @@ type SessionManager struct {
 	onCreate         func(*Session) error
 	maxTotalSessions float64
 
-	acceptSessions bool
+	acceptSessions      bool
+	waitgroup           sync.WaitGroup
+	acceptSessionsMutex sync.Mutex
 
 	eventHandler Event.Handler
 
@@ -59,6 +61,10 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
+
+	manager.waitgroup.Add(1)
+	defer manager.waitgroup.Done()
+
 	if !manager.acceptSessions {
 		manager.mutex.Unlock()
 		return nil, errors.New("session manager not accepting sessions")
@@ -179,12 +185,35 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	return false
 }
 
-// default is true. returns the new value
-func (manager *SessionManager) ToggleAcceptSessions() bool {
+func (manager *SessionManager) AcceptSessions() error {
+	manager.acceptSessionsMutex.Lock()
+	defer manager.acceptSessionsMutex.Unlock()
+
 	manager.mutex.Lock()
-	defer manager.mutex.Unlock()
-	manager.acceptSessions = !manager.acceptSessions
-	return manager.acceptSessions
+	if manager.acceptSessions {
+		manager.mutex.Unlock()
+		return errors.New("session manager already accepting sessions")
+	}
+	manager.acceptSessions = true
+	manager.mutex.Unlock()
+
+	return nil
+}
+
+func (manager *SessionManager) RejectSessions() error {
+	manager.acceptSessionsMutex.Lock()
+	defer manager.acceptSessionsMutex.Unlock()
+
+	manager.mutex.Lock()
+	if !manager.acceptSessions {
+		manager.mutex.Unlock()
+		return errors.New("session manager already rejecting sessions")
+	}
+	manager.acceptSessions = false
+	manager.mutex.Unlock()
+
+	manager.waitgroup.Wait()
+	return nil
 }
 
 type Identity struct {
