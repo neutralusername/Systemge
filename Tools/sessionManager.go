@@ -21,6 +21,8 @@ type SessionManager struct {
 	onCreate         func(*Session) error
 	maxTotalSessions float64
 
+	acceptSessions bool
+
 	eventHandler Event.Handler
 
 	mutex sync.RWMutex
@@ -53,6 +55,10 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
+	if !manager.acceptSessions {
+		manager.mutex.Unlock()
+		return nil, errors.New("session manager not accepting sessions")
+	}
 	if len(manager.sessions) >= int(manager.maxTotalSessions) {
 		manager.mutex.Unlock()
 		return nil, errors.New("max total sessions exceeded")
@@ -167,6 +173,18 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 		return true
 	}
 	return false
+}
+
+func (manager *SessionManager) GetAcceptSessions() bool {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+	return manager.acceptSessions
+}
+
+func (manager *SessionManager) SetAcceptSessions(accept bool) {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+	manager.acceptSessions = accept
 }
 
 type Identity struct {
