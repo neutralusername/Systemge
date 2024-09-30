@@ -211,8 +211,6 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 		}
 		if len(sessions) > 0 {
 			return sessions
-		} else {
-			return nil
 		}
 	}
 	return nil
