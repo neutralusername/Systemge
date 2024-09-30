@@ -48,7 +48,7 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 
 		acceptSessions: true,
 
-		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)),
+		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.8,
 
 		eventHandler: eventHandler,
 	}
