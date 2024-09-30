@@ -188,7 +188,12 @@ func (manager *SessionManager) GetIdentities() []string {
 
 	identities := make([]string, 0, len(manager.identities))
 	for identity := range manager.identities {
-		identities = append(identities, identity)
+		for _, session := range manager.identities[identity].sessions {
+			if session != nil {
+				identities = append(identities, identity)
+				break
+			}
+		}
 	}
 	return identities
 }
