@@ -114,6 +114,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 				delete(manager.identities, identity.GetId())
 			}
 			manager.mutex.Unlock()
+
 			manager.onExpire(session)
 		},
 		false,
