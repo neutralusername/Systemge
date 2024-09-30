@@ -57,8 +57,6 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 	}
 }
 
-// issue: insufficient control/information over ongoing session acceptions
-
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
 
