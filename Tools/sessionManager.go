@@ -33,6 +33,9 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 	if config.SessionIdLength == 0 {
 		config.SessionIdLength = 32
 	}
+	if config.SessionIdAlphabet == "" {
+		config.SessionIdAlphabet = ALPHA_NUMERIC
+	}
 	return &SessionManager{
 		config: config,
 
@@ -42,7 +45,7 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 		onCreate: onCreate,
 		onExpire: onExpire,
 
-		maxTotalSessions: math.Pow(float64(len(ALPHA_NUMERIC)), float64(config.SessionIdLength)),
+		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)),
 
 		eventHandler: eventHandler,
 	}
@@ -71,12 +74,12 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		}
 		manager.identities[identity.GetId()] = identity
 	}
-	sessionId := GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
+	sessionId := GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	for {
 		if _, ok := manager.sessions[sessionId]; !ok {
 			break
 		}
-		sessionId = GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
+		sessionId = GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	}
 	session := &Session{
 		id:            sessionId,
