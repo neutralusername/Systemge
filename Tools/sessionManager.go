@@ -83,6 +83,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 			id:       identityString,
 			sessions: make(map[string]*Session),
 		}
+		manager.identities[identity.GetId()] = identity
 	}
 	sessionId := GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	for {
@@ -108,9 +109,11 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		return nil, err
 	} else {
 		manager.sessionMutex.Lock()
-		manager.identities[identity.GetId()] = identity
-		identity.sessions[session.GetId()] = session
-		manager.sessions[session.GetId()] = session
+		delete(identity.sessions, session.id)
+		delete(manager.sessions, session.id)
+		if len(identity.sessions) == 0 {
+			delete(manager.identities, identity.GetId())
+		}
 		manager.sessionMutex.Unlock()
 	}
 
@@ -118,7 +121,6 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		manager.config.SessionLifetimeMs,
 		func() {
 			manager.sessionMutex.Lock()
-			identity := session.identity
 			delete(identity.sessions, session.id)
 			delete(manager.sessions, session.id)
 			if len(identity.sessions) == 0 {
@@ -215,7 +217,11 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	defer manager.sessionMutex.RUnlock()
 
 	if _, ok := manager.identities[identityString]; ok {
-		return true
+		for _, session := range manager.identities[identityString].sessions {
+			if session != nil {
+				return true
+			}
+		}
 	}
 	return false
 }
