@@ -9,8 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 )
 
-// can be theoretically used "recursively" to represent groups as identities and members as sessions. think about how to generalize the naming
-
 type SessionManager struct {
 	config           *Config.SessionManager
 	maxTotalSessions float64
@@ -157,7 +155,7 @@ func (manager *SessionManager) AcceptSessions() error {
 	return nil
 }
 
-// rejects all new sessions. blocking = true waits for all current session acceptions to finish
+// rejects all new sessions. blocking = true waits for all current session acceptions to finish (after which no new sessions/identities will be created)
 func (manager *SessionManager) RejectSessions(blocking bool) error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
