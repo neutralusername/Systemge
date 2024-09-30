@@ -151,8 +151,8 @@ func (manager *SessionManager) AcceptSessions() error {
 	return nil
 }
 
-// rejects all new sessions and blocks until all ongoing session creations are finished
-func (manager *SessionManager) RejectSessions() error {
+// rejects all new sessions. blocking = true waits for all current session acceptions to finish
+func (manager *SessionManager) RejectSessions(blocking bool) error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
 
@@ -164,7 +164,9 @@ func (manager *SessionManager) RejectSessions() error {
 	manager.acceptSessions = false
 	manager.sessionMutex.Unlock()
 
-	manager.waitgroup.Wait()
+	if blocking {
+		manager.waitgroup.Wait()
+	}
 	return nil
 }
 
