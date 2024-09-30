@@ -150,9 +150,11 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	defer manager.mutex.RUnlock()
 
 	if identity, ok := manager.identities[identityString]; ok {
-		sessions := make([]*Session, 0, len(identity.sessions))
+		sessions := []*Session{}
 		for _, session := range identity.sessions {
-			sessions = append(sessions, session)
+			if session != nil {
+				sessions = append(sessions, session)
+			}
 		}
 		return sessions
 	}
