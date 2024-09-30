@@ -85,19 +85,15 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		id:            sessionId,
 		identity:      identity,
 		keyValuePairs: make(map[string]any),
+		isAccepted:    false,
 	}
-	identity.sessions[session.GetId()] = nil
-	manager.sessions[session.GetId()] = nil
+	identity.sessions[session.GetId()] = session
+	manager.sessions[session.GetId()] = session
 	manager.mutex.Unlock()
 
 	if err := manager.onCreate(session); err != nil {
 		manager.cleanupSession(session)
 		return nil, err
-	} else {
-		manager.mutex.Lock()
-		identity.sessions[session.GetId()] = session
-		manager.sessions[session.GetId()] = session
-		manager.mutex.Unlock()
 	}
 
 	session.timeout = NewTimeout(
@@ -108,6 +104,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		},
 		false,
 	)
+	session.isAccepted = true
 
 	return session, nil
 }
@@ -125,7 +122,7 @@ func (manager *SessionManager) cleanupSession(session *Session) {
 func (manager *SessionManager) GetSession(sessionId string) *Session {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
-	if session, ok := manager.sessions[sessionId]; ok && session != nil {
+	if session, ok := manager.sessions[sessionId]; ok {
 		return session
 	}
 	return nil
@@ -149,9 +146,7 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	if identity, ok := manager.identities[identityString]; ok {
 		sessions := []*Session{}
 		for _, session := range identity.sessions {
-			if session != nil {
-				sessions = append(sessions, session)
-			}
+			sessions = append(sessions, session)
 		}
 		return sessions
 	}
@@ -182,6 +177,7 @@ type Session struct {
 	identity      *Identity
 	mutex         sync.RWMutex
 	keyValuePairs map[string]any
+	isAccepted    bool
 
 	timeout *Timeout
 }
@@ -219,6 +215,10 @@ func (session *Session) GetId() string {
 
 func (session *Session) GetIdentity() string {
 	return session.identity.GetId()
+}
+
+func (session *Session) IsAccepted() bool {
+	return session.isAccepted
 }
 
 // is nil until the onCreate is finished
