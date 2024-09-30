@@ -178,7 +178,7 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 }
 
 // default is true. returns the new value
-func (manager *SessionManager) ToggleAcceptSeccions() bool {
+func (manager *SessionManager) ToggleAcceptSessions() bool {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 	manager.acceptSessions = !manager.acceptSessions
