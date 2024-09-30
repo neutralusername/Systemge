@@ -209,7 +209,11 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 				sessions = append(sessions, session)
 			}
 		}
-		return sessions
+		if len(sessions) > 0 {
+			return sessions
+		} else {
+			return nil
+		}
 	}
 	return nil
 }
