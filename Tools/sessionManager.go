@@ -200,6 +200,7 @@ func (manager *SessionManager) AcceptSessions() error {
 	return nil
 }
 
+// rejects all new sessions and blocks until all ongoing session creations are finished
 func (manager *SessionManager) RejectSessions() error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
