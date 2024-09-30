@@ -108,25 +108,13 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		manager.sessionMutex.Unlock()
 		return nil, err
 	} else {
-		manager.sessionMutex.Lock()
-		delete(identity.sessions, session.id)
-		delete(manager.sessions, session.id)
-		if len(identity.sessions) == 0 {
-			delete(manager.identities, identity.GetId())
-		}
-		manager.sessionMutex.Unlock()
+		manager.cleanupSession(session)
 	}
 
 	session.timeout = NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
-			manager.sessionMutex.Lock()
-			delete(identity.sessions, session.id)
-			delete(manager.sessions, session.id)
-			if len(identity.sessions) == 0 {
-				delete(manager.identities, identity.GetId())
-			}
-			manager.sessionMutex.Unlock()
+			manager.cleanupSession(session)
 
 			manager.onExpire(session)
 		},
@@ -134,6 +122,15 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	)
 
 	return session, nil
+}
+func (manager *SessionManager) cleanupSession(session *Session) {
+	manager.sessionMutex.Lock()
+	defer manager.sessionMutex.Unlock()
+	delete(manager.sessions, session.GetId())
+	delete(manager.identities[session.GetIdentity()].sessions, session.GetId())
+	if len(manager.identities[session.GetIdentity()].sessions) == 0 {
+		delete(manager.identities, session.GetIdentity())
+	}
 }
 
 func (manager *SessionManager) IsAcceptingSessions() bool {
