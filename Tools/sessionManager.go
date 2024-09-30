@@ -64,7 +64,10 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		manager.identities[identity.GetId()] = identity
 	}
 	sessionId := GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
-	for _, ok := manager.sessions[sessionId]; ok; {
+	for {
+		if _, ok := manager.sessions[sessionId]; !ok {
+			break
+		}
 		sessionId = GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
 	}
 	session := &Session{
