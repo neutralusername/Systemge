@@ -157,10 +157,8 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
 
-	if _, ok := manager.identities[identityString]; ok {
-		return true
-	}
-	return false
+	_, ok := manager.identities[identityString]
+	return ok
 }
 
 type Identity struct {
