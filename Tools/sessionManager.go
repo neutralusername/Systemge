@@ -71,8 +71,9 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		sessionId = GenerateRandomString(manager.config.SessionIdLength, ALPHA_NUMERIC)
 	}
 	session := &Session{
-		id:       sessionId,
-		identity: identity,
+		id:            sessionId,
+		identity:      identity,
+		keyValuePairs: make(map[string]any),
 	}
 	identity.sessions[session.GetId()] = session
 	manager.sessions[session.GetId()] = session
