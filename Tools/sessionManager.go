@@ -2,10 +2,12 @@ package Tools
 
 import (
 	"errors"
+	"math"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 // can be theoretically used "recursively" to represent groups as identities and members as sessions. think about how to generalize the naming
@@ -16,8 +18,9 @@ type SessionManager struct {
 	identities map[string]*Identity
 	sessions   map[string]*Session
 
-	onExpire func(*Session)
-	onCreate func(*Session) error
+	onExpire         func(*Session)
+	onCreate         func(*Session) error
+	maxTotalSessions float64
 
 	eventHandler Event.Handler
 
@@ -40,12 +43,18 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 		onCreate: onCreate,
 		onExpire: onExpire,
 
+		maxTotalSessions: math.Pow(float64(len(Tools.ALPHA_NUMERIC)), float64(config.SessionIdLength)),
+
 		eventHandler: eventHandler,
 	}
 }
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.mutex.Lock()
+	if len(manager.sessions) >= int(manager.maxTotalSessions) {
+		manager.mutex.Unlock()
+		return nil, errors.New("max total sessions exceeded")
+	}
 	identity, ok := manager.identities[identityString]
 	if ok {
 		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
