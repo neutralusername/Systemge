@@ -2,6 +2,7 @@ package BrokerServer
 
 import (
 	"encoding/json"
+	"errors"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Event"
@@ -19,7 +20,7 @@ func (server *Server) subscribeAsync(connection SystemgeConnection.SystemgeConne
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.asyncTopicSubscriptions[topic] == nil {
-			return "", Event.New("unknown async topic \""+topic+"\"", nil)
+			return "", errors.New("unknown async topic \"" + topic + "\"")
 		}
 	}
 	for _, topic := range topics {
@@ -39,7 +40,7 @@ func (server *Server) subscribeSync(connection SystemgeConnection.SystemgeConnec
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.syncTopicSubscriptions[topic] == nil {
-			return "", Event.New("unknown sync topic \""+topic+"\"", nil)
+			return "", errors.New("unknown sync topic \"" + topic + "\"")
 		}
 	}
 	for _, topic := range topics {
@@ -60,7 +61,7 @@ func (server *Server) unsubscribeAsync(connection SystemgeConnection.SystemgeCon
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.asyncTopicSubscriptions[topic] == nil {
-			return "", Event.New("unknown async topic \""+topic+"\"", nil)
+			return "", errors.New("unknown async topic \"" + topic + "\"")
 		}
 	}
 	for _, topic := range topics {
@@ -81,7 +82,7 @@ func (server *Server) unsubscribeSync(connection SystemgeConnection.SystemgeConn
 	defer server.mutex.Unlock()
 	for _, topic := range topics {
 		if server.syncTopicSubscriptions[topic] == nil {
-			return "", Event.New("unknown sync topic \""+topic+"\"", nil)
+			return "", errors.New("unknown sync topic \"" + topic + "\"")
 		}
 	}
 	for _, topic := range topics {
@@ -141,7 +142,7 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 		}
 	}
 	if len(responses) == 0 {
-		return "", Event.New("no responses", nil)
+		return "", errors.New("no responses")
 	}
 	return Message.SerializeMessages(responses), nil
 }
@@ -149,7 +150,7 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 func (server *Server) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
-	err := connection.StartMessageHandlingLoop_Sequentially(server.messageHandler)
+	err := connection.StartMessageHandlingLoop(server.messageHandler, true)
 	if err != nil {
 		return err
 	}

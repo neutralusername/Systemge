@@ -1,10 +1,12 @@
 package BrokerServer
 
 import (
+	"errors"
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
@@ -17,10 +19,7 @@ type Server struct {
 	config         *Config.MessageBrokerServer
 	systemgeServer *SystemgeServer.SystemgeServer
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+	eventHandler Event.Handler
 
 	messageHandler SystemgeConnection.MessageHandler
 
@@ -39,21 +38,21 @@ type Server struct {
 	syncRequestsPropagated atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
+func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
-		panic("config is nil")
+		return nil, errors.New("config is nil")
 	}
 	if config.SystemgeServerConfig == nil {
-		panic("config.SystemgeServerConfig is nil")
+		return nil, errors.New("config.SystemgeServerConfig is nil")
 	}
 	if config.SystemgeServerConfig.TcpSystemgeListenerConfig == nil {
-		panic("config.SystemgeServerConfig.ServerConfig is nil")
+		return nil, errors.New("config.SystemgeServerConfig.ListenerConfig is nil")
 	}
 	if config.SystemgeServerConfig.TcpSystemgeListenerConfig.TcpServerConfig == nil {
-		panic("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
+		return nil, errors.New("config.SystemgeServerConfig.ServerConfig.ListenerConfig is nil")
 	}
 	if config.SystemgeServerConfig.TcpSystemgeConnectionConfig == nil {
-		panic("config.SystemgeServerConfig.ConnectionConfig is nil")
+		return nil, errors.New("config.SystemgeServerConfig.ConnectionConfig is nil")
 	}
 
 	server := &Server{
@@ -66,35 +65,32 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 		connectionAsyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
 		connectionsSyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
-	if config.InfoLoggerPath != "" {
-		server.infoLogger = Tools.NewLogger("[Info: \"MessageBrokerServer\"] ", config.InfoLoggerPath)
-	}
-	if config.WarningLoggerPath != "" {
-		server.warningLogger = Tools.NewLogger("[Warning: \"MessageBrokerServer\"] ", config.WarningLoggerPath)
-	}
-	if config.ErrorLoggerPath != "" {
-		server.errorLogger = Tools.NewLogger("[Error: \"MessageBrokerServer\"] ", config.ErrorLoggerPath)
-	}
-	if config.MailerConfig != nil {
-		server.mailer = Tools.NewMailer(config.MailerConfig)
-	}
 
-	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+	systemgeServer, err := SystemgeServer.New(name+"_systemgeServer",
 		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
-		server.onSystemgeConnection, server.onSystemgeDisconnection,
+		eventHandler, // wrap the onConnect/onDisconnect with the eventHandler
 	)
+	if err != nil {
+		return nil, err
+	}
+	server.systemgeServer = systemgeServer
 
-	server.messageHandler = SystemgeConnection.NewSequentialMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
-		Message.TOPIC_SUBSCRIBE_ASYNC:   server.subscribeAsync,
-		Message.TOPIC_UNSUBSCRIBE_ASYNC: server.unsubscribeAsync,
-		Message.TOPIC_SUBSCRIBE_SYNC:    server.subscribeSync,
-		Message.TOPIC_UNSUBSCRIBE_SYNC:  server.unsubscribeSync,
-	}, nil, nil, 100000)
+	server.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
+		nil,
+		SystemgeConnection.SyncMessageHandlers{
+			Message.TOPIC_SUBSCRIBE_ASYNC:   server.subscribeAsync,
+			Message.TOPIC_UNSUBSCRIBE_ASYNC: server.unsubscribeAsync,
+			Message.TOPIC_SUBSCRIBE_SYNC:    server.subscribeSync,
+			Message.TOPIC_UNSUBSCRIBE_SYNC:  server.unsubscribeSync,
+		},
+		nil, nil,
+		server.config.MessageHandlerQueueSize,
+	)
 	server.AddAsyncTopics(server.config.AsyncTopics)
 	server.AddSyncTopics(server.config.SyncTopics)
 
-	return server
+	return server, nil
 }
 
 func (server *Server) Start() error {

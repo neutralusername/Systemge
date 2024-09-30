@@ -21,7 +21,7 @@ type TopicExclusiveMessageHandler struct {
 	unknownAsyncTopicHandler *asyncMessageHandler
 	unknownSyncTopicHandler  *syncMessageHandler
 
-	queueSize int
+	queueSize uint32
 
 	// metrics
 	asyncMessagesHandled  atomic.Uint64
@@ -40,7 +40,7 @@ type syncMessageHandler struct {
 }
 
 // one message handler of each topic may be active at the same time. messages are handled in the order they were added to the queue.
-func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize int) *TopicExclusiveMessageHandler {
+func NewTopicExclusiveMessageHandler(asyncMessageHandlers AsyncMessageHandlers, syncMessageHandlers SyncMessageHandlers, unknownTopicAsyncHandler AsyncMessageHandler, unknownTopicSyncHandler SyncMessageHandler, queueSize uint32) *TopicExclusiveMessageHandler {
 	if asyncMessageHandlers == nil {
 		asyncMessageHandlers = make(AsyncMessageHandlers)
 	}

@@ -5,6 +5,8 @@ import "encoding/json"
 type MessageBrokerServer struct {
 	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
 
+	MessageHandlerQueueSize uint32 `json:"messageHandlerQueueSize"` // default: 0 == no limit
+
 	AsyncTopics []string `json:"asyncTopics"`
 	SyncTopics  []string `json:"syncTopics"`
 
