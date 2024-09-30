@@ -91,13 +91,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	manager.mutex.Unlock()
 
 	if err := manager.onCreate(session); err != nil {
-		manager.mutex.Lock()
-		delete(identity.sessions, session.id)
-		delete(manager.sessions, session.id)
-		if len(identity.sessions) == 0 {
-			delete(manager.identities, identity.GetId())
-		}
-		manager.mutex.Unlock()
+		manager.cleanupSession(session)
 		return nil, err
 	} else {
 		manager.mutex.Lock()
@@ -109,20 +103,24 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	session.timeout = NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
-			manager.mutex.Lock()
-			delete(identity.sessions, session.id)
-			delete(manager.sessions, session.id)
-			if len(identity.sessions) == 0 {
-				delete(manager.identities, identity.GetId())
-			}
-			manager.mutex.Unlock()
-
+			manager.cleanupSession(session)
 			manager.onExpire(session)
 		},
 		false,
 	)
 
 	return session, nil
+}
+
+func (manager *SessionManager) cleanupSession(session *Session) {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+	identity := session.identity
+	delete(identity.sessions, session.id)
+	delete(manager.sessions, session.id)
+	if len(identity.sessions) == 0 {
+		delete(manager.identities, identity.GetId())
+	}
 }
 
 func (manager *SessionManager) GetSession(sessionId string) *Session {
