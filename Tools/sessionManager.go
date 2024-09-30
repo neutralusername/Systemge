@@ -102,13 +102,13 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	manager.sessionMutex.Unlock()
 
 	if err := manager.onCreate(session); err != nil {
-		manager.sessionMutex.Lock()
-		delete(identity.sessions, session.id)
-		delete(manager.sessions, session.id)
-		manager.sessionMutex.Unlock()
+		manager.cleanupSession(session)
 		return nil, err
 	} else {
-		manager.cleanupSession(session)
+		manager.sessionMutex.Lock()
+		manager.sessions[session.GetId()] = session
+		identity.sessions[session.GetId()] = session
+		manager.sessionMutex.Unlock()
 	}
 
 	session.timeout = NewTimeout(
