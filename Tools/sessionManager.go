@@ -86,8 +86,8 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		identity:      identity,
 		keyValuePairs: make(map[string]any),
 	}
-	identity.sessions[session.GetId()] = session
-	manager.sessions[session.GetId()] = session
+	identity.sessions[session.GetId()] = nil
+	manager.sessions[session.GetId()] = nil
 	manager.mutex.Unlock()
 
 	if err := manager.onCreate(session); err != nil {
@@ -99,6 +99,11 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		}
 		manager.mutex.Unlock()
 		return nil, err
+	} else {
+		manager.mutex.Lock()
+		identity.sessions[session.GetId()] = session
+		manager.sessions[session.GetId()] = session
+		manager.mutex.Unlock()
 	}
 
 	session.timeout = NewTimeout(
@@ -123,7 +128,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 func (manager *SessionManager) GetSession(sessionId string) *Session {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
-	if session, ok := manager.sessions[sessionId]; ok {
+	if session, ok := manager.sessions[sessionId]; ok && session != nil {
 		return session
 	}
 	return nil
