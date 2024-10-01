@@ -12,8 +12,8 @@ type TopicManager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
 
-	isCLosed   bool
-	closeMutex sync.Mutex
+	isCLosed bool
+	mutex    sync.Mutex
 
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
@@ -108,8 +108,8 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 }
 
 func (topicManager *TopicManager) Close() error {
-	topicManager.closeMutex.Lock()
-	defer topicManager.closeMutex.Unlock()
+	topicManager.mutex.Lock()
+	defer topicManager.mutex.Unlock()
 
 	if topicManager.isCLosed {
 		return errors.New("topic manager already closed")
@@ -123,4 +123,10 @@ func (topicManager *TopicManager) Close() error {
 	close(topicManager.unknownTopicQueue)
 
 	return nil
+}
+
+func (topicManager *TopicManager) IsClosed() bool {
+	topicManager.mutex.Lock()
+	defer topicManager.mutex.Unlock()
+	return topicManager.isCLosed
 }
