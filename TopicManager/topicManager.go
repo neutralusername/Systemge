@@ -66,11 +66,14 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 	response := make(chan any)
 	err := make(chan error)
 
-	topicManager.mutex.RLock()
-	queue, exists := topicManager.topicQueues[topic]
-	topicManager.mutex.RUnlock()
+	topicManager.queue <- &queueStruct{
+		topic:                topic,
+		args:                 args,
+		responseAnyChannel:   response,
+		responseErrorChannel: err,
+	}
 
-	if !exists {
+	/* if !exists {
 		if topicManager.unknownTopicQueue != nil {
 			topicManager.unknownTopicQueue <- &queueStruct{
 				topic:                topic,
@@ -93,7 +96,7 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 		default:
 			return nil, errors.New("message queue is full")
 		}
-	}
+	} */
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
