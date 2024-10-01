@@ -31,9 +31,6 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Context{
 			Event.Circumstance: Event.MessageHandlingLoopStart,
 			Event.Behaviour:    behaviour,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 			Event.ChannelType:  Event.MessageChannel,
 		},
 	)); !event.IsInfo() {
@@ -47,9 +44,6 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 			Event.Context{
 				Event.Circumstance: Event.MessageHandlingLoopStart,
 				Event.Behaviour:    behaviour,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 				Event.ChannelType:  Event.MessageChannel,
 			},
 		))
@@ -69,9 +63,6 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 		Event.Context{
 			Event.Circumstance: Event.MessageHandlingLoopStart,
 			Event.Behaviour:    behaviour,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 			Event.ChannelType:  Event.MessageChannel,
 		},
 	)); !event.IsInfo() {
@@ -94,9 +85,6 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 			Event.Circumstance: Event.MessageHandlingLoop,
 			Event.Behaviour:    behaviour,
 			Event.ChannelType:  Event.MessageChannel,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 		},
 	)); !event.IsInfo() {
 		connection.StopMessageHandlingLoop()
@@ -117,9 +105,6 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 						Event.Circumstance: Event.MessageHandlingLoop,
 						Event.ChannelType:  Event.MessageChannel,
 						Event.Behaviour:    behaviour,
-						Event.IdentityType: Event.TcpSystemgeConnection,
-						Event.ClientName:   connection.GetName(),
-						Event.Address:      connection.GetAddress(),
 					},
 				))
 				connection.StopMessageHandlingLoop()
@@ -137,9 +122,6 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 					Event.Circumstance: Event.MessageHandlingLoop,
 					Event.Behaviour:    behaviour,
 					Event.ChannelType:  Event.MessageChannel,
-					Event.IdentityType: Event.TcpSystemgeConnection,
-					Event.ClientName:   connection.GetName(),
-					Event.Address:      connection.GetAddress(),
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
 					Event.SyncToken:    message.GetSyncToken(),
@@ -172,9 +154,6 @@ func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.MessageHandlingLoopStop,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 			Event.ChannelType:  Event.MessageChannel,
 		},
 	)); !event.IsInfo() {
@@ -187,9 +166,6 @@ func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 			"message handling loop already stopped",
 			Event.Context{
 				Event.Circumstance: Event.MessageHandlingLoopStop,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 				Event.ChannelType:  Event.MessageChannel,
 			},
 		))
@@ -204,9 +180,6 @@ func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 		"message handling loop stopped",
 		Event.Context{
 			Event.Circumstance: Event.MessageHandlingLoopStop,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 			Event.ChannelType:  Event.MessageChannel,
 		},
 	))
@@ -233,9 +206,6 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 			"message handling loop is registered",
 			Event.Context{
 				Event.Circumstance: Event.RetrieveNextMessage,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 				Event.ChannelType:  Event.MessageChannel,
 			},
 		))
@@ -251,9 +221,6 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 		Event.Context{
 			Event.Circumstance: Event.RetrieveNextMessage,
 			Event.ChannelType:  Event.MessageChannel,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
@@ -272,9 +239,6 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 				Event.Context{
 					Event.Circumstance: Event.RetrieveNextMessage,
 					Event.ChannelType:  Event.MessageChannel,
-					Event.IdentityType: Event.TcpSystemgeConnection,
-					Event.ClientName:   connection.GetName(),
-					Event.Address:      connection.GetAddress(),
 				},
 			))
 			return nil, errors.New("received nil value from message channel")
@@ -288,9 +252,6 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 			Event.Context{
 				Event.Circumstance: Event.RetrieveNextMessage,
 				Event.ChannelType:  Event.MessageChannel,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 				Event.Topic:        message.GetTopic(),
 				Event.Payload:      message.GetPayload(),
 				Event.SyncToken:    message.GetSyncToken(),
@@ -307,9 +268,6 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage() (*Message.Message
 			Event.Context{
 				Event.Circumstance: Event.RetrieveNextMessage,
 				Event.ChannelType:  Event.MessageChannel,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 			},
 		))
 		return nil, errors.New("timeout while waiting for message")
@@ -324,9 +282,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 			"messageHandler is nil",
 			Event.Context{
 				Event.Circumstance: Event.HandleMessage,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 			},
 		))
 		return errors.New("no message handler provided")
@@ -337,9 +292,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 			"message is nil",
 			Event.Context{
 				Event.Circumstance: Event.HandleMessage,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetAddress(),
 			},
 		))
 		return errors.New("no message provided")
@@ -353,9 +305,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.HandleMessage,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
@@ -371,9 +320,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 				err.Error(),
 				Event.Context{
 					Event.Circumstance: Event.HandleMessage,
-					Event.IdentityType: Event.TcpSystemgeConnection,
-					Event.ClientName:   connection.GetName(),
-					Event.Address:      connection.GetAddress(),
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
 					Event.SyncToken:    message.GetSyncToken(),
@@ -388,9 +334,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 				Event.Context{
 					Event.Circumstance: Event.HandleMessage,
 					Event.ChannelType:  Event.MessageChannel,
-					Event.IdentityType: Event.TcpSystemgeConnection,
-					Event.ClientName:   connection.GetName(),
-					Event.Address:      connection.GetAddress(),
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
 					Event.SyncToken:    message.GetSyncToken(),
@@ -408,9 +351,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 		Event.Context{
 			Event.Circumstance: Event.HandleMessage,
 			Event.ChannelType:  Event.MessageChannel,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetAddress(),
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),

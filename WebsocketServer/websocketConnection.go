@@ -74,7 +74,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 		Event.Context{
 			Event.Circumstance: circumstance,
 			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketConnection.GetId(),
+			Event.Identity:     websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetAddress(),
 			Event.Bytes:        string(messageBytes),
 		},
@@ -92,7 +92,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 			Event.Context{
 				Event.Circumstance: circumstance,
 				Event.IdentityType: Event.WebsocketConnection,
-				Event.ClientId:     websocketConnection.GetId(),
+				Event.Identity:     websocketConnection.GetId(),
 				Event.Address:      websocketConnection.GetAddress(),
 				Event.Bytes:        string(messageBytes),
 			}),
@@ -108,7 +108,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 		Event.Context{
 			Event.Circumstance: circumstance,
 			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketConnection.GetId(),
+			Event.Identity:     websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetAddress(),
 			Event.Bytes:        string(messageBytes),
 		}),
@@ -124,7 +124,7 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 			Event.Context{
 				Event.Circumstance: Event.ReceiveRuntime,
 				Event.IdentityType: Event.WebsocketConnection,
-				Event.ClientId:     websocketConnection.GetId(),
+				Event.Identity:     websocketConnection.GetId(),
 				Event.Address:      websocketConnection.GetAddress(),
 			}),
 		)
@@ -145,7 +145,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		Event.Context{
 			Event.Circumstance: circumstance,
 			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketConnection.GetId(),
+			Event.Identity:     websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetAddress(),
 		}),
 	); !event.IsInfo() {
@@ -168,7 +168,7 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		Event.Context{
 			Event.Circumstance: circumstance,
 			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketConnection.GetId(),
+			Event.Identity:     websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetAddress(),
 			Event.Bytes:        string(messageBytes),
 		}),

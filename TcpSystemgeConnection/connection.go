@@ -182,18 +182,19 @@ func (connection *TcpSystemgeConnection) GetAddress() string {
 	return connection.netConn.RemoteAddr().String()
 }
 
-func (server *TcpSystemgeConnection) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler != nil {
-		server.eventHandler(event)
+func (connection *TcpSystemgeConnection) onEvent(event *Event.Event) *Event.Event {
+	event.GetContext().Merge(connection.GetServerContext())
+	if connection.eventHandler != nil {
+		connection.eventHandler(event)
 	}
 	return event
 }
-func (server *TcpSystemgeConnection) GetServerContext() Event.Context {
+func (connection *TcpSystemgeConnection) GetServerContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:   Event.TcpSystemgeListener,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.ServiceName:   connection.name,
+		Event.Address:       connection.GetAddress(),
+		Event.ServiceStatus: Status.ToString(connection.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),
 	}
 }
