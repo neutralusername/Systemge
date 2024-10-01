@@ -27,9 +27,8 @@ type WebsocketConnection struct {
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 }
 
-func (server *WebsocketServer) NewWebsocketConnection(id string, websocketConn *websocket.Conn) *WebsocketConnection {
+func (server *WebsocketServer) NewWebsocketConnection(websocketConn *websocket.Conn) *WebsocketConnection {
 	connection := &WebsocketConnection{
-		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
 	}

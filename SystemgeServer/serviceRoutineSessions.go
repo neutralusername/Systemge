@@ -66,7 +66,9 @@ func (server *SystemgeServer) handleNewSession() error {
 		}
 	}
 
-	session, err := server.sessionManager.CreateSession(connection.GetName())
+	session, err := server.sessionManager.CreateSession(connection.GetName(), map[string]any{
+		"connection": connection,
+	})
 	if err != nil {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.CreateSessionFailed,
@@ -81,7 +83,6 @@ func (server *SystemgeServer) handleNewSession() error {
 		connection.Close()
 		return nil
 	}
-	session.Set("connection", connection)
 
 	server.waitGroup.Add(1)
 	go server.handleSystemgeDisconnect(session, connection)
