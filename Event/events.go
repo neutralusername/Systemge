@@ -12,15 +12,13 @@ const ServiceStopFailed = "serviceStopFailed"   // when a service stop operation
 const ServiceAlreadyStarted = "serverAlreadyStarted" // when attempting an operation that requires the service to be stopped
 const ServiceAlreadyStopped = "serverAlreadyStopped" // when attempting an operation that requires the service to be started
 
-const HandlingConnection = "handlingConnection"         // before handling a client connection
-const HandledConnection = "handledConnection"           // after handling a client connection
-const HandleConnectionFailed = "handleConnectionFailed" // when a handle connection operation returns an error
+const TcpSystemgeListenerAcceptFailed = "tcpSystemgeListenerAcceptFailed" // when a tcp systemge listener accept operation returns an error
 
 const HandlingDisconnection = "handlingDisconnection" // before handling a client disconnection
 const HandledDisconnection = "handledDisconnection"   // after handling a client disconnection
 
-const ConnectionRoutineBegins = "connectionRoutineBegins"     // when a connection routine begins
-const ConnectionRoutineFinished = "connectionRoutineFinished" // when a connection routine finishes
+const SessionRoutineBegins = "sessionRoutineBegins" // when a session routine begins
+const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine finishes
 
 const ReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
 const ReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes

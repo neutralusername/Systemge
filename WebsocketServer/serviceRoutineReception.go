@@ -13,10 +13,10 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 			Event.ReceptionRoutineFinished,
 			"stopped websocketConnection reception routine",
 			Event.Context{
-				Event.Circumstance:  Event.ReceptionRoutine,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
+				Event.Circumstance: Event.ReceptionRoutine,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
 			},
 		))
 		websocketConnection.waitGroup.Done()
@@ -29,10 +29,10 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.ReceptionRoutine,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
+			Event.Circumstance: Event.ReceptionRoutine,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
 		},
 	)); !event.IsInfo() {
 		return
@@ -50,10 +50,10 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 			Event.ReadMessageFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.ReceptionRoutine,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
+				Event.Circumstance: Event.ReceptionRoutine,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
 			},
 		))
 		return err
@@ -70,11 +70,11 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.ReceptionRoutine,
-					Event.Behaviour:     Event.Sequential,
-					Event.IdentityType:  Event.WebsocketConnection,
-					Event.ClientId:      websocketConnection.GetId(),
-					Event.ClientAddress: websocketConnection.GetAddress(),
+					Event.Circumstance: Event.ReceptionRoutine,
+					Event.Behaviour:    Event.Sequential,
+					Event.IdentityType: Event.WebsocketConnection,
+					Event.ClientId:     websocketConnection.GetId(),
+					Event.Address:      websocketConnection.GetAddress(),
 				},
 			)); !event.IsInfo() {
 				websocketConnection.Close()
@@ -97,11 +97,11 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:  Event.ReceptionRoutine,
-						Event.Behaviour:     Event.Concurrent,
-						Event.IdentityType:  Event.WebsocketConnection,
-						Event.ClientId:      websocketConnection.GetId(),
-						Event.ClientAddress: websocketConnection.GetAddress(),
+						Event.Circumstance: Event.ReceptionRoutine,
+						Event.Behaviour:    Event.Concurrent,
+						Event.IdentityType: Event.WebsocketConnection,
+						Event.ClientId:     websocketConnection.GetId(),
+						Event.Address:      websocketConnection.GetAddress(),
 					},
 				)); !event.IsInfo() {
 					websocketConnection.Close()
@@ -124,13 +124,13 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.HandlerType:   Event.WebsocketConnection,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Bytes:         string(messageBytes),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.HandlerType:  Event.WebsocketConnection,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Bytes:        string(messageBytes),
 		},
 	))
 	if !event.IsInfo() {
@@ -151,7 +151,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.TokenBucketType: Event.Bytes,
 				Event.IdentityType:    Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
-				Event.ClientAddress:   websocketConnection.GetAddress(),
+				Event.Address:         websocketConnection.GetAddress(),
 				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
@@ -173,7 +173,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 				Event.TokenBucketType: Event.Messages,
 				Event.IdentityType:    Event.WebsocketConnection,
 				Event.ClientId:        websocketConnection.GetId(),
-				Event.ClientAddress:   websocketConnection.GetAddress(),
+				Event.Address:         websocketConnection.GetAddress(),
 				Event.Bytes:           string(messageBytes),
 			},
 		)); !event.IsInfo() {
@@ -187,13 +187,13 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.StructType:    Event.Message,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
-				Event.Bytes:         string(messageBytes),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.StructType:   Event.Message,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Bytes:        string(messageBytes),
 			},
 		))
 		return err
@@ -207,14 +207,14 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			},
 		)); !event.IsInfo() {
 			return event.GetError()
@@ -226,11 +226,11 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.HeartbeatReceived,
 			"received websocketConnection heartbeat",
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
 			},
 		))
 		return errors.New("received heartbeat")
@@ -245,15 +245,15 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.NoHandlerForTopic,
 			"no websocketConnection message handler for topic",
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.HandlerType:   Event.WebsocketConnection,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.HandlerType:  Event.WebsocketConnection,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			},
 		))
 		return errors.New("no handler for topic")
@@ -266,15 +266,15 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.HandlerType:   Event.WebsocketConnection,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Topic:         message.GetTopic(),
-			Event.Payload:       message.GetPayload(),
-			Event.SyncToken:     message.GetSyncToken(),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.HandlerType:  Event.WebsocketConnection,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -285,15 +285,15 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 			Event.HandlerFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.HandlerType:   Event.WebsocketConnection,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.HandlerType:  Event.WebsocketConnection,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			},
 		))
 		return err
@@ -303,15 +303,15 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		Event.HandledMessage,
 		"handled websocketConnection message",
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.HandlerType:   Event.WebsocketConnection,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Topic:         message.GetTopic(),
-			Event.Payload:       message.GetPayload(),
-			Event.SyncToken:     message.GetSyncToken(),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.HandlerType:  Event.WebsocketConnection,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	))
 
@@ -319,15 +319,15 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		Event.HandledReception,
 		"handled websocketConnection message",
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.HandlerType:   Event.WebsocketConnection,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Topic:         message.GetTopic(),
-			Event.Payload:       message.GetPayload(),
-			Event.SyncToken:     message.GetSyncToken(),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.HandlerType:  Event.WebsocketConnection,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	))
 	return nil

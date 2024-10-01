@@ -8,13 +8,13 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) connectionRoutine() {
+func (server *SystemgeServer) sessionRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
-			Event.ConnectionRoutineFinished,
-			"stopped systemgeServer connection routine",
+			Event.SessionRoutineEnds,
+			"stopped systemgeServer session routine",
 			Event.Context{
-				Event.Circumstance: Event.ConnectionRoutine,
+				Event.Circumstance: Event.SessionRoutine,
 				Event.IdentityType: Event.SystemgeConnection,
 			},
 		))
@@ -22,24 +22,24 @@ func (server *SystemgeServer) connectionRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ConnectionRoutineBegins,
-		"started systemgeServer connection routine",
+		Event.SessionRoutineBegins,
+		"started systemgeServer session routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ConnectionRoutine,
+			Event.Circumstance: Event.SessionRoutine,
 			Event.IdentityType: Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
 		return
 	}
 
-	for err := server.handleConnection(); err == nil; {
+	for err := server.handleNewSession(); err == nil; {
 	}
 }
 
-func (server *SystemgeServer) handleConnection() error {
+func (server *SystemgeServer) handleNewSession() error {
 	select {
 	case <-server.stopChannel:
 		return errors.New("systemgeServer stopped")
@@ -49,13 +49,13 @@ func (server *SystemgeServer) handleConnection() error {
 	connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 	if err != nil {
 		event := server.onEvent(Event.NewInfo(
-			Event.HandleConnectionFailed,
+			Event.TcpSystemgeListenerAcceptFailed,
 			err.Error(),
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.HandleConnection,
+				Event.Circumstance: Event.SessionRoutine,
 				Event.IdentityType: Event.SystemgeConnection,
 			},
 		))
@@ -75,10 +75,10 @@ func (server *SystemgeServer) handleConnection() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.HandleConnection,
-				Event.IdentityType:  Event.SystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetAddress(),
+				Event.Circumstance: Event.SessionRoutine,
+				Event.Identity:     connection.GetName(),
+				Event.IdentityType: Event.SystemgeConnection,
+				Event.Address:      connection.GetAddress(),
 			},
 		))
 		connection.Close()

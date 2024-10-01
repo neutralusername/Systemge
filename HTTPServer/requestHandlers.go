@@ -52,10 +52,10 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.HttpRequest,
-				Event.Pattern:       pattern,
-				Event.IdentityType:  Event.HttpRequest,
-				Event.ClientAddress: r.RemoteAddr,
+				Event.Circumstance: Event.HttpRequest,
+				Event.Pattern:      pattern,
+				Event.IdentityType: Event.HttpRequest,
+				Event.Address:      r.RemoteAddr,
 			},
 		)); !event.IsInfo() {
 			Send403(w, r)
@@ -71,9 +71,9 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 				Event.SplittingHostPortFailed,
 				err.Error(),
 				Event.Context{
-					Event.Circumstance:  Event.HttpRequest,
-					Event.IdentityType:  Event.HttpRequest,
-					Event.ClientAddress: r.RemoteAddr,
+					Event.Circumstance: Event.HttpRequest,
+					Event.IdentityType: Event.HttpRequest,
+					Event.Address:      r.RemoteAddr,
 				}),
 			)
 			Send403(w, r)
@@ -88,10 +88,10 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:  Event.HttpRequest,
-						Event.Pattern:       pattern,
-						Event.IdentityType:  Event.HttpRequest,
-						Event.ClientAddress: r.RemoteAddr,
+						Event.Circumstance: Event.HttpRequest,
+						Event.Pattern:      pattern,
+						Event.IdentityType: Event.HttpRequest,
+						Event.Address:      r.RemoteAddr,
 					},
 				)); !event.IsWarning() {
 					Send403(w, r)
@@ -108,10 +108,10 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:  Event.HttpRequest,
-						Event.Pattern:       pattern,
-						Event.IdentityType:  Event.HttpRequest,
-						Event.ClientAddress: r.RemoteAddr,
+						Event.Circumstance: Event.HttpRequest,
+						Event.Pattern:      pattern,
+						Event.IdentityType: Event.HttpRequest,
+						Event.Address:      r.RemoteAddr,
 					},
 				)); !event.IsWarning() {
 					Send403(w, r)
@@ -126,10 +126,10 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Event.HandledHttpRequest,
 			"Handled http request",
 			Event.Context{
-				Event.Circumstance:  Event.HttpRequest,
-				Event.Pattern:       pattern,
-				Event.IdentityType:  Event.HttpRequest,
-				Event.ClientAddress: r.RemoteAddr,
+				Event.Circumstance: Event.HttpRequest,
+				Event.Pattern:      pattern,
+				Event.IdentityType: Event.HttpRequest,
+				Event.Address:      r.RemoteAddr,
 			},
 		))
 	}

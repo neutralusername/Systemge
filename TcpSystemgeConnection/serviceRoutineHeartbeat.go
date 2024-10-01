@@ -13,10 +13,10 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 			Event.HeartbeatRoutineFinished,
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
-				Event.Circumstance:  Event.HeartbeatRoutine,
-				Event.IdentityType:  Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
+				Event.Circumstance: Event.HeartbeatRoutine,
+				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+				Event.Address:      connection.GetIp(),
 			},
 		))
 		connection.waitGroup.Done()
@@ -29,10 +29,10 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.HeartbeatRoutine,
-			Event.IdentityType:  Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetIp(),
+			Event.Circumstance: Event.HeartbeatRoutine,
+			Event.IdentityType: Event.TcpSystemgeConnection,
+			Event.ClientName:   connection.GetName(),
+			Event.Address:      connection.GetIp(),
 		},
 	)); !event.IsInfo() {
 		return
@@ -50,10 +50,10 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.HeartbeatRoutine,
-					Event.IdentityType:  Event.TcpSystemgeConnection,
-					Event.ClientName:    connection.GetName(),
-					Event.ClientAddress: connection.GetIp(),
+					Event.Circumstance: Event.HeartbeatRoutine,
+					Event.IdentityType: Event.TcpSystemgeConnection,
+					Event.ClientName:   connection.GetName(),
+					Event.Address:      connection.GetIp(),
 				},
 			))
 			if event.IsWarning() {
@@ -82,10 +82,10 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.HeartbeatRoutine,
-					Event.IdentityType:  Event.TcpSystemgeConnection,
-					Event.ClientName:    connection.GetName(),
-					Event.ClientAddress: connection.GetIp(),
+					Event.Circumstance: Event.HeartbeatRoutine,
+					Event.IdentityType: Event.TcpSystemgeConnection,
+					Event.ClientName:   connection.GetName(),
+					Event.Address:      connection.GetIp(),
 				},
 			)); !event.IsInfo() {
 				return

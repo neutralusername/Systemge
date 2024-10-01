@@ -72,11 +72,11 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  circumstance,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Bytes:         string(messageBytes),
+			Event.Circumstance: circumstance,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Bytes:        string(messageBytes),
 		},
 	)); !event.IsInfo() {
 		server.websocketConnectionMessagesFailed.Add(1)
@@ -90,11 +90,11 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 			Event.WriteMessageFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  circumstance,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
-				Event.Bytes:         string(messageBytes),
+				Event.Circumstance: circumstance,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Bytes:        string(messageBytes),
 			}),
 		)
 		return err
@@ -106,11 +106,11 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 		Event.WroteMessage,
 		"sent websocketConnection message",
 		Event.Context{
-			Event.Circumstance:  circumstance,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Bytes:         string(messageBytes),
+			Event.Circumstance: circumstance,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Bytes:        string(messageBytes),
 		}),
 	)
 	return nil
@@ -122,10 +122,10 @@ func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection)
 			Event.ClientAlreadyAccepted,
 			"websocketConnection is already accepted",
 			Event.Context{
-				Event.Circumstance:  Event.ReceiveRuntime,
-				Event.IdentityType:  Event.WebsocketConnection,
-				Event.ClientId:      websocketConnection.GetId(),
-				Event.ClientAddress: websocketConnection.GetAddress(),
+				Event.Circumstance: Event.ReceiveRuntime,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
 			}),
 		)
 		return nil, errors.New("websocketConnection is already accepted")
@@ -143,10 +143,10 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  circumstance,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
+			Event.Circumstance: circumstance,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
 		}),
 	); !event.IsInfo() {
 		return nil, event.GetError()
@@ -166,11 +166,11 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  circumstance,
-			Event.IdentityType:  Event.WebsocketConnection,
-			Event.ClientId:      websocketConnection.GetId(),
-			Event.ClientAddress: websocketConnection.GetAddress(),
-			Event.Bytes:         string(messageBytes),
+			Event.Circumstance: circumstance,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.ClientId:     websocketConnection.GetId(),
+			Event.Address:      websocketConnection.GetAddress(),
+			Event.Bytes:        string(messageBytes),
 		}),
 	); !event.IsInfo() {
 		return nil, event.GetError()

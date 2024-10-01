@@ -58,7 +58,7 @@ func (server *SystemgeServer) Start() error {
 	server.sessionManager.Start()
 
 	server.waitGroup.Add(1)
-	go server.connectionRoutine()
+	go server.sessionRoutine()
 
 	server.status = Status.Started
 

@@ -14,10 +14,10 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 			Event.ReceptionRoutineFinished,
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
-				Event.Circumstance:  Event.ReceptionRoutine,
-				Event.IdentityType:  Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
+				Event.Circumstance: Event.ReceptionRoutine,
+				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+				Event.Address:      connection.GetIp(),
 			},
 		))
 		connection.waitGroup.Done()
@@ -30,10 +30,10 @@ func (connection *TcpSystemgeConnection) receptionRoutine() {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.ReceptionRoutine,
-			Event.IdentityType:  Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetIp(),
+			Event.Circumstance: Event.ReceptionRoutine,
+			Event.IdentityType: Event.TcpSystemgeConnection,
+			Event.ClientName:   connection.GetName(),
+			Event.Address:      connection.GetIp(),
 		},
 	)); !event.IsInfo() {
 		return
@@ -55,10 +55,10 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.ReceptionRoutine,
-				Event.IdentityType:  Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
+				Event.Circumstance: Event.ReceptionRoutine,
+				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+				Event.Address:      connection.GetIp(),
 			}),
 		); !event.IsInfo() {
 			return event.GetError()
@@ -76,10 +76,10 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:  Event.ReceptionRoutine,
-					Event.IdentityType:  Event.TcpSystemgeConnection,
-					Event.ClientName:    connection.GetName(),
-					Event.ClientAddress: connection.GetIp(),
+					Event.Circumstance: Event.ReceptionRoutine,
+					Event.IdentityType: Event.TcpSystemgeConnection,
+					Event.ClientName:   connection.GetName(),
+					Event.Address:      connection.GetIp(),
 				}),
 			); !event.IsInfo() {
 				return err
@@ -95,11 +95,11 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.ReceptionRoutine,
-				Event.IdentityType:  Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
-				Event.Bytes:         string(messageBytes),
+				Event.Circumstance: Event.ReceptionRoutine,
+				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+				Event.Address:      connection.GetIp(),
+				Event.Bytes:        string(messageBytes),
 			}),
 		); !event.IsInfo() {
 			connection.rejectedMessages.Add(1)
@@ -116,11 +116,11 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:  Event.HandleReception,
-						Event.Behaviour:     Event.Sequential,
-						Event.IdentityType:  Event.TcpSystemgeConnection,
-						Event.ClientName:    connection.GetName(),
-						Event.ClientAddress: connection.GetAddress(),
+						Event.Circumstance: Event.HandleReception,
+						Event.Behaviour:    Event.Sequential,
+						Event.IdentityType: Event.TcpSystemgeConnection,
+						Event.ClientName:   connection.GetName(),
+						Event.Address:      connection.GetAddress(),
 					},
 				)); !event.IsInfo() {
 					connection.Close()
@@ -140,11 +140,11 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 						Event.Cancel,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance:  Event.HandleReception,
-							Event.Behaviour:     Event.Concurrent,
-							Event.IdentityType:  Event.TcpSystemgeConnection,
-							Event.ClientName:    connection.GetName(),
-							Event.ClientAddress: connection.GetAddress(),
+							Event.Circumstance: Event.HandleReception,
+							Event.Behaviour:    Event.Concurrent,
+							Event.IdentityType: Event.TcpSystemgeConnection,
+							Event.ClientName:   connection.GetName(),
+							Event.Address:      connection.GetAddress(),
 						},
 					)); !event.IsInfo() {
 						connection.Close()
@@ -168,11 +168,11 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.IdentityType:  Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetIp(),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.IdentityType: Event.TcpSystemgeConnection,
+			Event.ClientName:   connection.GetName(),
+			Event.Address:      connection.GetIp(),
 		},
 	))
 	if !event.IsInfo() {
@@ -195,7 +195,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 				Event.TokenBucketType: Event.Messages,
 				Event.IdentityType:    Event.TcpSystemgeConnection,
 				Event.ClientName:      connection.GetName(),
-				Event.ClientAddress:   connection.GetIp(),
+				Event.Address:         connection.GetIp(),
 			},
 		)); !event.IsInfo() {
 			connection.rejectedMessages.Add(1)
@@ -218,7 +218,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 				Event.TokenBucketType: Event.Messages,
 				Event.IdentityType:    Event.TcpSystemgeConnection,
 				Event.ClientName:      connection.GetName(),
-				Event.ClientAddress:   connection.GetIp(),
+				Event.Address:         connection.GetIp(),
 			},
 		)); !event.IsInfo() {
 			connection.rejectedMessages.Add(1)
@@ -235,13 +235,13 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.StructType:    Event.Message,
-				Event.IdentityType:  Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
-				Event.Bytes:         string(messageBytes),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.StructType:   Event.Message,
+				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+				Event.Address:      connection.GetIp(),
+				Event.Bytes:        string(messageBytes),
 			},
 		))
 		return err
@@ -255,14 +255,14 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.HandleReception,
-				Event.Behaviour:     behaviour,
-				Event.IdentityType:  Event.TcpSystemgeConnection,
-				Event.ClientName:    connection.GetName(),
-				Event.ClientAddress: connection.GetIp(),
-				Event.Topic:         message.GetTopic(),
-				Event.Payload:       message.GetPayload(),
-				Event.SyncToken:     message.GetSyncToken(),
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.ClientName:   connection.GetName(),
+				Event.Address:      connection.GetIp(),
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			},
 		)); !event.IsInfo() {
 			connection.invalidMessagesReceived.Add(1)
@@ -288,15 +288,15 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.ChannelType:   Event.MessageChannel,
-			Event.IdentityType:  Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetIp(),
-			Event.Topic:         message.GetTopic(),
-			Event.Payload:       message.GetPayload(),
-			Event.SyncToken:     message.GetSyncToken(),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.ChannelType:  Event.MessageChannel,
+			Event.IdentityType: Event.TcpSystemgeConnection,
+			Event.ClientName:   connection.GetName(),
+			Event.Address:      connection.GetIp(),
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
 		connection.rejectedMessages.Add(1)
@@ -309,15 +309,15 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 		Event.SentToChannel,
 		"sent message to channel",
 		Event.Context{
-			Event.Circumstance:  Event.HandleReception,
-			Event.Behaviour:     behaviour,
-			Event.ChannelType:   Event.MessageChannel,
-			Event.IdentityType:  Event.TcpSystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetIp(),
-			Event.Topic:         message.GetTopic(),
-			Event.Payload:       message.GetPayload(),
-			Event.SyncToken:     message.GetSyncToken(),
+			Event.Circumstance: Event.HandleReception,
+			Event.Behaviour:    behaviour,
+			Event.ChannelType:  Event.MessageChannel,
+			Event.IdentityType: Event.TcpSystemgeConnection,
+			Event.ClientName:   connection.GetName(),
+			Event.Address:      connection.GetIp(),
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	))
 

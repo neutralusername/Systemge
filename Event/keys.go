@@ -15,8 +15,7 @@ const StructType = "structType"
 const TokenBucketType = "tokenBucketType"
 const ResponseType = "responseType"
 
-const ClientAddress = "clientAddress"
-const ClientId = "clientId"
+const Address = "clientAddress"
 
 const TargetServiceType = "targetServiceType"
 
@@ -40,7 +39,5 @@ const Function = "function"
 const Result = "result"
 
 const ServerName = "serverName"
-
-const ClientName = "clientName"
 
 const Pattern = "pattern"
