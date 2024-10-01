@@ -36,7 +36,6 @@ type WebsocketServer struct {
 	ipRateLimiter     *Tools.IpRateLimiter
 
 	clientSessionManager *SessionManager.Manager
-	groupSessionManager  *SessionManager.Manager
 
 	messageHandlers     MessageHandlers
 	messageHandlerMutex sync.Mutex
@@ -89,7 +88,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 			}
 
 		}),
-		groupSessionManager: SessionManager.New(name+"_groupSessionManager", config.GroupSessionManagerConfig, eventHandler),
 
 		messageHandlers:   messageHandlers,
 		config:            config,
