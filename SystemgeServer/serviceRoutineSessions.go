@@ -68,12 +68,9 @@ func (server *SystemgeServer) handleNewSession() error {
 
 	session, err := server.sessionManager.CreateSession(connection.GetName())
 	if err != nil {
-		server.onEvent(Event.NewError(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.CreateSessionFailed,
 			err.Error(),
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
 				Event.Identity:     connection.GetName(),

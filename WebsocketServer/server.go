@@ -79,8 +79,12 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		clientSessionManager: SessionManager.New(name+"_clientSessionManager", config.ClientSessionManagerConfig, eventHandler),
-		groupSessionManager:  SessionManager.New(name+"_groupSessionManager", config.GroupSessionManagerConfig, eventHandler),
+		clientSessionManager: SessionManager.New(name+"_clientSessionManager", config.ClientSessionManagerConfig, func(event *Event.Event) {
+			if eventHandler != nil {
+				eventHandler(event)
+			}
+		}),
+		groupSessionManager: SessionManager.New(name+"_groupSessionManager", config.GroupSessionManagerConfig, eventHandler),
 
 		messageHandlers:   messageHandlers,
 		config:            config,

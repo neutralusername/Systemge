@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/SessionManager"
 )
 
 func (server *WebsocketServer) sessionRoutine() {
@@ -40,8 +40,8 @@ func (server *WebsocketServer) sessionRoutine() {
 }
 
 func (server *WebsocketServer) handleNewSession() error {
-	websocketConnection := <-server.connectionChannel
-	if websocketConnection == nil {
+	websocketConn := <-server.connectionChannel
+	if websocketConn == nil {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.ReceivedNilValueFromChannel,
 			"received nil from websocketConnection channel",
@@ -53,43 +53,34 @@ func (server *WebsocketServer) handleNewSession() error {
 		return errors.New("received nil from websocketConnection channel")
 	}
 
+	websocketConnection := server.NewWebsocketConnection(websocketConn)
+
 	session, err := server.clientSessionManager.CreateSession("")
 	if err != nil {
-		server.onEvent(Event.NewError(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.CreateSessionFailed,
 			err.Error(),
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
 				Event.Identity:     "",
 				Event.IdentityType: Event.WebsocketConnection,
-				Event.Address:      websocketConnection.LocalAddr().String(),
+				Event.Address:      websocketConnection.GetAddress(),
 			},
 		))
-		websocketConnection.Close()
+		websocketConn.Close()
 		return nil
 	}
 	session.Set("connection", websocketConnection)
 
-	if server.config.WebsocketConnectionRateLimiterBytes != nil {
-		session.Set("rateLimiterBytes", Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterBytes))
-	}
-	if server.config.WebsocketConnectionRateLimiterMessages != nil {
-		session.Set("rateLimiterMsgs", Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterMessages))
-	}
-	websocketConnection.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
-
 	websocketConnection.waitGroup.Add(1)
 	server.waitGroup.Add(1)
-	go server.websocketConnectionDisconnect(websocketConnection)
+	go server.websocketConnectionDisconnect(session, websocketConnection)
 	go server.receptionRoutine(websocketConnection)
 
 	return nil
 }
 
-func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection *WebsocketConnection) {
+func (server *WebsocketServer) websocketConnectionDisconnect(session *SessionManager.Session, websocketConnection *WebsocketConnection) {
 	defer server.waitGroup.Done()
 
 	select {
@@ -106,7 +97,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		Event.Context{
 			Event.Circumstance: Event.HandleDisconnection,
 			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketConnection.GetId(),
+			Event.Identity:     session.GetIdentity(),
 			Event.Address:      websocketConnection.GetAddress(),
 		},
 	))

@@ -12,7 +12,6 @@ import (
 )
 
 type WebsocketConnection struct {
-	id            string
 	websocketConn *websocket.Conn
 
 	isAccepted bool
@@ -27,6 +26,21 @@ type WebsocketConnection struct {
 
 	rateLimiterBytes *Tools.TokenBucketRateLimiter
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
+}
+
+func (server *WebsocketServer) NewWebsocketConnection(websocketConn *websocket.Conn) *WebsocketConnection {
+	connection := &WebsocketConnection{
+		websocketConn: websocketConn,
+		stopChannel:   make(chan bool),
+	}
+	if server.config.WebsocketConnectionRateLimiterBytes != nil {
+		connection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterBytes)
+	}
+	if server.config.WebsocketConnectionRateLimiterMessages != nil {
+		connection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterMessages)
+	}
+	websocketConn.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
+	return connection
 }
 
 // Disconnects the websocketConnection and blocks until the websocketConnection onDisconnectHandler has finished.
@@ -51,11 +65,6 @@ func (websocketConnection *WebsocketConnection) Close() error {
 // Returns the ip of the websocketConnection.
 func (websocketConnection *WebsocketConnection) GetAddress() string {
 	return websocketConnection.websocketConn.RemoteAddr().String()
-}
-
-// Returns the id of the websocketConnection.
-func (websocketConnection *WebsocketConnection) GetId() string {
-	return websocketConnection.id
 }
 
 func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
