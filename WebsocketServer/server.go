@@ -45,6 +45,10 @@ type WebsocketServer struct {
 
 	// metrics
 
+	websocketConnectionsAccepted atomic.Uint32
+	websocketConnectionsFailed   atomic.Uint32
+	websocketConnectionsRejected atomic.Uint32
+
 	websocketConnectionMessagesReceived atomic.Uint32
 	websocketConnectionMessagesSent     atomic.Uint32
 	websocketConnectionMessagesFailed   atomic.Uint32

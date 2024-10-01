@@ -12,9 +12,8 @@ import (
 )
 
 type WebsocketConnection struct {
+	id            string
 	websocketConn *websocket.Conn
-
-	isAccepted bool
 
 	receiveMutex sync.Mutex
 	sendMutex    sync.Mutex
@@ -28,8 +27,9 @@ type WebsocketConnection struct {
 	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
 }
 
-func (server *WebsocketServer) NewWebsocketConnection(websocketConn *websocket.Conn) *WebsocketConnection {
+func (server *WebsocketServer) NewWebsocketConnection(id string, websocketConn *websocket.Conn) *WebsocketConnection {
 	connection := &WebsocketConnection{
+		id:            id,
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
 	}
@@ -125,10 +125,16 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 	return nil
 }
 
+// Returns the id of the websocketConnection.
+func (websocketConnection *WebsocketConnection) GetId() string {
+	return websocketConnection.id
+}
+
 func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+	// How will the websocketConnection be able to be acquired in the sessionManagers accept event?
 	if websocketConnection.isAccepted {
 		server.onEvent(Event.NewWarningNoOption(
-			Event.ClientAlreadyAccepted,
+			Event.IdentityAlreadyAccepted,
 			"websocketConnection is already accepted",
 			Event.Context{
 				Event.Circumstance: Event.ReceiveRuntime,
