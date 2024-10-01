@@ -30,7 +30,7 @@ type Manager struct {
 	eventHandler Event.Handler
 }
 
-func NewSessionManager(name string, config *Config.SessionManager, eventHandler Event.Handler) *Manager {
+func New(name string, config *Config.SessionManager, eventHandler Event.Handler) *Manager {
 	if config == nil {
 		config = &Config.SessionManager{}
 	}

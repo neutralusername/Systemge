@@ -61,7 +61,7 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 		whitelist: whitelist,
 		blacklist: blacklist,
 
-		sessionManager: SessionManager.NewSessionManager(name, config.SessionManagerConfig, eventHandler),
+		sessionManager: SessionManager.New(name+"_sessionManager", config.SessionManagerConfig, eventHandler),
 	}
 	return server, nil
 }

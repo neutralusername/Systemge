@@ -67,7 +67,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	server.stopChannel = make(chan bool)
 
 	server.waitGroup.Add(1)
-	go server.acceptRoutine()
+	go server.sessionRoutine()
 	server.status = Status.Started
 
 	server.onEvent(Event.NewInfoNoOption(

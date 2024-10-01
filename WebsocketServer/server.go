@@ -45,10 +45,6 @@ type WebsocketServer struct {
 
 	// metrics
 
-	websocketConnectionsAccepted atomic.Uint32
-	websocketConnectionsFailed   atomic.Uint32
-	websocketConnectionsRejected atomic.Uint32
-
 	websocketConnectionMessagesReceived atomic.Uint32
 	websocketConnectionMessagesSent     atomic.Uint32
 	websocketConnectionMessagesFailed   atomic.Uint32
@@ -80,15 +76,16 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		}
 	}
 	server := &WebsocketServer{
-		name:                       name,
-		websocketConnections:       make(map[string]*WebsocketConnection),
-		groupsWebsocketConnections: make(map[string]map[string]*WebsocketConnection),
-		websocketConnectionGroups:  make(map[string]map[string]bool),
-		instanceId:                 Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		messageHandlers:            messageHandlers,
-		config:                     config,
-		randomizer:                 Tools.NewRandomizer(config.RandomizerSeed),
-		connectionChannel:          make(chan *websocket.Conn),
+		name:       name,
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+
+		clientSessionManager: SessionManager.New(name+"_clientSessionManager", config.ClientSessionManagerConfig, eventHandler),
+		groupSessionManager:  SessionManager.New(name+"_groupSessionManager", config.GroupSessionManagerConfig, eventHandler),
+
+		messageHandlers:   messageHandlers,
+		config:            config,
+		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
+		connectionChannel: make(chan *websocket.Conn),
 	}
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{

@@ -3,17 +3,15 @@ package WebsocketServer
 import (
 	"errors"
 
-	"github.com/gorilla/websocket"
-	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (server *WebsocketServer) acceptRoutine() {
+func (server *WebsocketServer) sessionRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.SessionRoutineEnds,
-			"stopped websocketConnection acception routine",
+			"stopped websocketConnection session routine",
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
 				Event.IdentityType: Event.WebsocketConnection,
@@ -24,7 +22,7 @@ func (server *WebsocketServer) acceptRoutine() {
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.SessionRoutineBegins,
-		"started websocketConnection acception routine",
+		"started websocketConnection session routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -36,26 +34,12 @@ func (server *WebsocketServer) acceptRoutine() {
 		return
 	}
 
-	for err := server.receiveWebsocketConnection(); err == nil; {
+	for err := server.handleNewSession(); err == nil; {
 	}
 
 }
 
-func (server *WebsocketServer) receiveWebsocketConnection() error {
-	if event := server.onEvent(Event.NewInfo(
-		Event.ReceivingFromChannel,
-		"receiving websocketConnection from channel",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.SessionRoutine,
-			Event.ChannelType:  Event.WebsocketConnection,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
+func (server *WebsocketServer) handleNewSession() error {
 	websocketConnection := <-server.connectionChannel
 	if websocketConnection == nil {
 		server.onEvent(Event.NewInfoNoOption(
@@ -69,100 +53,40 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		return errors.New("received nil from websocketConnection channel")
 	}
 
-	event := server.onEvent(Event.NewInfo(
-		Event.ReceivedFromChannel,
-		"received websocketConnection from channel",
-		Event.Cancel,
-		Event.Skip,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.SessionRoutine,
-			Event.ChannelType:  Event.WebsocketConnection,
-			Event.Address:      websocketConnection.RemoteAddr().String(),
-		},
-	))
-	if event.IsError() {
+	session, err := server.clientSessionManager.CreateSession("")
+	if err != nil {
+		server.onEvent(Event.NewError(
+			Event.CreateSessionFailed,
+			err.Error(),
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.SessionRoutine,
+				Event.Identity:     "",
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.Address:      websocketConnection.LocalAddr().String(),
+			},
+		))
 		websocketConnection.Close()
-		server.websocketConnectionsRejected.Add(1)
-		return event.GetError()
-	}
-	if event.IsWarning() {
-		websocketConnection.Close()
-		server.websocketConnectionsRejected.Add(1)
 		return nil
 	}
+	session.Set("connection", websocketConnection)
 
-	server.acceptWebsocketConnection(websocketConnection)
-	return nil
-}
-
-func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocket.Conn) {
-	server.websocketConnectionMutex.Lock()
-
-	websocketId := server.randomizer.GenerateRandomString(Constants.ClientIdLength, Tools.ALPHA_NUMERIC)
-	for _, exists := server.websocketConnections[websocketId]; exists; {
-		websocketId = server.randomizer.GenerateRandomString(Constants.ClientIdLength, Tools.ALPHA_NUMERIC)
-	}
-	if event := server.onEvent(Event.NewInfo(
-		Event.HandlingAcception,
-		"accepting websocketConnection",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.HandleAcception,
-			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketId,
-			Event.Address:      websocketConn.RemoteAddr().String(),
-		},
-	)); !event.IsInfo() {
-		websocketConn.Close()
-		server.websocketConnectionsRejected.Add(1)
-		return
-	}
-
-	websocketConnection := &WebsocketConnection{
-		id:            websocketId,
-		websocketConn: websocketConn,
-		stopChannel:   make(chan bool),
-	}
 	if server.config.WebsocketConnectionRateLimiterBytes != nil {
-		websocketConnection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterBytes)
+		session.Set("rateLimiterBytes", Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterBytes))
 	}
 	if server.config.WebsocketConnectionRateLimiterMessages != nil {
-		websocketConnection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterMessages)
+		session.Set("rateLimiterMsgs", Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterMessages))
 	}
-	websocketConnection.websocketConn.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
-	server.websocketConnections[websocketId] = websocketConnection
-	server.websocketConnectionGroups[websocketId] = make(map[string]bool)
-	server.websocketConnectionMutex.Unlock()
-
-	if event := server.onEvent(Event.NewInfo(
-		Event.HandledAcception,
-		"websocketConnection accepted",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.HandleAcception,
-			Event.IdentityType: Event.WebsocketConnection,
-			Event.ClientId:     websocketId,
-			Event.Address:      websocketConn.RemoteAddr().String(),
-		},
-	)); !event.IsInfo() {
-		websocketConnection.Close()
-		server.removeWebsocketConnection(websocketConnection)
-		server.websocketConnectionsRejected.Add(1)
-		return
-	}
-
-	server.websocketConnectionsAccepted.Add(1)
-	websocketConnection.isAccepted = true
+	websocketConnection.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
 
 	websocketConnection.waitGroup.Add(1)
 	server.waitGroup.Add(1)
 	go server.websocketConnectionDisconnect(websocketConnection)
 	go server.receptionRoutine(websocketConnection)
+
+	return nil
 }
 
 func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection *WebsocketConnection) {
