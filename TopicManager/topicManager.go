@@ -89,6 +89,7 @@ func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler T
 	}
 }
 
+// can not be called after Close or will cause panic. could add a check if closed but there would still be edge cases i can't fix a the moment
 func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
 	response := make(chan any)
 	err := make(chan error)
