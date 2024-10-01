@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
@@ -86,12 +87,12 @@ func (server *SystemgeServer) handleConnection() error {
 	session.Set("connection", connection)
 
 	server.waitGroup.Add(1)
-	go server.handleSystemgeDisconnect(connection)
+	go server.handleSystemgeDisconnect(session, connection)
 
 	return nil
 }
 
-func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnection.SystemgeConnection) {
+func (server *SystemgeServer) handleSystemgeDisconnect(session *SessionManager.Session, connection SystemgeConnection.SystemgeConnection) {
 	defer server.waitGroup.Done()
 
 	select {
@@ -100,8 +101,6 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 		connection.Close()
 	}
 
-	sessions := server.sessionManager.GetSessions(connection.GetName())
-	for _, session := range sessions {
-		session.GetTimeout().Trigger()
-	}
+	session.GetTimeout().Trigger()
+	connection.Close()
 }
