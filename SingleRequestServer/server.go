@@ -53,7 +53,9 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 		eventHandler:   eventHandler,
 	}
 	systemgeServer, err := SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
-		eventHandler(event)
+		if eventHandler != nil {
+			eventHandler(event)
+		}
 
 		switch event.GetEvent() {
 		case Event.HandledAcception:
