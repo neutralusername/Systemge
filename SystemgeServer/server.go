@@ -9,13 +9,9 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
-
-type OnConnectHandler func(SystemgeConnection.SystemgeConnection) error
-type OnDisconnectHandler func(string, string)
 
 type SystemgeServer struct {
 	instanceId string
