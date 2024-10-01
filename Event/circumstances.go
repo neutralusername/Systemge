@@ -10,6 +10,7 @@ const HandleReception = "handleReception"
 const HandleAcception = "handleAcception"
 
 const SessionCreate = "sessionCreate"
+const SessionDisconnect = "sessionDisconnect"
 
 const HandleDisconnection = "handleDisconnection"
 

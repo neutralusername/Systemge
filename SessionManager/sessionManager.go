@@ -60,7 +60,7 @@ func NewSessionManager(name string, config *Config.SessionManager, eventHandler 
 func (manager *SessionManager) GetSession(sessionId string) *Session {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
-	if session, ok := manager.sessions[sessionId]; ok && session != nil {
+	if session, ok := manager.sessions[sessionId]; ok {
 		return session
 	}
 	return nil
@@ -72,12 +72,7 @@ func (manager *SessionManager) GetIdentities() []string {
 
 	identities := make([]string, 0, len(manager.identities))
 	for identity := range manager.identities {
-		for _, session := range manager.identities[identity].sessions {
-			if session != nil {
-				identities = append(identities, identity)
-				break
-			}
-		}
+		identities = append(identities, identity)
 	}
 	return identities
 }
@@ -89,27 +84,19 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	if identity, ok := manager.identities[identityString]; ok {
 		sessions := []*Session{}
 		for _, session := range identity.sessions {
-			if session != nil {
-				sessions = append(sessions, session)
-			}
+			sessions = append(sessions, session)
 		}
-		if len(sessions) > 0 {
-			return sessions
-		}
+		return sessions
 	}
 	return nil
 }
 
-func (manager *SessionManager) HasActiveSession(identityString string) bool {
+func (manager *SessionManager) IdentityExists(identityString string) bool {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 
 	if _, ok := manager.identities[identityString]; ok {
-		for _, session := range manager.identities[identityString].sessions {
-			if session != nil {
-				return true
-			}
-		}
+		return true
 	}
 	return false
 }

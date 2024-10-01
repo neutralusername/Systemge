@@ -13,6 +13,8 @@ type Session struct {
 	mutex         sync.RWMutex
 	keyValuePairs map[string]any
 
+	accepted bool
+
 	timeout *Tools.Timeout
 }
 
@@ -54,4 +56,8 @@ func (session *Session) GetIdentity() string {
 // is nil until the onCreate is finished
 func (session *Session) GetTimeout() *Tools.Timeout {
 	return session.timeout
+}
+
+func (session *Session) IsAccepted() bool {
+	return session.accepted
 }

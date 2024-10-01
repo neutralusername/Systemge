@@ -9,20 +9,6 @@ import (
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 
-	if event := manager.onEvent(Event.NewInfo(
-		Event.SessionCreating,
-		"creating session",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.SessionCreate,
-			Event.Identity:     identityString,
-		},
-	)); !event.IsInfo() {
-		return nil, event.GetError()
-	}
-
 	if manager.config.MaxIdentityLength > 0 && uint32(len(identityString)) > manager.config.MaxIdentityLength {
 		if event := manager.onEvent(Event.NewWarning(
 			Event.IdentityTooLong,
@@ -129,30 +115,66 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		id:            sessionId,
 		identity:      identity,
 		keyValuePairs: make(map[string]any),
+		accepted:      false,
 	}
-	identity.sessions[session.GetId()] = nil
-	manager.sessions[session.GetId()] = nil
+	identity.sessions[session.GetId()] = session
+	manager.sessions[session.GetId()] = session
 	manager.sessionMutex.Unlock()
 
-	if err := manager.onCreate(session); err != nil {
+	if event := manager.onEvent(Event.NewInfo(
+		Event.SessionAccepting,
+		"accepting session",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.SessionCreate,
+			Event.Identity:     identityString,
+			Event.SessionId:    sessionId,
+		},
+	)); !event.IsInfo() {
 		manager.cleanupSession(session)
-		return nil, err
-	} else {
-		manager.sessionMutex.Lock()
-		manager.sessions[session.GetId()] = session
-		identity.sessions[session.GetId()] = session
-		manager.sessionMutex.Unlock()
+		return nil, event.GetError()
 	}
 
+	session.accepted = true
 	session.timeout = Tools.NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
+			manager.onEvent(Event.NewInfoNoOption(
+				Event.SessionDisconnecting,
+				"disconnecting session",
+				Event.Context{
+					Event.Circumstance: Event.SessionDisconnect,
+					Event.Identity:     identityString,
+					Event.SessionId:    sessionId,
+				},
+			))
+
 			manager.cleanupSession(session)
 
-			manager.onExpire(session)
+			manager.onEvent(Event.NewInfoNoOption(
+				Event.SessionDisconnected,
+				"session disconnected",
+				Event.Context{
+					Event.Circumstance: Event.SessionDisconnect,
+					Event.Identity:     identityString,
+					Event.SessionId:    sessionId,
+				},
+			))
 		},
 		false,
 	)
+
+	manager.onEvent(Event.NewInfoNoOption(
+		Event.SessionAccepted,
+		"session created",
+		Event.Context{
+			Event.Circumstance: Event.SessionCreate,
+			Event.Identity:     identityString,
+			Event.SessionId:    sessionId,
+		},
+	))
 
 	return session, nil
 }
