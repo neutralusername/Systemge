@@ -36,11 +36,11 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return "success", nil
 	}
-	serverCommands["removeConnection"] = func(args []string) (string, error) {
+	serverCommands["removeIdentity"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("expected 1 argument")
 		}
-		err := server.RemoveConnection(args[0])
+		err := server.RemoveIdentity(args[0])
 		if err != nil {
 			return "", err
 		}
