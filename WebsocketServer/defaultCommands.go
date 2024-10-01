@@ -86,18 +86,5 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return "success", nil
 	}
-	commands["groupcast"] = func(args []string) (string, error) {
-		if len(args) != 3 {
-			return "", errors.New("invalid number of arguments")
-		}
-		topic := args[0]
-		payload := args[1]
-		group := args[2]
-		err := server.Groupcast(group, Message.NewAsync(topic, payload))
-		if err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
 	return commands
 }
