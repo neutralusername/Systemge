@@ -1,4 +1,4 @@
-package TopicCallHandler
+package TopicManager
 
 type TopicManager interface {
 	HandleTopic(string, ...any) (any, error)
