@@ -69,13 +69,39 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 	systemgeServer, err := SystemgeServer.New(name+"_systemgeServer",
 		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
-		eventHandler, // wrap the onConnect/onDisconnect with the eventHandler
+		func(event *Event.Event) {
+			eventHandler(event)
+
+			switch event.GetEvent() {
+			case Event.HandledAcception:
+				server.mutex.Lock()
+				err := connection.StartMessageHandlingLoop(server.messageHandler, true)
+				if err != nil {
+					server.mutex.Unlock()
+					return err
+				}
+				server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
+				server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
+				server.mutex.Unlock()
+
+			case Event.HandledDisconnection:
+				server.mutex.Lock()
+				for topic := range server.connectionAsyncSubscriptions[connection] {
+					delete(server.asyncTopicSubscriptions[topic], connection)
+				}
+				delete(server.connectionAsyncSubscriptions, connection)
+				for topic := range server.connectionsSyncSubscriptions[connection] {
+					delete(server.syncTopicSubscriptions[topic], connection)
+				}
+				delete(server.connectionsSyncSubscriptions, connection)
+				server.mutex.Unlock()
+			}
+		},
 	)
 	if err != nil {
 		return nil, err
 	}
 	server.systemgeServer = systemgeServer
-
 	server.messageHandler = SystemgeConnection.NewTopicExclusiveMessageHandler(
 		nil,
 		SystemgeConnection.SyncMessageHandlers{

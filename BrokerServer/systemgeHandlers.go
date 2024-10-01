@@ -146,29 +146,3 @@ func (server *Server) handleSyncPropagate(connection SystemgeConnection.Systemge
 	}
 	return Message.SerializeMessages(responses), nil
 }
-
-func (server *Server) onSystemgeConnection(connection SystemgeConnection.SystemgeConnection) error {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	err := connection.StartMessageHandlingLoop(server.messageHandler, true)
-	if err != nil {
-		return err
-	}
-	server.connectionAsyncSubscriptions[connection] = make(map[string]bool)
-	server.connectionsSyncSubscriptions[connection] = make(map[string]bool)
-	return nil
-}
-
-func (server *Server) onSystemgeDisconnection(connection SystemgeConnection.SystemgeConnection) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	for topic := range server.connectionAsyncSubscriptions[connection] {
-		delete(server.asyncTopicSubscriptions[topic], connection)
-	}
-	delete(server.connectionAsyncSubscriptions, connection)
-	for topic := range server.connectionsSyncSubscriptions[connection] {
-		delete(server.syncTopicSubscriptions[topic], connection)
-	}
-	delete(server.connectionsSyncSubscriptions, connection)
-
-}
