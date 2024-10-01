@@ -72,6 +72,29 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 	return topicManager
 }
 
+func (topicManager *TopicManager) handleTopic(topic string) {
+	queue := topicManager.topicQueues[topic]
+	handler := topicManager.topicHandlers[topic]
+	for {
+		queueStruct := <-queue
+		if queueStruct == nil {
+			// change to cancel by closing channel
+			return
+		}
+		if topicManager.concurrentCalls {
+			go func() {
+				response, err := handler(queueStruct.args...)
+				queueStruct.responseAnyChannel <- response
+				queueStruct.responseErrorChannel <- err
+			}()
+		} else {
+			response, err := handler(queueStruct.args...)
+			queueStruct.responseAnyChannel <- response
+			queueStruct.responseErrorChannel <- err
+		}
+	}
+}
+
 func (topicManager *TopicManager) handleCalls() {
 	for {
 		queueStruct := <-topicManager.queue
