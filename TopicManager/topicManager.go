@@ -46,8 +46,7 @@ type queueStruct struct {
 }
 
 // modes: (l == large enough to never be full)
-// topicQueueSize: 0, queueSize: 0 concurrentCalls: false -> "non deterministic sequential"
-// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "deterministic sequential"
+// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "sequential"
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
@@ -80,14 +79,12 @@ func (topicManager *TopicManager) handleCalls() {
 			return
 		}
 		if queue := topicManager.topicQueues[queueStruct.topic]; queue != nil {
-
+			queue <- queueStruct
+		} else if topicManager.unknownTopicQueue != nil {
+			topicManager.unknownTopicQueue <- queueStruct
 		} else {
-			if topicManager.unknownTopicQueue != nil {
-				topicManager.unknownTopicQueue <- queueStruct
-			} else {
-				queueStruct.responseAnyChannel <- nil
-				queueStruct.responseErrorChannel <- errors.New("no handler for topic")
-			}
+			queueStruct.responseAnyChannel <- nil
+			queueStruct.responseErrorChannel <- errors.New("no handler for topic")
 		}
 	}
 }
@@ -104,31 +101,6 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 	}
 
 	return <-response, <-err
-
-	/* if !exists {
-		if topicManager.unknownTopicQueue != nil {
-			topicManager.unknownTopicQueue <- &queueStruct{
-				topic:                topic,
-				args:                 args,
-				responseAnyChannel:   response,
-				responseErrorChannel: err,
-			}
-			return <-response, <-err
-		}
-		return nil, errors.New("no handler for topic")
-	} else {
-		select {
-		case queue <- &queueStruct{
-			topic:                topic,
-			args:                 args,
-			responseAnyChannel:   response,
-			responseErrorChannel: err,
-		}:
-			return <-response, <-err
-		default:
-			return nil, errors.New("message queue is full")
-		}
-	} */
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
