@@ -3,10 +3,42 @@ package SessionManager
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
+
+	if event := manager.onEvent(Event.NewInfo(
+		Event.SessionCreating,
+		"creating session",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.SessionCreate,
+			Event.Identity:     identityString,
+		},
+	)); !event.IsInfo() {
+		return nil, event.GetError()
+	}
+
+	if manager.config.MaxIdentityLength > 0 && uint32(len(identityString)) > manager.config.MaxIdentityLength {
+		if event := manager.onEvent(Event.NewWarning(
+			Event.IdentityTooLong,
+			"identity too long",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.SessionCreate,
+				Event.Identity:     identityString,
+			},
+		)); !event.IsInfo() {
+			return nil, errors.New("identity too long")
+		}
+	}
+
 	manager.sessionMutex.Lock()
 	if !manager.isStarted {
 		manager.sessionMutex.Unlock()

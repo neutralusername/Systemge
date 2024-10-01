@@ -153,3 +153,8 @@ const HandledConnectionAttempt = "handledConnectionAttempt"           // after h
 const HandleConnectionAttemptFailed = "handleConnectionAttemptFailed" // when a handle connection attempt operation returns an error
 
 const ContextDoesNotExist = "eventContextDoesNotExist" // when a particular context does not exist
+
+const SessionCreating = "sessionCreating" // before creating a session
+const SessionCreated = "sessionCreated"   // after creating a session
+
+const IdentityTooLong = "identityTooLong" // when an identity is too long

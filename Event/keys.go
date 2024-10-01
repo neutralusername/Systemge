@@ -4,6 +4,8 @@ const Circumstance = "circumstance"
 
 const Behaviour = "behaviour"
 
+const Identity = "identity"
+
 const ClientType = "clientType"
 const ChannelType = "channelType"
 const ServiceType = "serviceType"

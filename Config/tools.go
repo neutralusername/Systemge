@@ -57,5 +57,15 @@ type SessionManager struct {
 	SessionIdLength        uint32 `json:"sessionIdLength"`        // default: 32
 	MaxSessionsPerIdentity uint32 `json:"maxSessionsPerIdentity"` // default: 0 == no limit
 	MaxIdentities          uint32 `json:"maxIdentities"`          // default: 0 == no limit
+	MaxIdentityLength      uint32 `json:"maxIdentityLength"`      // default: 0 == no limit
 	SessionIdAlphabet      string `json:"sessionIdAlphabet"`      // default: alphanumeric
+}
+
+func UnmarshalSessionManager(data string) *SessionManager {
+	var sessionManagerConfig SessionManager
+	err := json.Unmarshal([]byte(data), &sessionManagerConfig)
+	if err != nil {
+		return nil
+	}
+	return &sessionManagerConfig
 }
