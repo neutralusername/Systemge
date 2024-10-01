@@ -11,9 +11,9 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
+	"github.com/neutralusername/Systemge/MessageHandler"
 	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -38,7 +38,7 @@ type WebsocketServer struct {
 
 	sessionManager *SessionManager.Manager
 
-	messageHandlers SystemgeConnection.MessageHandler
+	messageHandlers MessageHandler.MessageHandler
 
 	eventHandler Event.Handler
 
