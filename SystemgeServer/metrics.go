@@ -43,9 +43,9 @@ func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
 			"rejected_messages":         server.CheckRejectedMessages(),
 		},
 	))
-	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
+	metricsTypes.AddMetrics("systemgeServer_sessionManager", Metrics.New(
 		map[string]uint64{
-			"connection_count": uint64(server.GetConnectionCount()),
+			// todo (sessions count and identities count)
 		},
 	))
 	return metricsTypes
@@ -88,9 +88,9 @@ func (server *SystemgeServer) GetMetrics() Metrics.MetricsTypes {
 			"rejected_messages":         server.GetRejectedMessages(),
 		},
 	))
-	metricsTypes.AddMetrics("systemgeServer_connections", Metrics.New(
+	metricsTypes.AddMetrics("systemgeServer_sessionManager", Metrics.New(
 		map[string]uint64{
-			"connection_count": uint64(server.GetConnectionCount()),
+			// todo (sessions count and identities count)
 		},
 	))
 	return metricsTypes
@@ -190,305 +190,347 @@ func (server *SystemgeServer) CheckBytesSent() uint64 {
 }
 func (server *SystemgeServer) GetBytesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetBytesSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetBytesSent()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckBytesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckBytesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckBytesReceived()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetBytesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetBytesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetBytesReceived()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckAsyncMessagesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckAsyncMessagesSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckAsyncMessagesSent()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetAsyncMessagesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetAsyncMessagesSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetAsyncMessagesSent()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckSyncRequestsSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckSyncRequestsSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckSyncRequestsSent()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetSyncRequestsSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetSyncRequestsSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetSyncRequestsSent()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckSyncSuccessResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckSyncSuccessResponsesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckSyncSuccessResponsesReceived()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetSyncSuccessResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetSyncSuccessResponsesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetSyncSuccessResponsesReceived()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckSyncFailureResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckSyncFailureResponsesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckSyncFailureResponsesReceived()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetSyncFailureResponsesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetSyncFailureResponsesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetSyncFailureResponsesReceived()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckNoSyncResponseReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckNoSyncResponseReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckNoSyncResponseReceived()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetNoSyncResponseReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetNoSyncResponseReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetNoSyncResponseReceived()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckInvalidMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckInvalidMessagesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckInvalidMessagesReceived()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetInvalidMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetInvalidMessagesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetInvalidMessagesReceived()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckSyncResponsesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckSyncResponsesSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckSyncResponsesSent()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetSyncResponsesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetSyncResponsesSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetSyncResponsesSent()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckMessagesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckMessagesReceived()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetMessagesReceived() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetMessagesReceived()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetMessagesReceived()
+		}
 	}
 	return sum
 }
 
 func (server *SystemgeServer) CheckRejectedMessages() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckRejectedMessages()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckRejectedMessages()
+		}
 	}
 	return sum
 }
 func (server *SystemgeServer) GetRejectedMessages() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.GetRejectedMessages()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).GetRejectedMessages()
+		}
 	}
 	return sum
 }
