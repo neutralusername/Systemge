@@ -156,3 +156,6 @@ const SessionAlreadyAccepted = "sessionAlreadyAccepted" // when a session is alr
 
 const SessionDoesNotExist = "sessionDoesNotExist"   // when attempting an operation that requires a particular session to exist
 const IdentityDoesNotExist = "identityDoesNotExist" // when attempting an operation that requires a particular identity to exist
+
+const ExceededMaxClientNameLength = "exceededMaxClientNameLength" // when a client name exceeds the maximum size
+const ReceivedEmptyClientName = "receivedEmptyClientName"         // when a client name is empty
