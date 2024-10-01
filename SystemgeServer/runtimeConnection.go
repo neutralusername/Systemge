@@ -10,25 +10,7 @@ import (
 
 func (server *SystemgeServer) RemoveConnection(name string) error {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
-
-	if event := server.onEvent(Event.NewInfo(
-		Event.HandlingDisconnection,
-		"disconnecting systemgeConnection",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.DisconnectClientRuntime,
-			Event.ClientType:   Event.SystemgeConnection,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
+	defer server.statusMutex.RUnlock()
 
 	if server.status != Status.Started {
 		server.onEvent(Event.NewWarningNoOption(

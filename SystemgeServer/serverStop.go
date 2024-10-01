@@ -47,6 +47,11 @@ func (server *SystemgeServer) Stop() error {
 		))
 	}
 	server.sessionManager.Stop()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			session.GetTimeout().Trigger()
+		}
+	}
 	server.waitGroup.Wait()
 	server.status = Status.Stopped
 
