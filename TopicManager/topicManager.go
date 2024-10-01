@@ -46,9 +46,10 @@ type queueStruct struct {
 }
 
 // modes: (l == large enough to never be full)
-// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "sequential"
-// topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
+// topicQueueSize: 0, queueSize: 0 concurrentCalls: false -> "non deterministic sequential"
+// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "deterministic sequential"
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
+// topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
 func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32, concurrentCalls bool) *TopicManager {
 	if topicHandlers == nil {
