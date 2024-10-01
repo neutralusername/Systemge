@@ -2,7 +2,6 @@ package TopicManager
 
 import (
 	"errors"
-	"sync"
 )
 
 type TopicHandler func(...any) (any, error)
@@ -16,8 +15,6 @@ type Config struct {
 type TopicManager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
-
-	mutex sync.RWMutex
 
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
@@ -124,8 +121,8 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 	return <-response, <-err
 }
 
-func (messageHandler *TopicManager) Close() {
-
+func (messageHandler *TopicManager) Close() error {
+	return nil
 }
 
 func (messageHandler *TopicManager) AddTopic() error {
@@ -136,10 +133,18 @@ func (messageHandler *TopicManager) RemoveTopic() error {
 	return nil
 }
 
-func (messageHandler *TopicManager) GetTopics() []string {
+func (messageHandler *TopicManager) GetHandler(topic string) TopicHandler {
+	return nil
+}
+
+func (messageHandler *TopicManager) GetUnknownHandler() TopicHandler {
 	return nil
 }
 
 func (messageHandler *TopicManager) SetUnknownHandler() error {
+	return nil
+}
+
+func (messageHandler *TopicManager) GetTopics() []string {
 	return nil
 }
