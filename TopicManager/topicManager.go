@@ -2,19 +2,18 @@ package TopicManager
 
 import (
 	"errors"
+	"sync"
 )
 
 type TopicHandler func(...any) (any, error)
 type TopicHandlers map[string]TopicHandler
 
-type Config struct {
-	Sequential bool
-	Concurrent bool
-}
-
 type TopicManager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
+
+	isStarted   bool
+	statusMutex sync.Mutex
 
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
@@ -24,14 +23,6 @@ type TopicManager struct {
 	topicQueueSize  uint32
 	concurrentCalls bool
 }
-
-/* type TopicManager interface {
-	HandleTopic(string, ...any) (any, error)
-	AddTopic(string, TopicHandler)
-	RemoveTopic(string)
-	GetTopics() []string
-	SetUnknownHandler(TopicHandler)
-} */
 
 type queueStruct struct {
 	topic                string
@@ -121,8 +112,12 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 	return <-response, <-err
 }
 
-func (messageHandler *TopicManager) Close() error {
-	return nil
+func (topicManager *TopicManager) Start() error {
+
+}
+
+func (topicMananger *TopicManager) Stop() error {
+
 }
 
 func (messageHandler *TopicManager) AddTopic() error {
