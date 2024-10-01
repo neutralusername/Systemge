@@ -129,6 +129,22 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 	return websocketConnection.id
 }
 
+func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+	if websocketConnection.id != "" {
+		server.onEvent(Event.NewWarningNoOption(
+			Event.SessionAlreadyAccepted,
+			"websocketConnection is already accepted",
+			Event.Context{
+				Event.Circumstance: Event.ReceiveRuntime,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.Identity:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+			}),
+		)
+		return nil, errors.New("websocketConnection is already accepted")
+	}
+	return server.receive(websocketConnection, Event.ReceiveRuntime)
+}
 func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection, circumstance string) ([]byte, error) {
 	websocketConnection.receiveMutex.Lock()
 	defer websocketConnection.receiveMutex.Unlock()
