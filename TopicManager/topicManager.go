@@ -45,7 +45,6 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		unknownTopicHandler: unknownTopicHandler,
 		queue:               make(chan *queueStruct, queueSize),
 		topicQueues:         make(map[string]chan *queueStruct),
-		unknownTopicQueue:   make(chan *queueStruct, topicQueueSize),
 		queueSize:           queueSize,
 		topicQueueSize:      topicQueueSize,
 		concurrentCalls:     concurrentCalls,
@@ -56,6 +55,10 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		topicManager.topicQueues[topic] = queue
 		topicManager.topicHandlers[topic] = handler
 		go topicManager.handleTopic(queue, handler)
+	}
+	if unknownTopicHandler != nil {
+		topicManager.unknownTopicQueue = make(chan *queueStruct, queueSize)
+		go topicManager.handleTopic(topicManager.unknownTopicQueue, unknownTopicHandler)
 	}
 	return topicManager
 }
@@ -89,7 +92,7 @@ func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler T
 	}
 }
 
-// can not be called after Close or will cause panic. could add a check if closed but there would still be edge cases i can't fix a the moment
+// can not be called after Close or will cause panic.
 func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
 	response := make(chan any)
 	err := make(chan error)
@@ -119,21 +122,5 @@ func (topicManager *TopicManager) Close() error {
 	}
 	close(topicManager.unknownTopicQueue)
 
-	return nil
-}
-
-func (messageHandler *TopicManager) GetHandler(topic string) TopicHandler {
-	return nil
-}
-
-func (messageHandler *TopicManager) GetUnknownHandler() TopicHandler {
-	return nil
-}
-
-func (messageHandler *TopicManager) SetUnknownHandler() error {
-	return nil
-}
-
-func (messageHandler *TopicManager) GetTopics() []string {
 	return nil
 }
