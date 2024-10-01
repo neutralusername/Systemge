@@ -23,9 +23,9 @@ type SessionManager struct {
 	identities   map[string]*Identity
 	sessions     map[string]*Session
 
-	acceptSessions      bool
-	waitgroup           sync.WaitGroup
-	acceptSessionsMutex sync.Mutex
+	isStarted   bool
+	waitgroup   sync.WaitGroup
+	statusMutex sync.Mutex
 
 	eventHandler Event.Handler
 }
@@ -49,7 +49,7 @@ func NewSessionManager(name string, config *Config.SessionManager, eventHandler 
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
 
-		acceptSessions: false,
+		isStarted: false,
 
 		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.8,
 
@@ -59,7 +59,7 @@ func NewSessionManager(name string, config *Config.SessionManager, eventHandler 
 
 func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
 	manager.sessionMutex.Lock()
-	if !manager.acceptSessions {
+	if !manager.isStarted {
 		manager.sessionMutex.Unlock()
 		return nil, errors.New("session manager not accepting sessions")
 	}
@@ -137,30 +137,58 @@ func (manager *SessionManager) cleanupSession(session *Session) {
 }
 
 func (manager *SessionManager) Start() error {
-	manager.acceptSessionsMutex.Lock()
-	defer manager.acceptSessionsMutex.Unlock()
+	manager.statusMutex.Lock()
+	defer manager.statusMutex.Unlock()
+
+	if event := manager.onEvent(Event.NewInfo(
+		Event.ServiceStarting,
+		"starting sessionManager",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.ServiceStart,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
 
 	manager.sessionMutex.Lock()
-	if manager.acceptSessions {
+	if manager.isStarted {
 		manager.sessionMutex.Unlock()
+		manager.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStarted,
+			"session manager already started",
+			Event.Context{
+				Event.Circumstance: Event.ServiceStart,
+			},
+		))
 		return errors.New("session manager already accepting sessions")
 	}
-	manager.acceptSessions = true
+	manager.sessionId = GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
+	manager.isStarted = true
 	manager.sessionMutex.Unlock()
 
+	manager.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStarted,
+		"sessionManager started",
+		Event.Context{
+			Event.Circumstance: Event.ServiceStart,
+		},
+	))
 	return nil
 }
 
 func (manager *SessionManager) Stop() error {
-	manager.acceptSessionsMutex.Lock()
-	defer manager.acceptSessionsMutex.Unlock()
+	manager.statusMutex.Lock()
+	defer manager.statusMutex.Unlock()
 
 	manager.sessionMutex.Lock()
-	if !manager.acceptSessions {
+	if !manager.isStarted {
 		manager.sessionMutex.Unlock()
 		return errors.New("session manager already rejecting sessions")
 	}
-	manager.acceptSessions = false
+	manager.isStarted = false
 	manager.sessionMutex.Unlock()
 
 	manager.waitgroup.Wait()
@@ -227,7 +255,7 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 func (manager *SessionManager) GetStatus() int {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
-	if manager.acceptSessions {
+	if manager.isStarted {
 		return Status.Started
 	}
 	return Status.Stopped
@@ -242,7 +270,7 @@ func (server *SessionManager) onEvent(event *Event.Event) *Event.Event {
 }
 func (server *SessionManager) GetContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.SystemgeServer,
+		Event.ServiceType:   Event.SessionManager,
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.GetStatus()),
 		Event.Function:      Event.GetCallerFuncName(2),
