@@ -12,14 +12,12 @@ type TopicManager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
 
-	isCLosed bool
+	isCLosed   bool
+	closeMutex sync.Mutex
 
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
-	topicStopChannels map[string]chan struct{}
 	unknownTopicQueue chan *queueStruct
-
-	mutex sync.Mutex
 
 	queueSize       uint32
 	topicQueueSize  uint32
@@ -47,7 +45,6 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		unknownTopicHandler: unknownTopicHandler,
 		queue:               make(chan *queueStruct, queueSize),
 		topicQueues:         make(map[string]chan *queueStruct),
-		topicStopChannels:   make(map[string]chan struct{}),
 		unknownTopicQueue:   make(chan *queueStruct, topicQueueSize),
 		queueSize:           queueSize,
 		topicQueueSize:      topicQueueSize,
@@ -56,21 +53,15 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 	go topicManager.handleCalls()
 	for topic, handler := range topicHandlers {
 		queue := make(chan *queueStruct, topicManager.topicQueueSize)
-		stopChannel := make(chan struct{})
 		topicManager.topicQueues[topic] = queue
 		topicManager.topicHandlers[topic] = handler
-		topicManager.topicStopChannels[topic] = stopChannel
-		go topicManager.handleTopic(queue, handler, stopChannel)
+		go topicManager.handleTopic(queue, handler)
 	}
 	return topicManager
 }
 
 func (topicManager *TopicManager) handleCalls() {
-	for {
-		queueStruct := <-topicManager.queue
-		if queueStruct == nil {
-			return
-		}
+	for queueStruct := range topicManager.queue {
 		if queue := topicManager.topicQueues[queueStruct.topic]; queue != nil {
 			queue <- queueStruct
 		} else if topicManager.unknownTopicQueue != nil {
@@ -82,14 +73,8 @@ func (topicManager *TopicManager) handleCalls() {
 	}
 }
 
-func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler TopicHandler, stopChannel chan struct{}) {
+func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
 	for queueStruct := range queue {
-		select {
-		case <-stopChannel:
-			return
-		default:
-		}
-
 		if topicManager.concurrentCalls {
 			go func() {
 				response, err := handler(queueStruct.args...)
@@ -119,7 +104,21 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 }
 
 func (topicManager *TopicManager) Close() error {
+	topicManager.closeMutex.Lock()
+	defer topicManager.closeMutex.Unlock()
 
+	if topicManager.isCLosed {
+		return errors.New("topic manager already closed")
+	}
+
+	topicManager.isCLosed = true
+	close(topicManager.queue)
+	for _, queue := range topicManager.topicQueues {
+		close(queue)
+	}
+	close(topicManager.unknownTopicQueue)
+
+	return nil
 }
 
 func (messageHandler *TopicManager) GetHandler(topic string) TopicHandler {
