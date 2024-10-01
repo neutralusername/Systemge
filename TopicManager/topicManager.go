@@ -55,7 +55,12 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 	}
 	go topicManager.handleCalls()
 	for topic, handler := range topicHandlers {
-		topicManager.AddTopic(topic, handler)
+		queue := make(chan *queueStruct, topicManager.topicQueueSize)
+		stopChannel := make(chan struct{})
+		topicManager.topicQueues[topic] = queue
+		topicManager.topicHandlers[topic] = handler
+		topicManager.topicStopChannels[topic] = stopChannel
+		go topicManager.handleTopic(queue, handler, stopChannel)
 	}
 	return topicManager
 }
