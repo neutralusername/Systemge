@@ -110,7 +110,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 				Event.Circumstance: Event.ServerHandshake,
 				Event.IdentityType: Event.TcpSystemgeConnection,
 				Event.Address:      netConn.RemoteAddr().String(),
-				Event.ClientName:   message.GetPayload(),
+				Event.Identity:     message.GetPayload(),
 			},
 		)); !event.IsInfo() {
 			return nil, event.GetError()
@@ -124,6 +124,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.Context{
 				Event.Circumstance: Event.ServerHandshake,
 				Event.IdentityType: Event.TcpSystemgeConnection,
+				Event.Identity:     message.GetPayload(),
 				Event.Address:      netConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -140,7 +141,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 				Event.Circumstance: Event.ServerHandshake,
 				Event.IdentityType: Event.TcpSystemgeConnection,
 				Event.Address:      netConn.RemoteAddr().String(),
-				Event.ClientName:   message.GetPayload(),
+				Event.Identity:     message.GetPayload(),
 			},
 		))
 		return nil, err
@@ -156,7 +157,7 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 			Event.Circumstance: Event.ServerHandshake,
 			Event.IdentityType: Event.TcpSystemgeConnection,
 			Event.Address:      netConn.RemoteAddr().String(),
-			Event.ClientName:   message.GetPayload(),
+			Event.Identity:     message.GetPayload(),
 		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()

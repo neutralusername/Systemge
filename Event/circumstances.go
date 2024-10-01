@@ -18,6 +18,8 @@ const SendRuntime = "sendRuntime"
 
 const DisconnectClientRuntime = "disconnectClientRuntime"
 
+const AcceptTcpSystemgeConnection = "tcpSystemgeConnectionAccept"
+
 const ServiceStart = "start"
 const ServiceStop = "stop"
 

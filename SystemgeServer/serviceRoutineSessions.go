@@ -49,7 +49,7 @@ func (server *SystemgeServer) handleNewSession() error {
 	connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 	if err != nil {
 		event := server.onEvent(Event.NewInfo(
-			Event.TcpSystemgeListenerAcceptFailed,
+			Event.AcceptTcpSystemgeListenerFailed,
 			err.Error(),
 			Event.Cancel,
 			Event.Cancel,
