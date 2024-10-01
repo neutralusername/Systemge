@@ -80,7 +80,7 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 			connection, ok := client.nameConnections[clientName]
 			if !ok {
 				if event := client.onEvent(Event.NewWarning(
-					Event.ClientDoesNotExist,
+					Event.SessionDoesNotExist,
 					"client does not exist",
 					Event.Cancel,
 					Event.Skip,
@@ -208,7 +208,7 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 			connection, ok := client.nameConnections[clientName]
 			if !ok {
 				if event := client.onEvent(Event.NewWarning(
-					Event.ClientDoesNotExist,
+					Event.SessionDoesNotExist,
 					"client does not exist",
 					Event.Cancel,
 					Event.Skip,

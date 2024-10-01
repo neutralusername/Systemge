@@ -84,7 +84,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 			sessions := server.sessionManager.GetSessions(identity)
 			if len(sessions) == 0 {
 				if event := server.onEvent(Event.NewWarning(
-					Event.ClientDoesNotExist,
+					Event.SessionDoesNotExist,
 					"client does not exist",
 					Event.Cancel,
 					Event.Skip,
@@ -221,7 +221,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 			sessions := server.sessionManager.GetSessions(identity)
 			if len(sessions) == 0 {
 				if event := server.onEvent(Event.NewWarning(
-					Event.ClientDoesNotExist,
+					Event.SessionDoesNotExist,
 					"client does not exist",
 					Event.Cancel,
 					Event.Skip,

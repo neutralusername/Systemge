@@ -46,12 +46,12 @@ const MessageHandlingLoopStopped = "messageHandlingLoopStopped"   // after stopp
 const MessageHandlingLoopAlreadyStarted = "messageHandlingLoopAlreadyStarted" // when attempting an operation that requires the message handling loop to be stopped
 const MessageHandlingLoopAlreadyStopped = "messageHandlingLoopAlreadyStopped" // when attempting an operation that requires the message handling loop to be started
 
-const ReadingMessage = "receivingMessage"     // before reading a message from a client
-const ReadMessage = "receivedMessage"         // after reading a message from a client
+const ReadingMessage = "receivingMessage"     // before reading a message
+const ReadMessage = "receivedMessage"         // after reading a message
 const ReadMessageFailed = "readMessageFailed" // when a write operation returns an error
 
-const WritingMessage = "writingMessage"         // before writing a message to a client
-const WroteMessage = "wroteMessage"             // after writing a message to a client
+const WritingMessage = "writingMessage"         // before writing a message
+const WroteMessage = "wroteMessage"             // after writing a message
 const WriteMessageFailed = "writeMessageFailed" // when a write operation returns an error
 
 const SendingMultiMessage = "sendingMultiMessage" // when starting a multi message send operation
@@ -67,23 +67,8 @@ const ReceivingFromChannelFailed = "receivingFromChannelFailed"   // when a rece
 const SendingToChannel = "sendingToChannel" // before sending an item to a channel
 const SentToChannel = "sentToChannel"       // after sending an item to a channel
 
-const ClientAlreadyInGroup = "clientAlreadyInGroup" // when attempting an operation that requires the client to be not in a particular group
-const ClientNotInGroup = "clientNotInGroup"         // when attempting an operation that requires the client to be in a particular group
-
-const AddingClientsToGroup = "addingClientsToGroup" // before adding clients to a group
-const AddedClientsToGroup = "addedClientsToGroup"   // after adding clients to a group
-
-const RemovingClientsFromGroup = "removingClientsFromGroup" // before removing clients from a group
-const RemovedClientsFromGroup = "removedClientsFromGroup"   // after removing clients from a group
-
-const CreatingGroup = "creatingGroup" // before creating a group
-
-const GroupDoesNotExist = "groupDoesNotExist" // when attempting an operation that requires a particular group to exist
-
 const HandlingHttpRequest = "handlingHttpRequest" // before handling an http request
 const HandledHttpRequest = "handledHttpRequest"   // after handling an http request
-
-const ClientDoesNotExist = "clientDoesNotExist" // when attempting an operation that requires a particular client to exist
 
 const DeserializingFailed = "deserializingFailed" // when a deserialization operation returns an error
 
@@ -109,9 +94,6 @@ const HeartbeatRoutineFinished = "heartbeatRoutineFinished" // when a heartbeat 
 const ServerHandshakeStarted = "serverHandshakeStarted"   // when a server handshake is started
 const ServerHandshakeFinished = "serverHandshakeFinished" // when a server handshake is finished
 const ServerHandshakeFailed = "serverHandshakeFailed"     // when a server handshake returns an error
-
-const ExceededMaxClientNameLength = "exceededMaxClientNameLength" // when a client name exceeds the maximum size
-const ReceivedEmptyClientName = "receivedEmptyClientName"         // when a client name is empty
 
 const DuplicateName = "duplicateName"       // when a name is already in use
 const DuplicateAddress = "duplicateAddress" // when an address is already in use
@@ -171,3 +153,6 @@ const SessionDisconnecting = "sessionDisconnecting" // before disconnecting a se
 
 const SessionNotAccepted = "sessionNotAccepted"         // when a session is not accepted
 const SessionAlreadyAccepted = "sessionAlreadyAccepted" // when a session is already accepted
+
+const SessionDoesNotExist = "sessionDoesNotExist"   // when attempting an operation that requires a particular session to exist
+const IdentityDoesNotExist = "identityDoesNotExist" // when attempting an operation that requires a particular identity to exist

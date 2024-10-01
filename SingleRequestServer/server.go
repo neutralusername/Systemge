@@ -75,7 +75,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 			systemgeConnection := server.systemgeServer.GetConnection(clientName)
 			if systemgeConnection == nil {
 				server.onEvent(Event.NewErrorNoOption(
-					Event.ClientDoesNotExist,
+					Event.SessionDoesNotExist,
 					"client does not exist",
 					Event.Context{
 						Event.Circumstance: Event.SingleRequestServerRequest,
