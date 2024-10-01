@@ -153,10 +153,9 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 	return nil
 }
 
-func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
-	targetClientIds := Helpers.JsonMarshal(clientNames)
+func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...string) (<-chan *Message.Message, error) {
+	targetIdentities := Helpers.JsonMarshal(identities)
 	server.statusMutex.RLock()
-	server.mutex.RLock()
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMultiMessage,
@@ -167,12 +166,11 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 		Event.Context{
 			Event.Circumstance:     Event.SyncRequest,
 			Event.IdentityType:     Event.SystemgeConnection,
-			Event.TargetIdentities: targetClientIds,
+			Event.TargetIdentities: targetIdentities,
 			Event.Topic:            topic,
 			Event.Payload:          payload,
 		},
 	)); !event.IsInfo() {
-		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 		return nil, event.GetError()
 	}
@@ -184,44 +182,53 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 			Event.Context{
 				Event.Circumstance:     Event.SyncRequest,
 				Event.IdentityType:     Event.SystemgeConnection,
-				Event.TargetIdentities: targetClientIds,
+				Event.TargetIdentities: targetIdentities,
 				Event.Topic:            topic,
 				Event.Payload:          payload,
 			},
 		))
-		server.mutex.Unlock()
 		server.statusMutex.RUnlock()
 		return nil, errors.New("systemgeServer already stopped")
 	}
 
 	connections := make([]SystemgeConnection.SystemgeConnection, 0)
-	if len(clientNames) == 0 {
-		for _, connection := range server.clients {
-			if connection == nil {
-				if event := server.onEvent(Event.NewWarning(
-					Event.ClientNotAccepted,
-					"client not accepted",
-					Event.Cancel,
-					Event.Skip,
-					Event.Skip,
-					Event.Context{
-						Event.Circumstance:     Event.SyncRequest,
-						Event.IdentityType:     Event.SystemgeConnection,
-						Event.TargetIdentities: targetClientIds,
-						Event.Topic:            topic,
-						Event.Payload:          payload,
-					},
-				)); !event.IsInfo() {
-					return nil, event.GetError()
+	if len(identities) == 0 {
+		for _, identity := range server.sessionManager.GetIdentities() {
+			for _, session := range server.sessionManager.GetSessions(identity) {
+				if !session.IsAccepted() {
+					event := server.onEvent(Event.NewWarning(
+						Event.SessionNotAccepted,
+						"session not accepted",
+						Event.Cancel,
+						Event.Skip,
+						Event.Continue,
+						Event.Context{
+							Event.Circumstance:     Event.AsyncMessage,
+							Event.IdentityType:     Event.SystemgeConnection,
+							Event.TargetIdentities: targetIdentities,
+							Event.Topic:            topic,
+							Event.Payload:          payload,
+						},
+					))
+					if event.IsError() {
+						server.statusMutex.RUnlock()
+						return nil, event.GetError()
+					}
+					if event.IsWarning() {
+						continue
+					}
 				}
-				continue
+				connection, ok := session.Get("connection")
+				if !ok {
+					continue
+				}
+				connections = append(connections, connection.(SystemgeConnection.SystemgeConnection))
 			}
-			connections = append(connections, connection)
 		}
 	} else {
-		for _, clientName := range clientNames {
-			connection, ok := server.clients[clientName]
-			if !ok {
+		for _, identity := range identities {
+			sessions := server.sessionManager.GetSessions(identity)
+			if len(sessions) == 0 {
 				if event := server.onEvent(Event.NewWarning(
 					Event.ClientDoesNotExist,
 					"client does not exist",
@@ -231,38 +238,46 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, clientNames ...
 					Event.Context{
 						Event.Circumstance:     Event.SyncRequest,
 						Event.IdentityType:     Event.SystemgeConnection,
-						Event.TargetIdentities: targetClientIds,
+						Event.TargetIdentities: targetIdentities,
 						Event.Topic:            topic,
 						Event.Payload:          payload,
 					},
 				)); !event.IsInfo() {
 					return nil, event.GetError()
 				}
-				continue
 			}
-			if connection == nil {
-				if event := server.onEvent(Event.NewWarning(
-					Event.ClientNotAccepted,
-					"client not accepted",
-					Event.Cancel,
-					Event.Skip,
-					Event.Skip,
-					Event.Context{
-						Event.Circumstance:     Event.SyncRequest,
-						Event.IdentityType:     Event.SystemgeConnection,
-						Event.TargetIdentities: targetClientIds,
-						Event.Topic:            topic,
-						Event.Payload:          payload,
-					},
-				)); !event.IsInfo() {
-					return nil, event.GetError()
+			for _, session := range sessions {
+				if !session.IsAccepted() {
+					event := server.onEvent(Event.NewWarning(
+						Event.SessionNotAccepted,
+						"session not accepted",
+						Event.Cancel,
+						Event.Skip,
+						Event.Continue,
+						Event.Context{
+							Event.Circumstance:     Event.AsyncMessage,
+							Event.IdentityType:     Event.SystemgeConnection,
+							Event.TargetIdentities: targetIdentities,
+							Event.Topic:            topic,
+							Event.Payload:          payload,
+						},
+					))
+					if event.IsError() {
+						server.statusMutex.RUnlock()
+						return nil, event.GetError()
+					}
+					if event.IsWarning() {
+						continue
+					}
 				}
-				continue
+				connection, ok := session.Get("connection")
+				if !ok {
+					continue
+				}
+				connections = append(connections, connection.(SystemgeConnection.SystemgeConnection))
 			}
-			connections = append(connections, connection)
 		}
 	}
-	server.mutex.Unlock()
 	server.statusMutex.RUnlock()
 
 	return SystemgeConnection.MultiSyncRequest(topic, payload, connections...), nil
