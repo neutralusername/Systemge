@@ -26,7 +26,6 @@ const ServiceStop = "stop"
 const Broadcast = "broadcast"
 const Unicast = "unicast"
 const Multicast = "multicast"
-const Groupcast = "groupcast"
 
 const SyncResponse = "syncResponse"
 const AsyncMessage = "asyncMessage"
@@ -35,14 +34,6 @@ const SyncRequest = "syncRequest"
 const AddSyncResponse = "addSyncResponse"
 const RemoveSyncRequest = "removeSyncRequest"
 const AbortSyncRequest = "abortSyncRequest"
-
-const AddClientsToGroup = "addClientsToGroup"
-const RemoveClientsFromGroup = "removeClientsFromGroup"
-const GetGroupClients = "getGroupClients"
-const GetClientGroups = "getClientGroups"
-const IsClientInGroup = "isClientInGroup"
-
-const ClientGroupCount = "clientGroupCount"
 
 const ServerHandshake = "serverHandshake"
 
