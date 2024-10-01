@@ -2,7 +2,6 @@ package TopicManager
 
 import (
 	"errors"
-	"sync"
 )
 
 type TopicHandler func(...any) (any, error)
@@ -12,8 +11,7 @@ type TopicManager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
 
-	isStarted   bool
-	statusMutex sync.Mutex
+	isStarted bool
 
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
@@ -99,6 +97,7 @@ func (topicManager *TopicManager) handleCalls() {
 }
 
 func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
+
 	response := make(chan any)
 	err := make(chan error)
 
@@ -112,10 +111,12 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 	return <-response, <-err
 }
 
+// Caller is responsible for preventing concurrent calls to Start and Stop
 func (topicManager *TopicManager) Start() error {
 
 }
 
+// Caller is responsible for preventing concurrent calls to Start and Stop
 func (topicMananger *TopicManager) Stop() error {
 
 }
