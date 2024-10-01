@@ -14,9 +14,7 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
 				Event.Circumstance: Event.HeartbeatRoutine,
-				Event.IdentityType: Event.TcpSystemgeConnection,
-				Event.ClientName:   connection.GetName(),
-				Event.Address:      connection.GetIp(),
+				Event.Address:      connection.GetAddress(),
 			},
 		))
 		connection.waitGroup.Done()
@@ -30,9 +28,6 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.HeartbeatRoutine,
-			Event.IdentityType: Event.TcpSystemgeConnection,
-			Event.ClientName:   connection.GetName(),
-			Event.Address:      connection.GetIp(),
 		},
 	)); !event.IsInfo() {
 		return
@@ -51,9 +46,6 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.HeartbeatRoutine,
-					Event.IdentityType: Event.TcpSystemgeConnection,
-					Event.ClientName:   connection.GetName(),
-					Event.Address:      connection.GetIp(),
 				},
 			))
 			if event.IsWarning() {
@@ -83,9 +75,6 @@ func (connection *TcpSystemgeConnection) heartbeatLoop() {
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.HeartbeatRoutine,
-					Event.IdentityType: Event.TcpSystemgeConnection,
-					Event.ClientName:   connection.GetName(),
-					Event.Address:      connection.GetIp(),
 				},
 			)); !event.IsInfo() {
 				return
