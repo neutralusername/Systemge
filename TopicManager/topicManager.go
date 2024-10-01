@@ -117,42 +117,6 @@ func (topicManager *TopicManager) Close() error {
 
 }
 
-func (messageHandler *TopicManager) AddTopic(topic string, handler TopicHandler) error {
-	messageHandler.mutex.Lock()
-	defer messageHandler.mutex.Unlock()
-	if messageHandler.isCLosed {
-		return errors.New("topic manager is closed")
-	}
-	if messageHandler.topicQueues[topic] != nil {
-		return errors.New("topic already exists")
-	}
-	queue := make(chan *queueStruct, messageHandler.topicQueueSize)
-	stopChannel := make(chan struct{})
-	messageHandler.topicQueues[topic] = queue
-	messageHandler.topicHandlers[topic] = handler
-	messageHandler.topicStopChannels[topic] = stopChannel
-	go messageHandler.handleTopic(queue, handler, stopChannel)
-	return nil
-}
-
-func (messageHandler *TopicManager) RemoveTopic(topic string) error {
-	messageHandler.mutex.Lock()
-	defer messageHandler.mutex.Unlock()
-	if messageHandler.isCLosed {
-		return errors.New("topic manager is closed")
-	}
-	if messageHandler.topicQueues[topic] == nil {
-		return errors.New("topic does not exist")
-	}
-	close(messageHandler.topicQueues[topic])
-	close(messageHandler.topicStopChannels[topic])
-
-	delete(messageHandler.topicQueues, topic)
-	delete(messageHandler.topicHandlers, topic)
-	delete(messageHandler.topicStopChannels, topic)
-	return nil
-}
-
 func (messageHandler *TopicManager) GetHandler(topic string) TopicHandler {
 	return nil
 }
