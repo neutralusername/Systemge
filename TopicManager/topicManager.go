@@ -22,6 +22,7 @@ type TopicManager struct {
 
 	mutex sync.RWMutex
 
+	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
 	unknownTopicQueue chan *queueStruct
 
