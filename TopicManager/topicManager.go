@@ -45,6 +45,11 @@ type queueStruct struct {
 	responseErrorChannel chan error
 }
 
+// modes: (l == large enough to never be full)
+// topicQueueSize: 0, queueSize: l concurrentCalls: false -> "sequential"
+// topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
+// topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
+
 func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32, concurrentCalls bool) *TopicManager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
@@ -73,15 +78,15 @@ func (topicManager *TopicManager) handleCalls() {
 		if queueStruct == nil {
 			return
 		}
-		if queue := topicManager.topicQueues[queueStruct.topic]; queue == nil {
+		if queue := topicManager.topicQueues[queueStruct.topic]; queue != nil {
+
+		} else {
 			if topicManager.unknownTopicQueue != nil {
 				topicManager.unknownTopicQueue <- queueStruct
 			} else {
 				queueStruct.responseAnyChannel <- nil
 				queueStruct.responseErrorChannel <- errors.New("no handler for topic")
 			}
-		} else {
-
 		}
 	}
 }
