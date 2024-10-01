@@ -36,6 +36,7 @@ func (manager *SessionManager) Start() error {
 		))
 		return errors.New("session manager already accepting sessions")
 	}
+
 	manager.sessionId = Tools.GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	manager.isStarted = true
 	manager.sessionMutex.Unlock()
