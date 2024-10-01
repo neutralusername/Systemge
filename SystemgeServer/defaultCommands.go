@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Helpers"
 )
 
 func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
@@ -35,27 +34,6 @@ func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
 			return "", err
 		}
 		return "success", nil
-	}
-	serverCommands["removeIdentity"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", errors.New("expected 1 argument")
-		}
-		err := server.RemoveIdentity(args[0])
-		if err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	serverCommands["getConnectionNamesAndAddresses"] = func(args []string) (string, error) {
-		names := server.GetConnectionNamesAndAddresses()
-		json, err := json.Marshal(names)
-		if err != nil {
-			return "", err
-		}
-		return string(json), nil
-	}
-	serverCommands["getConnectionCount"] = func(args []string) (string, error) {
-		return Helpers.IntToString(server.GetConnectionCount()), nil
 	}
 	serverCommands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
