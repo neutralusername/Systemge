@@ -125,33 +125,7 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 		connection.Close()
 	}
 
-	server.onEvent(Event.NewInfoNoOption(
-		Event.HandlingDisconnection,
-		"disconnecting systemgeConnection",
-		Event.Context{
-			Event.Circumstance:  Event.HandleDisconnection,
-			Event.ClientType:    Event.SystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetAddress(),
-		},
-	))
-
-	server.removeSystemgeConnection(connection.GetName())
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.HandledDisconnection,
-		"systemgeConnection disconnected",
-		Event.Context{
-			Event.Circumstance:  Event.HandleDisconnection,
-			Event.ClientType:    Event.SystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetAddress(),
-		},
-	))
-}
-
-func (server *SystemgeServer) removeSystemgeConnection(name string) {
-	sessions := server.sessionManager.GetSessions(name)
+	sessions := server.sessionManager.GetSessions(connection.GetName())
 	for _, session := range sessions {
 		session.GetTimeout().Trigger()
 	}
