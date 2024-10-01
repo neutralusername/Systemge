@@ -15,7 +15,7 @@ func (server *SystemgeServer) connectionRoutine() {
 			"stopped systemgeServer connection routine",
 			Event.Context{
 				Event.Circumstance: Event.ConnectionRoutine,
-				Event.ClientType:   Event.SystemgeConnection,
+				Event.IdentityType: Event.SystemgeConnection,
 			},
 		))
 		server.waitGroup.Done()
@@ -29,7 +29,7 @@ func (server *SystemgeServer) connectionRoutine() {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.ConnectionRoutine,
-			Event.ClientType:   Event.SystemgeConnection,
+			Event.IdentityType: Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
 		return
@@ -56,7 +56,7 @@ func (server *SystemgeServer) handleConnection() error {
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance: Event.HandleConnection,
-				Event.ClientType:   Event.SystemgeConnection,
+				Event.IdentityType: Event.SystemgeConnection,
 			},
 		))
 		if !event.IsInfo() {
@@ -76,7 +76,7 @@ func (server *SystemgeServer) handleConnection() error {
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance:  Event.HandleConnection,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetAddress(),
 			},

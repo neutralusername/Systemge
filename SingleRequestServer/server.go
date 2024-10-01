@@ -67,7 +67,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 					"client name context does not exist",
 					Event.Context{
 						Event.Circumstance: Event.SingleRequestServerRequest,
-						Event.ClientType:   Event.SystemgeConnection,
+						Event.IdentityType: Event.SystemgeConnection,
 					},
 				))
 				return
@@ -79,7 +79,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 					"client does not exist",
 					Event.Context{
 						Event.Circumstance: Event.SingleRequestServerRequest,
-						Event.ClientType:   Event.SystemgeConnection,
+						Event.IdentityType: Event.SystemgeConnection,
 						Event.ClientName:   clientName,
 					},
 				))
@@ -92,7 +92,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 					err.Error(),
 					Event.Context{
 						Event.Circumstance: Event.SingleRequestServerRequest,
-						Event.ClientType:   Event.SystemgeConnection,
+						Event.IdentityType: Event.SystemgeConnection,
 						Event.ClientName:   clientName,
 					},
 				))
@@ -108,7 +108,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 						Event.Context{
 							Event.Circumstance: Event.SingleRequestServerRequest,
 							Event.HandlerType:  Event.AsyncMessage,
-							Event.ClientType:   Event.SystemgeConnection,
+							Event.IdentityType: Event.SystemgeConnection,
 							Event.ClientName:   clientName,
 						},
 					))
@@ -126,7 +126,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 						Event.Context{
 							Event.Circumstance: Event.SingleRequestServerRequest,
 							Event.HandlerType:  Event.AsyncMessage,
-							Event.ClientType:   Event.SystemgeConnection,
+							Event.IdentityType: Event.SystemgeConnection,
 							Event.ClientName:   clientName,
 						},
 					))

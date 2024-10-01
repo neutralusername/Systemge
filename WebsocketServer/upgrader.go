@@ -16,7 +16,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				err.Error(),
 				Event.Context{
 					Event.Circumstance:  Event.WebsocketUpgrade,
-					Event.ClientType:    Event.HttpRequest,
+					Event.IdentityType:  Event.HttpRequest,
 					Event.ClientAddress: httpRequest.RemoteAddr,
 				}),
 			)
@@ -35,7 +35,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Context{
 					Event.Circumstance:    Event.WebsocketUpgrade,
 					Event.RateLimiterType: Event.Ip,
-					Event.ClientType:      Event.HttpRequest,
+					Event.IdentityType:    Event.HttpRequest,
 					Event.ClientAddress:   httpRequest.RemoteAddr,
 				}),
 			)
@@ -53,7 +53,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				err.Error(),
 				Event.Context{
 					Event.Circumstance:  Event.WebsocketUpgrade,
-					Event.ClientType:    Event.HttpRequest,
+					Event.IdentityType:  Event.HttpRequest,
 					Event.ClientAddress: httpRequest.RemoteAddr,
 				}),
 			)

@@ -54,7 +54,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Event.Context{
 				Event.Circumstance:  Event.HttpRequest,
 				Event.Pattern:       pattern,
-				Event.ClientType:    Event.HttpRequest,
+				Event.IdentityType:  Event.HttpRequest,
 				Event.ClientAddress: r.RemoteAddr,
 			},
 		)); !event.IsInfo() {
@@ -72,7 +72,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 				err.Error(),
 				Event.Context{
 					Event.Circumstance:  Event.HttpRequest,
-					Event.ClientType:    Event.HttpRequest,
+					Event.IdentityType:  Event.HttpRequest,
 					Event.ClientAddress: r.RemoteAddr,
 				}),
 			)
@@ -90,7 +90,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 					Event.Context{
 						Event.Circumstance:  Event.HttpRequest,
 						Event.Pattern:       pattern,
-						Event.ClientType:    Event.HttpRequest,
+						Event.IdentityType:  Event.HttpRequest,
 						Event.ClientAddress: r.RemoteAddr,
 					},
 				)); !event.IsWarning() {
@@ -110,7 +110,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 					Event.Context{
 						Event.Circumstance:  Event.HttpRequest,
 						Event.Pattern:       pattern,
-						Event.ClientType:    Event.HttpRequest,
+						Event.IdentityType:  Event.HttpRequest,
 						Event.ClientAddress: r.RemoteAddr,
 					},
 				)); !event.IsWarning() {
@@ -128,7 +128,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Event.Context{
 				Event.Circumstance:  Event.HttpRequest,
 				Event.Pattern:       pattern,
-				Event.ClientType:    Event.HttpRequest,
+				Event.IdentityType:  Event.HttpRequest,
 				Event.ClientAddress: r.RemoteAddr,
 			},
 		))

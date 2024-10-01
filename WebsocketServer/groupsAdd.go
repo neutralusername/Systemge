@@ -19,11 +19,11 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroup,
-			Event.Behaviour:       Event.Transactional,
-			Event.ClientType:      Event.WebsocketConnection,
-			Event.TargetClientIds: targetClientIds,
-			Event.GroupId:         groupId,
+			Event.Circumstance:     Event.AddClientsToGroup,
+			Event.Behaviour:        Event.Transactional,
+			Event.IdentityType:     Event.WebsocketConnection,
+			Event.TargetIdentities: targetClientIds,
+			Event.GroupId:          groupId,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -35,12 +35,12 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 				Event.ClientDoesNotExist,
 				"websocketConnection does not exist",
 				Event.Context{
-					Event.Circumstance:    Event.AddClientsToGroup,
-					Event.Behaviour:       Event.Transactional,
-					Event.ClientType:      Event.WebsocketConnection,
-					Event.ClientId:        websocketId,
-					Event.TargetClientIds: targetClientIds,
-					Event.GroupId:         groupId,
+					Event.Circumstance:     Event.AddClientsToGroup,
+					Event.Behaviour:        Event.Transactional,
+					Event.IdentityType:     Event.WebsocketConnection,
+					Event.ClientId:         websocketId,
+					Event.TargetIdentities: targetClientIds,
+					Event.GroupId:          groupId,
 				},
 			))
 			return errors.New("client does not exist")
@@ -50,12 +50,12 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 				Event.ClientAlreadyInGroup,
 				"websocketConnection is already in group",
 				Event.Context{
-					Event.Circumstance:    Event.AddClientsToGroup,
-					Event.Behaviour:       Event.Transactional,
-					Event.ClientType:      Event.WebsocketConnection,
-					Event.ClientId:        websocketId,
-					Event.TargetClientIds: targetClientIds,
-					Event.GroupId:         groupId,
+					Event.Circumstance:     Event.AddClientsToGroup,
+					Event.Behaviour:        Event.Transactional,
+					Event.IdentityType:     Event.WebsocketConnection,
+					Event.ClientId:         websocketId,
+					Event.TargetIdentities: targetClientIds,
+					Event.GroupId:          groupId,
 				},
 			))
 			return errors.New("websocketConnection is already in group")
@@ -70,11 +70,11 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AddClientsToGroup,
-				Event.Behaviour:       Event.Transactional,
-				Event.ClientType:      Event.WebsocketConnection,
-				Event.TargetClientIds: targetClientIds,
-				Event.GroupId:         groupId,
+				Event.Circumstance:     Event.AddClientsToGroup,
+				Event.Behaviour:        Event.Transactional,
+				Event.IdentityType:     Event.WebsocketConnection,
+				Event.TargetIdentities: targetClientIds,
+				Event.GroupId:          groupId,
 			},
 		)); !event.IsInfo() {
 			return event.GetError()
@@ -91,11 +91,11 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_transactional(grou
 		Event.AddedClientsToGroup,
 		"added websocketConnections to group",
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroup,
-			Event.Behaviour:       Event.Transactional,
-			Event.ClientType:      Event.WebsocketConnection,
-			Event.TargetClientIds: targetClientIds,
-			Event.GroupId:         groupId,
+			Event.Circumstance:     Event.AddClientsToGroup,
+			Event.Behaviour:        Event.Transactional,
+			Event.IdentityType:     Event.WebsocketConnection,
+			Event.TargetIdentities: targetClientIds,
+			Event.GroupId:          groupId,
 		},
 	))
 	return nil
@@ -113,11 +113,11 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroup,
-			Event.Behaviour:       Event.BestEffort,
-			Event.ClientType:      Event.WebsocketConnection,
-			Event.TargetClientIds: targetClientIds,
-			Event.GroupId:         groupId,
+			Event.Circumstance:     Event.AddClientsToGroup,
+			Event.Behaviour:        Event.BestEffort,
+			Event.IdentityType:     Event.WebsocketConnection,
+			Event.TargetIdentities: targetClientIds,
+			Event.GroupId:          groupId,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -131,11 +131,11 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AddClientsToGroup,
-				Event.Behaviour:       Event.BestEffort,
-				Event.ClientType:      Event.WebsocketConnection,
-				Event.TargetClientIds: targetClientIds,
-				Event.GroupId:         groupId,
+				Event.Circumstance:     Event.AddClientsToGroup,
+				Event.Behaviour:        Event.BestEffort,
+				Event.IdentityType:     Event.WebsocketConnection,
+				Event.TargetIdentities: targetClientIds,
+				Event.GroupId:          groupId,
 			},
 		)); !event.IsInfo() {
 			return event.GetError()
@@ -155,12 +155,12 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:    Event.AddClientsToGroup,
-					Event.Behaviour:       Event.BestEffort,
-					Event.ClientType:      Event.WebsocketConnection,
-					Event.ClientId:        websocketId,
-					Event.TargetClientIds: targetClientIds,
-					Event.GroupId:         groupId,
+					Event.Circumstance:     Event.AddClientsToGroup,
+					Event.Behaviour:        Event.BestEffort,
+					Event.IdentityType:     Event.WebsocketConnection,
+					Event.ClientId:         websocketId,
+					Event.TargetIdentities: targetClientIds,
+					Event.GroupId:          groupId,
 				},
 			))
 			if !event.IsInfo() {
@@ -177,11 +177,11 @@ func (server *WebsocketServer) AddWebsocketConnectionsToGroup_bestEffort(groupId
 		Event.AddedClientsToGroup,
 		"added websocketConnections to group",
 		Event.Context{
-			Event.Circumstance:    Event.AddClientsToGroup,
-			Event.Behaviour:       Event.BestEffort,
-			Event.ClientType:      Event.WebsocketConnection,
-			Event.TargetClientIds: targetClientIds,
-			Event.GroupId:         groupId,
+			Event.Circumstance:     Event.AddClientsToGroup,
+			Event.Behaviour:        Event.BestEffort,
+			Event.IdentityType:     Event.WebsocketConnection,
+			Event.TargetIdentities: targetClientIds,
+			Event.GroupId:          groupId,
 		},
 	))
 	return nil

@@ -21,7 +21,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.HandleAcception,
-			Event.ClientType:   Event.TcpSystemgeConnection,
+			Event.IdentityType: Event.TcpSystemgeConnection,
 		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
@@ -35,7 +35,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			"accepting TcpSystemgeConnection",
 			Event.Context{
 				Event.Circumstance: Event.HandleAcception,
-				Event.ClientType:   Event.TcpSystemgeConnection,
+				Event.IdentityType: Event.TcpSystemgeConnection,
 			},
 		))
 		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
@@ -118,7 +118,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.HandleAcception,
-				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.IdentityType:  Event.TcpSystemgeConnection,
 				Event.ClientAddress: netConn.RemoteAddr().String(),
 			},
 		))
@@ -135,7 +135,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleAcception,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientAddress: netConn.RemoteAddr().String(),
 		},
 	)); !event.IsInfo() {

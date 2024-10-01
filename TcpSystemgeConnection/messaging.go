@@ -22,7 +22,7 @@ func (connection *TcpSystemgeConnection) write(messageBytes []byte, circumstance
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  circumstance,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.Bytes:         string(messageBytes),
@@ -38,7 +38,7 @@ func (connection *TcpSystemgeConnection) write(messageBytes []byte, circumstance
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  circumstance,
-				Event.ClientType:    Event.WebsocketConnection,
+				Event.IdentityType:  Event.WebsocketConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetIp(),
 				Event.Bytes:         string(messageBytes),
@@ -56,7 +56,7 @@ func (connection *TcpSystemgeConnection) write(messageBytes []byte, circumstance
 		"message sent",
 		Event.Context{
 			Event.Circumstance:  circumstance,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.Bytes:         string(messageBytes),
@@ -74,7 +74,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 			"received nil message in SyncResponse",
 			Event.Context{
 				Event.Circumstance:  Event.SyncResponse,
-				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.IdentityType:  Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
 				Event.Message:       string(message.Serialize()),
@@ -91,7 +91,7 @@ func (connection *TcpSystemgeConnection) SyncResponse(message *Message.Message, 
 			"no sync token",
 			Event.Context{
 				Event.Circumstance:  Event.SyncResponse,
-				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.IdentityType:  Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
 				Event.Message:       string(message.Serialize()),
@@ -190,7 +190,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.AbortSyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.SyncToken:     syncToken,
@@ -205,7 +205,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 			"no sync token",
 			Event.Context{
 				Event.Circumstance:  Event.AbortSyncRequest,
-				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.IdentityType:  Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
 				Event.SyncToken:     syncToken,
@@ -222,7 +222,7 @@ func (connection *TcpSystemgeConnection) AbortSyncRequest(syncToken string) erro
 		"sync request aborted",
 		Event.Context{
 			Event.Circumstance:  Event.AbortSyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.SyncToken:     syncToken,
@@ -243,7 +243,7 @@ func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncReq
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.SyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 		},
@@ -265,7 +265,7 @@ func (connection *TcpSystemgeConnection) initResponseChannel() (string, *syncReq
 		"response channel initialized",
 		Event.Context{
 			Event.Circumstance:  Event.SyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.SyncToken:     syncToken,
@@ -290,7 +290,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.AddSyncResponse,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.Message:       string(message.Serialize()),
@@ -306,7 +306,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 			"unknown sync key",
 			Event.Context{
 				Event.Circumstance:  Event.AddSyncResponse,
-				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.IdentityType:  Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
 				Event.Message:       string(message.Serialize()),
@@ -329,7 +329,7 @@ func (connection *TcpSystemgeConnection) addSyncResponse(message *Message.Messag
 		"sync response added",
 		Event.Context{
 			Event.Circumstance:  Event.AddSyncResponse,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.Message:       string(message.Serialize()),
@@ -347,7 +347,7 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 		"removing sync request",
 		Event.Context{
 			Event.Circumstance:  Event.RemoveSyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.SyncToken:     syncToken,
@@ -361,7 +361,7 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 			"unknown sync key",
 			Event.Context{
 				Event.Circumstance:  Event.RemoveSyncRequest,
-				Event.ClientType:    Event.TcpSystemgeConnection,
+				Event.IdentityType:  Event.TcpSystemgeConnection,
 				Event.ClientName:    connection.name,
 				Event.ClientAddress: connection.GetAddress(),
 				Event.SyncToken:     syncToken,
@@ -376,7 +376,7 @@ func (connection *TcpSystemgeConnection) removeSyncRequest(syncToken string) err
 		"sync request removed",
 		Event.Context{
 			Event.Circumstance:  Event.RemoveSyncRequest,
-			Event.ClientType:    Event.TcpSystemgeConnection,
+			Event.IdentityType:  Event.TcpSystemgeConnection,
 			Event.ClientName:    connection.name,
 			Event.ClientAddress: connection.GetAddress(),
 			Event.SyncToken:     syncToken,

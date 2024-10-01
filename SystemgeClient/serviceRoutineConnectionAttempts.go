@@ -20,7 +20,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.StartConnectionAttempts,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientAddress: tcpClientConfig.Address,
 		},
 	)); !event.IsInfo() {
@@ -34,7 +34,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			"normalizing address failed",
 			Event.Context{
 				Event.Circumstance:  Event.StartConnectionAttempts,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
@@ -51,7 +51,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			"duplicate address",
 			Event.Context{
 				Event.Circumstance:  Event.StartConnectionAttempts,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
@@ -64,7 +64,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			"duplicate address",
 			Event.Context{
 				Event.Circumstance:  Event.StartConnectionAttempts,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientAddress: tcpClientConfig.Address,
 				// distinguish this and the previous warning
 			},
@@ -88,7 +88,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 			err.Error(),
 			Event.Context{
 				Event.Circumstance:  Event.StartConnectionAttempts,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientAddress: tcpClientConfig.Address,
 			},
 		))
@@ -105,7 +105,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 		"started connection attempts",
 		Event.Context{
 			Event.Circumstance:  Event.StartConnectionAttempts,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientAddress: tcpClientConfig.Address,
 		},
 	))
@@ -135,7 +135,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 			"start connection attempts failed",
 			Event.Context{
 				Event.Circumstance:  Event.HandleConnectionAttempts,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientAddress: connectionAttempt.GetTcpClientConfig().Address,
 			},
 		))
@@ -149,7 +149,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSyst
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleConnectionAttempts,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientAddress: connectionAttempt.GetTcpClientConfig().Address,
 		},
 	)); !event.IsInfo() {
@@ -188,7 +188,7 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleAcception,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientAddress: clientConfig.Address,
 		},
 	)); !event.IsInfo() {
@@ -205,7 +205,7 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 			"duplicate name",
 			Event.Context{
 				Event.Circumstance:  Event.HandleAcception,
-				Event.ClientType:    Event.SystemgeConnection,
+				Event.IdentityType:  Event.SystemgeConnection,
 				Event.ClientName:    systemgeConnection.GetName(),
 				Event.ClientAddress: clientConfig.Address,
 			},
@@ -224,7 +224,7 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleAcception,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientName:    systemgeConnection.GetName(),
 			Event.ClientAddress: clientConfig.Address,
 		},
@@ -265,7 +265,7 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 		"handling disconnect",
 		Event.Context{
 			Event.Circumstance:  Event.HandleDisconnection,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
 		},
@@ -302,7 +302,7 @@ func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.Sys
 		"handled disconnect",
 		Event.Context{
 			Event.Circumstance:  Event.HandleDisconnection,
-			Event.ClientType:    Event.SystemgeConnection,
+			Event.IdentityType:  Event.SystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
 		},

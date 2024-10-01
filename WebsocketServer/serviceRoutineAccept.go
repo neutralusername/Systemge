@@ -16,7 +16,7 @@ func (server *WebsocketServer) acceptRoutine() {
 			"stopped websocketConnection acception routine",
 			Event.Context{
 				Event.Circumstance: Event.ConnectionRoutine,
-				Event.ClientType:   Event.WebsocketConnection,
+				Event.IdentityType: Event.WebsocketConnection,
 			},
 		))
 		server.waitGroup.Done()
@@ -30,7 +30,7 @@ func (server *WebsocketServer) acceptRoutine() {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.ConnectionRoutine,
-			Event.ClientType:   Event.WebsocketConnection,
+			Event.IdentityType: Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
 		return
@@ -111,7 +111,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleAcception,
-			Event.ClientType:    Event.WebsocketConnection,
+			Event.IdentityType:  Event.WebsocketConnection,
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
 		},
@@ -145,7 +145,7 @@ func (server *WebsocketServer) acceptWebsocketConnection(websocketConn *websocke
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance:  Event.HandleAcception,
-			Event.ClientType:    Event.WebsocketConnection,
+			Event.IdentityType:  Event.WebsocketConnection,
 			Event.ClientId:      websocketId,
 			Event.ClientAddress: websocketConn.RemoteAddr().String(),
 		},
@@ -181,7 +181,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		"disconnecting websocketConnection",
 		Event.Context{
 			Event.Circumstance:  Event.HandleDisconnection,
-			Event.ClientType:    Event.WebsocketConnection,
+			Event.IdentityType:  Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetAddress(),
 		},
@@ -193,7 +193,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(websocketConnection
 		"websocketConnection disconnected",
 		Event.Context{
 			Event.Circumstance:  Event.HandleDisconnection,
-			Event.ClientType:    Event.WebsocketConnection,
+			Event.IdentityType:  Event.WebsocketConnection,
 			Event.ClientId:      websocketConnection.GetId(),
 			Event.ClientAddress: websocketConnection.GetAddress(),
 		},
