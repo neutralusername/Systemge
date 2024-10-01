@@ -27,12 +27,12 @@ type SystemgeServer struct {
 	stopChannel chan bool
 	waitGroup   sync.WaitGroup
 
-	config   *Config.SystemgeServer
-	listener SystemgeListener.SystemgeListener
+	config *Config.SystemgeServer
 
 	whitelist *Tools.AccessControlList
 	blacklist *Tools.AccessControlList
 
+	listener       SystemgeListener.SystemgeListener
 	sessionManager *SessionManager.Manager
 
 	eventHandler Event.Handler

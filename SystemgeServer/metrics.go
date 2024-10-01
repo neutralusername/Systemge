@@ -3,6 +3,7 @@ package SystemgeServer
 import (
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 func (server *SystemgeServer) CheckMetrics() Metrics.MetricsTypes {
@@ -173,15 +174,17 @@ func (server *SystemgeServer) GetAcceptedConnectionAttempts() uint64 {
 
 func (server *SystemgeServer) CheckBytesSent() uint64 {
 	server.statusMutex.RLock()
-	server.mutex.RLock()
-	defer func() {
-		server.mutex.RUnlock()
-		server.statusMutex.RUnlock()
-	}()
+	defer server.statusMutex.RUnlock()
 
 	sum := uint64(0)
-	for _, connection := range server.clients {
-		sum += connection.CheckBytesSent()
+	for _, identity := range server.sessionManager.GetIdentities() {
+		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			sum += connection.(SystemgeConnection.SystemgeConnection).CheckBytesSent()
+		}
 	}
 	return sum
 }
