@@ -158,3 +158,9 @@ const SessionCreating = "sessionCreating" // before creating a session
 const SessionCreated = "sessionCreated"   // after creating a session
 
 const IdentityTooLong = "identityTooLong" // when an identity is too long
+
+const MaxTotalSessionsExceeded = "maxTotalSessionsExceeded"             // when the maximum total sessions is exceeded
+const MaxSessionsPerIdentityExceeded = "maxSessionsPerIdentityExceeded" // when the maximum sessions per identity is exceeded
+const MaxIdentitiesExceeded = "maxIdentitiesExceeded"                   // when the maximum identities is exceeded
+
+const CreatingIdentity = "creatingIdentity" // before creating an identity

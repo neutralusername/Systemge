@@ -42,6 +42,14 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 	manager.sessionMutex.Lock()
 	if !manager.isStarted {
 		manager.sessionMutex.Unlock()
+		manager.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStopped,
+			"session manager already stopped",
+			Event.Context{
+				Event.Circumstance: Event.SessionCreate,
+				Event.Identity:     identityString,
+			},
+		))
 		return nil, errors.New("session manager not accepting sessions")
 	}
 
@@ -50,18 +58,58 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 
 	if len(manager.sessions) >= int(manager.maxTotalSessions) {
 		manager.sessionMutex.Unlock()
+		manager.onEvent(Event.NewWarningNoOption(
+			Event.MaxTotalSessionsExceeded,
+			"max total sessions exceeded",
+			Event.Context{
+				Event.Circumstance: Event.SessionCreate,
+				Event.Identity:     identityString,
+			},
+		))
 		return nil, errors.New("max total sessions exceeded")
 	}
+
 	identity, ok := manager.identities[identityString]
 	if ok {
 		if manager.config.MaxSessionsPerIdentity > 0 && uint32(len(identity.sessions)) >= manager.config.MaxSessionsPerIdentity {
 			manager.sessionMutex.Unlock()
+			manager.onEvent(Event.NewWarningNoOption(
+				Event.MaxSessionsPerIdentityExceeded,
+				"max sessions per identity exceeded",
+				Event.Context{
+					Event.Circumstance: Event.SessionCreate,
+					Event.Identity:     identityString,
+				},
+			))
 			return nil, errors.New("max sessions per identity exceeded")
 		}
 	} else {
 		if manager.config.MaxIdentities > 0 && uint32(len(manager.identities)) >= manager.config.MaxIdentities {
 			manager.sessionMutex.Unlock()
+			manager.onEvent(Event.NewWarningNoOption(
+				Event.MaxIdentitiesExceeded,
+				"max identities exceeded",
+				Event.Context{
+					Event.Circumstance: Event.SessionCreate,
+					Event.Identity:     identityString,
+				},
+			))
 			return nil, errors.New("max identities exceeded")
+		}
+
+		if event := manager.onEvent(Event.NewInfo(
+			Event.CreatingIdentity,
+			"creating identity",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.SessionCreate,
+				Event.Identity:     identityString,
+			},
+		)); !event.IsInfo() {
+			manager.sessionMutex.Unlock()
+			return nil, event.GetError()
 		}
 		identity = &Identity{
 			id:       identityString,
@@ -69,6 +117,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		}
 		manager.identities[identity.GetId()] = identity
 	}
+
 	sessionId := Tools.GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	for {
 		if _, ok := manager.sessions[sessionId]; !ok {
