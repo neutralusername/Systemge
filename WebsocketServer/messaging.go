@@ -200,8 +200,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
-	server.websocketConnectionMutex.RLock()
-	targetClientIds := Helpers.JsonMarshal(ids)
+	targetsMarshalled := Helpers.JsonMarshal(ids)
 	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMultiMessage,
 		"multicasting websocketConnection message",
@@ -210,70 +209,77 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.Multicast,
-			Event.Targets:      targetClientIds,
+			Event.Targets:      targetsMarshalled,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
-		server.websocketConnectionMutex.RUnlock()
 		return event.GetError()
 	}
 
 	for _, id := range ids {
-		websocketConnection, exists := server.websocketConnections[id]
-		if !exists {
-			event := server.onEvent(Event.NewWarning(
+		session := server.sessionManager.GetSession(id)
+		if session == nil {
+			server.onEvent(Event.NewWarningNoOption(
 				Event.SessionDoesNotExist,
-				"websocketConnection does not exist",
-				Event.Cancel,
-				Event.Cancel,
-				Event.Skip,
+				"session does not exist",
 				Event.Context{
 					Event.Circumstance: Event.Multicast,
-					Event.ClientId:     id,
-					Event.Targets:      targetClientIds,
+					Event.Target:       id,
+					Event.Targets:      targetsMarshalled,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
 					Event.SyncToken:    message.GetSyncToken(),
 				},
 			))
-			if event.IsError() {
-				server.websocketConnectionMutex.RUnlock()
-				return event.GetError()
-			} else {
-				continue
-			}
+			continue
 		}
-		if !websocketConnection.isAccepted {
+
+		connection, ok := session.Get("connection")
+		if !ok {
+			// should never occur as of now
+			server.onEvent(Event.NewWarningNoOption(
+				Event.SessionDoesNotExist,
+				"connection does not exist",
+				Event.Context{
+					Event.Circumstance: Event.Multicast,
+					Event.Target:       id,
+					Event.Targets:      targetsMarshalled,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			))
+			continue
+		}
+		websocketConnection, ok := connection.(*WebsocketConnection)
+
+		if websocketConnection.GetId() == "" {
 			event := server.onEvent(Event.NewWarning(
-				Event.ClientNotAccepted,
+				Event.SessionNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
-				Event.Skip,
+				Event.Cancel,
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.Multicast,
-					Event.ClientId:     id,
-					Event.Targets:      targetClientIds,
+					Event.Target:       id,
+					Event.Targets:      targetsMarshalled,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
 					Event.SyncToken:    message.GetSyncToken(),
 				},
 			))
-			if event.IsError() {
-				server.websocketConnectionMutex.RUnlock()
-				return event.GetError()
-			}
-			if event.IsWarning() {
+			if !event.IsInfo() {
 				continue
 			}
 		}
+
 		waitGroup.AddTask(func() {
 			server.write(websocketConnection, messageBytes, Event.Multicast)
 		})
 	}
-	server.websocketConnectionMutex.RUnlock()
 
 	waitGroup.ExecuteTasksConcurrently()
 
@@ -282,95 +288,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		"multicasted websocketConnection message",
 		Event.Context{
 			Event.Circumstance: Event.Multicast,
-			Event.Targets:      targetClientIds,
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	))
-	return nil
-}
-
-// Groupcast groupcasts a message to all websocketConnections in a group.
-// Blocking until all messages are sent.
-func (server *WebsocketServer) Groupcast(groupId string, message *Message.Message) error {
-	messageBytes := message.Serialize()
-	waitGroup := Tools.NewTaskGroup()
-
-	server.websocketConnectionMutex.RLock()
-	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMultiMessage,
-		"groupcasting websocketConnection message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.Groupcast,
-			Event.GroupId:      groupId,
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	)); !event.IsInfo() {
-		server.websocketConnectionMutex.RUnlock()
-		return event.GetError()
-	}
-
-	group, ok := server.groupsWebsocketConnections[groupId]
-	if !ok {
-		server.websocketConnectionMutex.RUnlock()
-		server.onEvent(Event.NewWarningNoOption(
-			Event.GroupDoesNotExist,
-			"group does not exist",
-			Event.Context{
-				Event.Circumstance: Event.Groupcast,
-				Event.GroupId:      groupId,
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
-			},
-		))
-		return errors.New("group does not exist")
-	}
-	for _, websocketConnection := range group {
-		if !websocketConnection.isAccepted {
-			event := server.onEvent(Event.NewWarning(
-				Event.ClientNotAccepted,
-				"websocketConnection is not accepted",
-				Event.Cancel,
-				Event.Skip,
-				Event.Continue,
-				Event.Context{
-					Event.Circumstance: Event.Groupcast,
-					Event.ClientId:     websocketConnection.GetId(),
-					Event.GroupId:      groupId,
-					Event.Topic:        message.GetTopic(),
-					Event.Payload:      message.GetPayload(),
-					Event.SyncToken:    message.GetSyncToken(),
-				},
-			))
-			if event.IsError() {
-				server.websocketConnectionMutex.RUnlock()
-				return event.GetError()
-			}
-			if event.IsWarning() {
-				continue
-			}
-		}
-		waitGroup.AddTask(func() {
-			server.write(websocketConnection, messageBytes, Event.Groupcast)
-		})
-	}
-	server.websocketConnectionMutex.RUnlock()
-
-	waitGroup.ExecuteTasksConcurrently()
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMultiMessage,
-		"groupcasted websocketConnection message",
-		Event.Context{
-			Event.Circumstance: Event.Groupcast,
-			Event.GroupId:      groupId,
+			Event.Targets:      targetsMarshalled,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
