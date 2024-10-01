@@ -45,20 +45,6 @@ func (server *SystemgeServer) handleConnection() error {
 	default:
 	}
 
-	if event := server.onEvent(Event.NewInfo(
-		Event.HandlingConnection,
-		"handling systemgeConnection connection",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.HandleConnection,
-			Event.ClientType:   Event.SystemgeConnection,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
 	connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 	if err != nil {
 		event := server.onEvent(Event.NewInfo(
@@ -101,17 +87,6 @@ func (server *SystemgeServer) handleConnection() error {
 
 	server.waitGroup.Add(1)
 	go server.handleSystemgeDisconnect(connection)
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.HandledConnection,
-		"systemgeConnection connected",
-		Event.Context{
-			Event.Circumstance:  Event.HandleConnection,
-			Event.ClientType:    Event.SystemgeConnection,
-			Event.ClientName:    connection.GetName(),
-			Event.ClientAddress: connection.GetAddress(),
-		},
-	))
 
 	return nil
 }
