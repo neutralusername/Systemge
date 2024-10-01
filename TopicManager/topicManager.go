@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
@@ -26,7 +25,8 @@ type TopicManager struct {
 	topicQueues       map[string]chan *queueStruct
 	unknownTopicQueue chan *queueStruct
 
-	queueSize uint32
+	queueSize      uint32
+	topicQueueSize uint32
 }
 
 /* type TopicManager interface {
@@ -44,7 +44,7 @@ type queueStruct struct {
 	responseErrorChannel chan error
 }
 
-func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, queueSize uint32) *TopicManager {
+func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32) *TopicManager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
@@ -53,12 +53,13 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		unknownTopicHandler: unknownTopicHandler,
 		queue:               make(chan *queueStruct, queueSize),
 		topicQueues:         make(map[string]chan *queueStruct),
-		unknownTopicQueue:   make(chan *queueStruct, queueSize),
+		unknownTopicQueue:   make(chan *queueStruct, topicQueueSize),
 		queueSize:           queueSize,
+		topicQueueSize:      topicQueueSize,
 	}
 	go topicManager.handleCalls()
 	for topic := range topicHandlers {
-		topicManager.topicQueues[topic] = make(chan *queueStruct, queueSize)
+		topicManager.topicQueues[topic] = make(chan *queueStruct, topicQueueSize)
 		go topicManager.handleTopic(topic)
 	}
 	return topicManager
@@ -74,6 +75,8 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 		responseAnyChannel:   response,
 		responseErrorChannel: err,
 	}
+
+	return <-response, <-err
 
 	/* if !exists {
 		if topicManager.unknownTopicQueue != nil {
@@ -99,38 +102,6 @@ func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, e
 			return nil, errors.New("message queue is full")
 		}
 	} */
-}
-
-func (messageHandler *TopicExclusiveMessageHandler) HandleAsyncMessage(connection SystemgeConnection, message *Message.Message) error {
-	response := make(chan error)
-	select {
-	case messageHandler.messageQueue <- &queueStruct{
-		message:           message,
-		asyncErrorChannel: response,
-		connection:        connection,
-	}:
-		return <-response
-	default:
-		return errors.New("message queue is full")
-	}
-}
-
-func (messageHandler *TopicExclusiveMessageHandler) HandleSyncRequest(connection SystemgeConnection, message *Message.Message) (string, error) {
-	if message.IsResponse() {
-		return "", errors.New("message is response")
-	}
-	response := make(chan *syncResponseStruct)
-	select {
-	case messageHandler.messageQueue <- &queueStruct{
-		message:             message,
-		syncResponseChannel: response,
-		connection:          connection,
-	}:
-		responseStruct := <-response
-		return responseStruct.response, responseStruct.err
-	default:
-		return "", errors.New("message queue is full")
-	}
 }
 
 func (messageHandler *TopicExclusiveMessageHandler) handleMessages() {
