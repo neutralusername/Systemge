@@ -54,9 +54,8 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		concurrentCalls:     concurrentCalls,
 	}
 	go topicManager.handleCalls()
-	for topic := range topicHandlers {
-		topicManager.topicQueues[topic] = make(chan *queueStruct, topicQueueSize)
-		topicManager.handleTopic(topic)
+	for topic, handler := range topicHandlers {
+		topicManager.AddTopic(topic, handler)
 	}
 	return topicManager
 }
@@ -78,31 +77,26 @@ func (topicManager *TopicManager) handleCalls() {
 	}
 }
 
-func (topicManager *TopicManager) handleTopic(topic string) {
-	queue := topicManager.topicQueues[topic]
-	handler := topicManager.topicHandlers[topic]
-	stopChannel := topicManager.topicStopChannels[topic]
-	go func() {
-		for queueStruct := range queue {
-			select {
-			case <-stopChannel:
-				return
-			default:
-			}
+func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler TopicHandler, stopChannel chan struct{}) {
+	for queueStruct := range queue {
+		select {
+		case <-stopChannel:
+			return
+		default:
+		}
 
-			if topicManager.concurrentCalls {
-				go func() {
-					response, err := handler(queueStruct.args...)
-					queueStruct.responseAnyChannel <- response
-					queueStruct.responseErrorChannel <- err
-				}()
-			} else {
+		if topicManager.concurrentCalls {
+			go func() {
 				response, err := handler(queueStruct.args...)
 				queueStruct.responseAnyChannel <- response
 				queueStruct.responseErrorChannel <- err
-			}
+			}()
+		} else {
+			response, err := handler(queueStruct.args...)
+			queueStruct.responseAnyChannel <- response
+			queueStruct.responseErrorChannel <- err
 		}
-	}()
+	}
 }
 
 func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
@@ -132,10 +126,12 @@ func (messageHandler *TopicManager) AddTopic(topic string, handler TopicHandler)
 	if messageHandler.topicQueues[topic] != nil {
 		return errors.New("topic already exists")
 	}
-	messageHandler.topicQueues[topic] = make(chan *queueStruct, messageHandler.topicQueueSize)
+	queue := make(chan *queueStruct, messageHandler.topicQueueSize)
+	stopChannel := make(chan struct{})
+	messageHandler.topicQueues[topic] = queue
 	messageHandler.topicHandlers[topic] = handler
-	messageHandler.topicStopChannels[topic] = make(chan struct{})
-	messageHandler.handleTopic(topic)
+	messageHandler.topicStopChannels[topic] = stopChannel
+	go messageHandler.handleTopic(queue, handler, stopChannel)
 	return nil
 }
 
