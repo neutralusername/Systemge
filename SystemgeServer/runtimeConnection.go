@@ -25,43 +25,12 @@ func (server *SystemgeServer) RemoveIdentity(identity string) error {
 	}
 
 	for _, session := range server.sessionManager.GetSessions(identity) {
-		connection := session.GetConnection()
+		connection, ok := session.Get("connection")
+		if !ok {
+			continue
+		}
+		connection.(SystemgeConnection.SystemgeConnection).Close()
 	}
-
-	connection, ok := server.clients[identity]
-	if !ok {
-		server.onEvent(Event.NewWarningNoOption(
-			Event.ClientDoesNotExist,
-			"systemgeConnection does not exist",
-			Event.Context{
-				Event.Circumstance: Event.DisconnectClientRuntime,
-				Event.ClientType:   Event.SystemgeConnection,
-			},
-		))
-		return errors.New("systemgeConnection not found")
-	}
-	if connection == nil {
-		server.onEvent(Event.NewWarningNoOption(
-			Event.ClientNotAccepted,
-			"systemgeConnection not accepted",
-			Event.Context{
-				Event.Circumstance: Event.DisconnectClientRuntime,
-				Event.ClientType:   Event.SystemgeConnection,
-			},
-		))
-		return errors.New("systemgeConnection not accepted")
-	}
-	connection.Close()
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.HandledDisconnection,
-		"systemgeConnection disconnected",
-		Event.Context{
-			Event.Circumstance: Event.DisconnectClientRuntime,
-			Event.ClientType:   Event.SystemgeConnection,
-			Event.ClientName:   identity,
-		},
-	))
 	return nil
 }
 
