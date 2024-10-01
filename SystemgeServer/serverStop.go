@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
 func (server *SystemgeServer) Stop() error {
@@ -49,6 +50,11 @@ func (server *SystemgeServer) Stop() error {
 	server.sessionManager.Stop()
 	for _, identity := range server.sessionManager.GetIdentities() {
 		for _, session := range server.sessionManager.GetSessions(identity) {
+			connection, ok := session.Get("connection")
+			if !ok {
+				continue
+			}
+			connection.(SystemgeConnection.SystemgeConnection).Close()
 			session.GetTimeout().Trigger()
 		}
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) RemoveConnection(name string) error {
+func (server *SystemgeServer) RemoveIdentity(identity string) error {
 	server.statusMutex.RLock()
 	defer server.statusMutex.RUnlock()
 
@@ -24,7 +24,11 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 		return errors.New("systemgeServer already stopped")
 	}
 
-	connection, ok := server.clients[name]
+	for _, session := range server.sessionManager.GetSessions(identity) {
+		connection := session.GetConnection()
+	}
+
+	connection, ok := server.clients[identity]
 	if !ok {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ClientDoesNotExist,
@@ -55,7 +59,7 @@ func (server *SystemgeServer) RemoveConnection(name string) error {
 		Event.Context{
 			Event.Circumstance: Event.DisconnectClientRuntime,
 			Event.ClientType:   Event.SystemgeConnection,
-			Event.ClientName:   name,
+			Event.ClientName:   identity,
 		},
 	))
 	return nil
