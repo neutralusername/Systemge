@@ -18,9 +18,6 @@ const AcceptTcpSystemgeListenerFailed = "acceptTcpSystemgeListenerFailed" // whe
 const AcceptingTcpSystemgeConnection = "acceptingTcpSystemgeConnection" // before accepting a tcp systemge connection
 const AcceptedTcpSystemgeConnection = "acceptedTcpSystemgeConnection"   // after accepting a tcp systemge connection
 
-const HandlingDisconnection = "handlingDisconnection" // before handling a client disconnection
-const HandledDisconnection = "handledDisconnection"   // after handling a client disconnection
-
 const SessionRoutineBegins = "sessionRoutineBegins" // when a session routine begins
 const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine finishes
 
