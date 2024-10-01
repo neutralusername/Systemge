@@ -1,4 +1,4 @@
-package SystemgeConnection
+package MessageHandler
 
 import (
 	"errors"
