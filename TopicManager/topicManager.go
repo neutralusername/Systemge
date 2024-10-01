@@ -2,6 +2,7 @@ package TopicManager
 
 import (
 	"errors"
+	"sync"
 )
 
 type TopicHandler func(...any) (any, error)
@@ -15,7 +16,10 @@ type TopicManager struct {
 
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
+	topicStopChannels map[string]chan struct{}
 	unknownTopicQueue chan *queueStruct
+
+	mutex sync.Mutex
 
 	queueSize       uint32
 	topicQueueSize  uint32
@@ -43,6 +47,7 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		unknownTopicHandler: unknownTopicHandler,
 		queue:               make(chan *queueStruct, queueSize),
 		topicQueues:         make(map[string]chan *queueStruct),
+		topicStopChannels:   make(map[string]chan struct{}),
 		unknownTopicQueue:   make(chan *queueStruct, topicQueueSize),
 		queueSize:           queueSize,
 		topicQueueSize:      topicQueueSize,
@@ -51,32 +56,9 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 	go topicManager.handleCalls()
 	for topic := range topicHandlers {
 		topicManager.topicQueues[topic] = make(chan *queueStruct, topicQueueSize)
-		go topicManager.handleTopic(topic)
+		topicManager.handleTopic(topic)
 	}
 	return topicManager
-}
-
-func (topicManager *TopicManager) handleTopic(topic string) {
-	queue := topicManager.topicQueues[topic]
-	handler := topicManager.topicHandlers[topic]
-	for {
-		queueStruct := <-queue
-		if queueStruct == nil {
-			// change to cancel by closing channel
-			return
-		}
-		if topicManager.concurrentCalls {
-			go func() {
-				response, err := handler(queueStruct.args...)
-				queueStruct.responseAnyChannel <- response
-				queueStruct.responseErrorChannel <- err
-			}()
-		} else {
-			response, err := handler(queueStruct.args...)
-			queueStruct.responseAnyChannel <- response
-			queueStruct.responseErrorChannel <- err
-		}
-	}
 }
 
 func (topicManager *TopicManager) handleCalls() {
@@ -96,8 +78,34 @@ func (topicManager *TopicManager) handleCalls() {
 	}
 }
 
-func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
+func (topicManager *TopicManager) handleTopic(topic string) {
+	queue := topicManager.topicQueues[topic]
+	handler := topicManager.topicHandlers[topic]
+	stopChannel := topicManager.topicStopChannels[topic]
+	go func() {
+		for queueStruct := range queue {
+			select {
+			case <-stopChannel:
+				return
+			default:
+			}
 
+			if topicManager.concurrentCalls {
+				go func() {
+					response, err := handler(queueStruct.args...)
+					queueStruct.responseAnyChannel <- response
+					queueStruct.responseErrorChannel <- err
+				}()
+			} else {
+				response, err := handler(queueStruct.args...)
+				queueStruct.responseAnyChannel <- response
+				queueStruct.responseErrorChannel <- err
+			}
+		}
+	}()
+}
+
+func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
 	response := make(chan any)
 	err := make(chan error)
 
@@ -115,11 +123,37 @@ func (topicManager *TopicManager) Close() error {
 
 }
 
-func (messageHandler *TopicManager) AddTopic() error {
+func (messageHandler *TopicManager) AddTopic(topic string, handler TopicHandler) error {
+	messageHandler.mutex.Lock()
+	defer messageHandler.mutex.Unlock()
+	if messageHandler.isCLosed {
+		return errors.New("topic manager is closed")
+	}
+	if messageHandler.topicQueues[topic] != nil {
+		return errors.New("topic already exists")
+	}
+	messageHandler.topicQueues[topic] = make(chan *queueStruct, messageHandler.topicQueueSize)
+	messageHandler.topicHandlers[topic] = handler
+	messageHandler.topicStopChannels[topic] = make(chan struct{})
+	messageHandler.handleTopic(topic)
 	return nil
 }
 
-func (messageHandler *TopicManager) RemoveTopic() error {
+func (messageHandler *TopicManager) RemoveTopic(topic string) error {
+	messageHandler.mutex.Lock()
+	defer messageHandler.mutex.Unlock()
+	if messageHandler.isCLosed {
+		return errors.New("topic manager is closed")
+	}
+	if messageHandler.topicQueues[topic] == nil {
+		return errors.New("topic does not exist")
+	}
+	close(messageHandler.topicQueues[topic])
+	close(messageHandler.topicStopChannels[topic])
+
+	delete(messageHandler.topicQueues, topic)
+	delete(messageHandler.topicHandlers, topic)
+	delete(messageHandler.topicStopChannels, topic)
 	return nil
 }
 
