@@ -247,26 +247,6 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		return errors.New("no handler for topic")
 	}
 
-	if event := server.onEvent(Event.NewInfo(
-		Event.HandlingMessage,
-		"handling websocketConnection message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.HandleReception,
-			Event.Behaviour:    behaviour,
-			Event.HandlerType:  Event.WebsocketConnection,
-			Event.SessionId:    websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
 	if err := handler(websocketConnection, message); err != nil {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.HandlerFailed,
@@ -284,21 +264,6 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		))
 		return err
 	}
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.HandledMessage,
-		"handled websocketConnection message",
-		Event.Context{
-			Event.Circumstance: Event.HandleReception,
-			Event.Behaviour:    behaviour,
-			Event.HandlerType:  Event.WebsocketConnection,
-			Event.SessionId:    websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	))
 
 	server.onEvent(Event.NewInfoNoOption(
 		Event.HandledReception,

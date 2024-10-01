@@ -297,22 +297,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 		return errors.New("no message provided")
 	}
 
-	if event := connection.onEvent(Event.NewInfo(
-		Event.HandlingMessage,
-		"handling message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.HandleMessage,
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
 	if message.GetSyncToken() == "" {
 		if err := messageHandler.HandleAsyncMessage(connection, message); err != nil {
 			connection.onEvent(Event.NewWarningNoOption(
@@ -344,18 +328,6 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 			connection.SyncResponse(message, true, responsePayload)
 		}
 	}
-
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.HandledMessage,
-		"handled message",
-		Event.Context{
-			Event.Circumstance: Event.HandleMessage,
-			Event.ChannelType:  Event.MessageChannel,
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	))
 
 	return nil
 }

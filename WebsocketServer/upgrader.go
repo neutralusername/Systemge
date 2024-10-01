@@ -76,14 +76,5 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 			server.websocketConnectionsRejected.Add(1)
 		}
 		server.connectionChannel <- websocketConnection
-		server.onEvent(Event.NewInfoNoOption(
-			Event.SentToChannel,
-			"sent upgraded websocketConnection to channel",
-			Event.Context{
-				Event.Circumstance: Event.WebsocketUpgrade,
-				Event.ChannelType:  Event.WebsocketConnection,
-				Event.Address:      websocketConnection.RemoteAddr().String(),
-			}),
-		)
 	}
 }

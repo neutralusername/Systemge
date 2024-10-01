@@ -267,12 +267,11 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 	connection.messageChannel <- message
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.SentToChannel,
-		"sent message to channel",
+		Event.HandledReception,
+		"handled tcpSystemgeConnection message reception",
 		Event.Context{
 			Event.Circumstance: Event.HandleReception,
 			Event.Behaviour:    behaviour,
-			Event.ChannelType:  Event.MessageChannel,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),

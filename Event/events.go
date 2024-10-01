@@ -28,8 +28,8 @@ const HandlingReception = "handlingReception"         // before handling a recep
 const HandledReception = "handledReception"           // after handling a reception
 const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception operation returns an error
 
-const HandlingMessage = "handlingMessage" // before handling a message
-const HandledMessage = "handledMessage"   // after handling a message
+/* const HandlingMessage = "handlingMessage" // before handling a message
+const HandledMessage = "handledMessage"   // after handling a message */
 
 const NoHandlerForTopic = "noHandlerForTopic" // when no message handler is found for a particular topic
 const HandlerFailed = "handlerFailed"         // when a message handling operation returns an error
@@ -62,7 +62,6 @@ const ReceivedNilValueFromChannel = "receivedNilValueFromChannel" // after recei
 const ReceivingFromChannelFailed = "receivingFromChannelFailed"   // when a receive operation returns an error
 
 const SendingToChannel = "sendingToChannel" // before sending an item to a channel
-const SentToChannel = "sentToChannel"       // after sending an item to a channel
 
 const HandlingHttpRequest = "handlingHttpRequest" // before handling an http request
 const HandledHttpRequest = "handledHttpRequest"   // after handling an http request
