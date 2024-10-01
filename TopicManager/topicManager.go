@@ -44,7 +44,7 @@ type queueStruct struct {
 	responseErrorChannel chan error
 }
 
-func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32) *TopicManager {
+func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32, concurrentCalls bool) *TopicManager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
