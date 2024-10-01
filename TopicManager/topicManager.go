@@ -1,7 +1,7 @@
 package TopicCallHandler
 
 type TopicManager interface {
-	HandleFunction(string) (any, error)
+	HandleTopic(string) (any, error)
 	AddTopic(string, TopicHandler)
 	RemoveTopic(string)
 	GetTopics() []string
