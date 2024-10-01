@@ -24,6 +24,8 @@ type SystemgeClient struct {
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	TcpClientConfigs            []*TcpClient           `json:"tcpClientConfigs"`
 
+	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
+
 	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
 
 	AutoReconnectAttempts    bool   `json:"autoReconnectAttempts"`    // default: false (if true, the client will attempt to reconnect if the connection is lost)

@@ -8,9 +8,8 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -28,10 +27,7 @@ type SystemgeClient struct {
 
 	config *Config.SystemgeClient
 
-	mutex                 sync.RWMutex
-	addressConnections    map[string]SystemgeConnection.SystemgeConnection // address -> connection
-	nameConnections       map[string]SystemgeConnection.SystemgeConnection // name -> connection
-	connectionAttemptsMap map[string]*TcpSystemgeConnect.ConnectionAttempt // address -> connection attempt
+	sessionManager *SessionManager.Manager
 
 	eventHandler Event.Handler
 
@@ -59,9 +55,7 @@ func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler)
 		name:   name,
 		config: config,
 
-		addressConnections:    make(map[string]SystemgeConnection.SystemgeConnection),
-		nameConnections:       make(map[string]SystemgeConnection.SystemgeConnection),
-		connectionAttemptsMap: make(map[string]*TcpSystemgeConnect.ConnectionAttempt),
+		sessionManager: SessionManager.New(name+"_sessionManager", config.SessionManagerConfig, eventHandler),
 
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 

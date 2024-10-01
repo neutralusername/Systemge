@@ -82,12 +82,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		sessionManager: SessionManager.New(name+"_clientSessionManager", config.ClientSessionManagerConfig, func(event *Event.Event) {
-			if eventHandler != nil {
-				eventHandler(event)
-			}
-
-		}),
+		sessionManager: SessionManager.New(name+"_sessionManager", config.ClientSessionManagerConfig, eventHandler),
 
 		messageHandlers:   messageHandlers,
 		config:            config,

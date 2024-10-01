@@ -23,7 +23,6 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.AsyncMessage,
-			Event.IdentityType: Event.SystemgeConnection,
 			Event.Targets:      targetClientIds,
 			Event.Topic:        topic,
 			Event.Payload:      payload,
@@ -40,7 +39,6 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 			"systemgeClient already stopped",
 			Event.Context{
 				Event.Circumstance: Event.AsyncMessage,
-				Event.IdentityType: Event.SystemgeConnection,
 				Event.Targets:      targetClientIds,
 				Event.Topic:        topic,
 				Event.Payload:      payload,
@@ -63,7 +61,6 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 					Event.Skip,
 					Event.Context{
 						Event.Circumstance: Event.AsyncMessage,
-						Event.IdentityType: Event.SystemgeConnection,
 						Event.Targets:      targetClientIds,
 						Event.Topic:        topic,
 						Event.Payload:      payload,
@@ -87,7 +84,6 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 					Event.Skip,
 					Event.Context{
 						Event.Circumstance: Event.AsyncMessage,
-						Event.IdentityType: Event.SystemgeConnection,
 						Event.Targets:      targetClientIds,
 						Event.Topic:        topic,
 						Event.Payload:      payload,
@@ -106,7 +102,6 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 					Event.Skip,
 					Event.Context{
 						Event.Circumstance: Event.AsyncMessage,
-						Event.IdentityType: Event.SystemgeConnection,
 						Event.Targets:      targetClientIds,
 						Event.Topic:        topic,
 						Event.Payload:      payload,
@@ -129,7 +124,6 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 		"multi async message sent",
 		Event.Context{
 			Event.Circumstance: Event.AsyncMessage,
-			Event.IdentityType: Event.SystemgeConnection,
 			Event.Targets:      targetClientIds,
 			Event.Topic:        topic,
 			Event.Payload:      payload,
@@ -151,7 +145,6 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.SyncRequest,
-			Event.IdentityType: Event.SystemgeConnection,
 			Event.Targets:      targetClientIds,
 			Event.Topic:        topic,
 			Event.Payload:      payload,
@@ -168,7 +161,6 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 			"systemgeClient already stopped",
 			Event.Context{
 				Event.Circumstance: Event.SyncRequest,
-				Event.IdentityType: Event.SystemgeConnection,
 				Event.Targets:      targetClientIds,
 				Event.Topic:        topic,
 				Event.Payload:      payload,
@@ -191,7 +183,6 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 					Event.Skip,
 					Event.Context{
 						Event.Circumstance: Event.SyncRequest,
-						Event.IdentityType: Event.SystemgeConnection,
 						Event.Targets:      targetClientIds,
 						Event.Topic:        topic,
 						Event.Payload:      payload,
@@ -215,7 +206,6 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 					Event.Skip,
 					Event.Context{
 						Event.Circumstance: Event.SyncRequest,
-						Event.IdentityType: Event.SystemgeConnection,
 						Event.Targets:      targetClientIds,
 						Event.Topic:        topic,
 						Event.Payload:      payload,
@@ -227,14 +217,13 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 			}
 			if connection == nil {
 				if event := client.onEvent(Event.NewWarning(
-					Event.ClientNotAccepted,
+					Event.SessionNotAccepted,
 					"client not accepted",
 					Event.Cancel,
 					Event.Skip,
 					Event.Skip,
 					Event.Context{
 						Event.Circumstance: Event.SyncRequest,
-						Event.IdentityType: Event.SystemgeConnection,
 						Event.Targets:      targetClientIds,
 						Event.Topic:        topic,
 						Event.Payload:      payload,
