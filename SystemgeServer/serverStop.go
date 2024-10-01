@@ -55,7 +55,6 @@ func (server *SystemgeServer) Stop() error {
 				continue
 			}
 			connection.(SystemgeConnection.SystemgeConnection).Close()
-			session.GetTimeout().Trigger()
 		}
 	}
 	server.waitGroup.Wait()
