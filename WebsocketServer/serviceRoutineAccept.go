@@ -14,7 +14,6 @@ func (server *WebsocketServer) sessionRoutine() {
 			"stopped websocketConnection session routine",
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
-				Event.IdentityType: Event.WebsocketConnection,
 			},
 		))
 		server.waitGroup.Done()
@@ -28,7 +27,6 @@ func (server *WebsocketServer) sessionRoutine() {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.SessionRoutine,
-			Event.IdentityType: Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
 		return
@@ -64,7 +62,6 @@ func (server *WebsocketServer) handleNewSession() error {
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
 				Event.Identity:     "",
-				Event.IdentityType: Event.WebsocketConnection,
 				Event.Address:      websocketConnection.GetAddress(),
 			},
 		))

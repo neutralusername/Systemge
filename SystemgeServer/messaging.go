@@ -21,11 +21,10 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:     Event.AsyncMessage,
-			Event.IdentityType:     Event.SystemgeConnection,
-			Event.TargetIdentities: targetIdentities,
-			Event.Topic:            topic,
-			Event.Payload:          payload,
+			Event.Circumstance: Event.AsyncMessage,
+			Event.Targets:      targetIdentities,
+			Event.Topic:        topic,
+			Event.Payload:      payload,
 		},
 	)); !event.IsInfo() {
 		server.statusMutex.RUnlock()
@@ -37,11 +36,10 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 			Event.ServiceAlreadyStopped,
 			"systemgeServer already stopped",
 			Event.Context{
-				Event.Circumstance:     Event.AsyncMessage,
-				Event.IdentityType:     Event.SystemgeConnection,
-				Event.TargetIdentities: targetIdentities,
-				Event.Topic:            topic,
-				Event.Payload:          payload,
+				Event.Circumstance: Event.AsyncMessage,
+				Event.Targets:      targetIdentities,
+				Event.Topic:        topic,
+				Event.Payload:      payload,
 			},
 		))
 		server.statusMutex.RUnlock()
@@ -60,11 +58,10 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 						Event.Skip,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance:     Event.AsyncMessage,
-							Event.IdentityType:     Event.SystemgeConnection,
-							Event.TargetIdentities: targetIdentities,
-							Event.Topic:            topic,
-							Event.Payload:          payload,
+							Event.Circumstance: Event.AsyncMessage,
+							Event.Targets:      targetIdentities,
+							Event.Topic:        topic,
+							Event.Payload:      payload,
 						},
 					))
 					if event.IsError() {
@@ -93,11 +90,10 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 					Event.Skip,
 					Event.Skip,
 					Event.Context{
-						Event.Circumstance:     Event.SyncRequest,
-						Event.IdentityType:     Event.SystemgeConnection,
-						Event.TargetIdentities: targetIdentities,
-						Event.Topic:            topic,
-						Event.Payload:          payload,
+						Event.Circumstance: Event.SyncRequest,
+						Event.Targets:      targetIdentities,
+						Event.Topic:        topic,
+						Event.Payload:      payload,
 					},
 				)); !event.IsInfo() {
 					return event.GetError()
@@ -112,11 +108,10 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 						Event.Skip,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance:     Event.AsyncMessage,
-							Event.IdentityType:     Event.SystemgeConnection,
-							Event.TargetIdentities: targetIdentities,
-							Event.Topic:            topic,
-							Event.Payload:          payload,
+							Event.Circumstance: Event.AsyncMessage,
+							Event.Targets:      targetIdentities,
+							Event.Topic:        topic,
+							Event.Payload:      payload,
 						},
 					))
 					if event.IsError() {
@@ -143,11 +138,10 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 		Event.SentMultiMessage,
 		"multi async message sent",
 		Event.Context{
-			Event.Circumstance:     Event.AsyncMessage,
-			Event.IdentityType:     Event.SystemgeConnection,
-			Event.TargetIdentities: targetIdentities,
-			Event.Topic:            topic,
-			Event.Payload:          payload,
+			Event.Circumstance: Event.AsyncMessage,
+			Event.Targets:      targetIdentities,
+			Event.Topic:        topic,
+			Event.Payload:      payload,
 		},
 	))
 	return nil
@@ -164,11 +158,10 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:     Event.SyncRequest,
-			Event.IdentityType:     Event.SystemgeConnection,
-			Event.TargetIdentities: targetIdentities,
-			Event.Topic:            topic,
-			Event.Payload:          payload,
+			Event.Circumstance: Event.SyncRequest,
+			Event.Targets:      targetIdentities,
+			Event.Topic:        topic,
+			Event.Payload:      payload,
 		},
 	)); !event.IsInfo() {
 		server.statusMutex.RUnlock()
@@ -180,11 +173,10 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 			Event.ServiceAlreadyStopped,
 			"systemgeServer already stopped",
 			Event.Context{
-				Event.Circumstance:     Event.SyncRequest,
-				Event.IdentityType:     Event.SystemgeConnection,
-				Event.TargetIdentities: targetIdentities,
-				Event.Topic:            topic,
-				Event.Payload:          payload,
+				Event.Circumstance: Event.SyncRequest,
+				Event.Targets:      targetIdentities,
+				Event.Topic:        topic,
+				Event.Payload:      payload,
 			},
 		))
 		server.statusMutex.RUnlock()
@@ -203,11 +195,10 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 						Event.Skip,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance:     Event.AsyncMessage,
-							Event.IdentityType:     Event.SystemgeConnection,
-							Event.TargetIdentities: targetIdentities,
-							Event.Topic:            topic,
-							Event.Payload:          payload,
+							Event.Circumstance: Event.AsyncMessage,
+							Event.Targets:      targetIdentities,
+							Event.Topic:        topic,
+							Event.Payload:      payload,
 						},
 					))
 					if event.IsError() {
@@ -236,11 +227,10 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 					Event.Skip,
 					Event.Skip,
 					Event.Context{
-						Event.Circumstance:     Event.SyncRequest,
-						Event.IdentityType:     Event.SystemgeConnection,
-						Event.TargetIdentities: targetIdentities,
-						Event.Topic:            topic,
-						Event.Payload:          payload,
+						Event.Circumstance: Event.SyncRequest,
+						Event.Targets:      targetIdentities,
+						Event.Topic:        topic,
+						Event.Payload:      payload,
 					},
 				)); !event.IsInfo() {
 					return nil, event.GetError()
@@ -255,11 +245,10 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 						Event.Skip,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance:     Event.AsyncMessage,
-							Event.IdentityType:     Event.SystemgeConnection,
-							Event.TargetIdentities: targetIdentities,
-							Event.Topic:            topic,
-							Event.Payload:          payload,
+							Event.Circumstance: Event.AsyncMessage,
+							Event.Targets:      targetIdentities,
+							Event.Topic:        topic,
+							Event.Payload:      payload,
 						},
 					))
 					if event.IsError() {

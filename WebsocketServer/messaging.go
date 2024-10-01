@@ -15,8 +15,26 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
-	server.websocketConnectionMutex.RLock()
-	targetClientIds := Helpers.JsonMarshal(server.GetWebsocketConnectionIds())
+	sessions := server.sessionManager.GetSessions("")
+	targets := []string{}
+	connections := []*WebsocketConnection{}
+	for _, session := range sessions {
+		connection, ok := session.Get("connection")
+		if !ok {
+			continue
+		}
+		websocketConnection, ok := connection.(*WebsocketConnection)
+		if !ok {
+			continue
+		}
+		connections = append(connections, websocketConnection)
+		id := websocketConnection.GetId()
+		if id != "" {
+			targets = append(targets, id)
+		}
+	}
+
+	targetsMarshalled := Helpers.JsonMarshal(targets)
 	if event := server.onEvent(Event.NewInfo(
 		Event.SendingMultiMessage,
 		"broadcasting websocketConnection message",
@@ -24,38 +42,34 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:     Event.Broadcast,
-			Event.IdentityType:     Event.WebsocketConnection,
-			Event.TargetIdentities: targetClientIds,
-			Event.Topic:            message.GetTopic(),
-			Event.Payload:          message.GetPayload(),
-			Event.SyncToken:        message.GetSyncToken(),
+			Event.Circumstance: Event.Broadcast,
+			Event.Targets:      targetsMarshalled,
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
-		server.websocketConnectionMutex.RUnlock()
 		return event.GetError()
 	}
 
-	for _, websocketConnection := range server.websocketConnections {
-		if !websocketConnection.isAccepted {
+	for _, websocketConnection := range connections {
+		if websocketConnection.GetId() == "" {
 			event := server.onEvent(Event.NewWarning(
-				Event.ClientNotAccepted,
+				Event.SessionNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:     Event.Broadcast,
-					Event.IdentityType:     Event.WebsocketConnection,
-					Event.ClientId:         websocketConnection.GetId(),
-					Event.TargetIdentities: targetClientIds,
-					Event.Topic:            message.GetTopic(),
-					Event.Payload:          message.GetPayload(),
-					Event.SyncToken:        message.GetSyncToken(),
+					Event.Circumstance: Event.Broadcast,
+					Event.SessionId:    websocketConnection.GetId(),
+					Event.Targets:      targetsMarshalled,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				},
 			))
 			if event.IsError() {
-				server.websocketConnectionMutex.RUnlock()
 				return event.GetError()
 			}
 			if event.IsWarning() {
@@ -66,7 +80,6 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			server.write(websocketConnection, messageBytes, Event.Broadcast)
 		})
 	}
-	server.websocketConnectionMutex.RUnlock()
 
 	waitGroup.ExecuteTasksConcurrently()
 
@@ -74,12 +87,11 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		Event.SentMultiMessage,
 		"broadcasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance:     Event.Broadcast,
-			Event.IdentityType:     Event.WebsocketConnection,
-			Event.TargetIdentities: targetClientIds,
-			Event.Topic:            message.GetTopic(),
-			Event.Payload:          message.GetPayload(),
-			Event.SyncToken:        message.GetSyncToken(),
+			Event.Circumstance: Event.Broadcast,
+			Event.Targets:      targetsMarshalled,
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	))
 	return nil
@@ -99,12 +111,12 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:   Event.Unicast,
-			Event.IdentityType:   Event.WebsocketConnection,
-			Event.TargetIdentity: websocketId,
-			Event.Topic:          message.GetTopic(),
-			Event.Payload:        message.GetPayload(),
-			Event.SyncToken:      message.GetSyncToken(),
+			Event.Circumstance: Event.Unicast,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.Target:       websocketId,
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
 		server.websocketConnectionMutex.RUnlock()
@@ -118,13 +130,13 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.ClientDoesNotExist,
 			"websocketConnection does not exist",
 			Event.Context{
-				Event.Circumstance:   Event.Unicast,
-				Event.IdentityType:   Event.WebsocketConnection,
-				Event.ClientId:       websocketId,
-				Event.TargetIdentity: websocketId,
-				Event.Topic:          message.GetTopic(),
-				Event.Payload:        message.GetPayload(),
-				Event.SyncToken:      message.GetSyncToken(),
+				Event.Circumstance: Event.Unicast,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketId,
+				Event.Target:       websocketId,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			},
 		))
 		return errors.New("websocketConnection does not exist")
@@ -137,13 +149,13 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:   Event.Unicast,
-				Event.IdentityType:   Event.WebsocketConnection,
-				Event.ClientId:       websocketId,
-				Event.TargetIdentity: websocketId,
-				Event.Topic:          message.GetTopic(),
-				Event.Payload:        message.GetPayload(),
-				Event.SyncToken:      message.GetSyncToken(),
+				Event.Circumstance: Event.Unicast,
+				Event.IdentityType: Event.WebsocketConnection,
+				Event.ClientId:     websocketId,
+				Event.Target:       websocketId,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
 			},
 		))
 		if !event.IsInfo() {
@@ -162,12 +174,12 @@ func (server *WebsocketServer) Unicast(websocketId string, message *Message.Mess
 		Event.SentMultiMessage,
 		"unicasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance:   Event.Unicast,
-			Event.IdentityType:   Event.WebsocketConnection,
-			Event.TargetIdentity: websocketId,
-			Event.Topic:          message.GetTopic(),
-			Event.Payload:        message.GetPayload(),
-			Event.SyncToken:      message.GetSyncToken(),
+			Event.Circumstance: Event.Unicast,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.Target:       websocketId,
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	))
 	return nil
@@ -188,12 +200,12 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:     Event.Multicast,
-			Event.IdentityType:     Event.WebsocketConnection,
-			Event.TargetIdentities: targetClientIds,
-			Event.Topic:            message.GetTopic(),
-			Event.Payload:          message.GetPayload(),
-			Event.SyncToken:        message.GetSyncToken(),
+			Event.Circumstance: Event.Multicast,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.Targets:      targetClientIds,
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
 		server.websocketConnectionMutex.RUnlock()
@@ -210,13 +222,13 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Cancel,
 				Event.Skip,
 				Event.Context{
-					Event.Circumstance:     Event.Multicast,
-					Event.IdentityType:     Event.WebsocketConnection,
-					Event.ClientId:         id,
-					Event.TargetIdentities: targetClientIds,
-					Event.Topic:            message.GetTopic(),
-					Event.Payload:          message.GetPayload(),
-					Event.SyncToken:        message.GetSyncToken(),
+					Event.Circumstance: Event.Multicast,
+					Event.IdentityType: Event.WebsocketConnection,
+					Event.ClientId:     id,
+					Event.Targets:      targetClientIds,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				},
 			))
 			if event.IsError() {
@@ -234,13 +246,13 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance:     Event.Multicast,
-					Event.IdentityType:     Event.WebsocketConnection,
-					Event.ClientId:         id,
-					Event.TargetIdentities: targetClientIds,
-					Event.Topic:            message.GetTopic(),
-					Event.Payload:          message.GetPayload(),
-					Event.SyncToken:        message.GetSyncToken(),
+					Event.Circumstance: Event.Multicast,
+					Event.IdentityType: Event.WebsocketConnection,
+					Event.ClientId:     id,
+					Event.Targets:      targetClientIds,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
 				},
 			))
 			if event.IsError() {
@@ -263,12 +275,12 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		Event.SentMultiMessage,
 		"multicasted websocketConnection message",
 		Event.Context{
-			Event.Circumstance:     Event.Multicast,
-			Event.IdentityType:     Event.WebsocketConnection,
-			Event.TargetIdentities: targetClientIds,
-			Event.Topic:            message.GetTopic(),
-			Event.Payload:          message.GetPayload(),
-			Event.SyncToken:        message.GetSyncToken(),
+			Event.Circumstance: Event.Multicast,
+			Event.IdentityType: Event.WebsocketConnection,
+			Event.Targets:      targetClientIds,
+			Event.Topic:        message.GetTopic(),
+			Event.Payload:      message.GetPayload(),
+			Event.SyncToken:    message.GetSyncToken(),
 		},
 	))
 	return nil

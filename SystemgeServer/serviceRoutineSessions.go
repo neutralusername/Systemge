@@ -15,7 +15,6 @@ func (server *SystemgeServer) sessionRoutine() {
 			"stopped systemgeServer session routine",
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
-				Event.IdentityType: Event.SystemgeConnection,
 			},
 		))
 		server.waitGroup.Done()
@@ -29,7 +28,6 @@ func (server *SystemgeServer) sessionRoutine() {
 		Event.Continue,
 		Event.Context{
 			Event.Circumstance: Event.SessionRoutine,
-			Event.IdentityType: Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
 		return
@@ -56,7 +54,6 @@ func (server *SystemgeServer) handleNewSession() error {
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
-				Event.IdentityType: Event.SystemgeConnection,
 			},
 		))
 		if !event.IsInfo() {
@@ -76,7 +73,6 @@ func (server *SystemgeServer) handleNewSession() error {
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
 				Event.Identity:     connection.GetName(),
-				Event.IdentityType: Event.SystemgeConnection,
 				Event.Address:      connection.GetAddress(),
 			},
 		))

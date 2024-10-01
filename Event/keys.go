@@ -6,7 +6,6 @@ const Behaviour = "behaviour"
 
 const Identity = "identity"
 
-const IdentityType = "clientType"
 const ChannelType = "channelType"
 const ServiceType = "serviceType"
 const RateLimiterType = "rateLimiterType"
@@ -19,8 +18,8 @@ const Address = "clientAddress"
 
 const TargetServiceType = "targetServiceType"
 
-const TargetIdentity = "targetIdentity"
-const TargetIdentities = "targetIdentities"
+const Target = "target"
+const Targets = "targets"
 
 const Topic = "topic"
 const Payload = "payload"
