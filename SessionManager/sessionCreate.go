@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (manager *Manager) CreateSession(identityString string) (*Session, error) {
+func (manager *Manager) CreateSession(identityString string, keyValuePairs map[string]any) (*Session, error) {
 
 	if manager.config.MaxIdentityLength > 0 && uint32(len(identityString)) > manager.config.MaxIdentityLength {
 		if event := manager.onEvent(Event.NewWarning(
@@ -114,7 +114,7 @@ func (manager *Manager) CreateSession(identityString string) (*Session, error) {
 	session := &Session{
 		id:            sessionId,
 		identity:      identity,
-		keyValuePairs: make(map[string]any),
+		keyValuePairs: keyValuePairs,
 		accepted:      false,
 	}
 	identity.sessions[session.GetId()] = session
