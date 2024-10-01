@@ -35,7 +35,7 @@ type WebsocketServer struct {
 	connectionChannel chan *websocket.Conn
 	ipRateLimiter     *Tools.IpRateLimiter
 
-	clientSessionManager *SessionManager.Manager
+	sessionManager *SessionManager.Manager
 
 	messageHandlers     MessageHandlers
 	messageHandlerMutex sync.Mutex
@@ -82,7 +82,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		clientSessionManager: SessionManager.New(name+"_clientSessionManager", config.ClientSessionManagerConfig, func(event *Event.Event) {
+		sessionManager: SessionManager.New(name+"_clientSessionManager", config.ClientSessionManagerConfig, func(event *Event.Event) {
 			if eventHandler != nil {
 				eventHandler(event)
 			}

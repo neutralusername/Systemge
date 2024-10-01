@@ -53,8 +53,9 @@ func (server *WebsocketServer) handleNewSession() error {
 		return errors.New("received nil from websocketConnection channel")
 	}
 
-	session, err := server.clientSessionManager.CreateSession("", map[string]any{
-		"connection": websocketConn,
+	websocketConnection := server.NewWebsocketConnection(websocketConn)
+	session, err := server.sessionManager.CreateSession("", map[string]any{
+		"connection": websocketConnection,
 	})
 	if err != nil {
 		server.onEvent(Event.NewWarningNoOption(
@@ -64,14 +65,14 @@ func (server *WebsocketServer) handleNewSession() error {
 				Event.Circumstance: Event.SessionRoutine,
 				Event.Identity:     "",
 				Event.IdentityType: Event.WebsocketConnection,
-				Event.Address:      websocketConn.LocalAddr().String(),
+				Event.Address:      websocketConnection.GetAddress(),
 			},
 		))
 		server.websocketConnectionsRejected.Add(1)
 		websocketConn.Close()
 		return nil
 	}
-	websocketConnection := server.NewWebsocketConnection(session.GetId(), websocketConn)
+	websocketConnection.id = session.GetId()
 
 	server.websocketConnectionsAccepted.Add(1)
 	websocketConnection.waitGroup.Add(1)
