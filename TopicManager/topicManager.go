@@ -25,8 +25,9 @@ type TopicManager struct {
 	topicQueues       map[string]chan *queueStruct
 	unknownTopicQueue chan *queueStruct
 
-	queueSize      uint32
-	topicQueueSize uint32
+	queueSize       uint32
+	topicQueueSize  uint32
+	concurrentCalls bool
 }
 
 /* type TopicManager interface {
@@ -56,6 +57,7 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		unknownTopicQueue:   make(chan *queueStruct, topicQueueSize),
 		queueSize:           queueSize,
 		topicQueueSize:      topicQueueSize,
+		concurrentCalls:     concurrentCalls,
 	}
 	go topicManager.handleCalls()
 	for topic := range topicHandlers {
@@ -63,6 +65,25 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		go topicManager.handleTopic(topic)
 	}
 	return topicManager
+}
+
+func (topicManager *TopicManager) handleCalls() {
+	for {
+		queueStruct := <-topicManager.queue
+		if queueStruct == nil {
+			return
+		}
+		if queue := topicManager.topicQueues[queueStruct.topic]; queue == nil {
+			if topicManager.unknownTopicQueue != nil {
+				topicManager.unknownTopicQueue <- queueStruct
+			} else {
+				queueStruct.responseAnyChannel <- nil
+				queueStruct.responseErrorChannel <- errors.New("no handler for topic")
+			}
+		} else {
+
+		}
+	}
 }
 
 func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
