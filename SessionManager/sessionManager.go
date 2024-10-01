@@ -1,4 +1,4 @@
-package Tools
+package SessionManager
 
 import (
 	"errors"
@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SessionManager struct {
@@ -38,13 +39,13 @@ func NewSessionManager(name string, config *Config.SessionManager, eventHandler 
 		config.SessionIdLength = 32
 	}
 	if config.SessionIdAlphabet == "" {
-		config.SessionIdAlphabet = ALPHA_NUMERIC
+		config.SessionIdAlphabet = Tools.ALPHA_NUMERIC
 	}
 	return &SessionManager{
 		name:   name,
 		config: config,
 
-		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
@@ -88,12 +89,12 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		}
 		manager.identities[identity.GetId()] = identity
 	}
-	sessionId := GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
+	sessionId := Tools.GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	for {
 		if _, ok := manager.sessions[sessionId]; !ok {
 			break
 		}
-		sessionId = GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
+		sessionId = Tools.GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	}
 	session := &Session{
 		id:            sessionId,
@@ -114,7 +115,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 		manager.sessionMutex.Unlock()
 	}
 
-	session.timeout = NewTimeout(
+	session.timeout = Tools.NewTimeout(
 		manager.config.SessionLifetimeMs,
 		func() {
 			manager.cleanupSession(session)
@@ -165,7 +166,7 @@ func (manager *SessionManager) Start() error {
 		))
 		return errors.New("session manager already accepting sessions")
 	}
-	manager.sessionId = GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
+	manager.sessionId = Tools.GenerateRandomString(manager.config.SessionIdLength, manager.config.SessionIdAlphabet)
 	manager.isStarted = true
 	manager.sessionMutex.Unlock()
 
@@ -294,7 +295,7 @@ type Session struct {
 	mutex         sync.RWMutex
 	keyValuePairs map[string]any
 
-	timeout *Timeout
+	timeout *Tools.Timeout
 }
 
 func (session *Session) Set(key string, value any) {
@@ -333,6 +334,6 @@ func (session *Session) GetIdentity() string {
 }
 
 // is nil until the onCreate is finished
-func (session *Session) GetTimeout() *Timeout {
+func (session *Session) GetTimeout() *Tools.Timeout {
 	return session.timeout
 }
