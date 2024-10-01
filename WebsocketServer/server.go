@@ -83,6 +83,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 			if eventHandler != nil {
 				eventHandler(event)
 			}
+
 		}),
 		groupSessionManager: SessionManager.New(name+"_groupSessionManager", config.GroupSessionManagerConfig, eventHandler),
 

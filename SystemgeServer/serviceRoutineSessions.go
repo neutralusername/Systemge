@@ -94,8 +94,8 @@ func (server *SystemgeServer) handleSystemgeDisconnect(session *SessionManager.S
 
 	select {
 	case <-connection.GetCloseChannel():
+	case <-session.GetTimeout().GetTriggeredChannel():
 	case <-server.stopChannel:
-		connection.Close()
 	}
 
 	session.GetTimeout().Trigger()
