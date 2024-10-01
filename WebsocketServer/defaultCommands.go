@@ -208,13 +208,6 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return Helpers.BoolToString(inGroup), nil
 	}
-	commands["websocketConnectionExists"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", errors.New("invalid number of arguments")
-		}
-		websocketConnectionExists := server.WebsocketConnectionExists(args[0])
-		return Helpers.BoolToString(websocketConnectionExists), nil
-	}
 	commands["getWebsocketConnectionGroupCount"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("invalid number of arguments")
@@ -225,23 +218,6 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			return "", err
 		}
 		return Helpers.IntToString(websocketConnectionGroupCount), nil
-	}
-	commands["getWebsocketConnectionCount"] = func(args []string) (string, error) {
-		websocketConnectionCount := server.GetWebsocketConnectionCount()
-		return Helpers.IntToString(websocketConnectionCount), nil
-	}
-	commands["closeWebsocketConnection"] = func(args []string) (string, error) {
-		if len(args) != 1 {
-			return "", errors.New("invalid number of arguments")
-		}
-		id := args[0]
-		server.websocketConnectionMutex.Lock()
-		defer server.websocketConnectionMutex.Unlock()
-		if websocketConnection, ok := server.websocketConnections[id]; ok {
-			websocketConnection.Close()
-			return "success", nil
-		}
-		return "", errors.New("websocketConnection does not exist")
 	}
 	return commands
 }

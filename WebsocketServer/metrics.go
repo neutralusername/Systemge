@@ -20,12 +20,21 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 		}),
 	)
 
-	metricsTypes.AddMetrics("websocketServer_stats", Metrics.New(
+	metricsTypes.AddMetrics("websocketServer_connections", Metrics.New(
 		map[string]uint64{
-			"active_connections":   uint64(server.GetWebsocketConnectionCount()),
 			"connections_accepted": server.CheckWebsocketConnectionsAccepted(),
 			"connections_failed":   server.CheckWebsocketConnectionsFailed(),
 			"connections_rejected": server.CheckWebsocketConnectionsRejected(),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_clientSessionManager", Metrics.New(
+		map[string]uint64{
+			// todo
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_groupSessionManager", Metrics.New(
+		map[string]uint64{
+			// todo
 		}),
 	)
 	metricsTypes.Merge(server.httpServer.CheckMetrics())
@@ -47,12 +56,21 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 			"failed_messages":   uint64(server.GetWebsocketConnectionMessagesFailed()),
 		}),
 	)
-	metricsTypes.AddMetrics("websocketServer_stats", Metrics.New(
+	metricsTypes.AddMetrics("websocketServer_connections", Metrics.New(
 		map[string]uint64{
-			"active_connections":   uint64(server.GetWebsocketConnectionCount()),
 			"connections_accepted": server.GetWebsocketConnectionsAccepted(),
 			"connections_failed":   server.GetWebsocketConnectionsFailed(),
 			"connections_rejected": server.GetWebsocketConnectionsRejected(),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_clientSessionManager", Metrics.New(
+		map[string]uint64{
+			// todo
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_groupSessionManager", Metrics.New(
+		map[string]uint64{
+			// todo
 		}),
 	)
 	metricsTypes.Merge(server.httpServer.GetMetrics())
