@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (manager *SessionManager) Start() error {
+func (manager *Manager) Start() error {
 	manager.statusMutex.Lock()
 	defer manager.statusMutex.Unlock()
 

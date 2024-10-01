@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (manager *SessionManager) CreateSession(identityString string) (*Session, error) {
+func (manager *Manager) CreateSession(identityString string) (*Session, error) {
 
 	if manager.config.MaxIdentityLength > 0 && uint32(len(identityString)) > manager.config.MaxIdentityLength {
 		if event := manager.onEvent(Event.NewWarning(
@@ -178,7 +178,7 @@ func (manager *SessionManager) CreateSession(identityString string) (*Session, e
 
 	return session, nil
 }
-func (manager *SessionManager) cleanupSession(session *Session) {
+func (manager *Manager) cleanupSession(session *Session) {
 	manager.sessionMutex.Lock()
 	defer manager.sessionMutex.Unlock()
 	delete(manager.sessions, session.GetId())

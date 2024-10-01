@@ -12,10 +12,10 @@ import (
 func (server *WebsocketServer) acceptRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
-			Event.AcceptionRoutineFinished,
+			Event.ConnectionRoutineFinished,
 			"stopped websocketConnection acception routine",
 			Event.Context{
-				Event.Circumstance: Event.AcceptionRoutine,
+				Event.Circumstance: Event.ConnectionRoutine,
 				Event.ClientType:   Event.WebsocketConnection,
 			},
 		))
@@ -23,13 +23,13 @@ func (server *WebsocketServer) acceptRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptionRoutineBegins,
+		Event.ConnectionRoutineBegins,
 		"started websocketConnection acception routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptionRoutine,
+			Event.Circumstance: Event.ConnectionRoutine,
 			Event.ClientType:   Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
@@ -49,7 +49,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptionRoutine,
+			Event.Circumstance: Event.ConnectionRoutine,
 			Event.ChannelType:  Event.WebsocketConnection,
 		},
 	)); !event.IsInfo() {
@@ -62,7 +62,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 			Event.ReceivedNilValueFromChannel,
 			"received nil from websocketConnection channel",
 			Event.Context{
-				Event.Circumstance: Event.AcceptionRoutine,
+				Event.Circumstance: Event.ConnectionRoutine,
 				Event.ChannelType:  Event.WebsocketConnection,
 			},
 		))
@@ -76,7 +76,7 @@ func (server *WebsocketServer) receiveWebsocketConnection() error {
 		Event.Skip,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance:  Event.AcceptionRoutine,
+			Event.Circumstance:  Event.ConnectionRoutine,
 			Event.ChannelType:   Event.WebsocketConnection,
 			Event.ClientAddress: websocketConnection.RemoteAddr().String(),
 		},

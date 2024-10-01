@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 )
 
-func (manager *SessionManager) Stop() error {
+func (manager *Manager) Stop() error {
 	manager.statusMutex.Lock()
 	defer manager.statusMutex.Unlock()
 

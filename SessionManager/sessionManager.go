@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type SessionManager struct {
+type Manager struct {
 	name             string
 	config           *Config.SessionManager
 	maxTotalSessions float64
@@ -30,7 +30,7 @@ type SessionManager struct {
 	eventHandler Event.Handler
 }
 
-func NewSessionManager(name string, config *Config.SessionManager, eventHandler Event.Handler) *SessionManager {
+func NewSessionManager(name string, config *Config.SessionManager, eventHandler Event.Handler) *Manager {
 	if config == nil {
 		config = &Config.SessionManager{}
 	}
@@ -40,7 +40,7 @@ func NewSessionManager(name string, config *Config.SessionManager, eventHandler 
 	if config.SessionIdAlphabet == "" {
 		config.SessionIdAlphabet = Tools.ALPHA_NUMERIC
 	}
-	return &SessionManager{
+	return &Manager{
 		name:   name,
 		config: config,
 
@@ -57,7 +57,7 @@ func NewSessionManager(name string, config *Config.SessionManager, eventHandler 
 	}
 }
 
-func (manager *SessionManager) GetSession(sessionId string) *Session {
+func (manager *Manager) GetSession(sessionId string) *Session {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 	if session, ok := manager.sessions[sessionId]; ok {
@@ -66,7 +66,7 @@ func (manager *SessionManager) GetSession(sessionId string) *Session {
 	return nil
 }
 
-func (manager *SessionManager) GetIdentities() []string {
+func (manager *Manager) GetIdentities() []string {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 
@@ -77,7 +77,7 @@ func (manager *SessionManager) GetIdentities() []string {
 	return identities
 }
 
-func (manager *SessionManager) GetSessions(identityString string) []*Session {
+func (manager *Manager) GetSessions(identityString string) []*Session {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 
@@ -91,7 +91,7 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 	return nil
 }
 
-func (manager *SessionManager) IdentityExists(identityString string) bool {
+func (manager *Manager) IdentityExists(identityString string) bool {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 
@@ -101,7 +101,7 @@ func (manager *SessionManager) IdentityExists(identityString string) bool {
 	return false
 }
 
-func (manager *SessionManager) GetStatus() int {
+func (manager *Manager) GetStatus() int {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 	if manager.isStarted {
@@ -110,14 +110,14 @@ func (manager *SessionManager) GetStatus() int {
 	return Status.Stopped
 }
 
-func (server *SessionManager) onEvent(event *Event.Event) *Event.Event {
+func (server *Manager) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetContext())
 	if server.eventHandler != nil {
 		server.eventHandler(event)
 	}
 	return event
 }
-func (server *SessionManager) GetContext() Event.Context {
+func (server *Manager) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:   Event.SessionManager,
 		Event.ServiceName:   server.name,

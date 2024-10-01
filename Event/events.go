@@ -12,18 +12,15 @@ const ServiceStopFailed = "serviceStopFailed"   // when a service stop operation
 const ServiceAlreadyStarted = "serverAlreadyStarted" // when attempting an operation that requires the service to be stopped
 const ServiceAlreadyStopped = "serverAlreadyStopped" // when attempting an operation that requires the service to be started
 
-const HandlingAcception = "handlingAcception"         // before handling a client acception
-const HandledAcception = "handledAcception"           // after handling a client acception
-const HandleAcceptionFailed = "handleAcceptionFailed" // when a handle acception operation returns an error
+const HandlingConnection = "handlingConnection"         // before handling a client connection
+const HandledConnection = "handledConnection"           // after handling a client connection
+const HandleConnectionFailed = "handleConnectionFailed" // when a handle connection operation returns an error
 
 const HandlingDisconnection = "handlingDisconnection" // before handling a client disconnection
 const HandledDisconnection = "handledDisconnection"   // after handling a client disconnection
 
-const AcceptionRoutineBegins = "acceptionRoutineBegins"     // when a acception routine begins
-const AcceptionRoutineFinished = "acceptionRoutineFinished" // when a acception routine finishes
-
-const ClientNotAccepted = "clientNotAccepted"         // when attempting an operation that requires the client to be accepted
-const ClientAlreadyAccepted = "clientAlreadyAccepted" // when attempting an operation that requires the client to be not accepted
+const ConnectionRoutineBegins = "connectionRoutineBegins"     // when a connection routine begins
+const ConnectionRoutineFinished = "connectionRoutineFinished" // when a connection routine finishes
 
 const ReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
 const ReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes
@@ -162,8 +159,13 @@ const MaxIdentitiesExceeded = "maxIdentitiesExceeded"                   // when 
 
 const CreatingIdentity = "creatingIdentity" // before creating an identity
 
+const CreateSessionFailed = "createSessionFailed" // when a create session operation returns an error
+
 const SessionAccepting = "sessionAccepting" // before accepting a session
 const SessionAccepted = "sessionAccepted"   // after accepting a session
 
 const SessionDisconnected = "sessionDisconnected"   // when a session is disconnected
 const SessionDisconnecting = "sessionDisconnecting" // before disconnecting a session
+
+const SessionNotAccepted = "sessionNotAccepted"         // when a session is not accepted
+const SessionAlreadyAccepted = "sessionAlreadyAccepted" // when a session is already accepted

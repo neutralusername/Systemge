@@ -46,6 +46,7 @@ func (server *SystemgeServer) Stop() error {
 			},
 		))
 	}
+	server.sessionManager.Stop()
 	server.waitGroup.Wait()
 	server.status = Status.Stopped
 

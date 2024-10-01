@@ -7,13 +7,13 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) acceptRoutine() {
+func (server *SystemgeServer) connectionRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
-			Event.AcceptionRoutineFinished,
-			"stopped systemgeServer acception routine",
+			Event.ConnectionRoutineFinished,
+			"stopped systemgeServer connection routine",
 			Event.Context{
-				Event.Circumstance: Event.AcceptionRoutine,
+				Event.Circumstance: Event.ConnectionRoutine,
 				Event.ClientType:   Event.SystemgeConnection,
 			},
 		))
@@ -21,24 +21,24 @@ func (server *SystemgeServer) acceptRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.AcceptionRoutineBegins,
-		"started systemgeServer acception routine",
+		Event.ConnectionRoutineBegins,
+		"started systemgeServer connection routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptionRoutine,
+			Event.Circumstance: Event.ConnectionRoutine,
 			Event.ClientType:   Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
 		return
 	}
 
-	for err := server.acceptSystemgeConnection(); err == nil; {
+	for err := server.handleConnection(); err == nil; {
 	}
 }
 
-func (server *SystemgeServer) acceptSystemgeConnection() error {
+func (server *SystemgeServer) handleConnection() error {
 	select {
 	case <-server.stopChannel:
 		return errors.New("systemgeServer stopped")
@@ -46,13 +46,13 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	}
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.HandlingAcception,
-		"accepting systemgeConnection",
+		Event.HandlingConnection,
+		"handling systemgeConnection connection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleAcception,
+			Event.Circumstance: Event.HandleConnection,
 			Event.ClientType:   Event.SystemgeConnection,
 		},
 	)); !event.IsInfo() {
@@ -62,13 +62,13 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 	connection, err := server.listener.AcceptConnection(server.config.TcpSystemgeConnectionConfig, server.eventHandler)
 	if err != nil {
 		event := server.onEvent(Event.NewInfo(
-			Event.HandleAcceptionFailed,
+			Event.HandleConnectionFailed,
 			err.Error(),
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.HandleAcception,
+				Event.Circumstance: Event.HandleConnection,
 				Event.ClientType:   Event.SystemgeConnection,
 			},
 		))
@@ -79,62 +79,39 @@ func (server *SystemgeServer) acceptSystemgeConnection() error {
 		}
 	}
 
-	server.mutex.Lock()
-	if _, ok := server.clients[connection.GetName()]; ok {
-		event := server.onEvent(Event.NewInfo(
-			Event.DuplicateName,
-			"duplicate name",
+	session, err := server.sessionManager.CreateSession(connection.GetName())
+	if err != nil {
+		server.onEvent(Event.NewError(
+			Event.CreateSessionFailed,
+			err.Error(),
 			Event.Cancel,
 			Event.Cancel,
-			Event.Skip,
+			Event.Continue,
 			Event.Context{
-				Event.Circumstance:  Event.HandleAcception,
+				Event.Circumstance:  Event.HandleConnection,
 				Event.ClientType:    Event.SystemgeConnection,
 				Event.ClientName:    connection.GetName(),
 				Event.ClientAddress: connection.GetAddress(),
 			},
 		))
-		server.mutex.Unlock()
 		connection.Close()
-		if !event.IsInfo() {
-			return errors.New("duplicate name")
-		} else {
-			return nil
-		}
+		return nil
 	}
-	server.clients[connection.GetName()] = nil
-	server.mutex.Unlock()
+	session.Set("connection", connection)
 
-	event := server.onEvent(Event.NewInfo(
-		Event.HandledAcception,
-		"systemgeConnection accepted",
-		Event.Cancel,
-		Event.Skip,
-		Event.Continue,
+	server.waitGroup.Add(1)
+	go server.handleSystemgeDisconnect(connection)
+
+	server.onEvent(Event.NewInfoNoOption(
+		Event.HandledConnection,
+		"systemgeConnection connected",
 		Event.Context{
-			Event.Circumstance:  Event.HandleAcception,
+			Event.Circumstance:  Event.HandleConnection,
 			Event.ClientType:    Event.SystemgeConnection,
 			Event.ClientName:    connection.GetName(),
 			Event.ClientAddress: connection.GetAddress(),
 		},
 	))
-	if event.IsError() {
-		connection.Close()
-		server.removeSystemgeConnection(connection.GetName())
-		return event.GetError()
-	}
-	if event.IsWarning() {
-		connection.Close()
-		server.removeSystemgeConnection(connection.GetName())
-		return nil
-	}
-
-	server.mutex.Lock()
-	server.clients[connection.GetName()] = connection
-	server.mutex.Unlock()
-
-	server.waitGroup.Add(1)
-	go server.handleSystemgeDisconnect(connection)
 
 	return nil
 }
@@ -174,7 +151,8 @@ func (server *SystemgeServer) handleSystemgeDisconnect(connection SystemgeConnec
 }
 
 func (server *SystemgeServer) removeSystemgeConnection(name string) {
-	server.mutex.Lock()
-	defer server.mutex.Unlock()
-	delete(server.clients, name)
+	sessions := server.sessionManager.GetSessions(name)
+	for _, session := range sessions {
+		session.GetTimeout().Trigger()
+	}
 }
