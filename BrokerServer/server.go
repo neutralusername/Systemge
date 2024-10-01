@@ -70,7 +70,9 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
 		func(event *Event.Event) {
-			eventHandler(event)
+			if eventHandler != nil {
+				eventHandler(event)
+			}
 
 			switch event.GetEvent() {
 			case Event.HandledAcception:

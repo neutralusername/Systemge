@@ -6,19 +6,22 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Status"
 )
 
 type SessionManager struct {
+	name             string
 	config           *Config.SessionManager
 	maxTotalSessions float64
+
+	instanceId string
+	sessionId  string
 
 	sessionMutex sync.RWMutex
 	identities   map[string]*Identity
 	sessions     map[string]*Session
-
-	onExpire func(*Session)
-	onCreate func(*Session) error
 
 	acceptSessions      bool
 	waitgroup           sync.WaitGroup
@@ -27,7 +30,7 @@ type SessionManager struct {
 	eventHandler Event.Handler
 }
 
-func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) error, onExpire func(*Session), eventHandler Event.Handler) *SessionManager {
+func NewSessionManager(name string, config *Config.SessionManager, eventHandler Event.Handler) *SessionManager {
 	if config == nil {
 		config = &Config.SessionManager{}
 	}
@@ -38,15 +41,15 @@ func NewSessionManager(config *Config.SessionManager, onCreate func(*Session) er
 		config.SessionIdAlphabet = ALPHA_NUMERIC
 	}
 	return &SessionManager{
+		name:   name,
 		config: config,
+
+		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
 
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),
 
-		onCreate: onCreate,
-		onExpire: onExpire,
-
-		acceptSessions: true,
+		acceptSessions: false,
 
 		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.8,
 
@@ -133,13 +136,7 @@ func (manager *SessionManager) cleanupSession(session *Session) {
 	}
 }
 
-func (manager *SessionManager) IsAcceptingSessions() bool {
-	manager.sessionMutex.RLock()
-	defer manager.sessionMutex.RUnlock()
-	return manager.acceptSessions
-}
-
-func (manager *SessionManager) AcceptSessions() error {
+func (manager *SessionManager) Start() error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
 
@@ -154,8 +151,7 @@ func (manager *SessionManager) AcceptSessions() error {
 	return nil
 }
 
-// rejects all new sessions. blocking = true waits for all current session acceptions to finish (after which no new sessions/identities will be added)
-func (manager *SessionManager) RejectSessions(blocking bool) error {
+func (manager *SessionManager) Stop() error {
 	manager.acceptSessionsMutex.Lock()
 	defer manager.acceptSessionsMutex.Unlock()
 
@@ -167,9 +163,7 @@ func (manager *SessionManager) RejectSessions(blocking bool) error {
 	manager.acceptSessions = false
 	manager.sessionMutex.Unlock()
 
-	if blocking {
-		manager.waitgroup.Wait()
-	}
+	manager.waitgroup.Wait()
 	return nil
 }
 
@@ -228,6 +222,33 @@ func (manager *SessionManager) HasActiveSession(identityString string) bool {
 		}
 	}
 	return false
+}
+
+func (manager *SessionManager) GetStatus() int {
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
+	if manager.acceptSessions {
+		return Status.Started
+	}
+	return Status.Stopped
+}
+
+func (server *SessionManager) onEvent(event *Event.Event) *Event.Event {
+	event.GetContext().Merge(server.GetContext())
+	if server.eventHandler != nil {
+		server.eventHandler(event)
+	}
+	return event
+}
+func (server *SessionManager) GetContext() Event.Context {
+	return Event.Context{
+		Event.ServiceType:   Event.SystemgeServer,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.GetStatus()),
+		Event.Function:      Event.GetCallerFuncName(2),
+		Event.InstanceId:    server.instanceId,
+		Event.SessionId:     server.sessionId,
+	}
 }
 
 type Identity struct {
