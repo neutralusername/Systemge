@@ -1,4 +1,4 @@
-package TcpSystemgeConnection
+package WebsocketClient
 
 import (
 	"errors"
@@ -6,10 +6,9 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (connection *TcpSystemgeConnection) RetrieveNextMessage(waitDurationMs uint64) (*Message.Message, error) {
+func (connection *WebsocketClient) RetrieveNextMessage(waitDurationMs uint64) (*Message.Message, error) {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 
@@ -89,7 +88,7 @@ func (connection *TcpSystemgeConnection) RetrieveNextMessage(waitDurationMs uint
 
 // A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
 // errorChannel will send all errors that occur during message processing.
-func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
+func (connection *WebsocketClient) StartMessageHandlingLoop(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 
@@ -152,7 +151,7 @@ func (connection *TcpSystemgeConnection) StartMessageHandlingLoop(messageHandler
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler, sequentially bool, behaviour string) {
+func (connection *WebsocketClient) messageHandlingLoop(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler, sequentially bool, behaviour string) {
 	if event := connection.onEvent(Event.NewInfo(
 		Event.ReceivingFromChannel,
 		"message handling loop running",
@@ -220,7 +219,7 @@ func (connection *TcpSystemgeConnection) messageHandlingLoop(stopChannel chan bo
 	}
 }
 
-func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
+func (connection *WebsocketClient) StopMessageHandlingLoop() error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 
@@ -264,18 +263,18 @@ func (connection *TcpSystemgeConnection) StopMessageHandlingLoop() error {
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) IsMessageHandlingLoopStarted() bool {
+func (connection *WebsocketClient) IsMessageHandlingLoopStarted() bool {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 	return connection.messageHandlingLoopStopChannel != nil
 }
 
-func (connection *TcpSystemgeConnection) AvailableMessageCount() uint32 {
+func (connection *WebsocketClient) AvailableMessageCount() uint32 {
 	return connection.messageChannelSemaphore.AvailableAcquires()
 }
 
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler and send a response if necessary.
-func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
+func (connection *WebsocketClient) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
 	if messageHandler == nil {
 		connection.onEvent(Event.NewWarningNoOption(
 			Event.UnexpectedNilValue,
