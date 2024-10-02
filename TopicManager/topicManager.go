@@ -8,7 +8,7 @@ import (
 type TopicHandler func(...any) (any, error)
 type TopicHandlers map[string]TopicHandler
 
-type TopicManager struct {
+type Manager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
 
@@ -19,9 +19,11 @@ type TopicManager struct {
 	topicQueues       map[string]chan *queueStruct
 	unknownTopicQueue chan *queueStruct
 
-	queueSize       uint32
-	topicQueueSize  uint32
-	concurrentCalls bool
+	queueSize          uint32
+	topicQueueSize     uint32
+	concurrentCalls    bool
+	queueBlocking      bool
+	topicQueueBlocking bool
 }
 
 type queueStruct struct {
@@ -36,11 +38,11 @@ type queueStruct struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32, concurrentCalls bool) *TopicManager {
+func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32, concurrentCalls bool, queueBlocking bool, topicQueueBlocking bool) *Manager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
-	topicManager := &TopicManager{
+	topicManager := &Manager{
 		topicHandlers:       topicHandlers,
 		unknownTopicHandler: unknownTopicHandler,
 		queue:               make(chan *queueStruct, queueSize),
@@ -48,6 +50,8 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 		queueSize:           queueSize,
 		topicQueueSize:      topicQueueSize,
 		concurrentCalls:     concurrentCalls,
+		queueBlocking:       queueBlocking,
+		topicQueueBlocking:  topicQueueBlocking,
 	}
 	go topicManager.handleCalls()
 	for topic, handler := range topicHandlers {
@@ -63,20 +67,32 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 	return topicManager
 }
 
-func (topicManager *TopicManager) handleCalls() {
+func (topicManager *Manager) handleCalls() {
 	for queueStruct := range topicManager.queue {
-		if queue := topicManager.topicQueues[queueStruct.topic]; queue != nil {
+		queue := topicManager.topicQueues[queueStruct.topic]
+		if queue == nil {
+			if topicManager.unknownTopicQueue != nil {
+				queue = topicManager.unknownTopicQueue
+			} else {
+				queueStruct.responseAnyChannel <- nil
+				queueStruct.responseErrorChannel <- errors.New("no handler for topic")
+				continue
+			}
+		}
+		if topicManager.topicQueueBlocking {
 			queue <- queueStruct
-		} else if topicManager.unknownTopicQueue != nil {
-			topicManager.unknownTopicQueue <- queueStruct
 		} else {
-			queueStruct.responseAnyChannel <- nil
-			queueStruct.responseErrorChannel <- errors.New("no handler for topic")
+			select {
+			case queue <- queueStruct:
+			default:
+				queueStruct.responseAnyChannel <- nil
+				queueStruct.responseErrorChannel <- errors.New("topic queue full")
+			}
 		}
 	}
 }
 
-func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
+func (topicManager *Manager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
 	for queueStruct := range queue {
 		if topicManager.concurrentCalls {
 			go func() {
@@ -93,21 +109,34 @@ func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler T
 }
 
 // can not be called after Close or will cause panic.
-func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
+func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error) {
 	response := make(chan any)
 	err := make(chan error)
 
-	topicManager.queue <- &queueStruct{
-		topic:                topic,
-		args:                 args,
-		responseAnyChannel:   response,
-		responseErrorChannel: err,
+	if topicManager.queueBlocking {
+		topicManager.queue <- &queueStruct{
+			topic:                topic,
+			args:                 args,
+			responseAnyChannel:   response,
+			responseErrorChannel: err,
+		}
+	} else {
+		select {
+		case topicManager.queue <- &queueStruct{
+			topic:                topic,
+			args:                 args,
+			responseAnyChannel:   response,
+			responseErrorChannel: err,
+		}:
+		default:
+			response <- nil
+			err <- errors.New("queue full")
+		}
 	}
-
 	return <-response, <-err
 }
 
-func (topicManager *TopicManager) Close() error {
+func (topicManager *Manager) Close() error {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
 
@@ -125,7 +154,7 @@ func (topicManager *TopicManager) Close() error {
 	return nil
 }
 
-func (topicManager *TopicManager) IsClosed() bool {
+func (topicManager *Manager) IsClosed() bool {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
 	return topicManager.isCLosed

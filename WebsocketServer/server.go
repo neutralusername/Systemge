@@ -11,10 +11,10 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/MessageHandler"
 	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/TopicManager"
 )
 
 type WebsocketServer struct {
@@ -38,7 +38,10 @@ type WebsocketServer struct {
 
 	sessionManager *SessionManager.Manager
 
-	messageHandlers MessageHandler.MessageHandler
+	messageHandlers     WebsocketMessageHandlers
+	messageHandlerMutex sync.Mutex
+
+	topicManager *TopicManager.Manager
 
 	eventHandler Event.Handler
 
@@ -56,7 +59,7 @@ type WebsocketServer struct {
 	websocketConnectionMessagesBytesSent     atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers MessageHandlers, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers WebsocketMessageHandlers, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -118,7 +121,7 @@ func (server *WebsocketServer) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *WebsocketServer) AddMessageHandler(topic string, handler MessageHandler) {
+func (server *WebsocketServer) AddMessageHandler(topic string, handler WebsocketMessageHandler) {
 	server.messageHandlerMutex.Lock()
 	server.messageHandlers[topic] = handler
 	server.messageHandlerMutex.Unlock()
