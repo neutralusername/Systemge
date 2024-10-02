@@ -165,6 +165,17 @@ func (server *WebsocketServer) read(websocketConnection *WebsocketConnection, ci
 	websocketConnection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
 	_, messageBytes, err := websocketConnection.websocketConn.ReadMessage()
 	if err != nil {
+		if server.eventHandler != nil {
+			server.onEvent(Event.NewWarningNoOption(
+				Event.ReadMessageFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance: Event.MessageReceptionRoutine,
+					Event.SessionId:    websocketConnection.GetId(),
+					Event.Address:      websocketConnection.GetAddress(),
+				},
+			))
+		}
 		websocketConnection.Close()
 		return nil, err
 	}

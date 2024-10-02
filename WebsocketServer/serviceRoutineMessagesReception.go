@@ -44,17 +44,6 @@ func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *Webs
 	for {
 		messageBytes, err := server.read(websocketConnection, Event.MessageReceptionRoutine)
 		if err != nil {
-			if server.eventHandler != nil {
-				server.onEvent(Event.NewWarningNoOption(
-					Event.ReadMessageFailed,
-					err.Error(),
-					Event.Context{
-						Event.Circumstance: Event.MessageReceptionRoutine,
-						Event.SessionId:    websocketConnection.GetId(),
-						Event.Address:      websocketConnection.GetAddress(),
-					},
-				))
-			}
 			break
 		}
 		server.websocketConnectionMessagesReceived.Add(1)
@@ -224,22 +213,6 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 
 }
 
-func (server *WebsocketServer) validateMessage(message *Message.Message) error {
-	if len(message.GetSyncToken()) != 0 {
-		return errors.New("message contains sync token")
-	}
-	if len(message.GetTopic()) == 0 {
-		return errors.New("message missing topic")
-	}
-	if maxTopicSize := server.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return errors.New("message topic exceeds maximum size")
-	}
-	if maxPayloadSize := server.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return errors.New("message payload exceeds maximum size")
-	}
-	return nil
-}
-
 func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) TopicManager.TopicHandler {
 	return func(args ...any) (any, error) {
 		websocketConnection := args[0].(*WebsocketConnection)
@@ -301,4 +274,20 @@ func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) T
 
 		return nil, nil
 	}
+}
+
+func (server *WebsocketServer) validateMessage(message *Message.Message) error {
+	if len(message.GetSyncToken()) != 0 {
+		return errors.New("message contains sync token")
+	}
+	if len(message.GetTopic()) == 0 {
+		return errors.New("message missing topic")
+	}
+	if maxTopicSize := server.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return errors.New("message topic exceeds maximum size")
+	}
+	if maxPayloadSize := server.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return errors.New("message payload exceeds maximum size")
+	}
+	return nil
 }
