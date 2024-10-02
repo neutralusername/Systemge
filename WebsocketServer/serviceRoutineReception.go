@@ -144,7 +144,27 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		return errors.New("received heartbeat")
 	}
 
-	result, err = server.topicManager.HandleTopic(message.GetTopic(), websocketConnection, message)
+	_, err = server.topicManager.HandleTopic(message.GetTopic(), websocketConnection, message)
+	return err
+}
+
+func (server *WebsocketServer) validateMessage(message *Message.Message) error {
+	if len(message.GetSyncToken()) != 0 {
+		return errors.New("message contains sync token")
+	}
+	if len(message.GetTopic()) == 0 {
+		return errors.New("message missing topic")
+	}
+	if maxTopicSize := server.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
+		return errors.New("message topic exceeds maximum size")
+	}
+	if maxPayloadSize := server.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
+		return errors.New("message payload exceeds maximum size")
+	}
+	return nil
+}
+
+/*
 
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
@@ -201,20 +221,4 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		},
 	))
 	return nil
-}
-
-func (server *WebsocketServer) validateMessage(message *Message.Message) error {
-	if len(message.GetSyncToken()) != 0 {
-		return errors.New("message contains sync token")
-	}
-	if len(message.GetTopic()) == 0 {
-		return errors.New("message missing topic")
-	}
-	if maxTopicSize := server.config.MaxTopicSize; maxTopicSize > 0 && len(message.GetTopic()) > maxTopicSize {
-		return errors.New("message topic exceeds maximum size")
-	}
-	if maxPayloadSize := server.config.MaxPayloadSize; maxPayloadSize > 0 && len(message.GetPayload()) > maxPayloadSize {
-		return errors.New("message payload exceeds maximum size")
-	}
-	return nil
-}
+*/
