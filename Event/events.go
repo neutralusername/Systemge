@@ -30,11 +30,11 @@ const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception
 
 const PipelineFailed = "pipelineFailed" // when a pipeline operation returns an error
 
-/* const HandlingMessage = "handlingMessage" // before handling a message
-const HandledMessage = "handledMessage"   // after handling a message */
+const HandlingTopic = "handlingTopic" // before handling a topic
+const HandledTopic = "handledTopic"   // after handling a topic
 
-const NoHandlerForTopic = "noHandlerForTopic" // when no message handler is found for a particular topic
-const HandlerFailed = "handlerFailed"         // when a message handling operation returns an error
+const NoHandlerForTopic = "noHandlerForTopic"   // when no message handler is found for a particular topic
+const TopicHandlerFailed = "topicHandlerFailed" // when a message handling operation returns an error
 
 const MessageHandlingLoopStarting = "messageHandlingLoopStarting" // before starting the message handling loop
 const MessageHandlingLoopStarted = "messageHandlingLoopStarted"   // after starting the message handling loop

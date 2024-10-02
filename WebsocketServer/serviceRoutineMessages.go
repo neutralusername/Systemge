@@ -131,7 +131,55 @@ func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) T
 	return func(args ...any) (any, error) {
 		websocketConnection := args[0].(*WebsocketConnection)
 		message := args[1].(*Message.Message)
-		return nil, handler(websocketConnection, message)
+
+		if event := server.onEvent___(Event.NewInfo(
+			Event.HandlingTopic,
+			"handling websocketConnection message",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.HandleTopic,
+				Event.SessionId:    websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
+			},
+		)); !event.IsInfo() {
+			return nil, errors.New("event cancelled")
+		}
+
+		err := handler(websocketConnection, message)
+		if err != nil {
+			server.onEvent___(Event.NewWarningNoOption(
+				Event.TopicHandlerFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance: Event.HandleTopic,
+					Event.SessionId:    websocketConnection.GetId(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			))
+		}
+
+		server.onEvent___(Event.NewInfoNoOption(
+			Event.HandledTopic,
+			"handled websocketConnection message",
+			Event.Context{
+				Event.Circumstance: Event.HandleTopic,
+				Event.SessionId:    websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
+			},
+		))
+
+		return nil, err
 	}
 }
 
@@ -154,61 +202,3 @@ func (server *WebsocketServer) validator(data any, args ...any) error {
 func (server *WebsocketServer) deserializer(bytes []byte, args ...any) (any, error) {
 	return Message.Deserialize(bytes, args[0].(string))
 }
-
-/*
-	server.messageHandlerMutex.Lock()
-	handler := server.messageHandlers[message.GetTopic()]
-	server.messageHandlerMutex.Unlock()
-
-	if handler == nil {
-		server.onEvent___(Event.NewWarningNoOption(
-			Event.NoHandlerForTopic,
-			"no websocketConnection message handler for topic",
-			Event.Context{
-				Event.Circumstance: Event.HandleReception,
-				Event.Behaviour:    behaviour,
-				Event.HandlerType:  Event.WebsocketConnection,
-				Event.SessionId:    websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
-			},
-		))
-		return errors.New("no handler for topic")
-	}
-
-	if err := handler(websocketConnection, message); err != nil {
-		server.onEvent___(Event.NewWarningNoOption(
-			Event.HandlerFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: Event.HandleReception,
-				Event.Behaviour:    behaviour,
-				Event.HandlerType:  Event.WebsocketConnection,
-				Event.SessionId:    websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
-			},
-		))
-		return err
-	}
-
-	server.onEvent___(Event.NewInfoNoOption(
-		Event.HandledReception,
-		"handled websocketConnection message",
-		Event.Context{
-			Event.Circumstance: Event.HandleReception,
-			Event.Behaviour:    behaviour,
-			Event.HandlerType:  Event.WebsocketConnection,
-			Event.SessionId:    websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
-		},
-	))
-	return nil
-*/

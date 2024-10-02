@@ -43,7 +43,7 @@ const MessageHandlingLoop = "messageHandlingLoop"
 
 const RetrieveNextMessage = "retrievingNextMessage"
 
-const HandleMessage = "handleMessage"
+const HandleTopic = "handleTopic"
 
 const AddRoute = "addRoute"
 const RemoveRoute = "removeRoute"

@@ -300,7 +300,7 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 	if message.GetSyncToken() == "" {
 		if err := messageHandler.HandleAsyncMessage(connection, message); err != nil {
 			connection.onEvent(Event.NewWarningNoOption(
-				Event.HandlerFailed,
+				Event.TopicHandlerFailed,
 				err.Error(),
 				Event.Context{
 					Event.Circumstance: Event.HandleMessage,
@@ -313,7 +313,7 @@ func (connection *TcpSystemgeConnection) HandleMessage(message *Message.Message,
 	} else {
 		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
 			connection.onEvent(Event.NewWarningNoOption(
-				Event.HandlerFailed,
+				Event.TopicHandlerFailed,
 				err.Error(),
 				Event.Context{
 					Event.Circumstance: Event.HandleMessage,

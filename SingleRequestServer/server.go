@@ -103,7 +103,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 				if err != nil {
 					server.failedAsyncMessages.Add(1)
 					server.onEvent(Event.NewWarningNoOption(
-						Event.HandlerFailed,
+						Event.TopicHandlerFailed,
 						err.Error(),
 						Event.Context{
 							Event.Circumstance: Event.SingleRequestServerRequest,
@@ -121,7 +121,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 					systemgeConnection.SyncResponse(message, false, err.Error())
 					server.failedSyncMessages.Add(1)
 					server.onEvent(Event.NewWarningNoOption(
-						Event.HandlerFailed,
+						Event.TopicHandlerFailed,
 						err.Error(),
 						Event.Context{
 							Event.Circumstance: Event.SingleRequestServerRequest,
