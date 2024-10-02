@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/TopicManager"
 )
 
 func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *WebsocketConnection) {
@@ -107,7 +108,6 @@ func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *Webs
 
 func (server *WebsocketServer) handleMessageReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) error {
 	result, err := websocketConnection.receptionManager.HandleReception(messageBytes, websocketConnection.GetId())
-
 	if err != nil {
 		server.onEvent___(Event.NewWarningNoOption(
 			Event.PipelineFailed,
@@ -123,9 +123,16 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 		return err
 	}
 	message := result.(*Message.Message)
-
 	_, err = server.topicManager.HandleTopic(message.GetTopic(), websocketConnection, message)
 	return err
+}
+
+func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) TopicManager.TopicHandler {
+	return func(args ...any) (any, error) {
+		websocketConnection := args[0].(*WebsocketConnection)
+		message := args[1].(*Message.Message)
+		return nil, handler(websocketConnection, message)
+	}
 }
 
 func (server *WebsocketServer) validator(data any, args ...any) error {
@@ -149,7 +156,6 @@ func (server *WebsocketServer) deserializer(bytes []byte, args ...any) (any, err
 }
 
 /*
-
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()
