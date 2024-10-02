@@ -296,36 +296,17 @@ func (connection *WebsocketClient) HandleMessage(message *Message.Message, messa
 		return errors.New("no message provided")
 	}
 
-	if message.GetSyncToken() == "" {
-		if err := messageHandler.HandleAsyncMessage(connection, message); err != nil {
-			connection.onEvent(Event.NewWarningNoOption(
-				Event.HandleMessageFailed,
-				err.Error(),
-				Event.Context{
-					Event.Circumstance: Event.HandleMessage,
-					Event.Topic:        message.GetTopic(),
-					Event.Payload:      message.GetPayload(),
-					Event.SyncToken:    message.GetSyncToken(),
-				},
-			))
-		}
-	} else {
-		if responsePayload, err := messageHandler.HandleSyncRequest(connection, message); err != nil {
-			connection.onEvent(Event.NewWarningNoOption(
-				Event.HandleMessageFailed,
-				err.Error(),
-				Event.Context{
-					Event.Circumstance: Event.HandleMessage,
-					Event.ChannelType:  Event.MessageChannel,
-					Event.Topic:        message.GetTopic(),
-					Event.Payload:      message.GetPayload(),
-					Event.SyncToken:    message.GetSyncToken(),
-				},
-			))
-			connection.SyncResponse(message, false, err.Error())
-		} else {
-			connection.SyncResponse(message, true, responsePayload)
-		}
+	if err := messageHandler.HandleMessage(connection, message); err != nil {
+		connection.onEvent(Event.NewWarningNoOption(
+			Event.HandleMessageFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance: Event.HandleMessage,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
+			},
+		))
 	}
 
 	return nil

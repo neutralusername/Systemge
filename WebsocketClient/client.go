@@ -52,7 +52,7 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 		return nil, errors.New("config is nil")
 	}
 	if websocketConn == nil {
-		return nil, errors.New("netConn is nil")
+		return nil, errors.New("websocketConn is nil")
 	}
 
 	connection := &WebsocketClient{

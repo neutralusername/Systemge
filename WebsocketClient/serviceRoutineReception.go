@@ -5,7 +5,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Tcp"
 )
 
 func (connection *WebsocketClient) receptionRoutine() {
@@ -56,24 +55,15 @@ func (connection *WebsocketClient) receiveMessage() error {
 		}
 		_, messageBytes, err := connection.websocketConn.ReadMessage()
 		if err != nil {
-			if Tcp.IsConnectionClosed(err) {
-				connection.Close()
-				return errors.New("connection closed")
-			}
-			if event := connection.onEvent(Event.NewInfo(
+			connection.onEvent(Event.NewWarningNoOption(
 				Event.ReadMessageFailed,
 				err.Error(),
-				Event.Cancel,
-				Event.Cancel,
-				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.MessageReceptionRoutine,
 				}),
-			); !event.IsInfo() {
-				return err
-			} else {
-				return nil
-			}
+			)
+			connection.Close()
+			return errors.New("connection closed")
 		}
 
 		if event := connection.onEvent(Event.NewInfo(

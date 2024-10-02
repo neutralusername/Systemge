@@ -3,7 +3,6 @@ package WebsocketClient
 import (
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Tcp"
 )
 
 func (connection *WebsocketClient) Write(messageBytes []byte) error {
@@ -38,9 +37,6 @@ func (connection *WebsocketClient) write(messageBytes []byte, circumstance strin
 				Event.Bytes:        string(messageBytes),
 			}),
 		)
-		if Tcp.IsConnectionClosed(err) {
-			connection.Close()
-		}
 		return err
 	}
 	connection.bytesSent.Add(uint64(len(messageBytes)))
