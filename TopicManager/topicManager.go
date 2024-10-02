@@ -36,7 +36,7 @@ type queueStruct struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler) *Manager {
+func New(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler) *Manager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
