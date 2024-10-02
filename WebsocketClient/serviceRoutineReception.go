@@ -12,7 +12,7 @@ func (connection *WebsocketClient) receptionRoutine() {
 	defer func() {
 		connection.onEvent(Event.NewInfoNoOption(
 			Event.MessageReceptionRoutineFinished,
-			"stopped tcpSystemgeConnection message reception",
+			"stopped message reception",
 			Event.Context{
 				Event.Circumstance: Event.MessageReceptionRoutine,
 			},
@@ -22,7 +22,7 @@ func (connection *WebsocketClient) receptionRoutine() {
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.MessageReceptionRoutineBegins,
-		"started tcpSystemgeConnection message reception",
+		"started message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -44,7 +44,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 	case <-connection.messageChannelSemaphore.GetChannel():
 		if event := connection.onEvent(Event.NewInfo(
 			Event.ReadingMessage,
-			"receiving tcpSystemgeConnection message",
+			"receiving message",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -78,7 +78,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 
 		if event := connection.onEvent(Event.NewInfo(
 			Event.ReadMessage,
-			"received tcpSystemgeConnection message",
+			"received message",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -101,15 +101,13 @@ func (connection *WebsocketClient) receiveMessage() error {
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance: Event.HandleReception,
+						Event.Circumstance: Event.MessageReceptionRoutine,
 						Event.Behaviour:    Event.Sequential,
 					},
 				)); !event.IsInfo() {
 					connection.Close()
 				} else {
-					/* if server.config.PropagateMessageHandlerErrors {
-						server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
-					} */
+					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleReception)
 				}
 			}
 		} else {
@@ -122,15 +120,13 @@ func (connection *WebsocketClient) receiveMessage() error {
 						Event.Cancel,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance: Event.HandleReception,
+							Event.Circumstance: Event.MessageReceptionRoutine,
 							Event.Behaviour:    Event.Concurrent,
 						},
 					)); !event.IsInfo() {
 						connection.Close()
 					} else {
-						/* if server.config.PropagateMessageHandlerErrors {
-							server.send(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
-						} */
+						connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleReception)
 					}
 				}
 			}()
@@ -142,7 +138,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviour string) error {
 	event := connection.onEvent(Event.NewInfo(
 		Event.HandlingReception,
-		"handling tcpSystemgeConnection message reception",
+		"handling message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -160,7 +156,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 	if connection.byteRateLimiter != nil && !connection.byteRateLimiter.Consume(uint64(len(messageBytes))) {
 		if event := connection.onEvent(Event.NewWarning(
 			Event.RateLimited,
-			"tcpSystemgeConnection byte rate limited",
+			"byte rate limited",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -180,7 +176,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 	if connection.messageRateLimiter != nil && !connection.messageRateLimiter.Consume(1) {
 		if event := connection.onEvent(Event.NewWarning(
 			Event.RateLimited,
-			"tcpSystemgeConnection message rate limited",
+			"message rate limited",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -258,7 +254,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 
 	connection.onEvent(Event.NewInfoNoOption(
 		Event.HandledReception,
-		"handled tcpSystemgeConnection message reception",
+		"handled message reception",
 		Event.Context{
 			Event.Circumstance: Event.HandleReception,
 			Event.Behaviour:    behaviour,

@@ -42,7 +42,10 @@ func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers 
 		return Helpers.Uint32ToString(connection.messageChannelSemaphore.AvailableAcquires()), nil
 	}
 	commands["retrieveNextMessage"] = func(args []string) (string, error) {
-		message, err := connection.RetrieveNextMessage()
+		if len(args) != 1 {
+			return "", errors.New("expected 1 argument")
+		}
+		message, err := connection.RetrieveNextMessage(Helpers.StringToUint64(args[0]))
 		if err != nil {
 			return "", err
 		}

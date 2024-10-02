@@ -14,7 +14,7 @@ const SessionDisconnect = "sessionDisconnect"
 const HandleDisconnection = "handleDisconnection"
 
 const ReceiveRuntime = "receiveRuntime"
-const SendRuntime = "sendRuntime"
+const WriteRuntime = "sendRuntime"
 
 const DisconnectClientRuntime = "disconnectClientRuntime"
 

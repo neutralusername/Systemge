@@ -59,7 +59,7 @@ func (websocketConnection *WebsocketConnection) GetAddress() string {
 }
 
 func (server *WebsocketServer) Write(websocketConnection *WebsocketConnection, messageBytes []byte) error {
-	return server.write(websocketConnection, messageBytes, Event.SendRuntime)
+	return server.write(websocketConnection, messageBytes, Event.WriteRuntime)
 }
 func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
 	websocketConnection.sendMutex.Lock()
