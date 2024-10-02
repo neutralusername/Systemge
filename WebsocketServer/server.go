@@ -4,15 +4,14 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
+	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
 type WebsocketServer struct {
@@ -29,13 +28,10 @@ type WebsocketServer struct {
 
 	config *Config.WebsocketServer
 
-	httpServer        *HTTPServer.HTTPServer
-	connectionChannel chan *websocket.Conn
-	ipRateLimiter     *Tools.IpRateLimiter
+	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
-
-	topicManager *Tools.TopicManager
+	topicManager   *Tools.TopicManager
 
 	eventHandler Event.Handler
 }
@@ -53,6 +49,10 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if config.WebsocketListenerConfig == nil {
 		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
+	websocketListener, err := WebsocketListener.New(name+"_websocketListener", config.WebsocketListenerConfig, whitelist, blacklist, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	server := &WebsocketServer{
 		name:       name,
@@ -60,8 +60,9 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 
 		sessionManager: Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, nil, nil),
 
-		config:            config,
-		connectionChannel: make(chan *websocket.Conn),
+		config: config,
+
+		websocketListener: websocketListener,
 	}
 	/* 	topicHandlers := make(Tools.TopicHandlers)
 	   	for topic, handler := range messageHandlers {
