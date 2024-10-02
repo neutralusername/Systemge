@@ -32,18 +32,17 @@ func (server *WebsocketServer) sessionRoutine() {
 	}
 
 	for {
-		websocketConnection, err := server.websocketListener.AcceptClient(name, server.config.WebsocketClientConfig, server.eventHandler)
+		session, err := server.sessionManager.CreateSession("", map[string]any{})
 
-		session, err := server.sessionManager.CreateSession("", map[string]any{
-			"connection": websocketConnection,
-		})
+		websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
+
 		if err != nil {
 			server.onEvent(Event.NewWarningNoOption(
 				Event.CreateSessionFailed,
 				err.Error(),
 				Event.Context{
 					Event.Circumstance: Event.SessionRoutine,
-					Event.Identity:     "",
+					Event.Identity:     session.GetId(),
 					Event.Address:      websocketConnection.GetAddress(),
 				},
 			))
