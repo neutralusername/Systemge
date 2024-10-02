@@ -9,16 +9,16 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketConnection"
 )
 
-func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.TcpSystemgeConnection, eventHandler Event.Handler) (*WebsocketConnection.WebsocketConnection, error) {
+func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConnection, eventHandler Event.Handler) (*WebsocketConnection.WebsocketConnection, error) {
 
 	if event := listener.onEvent(Event.NewInfo(
-		Event.AcceptingTcpSystemgeConnection,
-		"accepting TcpSystemgeConnection",
+		Event.AcceptingConnection,
+		"accepting websocketConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptTcpSystemgeConnection,
+			Event.Circumstance: Event.AcceptConnection,
 		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
@@ -27,10 +27,10 @@ func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.Tcp
 	websocketConn := <-listener.connectionChannel
 	if websocketConn == nil {
 		listener.onEvent(Event.NewWarningNoOption(
-			Event.AcceptTcpListenerFailed,
-			"accepting TcpSystemgeConnection",
+			Event.AcceptConnectionFailed,
+			"accept websocketConnection failed",
 			Event.Context{
-				Event.Circumstance: Event.AcceptTcpSystemgeConnection,
+				Event.Circumstance: Event.AcceptConnection,
 			},
 		))
 		listener.failed.Add(1)
@@ -42,7 +42,7 @@ func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.Tcp
 			Event.SplittingHostPortFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.AcceptTcpSystemgeConnection,
+				Event.Circumstance: Event.AcceptConnection,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		))
@@ -53,12 +53,12 @@ func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.Tcp
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
 		if event := listener.onEvent(Event.NewWarning(
 			Event.RateLimited,
-			"tcpSystemgeConnection attempt ip rate limited",
+			"websocketConnection ip rate limited",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AcceptTcpSystemgeConnection,
+				Event.Circumstance:    Event.AcceptConnection,
 				Event.RateLimiterType: Event.Ip,
 				Event.Address:         websocketConn.RemoteAddr().String(),
 			},
@@ -72,12 +72,12 @@ func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.Tcp
 	if listener.blacklist != nil && listener.blacklist.Contains(ip) {
 		if event := listener.onEvent(Event.NewWarning(
 			Event.Blacklisted,
-			"tcpSystemgeConnection attempt ip blacklisted",
+			"websocketConnection ip blacklisted",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptTcpSystemgeConnection,
+				Event.Circumstance: Event.AcceptConnection,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -90,12 +90,12 @@ func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.Tcp
 	if listener.whitelist != nil && listener.whitelist.ElementCount() > 0 && !listener.whitelist.Contains(ip) {
 		if event := listener.onEvent(Event.NewWarning(
 			Event.NotWhitelisted,
-			"tcpSystemgeConnection attempt ip not whitelisted",
+			"websocketConnection ip not whitelisted",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptTcpSystemgeConnection,
+				Event.Circumstance: Event.AcceptConnection,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -105,29 +105,16 @@ func (listener *WebsocketListener) AcceptConnection(connectionConfig *Config.Tcp
 		}
 	}
 
-	connection, err := listener.serverHandshake(connectionConfig, netConn, eventHandler)
-	if err != nil {
-		listener.onEvent(Event.NewWarningNoOption(
-			Event.ServerHandshakeFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: Event.AcceptTcpSystemgeConnection,
-				Event.Address:      websocketConn.RemoteAddr().String(),
-			},
-		))
-		listener.rejected.Add(1)
-		websocketConn.Close()
-		return nil, err
-	}
+	connection, err := WebsocketConnection.New(websocketConn, config, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
-		Event.AcceptedTcpSystemgeConnection,
-		"accepted TcpSystemgeConnection",
+		Event.AcceptedConnection,
+		"accepted websocketConnection",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptTcpSystemgeConnection,
+			Event.Circumstance: Event.AcceptConnection,
 			Event.Address:      websocketConn.RemoteAddr().String(),
 		},
 	)); !event.IsInfo() {
