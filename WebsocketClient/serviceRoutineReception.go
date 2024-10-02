@@ -98,7 +98,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 				)); !event.IsInfo() {
 					connection.Close()
 				} else {
-					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleMessageReception)
+					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
 				}
 			}
 		} else {
@@ -117,7 +117,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 					)); !event.IsInfo() {
 						connection.Close()
 					} else {
-						connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleMessageReception)
+						connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
 					}
 				}
 			}()
