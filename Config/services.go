@@ -30,11 +30,11 @@ type WebsocketServer struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
-	SessionManagerConfig *SessionManager `json:"clientSessionManagerConfig"` // *required*
+	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
 
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
-	TopicManagerConfig *TopicManager `json:"topicManager"` // *required*
+	TopicManagerConfig *TopicManager `json:"topicManagerConfig"` // *required*
 
 	RateLimiterBytes         *TokenBucketRateLimiter `json:"rateLimiterBytes"`         // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
 	RateLimiterMessages      *TokenBucketRateLimiter `json:"rateLimiterMessages"`      // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
