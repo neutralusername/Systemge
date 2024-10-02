@@ -6,10 +6,10 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/WebsocketConnection"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConnection, eventHandler Event.Handler) (*WebsocketConnection.WebsocketConnection, error) {
+func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConnection, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptingConnection,
@@ -105,7 +105,7 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConn
 		}
 	}
 
-	connection, err := WebsocketConnection.New(websocketConn, config, eventHandler)
+	connection, err := WebsocketClient.New(websocketConn, config, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptedConnection,
