@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
@@ -90,7 +89,7 @@ func (connection *WebsocketClient) RetrieveNextMessage(waitDurationMs uint64) (*
 
 // A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
 // errorChannel will send all errors that occur during message processing.
-func (connection *WebsocketClient) StartMessageHandlingLoop(messageHandlers WebsocketMessageHandlers, topicManagerConfig *Config.TopicManager, sequentially bool) error {
+func (connection *WebsocketClient) StartMessageHandlingLoop(topicManager *Tools.TopicManager, sequentially bool) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 
