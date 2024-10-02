@@ -40,6 +40,7 @@ func (connection *WebsocketClient) write(messageBytes []byte, circumstance strin
 		return err
 	}
 	connection.bytesSent.Add(uint64(len(messageBytes)))
+	connection.messagesSent.Add(1)
 
 	connection.onEvent(Event.NewInfoNoOption(
 		Event.WroteMessage,

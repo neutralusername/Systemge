@@ -65,6 +65,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 			connection.Close()
 			return errors.New("connection closed")
 		}
+		connection.bytesReceived.Add(uint64(len(messageBytes)))
 
 		if event := connection.onEvent(Event.NewInfo(
 			Event.ReadMessage,
