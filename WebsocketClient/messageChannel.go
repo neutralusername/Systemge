@@ -130,7 +130,7 @@ func (connection *WebsocketClient) StartMessageHandlingLoop(topicManager *Tools.
 	stopChannel := make(chan bool)
 	connection.messageHandlingLoopStopChannel = stopChannel
 
-	go connection.messageHandlingLoop(stopChannel, messageHandler, sequentially, behaviour)
+	go connection.messageHandlingLoop(stopChannel, topicManager, sequentially, behaviour)
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.MessageHandlingLoopStarted,
@@ -210,10 +210,10 @@ func (connection *WebsocketClient) messageHandlingLoop(stopChannel chan bool, to
 			}
 
 			if sequentially {
-				connection.HandleMessage(message, messageHandler)
+				topicManager.HandleTopic(message.GetTopic(), message, connection)
 			} else {
 				go func() {
-					connection.HandleMessage(message, messageHandler)
+					topicManager.HandleTopic(message.GetTopic(), message, connection)
 				}()
 			}
 		}
@@ -272,43 +272,4 @@ func (connection *WebsocketClient) IsMessageHandlingLoopStarted() bool {
 
 func (connection *WebsocketClient) AvailableMessageCount() uint32 {
 	return connection.messageChannelSemaphore.AvailableAcquires()
-}
-
-// HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler and send a response if necessary.
-func (connection *WebsocketClient) handleMessage(message *Message.Message, topicManager *Tools.TopicManager) error {
-	if messageHandler == nil {
-		connection.onEvent(Event.NewWarningNoOption(
-			Event.UnexpectedNilValue,
-			"messageHandler is nil",
-			Event.Context{
-				Event.Circumstance: Event.HandleMessage,
-			},
-		))
-		return errors.New("no message handler provided")
-	}
-	if message == nil {
-		connection.onEvent(Event.NewWarningNoOption(
-			Event.UnexpectedNilValue,
-			"message is nil",
-			Event.Context{
-				Event.Circumstance: Event.HandleMessage,
-			},
-		))
-		return errors.New("no message provided")
-	}
-
-	if err := messageHandler.HandleMessage(connection, message); err != nil {
-		connection.onEvent(Event.NewWarningNoOption(
-			Event.HandleMessageFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: Event.HandleMessage,
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
-			},
-		))
-	}
-
-	return nil
 }
