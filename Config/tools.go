@@ -69,3 +69,11 @@ func UnmarshalSessionManager(data string) *SessionManager {
 	}
 	return &sessionManagerConfig
 }
+
+type TopicManager struct {
+	TopicQueueSize     uint32 `json:"topicQueueSize"`     // default: 0
+	QueueSize          uint32 `json:"queueSize"`          // default: 0
+	ConcurrentCalls    bool   `json:"concurrentCalls"`    // default: false
+	QueueBlocking      bool   `json:"queueBlocking"`      // default: false
+	TopicQueueBlocking bool   `json:"topicQueueBlocking"` // default: false
+}

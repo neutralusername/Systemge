@@ -3,12 +3,16 @@ package TopicManager
 import (
 	"errors"
 	"sync"
+
+	"github.com/neutralusername/Systemge/Config"
 )
 
 type TopicHandler func(...any) (any, error)
 type TopicHandlers map[string]TopicHandler
 
 type Manager struct {
+	config *Config.TopicManager
+
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
 
@@ -18,12 +22,6 @@ type Manager struct {
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
 	unknownTopicQueue chan *queueStruct
-
-	queueSize          uint32
-	topicQueueSize     uint32
-	concurrentCalls    bool
-	queueBlocking      bool
-	topicQueueBlocking bool
 }
 
 type queueStruct struct {
@@ -38,30 +36,26 @@ type queueStruct struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, topicQueueSize uint32, queueSize uint32, concurrentCalls bool, queueBlocking bool, topicQueueBlocking bool) *Manager {
+func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler) *Manager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
 	topicManager := &Manager{
+		config:              config,
 		topicHandlers:       topicHandlers,
 		unknownTopicHandler: unknownTopicHandler,
-		queue:               make(chan *queueStruct, queueSize),
+		queue:               make(chan *queueStruct, config.QueueSize),
 		topicQueues:         make(map[string]chan *queueStruct),
-		queueSize:           queueSize,
-		topicQueueSize:      topicQueueSize,
-		concurrentCalls:     concurrentCalls,
-		queueBlocking:       queueBlocking,
-		topicQueueBlocking:  topicQueueBlocking,
 	}
 	go topicManager.handleCalls()
 	for topic, handler := range topicHandlers {
-		queue := make(chan *queueStruct, topicManager.topicQueueSize)
+		queue := make(chan *queueStruct, config.TopicQueueSize)
 		topicManager.topicQueues[topic] = queue
 		topicManager.topicHandlers[topic] = handler
 		go topicManager.handleTopic(queue, handler)
 	}
 	if unknownTopicHandler != nil {
-		topicManager.unknownTopicQueue = make(chan *queueStruct, queueSize)
+		topicManager.unknownTopicQueue = make(chan *queueStruct, config.TopicQueueSize)
 		go topicManager.handleTopic(topicManager.unknownTopicQueue, unknownTopicHandler)
 	}
 	return topicManager
@@ -76,7 +70,7 @@ func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error)
 		responseErrorChannel: make(chan error),
 	}
 
-	if topicManager.queueBlocking {
+	if topicManager.config.QueueBlocking {
 		topicManager.queue <- queueStruct
 	} else {
 		select {
@@ -100,7 +94,7 @@ func (topicManager *Manager) handleCalls() {
 				continue
 			}
 		}
-		if topicManager.topicQueueBlocking {
+		if topicManager.config.TopicQueueBlocking {
 			queue <- queueStruct
 		} else {
 			select {
@@ -115,7 +109,7 @@ func (topicManager *Manager) handleCalls() {
 
 func (topicManager *Manager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
 	for queueStruct := range queue {
-		if topicManager.concurrentCalls {
+		if topicManager.config.ConcurrentCalls {
 			go func() {
 				response, err := handler(queueStruct.args...)
 				queueStruct.responseAnyChannel <- response
