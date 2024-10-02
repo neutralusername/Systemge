@@ -22,6 +22,7 @@ const SystemgeServer = "systemgeServer"
 const SystemgeClient = "systemgeClient"
 const SingleRequestServer = "singleRequestServer"
 const SessionManager = "sessionManager"
+const Pipeline = "pipeline"
 
 const HttpRequest = "httpRequest"
 
