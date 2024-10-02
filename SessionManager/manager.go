@@ -6,7 +6,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -23,14 +22,15 @@ type Manager struct {
 	identities   map[string]*Identity
 	sessions     map[string]*Session
 
+	onCreateSession func(*Session) error
+	onRemoveSession func(*Session)
+
 	isStarted   bool
 	waitgroup   sync.WaitGroup
 	statusMutex sync.Mutex
-
-	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.SessionManager, eventHandler Event.Handler) *Manager {
+func New(name string, config *Config.SessionManager, onCreateSession func(*Session) error, onRemoveSession func(*Session)) *Manager {
 	if config == nil {
 		config = &Config.SessionManager{}
 	}
@@ -51,9 +51,10 @@ func New(name string, config *Config.SessionManager, eventHandler Event.Handler)
 
 		isStarted: false,
 
-		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.8,
+		onCreateSession: onCreateSession,
+		onRemoveSession: onRemoveSession,
 
-		eventHandler: eventHandler,
+		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.8,
 	}
 }
 
@@ -108,22 +109,4 @@ func (manager *Manager) GetStatus() int {
 		return Status.Started
 	}
 	return Status.Stopped
-}
-
-func (server *Manager) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(server.GetContext())
-	if server.eventHandler != nil {
-		server.eventHandler(event)
-	}
-	return event
-}
-func (server *Manager) GetContext() Event.Context {
-	return Event.Context{
-		Event.ServiceType:   Event.SessionManager,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.GetStatus()),
-		Event.Function:      Event.GetCallerFuncName(2),
-		Event.InstanceId:    server.instanceId,
-		Event.SessionId:     server.sessionId,
-	}
 }

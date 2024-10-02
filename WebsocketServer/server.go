@@ -84,7 +84,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		sessionManager: SessionManager.New(name+"_sessionManager", config.ClientSessionManagerConfig, eventHandler),
+		sessionManager: SessionManager.New(name+"_sessionManager", config.ClientSessionManagerConfig, nil, nil),
 
 		config:            config,
 		connectionChannel: make(chan *websocket.Conn),
