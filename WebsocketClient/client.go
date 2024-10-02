@@ -158,13 +158,13 @@ func (connection *WebsocketClient) GetAddress() string {
 }
 
 func (connection *WebsocketClient) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(connection.GetServerContext())
+	event.GetContext().Merge(connection.GetContext())
 	if connection.eventHandler != nil {
 		connection.eventHandler(event)
 	}
 	return event
 }
-func (connection *WebsocketClient) GetServerContext() Event.Context {
+func (connection *WebsocketClient) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:   Event.WebsocketClient,
 		Event.ServiceName:   connection.name,
