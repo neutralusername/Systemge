@@ -67,6 +67,33 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 	return topicManager
 }
 
+// can not be called after Close or will cause panic.
+func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error) {
+	response := make(chan any)
+	err := make(chan error)
+
+	if topicManager.queueBlocking {
+		topicManager.queue <- &queueStruct{
+			topic:                topic,
+			args:                 args,
+			responseAnyChannel:   response,
+			responseErrorChannel: err,
+		}
+	} else {
+		select {
+		case topicManager.queue <- &queueStruct{
+			topic:                topic,
+			args:                 args,
+			responseAnyChannel:   response,
+			responseErrorChannel: err,
+		}:
+		default:
+			return nil, errors.New("queue full")
+		}
+	}
+	return <-response, <-err
+}
+
 func (topicManager *Manager) handleCalls() {
 	for queueStruct := range topicManager.queue {
 		queue := topicManager.topicQueues[queueStruct.topic]
@@ -106,34 +133,6 @@ func (topicManager *Manager) handleTopic(queue chan *queueStruct, handler TopicH
 			queueStruct.responseErrorChannel <- err
 		}
 	}
-}
-
-// can not be called after Close or will cause panic.
-func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error) {
-	response := make(chan any)
-	err := make(chan error)
-
-	if topicManager.queueBlocking {
-		topicManager.queue <- &queueStruct{
-			topic:                topic,
-			args:                 args,
-			responseAnyChannel:   response,
-			responseErrorChannel: err,
-		}
-	} else {
-		select {
-		case topicManager.queue <- &queueStruct{
-			topic:                topic,
-			args:                 args,
-			responseAnyChannel:   response,
-			responseErrorChannel: err,
-		}:
-		default:
-			response <- nil
-			err <- errors.New("queue full")
-		}
-	}
-	return <-response, <-err
 }
 
 func (topicManager *Manager) Close() error {
