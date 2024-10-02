@@ -33,9 +33,7 @@ func (server *WebsocketServer) sessionRoutine() {
 
 	for {
 		session, err := server.sessionManager.CreateSession("", map[string]any{})
-
 		websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
-
 		if err != nil {
 			server.onEvent(Event.NewWarningNoOption(
 				Event.CreateSessionFailed,
@@ -49,6 +47,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			websocketConnection.Close()
 			continue
 		}
+		session.Set("websocketConnection", websocketConnection)
 
 		server.waitGroup.Add(1)
 		go server.websocketConnectionDisconnect(session, websocketConnection)

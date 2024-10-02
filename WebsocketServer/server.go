@@ -7,10 +7,8 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
@@ -64,11 +62,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 
 		config: config,
 	}
-	/* 	topicHandlers := make(Tools.TopicHandlers)
-	   	for topic, handler := range messageHandlers {
-	   		topicHandlers[topic] = server.toTopicHandler(handler)
-	   	}
-	   	server.topicManager = Tools.NewTopicManager(config.TopicManagerConfig, topicHandlers, nil) */
 
 	return server, nil
 }
@@ -105,6 +98,7 @@ func (server *WebsocketServer) GetServerContext() Event.Context {
 	}
 }
 
+/*
 func (server *WebsocketServer) toTopicHandler(handler WebsocketClient.WebsocketMessageHandler) Tools.TopicHandler {
 	return func(args ...any) (any, error) {
 		websocketConnection := args[0].(*WebsocketClient.WebsocketClient)
@@ -167,3 +161,9 @@ func (server *WebsocketServer) toTopicHandler(handler WebsocketClient.WebsocketM
 		return nil, nil
 	}
 }
+
+		topicHandlers := make(Tools.TopicHandlers)
+	   	for topic, handler := range messageHandlers {
+	   		topicHandlers[topic] = server.toTopicHandler(handler)
+	   	}
+	   	server.topicManager = Tools.NewTopicManager(config.TopicManagerConfig, topicHandlers, nil) */
