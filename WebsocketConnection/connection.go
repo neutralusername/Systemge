@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gorilla/websocket"
+	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -28,6 +29,8 @@ type WebsocketConnection struct {
 
 	byteRateLimiter    *Tools.TokenBucketRateLimiter
 	messageRateLimiter *Tools.TokenBucketRateLimiter
+
+	eventHandler Event.Handler
 
 	// metrics
 

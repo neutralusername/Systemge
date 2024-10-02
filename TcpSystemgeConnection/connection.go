@@ -77,8 +77,8 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 		randomizer:              Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:            make(chan bool),
 		syncRequests:            make(map[string]*syncRequestStruct),
-		messageChannel:          make(chan *Message.Message, config.ProcessingChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
-		messageChannelSemaphore: Tools.NewSemaphore(config.ProcessingChannelCapacity+1, config.ProcessingChannelCapacity+1),
+		messageChannel:          make(chan *Message.Message, config.MessageChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
+		messageChannelSemaphore: Tools.NewSemaphore(config.MessageChannelCapacity+1, config.MessageChannelCapacity+1),
 		eventHandler:            eventHandler,
 	}
 	if config.RateLimiterBytes != nil {

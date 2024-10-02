@@ -84,7 +84,7 @@ type TcpSystemgeConnection struct {
 
 	TcpBufferBytes uint32 `json:"tcpBufferBytes"` // default: 0 == default (4KB)
 
-	ProcessingChannelCapacity uint32 `json:"processingChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
+	MessageChannelCapacity uint32 `json:"messageChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
 
 	HandleMessageReceptionSequentially bool `json:"handleMessagesSequentially"` // default: false (if true, the server will handle messages from the same connection sequentially)
 

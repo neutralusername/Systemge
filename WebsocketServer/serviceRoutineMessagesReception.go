@@ -209,9 +209,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 				return
 			}
 		}
-		if server.config.PropagateMessageHandlerErrors {
-			server.write(websocketConnection, Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
-		}
+		server.write(websocketConnection, Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
 	}
 
 }

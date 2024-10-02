@@ -26,28 +26,37 @@ func UnmarshalHTTPServer(data string) *HTTPServer {
 	return &http
 }
 
-type WebsocketServer struct {
+type WebsocketListener struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
-	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
-
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
+	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
+}
+
+type WebsocketConnection struct {
 	TopicManagerConfig *TopicManager `json:"topicManagerConfig"` // *required*
 
-	RateLimiterBytes         *TokenBucketRateLimiter `json:"rateLimiterBytes"`         // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
-	RateLimiterMessages      *TokenBucketRateLimiter `json:"rateLimiterMessages"`      // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
-	IncomingMessageByteLimit uint64                  `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
-	ServerReadDeadlineMs     int                     `json:"serverReadDeadlineMs"`     // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
+	ReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
 
-	MaxTopicSize   int `json:"maxTopicSize"`   // default: 0 = unlimited (topics that attempt to store more messages than this will be truncated)
-	MaxPayloadSize int `json:"maxPayloadSize"` // default: 0 = unlimited (payloads that attempt to store more messages than this will be truncated)
+	MessageChannelCapacity uint32 `json:"messageChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
 
 	HandleMessageReceptionSequentially bool `json:"handleMessageReceptionSequentially"` // default: false (if true, the server will handle messages from the same websocketConnection sequentially)
-	PropagateMessageHandlerErrors      bool `json:"propagateMessageHandlerErrors"`      // default: false (if true, the server will propagate errors from message handlers to the websocketConnection)
 
-	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
+	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
+	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
+
+	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
+	MaxTopicSize             int    `json:"maxTopicSize"`             // default: 0 = unlimited (topics that attempt to store more messages than this will be truncated)
+	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited (payloads that attempt to store more messages than this will be truncated)
+
+}
+
+type WebsocketServer struct {
+	WebsocketListenerConfig   *WebsocketListener   `json:"websocketListenerConfig"`   // *required*
+	WebsocketConnectionConfig *WebsocketConnection `json:"websocketConnectionConfig"` // *required*
+	SessionManagerConfig      *SessionManager      `json:"sessionManagerConfig"`      // *required*
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
