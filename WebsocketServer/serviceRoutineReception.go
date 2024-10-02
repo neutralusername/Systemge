@@ -112,7 +112,7 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 }
 
 func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) error {
-	result, err := websocketConnection.pipeline.Process(messageBytes, websocketConnection.GetId())
+	result, err := websocketConnection.pipeline.HandleReception(messageBytes, websocketConnection.GetId())
 
 	if err != nil {
 		server.onEvent___(Event.NewWarningNoOption(

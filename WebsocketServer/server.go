@@ -118,18 +118,6 @@ func (server *WebsocketServer) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *WebsocketServer) AddMessageHandler(topic string, handler WebsocketMessageHandler) {
-	server.messageHandlerMutex.Lock()
-	server.messageHandlers[topic] = handler
-	server.messageHandlerMutex.Unlock()
-}
-
-func (server *WebsocketServer) RemoveMessageHandler(topic string) {
-	server.messageHandlerMutex.Lock()
-	delete(server.messageHandlers, topic)
-	server.messageHandlerMutex.Unlock()
-}
-
 func (server *WebsocketServer) onEvent___(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
 	server.eventHandler(event)

@@ -71,15 +71,13 @@ func (server *WebsocketServer) handleNewSession() error {
 		websocketConn.Close()
 		return nil
 	}
-	var byteRateLimiter *Tools.TokenBucketRateLimiter
 	if server.config.RateLimiterBytes != nil {
-		byteRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterBytes)
+		websocketConnection.byteRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterBytes)
 	}
-	var callRateLimiter *Tools.TokenBucketRateLimiter
 	if server.config.RateLimiterMessages != nil {
-		callRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
+		websocketConnection.messageRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
 	}
-	pipeline, _ := Pipeline.NewPipeline(session.GetId()+"_pipeline", byteRateLimiter, callRateLimiter, server.deserializer, server.validator, server.eventHandler)
+	pipeline, _ := Pipeline.NewReceptionHandler(session.GetId()+"_pipeline", websocketConnection.byteRateLimiter, websocketConnection.messageRateLimiter, server.deserializer, server.validator, server.eventHandler)
 	websocketConnection.pipeline = pipeline
 	websocketConnection.id = session.GetId()
 

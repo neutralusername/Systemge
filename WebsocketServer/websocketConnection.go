@@ -7,6 +7,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Pipeline"
+	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
 )
@@ -23,7 +24,10 @@ type WebsocketConnection struct {
 	closeMutex sync.Mutex
 	isClosed   bool
 
-	pipeline *Pipeline.Pipeline
+	pipeline *Pipeline.ReceptionHandler
+
+	byteRateLimiter    *Tools.TokenBucketRateLimiter
+	messageRateLimiter *Tools.TokenBucketRateLimiter
 }
 
 func (server *WebsocketServer) NewWebsocketConnection(websocketConn *websocket.Conn) *WebsocketConnection {
@@ -44,11 +48,11 @@ func (websocketConnection *WebsocketConnection) Close() error {
 	}
 	websocketConnection.isClosed = true
 	websocketConnection.websocketConn.Close()
-	if websocketConnection.rateLimiterBytes != nil {
-		websocketConnection.rateLimiterBytes.Close()
+	if websocketConnection.byteRateLimiter != nil {
+		websocketConnection.byteRateLimiter.Close()
 	}
-	if websocketConnection.rateLimiterMsgs != nil {
-		websocketConnection.rateLimiterMsgs.Close()
+	if websocketConnection.messageRateLimiter != nil {
+		websocketConnection.messageRateLimiter.Close()
 	}
 	close(websocketConnection.stopChannel)
 	return nil
