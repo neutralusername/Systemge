@@ -3,7 +3,6 @@ package WebsocketServer
 import (
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
@@ -15,10 +14,9 @@ type WebsocketConnection struct {
 	id            string
 	websocketConn *websocket.Conn
 
-	receiveMutex sync.Mutex
-	sendMutex    sync.Mutex
-	stopChannel  chan bool
-	waitGroup    sync.WaitGroup
+	sendMutex   sync.Mutex
+	stopChannel chan bool
+	waitGroup   sync.WaitGroup
 
 	closeMutex sync.Mutex
 	isClosed   bool
@@ -122,80 +120,4 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 // Returns the id of the websocketConnection.
 func (websocketConnection *WebsocketConnection) GetId() string {
 	return websocketConnection.id
-}
-
-func (server *WebsocketServer) Read(websocketConnection *WebsocketConnection) ([]byte, error) {
-	if websocketConnection.id != "" {
-		if server.eventHandler != nil {
-			server.onEvent(Event.NewWarningNoOption(
-				Event.SessionAlreadyAccepted,
-				"websocketConnection is already accepted",
-				Event.Context{
-					Event.Circumstance: Event.ReceiveRuntime,
-					Event.Identity:     websocketConnection.GetId(),
-					Event.Address:      websocketConnection.GetAddress(),
-				}),
-			)
-		}
-		return nil, errors.New("websocketConnection is already accepted")
-	}
-	return server.read(websocketConnection, Event.ReceiveRuntime)
-}
-func (server *WebsocketServer) read(websocketConnection *WebsocketConnection, circumstance string) ([]byte, error) {
-	websocketConnection.receiveMutex.Lock()
-	defer websocketConnection.receiveMutex.Unlock()
-
-	if server.eventHandler != nil {
-		if event := server.onEvent(Event.NewInfo(
-			Event.ReadingMessage,
-			"receiving websocketConnection message",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: circumstance,
-				Event.Identity:     websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-			}),
-		); !event.IsInfo() {
-			return nil, event.GetError()
-		}
-	}
-
-	websocketConnection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
-	_, messageBytes, err := websocketConnection.websocketConn.ReadMessage()
-	if err != nil {
-		if server.eventHandler != nil {
-			server.onEvent(Event.NewWarningNoOption(
-				Event.ReadMessageFailed,
-				err.Error(),
-				Event.Context{
-					Event.Circumstance: Event.MessageReceptionRoutine,
-					Event.SessionId:    websocketConnection.GetId(),
-					Event.Address:      websocketConnection.GetAddress(),
-				},
-			))
-		}
-		websocketConnection.Close()
-		return nil, err
-	}
-
-	if server.eventHandler != nil {
-		if event := server.onEvent(Event.NewInfo(
-			Event.ReadMessage,
-			"received websocketConnection message",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: circumstance,
-				Event.Identity:     websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-				Event.Bytes:        string(messageBytes),
-			}),
-		); !event.IsInfo() {
-			return nil, event.GetError()
-		}
-	}
-	return messageBytes, nil
 }

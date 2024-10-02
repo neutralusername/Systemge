@@ -22,16 +22,15 @@ type TcpSystemgeConnection struct {
 
 	sendMutex sync.Mutex
 
-	closed      bool
-	closedMutex sync.Mutex
+	closed       bool
+	closedMutex  sync.Mutex
+	closeChannel chan bool
+	waitGroup    sync.WaitGroup
 
 	messageReceiver *Tcp.BufferedMessageReader
 
 	syncRequests map[string]*syncRequestStruct
 	syncMutex    sync.Mutex
-
-	closeChannel chan bool
-	waitGroup    sync.WaitGroup
 
 	eventHandler Event.Handler
 

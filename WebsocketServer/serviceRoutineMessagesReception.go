@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"errors"
+	"time"
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
@@ -42,8 +43,10 @@ func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *Webs
 	}
 
 	for {
-		messageBytes, err := server.read(websocketConnection, Event.MessageReceptionRoutine)
+		websocketConnection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
+		_, messageBytes, err := websocketConnection.websocketConn.ReadMessage()
 		if err != nil {
+			websocketConnection.Close()
 			break
 		}
 		server.websocketConnectionMessagesReceived.Add(1)
