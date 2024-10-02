@@ -52,9 +52,9 @@ type WebsocketClient struct {
 }
 
 type WebsocketServer struct {
-	WebsocketListenerConfig   *WebsocketListener `json:"websocketListenerConfig"`   // *required*
-	WebsocketConnectionConfig *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
-	SessionManagerConfig      *SessionManager    `json:"sessionManagerConfig"`      // *required*
+	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
+	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
+	SessionManagerConfig    *SessionManager    `json:"sessionManagerConfig"`      // *required*
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {

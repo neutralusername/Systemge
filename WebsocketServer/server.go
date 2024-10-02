@@ -46,7 +46,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if config.SessionManagerConfig == nil {
 		return nil, errors.New("config.SessionManagerConfig is nil")
 	}
-	if config.WebsocketConnectionConfig == nil {
+	if config.WebsocketClientConfig == nil {
 		return nil, errors.New("config.WebsocketConnectionConfig is nil")
 	}
 	if config.WebsocketListenerConfig == nil {
