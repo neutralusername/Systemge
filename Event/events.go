@@ -28,11 +28,11 @@ const HandlingReception = "handlingReception"         // before handling a recep
 const HandledReception = "handledReception"           // after handling a reception
 const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception operation returns an error
 
-const HandlingTopic = "handlingTopic" // before handling a topic
-const HandledTopic = "handledTopic"   // after handling a topic
+const HandlingMessage = "handlingTopic" // before handling a topic
+const HandledMessage = "handledTopic"   // after handling a topic
 
-const NoHandlerForTopic = "noHandlerForTopic"   // when no message handler is found for a particular topic
-const TopicHandlerFailed = "topicHandlerFailed" // when a message handling operation returns an error
+const HandleTopicFailed = "handleTopicFailed"    // when a topic handling operation returns an error
+const HandleMessageFailed = "topicHandlerFailed" // when a message handling operation returns an error
 
 const MessageHandlingLoopStarting = "messageHandlingLoopStarting" // before starting the message handling loop
 const MessageHandlingLoopStarted = "messageHandlingLoopStarted"   // after starting the message handling loop
