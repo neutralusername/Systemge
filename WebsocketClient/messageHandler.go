@@ -1,6 +1,8 @@
 package WebsocketClient
 
-import "github.com/neutralusername/Systemge/Message"
+import (
+	"github.com/neutralusername/Systemge/Message"
+)
 
 type WebsocketMessageHandler func(*WebsocketClient, *Message.Message) error
 

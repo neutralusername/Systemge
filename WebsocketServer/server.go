@@ -2,17 +2,17 @@ package WebsocketServer
 
 import (
 	"errors"
-	"net/http"
 	"sync"
-	"sync/atomic"
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 type WebsocketServer struct {
@@ -38,44 +38,20 @@ type WebsocketServer struct {
 	topicManager *Tools.TopicManager
 
 	eventHandler Event.Handler
-
-	// metrics
-
-	websocketConnectionsAccepted atomic.Uint32
-	websocketConnectionsFailed   atomic.Uint32
-	websocketConnectionsRejected atomic.Uint32
-
-	websocketConnectionMessagesReceived atomic.Uint32
-	websocketConnectionMessagesSent     atomic.Uint32
-
-	websocketConnectionMessagesBytesReceived atomic.Uint64
-	websocketConnectionMessagesBytesSent     atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandlers WebsocketMessageHandlers, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
-	if config.TcpServerConfig == nil {
-		return nil, errors.New("config.TcpServerConfig is nil")
+	if config.SessionManagerConfig == nil {
+		return nil, errors.New("config.SessionManagerConfig is nil")
 	}
-	if config.Pattern == "" {
-		return nil, errors.New("config.Pattern is empty")
+	if config.WebsocketConnectionConfig == nil {
+		return nil, errors.New("config.WebsocketConnectionConfig is nil")
 	}
-	if messageHandlers == nil {
-		return nil, errors.New("messageHandlers is nil")
-	}
-	if config.TopicManagerConfig == nil {
-		return nil, errors.New("config.TopicManager is nil")
-	}
-	if config.Upgrader == nil {
-		config.Upgrader = &websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		}
+	if config.WebsocketListenerConfig == nil {
+		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
 
 	server := &WebsocketServer{
@@ -87,22 +63,12 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		config:            config,
 		connectionChannel: make(chan *websocket.Conn),
 	}
-	topicHandlers := make(Tools.TopicHandlers)
-	for topic, handler := range messageHandlers {
-		topicHandlers[topic] = server.toTopicHandler(handler)
-	}
-	server.topicManager = Tools.NewTopicManager(config.TopicManagerConfig, topicHandlers, nil)
+	/* 	topicHandlers := make(Tools.TopicHandlers)
+	   	for topic, handler := range messageHandlers {
+	   		topicHandlers[topic] = server.toTopicHandler(handler)
+	   	}
+	   	server.topicManager = Tools.NewTopicManager(config.TopicManagerConfig, topicHandlers, nil) */
 
-	server.httpServer = HTTPServer.New(server.name+"_httpServer",
-		&Config.HTTPServer{
-			TcpServerConfig: server.config.TcpServerConfig,
-		},
-		whitelist, blacklist,
-		map[string]http.HandlerFunc{
-			server.config.Pattern: server.getHTTPWebsocketUpgradeHandler(),
-		},
-		eventHandler,
-	)
 	return server, nil
 }
 
@@ -135,5 +101,68 @@ func (server *WebsocketServer) GetServerContext() Event.Context {
 		Event.Function:      Event.GetCallerFuncName(2),
 		Event.InstanceId:    server.instanceId,
 		Event.SessionId:     server.sessionId,
+	}
+}
+
+func (server *WebsocketServer) toTopicHandler(handler WebsocketClient.WebsocketMessageHandler) Tools.TopicHandler {
+	return func(args ...any) (any, error) {
+		websocketConnection := args[0].(*WebsocketClient.WebsocketClient)
+		message := args[1].(*Message.Message)
+
+		if server.eventHandler != nil {
+			if event := server.onEvent(Event.NewInfo(
+				Event.HandlingMessage,
+				"handling websocketConnection message",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance: Event.HandleMessage,
+					Event.Identity:     websocketConnection.GetName(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				return nil, errors.New("event cancelled")
+			}
+		}
+
+		err := handler(websocketConnection, message)
+		if err != nil {
+			if server.eventHandler != nil {
+				server.onEvent(Event.NewWarningNoOption(
+					Event.HandleMessageFailed,
+					err.Error(),
+					Event.Context{
+						Event.Circumstance: Event.HandleMessage,
+						Event.Identity:     websocketConnection.GetName(),
+						Event.Address:      websocketConnection.GetAddress(),
+						Event.Topic:        message.GetTopic(),
+						Event.Payload:      message.GetPayload(),
+						Event.SyncToken:    message.GetSyncToken(),
+					},
+				))
+			}
+			return nil, err
+		}
+
+		if server.eventHandler != nil {
+			server.onEvent(Event.NewInfoNoOption(
+				Event.HandledMessage,
+				"handled websocketConnection message",
+				Event.Context{
+					Event.Circumstance: Event.HandleMessage,
+					Event.Identity:     websocketConnection.GetName(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			))
+		}
+
+		return nil, nil
 	}
 }

@@ -36,8 +36,6 @@ type WebsocketListener struct {
 }
 
 type WebsocketClient struct {
-	TopicManagerConfig *TopicManager `json:"topicManagerConfig"` // *required*
-
 	ReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
 
 	MessageChannelCapacity uint32 `json:"messageChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
