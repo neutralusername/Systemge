@@ -4,8 +4,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *WebsocketClient) RetrieveNextMessage(waitDurationMs uint64) (*Message.Message, error) {
@@ -88,7 +90,7 @@ func (connection *WebsocketClient) RetrieveNextMessage(waitDurationMs uint64) (*
 
 // A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
 // errorChannel will send all errors that occur during message processing.
-func (connection *WebsocketClient) StartMessageHandlingLoop(messageHandler SystemgeConnection.MessageHandler, sequentially bool) error {
+func (connection *WebsocketClient) StartMessageHandlingLoop(messageHandlers WebsocketMessageHandlers, topicManagerConfig *Config.TopicManager, sequentially bool) error {
 	connection.messageMutex.Lock()
 	defer connection.messageMutex.Unlock()
 
@@ -151,7 +153,7 @@ func (connection *WebsocketClient) StartMessageHandlingLoop(messageHandler Syste
 	return nil
 }
 
-func (connection *WebsocketClient) messageHandlingLoop(stopChannel chan bool, messageHandler SystemgeConnection.MessageHandler, sequentially bool, behaviour string) {
+func (connection *WebsocketClient) messageHandlingLoop(stopChannel chan bool, topicManager *Tools.TopicManager, sequentially bool, behaviour string) {
 	if event := connection.onEvent(Event.NewInfo(
 		Event.ReceivingFromChannel,
 		"message handling loop running",
@@ -274,7 +276,7 @@ func (connection *WebsocketClient) AvailableMessageCount() uint32 {
 }
 
 // HandleMessage will determine if the message is synchronous or asynchronous and call the appropriate handler and send a response if necessary.
-func (connection *WebsocketClient) HandleMessage(message *Message.Message, messageHandler SystemgeConnection.MessageHandler) error {
+func (connection *WebsocketClient) handleMessage(message *Message.Message, topicManager *Tools.TopicManager) error {
 	if messageHandler == nil {
 		connection.onEvent(Event.NewWarningNoOption(
 			Event.UnexpectedNilValue,
