@@ -89,6 +89,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 				},
 			))
 			if event.IsWarning() {
+				server.write(websocketConnection, Message.NewAsync("error", "message rate limited").Serialize(), Event.MessageReceptionRoutine)
 				return
 			}
 			if event.IsError() {
@@ -113,6 +114,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 				},
 			))
 			if event.IsWarning() {
+				server.write(websocketConnection, Message.NewAsync("error", "byte rate limited").Serialize(), Event.MessageReceptionRoutine)
 				return
 			}
 			if event.IsError() {
@@ -122,6 +124,28 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 		}
 	}
 	message, err := Message.Deserialize(messageBytes, websocketConnection.GetId())
+	if err != nil {
+		event := server.onEvent(Event.NewWarning(
+			Event.DeserializingFailed,
+			err.Error(),
+			Event.Cancel,
+			Event.Skip,
+			Event.Skip,
+			Event.Context{
+				Event.Circumstance: Event.HandleReception,
+				Event.Behaviour:    behaviour,
+				Event.StructType:   Event.Message,
+				Event.Bytes:        string(messageBytes),
+			},
+		))
+		if event.IsError() {
+			websocketConnection.Close()
+			return
+		} else {
+			server.write(websocketConnection, Message.NewAsync("error", "deserializing failed").Serialize(), Event.MessageReceptionRoutine)
+			return
+		}
+	}
 
 	if len(message.GetSyncToken()) != 0 {
 		return errors.New("message contains sync token")
