@@ -144,6 +144,8 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 		return errors.New("received heartbeat")
 	}
 
+	result, err = server.topicManager.HandleTopic(message.GetTopic(), websocketConnection, message)
+
 	server.messageHandlerMutex.Lock()
 	handler := server.messageHandlers[message.GetTopic()]
 	server.messageHandlerMutex.Unlock()
