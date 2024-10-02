@@ -75,79 +75,93 @@ func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *Webs
 func (server *WebsocketServer) handleMessageReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) {
 	if websocketConnection.messageRateLimiter != nil {
 		if !websocketConnection.messageRateLimiter.Consume(1) {
-			event := server.onEvent(Event.NewWarning(
-				Event.RateLimited,
-				"tcpSystemgeConnection message rate limited",
-				Event.Cancel,
-				Event.Skip,
-				Event.Continue,
-				Event.Context{
-					Event.Circumstance:    Event.HandleReception,
-					Event.Behaviour:       behaviour,
-					Event.RateLimiterType: Event.TokenBucket,
-					Event.TokenBucketType: Event.Messages,
-				},
-			))
-			if event.IsWarning() {
-				server.write(websocketConnection, Message.NewAsync("error", "message rate limited").Serialize(), Event.MessageReceptionRoutine)
-				return
+			skip := true
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.NewWarning(
+					Event.RateLimited,
+					"tcpSystemgeConnection message rate limited",
+					Event.Cancel,
+					Event.Skip,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:    Event.HandleReception,
+						Event.Behaviour:       behaviour,
+						Event.RateLimiterType: Event.TokenBucket,
+						Event.TokenBucketType: Event.Messages,
+					},
+				))
+				if event.IsInfo() {
+					skip = false
+				}
+				if event.IsError() {
+					websocketConnection.Close()
+					return
+				}
 			}
-			if event.IsError() {
-				websocketConnection.Close()
+			if skip {
+				server.write(websocketConnection, Message.NewAsync("error", "message rate limited").Serialize(), Event.MessageReceptionRoutine)
 				return
 			}
 		}
 	}
 	if websocketConnection.byteRateLimiter != nil {
 		if !websocketConnection.byteRateLimiter.Consume(uint64(len(messageBytes))) {
-			event := server.onEvent(Event.NewWarning(
-				Event.RateLimited,
-				"tcpSystemgeConnection byte rate limited",
-				Event.Cancel,
-				Event.Skip,
-				Event.Continue,
-				Event.Context{
-					Event.Circumstance:    Event.HandleReception,
-					Event.Behaviour:       behaviour,
-					Event.RateLimiterType: Event.TokenBucket,
-					Event.TokenBucketType: Event.Bytes,
-				},
-			))
-			if event.IsWarning() {
-				server.write(websocketConnection, Message.NewAsync("error", "byte rate limited").Serialize(), Event.MessageReceptionRoutine)
-				return
+			skip := true
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.NewWarning(
+					Event.RateLimited,
+					"tcpSystemgeConnection byte rate limited",
+					Event.Cancel,
+					Event.Skip,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance:    Event.HandleReception,
+						Event.Behaviour:       behaviour,
+						Event.RateLimiterType: Event.TokenBucket,
+						Event.TokenBucketType: Event.Bytes,
+					},
+				))
+				if event.IsInfo() {
+					skip = false
+				}
+				if event.IsError() {
+					websocketConnection.Close()
+					return
+				}
 			}
-			if event.IsError() {
-				websocketConnection.Close()
+			if skip {
+				server.write(websocketConnection, Message.NewAsync("error", "byte rate limited").Serialize(), Event.MessageReceptionRoutine)
 				return
 			}
 		}
 	}
 	message, err := Message.Deserialize(messageBytes, websocketConnection.GetId())
 	if err != nil {
-		event := server.onEvent(Event.NewWarning(
-			Event.DeserializingFailed,
-			err.Error(),
-			Event.Cancel,
-			Event.Skip,
-			Event.Skip,
-			Event.Context{
-				Event.Circumstance: Event.HandleReception,
-				Event.Behaviour:    behaviour,
-				Event.StructType:   Event.Message,
-				Event.Bytes:        string(messageBytes),
-			},
-		))
-		if event.IsError() {
-			websocketConnection.Close()
-			return
-		} else {
-			server.write(websocketConnection, Message.NewAsync("error", "deserializing failed").Serialize(), Event.MessageReceptionRoutine)
-			return
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.NewWarning(
+				Event.DeserializingFailed,
+				err.Error(),
+				Event.Cancel,
+				Event.Skip,
+				Event.Skip,
+				Event.Context{
+					Event.Circumstance: Event.HandleReception,
+					Event.Behaviour:    behaviour,
+					Event.StructType:   Event.Message,
+					Event.Bytes:        string(messageBytes),
+				},
+			))
+			if event.IsError() {
+				websocketConnection.Close()
+				return
+			}
 		}
+		server.write(websocketConnection, Message.NewAsync("error", "deserializing failed").Serialize(), Event.MessageReceptionRoutine)
+		return
 	}
 
 	if len(message.GetSyncToken()) != 0 {
+
 		return errors.New("message contains sync token")
 	}
 	if len(message.GetTopic()) == 0 {
