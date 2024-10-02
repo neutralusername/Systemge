@@ -70,6 +70,7 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 	if config.RateLimiterMessages != nil {
 		connection.messageRateLimiter = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
+	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
 
 	connection.waitGroup.Add(1)
 	go connection.receptionRoutine()

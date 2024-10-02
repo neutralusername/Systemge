@@ -2,6 +2,7 @@ package WebsocketClient
 
 import (
 	"errors"
+	"time"
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
@@ -53,6 +54,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 		); !event.IsInfo() {
 			return event.GetError()
 		}
+		connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(connection.config.ReadDeadlineMs) * time.Millisecond))
 		_, messageBytes, err := connection.websocketConn.ReadMessage()
 		if err != nil {
 			connection.onEvent(Event.NewWarningNoOption(
