@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/ReceptionManager"
 	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -77,8 +76,6 @@ func (server *WebsocketServer) handleNewSession() error {
 	if server.config.RateLimiterMessages != nil {
 		websocketConnection.messageRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
 	}
-	pipeline, _ := ReceptionManager.NewReceptionManager(session.GetId()+"_pipeline", server.preValidator, server.deserializer, server.postValidator)
-	websocketConnection.receptionManager = pipeline
 	websocketConnection.id = session.GetId()
 
 	server.websocketConnectionsAccepted.Add(1)
