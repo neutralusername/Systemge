@@ -11,10 +11,8 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/TopicManager"
 )
 
 type WebsocketServer struct {
@@ -35,9 +33,9 @@ type WebsocketServer struct {
 	connectionChannel chan *websocket.Conn
 	ipRateLimiter     *Tools.IpRateLimiter
 
-	sessionManager *SessionManager.Manager
+	sessionManager *Tools.SessionManager
 
-	topicManager *TopicManager.Manager
+	topicManager *Tools.TopicManager
 
 	eventHandler Event.Handler
 
@@ -84,16 +82,16 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		sessionManager: SessionManager.New(name+"_sessionManager", config.ClientSessionManagerConfig, nil, nil),
+		sessionManager: Tools.NewSessionManager(name+"_sessionManager", config.ClientSessionManagerConfig, nil, nil),
 
 		config:            config,
 		connectionChannel: make(chan *websocket.Conn),
 	}
-	topicHandlers := make(TopicManager.TopicHandlers)
+	topicHandlers := make(Tools.TopicHandlers)
 	for topic, handler := range messageHandlers {
 		topicHandlers[topic] = server.toTopicHandler(handler)
 	}
-	server.topicManager = TopicManager.New(config.TopicManager, topicHandlers, nil)
+	server.topicManager = Tools.NewTopicManager(config.TopicManager, topicHandlers, nil)
 
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{

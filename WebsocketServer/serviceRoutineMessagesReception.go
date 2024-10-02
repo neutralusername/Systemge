@@ -5,7 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/TopicManager"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *WebsocketConnection) {
@@ -213,7 +213,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 
 }
 
-func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) TopicManager.TopicHandler {
+func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) Tools.TopicHandler {
 	return func(args ...any) (any, error) {
 		websocketConnection := args[0].(*WebsocketConnection)
 		message := args[1].(*Message.Message)

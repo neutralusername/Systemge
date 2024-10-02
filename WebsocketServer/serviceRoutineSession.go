@@ -2,7 +2,6 @@ package WebsocketServer
 
 import (
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/SessionManager"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -117,7 +116,7 @@ func (server *WebsocketServer) sessionRoutine() {
 	}
 }
 
-func (server *WebsocketServer) websocketConnectionDisconnect(session *SessionManager.Session, websocketConnection *WebsocketConnection) {
+func (server *WebsocketServer) websocketConnectionDisconnect(session *Tools.Session, websocketConnection *WebsocketConnection) {
 	select {
 	case <-websocketConnection.stopChannel:
 	case <-session.GetTimeout().GetTriggeredChannel():

@@ -1,4 +1,4 @@
-package TopicManager
+package Tools
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 type TopicHandler func(...any) (any, error)
 type TopicHandlers map[string]TopicHandler
 
-type Manager struct {
+type TopicManager struct {
 	config *Config.TopicManager
 
 	topicHandlers       TopicHandlers
@@ -36,11 +36,11 @@ type queueStruct struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func New(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler) *Manager {
+func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler) *TopicManager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
-	topicManager := &Manager{
+	topicManager := &TopicManager{
 		config:              config,
 		topicHandlers:       topicHandlers,
 		unknownTopicHandler: unknownTopicHandler,
@@ -62,7 +62,7 @@ func New(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicH
 }
 
 // can not be called after Close or will cause panic.
-func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error) {
+func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
 	queueStruct := &queueStruct{
 		topic:                topic,
 		args:                 args,
@@ -82,7 +82,7 @@ func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error)
 	return <-queueStruct.responseAnyChannel, <-queueStruct.responseErrorChannel
 }
 
-func (topicManager *Manager) handleCalls() {
+func (topicManager *TopicManager) handleCalls() {
 	for queueStruct := range topicManager.queue {
 		queue := topicManager.topicQueues[queueStruct.topic]
 		if queue == nil {
@@ -107,7 +107,7 @@ func (topicManager *Manager) handleCalls() {
 	}
 }
 
-func (topicManager *Manager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
+func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
 	for queueStruct := range queue {
 		if topicManager.config.ConcurrentCalls {
 			go func() {
@@ -123,7 +123,7 @@ func (topicManager *Manager) handleTopic(queue chan *queueStruct, handler TopicH
 	}
 }
 
-func (topicManager *Manager) Close() error {
+func (topicManager *TopicManager) Close() error {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
 
@@ -141,7 +141,7 @@ func (topicManager *Manager) Close() error {
 	return nil
 }
 
-func (topicManager *Manager) IsClosed() bool {
+func (topicManager *TopicManager) IsClosed() bool {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
 	return topicManager.isClosed
