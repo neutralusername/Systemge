@@ -126,10 +126,6 @@ func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *TcpSystemgeListener) GetListener() net.Listener {
-	return server.tcpListener
-}
-
 func (server *TcpSystemgeListener) GetName() string {
 	return server.name
 }
