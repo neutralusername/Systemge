@@ -30,6 +30,9 @@ type WebsocketServer struct {
 
 	websocketListener *WebsocketListener.WebsocketListener
 
+	whitelist *Tools.AccessControlList
+	blacklist *Tools.AccessControlList
+
 	sessionManager *Tools.SessionManager
 	topicManager   *Tools.TopicManager
 
@@ -49,10 +52,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if config.WebsocketListenerConfig == nil {
 		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
-	websocketListener, err := WebsocketListener.New(name+"_websocketListener", config.WebsocketListenerConfig, whitelist, blacklist, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	server := &WebsocketServer{
 		name:       name,
@@ -60,9 +59,10 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 
 		sessionManager: Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, nil, nil),
 
-		config: config,
+		whitelist: whitelist,
+		blacklist: blacklist,
 
-		websocketListener: websocketListener,
+		config: config,
 	}
 	/* 	topicHandlers := make(Tools.TopicHandlers)
 	   	for topic, handler := range messageHandlers {

@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
 func (server *WebsocketServer) Start() error {
@@ -44,26 +45,11 @@ func (server *WebsocketServer) start(lock bool) error {
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
 
-	if server.config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
-	}
-	if err := server.httpServer.Start(); err != nil {
-		server.onEvent(Event.NewErrorNoOption(
-			Event.ServiceStartFailed,
-			"failed to start websocketServer's http server",
-			Event.Context{
-				Event.Circumstance:      Event.ServiceStart,
-				Event.TargetServiceType: Event.HttpServer,
-			},
-		))
-		if server.ipRateLimiter != nil {
-			server.ipRateLimiter.Close()
-			server.ipRateLimiter = nil
-		}
-		server.status = Status.Stopped
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
+	if err != nil {
 		return err
 	}
-
+	server.websocketListener = websocketListener
 	server.stopChannel = make(chan bool)
 
 	server.waitGroup.Add(1)
