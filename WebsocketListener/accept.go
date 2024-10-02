@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) AcceptClient(clientName string, config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptingConnection,
 		"accepting websocketClient",
@@ -104,7 +104,7 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketClie
 		}
 	}
 
-	connection, err := WebsocketClient.New("", config, websocketConn, eventHandler)
+	connection, err := WebsocketClient.New(clientName, config, websocketConn, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptedConnection,
