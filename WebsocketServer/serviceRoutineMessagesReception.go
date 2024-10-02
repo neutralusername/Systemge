@@ -188,29 +188,49 @@ func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) T
 		websocketConnection := args[0].(*WebsocketConnection)
 		message := args[1].(*Message.Message)
 
-		if event := server.onEvent(Event.NewInfo(
-			Event.HandlingTopic,
-			"handling websocketConnection message",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.HandleTopic,
-				Event.SessionId:    websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
-			},
-		)); !event.IsInfo() {
-			return nil, errors.New("event cancelled")
+		if server.eventHandler != nil {
+			if event := server.onEvent(Event.NewInfo(
+				Event.HandlingTopic,
+				"handling websocketConnection message",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance: Event.HandleTopic,
+					Event.SessionId:    websocketConnection.GetId(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				return nil, errors.New("event cancelled")
+			}
 		}
 
 		err := handler(websocketConnection, message)
 		if err != nil {
-			server.onEvent(Event.NewWarningNoOption(
-				Event.TopicHandlerFailed,
-				err.Error(),
+			if server.eventHandler != nil {
+				server.onEvent(Event.NewWarningNoOption(
+					Event.TopicHandlerFailed,
+					err.Error(),
+					Event.Context{
+						Event.Circumstance: Event.HandleTopic,
+						Event.SessionId:    websocketConnection.GetId(),
+						Event.Address:      websocketConnection.GetAddress(),
+						Event.Topic:        message.GetTopic(),
+						Event.Payload:      message.GetPayload(),
+						Event.SyncToken:    message.GetSyncToken(),
+					},
+				))
+			}
+			return nil, err
+		}
+
+		if server.eventHandler != nil {
+			server.onEvent(Event.NewInfoNoOption(
+				Event.HandledTopic,
+				"handled websocketConnection message",
 				Event.Context{
 					Event.Circumstance: Event.HandleTopic,
 					Event.SessionId:    websocketConnection.GetId(),
@@ -222,19 +242,6 @@ func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) T
 			))
 		}
 
-		server.onEvent(Event.NewInfoNoOption(
-			Event.HandledTopic,
-			"handled websocketConnection message",
-			Event.Context{
-				Event.Circumstance: Event.HandleTopic,
-				Event.SessionId:    websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
-			},
-		))
-
-		return nil, err
+		return nil, nil
 	}
 }
