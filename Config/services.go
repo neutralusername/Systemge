@@ -42,6 +42,9 @@ type WebsocketServer struct {
 	IncomingMessageByteLimit uint64                  `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
 	ServerReadDeadlineMs     int                     `json:"serverReadDeadlineMs"`     // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
 
+	MaxTopicSize   int `json:"maxTopicSize"`   // default: 0 = unlimited (topics that attempt to store more messages than this will be truncated)
+	MaxPayloadSize int `json:"maxPayloadSize"` // default: 0 = unlimited (payloads that attempt to store more messages than this will be truncated)
+
 	HandleMessageReceptionSequentially bool `json:"handleMessageReceptionSequentially"` // default: false (if true, the server will handle messages from the same websocketConnection sequentially)
 	PropagateMessageHandlerErrors      bool `json:"propagateMessageHandlerErrors"`      // default: false (if true, the server will propagate errors from message handlers to the websocketConnection)
 
