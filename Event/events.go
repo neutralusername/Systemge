@@ -131,7 +131,8 @@ const HandleConnectionAttemptFailed = "handleConnectionAttemptFailed" // when a 
 
 const ContextDoesNotExist = "eventContextDoesNotExist" // when a particular context does not exist
 
-const IdentityTooLong = "identityTooLong" // when an identity is too long
+const IdentityTooLong = "identityTooLong"   // when an identity is too long
+const IdentityTooShort = "identityTooShort" // when an identity is too short
 
 const MaxTotalSessionsExceeded = "maxTotalSessionsExceeded"             // when the maximum total sessions is exceeded
 const MaxSessionsPerIdentityExceeded = "maxSessionsPerIdentityExceeded" // when the maximum sessions per identity is exceeded

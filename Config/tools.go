@@ -58,6 +58,7 @@ type SessionManager struct {
 	MaxSessionsPerIdentity uint32 `json:"maxSessionsPerIdentity"` // default: 0 == no limit
 	MaxIdentities          uint32 `json:"maxIdentities"`          // default: 0 == no limit
 	MaxIdentityLength      uint32 `json:"maxIdentityLength"`      // default: 0 == no limit
+	MinIdentityLength      uint32 `json:"minIdentityLength"`      // default: 0 == no limit
 	SessionIdAlphabet      string `json:"sessionIdAlphabet"`      // default: alphanumeric
 }
 
@@ -76,4 +77,13 @@ type TopicManager struct {
 	ConcurrentCalls    bool   `json:"concurrentCalls"`    // default: false
 	QueueBlocking      bool   `json:"queueBlocking"`      // default: false
 	TopicQueueBlocking bool   `json:"topicQueueBlocking"` // default: false
+}
+
+func UnmarshalTopicManager(data string) *TopicManager {
+	var topicManagerConfig TopicManager
+	err := json.Unmarshal([]byte(data), &topicManagerConfig)
+	if err != nil {
+		return nil
+	}
+	return &topicManagerConfig
 }

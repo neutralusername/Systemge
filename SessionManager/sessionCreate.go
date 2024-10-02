@@ -9,6 +9,22 @@ import (
 
 func (manager *Manager) CreateSession(identityString string, keyValuePairs map[string]any) (*Session, error) {
 
+	if manager.config.MinIdentityLength > 0 && uint32(len(identityString)) < manager.config.MinIdentityLength {
+		if event := manager.onEvent(Event.NewWarning(
+			Event.IdentityTooShort,
+			"identity too short",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.SessionCreate,
+				Event.Identity:     identityString,
+			},
+		)); !event.IsInfo() {
+			return nil, errors.New("identity too short")
+		}
+	}
+
 	if manager.config.MaxIdentityLength > 0 && uint32(len(identityString)) > manager.config.MaxIdentityLength {
 		if event := manager.onEvent(Event.NewWarning(
 			Event.IdentityTooLong,
