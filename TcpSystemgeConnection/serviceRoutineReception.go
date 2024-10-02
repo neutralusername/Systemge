@@ -87,7 +87,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.Bytes:        string(messageBytes),
 			}),
 		); !event.IsInfo() {
-			connection.rejectedMessages.Add(1)
+			connection.rejectedMessagesReceived.Add(1)
 			return event.GetError()
 		}
 		connection.messagesReceived.Add(1)
@@ -152,7 +152,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 		},
 	))
 	if !event.IsInfo() {
-		connection.rejectedMessages.Add(1)
+		connection.rejectedMessagesReceived.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
 		return event.GetError()
 	}
@@ -171,7 +171,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 				Event.TokenBucketType: Event.Messages,
 			},
 		)); !event.IsInfo() {
-			connection.rejectedMessages.Add(1)
+			connection.rejectedMessagesReceived.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event.GetError()
 		}
@@ -191,7 +191,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 				Event.TokenBucketType: Event.Messages,
 			},
 		)); !event.IsInfo() {
-			connection.rejectedMessages.Add(1)
+			connection.rejectedMessagesReceived.Add(1)
 			connection.messageChannelSemaphore.ReleaseBlocking()
 			return event.GetError()
 		}
@@ -260,7 +260,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.SyncToken:    message.GetSyncToken(),
 		},
 	)); !event.IsInfo() {
-		connection.rejectedMessages.Add(1)
+		connection.rejectedMessagesReceived.Add(1)
 		connection.messageChannelSemaphore.ReleaseBlocking()
 		return event.GetError()
 	}

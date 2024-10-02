@@ -2,6 +2,7 @@ package WebsocketConnection
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Message"
@@ -27,4 +28,15 @@ type WebsocketConnection struct {
 
 	byteRateLimiter    *Tools.TokenBucketRateLimiter
 	messageRateLimiter *Tools.TokenBucketRateLimiter
+
+	// metrics
+
+	bytesSent     atomic.Uint64
+	bytesReceived atomic.Uint64
+
+	messagesSent     atomic.Uint64
+	messagesReceived atomic.Uint64
+
+	invalidMessagesReceived  atomic.Uint64
+	rejectedMessagesReceived atomic.Uint64
 }

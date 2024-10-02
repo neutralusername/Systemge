@@ -139,8 +139,8 @@ func (receiver *TcpSystemgeConnection) GetInvalidMessagesReceived() uint64 {
 }
 
 func (receiver *TcpSystemgeConnection) CheckRejectedMessages() uint64 {
-	return receiver.rejectedMessages.Load()
+	return receiver.rejectedMessagesReceived.Load()
 }
 func (receiver *TcpSystemgeConnection) GetRejectedMessages() uint64 {
-	return receiver.rejectedMessages.Swap(0)
+	return receiver.rejectedMessagesReceived.Swap(0)
 }
