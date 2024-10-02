@@ -134,7 +134,7 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 	return err
 }
 
-func (server *WebsocketServer) validator(data any) error {
+func (server *WebsocketServer) validator(data any, args ...any) error {
 	message := data.(*Message.Message)
 	if len(message.GetSyncToken()) != 0 {
 		return errors.New("message contains sync token")
