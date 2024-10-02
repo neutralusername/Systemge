@@ -12,7 +12,7 @@ type Manager struct {
 	topicHandlers       TopicHandlers
 	unknownTopicHandler TopicHandler
 
-	isCLosed bool
+	isClosed bool
 	mutex    sync.Mutex
 
 	queue             chan *queueStruct
@@ -133,11 +133,11 @@ func (topicManager *Manager) Close() error {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
 
-	if topicManager.isCLosed {
+	if topicManager.isClosed {
 		return errors.New("topic manager already closed")
 	}
 
-	topicManager.isCLosed = true
+	topicManager.isClosed = true
 	close(topicManager.queue)
 	for _, queue := range topicManager.topicQueues {
 		close(queue)
@@ -150,5 +150,5 @@ func (topicManager *Manager) Close() error {
 func (topicManager *Manager) IsClosed() bool {
 	topicManager.mutex.Lock()
 	defer topicManager.mutex.Unlock()
-	return topicManager.isCLosed
+	return topicManager.isClosed
 }
