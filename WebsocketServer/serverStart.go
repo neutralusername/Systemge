@@ -11,13 +11,8 @@ import (
 )
 
 func (server *WebsocketServer) Start() error {
-	return server.start(true)
-}
-func (server *WebsocketServer) start(lock bool) error {
-	if lock {
-		server.statusMutex.Lock()
-		defer server.statusMutex.Unlock()
-	}
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.ServiceStarting,

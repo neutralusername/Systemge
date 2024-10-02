@@ -10,10 +10,10 @@ import (
 )
 
 func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
-	httpCommands := server.httpServer.GetDefaultCommands()
+	websocketListenerCommands := server.websocketListener.GetDefaultCommands()
 	commands := Commands.Handlers{}
-	for key, value := range httpCommands {
-		commands["http_"+key] = value
+	for key, value := range websocketListenerCommands {
+		commands["websocketListener_"+key] = value
 	}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()

@@ -8,13 +8,8 @@ import (
 )
 
 func (server *WebsocketServer) Stop() error {
-	return server.stop(true)
-}
-func (server *WebsocketServer) stop(lock bool) error {
-	if lock {
-		server.statusMutex.Lock()
-		defer server.statusMutex.Unlock()
-	}
+	server.statusMutex.Lock()
+	defer server.statusMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
 		Event.ServiceStopping,
@@ -41,11 +36,7 @@ func (server *WebsocketServer) stop(lock bool) error {
 	}
 	server.status = Status.Pending
 
-	server.httpServer.Stop()
-	if server.ipRateLimiter != nil {
-		server.ipRateLimiter.Close()
-		server.ipRateLimiter = nil
-	}
+	server.websocketListener.Close()
 
 	close(server.stopChannel)
 	server.waitGroup.Wait()
