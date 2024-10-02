@@ -49,7 +49,6 @@ type WebsocketServer struct {
 
 	websocketConnectionMessagesReceived atomic.Uint32
 	websocketConnectionMessagesSent     atomic.Uint32
-	websocketConnectionMessagesFailed   atomic.Uint32
 
 	websocketConnectionMessagesBytesReceived atomic.Uint64
 	websocketConnectionMessagesBytesSent     atomic.Uint64

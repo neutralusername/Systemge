@@ -73,14 +73,52 @@ func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *Webs
 }
 
 func (server *WebsocketServer) handleMessageReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) {
-	if websocketConnection.byteRateLimiter != nil {
-		if !websocketConnection.byteRateLimiter.Consume(uint64(len(messageBytes))) {
-			return errors.New("rate limit exceeded")
-		}
-	}
 	if websocketConnection.messageRateLimiter != nil {
 		if !websocketConnection.messageRateLimiter.Consume(1) {
-			return errors.New("rate limit exceeded")
+			event := server.onEvent(Event.NewWarning(
+				Event.RateLimited,
+				"tcpSystemgeConnection message rate limited",
+				Event.Cancel,
+				Event.Skip,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:    Event.HandleReception,
+					Event.Behaviour:       behaviour,
+					Event.RateLimiterType: Event.TokenBucket,
+					Event.TokenBucketType: Event.Messages,
+				},
+			))
+			if event.IsWarning() {
+				return
+			}
+			if event.IsError() {
+				websocketConnection.Close()
+				return
+			}
+		}
+	}
+	if websocketConnection.byteRateLimiter != nil {
+		if !websocketConnection.byteRateLimiter.Consume(uint64(len(messageBytes))) {
+			event := server.onEvent(Event.NewWarning(
+				Event.RateLimited,
+				"tcpSystemgeConnection byte rate limited",
+				Event.Cancel,
+				Event.Skip,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance:    Event.HandleReception,
+					Event.Behaviour:       behaviour,
+					Event.RateLimiterType: Event.TokenBucket,
+					Event.TokenBucketType: Event.Bytes,
+				},
+			))
+			if event.IsWarning() {
+				return
+			}
+			if event.IsError() {
+				websocketConnection.Close()
+				return
+			}
 		}
 	}
 	message, err := Message.Deserialize(messageBytes, websocketConnection.GetId())

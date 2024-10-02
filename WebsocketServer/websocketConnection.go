@@ -81,14 +81,12 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 				Event.Bytes:        string(messageBytes),
 			},
 		)); !event.IsInfo() {
-			server.websocketConnectionMessagesFailed.Add(1)
 			return event.GetError()
 		}
 	}
 
 	err := websocketConnection.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
-		server.websocketConnectionMessagesFailed.Add(1)
 		if server.eventHandler != nil {
 			server.onEvent(Event.NewWarningNoOption(
 				Event.WriteMessageFailed,
