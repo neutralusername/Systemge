@@ -150,7 +150,6 @@ func (server *WebsocketServer) validator(data any, args ...any) error {
 	}
 	return nil
 }
-
 func (server *WebsocketServer) deserializer(bytes []byte, args ...any) (any, error) {
 	return Message.Deserialize(bytes, args[0].(string))
 }

@@ -41,12 +41,12 @@ func (pipeline *Pipeline) Process(bytes []byte, args ...any) (any, error) {
 	if pipeline.rateLimiterCalls != nil && !pipeline.rateLimiterCalls.Consume(1) {
 		return nil, errors.New("call rate limit exceeded")
 	}
-	data, err := pipeline.deserializer(bytes)
+	data, err := pipeline.deserializer(bytes, args...)
 	if err != nil {
 		return nil, err
 	}
 	if pipeline.validator != nil {
-		err = pipeline.validator(data)
+		err = pipeline.validator(data, args...)
 		if err != nil {
 			return nil, err
 		}
