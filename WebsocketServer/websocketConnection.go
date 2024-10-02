@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/ReceptionHandler"
+	"github.com/neutralusername/Systemge/ReceptionManager"
 	"github.com/neutralusername/Systemge/Tools"
 
 	"github.com/gorilla/websocket"
@@ -24,7 +24,7 @@ type WebsocketConnection struct {
 	closeMutex sync.Mutex
 	isClosed   bool
 
-	pipeline *ReceptionHandler.ReceptionHandler
+	receptionManager *ReceptionManager.ReceptionManager
 
 	byteRateLimiter    *Tools.TokenBucketRateLimiter
 	messageRateLimiter *Tools.TokenBucketRateLimiter

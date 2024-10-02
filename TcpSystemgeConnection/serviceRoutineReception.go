@@ -11,23 +11,23 @@ import (
 func (connection *TcpSystemgeConnection) receptionRoutine() {
 	defer func() {
 		connection.onEvent(Event.NewInfoNoOption(
-			Event.ReceptionRoutineFinished,
+			Event.MessageReceptionRoutineFinished,
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
-				Event.Circumstance: Event.ReceptionRoutine,
+				Event.Circumstance: Event.MessageReceptionRoutine,
 			},
 		))
 		connection.waitGroup.Done()
 	}()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.ReceptionRoutineBegins,
+		Event.MessageReceptionRoutineBegins,
 		"started tcpSystemgeConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ReceptionRoutine,
+			Event.Circumstance: Event.MessageReceptionRoutine,
 		},
 	)); !event.IsInfo() {
 		return
@@ -49,7 +49,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.ReceptionRoutine,
+				Event.Circumstance: Event.MessageReceptionRoutine,
 			}),
 		); !event.IsInfo() {
 			return event.GetError()
@@ -67,7 +67,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance: Event.ReceptionRoutine,
+					Event.Circumstance: Event.MessageReceptionRoutine,
 				}),
 			); !event.IsInfo() {
 				return err
@@ -83,7 +83,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.ReceptionRoutine,
+				Event.Circumstance: Event.MessageReceptionRoutine,
 				Event.Bytes:        string(messageBytes),
 			}),
 		); !event.IsInfo() {

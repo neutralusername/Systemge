@@ -7,13 +7,13 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketConnection) {
+func (server *WebsocketServer) messageReceptionRoutine(websocketConnection *WebsocketConnection) {
 	defer func() {
 		server.onEvent___(Event.NewInfoNoOption(
-			Event.ReceptionRoutineFinished,
-			"stopped websocketConnection reception routine",
+			Event.MessageReceptionRoutineFinished,
+			"finished websocketConnection message reception routine",
 			Event.Context{
-				Event.Circumstance: Event.ReceptionRoutine,
+				Event.Circumstance: Event.MessageReceptionRoutine,
 				Event.SessionId:    websocketConnection.GetId(),
 				Event.Address:      websocketConnection.GetAddress(),
 			},
@@ -22,13 +22,13 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 	}()
 
 	if event := server.onEvent___(Event.NewInfo(
-		Event.ReceptionRoutineBegins,
-		"started websocketConnection reception routine",
+		Event.MessageReceptionRoutineBegins,
+		"beginning websocketConnection message reception routine",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ReceptionRoutine,
+			Event.Circumstance: Event.MessageReceptionRoutine,
 			Event.SessionId:    websocketConnection.GetId(),
 			Event.Address:      websocketConnection.GetAddress(),
 		},
@@ -36,56 +36,25 @@ func (server *WebsocketServer) receptionRoutine(websocketConnection *WebsocketCo
 		return
 	}
 
-	for err := server.receiveMessage(websocketConnection); err == nil; {
-	}
-
-}
-
-func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConnection) error {
-	messageBytes, err := server.read(websocketConnection, Event.ReceptionRoutine)
-	if err != nil {
-		server.onEvent___(Event.NewWarningNoOption(
-			Event.ReadMessageFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: Event.ReceptionRoutine,
-				Event.SessionId:    websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-			},
-		))
-		return err
-	}
-	server.websocketConnectionMessagesReceived.Add(1)
-	server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
-
-	if server.config.HandleMessageReceptionSequentially {
-		if err := server.handleReception(websocketConnection, messageBytes, Event.Sequential); err != nil {
-			if event := server.onEvent___(Event.NewInfo(
-				Event.HandleReceptionFailed,
+	for {
+		messageBytes, err := server.read(websocketConnection, Event.MessageReceptionRoutine)
+		if err != nil {
+			server.onEvent___(Event.NewWarningNoOption(
+				Event.ReadMessageFailed,
 				err.Error(),
-				Event.Cancel,
-				Event.Cancel,
-				Event.Continue,
 				Event.Context{
-					Event.Circumstance: Event.ReceptionRoutine,
-					Event.Behaviour:    Event.Sequential,
+					Event.Circumstance: Event.MessageReceptionRoutine,
 					Event.SessionId:    websocketConnection.GetId(),
 					Event.Address:      websocketConnection.GetAddress(),
 				},
-			)); !event.IsInfo() {
-				websocketConnection.Close()
-				return event.GetError()
-			} else {
-				if server.config.PropagateMessageHandlerErrors {
-					server.write(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
-				}
-			}
+			))
+			break
 		}
-	} else {
-		websocketConnection.waitGroup.Add(1)
-		go func() {
-			defer websocketConnection.waitGroup.Done()
-			if err := server.handleReception(websocketConnection, messageBytes, Event.Concurrent); err != nil {
+		server.websocketConnectionMessagesReceived.Add(1)
+		server.websocketConnectionMessagesBytesReceived.Add(uint64(len(messageBytes)))
+
+		if server.config.HandleMessageReceptionSequentially {
+			if err := server.handleMessageReception(websocketConnection, messageBytes, Event.Sequential); err != nil {
 				if event := server.onEvent___(Event.NewInfo(
 					Event.HandleReceptionFailed,
 					err.Error(),
@@ -93,8 +62,8 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance: Event.ReceptionRoutine,
-						Event.Behaviour:    Event.Concurrent,
+						Event.Circumstance: Event.MessageReceptionRoutine,
+						Event.Behaviour:    Event.Sequential,
 						Event.SessionId:    websocketConnection.GetId(),
 						Event.Address:      websocketConnection.GetAddress(),
 					},
@@ -102,17 +71,42 @@ func (server *WebsocketServer) receiveMessage(websocketConnection *WebsocketConn
 					websocketConnection.Close()
 				} else {
 					if server.config.PropagateMessageHandlerErrors {
-						server.write(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.ReceptionRoutine)
+						server.write(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.MessageReceptionRoutine)
 					}
 				}
 			}
-		}()
+		} else {
+			websocketConnection.waitGroup.Add(1)
+			go func() {
+				defer websocketConnection.waitGroup.Done()
+				if err := server.handleMessageReception(websocketConnection, messageBytes, Event.Concurrent); err != nil {
+					if event := server.onEvent___(Event.NewInfo(
+						Event.HandleReceptionFailed,
+						err.Error(),
+						Event.Cancel,
+						Event.Cancel,
+						Event.Continue,
+						Event.Context{
+							Event.Circumstance: Event.MessageReceptionRoutine,
+							Event.Behaviour:    Event.Concurrent,
+							Event.SessionId:    websocketConnection.GetId(),
+							Event.Address:      websocketConnection.GetAddress(),
+						},
+					)); !event.IsInfo() {
+						websocketConnection.Close()
+					} else {
+						if server.config.PropagateMessageHandlerErrors {
+							server.write(websocketConnection, Message.NewAsync("error", event.Marshal()).Serialize(), Event.MessageReceptionRoutine)
+						}
+					}
+				}
+			}()
+		}
 	}
-	return nil
 }
 
-func (server *WebsocketServer) handleReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) error {
-	result, err := websocketConnection.pipeline.HandleReception(messageBytes, websocketConnection.GetId())
+func (server *WebsocketServer) handleMessageReception(websocketConnection *WebsocketConnection, messageBytes []byte, behaviour string) error {
+	result, err := websocketConnection.receptionManager.HandleReception(messageBytes, websocketConnection.GetId())
 
 	if err != nil {
 		server.onEvent___(Event.NewWarningNoOption(

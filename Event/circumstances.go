@@ -3,7 +3,7 @@ package Event
 const WebsocketUpgrade = "websocketUpgrade" // during the upgrade of a http request to a websocket connection
 
 const SessionRoutine = "connectionRoutine"
-const ReceptionRoutine = "receptionRoutine"
+const MessageReceptionRoutine = "receptionRoutine"
 const HeartbeatRoutine = "heartbeatRoutine"
 
 const HandleReception = "handleReception"

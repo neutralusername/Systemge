@@ -21,12 +21,14 @@ const AcceptedTcpSystemgeConnection = "acceptedTcpSystemgeConnection"   // after
 const SessionRoutineBegins = "sessionRoutineBegins" // when a session routine begins
 const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine finishes
 
-const ReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
-const ReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes
+const MessageReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
+const MessageReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes
 
 const HandlingReception = "handlingReception"         // before handling a reception
 const HandledReception = "handledReception"           // after handling a reception
 const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception operation returns an error
+
+const PipelineFailed = "pipelineFailed" // when a pipeline operation returns an error
 
 /* const HandlingMessage = "handlingMessage" // before handling a message
 const HandledMessage = "handledMessage"   // after handling a message */
