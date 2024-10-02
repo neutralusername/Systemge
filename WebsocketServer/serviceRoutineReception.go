@@ -151,9 +151,8 @@ func (server *WebsocketServer) validator(data any) error {
 	return nil
 }
 
-func (server *WebsocketServer) deserializer(data any) (any, error) {
-	deserializeData := data.(*deserializeData)
-	return Message.Deserialize(deserializeData.bytes, deserializeData.origin)
+func (server *WebsocketServer) deserializer(bytes []byte, args ...any) (any, error) {
+	return Message.Deserialize(bytes, args[0].(string))
 }
 
 /*
