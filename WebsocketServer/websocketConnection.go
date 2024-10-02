@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/Pipeline"
 
 	"github.com/gorilla/websocket"
 )
@@ -23,20 +23,13 @@ type WebsocketConnection struct {
 	closeMutex sync.Mutex
 	isClosed   bool
 
-	rateLimiterBytes *Tools.TokenBucketRateLimiter
-	rateLimiterMsgs  *Tools.TokenBucketRateLimiter
+	pipeline *Pipeline.Pipeline
 }
 
 func (server *WebsocketServer) NewWebsocketConnection(websocketConn *websocket.Conn) *WebsocketConnection {
 	connection := &WebsocketConnection{
 		websocketConn: websocketConn,
 		stopChannel:   make(chan bool),
-	}
-	if server.config.WebsocketConnectionRateLimiterBytes != nil {
-		connection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterBytes)
-	}
-	if server.config.WebsocketConnectionRateLimiterMessages != nil {
-		connection.rateLimiterMsgs = Tools.NewTokenBucketRateLimiter(server.config.WebsocketConnectionRateLimiterMessages)
 	}
 	websocketConn.SetReadLimit(int64(server.config.IncomingMessageByteLimit))
 	return connection
@@ -66,36 +59,56 @@ func (websocketConnection *WebsocketConnection) GetAddress() string {
 	return websocketConnection.websocketConn.RemoteAddr().String()
 }
 
-func (server *WebsocketServer) Send(websocketConnection *WebsocketConnection, messageBytes []byte) error {
+func (server *WebsocketServer) Write(websocketConnection *WebsocketConnection, messageBytes []byte) error {
 	return server.write(websocketConnection, messageBytes, Event.SendRuntime)
 }
 func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, messageBytes []byte, circumstance string) error {
 	websocketConnection.sendMutex.Lock()
 	defer websocketConnection.sendMutex.Unlock()
 
-	if event := server.onEvent(Event.NewInfo(
-		Event.WritingMessage,
-		"sending websocketConnection message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: circumstance,
-			Event.Identity:     websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-			Event.Bytes:        string(messageBytes),
-		},
-	)); !event.IsInfo() {
-		server.websocketConnectionMessagesFailed.Add(1)
-		return event.GetError()
+	if server.eventHandler != nil {
+		if event := server.onEvent___(Event.NewInfo(
+			Event.WritingMessage,
+			"sending websocketConnection message",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: circumstance,
+				Event.Identity:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Bytes:        string(messageBytes),
+			},
+		)); !event.IsInfo() {
+			server.websocketConnectionMessagesFailed.Add(1)
+			return event.GetError()
+		}
 	}
 
 	err := websocketConnection.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		server.websocketConnectionMessagesFailed.Add(1)
-		server.onEvent(Event.NewWarningNoOption(
-			Event.WriteMessageFailed,
-			err.Error(),
+		if server.eventHandler != nil {
+			server.onEvent___(Event.NewWarningNoOption(
+				Event.WriteMessageFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance: circumstance,
+					Event.Identity:     websocketConnection.GetId(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Bytes:        string(messageBytes),
+				}),
+			)
+		}
+		return err
+	}
+	server.websocketConnectionMessagesSent.Add(1)
+	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
+
+	if server.eventHandler != nil {
+		server.onEvent___(Event.NewInfoNoOption(
+			Event.WroteMessage,
+			"sent websocketConnection message",
 			Event.Context{
 				Event.Circumstance: circumstance,
 				Event.Identity:     websocketConnection.GetId(),
@@ -103,21 +116,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 				Event.Bytes:        string(messageBytes),
 			}),
 		)
-		return err
 	}
-	server.websocketConnectionMessagesSent.Add(1)
-	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.WroteMessage,
-		"sent websocketConnection message",
-		Event.Context{
-			Event.Circumstance: circumstance,
-			Event.Identity:     websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-			Event.Bytes:        string(messageBytes),
-		}),
-	)
 	return nil
 }
 
@@ -126,38 +125,42 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 	return websocketConnection.id
 }
 
-func (server *WebsocketServer) Receive(websocketConnection *WebsocketConnection) ([]byte, error) {
+func (server *WebsocketServer) Read(websocketConnection *WebsocketConnection) ([]byte, error) {
 	if websocketConnection.id != "" {
-		server.onEvent(Event.NewWarningNoOption(
-			Event.SessionAlreadyAccepted,
-			"websocketConnection is already accepted",
-			Event.Context{
-				Event.Circumstance: Event.ReceiveRuntime,
-				Event.Identity:     websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-			}),
-		)
+		if server.eventHandler != nil {
+			server.onEvent___(Event.NewWarningNoOption(
+				Event.SessionAlreadyAccepted,
+				"websocketConnection is already accepted",
+				Event.Context{
+					Event.Circumstance: Event.ReceiveRuntime,
+					Event.Identity:     websocketConnection.GetId(),
+					Event.Address:      websocketConnection.GetAddress(),
+				}),
+			)
+		}
 		return nil, errors.New("websocketConnection is already accepted")
 	}
-	return server.receive(websocketConnection, Event.ReceiveRuntime)
+	return server.read(websocketConnection, Event.ReceiveRuntime)
 }
-func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection, circumstance string) ([]byte, error) {
+func (server *WebsocketServer) read(websocketConnection *WebsocketConnection, circumstance string) ([]byte, error) {
 	websocketConnection.receiveMutex.Lock()
 	defer websocketConnection.receiveMutex.Unlock()
 
-	if event := server.onEvent(Event.NewInfo(
-		Event.ReadingMessage,
-		"receiving websocketConnection message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: circumstance,
-			Event.Identity:     websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-		}),
-	); !event.IsInfo() {
-		return nil, event.GetError()
+	if server.eventHandler != nil {
+		if event := server.onEvent___(Event.NewInfo(
+			Event.ReadingMessage,
+			"receiving websocketConnection message",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: circumstance,
+				Event.Identity:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+			}),
+		); !event.IsInfo() {
+			return nil, event.GetError()
+		}
 	}
 
 	websocketConnection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(server.config.ServerReadDeadlineMs) * time.Millisecond))
@@ -167,20 +170,22 @@ func (server *WebsocketServer) receive(websocketConnection *WebsocketConnection,
 		return nil, err
 	}
 
-	if event := server.onEvent(Event.NewInfo(
-		Event.ReadMessage,
-		"received websocketConnection message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: circumstance,
-			Event.Identity:     websocketConnection.GetId(),
-			Event.Address:      websocketConnection.GetAddress(),
-			Event.Bytes:        string(messageBytes),
-		}),
-	); !event.IsInfo() {
-		return nil, event.GetError()
+	if server.eventHandler != nil {
+		if event := server.onEvent___(Event.NewInfo(
+			Event.ReadMessage,
+			"received websocketConnection message",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: circumstance,
+				Event.Identity:     websocketConnection.GetId(),
+				Event.Address:      websocketConnection.GetAddress(),
+				Event.Bytes:        string(messageBytes),
+			}),
+		); !event.IsInfo() {
+			return nil, event.GetError()
+		}
 	}
 	return messageBytes, nil
 }

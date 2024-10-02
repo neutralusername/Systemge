@@ -35,7 +35,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	}
 
 	targetsMarshalled := Helpers.JsonMarshal(targets)
-	if event := server.onEvent(Event.NewInfo(
+	if event := server.onEvent___(Event.NewInfo(
 		Event.SendingMultiMessage,
 		"broadcasting websocketConnection message",
 		Event.Cancel,
@@ -54,7 +54,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	for _, websocketConnection := range connections {
 		if websocketConnection.GetId() == "" {
-			event := server.onEvent(Event.NewWarning(
+			event := server.onEvent___(Event.NewWarning(
 				Event.SessionNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
@@ -83,7 +83,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onEvent(Event.NewInfoNoOption(
+	server.onEvent___(Event.NewInfoNoOption(
 		Event.SentMultiMessage,
 		"broadcasted websocketConnection message",
 		Event.Context{
@@ -103,7 +103,7 @@ func (server *WebsocketServer) Unicast(sessionId string, message *Message.Messag
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
-	if event := server.onEvent(Event.NewInfo(
+	if event := server.onEvent___(Event.NewInfo(
 		Event.SendingMultiMessage,
 		"unicasting websocketConnection message",
 		Event.Cancel,
@@ -122,7 +122,7 @@ func (server *WebsocketServer) Unicast(sessionId string, message *Message.Messag
 
 	session := server.sessionManager.GetSession(sessionId)
 	if session == nil {
-		server.onEvent(Event.NewWarningNoOption(
+		server.onEvent___(Event.NewWarningNoOption(
 			Event.SessionDoesNotExist,
 			"session does not exist",
 			Event.Context{
@@ -139,7 +139,7 @@ func (server *WebsocketServer) Unicast(sessionId string, message *Message.Messag
 	connection, ok := session.Get("connection")
 	if !ok {
 		// should never occur as of now
-		server.onEvent(Event.NewWarningNoOption(
+		server.onEvent___(Event.NewWarningNoOption(
 			Event.SessionDoesNotExist,
 			"connection does not exist",
 			Event.Context{
@@ -155,7 +155,7 @@ func (server *WebsocketServer) Unicast(sessionId string, message *Message.Messag
 	websocketConnection, ok := connection.(*WebsocketConnection)
 
 	if websocketConnection.GetId() == "" {
-		event := server.onEvent(Event.NewWarning(
+		event := server.onEvent___(Event.NewWarning(
 			Event.SessionNotAccepted,
 			"websocketConnection is not accepted",
 			Event.Cancel,
@@ -180,7 +180,7 @@ func (server *WebsocketServer) Unicast(sessionId string, message *Message.Messag
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onEvent(Event.NewInfoNoOption(
+	server.onEvent___(Event.NewInfoNoOption(
 		Event.SentMultiMessage,
 		"unicasted websocketConnection message",
 		Event.Context{
@@ -201,7 +201,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	waitGroup := Tools.NewTaskGroup()
 
 	targetsMarshalled := Helpers.JsonMarshal(ids)
-	if event := server.onEvent(Event.NewInfo(
+	if event := server.onEvent___(Event.NewInfo(
 		Event.SendingMultiMessage,
 		"multicasting websocketConnection message",
 		Event.Cancel,
@@ -221,7 +221,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	for _, id := range ids {
 		session := server.sessionManager.GetSession(id)
 		if session == nil {
-			server.onEvent(Event.NewWarningNoOption(
+			server.onEvent___(Event.NewWarningNoOption(
 				Event.SessionDoesNotExist,
 				"session does not exist",
 				Event.Context{
@@ -239,7 +239,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		connection, ok := session.Get("connection")
 		if !ok {
 			// should never occur as of now
-			server.onEvent(Event.NewWarningNoOption(
+			server.onEvent___(Event.NewWarningNoOption(
 				Event.SessionDoesNotExist,
 				"connection does not exist",
 				Event.Context{
@@ -256,7 +256,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		websocketConnection, ok := connection.(*WebsocketConnection)
 
 		if websocketConnection.GetId() == "" {
-			event := server.onEvent(Event.NewWarning(
+			event := server.onEvent___(Event.NewWarning(
 				Event.SessionNotAccepted,
 				"websocketConnection is not accepted",
 				Event.Cancel,
@@ -283,7 +283,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onEvent(Event.NewInfoNoOption(
+	server.onEvent___(Event.NewInfoNoOption(
 		Event.SentMultiMessage,
 		"multicasted websocketConnection message",
 		Event.Context{

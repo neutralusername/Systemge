@@ -4,12 +4,14 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Pipeline"
 	"github.com/neutralusername/Systemge/SessionManager"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (server *WebsocketServer) sessionRoutine() {
 	defer func() {
-		server.onEvent(Event.NewInfoNoOption(
+		server.onEvent___(Event.NewInfoNoOption(
 			Event.SessionRoutineEnds,
 			"stopped websocketConnection session routine",
 			Event.Context{
@@ -19,7 +21,7 @@ func (server *WebsocketServer) sessionRoutine() {
 		server.waitGroup.Done()
 	}()
 
-	if event := server.onEvent(Event.NewInfo(
+	if event := server.onEvent___(Event.NewInfo(
 		Event.SessionRoutineBegins,
 		"started websocketConnection session routine",
 		Event.Cancel,
@@ -40,7 +42,7 @@ func (server *WebsocketServer) sessionRoutine() {
 func (server *WebsocketServer) handleNewSession() error {
 	websocketConn := <-server.connectionChannel
 	if websocketConn == nil {
-		server.onEvent(Event.NewInfoNoOption(
+		server.onEvent___(Event.NewInfoNoOption(
 			Event.ReceivedNilValueFromChannel,
 			"received nil from websocketConnection channel",
 			Event.Context{
@@ -56,7 +58,7 @@ func (server *WebsocketServer) handleNewSession() error {
 		"connection": websocketConnection,
 	})
 	if err != nil {
-		server.onEvent(Event.NewWarningNoOption(
+		server.onEvent___(Event.NewWarningNoOption(
 			Event.CreateSessionFailed,
 			err.Error(),
 			Event.Context{
@@ -69,6 +71,16 @@ func (server *WebsocketServer) handleNewSession() error {
 		websocketConn.Close()
 		return nil
 	}
+	var byteRateLimiter *Tools.TokenBucketRateLimiter
+	if server.config.RateLimiterBytes != nil {
+		byteRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterBytes)
+	}
+	var callRateLimiter *Tools.TokenBucketRateLimiter
+	if server.config.RateLimiterMessages != nil {
+		callRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
+	}
+	pipeline, _ := Pipeline.NewPipeline(session.GetId()+"_pipeline", byteRateLimiter, callRateLimiter, server.deserializer, server.validator, server.eventHandler)
+	websocketConnection.pipeline = pipeline
 	websocketConnection.id = session.GetId()
 
 	server.websocketConnectionsAccepted.Add(1)

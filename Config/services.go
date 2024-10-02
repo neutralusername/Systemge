@@ -33,22 +33,17 @@ type WebsocketServer struct {
 	ClientSessionManagerConfig *SessionManager `json:"clientSessionManagerConfig"` // *required*
 	GroupSessionManagerConfig  *SessionManager `json:"groupSessionManagerConfig"`  // *required*
 
-	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
-
 	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
 
-	WebsocketConnectionRateLimiterBytes    *TokenBucketRateLimiter `json:"websocketConnectionRateLimiterBytes"`    // *optional* (rate limiter for websocketConnections)
-	WebsocketConnectionRateLimiterMessages *TokenBucketRateLimiter `json:"websocketConnectionRateLimiterMessages"` // *optional* (rate limiter for websocketConnections)
+	TopicManager *TopicManager `json:"topicManager"` // *required*
 
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
+	RateLimiterBytes         *TokenBucketRateLimiter `json:"rateLimiterBytes"`         // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
+	RateLimiterMessages      *TokenBucketRateLimiter `json:"rateLimiterMessages"`      // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
+	IncomingMessageByteLimit uint64                  `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
+	ServerReadDeadlineMs     int                     `json:"serverReadDeadlineMs"`     // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
 
 	HandleMessageReceptionSequentially bool `json:"handleMessageReceptionSequentially"` // default: false (if true, the server will handle messages from the same websocketConnection sequentially)
-	PropagateMessageHandlerWarnings    bool `json:"propagateMessageHandlerWarnings"`    // default: false (if true, the server will propagate warnings from message handlers to the websocketConnection)
 	PropagateMessageHandlerErrors      bool `json:"propagateMessageHandlerErrors"`      // default: false (if true, the server will propagate errors from message handlers to the websocketConnection)
-
-	ServerReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 }

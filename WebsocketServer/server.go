@@ -29,17 +29,13 @@ type WebsocketServer struct {
 	instanceId string
 	sessionId  string
 
-	config     *Config.WebsocketServer
-	randomizer *Tools.Randomizer
+	config *Config.WebsocketServer
 
 	httpServer        *HTTPServer.HTTPServer
 	connectionChannel chan *websocket.Conn
 	ipRateLimiter     *Tools.IpRateLimiter
 
 	sessionManager *SessionManager.Manager
-
-	messageHandlers     WebsocketMessageHandlers
-	messageHandlerMutex sync.Mutex
 
 	topicManager *TopicManager.Manager
 
@@ -72,6 +68,9 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if messageHandlers == nil {
 		return nil, errors.New("messageHandlers is nil")
 	}
+	if config.TopicManager == nil {
+		return nil, errors.New("config.TopicManager is nil")
+	}
 	if config.Upgrader == nil {
 		config.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -87,9 +86,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 
 		sessionManager: SessionManager.New(name+"_sessionManager", config.ClientSessionManagerConfig, eventHandler),
 
-		messageHandlers:   messageHandlers,
 		config:            config,
-		randomizer:        Tools.NewRandomizer(config.RandomizerSeed),
 		connectionChannel: make(chan *websocket.Conn),
 	}
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
@@ -133,11 +130,9 @@ func (server *WebsocketServer) RemoveMessageHandler(topic string) {
 	server.messageHandlerMutex.Unlock()
 }
 
-func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
+func (server *WebsocketServer) onEvent___(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler != nil {
-		server.eventHandler(event)
-	}
+	server.eventHandler(event)
 	return event
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {

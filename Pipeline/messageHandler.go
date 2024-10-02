@@ -17,7 +17,10 @@ type Pipeline struct {
 	eventHandler Event.Handler
 }
 
-func NewPipeline(name string, rateLimiterBytes *Tools.TokenBucketRateLimiter, rateLimiterCalls *Tools.TokenBucketRateLimiter, deserializer func([]byte) (any, error), validator func(any) error, eventHandler Event.Handler) (*Pipeline, error) {
+type Validator func(any) error
+type Deserializer func([]byte) (any, error)
+
+func NewPipeline(name string, rateLimiterBytes *Tools.TokenBucketRateLimiter, rateLimiterCalls *Tools.TokenBucketRateLimiter, deserializer Deserializer, validator Validator, eventHandler Event.Handler) (*Pipeline, error) {
 	if deserializer == nil {
 		return nil, errors.New("deserializer is required")
 	}
@@ -31,7 +34,7 @@ func NewPipeline(name string, rateLimiterBytes *Tools.TokenBucketRateLimiter, ra
 	}, nil
 }
 
-func (pipeline *Pipeline) DoStuff(bytes []byte) (any, error) {
+func (pipeline *Pipeline) Process(bytes []byte) (any, error) {
 	if pipeline.rateLimiterBytes != nil && !pipeline.rateLimiterBytes.Consume(uint64(len(bytes))) {
 		return nil, errors.New("byte rate limit exceeded")
 	}
