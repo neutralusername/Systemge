@@ -76,7 +76,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.WebsocketUpgrade,
-					Event.ChannelType:  Event.WebsocketConnection,
+					Event.ChannelType:  Event.WebsocketClient,
 					Event.Address:      websocketConnection.RemoteAddr().String(),
 				}),
 			); !event.IsInfo() {
@@ -92,7 +92,7 @@ func (server *WebsocketServer) getHTTPWebsocketUpgradeHandler() http.HandlerFunc
 				"sent new websocketConnection to channel",
 				Event.Context{
 					Event.Circumstance: Event.WebsocketUpgrade,
-					Event.ChannelType:  Event.WebsocketConnection,
+					Event.ChannelType:  Event.WebsocketClient,
 					Event.Address:      websocketConnection.RemoteAddr().String(),
 				}),
 			)

@@ -39,7 +39,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
-				Event.ChannelType:  Event.WebsocketConnection,
+				Event.ChannelType:  Event.WebsocketClient,
 			},
 		))
 		if event.IsWarning() {
@@ -56,7 +56,7 @@ func (server *WebsocketServer) sessionRoutine() {
 				"received nil from websocketConnection channel",
 				Event.Context{
 					Event.Circumstance: Event.SessionRoutine,
-					Event.ChannelType:  Event.WebsocketConnection,
+					Event.ChannelType:  Event.WebsocketClient,
 				},
 			))
 			break
@@ -70,7 +70,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			Event.Continue,
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
-				Event.ChannelType:  Event.WebsocketConnection,
+				Event.ChannelType:  Event.WebsocketClient,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		))

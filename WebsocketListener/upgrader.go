@@ -8,7 +8,7 @@ import (
 
 func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		websocketConnection, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
+		websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 		if err != nil {
 			if server.eventHandler != nil {
 				server.onEvent(Event.NewWarningNoOption(
@@ -27,30 +27,29 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 		if server.eventHandler != nil {
 			if event := server.onEvent(Event.NewInfo(
 				Event.SendingToChannel,
-				"sending new websocketConnection to channel",
+				"sending websocketConn to channel",
 				Event.Cancel,
 				Event.Cancel,
 				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.WebsocketUpgrade,
-					Event.ChannelType:  Event.WebsocketConnection,
-					Event.Address:      websocketConnection.RemoteAddr().String(),
+					Event.Address:      websocketConn.RemoteAddr().String(),
 				}),
 			); !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
-				websocketConnection.Close()
+				websocketConn.Close()
 				server.rejected.Add(1)
 			}
 		}
-		server.connectionChannel <- websocketConnection
+		server.connectionChannel <- websocketConn
 		if server.eventHandler != nil {
 			server.onEvent(Event.NewInfoNoOption(
 				Event.SentToChannel,
-				"sent new websocketConnection to channel",
+				"sent websocketConn to channel",
 				Event.Context{
 					Event.Circumstance: Event.WebsocketUpgrade,
-					Event.ChannelType:  Event.WebsocketConnection,
-					Event.Address:      websocketConnection.RemoteAddr().String(),
+					Event.ChannelType:  Event.WebsocketClient,
+					Event.Address:      websocketConn.RemoteAddr().String(),
 				}),
 			)
 		}

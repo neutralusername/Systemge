@@ -9,11 +9,10 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConnection, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
-
+func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptingConnection,
-		"accepting websocketConnection",
+		"accepting websocketClient",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -28,7 +27,7 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConn
 	if websocketConn == nil {
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.AcceptConnectionFailed,
-			"accept websocketConnection failed",
+			"accept websocketClient failed",
 			Event.Context{
 				Event.Circumstance: Event.AcceptConnection,
 			},
@@ -53,7 +52,7 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConn
 	if listener.ipRateLimiter != nil && !listener.ipRateLimiter.RegisterConnectionAttempt(ip) {
 		if event := listener.onEvent(Event.NewWarning(
 			Event.RateLimited,
-			"websocketConnection ip rate limited",
+			"websocketClient ip rate limited",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -72,7 +71,7 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConn
 	if listener.blacklist != nil && listener.blacklist.Contains(ip) {
 		if event := listener.onEvent(Event.NewWarning(
 			Event.Blacklisted,
-			"websocketConnection ip blacklisted",
+			"websocketClient ip blacklisted",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -90,7 +89,7 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConn
 	if listener.whitelist != nil && listener.whitelist.ElementCount() > 0 && !listener.whitelist.Contains(ip) {
 		if event := listener.onEvent(Event.NewWarning(
 			Event.NotWhitelisted,
-			"websocketConnection ip not whitelisted",
+			"websocketClient ip not whitelisted",
 			Event.Cancel,
 			Event.Cancel,
 			Event.Continue,
@@ -105,11 +104,11 @@ func (listener *WebsocketListener) AcceptConnection(config *Config.WebsocketConn
 		}
 	}
 
-	connection, err := WebsocketClient.New(websocketConn, config, eventHandler)
+	connection, err := WebsocketClient.New("", config, websocketConn, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptedConnection,
-		"accepted websocketConnection",
+		"accepted websocketClient",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,

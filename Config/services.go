@@ -35,7 +35,7 @@ type WebsocketListener struct {
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 }
 
-type WebsocketConnection struct {
+type WebsocketClient struct {
 	TopicManagerConfig *TopicManager `json:"topicManagerConfig"` // *required*
 
 	ReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
@@ -54,9 +54,9 @@ type WebsocketConnection struct {
 }
 
 type WebsocketServer struct {
-	WebsocketListenerConfig   *WebsocketListener   `json:"websocketListenerConfig"`   // *required*
-	WebsocketConnectionConfig *WebsocketConnection `json:"websocketConnectionConfig"` // *required*
-	SessionManagerConfig      *SessionManager      `json:"sessionManagerConfig"`      // *required*
+	WebsocketListenerConfig   *WebsocketListener `json:"websocketListenerConfig"`   // *required*
+	WebsocketConnectionConfig *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
+	SessionManagerConfig      *SessionManager    `json:"sessionManagerConfig"`      // *required*
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {

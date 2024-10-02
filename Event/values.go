@@ -1,6 +1,6 @@
 package Event
 
-const WebsocketConnection = "websocketConnection"
+const WebsocketClient = "websocketConnection"
 
 const Ip = "ip"
 const TokenBucket = "tokenBucket"
