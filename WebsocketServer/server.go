@@ -80,20 +80,22 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 			},
 		}
 	}
-	topicHandlers := make(TopicManager.TopicHandlers)
-	for topic, handler := range messageHandlers {
-		topicHandlers[topic] = toTopicHandler(handler)
-	}
+
 	server := &WebsocketServer{
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		sessionManager: SessionManager.New(name+"_sessionManager", config.ClientSessionManagerConfig, eventHandler),
-		topicManager:   TopicManager.New(config.TopicManager, topicHandlers, nil),
 
 		config:            config,
 		connectionChannel: make(chan *websocket.Conn),
 	}
+	topicHandlers := make(TopicManager.TopicHandlers)
+	for topic, handler := range messageHandlers {
+		topicHandlers[topic] = server.toTopicHandler(handler)
+	}
+	server.topicManager = TopicManager.New(config.TopicManager, topicHandlers, nil)
+
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
 			TcpServerConfig: server.config.TcpServerConfig,

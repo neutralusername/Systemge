@@ -127,7 +127,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 	return err
 }
 
-func toTopicHandler(handler WebsocketMessageHandler) TopicManager.TopicHandler {
+func (server *WebsocketServer) toTopicHandler(handler WebsocketMessageHandler) TopicManager.TopicHandler {
 	return func(args ...any) (any, error) {
 		websocketConnection := args[0].(*WebsocketConnection)
 		message := args[1].(*Message.Message)
