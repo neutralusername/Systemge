@@ -69,29 +69,23 @@ func NewTopicManager(topicHandlers TopicHandlers, unknownTopicHandler TopicHandl
 
 // can not be called after Close or will cause panic.
 func (topicManager *Manager) HandleTopic(topic string, args ...any) (any, error) {
-	response := make(chan any)
-	err := make(chan error)
+	queueStruct := &queueStruct{
+		topic:                topic,
+		args:                 args,
+		responseAnyChannel:   make(chan any),
+		responseErrorChannel: make(chan error),
+	}
 
 	if topicManager.queueBlocking {
-		topicManager.queue <- &queueStruct{
-			topic:                topic,
-			args:                 args,
-			responseAnyChannel:   response,
-			responseErrorChannel: err,
-		}
+		topicManager.queue <- queueStruct
 	} else {
 		select {
-		case topicManager.queue <- &queueStruct{
-			topic:                topic,
-			args:                 args,
-			responseAnyChannel:   response,
-			responseErrorChannel: err,
-		}:
+		case topicManager.queue <- queueStruct:
 		default:
 			return nil, errors.New("queue full")
 		}
 	}
-	return <-response, <-err
+	return <-queueStruct.responseAnyChannel, <-queueStruct.responseErrorChannel
 }
 
 func (topicManager *Manager) handleCalls() {
