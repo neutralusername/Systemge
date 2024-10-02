@@ -84,7 +84,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 		connection.messagesReceived.Add(1)
 
 		if connection.config.HandleMessageReceptionSequentially {
-			if err := connection.handleReception(messageBytes, Event.Sequential); err != nil {
+			if err := connection.handleMessageReception(messageBytes, Event.Sequential); err != nil {
 				if event := connection.onEvent(Event.NewInfo(
 					Event.HandleReceptionFailed,
 					err.Error(),
@@ -98,12 +98,12 @@ func (connection *WebsocketClient) receiveMessage() error {
 				)); !event.IsInfo() {
 					connection.Close()
 				} else {
-					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleReception)
+					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleMessageReception)
 				}
 			}
 		} else {
 			go func() {
-				if err := connection.handleReception(messageBytes, Event.Concurrent); err != nil {
+				if err := connection.handleMessageReception(messageBytes, Event.Concurrent); err != nil {
 					if event := connection.onEvent(Event.NewInfo(
 						Event.HandleReceptionFailed,
 						err.Error(),
@@ -117,7 +117,7 @@ func (connection *WebsocketClient) receiveMessage() error {
 					)); !event.IsInfo() {
 						connection.Close()
 					} else {
-						connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleReception)
+						connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.HandleMessageReception)
 					}
 				}
 			}()
@@ -126,15 +126,15 @@ func (connection *WebsocketClient) receiveMessage() error {
 	}
 }
 
-func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviour string) error {
+func (connection *WebsocketClient) handleMessageReception(messageBytes []byte, behaviour string) error {
 	event := connection.onEvent(Event.NewInfo(
-		Event.HandlingReception,
+		Event.HandlingMessageReception,
 		"handling message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleReception,
+			Event.Circumstance: Event.HandleMessageReception,
 			Event.Behaviour:    behaviour,
 		},
 	))
@@ -152,7 +152,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.HandleReception,
+				Event.Circumstance:    Event.HandleMessageReception,
 				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
@@ -172,7 +172,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.HandleReception,
+				Event.Circumstance:    Event.HandleMessageReception,
 				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
@@ -192,7 +192,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.HandleReception,
+				Event.Circumstance: Event.HandleMessageReception,
 				Event.Behaviour:    behaviour,
 				Event.StructType:   Event.Message,
 				Event.Bytes:        string(messageBytes),
@@ -209,7 +209,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.HandleReception,
+				Event.Circumstance: Event.HandleMessageReception,
 				Event.Behaviour:    behaviour,
 				Event.Topic:        message.GetTopic(),
 				Event.Payload:      message.GetPayload(),
@@ -229,7 +229,7 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleReception,
+			Event.Circumstance: Event.HandleMessageReception,
 			Event.Behaviour:    behaviour,
 			Event.ChannelType:  Event.MessageChannel,
 			Event.Topic:        message.GetTopic(),
@@ -244,10 +244,10 @@ func (connection *WebsocketClient) handleReception(messageBytes []byte, behaviou
 	connection.messageChannel <- message
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.HandledReception,
+		Event.HandledMessageReception,
 		"handled message reception",
 		Event.Context{
-			Event.Circumstance: Event.HandleReception,
+			Event.Circumstance: Event.HandleMessageReception,
 			Event.Behaviour:    behaviour,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),

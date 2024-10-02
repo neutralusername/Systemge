@@ -101,7 +101,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 					Event.Cancel,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance: Event.HandleReception,
+						Event.Circumstance: Event.HandleMessageReception,
 						Event.Behaviour:    Event.Sequential,
 					},
 				)); !event.IsInfo() {
@@ -122,7 +122,7 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 						Event.Cancel,
 						Event.Continue,
 						Event.Context{
-							Event.Circumstance: Event.HandleReception,
+							Event.Circumstance: Event.HandleMessageReception,
 							Event.Behaviour:    Event.Concurrent,
 						},
 					)); !event.IsInfo() {
@@ -141,13 +141,13 @@ func (connection *TcpSystemgeConnection) receiveMessage() error {
 
 func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, behaviour string) error {
 	event := connection.onEvent(Event.NewInfo(
-		Event.HandlingReception,
+		Event.HandlingMessageReception,
 		"handling tcpSystemgeConnection message reception",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleReception,
+			Event.Circumstance: Event.HandleMessageReception,
 			Event.Behaviour:    behaviour,
 		},
 	))
@@ -165,7 +165,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.HandleReception,
+				Event.Circumstance:    Event.HandleMessageReception,
 				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
@@ -185,7 +185,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.HandleReception,
+				Event.Circumstance:    Event.HandleMessageReception,
 				Event.Behaviour:       behaviour,
 				Event.RateLimiterType: Event.TokenBucket,
 				Event.TokenBucketType: Event.Messages,
@@ -205,7 +205,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.DeserializingFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.HandleReception,
+				Event.Circumstance: Event.HandleMessageReception,
 				Event.Behaviour:    behaviour,
 				Event.StructType:   Event.Message,
 				Event.Bytes:        string(messageBytes),
@@ -222,7 +222,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.HandleReception,
+				Event.Circumstance: Event.HandleMessageReception,
 				Event.Behaviour:    behaviour,
 				Event.Topic:        message.GetTopic(),
 				Event.Payload:      message.GetPayload(),
@@ -252,7 +252,7 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.HandleReception,
+			Event.Circumstance: Event.HandleMessageReception,
 			Event.Behaviour:    behaviour,
 			Event.ChannelType:  Event.MessageChannel,
 			Event.Topic:        message.GetTopic(),
@@ -267,10 +267,10 @@ func (connection *TcpSystemgeConnection) handleReception(messageBytes []byte, be
 	connection.messageChannel <- message
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.HandledReception,
+		Event.HandledMessageReception,
 		"handled tcpSystemgeConnection message reception",
 		Event.Context{
-			Event.Circumstance: Event.HandleReception,
+			Event.Circumstance: Event.HandleMessageReception,
 			Event.Behaviour:    behaviour,
 			Event.Topic:        message.GetTopic(),
 			Event.Payload:      message.GetPayload(),

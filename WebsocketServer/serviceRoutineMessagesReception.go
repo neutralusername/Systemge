@@ -76,7 +76,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 					Event.Skip,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:    Event.HandleReception,
+						Event.Circumstance:    Event.HandleMessageReception,
 						Event.Behaviour:       behaviour,
 						Event.RateLimiterType: Event.TokenBucket,
 						Event.TokenBucketType: Event.Messages,
@@ -107,7 +107,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 					Event.Skip,
 					Event.Continue,
 					Event.Context{
-						Event.Circumstance:    Event.HandleReception,
+						Event.Circumstance:    Event.HandleMessageReception,
 						Event.Behaviour:       behaviour,
 						Event.RateLimiterType: Event.TokenBucket,
 						Event.TokenBucketType: Event.Bytes,
@@ -137,7 +137,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 				Event.Skip,
 				Event.Skip,
 				Event.Context{
-					Event.Circumstance: Event.HandleReception,
+					Event.Circumstance: Event.HandleMessageReception,
 					Event.Behaviour:    behaviour,
 					Event.StructType:   Event.Message,
 					Event.Bytes:        string(messageBytes),
@@ -162,7 +162,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 				Event.Skip,
 				Event.Continue,
 				Event.Context{
-					Event.Circumstance: Event.HandleReception,
+					Event.Circumstance: Event.HandleMessageReception,
 					Event.Behaviour:    behaviour,
 					Event.SessionId:    websocketConnection.GetId(),
 					Event.Address:      websocketConnection.GetAddress(),
@@ -195,7 +195,7 @@ func (server *WebsocketServer) handleMessageReception(websocketConnection *Webso
 				Event.Skip,
 				Event.Skip,
 				Event.Context{
-					Event.Circumstance: Event.HandleReception,
+					Event.Circumstance: Event.HandleMessageReception,
 					Event.Behaviour:    behaviour,
 					Event.SessionId:    websocketConnection.GetId(),
 					Event.Address:      websocketConnection.GetAddress(),

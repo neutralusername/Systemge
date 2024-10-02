@@ -22,8 +22,8 @@ const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine fi
 const MessageReceptionRoutineBegins = "receptionRoutineBegins"     // when a reception routine begins
 const MessageReceptionRoutineFinished = "receptionRoutineFinished" // when a reception routine finishes
 
-const HandlingReception = "handlingReception"         // before handling a reception
-const HandledReception = "handledReception"           // after handling a reception
+const HandlingMessageReception = "handlingReception"  // before handling a reception
+const HandledMessageReception = "handledReception"    // after handling a reception
 const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception operation returns an error
 
 const HandlingMessage = "handlingTopic" // before handling a topic

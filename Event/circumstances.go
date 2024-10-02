@@ -6,7 +6,7 @@ const SessionRoutine = "connectionRoutine"
 const MessageReceptionRoutine = "receptionRoutine"
 const HeartbeatRoutine = "heartbeatRoutine"
 
-const HandleReception = "handleReception"
+const HandleMessageReception = "handleReception"
 
 const SessionCreate = "sessionCreate"
 const SessionDisconnect = "sessionDisconnect"
