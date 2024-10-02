@@ -134,7 +134,8 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 	return err
 }
 
-func (server *WebsocketServer) validateMessage(message *Message.Message) error {
+func (server *WebsocketServer) validator(data any) error {
+	message := data.(*Message.Message)
 	if len(message.GetSyncToken()) != 0 {
 		return errors.New("message contains sync token")
 	}
@@ -148,6 +149,11 @@ func (server *WebsocketServer) validateMessage(message *Message.Message) error {
 		return errors.New("message payload exceeds maximum size")
 	}
 	return nil
+}
+
+func (server *WebsocketServer) deserializer(data any) (any, error) {
+	deserializeData := data.(*deserializeData)
+	return Message.Deserialize(deserializeData.bytes, deserializeData.origin)
 }
 
 /*
