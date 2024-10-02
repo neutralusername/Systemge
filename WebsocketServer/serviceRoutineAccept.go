@@ -11,7 +11,7 @@ import (
 
 func (server *WebsocketServer) sessionRoutine() {
 	defer func() {
-		server.onEvent___(Event.NewInfoNoOption(
+		server.onEvent(Event.NewInfoNoOption(
 			Event.SessionRoutineEnds,
 			"stopped websocketConnection session routine",
 			Event.Context{
@@ -21,7 +21,7 @@ func (server *WebsocketServer) sessionRoutine() {
 		server.waitGroup.Done()
 	}()
 
-	if event := server.onEvent___(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.SessionRoutineBegins,
 		"started websocketConnection session routine",
 		Event.Cancel,
@@ -42,7 +42,7 @@ func (server *WebsocketServer) sessionRoutine() {
 func (server *WebsocketServer) handleNewSession() error {
 	websocketConn := <-server.connectionChannel
 	if websocketConn == nil {
-		server.onEvent___(Event.NewInfoNoOption(
+		server.onEvent(Event.NewInfoNoOption(
 			Event.ReceivedNilValueFromChannel,
 			"received nil from websocketConnection channel",
 			Event.Context{
@@ -58,7 +58,7 @@ func (server *WebsocketServer) handleNewSession() error {
 		"connection": websocketConnection,
 	})
 	if err != nil {
-		server.onEvent___(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.CreateSessionFailed,
 			err.Error(),
 			Event.Context{
@@ -77,7 +77,7 @@ func (server *WebsocketServer) handleNewSession() error {
 	if server.config.RateLimiterMessages != nil {
 		websocketConnection.messageRateLimiter = Tools.NewTokenBucketRateLimiter(server.config.RateLimiterMessages)
 	}
-	pipeline, _ := ReceptionManager.NewReceptionManager(session.GetId()+"_pipeline", websocketConnection.byteRateLimiter, websocketConnection.messageRateLimiter, server.deserializer, server.validator, server.eventHandler)
+	pipeline, _ := ReceptionManager.NewReceptionManager(session.GetId()+"_pipeline", server.preValidator, server.deserializer, server.postValidator)
 	websocketConnection.receptionManager = pipeline
 	websocketConnection.id = session.GetId()
 

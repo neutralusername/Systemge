@@ -125,7 +125,7 @@ func (server *WebsocketServer) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *WebsocketServer) onEvent___(event *Event.Event) *Event.Event {
+func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
 	server.eventHandler(event)
 	return event

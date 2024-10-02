@@ -18,7 +18,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		defer server.statusMutex.Unlock()
 	}
 
-	if event := server.onEvent___(Event.NewInfo(
+	if event := server.onEvent(Event.NewInfo(
 		Event.ServiceStarting,
 		"service websocketServer starting",
 		Event.Cancel,
@@ -32,7 +32,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	}
 
 	if server.status != Status.Stopped {
-		server.onEvent___(Event.NewWarningNoOption(
+		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"service websocketServer already started",
 			Event.Context{
@@ -48,7 +48,7 @@ func (server *WebsocketServer) start(lock bool) error {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(server.config.IpRateLimiter)
 	}
 	if err := server.httpServer.Start(); err != nil {
-		server.onEvent___(Event.NewErrorNoOption(
+		server.onEvent(Event.NewErrorNoOption(
 			Event.ServiceStartFailed,
 			"failed to start websocketServer's http server",
 			Event.Context{
@@ -70,7 +70,7 @@ func (server *WebsocketServer) start(lock bool) error {
 	go server.sessionRoutine()
 	server.status = Status.Started
 
-	server.onEvent___(Event.NewInfoNoOption(
+	server.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStarted,
 		"service websocketServer started",
 		Event.Context{

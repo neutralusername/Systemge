@@ -28,8 +28,6 @@ const HandlingReception = "handlingReception"         // before handling a recep
 const HandledReception = "handledReception"           // after handling a reception
 const HandleReceptionFailed = "handleReceptionFailed" // when a handle reception operation returns an error
 
-const PipelineFailed = "pipelineFailed" // when a pipeline operation returns an error
-
 const HandlingTopic = "handlingTopic" // before handling a topic
 const HandledTopic = "handledTopic"   // after handling a topic
 

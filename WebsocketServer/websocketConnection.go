@@ -71,7 +71,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 	defer websocketConnection.sendMutex.Unlock()
 
 	if server.eventHandler != nil {
-		if event := server.onEvent___(Event.NewInfo(
+		if event := server.onEvent(Event.NewInfo(
 			Event.WritingMessage,
 			"sending websocketConnection message",
 			Event.Cancel,
@@ -93,7 +93,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 	if err != nil {
 		server.websocketConnectionMessagesFailed.Add(1)
 		if server.eventHandler != nil {
-			server.onEvent___(Event.NewWarningNoOption(
+			server.onEvent(Event.NewWarningNoOption(
 				Event.WriteMessageFailed,
 				err.Error(),
 				Event.Context{
@@ -110,7 +110,7 @@ func (server *WebsocketServer) write(websocketConnection *WebsocketConnection, m
 	server.websocketConnectionMessagesBytesSent.Add(uint64(len(messageBytes)))
 
 	if server.eventHandler != nil {
-		server.onEvent___(Event.NewInfoNoOption(
+		server.onEvent(Event.NewInfoNoOption(
 			Event.WroteMessage,
 			"sent websocketConnection message",
 			Event.Context{
@@ -132,7 +132,7 @@ func (websocketConnection *WebsocketConnection) GetId() string {
 func (server *WebsocketServer) Read(websocketConnection *WebsocketConnection) ([]byte, error) {
 	if websocketConnection.id != "" {
 		if server.eventHandler != nil {
-			server.onEvent___(Event.NewWarningNoOption(
+			server.onEvent(Event.NewWarningNoOption(
 				Event.SessionAlreadyAccepted,
 				"websocketConnection is already accepted",
 				Event.Context{
@@ -151,7 +151,7 @@ func (server *WebsocketServer) read(websocketConnection *WebsocketConnection, ci
 	defer websocketConnection.receiveMutex.Unlock()
 
 	if server.eventHandler != nil {
-		if event := server.onEvent___(Event.NewInfo(
+		if event := server.onEvent(Event.NewInfo(
 			Event.ReadingMessage,
 			"receiving websocketConnection message",
 			Event.Cancel,
@@ -175,7 +175,7 @@ func (server *WebsocketServer) read(websocketConnection *WebsocketConnection, ci
 	}
 
 	if server.eventHandler != nil {
-		if event := server.onEvent___(Event.NewInfo(
+		if event := server.onEvent(Event.NewInfo(
 			Event.ReadMessage,
 			"received websocketConnection message",
 			Event.Cancel,
