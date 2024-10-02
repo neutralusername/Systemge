@@ -65,7 +65,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if messageHandlers == nil {
 		return nil, errors.New("messageHandlers is nil")
 	}
-	if config.TopicManager == nil {
+	if config.TopicManagerConfig == nil {
 		return nil, errors.New("config.TopicManager is nil")
 	}
 	if config.Upgrader == nil {
@@ -82,7 +82,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		sessionManager: Tools.NewSessionManager(name+"_sessionManager", config.ClientSessionManagerConfig, nil, nil),
+		sessionManager: Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, nil, nil),
 
 		config:            config,
 		connectionChannel: make(chan *websocket.Conn),
@@ -91,7 +91,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	for topic, handler := range messageHandlers {
 		topicHandlers[topic] = server.toTopicHandler(handler)
 	}
-	server.topicManager = Tools.NewTopicManager(config.TopicManager, topicHandlers, nil)
+	server.topicManager = Tools.NewTopicManager(config.TopicManagerConfig, topicHandlers, nil)
 
 	server.httpServer = HTTPServer.New(server.name+"_httpServer",
 		&Config.HTTPServer{
