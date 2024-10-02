@@ -130,20 +130,6 @@ func (server *WebsocketServer) handleReception(websocketConnection *WebsocketCon
 	}
 	message := result.(*Message.Message)
 
-	if message.GetTopic() == Message.TOPIC_HEARTBEAT {
-		server.onEvent___(Event.NewInfoNoOption(
-			Event.HeartbeatReceived,
-			"received websocketConnection heartbeat",
-			Event.Context{
-				Event.Circumstance: Event.HandleReception,
-				Event.Behaviour:    behaviour,
-				Event.SessionId:    websocketConnection.GetId(),
-				Event.Address:      websocketConnection.GetAddress(),
-			},
-		))
-		return errors.New("received heartbeat")
-	}
-
 	_, err = server.topicManager.HandleTopic(message.GetTopic(), websocketConnection, message)
 	return err
 }
