@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 )
 
 type TopicHandler func(...any) (any, error)
@@ -23,8 +22,6 @@ type Manager struct {
 	queue             chan *queueStruct
 	topicQueues       map[string]chan *queueStruct
 	unknownTopicQueue chan *queueStruct
-
-	eventHandler Event.Handler
 }
 
 type queueStruct struct {
@@ -39,7 +36,7 @@ type queueStruct struct {
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
 
-func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler, eventHandler Event.Handler) *Manager {
+func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, unknownTopicHandler TopicHandler) *Manager {
 	if topicHandlers == nil {
 		topicHandlers = make(TopicHandlers)
 	}
@@ -49,8 +46,6 @@ func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, u
 		unknownTopicHandler: unknownTopicHandler,
 		queue:               make(chan *queueStruct, config.QueueSize),
 		topicQueues:         make(map[string]chan *queueStruct),
-
-		eventHandler: eventHandler,
 	}
 	go topicManager.handleCalls()
 	for topic, handler := range topicHandlers {
