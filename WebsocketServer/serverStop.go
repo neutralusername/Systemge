@@ -18,7 +18,7 @@ func (server *WebsocketServer) Stop() error {
 		Event.Cancel,
 	))
 	if event.GetAction() == Event.Cancel {
-		return errors.New("aborted stopping websocketServer")
+		return errors.New(Stoping)
 	}
 
 	if server.status == Status.Stopped {
@@ -27,7 +27,7 @@ func (server *WebsocketServer) Stop() error {
 			Event.Context{},
 			Event.Cancel,
 		))
-		return errors.New("websocketServer not started")
+		return errors.New(AlreadyStoped)
 	}
 	server.status = Status.Pending
 
