@@ -92,10 +92,9 @@ func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
 	if eventHandler := server.eventHandlers[event.GetEvent()]; eventHandler != nil {
 		eventHandler(event)
-
 	}
 	if defaultHandler := server.eventHandlers[Event.DefaultEventHandler]; defaultHandler != nil {
-		defaultHandler = server.eventHandlers[Event.DefaultEventHandler]
+		defaultHandler(event)
 	}
 	return event
 }
