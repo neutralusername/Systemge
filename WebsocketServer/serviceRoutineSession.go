@@ -134,6 +134,18 @@ func (server *WebsocketServer) websocketConnectionDisconnect(session *Tools.Sess
 	case <-server.stopChannel:
 	}
 
+	if server.eventHandler != nil {
+		server.onEvent(Event.New(
+			Event.OnDisconnect,
+			Event.OnDisconnect,
+			Event.Context{
+				Event.Identity: session.GetId(),
+				Event.Address:  websocketConnection.GetAddress(),
+			},
+			Event.Continue,
+		))
+	}
+
 	session.GetTimeout().Trigger()
 	websocketConnection.Close()
 
