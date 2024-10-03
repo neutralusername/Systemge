@@ -36,6 +36,42 @@ func (server *WebsocketServer) sessionRoutine() {
 	}
 
 	for {
+
+		websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
+		if err != nil {
+			if server.eventHandler != nil {
+				server.onEvent(Event.New(
+					Event.AcceptClientFailed,
+					Event.SessionRoutine,
+					Event.Context{
+						Event.Identity: session.GetId(),
+						Event.Address:  websocketConnection.GetAddress(),
+					},
+					Event.Cancel,
+				))
+			}
+			websocketConnection.Close()
+			return err
+		}
+		session.Set("websocketConnection", websocketConnection)
+
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.New(
+				Event.OnCreateSession,
+				Event.SessionRoutine,
+				Event.Context{
+					Event.Identity: session.GetId(),
+					Event.Address:  websocketConnection.GetAddress(),
+				},
+				Event.Continue,
+				Event.Cancel,
+			))
+			if event.GetAction() == Event.Cancel {
+				websocketConnection.Close()
+				return errors.New("session rejected")
+			}
+		}
+
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
 				Event.CreatingSession,
@@ -53,7 +89,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			}
 		}
 
-		_, err := server.sessionManager.CreateSession("", map[string]any{})
+		session, err := server.sessionManager.CreateSession("", map[string]any{})
 		if err != nil {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
@@ -69,61 +105,22 @@ func (server *WebsocketServer) sessionRoutine() {
 			}
 			continue
 		}
-	}
-}
 
-func (server *WebsocketServer) onCreate(session *Tools.Session) error {
-	websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
-	if err != nil {
+		server.waitGroup.Add(1)
+		go server.websocketConnectionDisconnect(session, websocketConnection)
+
 		if server.eventHandler != nil {
 			server.onEvent(Event.New(
-				Event.AcceptClientFailed,
+				Event.CreatedSession,
 				Event.SessionRoutine,
 				Event.Context{
 					Event.Identity: session.GetId(),
 					Event.Address:  websocketConnection.GetAddress(),
 				},
-				Event.Cancel,
+				Event.Continue,
 			))
 		}
-		websocketConnection.Close()
-		return err
 	}
-	session.Set("websocketConnection", websocketConnection)
-
-	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
-			Event.OnCreateSession,
-			Event.SessionRoutine,
-			Event.Context{
-				Event.Identity: session.GetId(),
-				Event.Address:  websocketConnection.GetAddress(),
-			},
-			Event.Continue,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
-			websocketConnection.Close()
-			return errors.New("session rejected")
-		}
-	}
-
-	server.waitGroup.Add(1)
-	go server.websocketConnectionDisconnect(session, websocketConnection)
-
-	if server.eventHandler != nil {
-		server.onEvent(Event.New(
-			Event.CreatedSession,
-			Event.SessionRoutine,
-			Event.Context{
-				Event.Identity: session.GetId(),
-				Event.Address:  websocketConnection.GetAddress(),
-			},
-			Event.Continue,
-		))
-	}
-
-	return nil
 }
 
 func (server *WebsocketServer) websocketConnectionDisconnect(session *Tools.Session, websocketConnection *WebsocketClient.WebsocketClient) {

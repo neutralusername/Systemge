@@ -145,3 +145,7 @@ const IdentityDoesNotExist = "identityDoesNotExist" // when attempting an operat
 
 const ExceededMaxClientNameLength = "exceededMaxClientNameLength" // when a client name exceeds the maximum size
 const ReceivedEmptyClientName = "receivedEmptyClientName"         // when a client name is empty
+
+const OnCreateSession = "onCreateSession"
+
+const OnDisconnect = "onDisconnect"
