@@ -101,6 +101,10 @@ func (server *WebsocketServer) GetSessionId() string {
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 	eventHandler := server.eventHandlers[event.GetEvent()]
 	if eventHandler == nil {
+		if defaultHandler := server.eventHandlers[Event.DefaultEventHandler]; defaultHandler != nil {
+			eventHandler = server.eventHandlers[Event.DefaultEventHandler]
+		}
+
 		return event
 	}
 	event.GetContext().Merge(server.GetServerContext())
