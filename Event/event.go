@@ -9,6 +9,8 @@ import (
 
 type Handler func(*Event)
 
+const DefaultEventHandler = "DefaultEventHandler"
+
 const (
 	Continue = int8(0)
 	Skip     = int8(1)
