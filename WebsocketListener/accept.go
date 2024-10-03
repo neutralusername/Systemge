@@ -11,13 +11,13 @@ import (
 
 func (listener *WebsocketListener) AcceptClient(clientName string, config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
 	if event := listener.onEvent(Event.NewInfo(
-		Event.AcceptingConnection,
+		Event.AcceptingClient,
 		"accepting websocketClient",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptConnection,
+			Event.Circumstance: Event.AcceptClient,
 		},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
@@ -29,7 +29,7 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 			Event.ReceivedNilValueFromChannel,
 			"received nil value from connection channel",
 			Event.Context{
-				Event.Circumstance: Event.AcceptConnection,
+				Event.Circumstance: Event.AcceptClient,
 			},
 		))
 		listener.failed.Add(1)
@@ -42,7 +42,7 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 			Event.SplittingHostPortFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.AcceptConnection,
+				Event.Circumstance: Event.AcceptClient,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		))
@@ -58,7 +58,7 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AcceptConnection,
+				Event.Circumstance:    Event.AcceptClient,
 				Event.RateLimiterType: Event.Ip,
 				Event.Address:         websocketConn.RemoteAddr().String(),
 			},
@@ -77,7 +77,7 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptConnection,
+				Event.Circumstance: Event.AcceptClient,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -95,7 +95,7 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptConnection,
+				Event.Circumstance: Event.AcceptClient,
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
@@ -108,13 +108,13 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 	websocketClient, err := WebsocketClient.New(clientName, config, websocketConn, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
-		Event.AcceptedConnection,
+		Event.AcceptedClient,
 		"accepted websocketClient",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.AcceptConnection,
+			Event.Circumstance: Event.AcceptClient,
 			Event.Address:      websocketConn.RemoteAddr().String(),
 		},
 	)); !event.IsInfo() {

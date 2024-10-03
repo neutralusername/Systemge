@@ -10,14 +10,12 @@ const HandleMessageReception = "handleReception"
 
 const HandleDisconnection = "handleDisconnection"
 
-const OnCreateSession = "onCreateSession"
-
 const ReceiveRuntime = "receiveRuntime"
 const WriteRuntime = "sendRuntime"
 
 const DisconnectClientRuntime = "disconnectClientRuntime"
 
-const AcceptConnection = "tcpSystemgeConnectionAccept"
+const AcceptClient = "tcpSystemgeConnectionAccept"
 
 const ServiceStart = "start"
 const ServiceStop = "stop"
