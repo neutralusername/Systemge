@@ -89,15 +89,14 @@ func (server *WebsocketServer) GetSessionId() string {
 }
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
-	eventHandler := server.eventHandlers[event.GetEvent()]
-	if eventHandler == nil {
-		if defaultHandler := server.eventHandlers[Event.DefaultEventHandler]; defaultHandler != nil {
-			eventHandler = server.eventHandlers[Event.DefaultEventHandler]
-		}
-		return event
-	}
 	event.GetContext().Merge(server.GetServerContext())
-	eventHandler(event)
+	if eventHandler := server.eventHandlers[event.GetEvent()]; eventHandler != nil {
+		eventHandler(event)
+
+	}
+	if defaultHandler := server.eventHandlers[Event.DefaultEventHandler]; defaultHandler != nil {
+		defaultHandler = server.eventHandlers[Event.DefaultEventHandler]
+	}
 	return event
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {
