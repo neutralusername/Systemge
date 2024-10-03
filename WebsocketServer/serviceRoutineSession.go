@@ -26,9 +26,7 @@ func (server *WebsocketServer) sessionRoutine() {
 		event := server.onEvent(Event.New(
 			Event.SessionRoutineBegins,
 			Event.SessionRoutine,
-			Event.Context{
-				Event.Circumstance: Event.SessionRoutine,
-			},
+			Event.Context{},
 			Event.Continue,
 			Event.Cancel,
 		))
@@ -55,7 +53,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			}
 		}
 
-		session, err := server.sessionManager.CreateSession("", map[string]any{})
+		_, err := server.sessionManager.CreateSession("", map[string]any{})
 		if err != nil {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
@@ -71,17 +69,6 @@ func (server *WebsocketServer) sessionRoutine() {
 			}
 			continue
 		}
-
-		if server.eventHandler != nil {
-			server.onEvent(Event.New(
-				Event.CreatedSession,
-				Event.SessionRoutine,
-				Event.Context{
-					Event.Identity: session.GetId(),
-				},
-				Event.Continue,
-			))
-		}
 	}
 }
 
@@ -91,7 +78,7 @@ func (server *WebsocketServer) onCreate(session *Tools.Session) error {
 		if server.eventHandler != nil {
 			server.onEvent(Event.New(
 				Event.AcceptClientFailed,
-				Event.OnCreateSession,
+				Event.SessionRoutine,
 				Event.Context{
 					Event.Identity: session.GetId(),
 					Event.Address:  websocketConnection.GetAddress(),
@@ -107,7 +94,7 @@ func (server *WebsocketServer) onCreate(session *Tools.Session) error {
 	if server.eventHandler != nil {
 		event := server.onEvent(Event.New(
 			Event.OnCreateSession,
-			Event.OnCreateSession,
+			Event.SessionRoutine,
 			Event.Context{
 				Event.Identity: session.GetId(),
 				Event.Address:  websocketConnection.GetAddress(),
@@ -124,6 +111,18 @@ func (server *WebsocketServer) onCreate(session *Tools.Session) error {
 	server.waitGroup.Add(1)
 	go server.websocketConnectionDisconnect(session, websocketConnection)
 
+	if server.eventHandler != nil {
+		server.onEvent(Event.New(
+			Event.CreatedSession,
+			Event.SessionRoutine,
+			Event.Context{
+				Event.Identity: session.GetId(),
+				Event.Address:  websocketConnection.GetAddress(),
+			},
+			Event.Continue,
+		))
+	}
+
 	return nil
 }
 
@@ -137,7 +136,7 @@ func (server *WebsocketServer) websocketConnectionDisconnect(session *Tools.Sess
 	if server.eventHandler != nil {
 		server.onEvent(Event.New(
 			Event.OnDisconnect,
-			Event.OnDisconnect,
+			Event.SessionRoutine,
 			Event.Context{
 				Event.Identity: session.GetId(),
 				Event.Address:  websocketConnection.GetAddress(),
