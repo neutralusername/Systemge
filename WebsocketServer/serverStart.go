@@ -13,29 +13,23 @@ func (server *WebsocketServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 
-	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
-			Event.ServiceStarting,
-			Event.ServiceStart,
-			Event.Context{},
-			Event.Continue,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
-			return errors.New("aborted starting websocketServer")
-		}
+	event := server.onEvent(Event.New(
+		Starting,
+		Event.Context{},
+		Event.Continue,
+		Event.Cancel,
+	))
+	if event.GetAction() == Event.Cancel {
+		return errors.New(Starting)
 	}
 
 	if server.status != Status.Stopped {
-		if server.eventHandler != nil {
-			server.onEvent(Event.New(
-				Event.ServiceAlreadyStarted,
-				Event.ServiceStart,
-				Event.Context{},
-				Event.Cancel,
-			))
-		}
-		return errors.New("websocketServer already started")
+		server.onEvent(Event.New(
+			AlreadyStarted,
+			Event.Context{},
+			Event.Cancel,
+		))
+		return errors.New(AlreadyStarted)
 	}
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
@@ -47,14 +41,11 @@ func (server *WebsocketServer) Start() error {
 	go server.sessionRoutine()
 	server.status = Status.Started
 
-	if server.eventHandler != nil {
-		server.onEvent(Event.New(
-			Event.ServiceStarted,
-			Event.ServiceStart,
-			Event.Context{},
-			Event.Continue,
-		))
-	}
+	server.onEvent(Event.New(
+		Started,
+		Event.Context{},
+		Event.Continue,
+	))
 
 	return nil
 }

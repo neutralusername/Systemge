@@ -13,8 +13,13 @@ import (
 )
 
 const (
-	Starting = "starting"
-	Started  = "started"
+	Starting       = "starting"
+	Started        = "started"
+	AlreadyStarted = "already started"
+
+	Stoping       = "stoping"
+	Stoped        = "stoped"
+	AlreadyStoped = "service already stoped"
 )
 
 type WebsocketServer struct {
@@ -64,6 +69,8 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		blacklist: blacklist,
 
 		config: config,
+
+		eventHandlers: eventHandlers,
 	}
 	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandlers)
@@ -92,7 +99,7 @@ func (server *WebsocketServer) GetSessionId() string {
 }
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
-	eventHandler := server.EventHandlers[event.GetEvent()]
+	eventHandler := server.eventHandlers[event.GetEvent()]
 	if eventHandler == nil {
 		return event
 	}

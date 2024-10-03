@@ -18,30 +18,27 @@ const (
 )
 
 type Event struct {
-	event        string
-	circumstance string
-	context      Context
-	action       int8
-	options      []int8
+	event   string
+	context Context
+	action  int8
+	options []int8
 }
 
 type event struct {
-	Event        string  `json:"event"`
-	Circumstance string  `json:"circumstance"`
-	Context      Context `json:"context"`
-	Action       int8    `json:"action"`
-	Options      []int8  `json:"options"`
+	Event   string  `json:"event"`
+	Context Context `json:"context"`
+	Action  int8    `json:"action"`
+	Options []int8  `json:"options"`
 }
 
 type Context map[string]string
 
-func New(event, circumstance string, context Context, action int8, options ...int8) *Event {
+func New(event string, context Context, action int8, options ...int8) *Event {
 	return &Event{
-		event:        event,
-		circumstance: circumstance,
-		context:      context,
-		action:       action,
-		options:      options,
+		event:   event,
+		context: context,
+		action:  action,
+		options: options,
 	}
 }
 
@@ -54,10 +51,6 @@ func (ctx Context) Merge(other Context) Context {
 
 func (e *Event) GetEvent() string {
 	return e.event
-}
-
-func (e *Event) GetCircumstance() string {
-	return e.circumstance
 }
 
 func (e *Event) GetAction() int8 {
