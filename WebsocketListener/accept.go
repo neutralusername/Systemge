@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) AcceptClient(clientName string, config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptingClient,
 		"accepting websocketClient",

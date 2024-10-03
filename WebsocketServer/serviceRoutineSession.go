@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -35,7 +37,7 @@ func (server *WebsocketServer) sessionRoutine() {
 
 	for {
 
-		websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
+		websocketConnection, err := server.websocketListener.AcceptClient(server.config.WebsocketClientConfig, server.eventHandler)
 		if err != nil {
 			websocketConnection.Close()
 			if server.eventHandler != nil {
@@ -43,8 +45,7 @@ func (server *WebsocketServer) sessionRoutine() {
 					Event.AcceptClientFailed,
 					Event.SessionRoutine,
 					Event.Context{
-						Event.Identity: session.GetId(),
-						Event.Address:  websocketConnection.GetAddress(),
+						Event.Address: websocketConnection.GetAddress(),
 					},
 					Event.Skip,
 					Event.Cancel,
@@ -55,13 +56,14 @@ func (server *WebsocketServer) sessionRoutine() {
 			}
 			continue
 		}
-		session.Set("websocketConnection", websocketConnection)
 
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
 				Event.CreatingSession,
 				Event.SessionRoutine,
-				Event.Context{},
+				Event.Context{
+					Event.Address: websocketConnection.GetAddress(),
+				},
 				Event.Continue,
 				Event.Skip,
 				Event.Cancel,
@@ -74,13 +76,17 @@ func (server *WebsocketServer) sessionRoutine() {
 			}
 		}
 
-		session, err := server.sessionManager.CreateSession("", map[string]any{})
+		session, err := server.sessionManager.CreateSession("", map[string]any{
+			"websocketConnection": websocketConnection,
+		})
 		if err != nil {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.CreateSessionFailed,
 					Event.SessionRoutine,
-					Event.Context{},
+					Event.Context{
+						Event.Address: websocketConnection.GetAddress(),
+					},
 					Event.Skip,
 					Event.Cancel,
 				))
@@ -91,21 +97,50 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		server.waitGroup.Add(1)
-		go server.websocketConnectionDisconnect(session, websocketConnection)
-
 		if server.eventHandler != nil {
-			server.onEvent(Event.New(
+			event := server.onEvent(Event.New(
 				Event.CreatedSession,
 				Event.SessionRoutine,
 				Event.Context{
-					Event.Identity: session.GetId(),
-					Event.Address:  websocketConnection.GetAddress(),
+					Event.SessionId: session.GetId(),
+					Event.Address:   websocketConnection.GetAddress(),
 				},
 				Event.Continue,
+				Event.Cancel,
 			))
+			if event.GetAction() == Event.Cancel {
+				websocketConnection.Close()
+				session.GetTimeout().Trigger()
+				break
+			}
+		}
+
+		server.waitGroup.Add(1)
+		go server.websocketConnectionDisconnect(session, websocketConnection)
+	}
+}
+
+func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
+	if server.eventHandler != nil {
+		websocketConnection, ok := session.Get("websocketConnection")
+		if !ok {
+			return errors.New("websocketConnection not found")
+		}
+		event := server.onEvent(Event.New(
+			Event.OnCreateSession,
+			Event.SessionRoutine,
+			Event.Context{
+				Event.SessionId: session.GetId(),
+				Event.Address:   websocketConnection.(*WebsocketClient.WebsocketClient).GetAddress(),
+			},
+			Event.Continue,
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
+			return errors.New("session rejected")
 		}
 	}
+	return nil
 }
 
 func (server *WebsocketServer) websocketConnectionDisconnect(session *Tools.Session, websocketConnection *WebsocketClient.WebsocketClient) {

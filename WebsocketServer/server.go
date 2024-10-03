@@ -60,7 +60,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 
 		config: config,
 	}
-	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, nil, nil)
+	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
 		return nil, err

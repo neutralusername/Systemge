@@ -147,3 +147,5 @@ const ExceededMaxClientNameLength = "exceededMaxClientNameLength" // when a clie
 const ReceivedEmptyClientName = "receivedEmptyClientName"         // when a client name is empty
 
 const OnDisconnect = "onDisconnect"
+
+const OnCreateSession = "onCreateSession"
