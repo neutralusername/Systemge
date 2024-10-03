@@ -1,25 +1,15 @@
 package Event
 
 import (
-	"encoding/json"
 	"errors"
 	"path"
 	"runtime"
 	"strconv"
-
-	"github.com/neutralusername/Systemge/Helpers"
 )
 
 type Handler func(*Event)
 
 const (
-	Info    = int8(0)
-	Warning = int8(1)
-	Error   = int8(2)
-)
-
-const (
-	NoOption = int8(-1)
 	Continue = int8(0)
 	Skip     = int8(1)
 	Cancel   = int8(2)
@@ -28,93 +18,30 @@ const (
 )
 
 type Event struct {
-	event     string
-	specifier string
-	context   Context
-	level     int8
-	onError   int8
-	onWarning int8
-	onInfo    int8
+	event        string
+	circumstance string
+	context      Context
+	action       int8
+	options      []int8
 }
 
 type event struct {
-	Event     string  `json:"event"`
-	Specifier string  `json:"specifier"`
-	Context   Context `json:"context"`
-	Level     int8    `json:"level"`
-	OnError   int8    `json:"onError"`
-	OnWarning int8    `json:"onWarning"`
-	OnInfo    int8    `json:"onInfo"`
+	Event        string  `json:"event"`
+	Circumstance string  `json:"circumstance"`
+	Context      Context `json:"context"`
+	Action       int8    `json:"action"`
+	Options      []int8  `json:"options"`
 }
 
 type Context map[string]string
 
-func NewInfo(event, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
+func New(event, circumstance string, action int8, context Context, options ...int8) *Event {
 	return &Event{
-		event:     event,
-		specifier: specifier,
-		level:     Info,
-		onError:   onError,
-		onWarning: onWarning,
-		onInfo:    onInfo,
-		context:   context,
-	}
-}
-func NewInfoNoOption(event, specifier string, context Context) *Event {
-	return &Event{
-		event:     event,
-		specifier: specifier,
-		level:     Info,
-		onError:   NoOption,
-		onWarning: NoOption,
-		onInfo:    NoOption,
-		context:   context,
-	}
-}
-
-func NewWarning(event, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
-	return &Event{
-		event:     event,
-		specifier: specifier,
-		level:     Warning,
-		onError:   onError,
-		onWarning: onWarning,
-		onInfo:    onInfo,
-		context:   context,
-	}
-}
-func NewWarningNoOption(event, specifier string, context Context) *Event {
-	return &Event{
-		event:     event,
-		specifier: specifier,
-		level:     Warning,
-		onError:   NoOption,
-		onWarning: NoOption,
-		onInfo:    NoOption,
-		context:   context,
-	}
-}
-
-func NewError(event, specifier string, onError, onWarning, onInfo int8, context Context) *Event {
-	return &Event{
-		event:     event,
-		specifier: specifier,
-		level:     Error,
-		onError:   onError,
-		onWarning: onWarning,
-		onInfo:    onInfo,
-		context:   context,
-	}
-}
-func NewErrorNoOption(event, specifier string, context Context) *Event {
-	return &Event{
-		event:     event,
-		specifier: specifier,
-		level:     Error,
-		onError:   NoOption,
-		onWarning: NoOption,
-		onInfo:    NoOption,
-		context:   context,
+		event:        event,
+		circumstance: circumstance,
+		context:      context,
+		action:       action,
+		options:      options,
 	}
 }
 
@@ -129,12 +56,16 @@ func (e *Event) GetEvent() string {
 	return e.event
 }
 
-func (e *Event) GetSpecifier() string {
-	return e.specifier
+func (e *Event) GetCircumstance() string {
+	return e.circumstance
 }
 
-func (e *Event) GetLevel() int8 {
-	return e.level
+func (e *Event) GetAction() int8 {
+	return e.action
+}
+
+func (e *Event) GetOptions() []int8 {
+	return []int8(e.options)
 }
 
 func (e *Event) GetContext() Context {
@@ -146,68 +77,21 @@ func (e *Event) GetContextValue(key string) (string, bool) {
 	return val, ok
 }
 
-func (e *Event) IsInfo() bool {
-	return e.level == Info
-}
-
-func (e *Event) IsWarning() bool {
-	return e.level == Warning
-}
-
-func (e *Event) IsError() bool {
-	return e.level == Error
-}
-
 func (e *Event) GetError() error {
-	return errors.New(e.specifier)
-}
-
-func (e *Event) SetError() {
-	e.level = Error
-}
-
-func (e *Event) SetWarning() {
-	e.level = Warning
-}
-
-func (e *Event) SetInfo() {
-	e.level = Info
-}
-
-func (e *Event) GetOnError() int8 {
-	return e.onError
-}
-
-func (e *Event) GetOnWarning() int8 {
-	return e.onWarning
-}
-
-func (e *Event) GetOnInfo() int8 {
-	return e.onInfo
-}
-
-func (e *Event) Marshal() string {
-	event := event{
-		Event:     e.event,
-		Specifier: e.specifier,
-		Level:     e.level,
-		Context:   e.context,
+	if e.context["error"] == "" {
+		return errors.New(e.event)
 	}
-	return Helpers.JsonMarshal(event)
+	return errors.New(e.context["error"])
 }
 
-func UnmarshalEvent(data []byte) (*Event, error) {
-	var event event
-	err := json.Unmarshal(data, &event)
-	if err != nil {
-		return nil, err
+func (e *Event) SetAction(action int8) error {
+	for _, opt := range e.options {
+		if opt == action {
+			e.action = action
+			return nil
+		}
 	}
-	return &Event{
-		event:     event.Event,
-		specifier: event.Specifier,
-		level:     event.Level,
-		context:   event.Context,
-	}, nil
+	return errors.New("not a valid option")
 }
 
 func GetCallerPath(depth int) string {

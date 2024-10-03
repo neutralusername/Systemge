@@ -8,10 +8,9 @@ const HeartbeatRoutine = "heartbeatRoutine"
 
 const HandleMessageReception = "handleReception"
 
-const SessionCreate = "sessionCreate"
-const SessionDisconnect = "sessionDisconnect"
-
 const HandleDisconnection = "handleDisconnection"
+
+const OnCreateSession = "onCreateSession"
 
 const ReceiveRuntime = "receiveRuntime"
 const WriteRuntime = "sendRuntime"

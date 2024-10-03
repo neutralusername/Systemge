@@ -26,13 +26,14 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 	websocketConn := <-listener.connectionChannel
 	if websocketConn == nil {
 		listener.onEvent(Event.NewWarningNoOption(
-			Event.AcceptConnectionFailed,
-			"accept websocketClient failed",
+			Event.ReceivedNilValueFromChannel,
+			"received nil value from connection channel",
 			Event.Context{
 				Event.Circumstance: Event.AcceptConnection,
 			},
 		))
 		listener.failed.Add(1)
+		return nil, errors.New("received nil value from connection channel")
 	}
 
 	ip, _, err := net.SplitHostPort(websocketConn.RemoteAddr().String())
@@ -104,7 +105,7 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 		}
 	}
 
-	connection, err := WebsocketClient.New(clientName, config, websocketConn, eventHandler)
+	websocketClient, err := WebsocketClient.New(clientName, config, websocketConn, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptedConnection,
@@ -117,11 +118,11 @@ func (listener *WebsocketListener) AcceptClient(clientName string, config *Confi
 			Event.Address:      websocketConn.RemoteAddr().String(),
 		},
 	)); !event.IsInfo() {
-		connection.Close()
+		websocketClient.Close()
 		listener.rejected.Add(1)
 		return nil, event.GetError()
 	}
 
 	listener.accepted.Add(1)
-	return connection, nil
+	return websocketClient, nil
 }

@@ -55,13 +55,17 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:       name,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		sessionManager: Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, nil, nil),
-
 		whitelist: whitelist,
 		blacklist: blacklist,
 
 		config: config,
 	}
+	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreate, nil)
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
+	if err != nil {
+		return nil, err
+	}
+	server.websocketListener = websocketListener
 
 	return server, nil
 }

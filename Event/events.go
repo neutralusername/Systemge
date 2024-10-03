@@ -14,7 +14,8 @@ const ServiceAlreadyStopped = "serverAlreadyStopped" // when attempting an opera
 
 const AcceptingConnection = "acceptingTcpSystemgeConnection" // before accepting a tcp systemge connection
 const AcceptedConnection = "acceptedTcpSystemgeConnection"   // after accepting a tcp systemge connection
-const AcceptConnectionFailed = "acceptTcpListenerFailed"     // when a tcp listener accept operation returns an error
+const TcpListenerAcceptFailed = "tcpListenerAcceptFailed"    // when a tcp listener accept operation returns an error
+const AcceptClientFailed = "acceptTcpListenerFailed"         // when a tcp listener accept operation returns an error
 
 const SessionRoutineBegins = "sessionRoutineBegins" // when a session routine begins
 const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine finishes
@@ -133,6 +134,8 @@ const ContextDoesNotExist = "eventContextDoesNotExist" // when a particular cont
 const CreatingIdentity = "creatingIdentity" // before creating an identity
 
 const CreateSessionFailed = "createSessionFailed" // when a create session operation returns an error
+const CreatingSession = "creatingSession"         // before creating a session
+const CreatedSession = "createdSession"           // after creating a session
 
 const SessionNotAccepted = "sessionNotAccepted"         // when a session is not accepted
 const SessionAlreadyAccepted = "sessionAlreadyAccepted" // when a session is already accepted

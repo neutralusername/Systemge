@@ -30,7 +30,7 @@ func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.T
 	netConn, err := listener.tcpListener.Accept()
 	if err != nil {
 		listener.onEvent(Event.NewWarningNoOption(
-			Event.AcceptConnectionFailed,
+			Event.TcpListenerAcceptFailed,
 			"accepting TcpSystemgeConnection",
 			Event.Context{
 				Event.Circumstance: Event.AcceptConnection,

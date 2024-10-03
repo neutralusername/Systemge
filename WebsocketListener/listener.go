@@ -17,8 +17,8 @@ import (
 type WebsocketListener struct {
 	name string
 
-	isClosed    bool
-	closedMutex sync.Mutex
+	status      int
+	statusMutex sync.Mutex
 
 	config        *Config.WebsocketListener
 	ipRateLimiter *Tools.IpRateLimiter
@@ -62,23 +62,74 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 		},
 		eventHandler,
 	)
-	if listener.config.IpRateLimiter != nil {
-		listener.ipRateLimiter = Tools.NewIpRateLimiter(listener.config.IpRateLimiter)
-	}
-	if err := listener.httpServer.Start(); err != nil {
-		return nil, err
-	}
 
 	return listener, nil
 }
 
-func (listener *WebsocketListener) Close() error {
-	listener.closedMutex.Lock()
-	defer listener.closedMutex.Unlock()
+func (listener *WebsocketListener) Start() error {
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
+
+	if event := listener.onEvent(Event.NewInfo(
+		Event.ServiceStarting,
+		"starting tcpSystemgeListener",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Circumstance: Event.ServiceStarting,
+		},
+	)); !event.IsInfo() {
+		return event.GetError()
+	}
+
+	if listener.status == Status.Started {
+		listener.onEvent(Event.NewWarningNoOption(
+			Event.ServiceAlreadyStarted,
+			"tcpSystemgeListener is already started",
+			Event.Context{
+				Event.Circumstance: Event.ServiceStarting,
+			},
+		))
+		return errors.New("tcpSystemgeListener is already started")
+	}
+
+	listener.status = Status.Pending
+	if listener.config.IpRateLimiter != nil {
+		listener.ipRateLimiter = Tools.NewIpRateLimiter(listener.config.IpRateLimiter)
+	}
+	if err := listener.httpServer.Start(); err != nil {
+		listener.onEvent(Event.NewErrorNoOption(
+			Event.ServiceStartFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance: Event.ServiceStarting,
+			},
+		))
+		listener.ipRateLimiter.Close()
+		listener.ipRateLimiter = nil
+		listener.status = Status.Stopped
+		return err
+	}
+
+	listener.status = Status.Started
+	listener.onEvent(Event.NewInfoNoOption(
+		Event.ServiceStarted,
+		"tcpSystemgeListener started",
+		Event.Context{
+			Event.Circumstance: Event.ServiceStarting,
+		},
+	))
+	return nil
+}
+
+func (listener *WebsocketListener) Stop() error {
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.ServiceStopping,
-		"stopping tcpSystemgeListener",
+		"stopping websocketListener",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
@@ -89,41 +140,38 @@ func (listener *WebsocketListener) Close() error {
 		return event.GetError()
 	}
 
-	if listener.isClosed {
+	if listener.status == Status.Stopped {
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStopped,
-			"tcpSystemgeListener is already closed",
+			"websocketListener is already stopped",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStopping,
 			},
 		))
-		return errors.New("tcpSystemgeListener is already closed")
+		return errors.New("websocketListener is already stopped")
 	}
 
-	listener.isClosed = true
+	listener.status = Status.Pending
 	listener.httpServer.Stop()
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
+		listener.ipRateLimiter = nil
 	}
 
 	listener.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStopped,
-		"tcpSystemgeListener stopped",
+		"websocketListener stopped",
 		Event.Context{
 			Event.Circumstance: Event.ServiceStopping,
 		},
 	))
 
+	listener.status = Status.Stopped
 	return nil
 }
 
 func (listener *WebsocketListener) GetStatus() int {
-	listener.closedMutex.Lock()
-	defer listener.closedMutex.Unlock()
-	if listener.isClosed {
-		return Status.Stopped
-	}
-	return Status.Started
+	return listener.status
 }
 
 func (server *WebsocketListener) GetWhitelist() *Tools.AccessControlList {
