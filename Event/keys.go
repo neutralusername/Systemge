@@ -27,7 +27,7 @@ const SyncToken = "syncToken"
 
 const GroupId = "groupId"
 
-const InstanceId = "instanceId"
+const ServiceInstanceId = "serviceInstanceId"
 const SessionId = "sessionId"
 
 const ServiceSessionId = "serviceSessionId"

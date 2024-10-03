@@ -90,11 +90,11 @@ func (server *SystemgeClient) onEvent(event *Event.Event) *Event.Event {
 }
 func (server *SystemgeClient) GetContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.SystemgeClient,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.status),
-		Event.Function:      Event.GetCallerFuncName(2),
-		Event.InstanceId:    server.instanceId,
-		Event.SessionId:     server.sessionId,
+		Event.ServiceType:       Event.SystemgeClient,
+		Event.ServiceName:       server.name,
+		Event.ServiceStatus:     Status.ToString(server.status),
+		Event.Function:          Event.GetCallerFuncName(2),
+		Event.ServiceInstanceId: server.instanceId,
+		Event.SessionId:         server.sessionId,
 	}
 }

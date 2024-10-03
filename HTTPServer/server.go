@@ -142,11 +142,11 @@ func (server *HTTPServer) onEvent(event *Event.Event) *Event.Event {
 }
 func (server *HTTPServer) GetServerContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.HttpServer,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.GetStatus()),
-		Event.Function:      Event.GetCallerFuncName(2),
-		Event.InstanceId:    server.instanceId,
-		Event.SessionId:     server.sessionId,
+		Event.ServiceType:       Event.HttpServer,
+		Event.ServiceName:       server.name,
+		Event.ServiceStatus:     Status.ToString(server.GetStatus()),
+		Event.Function:          Event.GetCallerFuncName(2),
+		Event.ServiceInstanceId: server.instanceId,
+		Event.SessionId:         server.sessionId,
 	}
 }
