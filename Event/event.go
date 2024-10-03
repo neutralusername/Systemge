@@ -35,7 +35,7 @@ type event struct {
 
 type Context map[string]string
 
-func New(event, circumstance string, action int8, context Context, options ...int8) *Event {
+func New(event, circumstance string, context Context, action int8, options ...int8) *Event {
 	return &Event{
 		event:        event,
 		circumstance: circumstance,

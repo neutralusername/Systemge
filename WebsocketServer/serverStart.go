@@ -17,10 +17,8 @@ func (server *WebsocketServer) Start() error {
 		if event := server.onEvent(Event.New(
 			Event.ServiceStarting,
 			Event.ServiceStart,
+			Event.Context{},
 			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.ServiceStart,
-			},
 			Event.Cancel,
 		)); event.GetAction() == Event.Cancel {
 			return errors.New("failed to start websocketServer")
@@ -29,12 +27,11 @@ func (server *WebsocketServer) Start() error {
 
 	if server.status != Status.Stopped {
 		if server.eventHandler != nil {
-			server.onEvent(Event.NewWarningNoOption(
+			server.onEvent(Event.New(
 				Event.ServiceAlreadyStarted,
-				"service websocketServer already started",
-				Event.Context{
-					Event.Circumstance: Event.ServiceStart,
-				},
+				Event.ServiceStart,
+				Event.Context{},
+				Event.Cancel,
 			))
 		}
 		return errors.New("failed to start websocketServer")
@@ -50,13 +47,13 @@ func (server *WebsocketServer) Start() error {
 	server.status = Status.Started
 
 	if server.eventHandler != nil {
-		server.onEvent(Event.NewInfoNoOption(
+		server.onEvent(Event.New(
 			Event.ServiceStarted,
-			"service websocketServer started",
-			Event.Context{
-				Event.Circumstance: Event.ServiceStart,
-			},
+			Event.ServiceStart,
+			Event.Context{},
+			Event.Continue,
 		))
 	}
+
 	return nil
 }
