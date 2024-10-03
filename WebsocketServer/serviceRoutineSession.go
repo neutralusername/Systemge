@@ -56,16 +56,14 @@ func (server *WebsocketServer) sessionRoutine() {
 		session, err := server.sessionManager.CreateSession("", map[string]any{})
 		if err != nil {
 			if server.eventHandler != nil {
-				if event := server.onEvent(Event.NewWarning(
+				event := server.onEvent(Event.New(
 					Event.CreateSessionFailed,
-					err.Error(),
+					Event.SessionRoutine,
+					Event.Context{},
+					Event.Skip,
 					Event.Cancel,
-					Event.Skip,
-					Event.Skip,
-					Event.Context{
-						Event.Circumstance: Event.SessionRoutine,
-					},
-				)); event.IsError() {
+				))
+				if event.GetAction() == Event.Cancel {
 					break
 				}
 			}
@@ -73,31 +71,30 @@ func (server *WebsocketServer) sessionRoutine() {
 		}
 
 		if server.eventHandler != nil {
-			server.onEvent(Event.NewInfoNoOption(
+			server.onEvent(Event.New(
 				Event.CreatedSession,
-				"created session",
+				Event.SessionRoutine,
 				Event.Context{
-					Event.Circumstance: Event.SessionRoutine,
-					Event.Identity:     session.GetId(),
+					Event.Identity: session.GetId(),
 				},
+				Event.Continue,
 			))
 		}
 	}
 }
 
 func (server *WebsocketServer) onCreate(session *Tools.Session) error {
-
 	websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
 	if err != nil {
 		if server.eventHandler != nil {
-			server.onEvent(Event.NewWarningNoOption(
+			server.onEvent(Event.New(
 				Event.AcceptClientFailed,
-				err.Error(),
+				Event.OnCreateSession,
 				Event.Context{
-					Event.Circumstance: Event.OnCreateSession,
-					Event.Identity:     session.GetId(),
-					Event.Address:      websocketConnection.GetAddress(),
+					Event.Identity: session.GetId(),
+					Event.Address:  websocketConnection.GetAddress(),
 				},
+				Event.Cancel,
 			))
 		}
 		websocketConnection.Close()
