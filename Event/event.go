@@ -77,12 +77,12 @@ func (e *Event) GetContextValue(key string) (string, bool) {
 	return val, ok
 }
 
-func (e *Event) GetError() error {
+/* func (e *Event) GetError() error {
 	if e.context["error"] == "" {
 		return errors.New(e.event)
 	}
 	return errors.New(e.context["error"])
-}
+} */
 
 func (e *Event) SetAction(action int8) error {
 	for _, opt := range e.options {

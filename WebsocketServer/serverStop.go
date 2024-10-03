@@ -12,28 +12,25 @@ func (server *WebsocketServer) Stop() error {
 	defer server.statusMutex.Unlock()
 
 	if server.eventHandler != nil {
-		if event := server.onEvent(Event.NewInfo(
+		event := server.onEvent(Event.New(
 			Event.ServiceStopping,
-			"service websocketServer stopping",
-			Event.Cancel,
-			Event.Cancel,
+			Event.ServiceStop,
+			Event.Context{},
 			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.ServiceStop,
-			},
-		)); !event.IsInfo() {
-			return event.GetError()
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
+			return errors.New("failed to stop websocketServer")
 		}
 	}
 
 	if server.status == Status.Stopped {
 		if server.eventHandler != nil {
-			server.onEvent(Event.NewWarningNoOption(
+			server.onEvent(Event.New(
 				Event.ServiceAlreadyStopped,
-				"service websocketServer already stopped",
-				Event.Context{
-					Event.Circumstance: Event.ServiceStop,
-				},
+				Event.ServiceStop,
+				Event.Context{},
+				Event.Cancel,
 			))
 		}
 		return errors.New("websocketServer not started")
@@ -47,12 +44,11 @@ func (server *WebsocketServer) Stop() error {
 	server.status = Status.Stopped
 
 	if server.eventHandler != nil {
-		server.onEvent(Event.NewInfoNoOption(
+		server.onEvent(Event.New(
 			Event.ServiceStopped,
-			"service websocketServer stopped",
-			Event.Context{
-				Event.Circumstance: Event.ServiceStop,
-			},
+			Event.ServiceStop,
+			Event.Context{},
+			Event.Continue,
 		))
 	}
 	return nil

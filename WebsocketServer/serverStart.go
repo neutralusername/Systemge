@@ -14,13 +14,14 @@ func (server *WebsocketServer) Start() error {
 	defer server.statusMutex.Unlock()
 
 	if server.eventHandler != nil {
-		if event := server.onEvent(Event.New(
+		event := server.onEvent(Event.New(
 			Event.ServiceStarting,
 			Event.ServiceStart,
 			Event.Context{},
 			Event.Continue,
 			Event.Cancel,
-		)); event.GetAction() == Event.Cancel {
+		))
+		if event.GetAction() == Event.Cancel {
 			return errors.New("failed to start websocketServer")
 		}
 	}
