@@ -128,13 +128,13 @@ func (listener *WebsocketListener) Stop() error {
 	defer listener.statusMutex.Unlock()
 
 	if event := listener.onEvent(Event.NewInfo(
-		Event.ServiceStopping,
+		Event.ServiceStoping,
 		"stopping websocketListener",
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
 		Event.Context{
-			Event.Circumstance: Event.ServiceStopping,
+			Event.Circumstance: Event.ServiceStoping,
 		},
 	)); !event.IsInfo() {
 		return event.GetError()
@@ -142,10 +142,10 @@ func (listener *WebsocketListener) Stop() error {
 
 	if listener.status == Status.Stopped {
 		listener.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStopped,
+			Event.ServiceAlreadyStoped,
 			"websocketListener is already stopped",
 			Event.Context{
-				Event.Circumstance: Event.ServiceStopping,
+				Event.Circumstance: Event.ServiceStoping,
 			},
 		))
 		return errors.New("websocketListener is already stopped")
@@ -159,10 +159,10 @@ func (listener *WebsocketListener) Stop() error {
 	}
 
 	listener.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStopped,
+		Event.ServiceStoped,
 		"websocketListener stopped",
 		Event.Context{
-			Event.Circumstance: Event.ServiceStopping,
+			Event.Circumstance: Event.ServiceStoping,
 		},
 	))
 

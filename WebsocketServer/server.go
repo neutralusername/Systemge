@@ -12,16 +12,6 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
-const (
-	Starting       = "starting"
-	Started        = "started"
-	AlreadyStarted = "already started"
-
-	Stoping       = "stoping"
-	Stoped        = "stoped"
-	AlreadyStoped = "service already stoped"
-)
-
 type WebsocketServer struct {
 	name string
 

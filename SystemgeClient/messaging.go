@@ -35,7 +35,7 @@ func (client *SystemgeClient) AsyncMessage(topic, payload string, clientNames ..
 
 	if client.status == Status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStopped,
+			Event.ServiceAlreadyStoped,
 			"systemgeClient already stopped",
 			Event.Context{
 				Event.Circumstance: Event.AsyncMessage,
@@ -157,7 +157,7 @@ func (client *SystemgeClient) SyncRequest(topic, payload string, clientNames ...
 
 	if client.status == Status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStopped,
+			Event.ServiceAlreadyStoped,
 			"systemgeClient already stopped",
 			Event.Context{
 				Event.Circumstance: Event.SyncRequest,

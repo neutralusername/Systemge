@@ -13,7 +13,7 @@ func (server *SystemgeServer) Stop() error {
 	defer server.statusMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ServiceStopping,
+		Event.ServiceStoping,
 		"stopping systemgeServer",
 		Event.Cancel,
 		Event.Cancel,
@@ -27,7 +27,7 @@ func (server *SystemgeServer) Stop() error {
 
 	if server.status != Status.Started {
 		server.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStopped,
+			Event.ServiceAlreadyStoped,
 			"systemgeServer is already stopped",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStop,
@@ -61,7 +61,7 @@ func (server *SystemgeServer) Stop() error {
 	server.status = Status.Stopped
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStopped,
+		Event.ServiceStoped,
 		"systemgeServer stopped",
 		Event.Context{
 			Event.Circumstance: Event.ServiceStop,

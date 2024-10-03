@@ -1,16 +1,16 @@
 package Event
 
 const ServiceStarting = "serviceStarting" // at the beginning of the service start
-const ServiceStopping = "serviceStopping" // at the beginning of the service stop
+const ServiceStoping = "serviceStopping"  // at the beginning of the service stop
 
-const ServiceStopped = "serviceStopped" // at the end of the service stop
+const ServiceStoped = "serviceStopped"  // at the end of the service stop
 const ServiceStarted = "serviceStarted" // at the end of the service start
 
 const ServiceStartFailed = "serviceStartFailed" // when a service start operation returns an error
 const ServiceStopFailed = "serviceStopFailed"   // when a service stop operation returns an error
 
 const ServiceAlreadyStarted = "serverAlreadyStarted" // when attempting an operation that requires the service to be stopped
-const ServiceAlreadyStopped = "serverAlreadyStopped" // when attempting an operation that requires the service to be started
+const ServiceAlreadyStoped = "serverAlreadyStopped"  // when attempting an operation that requires the service to be started
 
 const AcceptingClient = "acceptingTcpSystemgeConnection"  // before accepting a tcp systemge connection
 const AcceptedClient = "acceptedTcpSystemgeConnection"    // after accepting a tcp systemge connection

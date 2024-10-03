@@ -12,7 +12,7 @@ func (server *HTTPServer) Stop() error {
 	defer server.statusMutex.Unlock()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.ServiceStopping,
+		Event.ServiceStoping,
 		"Stopping http server",
 		Event.Cancel,
 		Event.Cancel,
@@ -26,7 +26,7 @@ func (server *HTTPServer) Stop() error {
 
 	if server.status != Status.Started {
 		server.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStopped,
+			Event.ServiceAlreadyStoped,
 			"http server not started",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStop,
@@ -50,7 +50,7 @@ func (server *HTTPServer) Stop() error {
 	server.status = Status.Stopped
 
 	server.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStopped,
+		Event.ServiceStoped,
 		"http server stopped",
 		Event.Context{
 			Event.Circumstance: Event.ServiceStop,

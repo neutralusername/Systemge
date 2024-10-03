@@ -14,22 +14,22 @@ func (server *WebsocketServer) Start() error {
 	defer server.statusMutex.Unlock()
 
 	event := server.onEvent(Event.New(
-		Starting,
+		Event.ServiceStarting,
 		Event.Context{},
 		Event.Continue,
 		Event.Cancel,
 	))
 	if event.GetAction() == Event.Cancel {
-		return errors.New(Starting)
+		return errors.New(Event.ServiceStarting)
 	}
 
 	if server.status != Status.Stopped {
 		server.onEvent(Event.New(
-			AlreadyStarted,
+			Event.ServiceAlreadyStarted,
 			Event.Context{},
 			Event.Cancel,
 		))
-		return errors.New(AlreadyStarted)
+		return errors.New(Event.ServiceAlreadyStarted)
 	}
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
@@ -42,7 +42,7 @@ func (server *WebsocketServer) Start() error {
 	server.status = Status.Started
 
 	server.onEvent(Event.New(
-		Started,
+		Event.ServiceStarted,
 		Event.Context{},
 		Event.Continue,
 	))

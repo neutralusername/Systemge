@@ -12,22 +12,22 @@ func (server *WebsocketServer) Stop() error {
 	defer server.statusMutex.Unlock()
 
 	event := server.onEvent(Event.New(
-		Stoping,
+		Event.ServiceStoping,
 		Event.Context{},
 		Event.Continue,
 		Event.Cancel,
 	))
 	if event.GetAction() == Event.Cancel {
-		return errors.New(Stoping)
+		return errors.New(Event.ServiceStoping)
 	}
 
 	if server.status == Status.Stopped {
 		server.onEvent(Event.New(
-			AlreadyStoped,
+			Event.ServiceAlreadyStoped,
 			Event.Context{},
 			Event.Cancel,
 		))
-		return errors.New(AlreadyStoped)
+		return errors.New(Event.ServiceAlreadyStoped)
 	}
 	server.status = Status.Pending
 
@@ -38,7 +38,7 @@ func (server *WebsocketServer) Stop() error {
 	server.status = Status.Stopped
 
 	server.onEvent(Event.New(
-		Stoped,
+		Event.ServiceStoped,
 		Event.Context{},
 		Event.Continue,
 	))

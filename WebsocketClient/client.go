@@ -84,7 +84,7 @@ func (connection *WebsocketClient) Close() error {
 	defer connection.closedMutex.Unlock()
 
 	if event := connection.onEvent(Event.NewInfo(
-		Event.ServiceStopping,
+		Event.ServiceStoping,
 		"closing websocketClient",
 		Event.Skip,
 		Event.Skip,
@@ -123,7 +123,7 @@ func (connection *WebsocketClient) Close() error {
 	close(connection.messageChannel)
 
 	connection.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStopped,
+		Event.ServiceStoped,
 		"websocketClient closed",
 		Event.Context{
 			Event.Circumstance: Event.ServiceStop,

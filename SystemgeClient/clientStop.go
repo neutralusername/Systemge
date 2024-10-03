@@ -18,7 +18,7 @@ func (client *SystemgeClient) stop(lock bool) error {
 	}
 
 	if event := client.onEvent(Event.NewInfo(
-		Event.ServiceStopping,
+		Event.ServiceStoping,
 		"stopping systemgeClient",
 		Event.Cancel,
 		Event.Cancel,
@@ -32,7 +32,7 @@ func (client *SystemgeClient) stop(lock bool) error {
 
 	if client.status == Status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStopped,
+			Event.ServiceAlreadyStoped,
 			"systemgeClient already stopped",
 			Event.Context{
 				Event.Circumstance: Event.ServiceStop,
@@ -46,7 +46,7 @@ func (client *SystemgeClient) stop(lock bool) error {
 	client.status = Status.Stopped
 
 	client.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStopped,
+		Event.ServiceStoped,
 		"systemgeClient stopped",
 		Event.Context{
 			Event.Circumstance: Event.ServiceStop,
