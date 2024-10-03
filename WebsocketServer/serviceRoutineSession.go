@@ -37,19 +37,23 @@ func (server *WebsocketServer) sessionRoutine() {
 
 		websocketConnection, err := server.websocketListener.AcceptClient(session.GetId(), server.config.WebsocketClientConfig, server.eventHandler)
 		if err != nil {
+			websocketConnection.Close()
 			if server.eventHandler != nil {
-				server.onEvent(Event.New(
+				event := server.onEvent(Event.New(
 					Event.AcceptClientFailed,
 					Event.SessionRoutine,
 					Event.Context{
 						Event.Identity: session.GetId(),
 						Event.Address:  websocketConnection.GetAddress(),
 					},
+					Event.Skip,
 					Event.Cancel,
 				))
+				if event.GetAction() == Event.Cancel {
+					break
+				}
 			}
-			websocketConnection.Close()
-			return err
+			continue
 		}
 		session.Set("websocketConnection", websocketConnection)
 
