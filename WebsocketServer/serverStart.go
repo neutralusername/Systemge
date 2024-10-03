@@ -35,7 +35,7 @@ func (server *WebsocketServer) Start() error {
 				Event.Cancel,
 			))
 		}
-		return errors.New("failed to start websocketServer")
+		return errors.New("websocketServer already started")
 	}
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
