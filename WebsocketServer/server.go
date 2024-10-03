@@ -12,6 +12,11 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
+const (
+	Starting = "starting"
+	Started  = "started"
+)
+
 type WebsocketServer struct {
 	name string
 
@@ -34,10 +39,10 @@ type WebsocketServer struct {
 	sessionManager *Tools.SessionManager
 	topicManager   *Tools.TopicManager
 
-	eventHandler Event.Handler
+	eventHandlers map[string]Event.Handler
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandlers map[string]Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -61,7 +66,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		config: config,
 	}
 	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
-	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandlers)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +92,12 @@ func (server *WebsocketServer) GetSessionId() string {
 }
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
+	eventHandler := server.EventHandlers[event.GetEvent()]
+	if eventHandler == nil {
+		return event
+	}
 	event.GetContext().Merge(server.GetServerContext())
-	server.eventHandler(event)
+	eventHandler(event)
 	return event
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {
