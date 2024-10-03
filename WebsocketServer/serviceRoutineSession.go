@@ -9,49 +9,46 @@ import (
 func (server *WebsocketServer) sessionRoutine() {
 	defer func() {
 		if server.eventHandler != nil {
-			server.onEvent(Event.NewInfoNoOption(
+			server.onEvent(Event.New(
 				Event.SessionRoutineEnds,
-				"stopped websocketConnection session routine",
-				Event.Context{
-					Event.Circumstance: Event.SessionRoutine,
-				},
+				Event.SessionRoutine,
+				Event.Context{},
+				Event.Continue,
+				Event.Cancel,
 			))
 		}
 		server.waitGroup.Done()
 	}()
 
 	if server.eventHandler != nil {
-		if event := server.onEvent(Event.NewInfo(
+		event := server.onEvent(Event.New(
 			Event.SessionRoutineBegins,
-			"started websocketConnection session routine",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
+			Event.SessionRoutine,
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
 			},
-		)); !event.IsInfo() {
+			Event.Continue,
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
 			return
 		}
 	}
 
 	for {
-
 		if server.eventHandler != nil {
-			event := server.onEvent(Event.NewInfo(
+			event := server.onEvent(Event.New(
 				Event.CreatingSession,
-				"creating session",
-				Event.Cancel,
-				Event.Skip,
+				Event.SessionRoutine,
+				Event.Context{},
 				Event.Continue,
-				Event.Context{
-					Event.Circumstance: Event.SessionRoutine,
-				},
+				Event.Skip,
+				Event.Cancel,
 			))
-			if event.IsError() {
+			if event.GetAction() == Event.Cancel {
 				break
 			}
-			if event.IsWarning() {
+			if event.GetAction() == Event.Skip {
 				continue
 			}
 		}
