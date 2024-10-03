@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -100,8 +102,25 @@ func (server *WebsocketServer) onCreate(session *Tools.Session) error {
 		websocketConnection.Close()
 		return err
 	}
-
 	session.Set("websocketConnection", websocketConnection)
+
+	if server.eventHandler != nil {
+		event := server.onEvent(Event.New(
+			Event.OnCreateSession,
+			Event.OnCreateSession,
+			Event.Context{
+				Event.Identity: session.GetId(),
+				Event.Address:  websocketConnection.GetAddress(),
+			},
+			Event.Continue,
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
+			websocketConnection.Close()
+			return errors.New("session rejected")
+		}
+	}
+
 	server.waitGroup.Add(1)
 	go server.websocketConnectionDisconnect(session, websocketConnection)
 
