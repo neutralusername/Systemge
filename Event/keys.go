@@ -30,6 +30,8 @@ const GroupId = "groupId"
 const InstanceId = "instanceId"
 const SessionId = "sessionId"
 
+const ServiceSessionId = "serviceSessionId"
+
 const ServiceName = "serviceName"
 const ServiceStatus = "serviceStatus"
 

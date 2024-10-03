@@ -93,12 +93,12 @@ func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.WebsocketServer,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.status),
-		Event.Function:      Event.GetCallerFuncName(2),
-		Event.InstanceId:    server.instanceId,
-		Event.SessionId:     server.sessionId,
+		Event.ServiceType:      Event.WebsocketServer,
+		Event.ServiceName:      server.name,
+		Event.ServiceStatus:    Status.ToString(server.status),
+		Event.Function:         Event.GetCallerFuncName(2),
+		Event.InstanceId:       server.instanceId,
+		Event.ServiceSessionId: server.sessionId,
 	}
 }
 
