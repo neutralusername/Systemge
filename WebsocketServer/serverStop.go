@@ -20,7 +20,7 @@ func (server *WebsocketServer) Stop() error {
 			Event.Cancel,
 		))
 		if event.GetAction() == Event.Cancel {
-			return errors.New("failed to stop websocketServer")
+			return errors.New("aborted stopping websocketServer")
 		}
 	}
 

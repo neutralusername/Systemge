@@ -22,7 +22,7 @@ func (server *WebsocketServer) Start() error {
 			Event.Cancel,
 		))
 		if event.GetAction() == Event.Cancel {
-			return errors.New("failed to start websocketServer")
+			return errors.New("aborted starting websocketServer")
 		}
 	}
 
