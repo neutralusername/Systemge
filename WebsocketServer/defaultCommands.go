@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
@@ -67,7 +68,15 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		id := args[2]
-		err := server.Unicast(id, Message.NewAsync(topic, payload))
+		session := server.sessionManager.GetSession(id)
+		if session == nil {
+			return "", errors.New("session not found")
+		}
+		websocketClient, ok := session.Get("websocketClient")
+		if !ok {
+			return "", errors.New("websocketClient not found")
+		}
+		err := websocketClient.(*WebsocketClient.WebsocketClient).Write(Message.NewAsync(topic, payload).Serialize())
 		if err != nil {
 			return "", err
 		}

@@ -150,30 +150,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 			continue
 		}
 
-		connection, ok := session.Get("connection")
-		if !ok {
-			// should never occur
-			if server.eventHandlers != nil {
-				event := server.onEvent(Event.New(
-					Event.SessionDoesNotExist,
-					Event.Context{
-						Event.Circumstance: Event.Multicast,
-						Event.Target:       id,
-						Event.Targets:      targetsMarshalled,
-						Event.Topic:        message.GetTopic(),
-						Event.Payload:      message.GetPayload(),
-						Event.SyncToken:    message.GetSyncToken(),
-					},
-					Event.Skip,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					return errors.New("multicast cancelled")
-				}
-			}
-			continue
-		}
-		websocketClient, ok := connection.(*WebsocketClient.WebsocketClient)
+		websocketClient, ok := session.Get("connection")
 		if !ok {
 			// should never occur
 			if server.eventHandlers != nil {
@@ -219,7 +196,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.Write(messageBytes)
+			websocketClient.(*WebsocketClient.WebsocketClient).Write(messageBytes)
 		})
 	}
 
