@@ -14,6 +14,18 @@ func (server *WebsocketServer) SyncRequest(topic, payload string, ids ...string)
 
 }
 
+func (server *WebsocketServer) SyncRequestBlocking(topic, payload string, ids ...string) ([]*Message.Message, error) {
+	responseChannel, err := server.SyncRequest(topic, payload, ids...)
+	if err != nil {
+		return nil, err
+	}
+	responses := []*Message.Message{}
+	for response := range responseChannel {
+		responses = append(responses, response)
+	}
+	return responses, nil
+}
+
 func (server *WebsocketServer) AsyncMessage(topic, payload string, ids ...string) error {
 	if len(ids) == 0 {
 		return server.broadcast(Message.NewAsync(topic, payload))
