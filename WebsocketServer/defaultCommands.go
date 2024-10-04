@@ -7,7 +7,6 @@ import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
@@ -49,18 +48,6 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["broadcast"] = func(args []string) (string, error) {
-		if len(args) != 2 {
-			return "", errors.New("invalid number of arguments")
-		}
-		topic := args[0]
-		payload := args[1]
-		err := server.Broadcast(Message.NewAsync(topic, payload))
-		if err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
 	commands["unicast"] = func(args []string) (string, error) {
 		if len(args) != 3 {
 			return "", errors.New("invalid number of arguments")
@@ -68,15 +55,22 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		id := args[2]
-		session := server.sessionManager.GetSession(id)
-		if session == nil {
-			return "", errors.New("session not found")
+		websocketClient, err := server.GetWebsocketClient(id)
+		if err != nil {
+			return "", err
 		}
-		websocketClient, ok := session.Get("websocketClient")
-		if !ok {
-			return "", errors.New("websocketClient not found")
+		if err := websocketClient.Write(Message.NewAsync(topic, payload).Serialize()); err != nil {
+			return "", err
 		}
-		err := websocketClient.(*WebsocketClient.WebsocketClient).Write(Message.NewAsync(topic, payload).Serialize())
+		return "success", nil
+	}
+	commands["broadcast"] = func(args []string) (string, error) {
+		if len(args) != 2 {
+			return "", errors.New("invalid number of arguments")
+		}
+		topic := args[0]
+		payload := args[1]
+		err := server.Broadcast(Message.NewAsync(topic, payload))
 		if err != nil {
 			return "", err
 		}
