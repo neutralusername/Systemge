@@ -21,7 +21,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				)
 			}
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.connectionsFailed.Add(1)
+			server.clientsFailed.Add(1)
 			return
 		}
 		if server.eventHandler != nil {
@@ -38,7 +38,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 			); !event.IsInfo() {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 				websocketConn.Close()
-				server.connectionsRejected.Add(1)
+				server.clientsRejected.Add(1)
 			}
 		}
 		server.connectionChannel <- websocketConn

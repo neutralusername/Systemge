@@ -2,33 +2,33 @@ package WebsocketListener
 
 import "github.com/neutralusername/Systemge/Metrics"
 
-func (listener *WebsocketListener) GetConnectionsAccepted() uint64 {
-	return listener.connectionsAccepted.Swap(0)
+func (listener *WebsocketListener) GetClientsAccepted() uint64 {
+	return listener.clientsAccepted.Swap(0)
 }
-func (listener *WebsocketListener) CheckConnectionsAccepted() uint64 {
-	return listener.connectionsAccepted.Load()
-}
-
-func (listener *WebsocketListener) GetConnectionsFailed() uint64 {
-	return listener.connectionsFailed.Swap(0)
-}
-func (listener *WebsocketListener) CheckConnectionsFailed() uint64 {
-	return listener.connectionsFailed.Load()
+func (listener *WebsocketListener) CheckClientsAccepted() uint64 {
+	return listener.clientsAccepted.Load()
 }
 
-func (listener *WebsocketListener) GetConnectionsRejected() uint64 {
-	return listener.connectionsRejected.Swap(0)
+func (listener *WebsocketListener) GetClientsFailed() uint64 {
+	return listener.clientsFailed.Swap(0)
 }
-func (listener *WebsocketListener) CheckConnectionsRejected() uint64 {
-	return listener.connectionsRejected.Load()
+func (listener *WebsocketListener) CheckClientsFailed() uint64 {
+	return listener.clientsFailed.Load()
+}
+
+func (listener *WebsocketListener) GetClientsRejected() uint64 {
+	return listener.clientsRejected.Swap(0)
+}
+func (listener *WebsocketListener) CheckClientsRejected() uint64 {
+	return listener.clientsRejected.Load()
 }
 
 func (listener *WebsocketListener) GetMetrics() Metrics.MetricsTypes {
 	return Metrics.MetricsTypes{
 		"websocketListener": Metrics.New(map[string]uint64{
-			"connectionAccepted":  listener.GetConnectionsAccepted(),
-			"connectionsFailed":   listener.GetConnectionsFailed(),
-			"connectionsRejected": listener.GetConnectionsRejected(),
+			"connectionAccepted": listener.GetClientsAccepted(),
+			"clientsFailed":      listener.GetClientsFailed(),
+			"clientsRejected":    listener.GetClientsRejected(),
 		}),
 	}
 }
@@ -36,9 +36,9 @@ func (listener *WebsocketListener) GetMetrics() Metrics.MetricsTypes {
 func (listener *WebsocketListener) CheckMetrics() Metrics.MetricsTypes {
 	return Metrics.MetricsTypes{
 		"websocketListener": Metrics.New(map[string]uint64{
-			"connectionAccepted":  listener.CheckConnectionsAccepted(),
-			"connectionsFailed":   listener.CheckConnectionsFailed(),
-			"connectionsRejected": listener.CheckConnectionsRejected(),
+			"connectionAccepted": listener.CheckClientsAccepted(),
+			"clientsFailed":      listener.CheckClientsFailed(),
+			"clientsRejected":    listener.CheckClientsRejected(),
 		}),
 	}
 }

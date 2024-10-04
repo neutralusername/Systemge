@@ -33,9 +33,9 @@ type WebsocketListener struct {
 
 	// metrics
 
-	connectionsAccepted atomic.Uint64
-	connectionsFailed   atomic.Uint64
-	connectionsRejected atomic.Uint64
+	clientsAccepted atomic.Uint64
+	clientsFailed   atomic.Uint64
+	clientsRejected atomic.Uint64
 }
 
 func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketListener, error) {

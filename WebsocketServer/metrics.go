@@ -50,33 +50,33 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 	)
 	metricsTypes.AddMetrics("websocketListener", Metrics.New(
 		map[string]uint64{
-			"connection_accepted":  server.GetConnectionAccepted(),
-			"connections_failed":   server.GetConnectionsFailed(),
-			"connections_rejected": server.GetConnectionsRejected(),
+			"connection_accepted": server.GetClientsAccepted(),
+			"clients_failed":      server.GetClientsFailed(),
+			"clients_rejected":    server.GetClientsRejected(),
 		},
 	))
 	return metricsTypes
 }
 
-func (server *WebsocketServer) GetConnectionAccepted() uint64 {
-	return server.websocketListener.GetConnectionsAccepted()
+func (server *WebsocketServer) GetClientsAccepted() uint64 {
+	return server.websocketListener.GetClientsAccepted()
 }
-func (server *WebsocketServer) CheckConnectionAccepted() uint64 {
-	return server.websocketListener.CheckConnectionsAccepted()
-}
-
-func (server *WebsocketServer) GetConnectionsFailed() uint64 {
-	return server.websocketListener.GetConnectionsFailed()
-}
-func (server *WebsocketServer) CheckConnectionsFailed() uint64 {
-	return server.websocketListener.CheckConnectionsFailed()
+func (server *WebsocketServer) CheckClientsAccepted() uint64 {
+	return server.websocketListener.CheckClientsAccepted()
 }
 
-func (server *WebsocketServer) GetConnectionsRejected() uint64 {
-	return server.websocketListener.GetConnectionsRejected()
+func (server *WebsocketServer) GetClientsFailed() uint64 {
+	return server.websocketListener.GetClientsFailed()
 }
-func (server *WebsocketServer) CheckConnectionsRejected() uint64 {
-	return server.websocketListener.CheckConnectionsRejected()
+func (server *WebsocketServer) CheckClientsFailed() uint64 {
+	return server.websocketListener.CheckClientsFailed()
+}
+
+func (server *WebsocketServer) GetClientsRejected() uint64 {
+	return server.websocketListener.GetClientsRejected()
+}
+func (server *WebsocketServer) CheckClientsRejected() uint64 {
+	return server.websocketListener.CheckClientsRejected()
 }
 
 func (server *WebsocketServer) GetWebsocketClientMessagesBytesSent() uint64 {

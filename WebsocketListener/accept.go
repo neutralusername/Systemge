@@ -32,7 +32,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 				Event.Circumstance: Event.AcceptClient,
 			},
 		))
-		listener.connectionsFailed.Add(1)
+		listener.clientsFailed.Add(1)
 		return nil, errors.New("received nil value from connection channel")
 	}
 
@@ -46,7 +46,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		))
-		listener.connectionsFailed.Add(1)
+		listener.clientsFailed.Add(1)
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 				Event.Address:         websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
-			listener.connectionsRejected.Add(1)
+			listener.clientsRejected.Add(1)
 			websocketConn.Close()
 			return nil, errors.New("rate limit exceeded")
 		}
@@ -81,7 +81,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
-			listener.connectionsRejected.Add(1)
+			listener.clientsRejected.Add(1)
 			websocketConn.Close()
 			return nil, errors.New("Blacklisted")
 		}
@@ -99,7 +99,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 				Event.Address:      websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
-			listener.connectionsRejected.Add(1)
+			listener.clientsRejected.Add(1)
 			websocketConn.Close()
 			return nil, errors.New("not whitelisted")
 		}
@@ -119,10 +119,10 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 		},
 	)); !event.IsInfo() {
 		websocketClient.Close()
-		listener.connectionsRejected.Add(1)
+		listener.clientsRejected.Add(1)
 		return nil, event.GetError()
 	}
 
-	listener.connectionsAccepted.Add(1)
+	listener.clientsAccepted.Add(1)
 	return websocketClient, nil
 }
