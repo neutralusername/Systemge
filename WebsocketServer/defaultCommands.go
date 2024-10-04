@@ -48,39 +48,14 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["unicast"] = func(args []string) (string, error) {
-		if len(args) != 3 {
-			return "", errors.New("invalid number of arguments")
-		}
-		topic := args[0]
-		payload := args[1]
-		id := args[2]
-		err := server.Unicast(id, Message.NewAsync(topic, payload))
-		if err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["broadcast"] = func(args []string) (string, error) {
-		if len(args) != 2 {
-			return "", errors.New("invalid number of arguments")
-		}
-		topic := args[0]
-		payload := args[1]
-		err := server.Broadcast(Message.NewAsync(topic, payload))
-		if err != nil {
-			return "", err
-		}
-		return "success", nil
-	}
-	commands["multicast"] = func(args []string) (string, error) {
-		if len(args) < 3 {
+	commands["sendMessage"] = func(args []string) (string, error) {
+		if len(args) < 2 {
 			return "", errors.New("invalid number of arguments")
 		}
 		topic := args[0]
 		payload := args[1]
 		ids := args[2:]
-		err := server.Multicast(ids, Message.NewAsync(topic, payload))
+		err := server.SendMessage(Message.NewAsync(topic, payload), ids...)
 		if err != nil {
 			return "", err
 		}

@@ -17,6 +17,10 @@ func (server *WebsocketServer) SendMessage(message *Message.Message, ids ...stri
 	return server.Multicast(ids, message)
 }
 
+func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
+	return server.Multicast([]string{id}, message)
+}
+
 // Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Broadcast(message *Message.Message) error {
@@ -223,8 +227,4 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		))
 	}
 	return nil
-}
-
-func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
-	return server.Multicast([]string{id}, message)
 }
