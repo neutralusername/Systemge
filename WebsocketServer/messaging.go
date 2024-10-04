@@ -217,3 +217,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	}
 	return nil
 }
+
+func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
+	return server.Multicast([]string{id}, message)
+}
