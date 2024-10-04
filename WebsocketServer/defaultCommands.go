@@ -55,11 +55,8 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		id := args[2]
-		websocketClient, err := server.GetWebsocketClient(id)
+		err := server.Unicast(id, Message.NewAsync(topic, payload))
 		if err != nil {
-			return "", err
-		}
-		if err := websocketClient.Write(Message.NewAsync(topic, payload).Serialize()); err != nil {
 			return "", err
 		}
 		return "success", nil
