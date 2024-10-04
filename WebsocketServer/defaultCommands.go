@@ -55,7 +55,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		ids := args[2:]
-		err := server.SendMessage(Message.NewAsync(topic, payload), ids...)
+		err := server.AsyncMessage(Message.NewAsync(topic, payload), ids...)
 		if err != nil {
 			return "", err
 		}

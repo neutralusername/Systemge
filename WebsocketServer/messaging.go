@@ -10,20 +10,16 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) SendMessage(message *Message.Message, ids ...string) error {
+func (server *WebsocketServer) AsyncMessage(message *Message.Message, ids ...string) error {
 	if len(ids) == 0 {
-		return server.Broadcast(message)
+		return server.broadcast(message)
 	}
-	return server.Multicast(ids, message)
-}
-
-func (server *WebsocketServer) Unicast(id string, message *Message.Message) error {
-	return server.Multicast([]string{id}, message)
+	return server.multicast(ids, message)
 }
 
 // Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
-func (server *WebsocketServer) Broadcast(message *Message.Message) error {
+func (server *WebsocketServer) broadcast(message *Message.Message) error {
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
@@ -115,7 +111,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 // Multicast multicasts a message to multiple websocketConnections by id.
 // Blocking until all messages are sent.
-func (server *WebsocketServer) Multicast(ids []string, message *Message.Message) error {
+func (server *WebsocketServer) multicast(ids []string, message *Message.Message) error {
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
