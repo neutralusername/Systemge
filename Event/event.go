@@ -39,6 +39,7 @@ type event struct {
 type Context map[string]string
 
 func New(event string, context Context, action int8, options ...int8) *Event {
+	options = append(options, action)
 	return &Event{
 		event:   event,
 		context: context,
