@@ -34,10 +34,10 @@ type WebsocketServer struct {
 	sessionManager *Tools.SessionManager
 	topicManager   *Tools.TopicManager
 
-	eventHandlers *Event.Handlers
+	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandlers *Event.Handlers) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -60,10 +60,10 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 
 		config: config,
 
-		eventHandlers: eventHandlers,
+		eventHandler: eventHandler,
 	}
 	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
-	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandlers)
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +90,7 @@ func (server *WebsocketServer) GetSessionId() string {
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if eventHandler := server.eventHandlers.Handlers[event.GetEvent()]; eventHandler != nil {
-		eventHandler(event)
-	}
-	if defaultHandler := server.eventHandlers.DefaultHandler; defaultHandler != nil {
-		defaultHandler(event)
-	}
+	server.eventHandler(event)
 	return event
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {

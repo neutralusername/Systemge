@@ -36,7 +36,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 	}
 
 	targetsMarshalled := Helpers.JsonMarshal(targets)
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		if event := server.onEvent(Event.New(
 			Event.SendingBroadcast,
 			Event.Context{
@@ -54,7 +54,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	for _, websocketClient := range connections {
 		if websocketClient.GetName() == "" {
-			if server.eventHandlers != nil {
+			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.SessionNotAccepted,
 					Event.Context{
@@ -86,7 +86,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		server.onEvent(Event.New(
 			Event.SentBroadcast,
 			Event.Context{
@@ -109,7 +109,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	waitGroup := Tools.NewTaskGroup()
 
 	targetsMarshalled := Helpers.JsonMarshal(ids)
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		if event := server.onEvent(Event.New(
 			Event.SendingMulticast,
 			Event.Context{
@@ -129,7 +129,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 	for _, id := range ids {
 		session := server.sessionManager.GetSession(id)
 		if session == nil {
-			if server.eventHandlers != nil {
+			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.SessionDoesNotExist,
 					Event.Context{
@@ -153,7 +153,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		websocketClient, ok := session.Get("connection")
 		if !ok {
 			// should never occur
-			if server.eventHandlers != nil {
+			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.SessionDoesNotExist,
 					Event.Context{
@@ -175,7 +175,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 		}
 
 		if !session.IsAccepted() {
-			if server.eventHandlers != nil {
+			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.SessionNotAccepted,
 					Event.Context{
@@ -202,7 +202,7 @@ func (server *WebsocketServer) Multicast(ids []string, message *Message.Message)
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		server.onEvent(Event.New(
 			Event.SentMulticast,
 			Event.Context{

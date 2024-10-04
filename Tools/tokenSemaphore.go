@@ -58,8 +58,7 @@ func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
 	tokenSemaphore.mutex.Lock()
 	defer tokenSemaphore.mutex.Unlock()
-	_, exists := tokenSemaphore.acquiredTokens[token]
-	if !exists {
+	if _, exists := tokenSemaphore.acquiredTokens[token]; !exists {
 		return errors.New("token is not valid")
 	}
 	delete(tokenSemaphore.acquiredTokens, token)

@@ -10,7 +10,7 @@ import (
 
 func (server *WebsocketServer) sessionRoutine() {
 	defer func() {
-		if server.eventHandlers != nil {
+		if server.eventHandler != nil {
 			server.onEvent(Event.New(
 				Event.SessionRoutineEnds,
 				Event.Context{},
@@ -21,7 +21,7 @@ func (server *WebsocketServer) sessionRoutine() {
 		server.waitGroup.Done()
 	}()
 
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		event := server.onEvent(Event.New(
 			Event.SessionRoutineBegins,
 			Event.Context{},
@@ -35,10 +35,10 @@ func (server *WebsocketServer) sessionRoutine() {
 
 	for {
 
-		websocketClient, err := server.websocketListener.AcceptClient(server.config.WebsocketClientConfig, server.eventHandlers)
+		websocketClient, err := server.websocketListener.AcceptClient(server.config.WebsocketClientConfig, server.eventHandler)
 		if err != nil {
 			websocketClient.Close()
-			if server.eventHandlers != nil {
+			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.AcceptClientFailed,
 					Event.Context{
@@ -54,7 +54,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		if server.eventHandlers != nil {
+		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
 				Event.CreatingSession,
 				Event.Context{
@@ -76,7 +76,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			"websocketClient": websocketClient,
 		})
 		if err != nil {
-			if server.eventHandlers != nil {
+			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.CreateSessionFailed,
 					Event.Context{
@@ -92,7 +92,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		if server.eventHandlers != nil {
+		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
 				Event.CreatedSession,
 				Event.Context{
@@ -115,7 +115,7 @@ func (server *WebsocketServer) sessionRoutine() {
 }
 
 func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		websocketClient, ok := session.Get("websocketClient")
 		if !ok {
 			return errors.New("websocketClient not found")
@@ -143,7 +143,7 @@ func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session,
 	case <-server.stopChannel:
 	}
 
-	if server.eventHandlers != nil {
+	if server.eventHandler != nil {
 		server.onEvent(Event.New(
 			Event.OnDisconnect,
 			Event.Context{
