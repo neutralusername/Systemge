@@ -10,6 +10,13 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
+func (server *WebsocketServer) SendMessage(message *Message.Message, ids ...string) error {
+	if len(ids) == 0 {
+		return server.Broadcast(message)
+	}
+	return server.Multicast(ids, message)
+}
+
 // Broadcast broadcasts a message to all connected clients.
 // Blocking until all messages are sent.
 func (server *WebsocketServer) Broadcast(message *Message.Message) error {
