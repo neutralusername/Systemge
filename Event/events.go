@@ -56,9 +56,6 @@ const SentBroadcast = "sentBroadcast"       // after sending a broadcast
 const SendingMulticast = "sendingMulticast" // before sending a multicast
 const SentMulticast = "sentMulticast"       // after sending a multicast
 
-const SendingUnicast = "sendingUnicast" // before sending a unicast
-const SentUnicast = "sentUnicast"       // after sending a unicast
-
 const InvalidMessage = "invalidMessage" // when a message is determined to be invalid
 
 const ReceivingFromChannel = "receivingFromChannel"               // before receiving an item from a channel
