@@ -48,8 +48,35 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 			"rejected_messages_received": uint64(server.GetWebsocketClientRejectedMessagesReceived()),
 		}),
 	)
-	metricsTypes.Merge(server.websocketListener.GetMetrics())
+	metricsTypes.AddMetrics("websocketListener", Metrics.New(
+		map[string]uint64{
+			"connection_accepted":  server.GetConnectionAccepted(),
+			"connections_failed":   server.GetConnectionsFailed(),
+			"connections_rejected": server.GetConnectionsRejected(),
+		},
+	))
 	return metricsTypes
+}
+
+func (server *WebsocketServer) GetConnectionAccepted() uint64 {
+	return server.websocketListener.GetConnectionsAccepted()
+}
+func (server *WebsocketServer) CheckConnectionAccepted() uint64 {
+	return server.websocketListener.CheckConnectionsAccepted()
+}
+
+func (server *WebsocketServer) GetConnectionsFailed() uint64 {
+	return server.websocketListener.GetConnectionsFailed()
+}
+func (server *WebsocketServer) CheckConnectionsFailed() uint64 {
+	return server.websocketListener.CheckConnectionsFailed()
+}
+
+func (server *WebsocketServer) GetConnectionsRejected() uint64 {
+	return server.websocketListener.GetConnectionsRejected()
+}
+func (server *WebsocketServer) CheckConnectionsRejected() uint64 {
+	return server.websocketListener.CheckConnectionsRejected()
 }
 
 func (server *WebsocketServer) GetWebsocketClientMessagesBytesSent() uint64 {
