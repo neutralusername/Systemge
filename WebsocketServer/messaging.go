@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 // Broadcast broadcasts a message to all connected clients.
@@ -17,57 +18,53 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 
 	sessions := server.sessionManager.GetSessions("")
 	targets := []string{}
-	connections := []*WebsocketConnection{}
+	connections := []*WebsocketClient.WebsocketClient{}
 	for _, session := range sessions {
 		connection, ok := session.Get("connection")
 		if !ok {
 			continue
 		}
-		websocketConnection, ok := connection.(*WebsocketConnection)
+		websocketClient, ok := connection.(*WebsocketClient.WebsocketClient)
 		if !ok {
 			continue
 		}
-		connections = append(connections, websocketConnection)
-		id := websocketConnection.GetId()
+		connections = append(connections, websocketClient)
+		id := websocketClient.GetName()
 		if id != "" {
 			targets = append(targets, id)
 		}
 	}
 
 	targetsMarshalled := Helpers.JsonMarshal(targets)
-	if event := server.onEvent(Event.NewInfo(
-		Event.SendingMultiMessage,
-		"broadcasting websocketConnection message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
+	if event := server.onEvent(Event.New(
+		Event.SendingBroadcast,
 		Event.Context{
-			Event.Circumstance: Event.Broadcast,
-			Event.Targets:      targetsMarshalled,
-			Event.Topic:        message.GetTopic(),
-			Event.Payload:      message.GetPayload(),
-			Event.SyncToken:    message.GetSyncToken(),
+			Event.Targets:   targetsMarshalled,
+			Event.Topic:     message.GetTopic(),
+			Event.Payload:   message.GetPayload(),
+			Event.SyncToken: message.GetSyncToken(),
 		},
-	)); !event.IsInfo() {
-		return event.GetError()
+		Event.Continue,
+		Event.Cancel,
+	)); event.GetAction() == Event.Cancel {
+		return errors.New("broadcast cancelled")
 	}
 
 	for _, websocketConnection := range connections {
-		if websocketConnection.GetId() == "" {
-			event := server.onEvent(Event.NewWarning(
+		if websocketConnection.GetName() == "" {
+			event := server.onEvent(Event.New(
 				Event.SessionNotAccepted,
-				"websocketConnection is not accepted",
-				Event.Cancel,
-				Event.Skip,
-				Event.Continue,
 				Event.Context{
 					Event.Circumstance: Event.Broadcast,
-					Event.SessionId:    websocketConnection.GetId(),
+					Event.SessionId:    websocketConnection.GetName(),
 					Event.Targets:      targetsMarshalled,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
 					Event.SyncToken:    message.GetSyncToken(),
 				},
+				Event.Skip,
+				Event.Continue,
+				Event.Cancel,
 			))
 			if event.IsError() {
 				return event.GetError()

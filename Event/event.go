@@ -9,7 +9,10 @@ import (
 
 type Handler func(*Event)
 
-const DefaultEventHandler = "DefaultEventHandler"
+type Handlers struct {
+	Handlers       map[string]Handler
+	DefaultHandler Handler
+}
 
 const (
 	Continue = int8(0)

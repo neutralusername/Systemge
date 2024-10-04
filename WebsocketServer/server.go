@@ -34,10 +34,10 @@ type WebsocketServer struct {
 	sessionManager *Tools.SessionManager
 	topicManager   *Tools.TopicManager
 
-	eventHandlers map[string]Event.Handler
+	eventHandlers *Event.Handlers
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandlers map[string]Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandlers *Event.Handlers) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -90,20 +90,20 @@ func (server *WebsocketServer) GetSessionId() string {
 
 func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
-	if eventHandler := server.eventHandlers[event.GetEvent()]; eventHandler != nil {
+	if eventHandler := server.eventHandlers.Handlers[event.GetEvent()]; eventHandler != nil {
 		eventHandler(event)
 	}
-	if defaultHandler := server.eventHandlers[Event.DefaultEventHandler]; defaultHandler != nil {
+	if defaultHandler := server.eventHandlers.DefaultHandler; defaultHandler != nil {
 		defaultHandler(event)
 	}
 	return event
 }
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:       Event.WebsocketServer,
-		Event.ServiceName:       server.name,
-		Event.ServiceStatus:     Status.ToString(server.status),
-		Event.Function:          Event.GetCallerFuncName(2),
+		Event.ServiceType:   Event.WebsocketServer,
+		Event.ServiceName:   server.name,
+		Event.ServiceStatus: Status.ToString(server.status),
+		//Event.Function:          Event.GetCallerFuncName(2),
 		Event.ServiceInstanceId: server.instanceId,
 		Event.ServiceSessionId:  server.sessionId,
 	}

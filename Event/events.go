@@ -50,8 +50,14 @@ const WritingMessage = "writingMessage"         // before writing a message
 const WroteMessage = "wroteMessage"             // after writing a message
 const WriteMessageFailed = "writeMessageFailed" // when a write operation returns an error
 
-const SendingMultiMessage = "sendingMultiMessage" // when starting a multi message send operation
-const SentMultiMessage = "sentMultiMessage"       // when finishing a multi message send operation
+const SendingBroadcast = "sendingBroadcast" // before sending a broadcast
+const SentBroadcast = "sentBroadcast"       // after sending a broadcast
+
+const SendingMulticast = "sendingMulticast" // before sending a multicast
+const SentMulticast = "sentMulticast"       // after sending a multicast
+
+const SendingUnicast = "sendingUnicast" // before sending a unicast
+const SentUnicast = "sentUnicast"       // after sending a unicast
 
 const InvalidMessage = "invalidMessage" // when a message is determined to be invalid
 
