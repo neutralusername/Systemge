@@ -50,13 +50,13 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 		return errors.New("broadcast cancelled")
 	}
 
-	for _, websocketConnection := range connections {
-		if websocketConnection.GetName() == "" {
+	for _, websocketClient := range connections {
+		if websocketClient.GetName() == "" {
 			event := server.onEvent(Event.New(
 				Event.SessionNotAccepted,
 				Event.Context{
 					Event.Circumstance: Event.Broadcast,
-					Event.SessionId:    websocketConnection.GetName(),
+					Event.SessionId:    websocketClient.GetName(),
 					Event.Targets:      targetsMarshalled,
 					Event.Topic:        message.GetTopic(),
 					Event.Payload:      message.GetPayload(),
@@ -66,23 +66,22 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 				Event.Continue,
 				Event.Cancel,
 			))
-			if event.IsError() {
-				return event.GetError()
+			if event.GetAction() == Event.Cancel {
+				return errors.New("broadcast cancelled")
 			}
-			if event.IsWarning() {
+			if event.GetAction() == Event.Skip {
 				continue
 			}
 		}
 		waitGroup.AddTask(func() {
-			server.write(websocketConnection, messageBytes, Event.Broadcast)
+			websocketClient.Write(messageBytes)
 		})
 	}
 
 	waitGroup.ExecuteTasksConcurrently()
 
-	server.onEvent(Event.NewInfoNoOption(
-		Event.SentMultiMessage,
-		"broadcasted websocketConnection message",
+	server.onEvent(Event.New(
+		Event.SentBroadcast,
 		Event.Context{
 			Event.Circumstance: Event.Broadcast,
 			Event.Targets:      targetsMarshalled,
@@ -90,6 +89,7 @@ func (server *WebsocketServer) Broadcast(message *Message.Message) error {
 			Event.Payload:      message.GetPayload(),
 			Event.SyncToken:    message.GetSyncToken(),
 		},
+		Event.Continue,
 	))
 	return nil
 }
