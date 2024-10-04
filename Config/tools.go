@@ -77,6 +77,7 @@ type TopicManager struct {
 	ConcurrentCalls    bool   `json:"concurrentCalls"`    // default: false
 	QueueBlocking      bool   `json:"queueBlocking"`      // default: false // if false, will drop calls if queue is full. will wait if true
 	TopicQueueBlocking bool   `json:"topicQueueBlocking"` // default: false // if false, will drop calls if topicQueue is full. will wait if true
+	DeadlineMs         uint64 `json:"deadlineMs"`         // default: 0 == no deadline
 }
 
 func UnmarshalTopicManager(data string) *TopicManager {

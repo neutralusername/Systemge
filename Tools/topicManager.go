@@ -3,6 +3,7 @@ package Tools
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/neutralusername/Systemge/Config"
 )
@@ -110,16 +111,29 @@ func (topicManager *TopicManager) handleCalls() {
 func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler TopicHandler) {
 	for queueStruct := range queue {
 		if topicManager.config.ConcurrentCalls {
-			go func() {
-				response, err := handler(queueStruct.args...)
-				queueStruct.responseAnyChannel <- response
-				queueStruct.responseErrorChannel <- err
-			}()
+			go topicManager.handleCall(queueStruct, handler)
 		} else {
-			response, err := handler(queueStruct.args...)
-			queueStruct.responseAnyChannel <- response
-			queueStruct.responseErrorChannel <- err
+			topicManager.handleCall(queueStruct, handler)
 		}
+	}
+}
+func (topicManager *TopicManager) handleCall(queueStruct *queueStruct, handler TopicHandler) {
+	var deadline <-chan time.Time
+	if topicManager.config.DeadlineMs > 0 {
+		deadline = time.After(time.Duration(topicManager.config.DeadlineMs) * time.Millisecond)
+	}
+	var myCase chan bool = make(chan bool)
+	go func() {
+		response, err := handler(queueStruct.args...)
+		queueStruct.responseAnyChannel <- response
+		queueStruct.responseErrorChannel <- err
+		close(myCase)
+	}()
+	select {
+	case <-deadline:
+		queueStruct.responseAnyChannel <- nil
+		queueStruct.responseErrorChannel <- errors.New("deadline exceeded")
+	case <-myCase:
 	}
 }
 

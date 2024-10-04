@@ -26,8 +26,6 @@ add sync messaging system between websocketServer and its clients
 
 add authentication/key mechanism for listeners
 
-create timeout mechanism for message handlers (abbandon goroutine after x ms and continue)
-
 display error responses somehow on dashboard
 hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
 add status for non-landing pages
@@ -49,10 +47,6 @@ maybe other types of csv files as well (e.g. connects/disconnects, message times
 refactor brokerResolver to use singleRequestServer
 
 update oauth2server (add dashboard client etc.)
-
-(maybe) add onError, onWarning, onInfo functions for systemge structs instead of logging by default
-(maybe) create general error types that can be used to detect and act on specific event (failures).
-(maybe) pass error and string for specific context into this function
 
 update readme
 
