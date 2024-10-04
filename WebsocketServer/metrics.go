@@ -18,6 +18,12 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 			"messages_sent":     server.CheckWebsocketClientMessagesSent(),
 		}),
 	)
+	metricsTypes.AddMetrics("websocketServer_invalidMessages", Metrics.New(
+		map[string]uint64{
+			"invalid_messages_received":  server.CheckWebsocketClientInvalidMessagesReceived(),
+			"rejected_messages_received": server.CheckWebsocketClientRejectedMessagesReceived(),
+		}),
+	)
 	metricsTypes.Merge(server.websocketListener.CheckMetrics())
 	return metricsTypes
 }
@@ -34,6 +40,12 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 		map[string]uint64{
 			"messages_received": uint64(server.GetWebsocketClientMessagesReceived()),
 			"messages_sent":     uint64(server.GetWebsocketClientMessagesSent()),
+		}),
+	)
+	metricsTypes.AddMetrics("websocketServer_invalidMessages", Metrics.New(
+		map[string]uint64{
+			"invalid_messages_received":  uint64(server.GetWebsocketClientInvalidMessagesReceived()),
+			"rejected_messages_received": uint64(server.GetWebsocketClientRejectedMessagesReceived()),
 		}),
 	)
 	metricsTypes.Merge(server.websocketListener.GetMetrics())

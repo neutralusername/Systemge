@@ -87,6 +87,76 @@ func (connection *WebsocketClient) RetrieveNextMessage(waitDurationMs uint64) (*
 	}
 }
 
+/*
+func (server *WebsocketServer) toTopicHandler(handler WebsocketClient.WebsocketMessageHandler) Tools.TopicHandler {
+	return func(args ...any) (any, error) {
+		websocketConnection := args[0].(*WebsocketClient.WebsocketClient)
+		message := args[1].(*Message.Message)
+
+		if server.eventHandler != nil {
+			if event := server.onEvent(Event.NewInfo(
+				Event.HandlingMessage,
+				"handling websocketConnection message",
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance: Event.HandleMessage,
+					Event.Identity:     websocketConnection.GetName(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				return nil, errors.New("event cancelled")
+			}
+		}
+
+		err := handler(websocketConnection, message)
+		if err != nil {
+			if server.eventHandler != nil {
+				server.onEvent(Event.NewWarningNoOption(
+					Event.HandleMessageFailed,
+					err.Error(),
+					Event.Context{
+						Event.Circumstance: Event.HandleMessage,
+						Event.Identity:     websocketConnection.GetName(),
+						Event.Address:      websocketConnection.GetAddress(),
+						Event.Topic:        message.GetTopic(),
+						Event.Payload:      message.GetPayload(),
+						Event.SyncToken:    message.GetSyncToken(),
+					},
+				))
+			}
+			return nil, err
+		}
+
+		if server.eventHandler != nil {
+			server.onEvent(Event.NewInfoNoOption(
+				Event.HandledMessage,
+				"handled websocketConnection message",
+				Event.Context{
+					Event.Circumstance: Event.HandleMessage,
+					Event.Identity:     websocketConnection.GetName(),
+					Event.Address:      websocketConnection.GetAddress(),
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			))
+		}
+
+		return nil, nil
+	}
+}
+
+		topicHandlers := make(Tools.TopicHandlers)
+	   	for topic, handler := range messageHandlers {
+	   		topicHandlers[topic] = server.toTopicHandler(handler)
+	   	}
+	   	server.topicManager = Tools.NewTopicManager(config.TopicManagerConfig, topicHandlers, nil) */
+
 // A started loop will run until stopChannel receives a value (or is closed) or connection.GetNextMessage returns an error.
 // errorChannel will send all errors that occur during message processing.
 func (connection *WebsocketClient) StartMessageHandlingLoop(topicManager *Tools.TopicManager, sequentially bool) error {
