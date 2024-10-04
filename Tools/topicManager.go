@@ -32,7 +32,7 @@ type queueStruct struct {
 	responseErrorChannel chan error
 }
 
-// modes: (l == large enough to never be full)
+// modes: (l == large enough to never be full (depends on how many calls are made/how long they take to process))
 // topicQueueSize: 0, queueSize: l concurrentCalls: false -> "sequential"
 // topicQueueSize: l, queueSize: l concurrentCalls: false -> "topic exclusive"
 // topicQueueSize: 0|l, queueSize: 0|l concurrentCalls: true -> "concurrent"
