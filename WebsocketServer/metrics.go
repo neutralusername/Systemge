@@ -40,18 +40,6 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-/*
-
-	bytesSent     atomic.Uint64
-	bytesReceived atomic.Uint64
-
-	messagesSent     atomic.Uint64
-	messagesReceived atomic.Uint64
-
-	invalidMessagesReceived  atomic.Uint64
-	rejectedMessagesReceived atomic.Uint64
-*/
-
 func (server *WebsocketServer) GetWebsocketConnectionMessagesBytesSent() uint64 {
 	websocketClients := server.GetWebsocketClients()
 	var bytesSent uint64
