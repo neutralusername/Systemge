@@ -119,7 +119,6 @@ func (topicManager *TopicManager) handleTopic(queue chan *queueStruct, handler T
 }
 func (topicManager *TopicManager) handleCall(queueStruct *queueStruct, handler TopicHandler) {
 	if topicManager.config.DeadlineMs > 0 {
-		deadline := time.After(time.Duration(topicManager.config.DeadlineMs) * time.Millisecond)
 		var myCase chan bool = make(chan bool)
 		go func() {
 			response, err := handler(queueStruct.args...)
@@ -127,11 +126,8 @@ func (topicManager *TopicManager) handleCall(queueStruct *queueStruct, handler T
 			queueStruct.responseErrorChannel <- err
 			close(myCase)
 		}()
-		if topicManager.config.DeadlineMs > 0 {
-			deadline = time.After(time.Duration(topicManager.config.DeadlineMs) * time.Millisecond)
-		}
 		select {
-		case <-deadline:
+		case <-time.After(time.Duration(topicManager.config.DeadlineMs) * time.Millisecond):
 			queueStruct.responseAnyChannel <- nil
 			queueStruct.responseErrorChannel <- errors.New("deadline exceeded")
 		case <-myCase:
