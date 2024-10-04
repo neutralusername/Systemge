@@ -48,7 +48,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["sendMessage"] = func(args []string) (string, error) {
+	commands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("invalid number of arguments")
 		}
