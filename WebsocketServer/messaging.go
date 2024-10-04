@@ -10,11 +10,15 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) AsyncMessage(message *Message.Message, ids ...string) error {
+func (server *WebsocketServer) SyncRequest(topic, payload string, ids ...string) (<-chan *Message.Message, error) {
+
+}
+
+func (server *WebsocketServer) AsyncMessage(topic, payload string, ids ...string) error {
 	if len(ids) == 0 {
-		return server.broadcast(message)
+		return server.broadcast(Message.NewAsync(topic, payload))
 	}
-	return server.multicast(ids, message)
+	return server.multicast(ids, Message.NewAsync(topic, payload))
 }
 
 // Broadcast broadcasts a message to all connected clients.
