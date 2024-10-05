@@ -13,7 +13,9 @@ type TokenSemaphore struct {
 	tokenAlphabet   string
 }
 
-func NewTokenSemaphore(tokens []string) *TokenSemaphore {
+// always uses the provided tokens. If the pool is empty, it will block until a token is available.
+// tokens can be returned manually or automatically after a deadline.
+func NewTokenSemaphore(tokens []string, deadlineMs uint32) *TokenSemaphore {
 	tokenSemaphore := &TokenSemaphore{
 		acquiredTokens:  make(map[string]bool),
 		tokenSize:       tokenSize,
