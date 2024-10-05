@@ -66,10 +66,8 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 				defer queue.mutex.Unlock()
 				select {
 				case <-item.isRetrievedChannel:
-					return
 				default:
 					queue.removeItem(item)
-					return
 				}
 			case <-item.isRetrievedChannel:
 			}
