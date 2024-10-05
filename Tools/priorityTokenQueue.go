@@ -64,13 +64,13 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 				select {
 				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
 					queue.mutex.Lock()
+					defer queue.mutex.Unlock()
 					select {
 					case <-item.isRetrievedChannel:
-						queue.mutex.Unlock()
 						return
 					default:
 						queue.removeItem(item)
-						queue.mutex.Unlock()
+						return
 					}
 				case <-item.isRetrievedChannel:
 				}
