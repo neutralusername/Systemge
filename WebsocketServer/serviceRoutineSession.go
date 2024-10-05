@@ -34,7 +34,6 @@ func (server *WebsocketServer) sessionRoutine() {
 	}
 
 	for {
-
 		websocketClient, err := server.websocketListener.AcceptClient(server.config.WebsocketClientConfig, server.eventHandler)
 		if err != nil {
 			websocketClient.Close()
