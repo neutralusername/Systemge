@@ -46,6 +46,7 @@ func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 
 // ReturnToken returns a token to the pool.
 // If the token is not valid, it will return an error.
+// replacementToken must be either same as token or a new token.
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string, replacementToken string) error {
 	if tokenSemaphore.tokens[token] {
 		return errors.New("token is not acquired")
