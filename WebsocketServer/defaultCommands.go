@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -55,7 +54,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		topic := args[0]
 		payload := args[1]
 		ids := args[2:]
-		err := server.AsyncMessage(Message.NewAsync(topic, payload), ids...)
+		err := server.AsyncMessage(topic, payload, ids...)
 		if err != nil {
 			return "", err
 		}
