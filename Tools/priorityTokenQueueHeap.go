@@ -24,6 +24,14 @@ type priorityTokenQueueItem struct {
 
 type priorityQueue []*priorityTokenQueueItem
 
+func NewPriorityTokenQueue() *PriorityTokenQueue {
+	queue := &PriorityTokenQueue{
+		items: make(map[string]*priorityTokenQueueItem),
+	}
+	heap.Init(&queue.priorityQueue)
+	return queue
+}
+
 func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, deadlineMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -113,13 +121,14 @@ func (pq *priorityQueue) Pop() any {
 	return item
 }
 
+/*
 func (pq *priorityQueue) update(item *priorityTokenQueueItem, value string, priority uint32) {
 	item.value = value
 	item.priority = priority
 	heap.Fix(pq, item.index)
 }
 
-/*
+
 // This example creates a PriorityQueue with some items, adds and manipulates an item,
 // and then removes the items in priority order.
 func main() {
