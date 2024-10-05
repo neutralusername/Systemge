@@ -4,3 +4,4 @@ package Tools
 // unresolved: access control based on remaining space in the buffered channel / reconcile this with the life-cycle of the connection(tcp or ws)
 // unresolved: generalized mechanism to automatically handle the messages (topic-handler, probably through a provided any-func that bridges both tools)
 // unresolved: automated sync response handling (even without automated handling of the messages ?)
+// unresolved: (maybe) implement it in a way in which it does not explicitly use messages, but rather any
