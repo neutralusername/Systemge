@@ -3,13 +3,12 @@ package Tools
 import (
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/neutralusername/Systemge/Message"
 )
 
-type SyncRequests struct {
-	syncRequests    map[string]*syncRequest
+type SyncManager struct {
+	syncRequests    map[string]*SyncRequest
 	mutex           sync.Mutex
 	randomizer      *Randomizer
 	closeChannel    chan bool
@@ -17,14 +16,14 @@ type SyncRequests struct {
 	syncTokenLength uint32
 }
 
-type syncRequest struct {
+type SyncRequest struct {
 	responseChannel chan *Message.Message
 	abortChannel    chan bool
 	responseLimit   uint64
 	responseCount   uint64
 }
 
-func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (string, <-chan *Message.Message) {
+func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64) (string, *SyncRequest) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -35,41 +34,17 @@ func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (str
 	for _, ok := syncRequests.syncRequests[syncToken]; ok; {
 		syncToken = syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, ALPHA_NUMERIC)
 	}
-	syncRequestStruct := &syncRequest{
+	syncRequestStruct := &SyncRequest{
 		responseChannel: make(chan *Message.Message, responseLimit),
 		abortChannel:    make(chan bool),
 		responseLimit:   responseLimit,
 	}
 	syncRequests.syncRequests[syncToken] = syncRequestStruct
 
-	var timeout <-chan time.Time
-	if syncRequests.deadlineMs > 0 {
-		timeout = time.After(time.Duration(syncRequests.deadlineMs) * time.Millisecond)
-	}
-	resChan := make(chan *Message.Message, responseLimit)
-	go func() {
-		select {
-		case responseMessage := <-syncRequestStruct.responseChannel:
-			resChan <- responseMessage
-			close(resChan)
-
-		case <-syncRequestStruct.abortChannel:
-			close(resChan)
-
-		case <-syncRequests.closeChannel:
-			syncRequests.removeSyncRequest(syncToken)
-			close(resChan)
-
-		case <-timeout:
-			syncRequests.removeSyncRequest(syncToken)
-			close(resChan)
-		}
-	}()
-
-	return syncToken, resChan
+	return syncToken, syncRequestStruct
 }
 
-func (syncRequests *SyncRequests) AddSyncResponse(message *Message.Message) error {
+func (syncRequests *SyncManager) AddSyncResponse(message *Message.Message) error {
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
 
@@ -88,7 +63,7 @@ func (syncRequests *SyncRequests) AddSyncResponse(message *Message.Message) erro
 	return nil
 }
 
-func (syncRequests *SyncRequests) AbortSyncRequest(syncToken string) error {
+func (syncRequests *SyncManager) AbortSyncRequest(syncToken string) error {
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
 
@@ -103,7 +78,7 @@ func (syncRequests *SyncRequests) AbortSyncRequest(syncToken string) error {
 	return nil
 }
 
-func (syncRequests *SyncRequests) removeSyncRequest(syncToken string) error {
+func (syncRequests *SyncManager) removeSyncRequest(syncToken string) error {
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
 
@@ -117,7 +92,7 @@ func (syncRequests *SyncRequests) removeSyncRequest(syncToken string) error {
 }
 
 // returns a slice of syncTokens of open sync requests
-func (syncRequests *SyncRequests) GetOpenSyncRequests() []string {
+func (syncRequests *SyncManager) GetOpenSyncRequests() []string {
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
 	syncTokens := make([]string, 0, len(syncRequests.syncRequests))
