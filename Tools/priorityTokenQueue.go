@@ -60,20 +60,18 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 
 	if deadlineMs > 0 {
 		go func() {
-			for {
+			select {
+			case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
+				queue.mutex.Lock()
+				defer queue.mutex.Unlock()
 				select {
-				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
-					queue.mutex.Lock()
-					defer queue.mutex.Unlock()
-					select {
-					case <-item.isRetrievedChannel:
-						return
-					default:
-						queue.removeItem(item)
-						return
-					}
 				case <-item.isRetrievedChannel:
+					return
+				default:
+					queue.removeItem(item)
+					return
 				}
+			case <-item.isRetrievedChannel:
 			}
 		}()
 	}
