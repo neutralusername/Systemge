@@ -12,7 +12,6 @@ type SyncManager struct {
 	syncRequests    map[string]*SyncRequest
 	mutex           sync.Mutex
 	randomizer      *Randomizer
-	closeChannel    chan bool
 	syncTokenLength uint32
 }
 
@@ -43,12 +42,10 @@ func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadl
 
 	if deadlineMs > 0 {
 		go func() {
-			deadline := time.After(time.Duration(deadlineMs) * time.Millisecond)
 			select {
-			case <-deadline:
+			case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
 				syncRequests.AbortSyncRequest(syncToken)
 			case <-syncRequestStruct.abortChannel:
-			case <-syncRequests.closeChannel:
 			}
 		}()
 	}
