@@ -5,3 +5,5 @@ package Tools
 // unresolved: generalized mechanism to automatically handle the messages (topic-handler, probably through a provided any-func that bridges both tools)
 // unresolved: automated sync response handling (even without automated handling of the messages ?)
 // unresolved: (maybe) implement it in a way in which it does not explicitly use messages, but rather any
+
+// maybe make two separate tools - queue and automated handling with this queue
