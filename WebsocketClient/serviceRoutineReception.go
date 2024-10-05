@@ -10,27 +10,29 @@ import (
 
 func (connection *WebsocketClient) receptionRoutine() {
 	defer func() {
-		connection.onEvent(Event.NewInfoNoOption(
-			Event.MessageReceptionRoutineFinished,
-			"stopped message reception",
-			Event.Context{
-				Event.Circumstance: Event.MessageReceptionRoutine,
-			},
-		))
+		if connection.eventHandler != nil {
+			connection.onEvent(Event.New(
+				Event.MessageReceptionRoutineFinished,
+				Event.Context{
+					Event.Circumstance: Event.MessageReceptionRoutine,
+				},
+				Event.Continue,
+			))
+		}
 		connection.waitGroup.Done()
 	}()
 
-	if event := connection.onEvent(Event.NewInfo(
-		Event.MessageReceptionRoutineBegins,
-		"started message reception",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.MessageReceptionRoutine,
-		},
-	)); !event.IsInfo() {
-		return
+	if connection.eventHandler != nil {
+		if event := connection.onEvent(Event.New(
+			Event.MessageReceptionRoutineBegins,
+			Event.Context{
+				Event.Circumstance: Event.MessageReceptionRoutine,
+			},
+			Event.Continue,
+			Event.Cancel,
+		)); event.GetAction() == Event.Cancel {
+			return
+		}
 	}
 
 	for err := connection.receiveMessage(); err == nil; {
@@ -42,85 +44,95 @@ func (connection *WebsocketClient) receiveMessage() error {
 	case <-connection.closeChannel:
 		return errors.New("connection closed")
 	case <-connection.messageChannelSemaphore.GetChannel():
-		if event := connection.onEvent(Event.NewInfo(
-			Event.ReadingMessage,
-			"receiving message",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.MessageReceptionRoutine,
-			}),
-		); !event.IsInfo() {
-			return event.GetError()
+
+		if connection.eventHandler != nil {
+			if event := connection.onEvent(Event.New(
+				Event.ReadingMessage,
+				Event.Context{
+					Event.Circumstance: Event.MessageReceptionRoutine,
+				},
+				Event.Continue,
+				Event.Cancel,
+			)); event.GetAction() == Event.Cancel {
+				connection.messageChannelSemaphore.ReleaseBlocking()
+				return errors.New("connection closed")
+			}
 		}
+
 		connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(connection.config.ReadDeadlineMs) * time.Millisecond))
 		_, messageBytes, err := connection.websocketConn.ReadMessage()
 		if err != nil {
-			connection.onEvent(Event.NewWarningNoOption(
-				Event.ReadMessageFailed,
-				err.Error(),
-				Event.Context{
-					Event.Circumstance: Event.MessageReceptionRoutine,
-				}),
-			)
+			if connection.eventHandler != nil {
+				connection.onEvent(Event.New(
+					Event.ReadMessageFailed,
+					Event.Context{
+						Event.Circumstance: Event.MessageReceptionRoutine,
+						Event.Error:        err.Error(),
+					},
+					Event.Continue,
+				))
+			}
 			connection.Close()
+			connection.messageChannelSemaphore.ReleaseBlocking()
 			return errors.New("connection closed")
 		}
 		connection.bytesReceived.Add(uint64(len(messageBytes)))
 
-		if event := connection.onEvent(Event.NewInfo(
-			Event.ReadMessage,
-			"received message",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.MessageReceptionRoutine,
-				Event.Bytes:        string(messageBytes),
-			}),
-		); !event.IsInfo() {
-			connection.rejectedMessagesReceived.Add(1)
-			return event.GetError()
+		if connection.eventHandler != nil {
+			if event := connection.onEvent(Event.New(
+				Event.ReadMessage,
+				Event.Context{
+					Event.Circumstance: Event.MessageReceptionRoutine,
+					Event.Bytes:        string(messageBytes),
+				},
+				Event.Continue,
+				Event.Cancel,
+			)); event.GetAction() == Event.Cancel {
+				connection.rejectedMessagesReceived.Add(1)
+				connection.messageChannelSemaphore.ReleaseBlocking()
+				return errors.New("connection closed")
+			}
 		}
 		connection.messagesReceived.Add(1)
 
 		if connection.config.HandleMessageReceptionSequentially {
 			if err := connection.handleMessageReception(messageBytes, Event.Sequential); err != nil {
-				if event := connection.onEvent(Event.NewInfo(
-					Event.HandleReceptionFailed,
-					err.Error(),
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
-					Event.Context{
-						Event.Circumstance: Event.MessageReceptionRoutine,
-						Event.Behaviour:    Event.Sequential,
-					},
-				)); !event.IsInfo() {
-					connection.Close()
-				} else {
-					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
+				if connection.eventHandler != nil {
+					if event := connection.onEvent(Event.New(
+						Event.HandleReceptionFailed,
+						Event.Context{
+							Event.Circumstance: Event.MessageReceptionRoutine,
+							Event.Behaviour:    Event.Sequential,
+							Event.Error:        err.Error(),
+						},
+						Event.Continue,
+						Event.Cancel,
+					)); event.GetAction() == Event.Cancel {
+						connection.Close()
+						return errors.New("connection closed")
+					}
 				}
+				connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
 			}
 		} else {
 			go func() {
 				if err := connection.handleMessageReception(messageBytes, Event.Concurrent); err != nil {
-					if event := connection.onEvent(Event.NewInfo(
-						Event.HandleReceptionFailed,
-						err.Error(),
-						Event.Cancel,
-						Event.Cancel,
-						Event.Continue,
-						Event.Context{
-							Event.Circumstance: Event.MessageReceptionRoutine,
-							Event.Behaviour:    Event.Concurrent,
-						},
-					)); !event.IsInfo() {
-						connection.Close()
-					} else {
-						connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
+					if connection.eventHandler != nil {
+						if event := connection.onEvent(Event.New(
+							Event.HandleReceptionFailed,
+							Event.Context{
+								Event.Circumstance: Event.MessageReceptionRoutine,
+								Event.Behaviour:    Event.Concurrent,
+								Event.Error:        err.Error(),
+							},
+							Event.Continue,
+							Event.Cancel,
+						)); event.GetAction() == Event.Cancel {
+							connection.Close()
+							return
+						}
 					}
+					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
 				}
 			}()
 		}
