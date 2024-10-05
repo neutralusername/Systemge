@@ -4,8 +4,6 @@ import (
 	"errors"
 	"sync"
 	"time"
-
-	"github.com/neutralusername/Systemge/Message"
 )
 
 type SyncRequestManager struct {
@@ -17,7 +15,7 @@ type SyncRequestManager struct {
 
 type SyncRequest struct {
 	token           string
-	responseChannel chan *Message.Message
+	responseChannel chan any
 	abortChannel    chan bool
 	responseLimit   uint64
 	responseCount   uint64
@@ -27,10 +25,10 @@ func (request *SyncRequest) GetToken() string {
 	return request.token
 }
 
-func (request *SyncRequest) GetResponseChannel() <-chan *Message.Message {
+func (request *SyncRequest) GetResponseChannel() <-chan any {
 	return request.responseChannel
 }
-func (request *SyncRequest) GetNextResponse() (*Message.Message, error) {
+func (request *SyncRequest) GetNextResponse() (any, error) {
 	response, ok := <-request.responseChannel
 	if !ok {
 		return nil, errors.New("response channel closed")
@@ -59,7 +57,7 @@ func (manager *SyncRequestManager) NewRequest(responseLimit uint64, deadlineMs u
 	}
 	syncRequest := &SyncRequest{
 		token:           token,
-		responseChannel: make(chan *Message.Message, responseLimit),
+		responseChannel: make(chan any, responseLimit),
 		abortChannel:    make(chan bool),
 		responseLimit:   responseLimit,
 		responseCount:   0,
@@ -79,21 +77,21 @@ func (manager *SyncRequestManager) NewRequest(responseLimit uint64, deadlineMs u
 	return syncRequest
 }
 
-func (manager *SyncRequestManager) AddResponse(message *Message.Message) error {
+func (manager *SyncRequestManager) AddResponse(token string, response any) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
-	syncRequest, ok := manager.requests[message.GetSyncToken()]
+	syncRequest, ok := manager.requests[token]
 	if !ok {
 		return errors.New("no active sync request for token")
 	}
 
-	syncRequest.responseChannel <- message
+	syncRequest.responseChannel <- response
 	syncRequest.responseCount++
 
 	if syncRequest.responseCount >= syncRequest.responseLimit {
 		close(syncRequest.responseChannel)
-		delete(manager.requests, message.GetSyncToken())
+		delete(manager.requests, token)
 	}
 
 	return nil
