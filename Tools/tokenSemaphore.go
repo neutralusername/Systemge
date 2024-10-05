@@ -13,14 +13,19 @@ type TokenSemaphore struct {
 	tokenSize      uint32
 }
 
-func NewTokenSemaphore(poolSize int, tokenSize uint32, randomizerSeed int64) *TokenSemaphore {
+func NewTokenSemaphore(poolSize uint32, tokenSize uint32, randomizerSeed int64) *TokenSemaphore {
 	if poolSize <= 0 {
 		panic("Pool size must be greater than 0")
 	}
 	randomizer := NewRandomizer(randomizerSeed)
 	tokens := make([]string, poolSize)
-	for i := 0; i < poolSize; i++ {
+	i := uint32(0)
+	for {
+		if i >= poolSize {
+			break
+		}
 		tokens[i] = randomizer.GenerateRandomString(tokenSize, ALPHA_NUMERIC)
+		i++
 	}
 	channel := make(chan string, poolSize)
 	for _, token := range tokens {
