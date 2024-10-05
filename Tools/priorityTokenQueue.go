@@ -53,7 +53,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 			for {
 				select {
 				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
-					queue.RetrieveItem(token)
+					queue.GetItemByToken(token)
 					return
 				case <-item.retrieved:
 					return
@@ -64,7 +64,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 	return nil
 }
 
-func (queue *PriorityTokenQueue) RetrieveItem(token string) (any, error) {
+func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -78,7 +78,7 @@ func (queue *PriorityTokenQueue) RetrieveItem(token string) (any, error) {
 	return item.value, nil
 }
 
-func (queue *PriorityTokenQueue) RetrieveNextItem() (any, error) {
+func (queue *PriorityTokenQueue) GetNextItem() (any, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -90,6 +90,8 @@ func (queue *PriorityTokenQueue) RetrieveNextItem() (any, error) {
 	delete(queue.items, item.token)
 	return item.value, nil
 }
+
+type PriorityQueue []*priorityTokenQueueItem
 
 func (pq PriorityQueue) Len() int {
 	return len(pq)
@@ -121,5 +123,3 @@ func (pq *PriorityQueue) Pop() any {
 	*pq = old[0 : n-1]
 	return item
 }
-
-type PriorityQueue []*priorityTokenQueueItem
