@@ -8,9 +8,9 @@ import (
 )
 
 type PriorityTokenQueue struct {
-	items map[string]*priorityTokenQueueItem
-	mutex sync.Mutex
-	queue []*priorityTokenQueueItem
+	items         map[string]*priorityTokenQueueItem
+	mutex         sync.Mutex
+	priorityQueue priorityQueue
 }
 
 type priorityTokenQueueItem struct {
@@ -22,36 +22,7 @@ type priorityTokenQueueItem struct {
 	index     int
 }
 
-func (queue *PriorityTokenQueue) Len() int {
-	return len(queue.queue)
-}
-
-func (queue *PriorityTokenQueue) Less(i, j int) bool {
-	return queue.queue[i].priority > queue.queue[j].priority
-}
-
-func (queue *PriorityTokenQueue) Swap(i, j int) {
-	queue.queue[i], queue.queue[j] = queue.queue[j], queue.queue[i]
-	queue.queue[i].index = i
-	queue.queue[j].index = j
-}
-
-func (queue *PriorityTokenQueue) Push(x any) {
-	n := len(queue.queue)
-	item := x.(*priorityTokenQueueItem)
-	item.index = n
-	queue.queue = append(queue.queue, item)
-}
-
-func (queue *PriorityTokenQueue) Pop() any {
-	old := queue.queue
-	n := len(old)
-	item := old[n-1]
-	old[n-1] = nil
-	item.index = -1
-	queue.queue = old[0 : n-1]
-	return item
-}
+type priorityQueue []*priorityTokenQueueItem
 
 func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, deadlineMs uint64) error {
 	queue.mutex.Lock()
@@ -68,7 +39,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 		retrieved: make(chan struct{}),
 	}
 	queue.items[item.token] = item
-	heap.Push(queue, item)
+	heap.Push(&queue.priorityQueue, item)
 
 	if deadlineMs > 0 {
 		go func() {
@@ -96,7 +67,7 @@ func (queue *PriorityTokenQueue) RetrieveItem(token string) (any, error) {
 	}
 	close(item.retrieved)
 	delete(queue.items, token)
-	heap.Remove(queue, item.index)
+	heap.Remove(&queue.priorityQueue, item.index)
 	return item.value, nil
 }
 
@@ -104,11 +75,85 @@ func (queue *PriorityTokenQueue) RetrieveNextItem() (any, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
-	if len(queue.queue) == 0 {
+	if len(queue.priorityQueue) == 0 {
 		return nil, errors.New("queue is empty")
 	}
-	item := heap.Pop(queue).(*priorityTokenQueueItem)
+	item := heap.Pop(&queue.priorityQueue).(*priorityTokenQueueItem)
 	close(item.retrieved)
 	delete(queue.items, item.token)
 	return item.value, nil
 }
+
+func (pq priorityQueue) Len() int { return len(pq) }
+
+func (pq priorityQueue) Less(i, j int) bool {
+	return pq[i].priority > pq[j].priority
+}
+
+func (pq priorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
+}
+
+func (pq *priorityQueue) Push(x any) {
+	n := len(*pq)
+	item := x.(*priorityTokenQueueItem)
+	item.index = n
+	*pq = append(*pq, item)
+}
+
+func (pq *priorityQueue) Pop() any {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil
+	item.index = -1
+	*pq = old[0 : n-1]
+	return item
+}
+
+func (pq *priorityQueue) update(item *priorityTokenQueueItem, value string, priority uint32) {
+	item.value = value
+	item.priority = priority
+	heap.Fix(pq, item.index)
+}
+
+/*
+// This example creates a PriorityQueue with some items, adds and manipulates an item,
+// and then removes the items in priority order.
+func main() {
+	// Some items and their priorities.
+	items := map[string]int{
+		"banana": 3, "apple": 2, "pear": 4,
+	}
+
+	// Create a priority queue, put the items in it, and
+	// establish the priority queue (heap) invariants.
+	pq := make(PriorityQueue, len(items))
+	i := 0
+	for value, priority := range items {
+		pq[i] = &Item{
+			value:    value,
+			priority: priority,
+			index:    i,
+		}
+		i++
+	}
+	heap.Init(&pq)
+
+	// Insert a new item and then modify its priority.
+	item := &Item{
+		value:    "orange",
+		priority: 1,
+	}
+	heap.Push(&pq, item)
+	pq.update(item, item.value, 5)
+
+	// Take the items out; they arrive in decreasing priority order.
+	for pq.Len() > 0 {
+		item := heap.Pop(&pq).(*Item)
+		fmt.Printf("%.2d:%s ", item.priority, item.value)
+	}
+}
+*/
