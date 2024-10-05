@@ -57,7 +57,7 @@ func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) 
 		}()
 	}
 
-	return syncRequest
+	return syncRequest, nil
 }
 
 func (manager *SyncManager) AddResponse(token string, response any) error {
