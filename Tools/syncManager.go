@@ -23,6 +23,29 @@ type SyncRequest struct {
 	responseCount   uint64
 }
 
+func (syncRequest *SyncRequest) GetToken() string {
+	return syncRequest.token
+}
+
+func (syncRequest *SyncRequest) GetResponseChannel() <-chan *Message.Message {
+	return syncRequest.responseChannel
+}
+func (syncRequest *SyncRequest) GetNextResponse() (*Message.Message, error) {
+	response, ok := <-syncRequest.responseChannel
+	if !ok {
+		return nil, errors.New("response channel closed")
+	}
+	return response, nil
+}
+
+func NewSyncManager(syncTokenLength uint32, randomizerSeed int64) *SyncManager {
+	return &SyncManager{
+		syncRequests:    make(map[string]*SyncRequest),
+		randomizer:      NewRandomizer(randomizerSeed),
+		syncTokenLength: syncTokenLength,
+	}
+}
+
 func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadlineMs uint64) *SyncRequest {
 	if responseLimit == 0 {
 		responseLimit = 1
