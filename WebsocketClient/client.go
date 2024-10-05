@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -25,13 +24,7 @@ type WebsocketClient struct {
 
 	sendMutex sync.Mutex
 
-	syncManager        *Tools.SyncManager
-	priorityTokenQueue *Tools.PriorityTokenQueue
-
-	messageHandlingLoopStopChannel chan<- bool
-	messageMutex                   sync.Mutex
-	messageChannel                 chan *Message.Message
-	messageChannelSemaphore        *Tools.Semaphore
+	syncManager *Tools.SyncManager
 
 	byteRateLimiter    *Tools.TokenBucketRateLimiter
 	messageRateLimiter *Tools.TokenBucketRateLimiter
@@ -59,15 +52,12 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 	}
 
 	connection := &WebsocketClient{
-		name:                    name,
-		config:                  config,
-		websocketConn:           websocketConn,
-		closeChannel:            make(chan bool),
-		priorityTokenQueue:      Tools.NewPriorityTokenQueue(nil),
-		messageChannel:          make(chan *Message.Message, config.MessageChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
-		messageChannelSemaphore: Tools.NewSemaphore(config.MessageChannelCapacity+1, config.MessageChannelCapacity+1),
-		eventHandler:            eventHandler,
-		syncManager:             Tools.NewSyncManager(config.SyncManagerConfig),
+		name:          name,
+		config:        config,
+		websocketConn: websocketConn,
+		closeChannel:  make(chan bool),
+		eventHandler:  eventHandler,
+		syncManager:   Tools.NewSyncManager(config.SyncManagerConfig),
 	}
 	if config.RateLimiterBytes != nil {
 		connection.byteRateLimiter = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
@@ -78,7 +68,6 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
 
 	connection.waitGroup.Add(1)
-	go connection.receptionRoutine()
 	return connection, nil
 }
 
@@ -127,7 +116,6 @@ func (connection *WebsocketClient) Close() error {
 		connection.messageRateLimiter.Close()
 		connection.messageRateLimiter = nil
 	}
-	close(connection.messageChannel)
 
 	if connection.eventHandler != nil {
 		connection.onEvent(Event.New(

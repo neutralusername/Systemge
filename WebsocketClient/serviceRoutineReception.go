@@ -8,139 +8,74 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-func (connection *WebsocketClient) receptionRoutine() {
-	defer func() {
-		if connection.eventHandler != nil {
-			connection.onEvent(Event.New(
-				Event.MessageReceptionRoutineFinished,
-				Event.Context{
-					Event.Circumstance: Event.MessageReceptionRoutine,
-				},
-				Event.Continue,
-			))
-		}
-		connection.waitGroup.Done()
-	}()
-
+func (connection *WebsocketClient) Read() (*Message.Message, error) {
 	if connection.eventHandler != nil {
 		if event := connection.onEvent(Event.New(
-			Event.MessageReceptionRoutineBegins,
+			Event.ReadingMessage,
 			Event.Context{
 				Event.Circumstance: Event.MessageReceptionRoutine,
 			},
 			Event.Continue,
 			Event.Cancel,
 		)); event.GetAction() == Event.Cancel {
-			return
+			return nil, errors.New("connection closed")
 		}
 	}
 
-	for err := connection.receiveMessage(); err == nil; {
-	}
-}
-
-func (connection *WebsocketClient) receiveMessage() error {
-	select {
-	case <-connection.closeChannel:
-		return errors.New("connection closed")
-	case <-connection.messageChannelSemaphore.GetChannel():
-
+	connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(connection.config.ReadDeadlineMs) * time.Millisecond))
+	_, messageBytes, err := connection.websocketConn.ReadMessage()
+	if err != nil {
 		if connection.eventHandler != nil {
-			if event := connection.onEvent(Event.New(
-				Event.ReadingMessage,
+			connection.onEvent(Event.New(
+				Event.ReadMessageFailed,
 				Event.Context{
 					Event.Circumstance: Event.MessageReceptionRoutine,
+					Event.Error:        err.Error(),
 				},
 				Event.Continue,
-				Event.Cancel,
-			)); event.GetAction() == Event.Cancel {
-				connection.messageChannelSemaphore.ReleaseBlocking()
-				return errors.New("connection closed")
-			}
+			))
 		}
+		connection.Close()
+		return nil, err
+	}
+	connection.bytesReceived.Add(uint64(len(messageBytes)))
 
-		connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(connection.config.ReadDeadlineMs) * time.Millisecond))
-		_, messageBytes, err := connection.websocketConn.ReadMessage()
-		if err != nil {
-			if connection.eventHandler != nil {
-				connection.onEvent(Event.New(
-					Event.ReadMessageFailed,
-					Event.Context{
-						Event.Circumstance: Event.MessageReceptionRoutine,
-						Event.Error:        err.Error(),
-					},
-					Event.Continue,
-				))
-			}
-			connection.Close()
-			connection.messageChannelSemaphore.ReleaseBlocking()
-			return errors.New("connection closed")
+	if connection.eventHandler != nil {
+		if event := connection.onEvent(Event.New(
+			Event.ReadMessage,
+			Event.Context{
+				Event.Circumstance: Event.MessageReceptionRoutine,
+				Event.Bytes:        string(messageBytes),
+			},
+			Event.Continue,
+			Event.Cancel,
+		)); event.GetAction() == Event.Cancel {
+			connection.rejectedMessagesReceived.Add(1)
+			return nil, errors.New("read canceled")
 		}
-		connection.bytesReceived.Add(uint64(len(messageBytes)))
+	}
+	connection.messagesReceived.Add(1)
 
+	message, err := connection.handleMessageReception(messageBytes, Event.Sequential)
+	if err != nil {
 		if connection.eventHandler != nil {
-			if event := connection.onEvent(Event.New(
-				Event.ReadMessage,
+			connection.onEvent(Event.New(
+				Event.HandleReceptionFailed,
 				Event.Context{
 					Event.Circumstance: Event.MessageReceptionRoutine,
-					Event.Bytes:        string(messageBytes),
+					Event.Behaviour:    Event.Sequential,
+					Event.Error:        err.Error(),
 				},
 				Event.Continue,
-				Event.Cancel,
-			)); event.GetAction() == Event.Cancel {
-				connection.rejectedMessagesReceived.Add(1)
-				connection.messageChannelSemaphore.ReleaseBlocking()
-				return errors.New("connection closed")
-			}
+			))
 		}
-		connection.messagesReceived.Add(1)
-
-		if connection.config.HandleMessageReceptionSequentially {
-			if err := connection.handleMessageReception(messageBytes, Event.Sequential); err != nil {
-				if connection.eventHandler != nil {
-					if event := connection.onEvent(Event.New(
-						Event.HandleReceptionFailed,
-						Event.Context{
-							Event.Circumstance: Event.MessageReceptionRoutine,
-							Event.Behaviour:    Event.Sequential,
-							Event.Error:        err.Error(),
-						},
-						Event.Continue,
-						Event.Cancel,
-					)); event.GetAction() == Event.Cancel {
-						connection.Close()
-						return errors.New("connection closed")
-					}
-				}
-				connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
-			}
-		} else {
-			go func() {
-				if err := connection.handleMessageReception(messageBytes, Event.Concurrent); err != nil {
-					if connection.eventHandler != nil {
-						if event := connection.onEvent(Event.New(
-							Event.HandleReceptionFailed,
-							Event.Context{
-								Event.Circumstance: Event.MessageReceptionRoutine,
-								Event.Behaviour:    Event.Concurrent,
-								Event.Error:        err.Error(),
-							},
-							Event.Continue,
-							Event.Cancel,
-						)); event.GetAction() == Event.Cancel {
-							connection.Close()
-							return
-						}
-					}
-					connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
-				}
-			}()
-		}
-		return nil
+		connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
+		return nil, err
 	}
+	return message, nil
 }
 
-func (connection *WebsocketClient) handleMessageReception(messageBytes []byte, behaviour string) error {
+func (connection *WebsocketClient) handleMessageReception(messageBytes []byte, behaviour string) (*Message.Message, error) {
 	event := connection.onEvent(Event.NewInfo(
 		Event.HandlingMessageReception,
 		"handling message reception",
