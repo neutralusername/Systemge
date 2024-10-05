@@ -16,13 +16,14 @@ type SyncManager struct {
 }
 
 type SyncRequest struct {
+	token           string
 	responseChannel chan *Message.Message
 	abortChannel    chan bool
 	responseLimit   uint64
 	responseCount   uint64
 }
 
-func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadlineMs uint64) (string, *SyncRequest) {
+func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadlineMs uint64) *SyncRequest {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -34,9 +35,11 @@ func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadl
 		syncToken = syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, ALPHA_NUMERIC)
 	}
 	syncRequestStruct := &SyncRequest{
+		token:           syncToken,
 		responseChannel: make(chan *Message.Message, responseLimit),
 		abortChannel:    make(chan bool),
 		responseLimit:   responseLimit,
+		responseCount:   0,
 	}
 	syncRequests.syncRequests[syncToken] = syncRequestStruct
 
@@ -50,7 +53,7 @@ func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadl
 		}()
 	}
 
-	return syncToken, syncRequestStruct
+	return syncRequestStruct
 }
 
 func (syncRequests *SyncManager) AddSyncResponse(message *Message.Message) error {
@@ -59,7 +62,7 @@ func (syncRequests *SyncManager) AddSyncResponse(message *Message.Message) error
 
 	syncRequestStruct, ok := syncRequests.syncRequests[message.GetSyncToken()]
 	if !ok {
-		return errors.New("no response channel found")
+		return errors.New("no active sync request for token")
 	}
 
 	syncRequestStruct.responseChannel <- message
@@ -78,7 +81,7 @@ func (syncRequests *SyncManager) AbortSyncRequest(syncToken string) error {
 
 	syncRequestStruct, ok := syncRequests.syncRequests[syncToken]
 	if !ok {
-		return errors.New("no response channel found")
+		return errors.New("no active sync request for token")
 	}
 
 	close(syncRequestStruct.abortChannel)
