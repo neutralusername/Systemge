@@ -5,39 +5,30 @@ import (
 	"sync"
 )
 
-// dynamic buffer:
-// items have an optional deadline, after which they are removed from the queue
-
-// AddItem (any, priority, deadlineMs) (token, error)
-
-// GetItem (order/priority)
-// GetItemByToken
-//
-
-type DynamicBuffer struct {
-	items map[string]*dynamicBufferItem
-	head  *dynamicBufferItem // next item to be retrieved
-	tail  *dynamicBufferItem // lowest priority item/last item added
+type PriorityQueue struct {
+	items map[string]*priorityQueueLinkedListItem
+	head  *priorityQueueLinkedListItem
+	tail  *priorityQueueLinkedListItem
 	mutex sync.Mutex
 }
 
-type dynamicBufferItem struct {
-	next     *dynamicBufferItem
-	prev     *dynamicBufferItem
+type priorityQueueLinkedListItem struct {
+	next     *priorityQueueLinkedListItem
+	prev     *priorityQueueLinkedListItem
 	token    string
 	item     any
 	priority uint32
 	deadline uint64
 }
 
-func NewDynamicBuffer(capacity uint32) *DynamicBuffer {
-	buffer := &DynamicBuffer{
-		items: make(map[string]*dynamicBufferItem, capacity),
+func NewDynamicBuffer(capacity uint32) *PriorityQueue {
+	buffer := &PriorityQueue{
+		items: make(map[string]*priorityQueueLinkedListItem, capacity),
 	}
 	return buffer
 }
 
-func (buffer *DynamicBuffer) GetNextItem() (any, error) {
+func (buffer *PriorityQueue) GetNextItem() (any, error) {
 	buffer.mutex.Lock()
 	defer buffer.mutex.Unlock()
 
@@ -57,7 +48,7 @@ func (buffer *DynamicBuffer) GetNextItem() (any, error) {
 	return item.item, nil
 }
 
-func (buffer *DynamicBuffer) GetItemByToken(token string) (any, error) {
+func (buffer *PriorityQueue) GetItemByToken(token string) (any, error) {
 	buffer.mutex.Lock()
 	defer buffer.mutex.Unlock()
 
@@ -81,14 +72,14 @@ func (buffer *DynamicBuffer) GetItemByToken(token string) (any, error) {
 	return item.item, nil
 }
 
-func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
+func (buffer *PriorityQueue) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
 	buffer.mutex.Lock()
 	defer buffer.mutex.Unlock()
 
 	if buffer.items[token] != nil {
 		return errors.New("token already exists")
 	}
-	linkedListItem := &dynamicBufferItem{
+	linkedListItem := &priorityQueueLinkedListItem{
 		token:    token,
 		item:     item,
 		priority: priority,
