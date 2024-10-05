@@ -6,54 +6,22 @@ import (
 	"time"
 )
 
-type SyncRequestManager struct {
+type SyncManager struct {
 	requests    map[string]*SyncRequest
 	mutex       sync.Mutex
 	randomizer  *Randomizer
 	tokenLength uint32
 }
 
-type SyncRequest struct {
-	token           string
-	responseChannel chan any
-	abortChannel    chan struct{}
-	responseLimit   uint64
-	responseCount   uint64
-}
-
-func (request *SyncRequest) GetToken() string {
-	return request.token
-}
-
-func (request *SyncRequest) GetResponseChannel() <-chan any {
-	return request.responseChannel
-}
-
-func (request *SyncRequest) GetNextResponse() (any, error) {
-	response, ok := <-request.responseChannel
-	if !ok {
-		return nil, errors.New("response channel closed")
-	}
-	return response, nil
-}
-
-func (request *SyncRequest) GetResponseCount() uint64 {
-	return request.responseCount
-}
-
-func (request *SyncRequest) GetResponseLimit() uint64 {
-	return request.responseLimit
-}
-
-func NewSyncRequestManager(tokenLength uint32, randomizerSeed int64) *SyncRequestManager {
-	return &SyncRequestManager{
+func NewSyncManager(tokenLength uint32, randomizerSeed int64) *SyncManager {
+	return &SyncManager{
 		requests:    make(map[string]*SyncRequest),
 		randomizer:  NewRandomizer(randomizerSeed),
 		tokenLength: tokenLength,
 	}
 }
 
-func (manager *SyncRequestManager) NewRequest(responseLimit uint64, deadlineMs uint64) *SyncRequest {
+func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) *SyncRequest {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -86,7 +54,7 @@ func (manager *SyncRequestManager) NewRequest(responseLimit uint64, deadlineMs u
 	return syncRequest
 }
 
-func (manager *SyncRequestManager) AddResponse(token string, response any) error {
+func (manager *SyncManager) AddResponse(token string, response any) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -106,7 +74,7 @@ func (manager *SyncRequestManager) AddResponse(token string, response any) error
 	return nil
 }
 
-func (manager *SyncRequestManager) AbortRequest(token string) error {
+func (manager *SyncManager) AbortRequest(token string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -122,7 +90,7 @@ func (manager *SyncRequestManager) AbortRequest(token string) error {
 }
 
 // returns a slice of syncTokens of active sync requests
-func (manager *SyncRequestManager) GetActiveRequests() []string {
+func (manager *SyncManager) GetActiveRequests() []string {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 	tokens := make([]string, 0, len(manager.requests))
@@ -130,4 +98,36 @@ func (manager *SyncRequestManager) GetActiveRequests() []string {
 		tokens = append(tokens, k)
 	}
 	return tokens
+}
+
+type SyncRequest struct {
+	token           string
+	responseChannel chan any
+	abortChannel    chan struct{}
+	responseLimit   uint64
+	responseCount   uint64
+}
+
+func (request *SyncRequest) GetToken() string {
+	return request.token
+}
+
+func (request *SyncRequest) GetResponseChannel() <-chan any {
+	return request.responseChannel
+}
+
+func (request *SyncRequest) GetNextResponse() (any, error) {
+	response, ok := <-request.responseChannel
+	if !ok {
+		return nil, errors.New("response channel closed")
+	}
+	return response, nil
+}
+
+func (request *SyncRequest) GetResponseCount() uint64 {
+	return request.responseCount
+}
+
+func (request *SyncRequest) GetResponseLimit() uint64 {
+	return request.responseLimit
 }
