@@ -35,7 +35,7 @@ var loggerQueueMutex = sync.Mutex{}
 type LoggerQueue struct {
 	logger *log.Logger
 	queue  chan string
-	stop   chan bool
+	stop   chan struct{}
 	closed bool
 }
 
@@ -52,7 +52,7 @@ func NewLoggerQueue(path string, queueBuffer uint32) *LoggerQueue {
 	loggerStruct := &LoggerQueue{
 		logger: log.New(file, "", log.Ldate|log.Ltime|log.Lmicroseconds),
 		queue:  make(chan string, queueBuffer),
-		stop:   make(chan bool),
+		stop:   make(chan struct{}),
 	}
 	loggerQueues[path] = loggerStruct
 	go loggerStruct.logRoutine()

@@ -16,7 +16,7 @@ type SyncRequestManager struct {
 type SyncRequest struct {
 	token           string
 	responseChannel chan any
-	abortChannel    chan bool
+	abortChannel    chan struct{}
 	responseLimit   uint64
 	responseCount   uint64
 }
@@ -67,7 +67,7 @@ func (manager *SyncRequestManager) NewRequest(responseLimit uint64, deadlineMs u
 	syncRequest := &SyncRequest{
 		token:           token,
 		responseChannel: make(chan any, responseLimit),
-		abortChannel:    make(chan bool),
+		abortChannel:    make(chan struct{}),
 		responseLimit:   responseLimit,
 		responseCount:   0,
 	}

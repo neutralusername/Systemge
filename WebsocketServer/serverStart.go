@@ -39,7 +39,7 @@ func (server *WebsocketServer) Start() error {
 	server.status = Status.Pending
 
 	server.websocketListener.Start()
-	server.stopChannel = make(chan bool)
+	server.stopChannel = make(chan struct{})
 
 	server.waitGroup.Add(1)
 	go server.sessionRoutine()

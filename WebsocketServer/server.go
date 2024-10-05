@@ -18,7 +18,7 @@ type WebsocketServer struct {
 	status      int
 	statusMutex sync.Mutex
 
-	stopChannel chan bool
+	stopChannel chan struct{}
 	waitGroup   sync.WaitGroup
 
 	instanceId string

@@ -21,7 +21,7 @@ type Timeout struct {
 	triggered          bool
 	mutex              sync.Mutex
 	mayBeCancelled     bool
-	triggeredChannel   chan bool
+	triggeredChannel   chan struct{}
 }
 
 // duration 0 == must be triggered manually
@@ -32,7 +32,7 @@ func NewTimeout(durationMs uint64, onTrigger func(), mayBeCancelled bool) *Timeo
 		triggered:          false,
 		interactionChannel: make(chan uint64),
 		mayBeCancelled:     mayBeCancelled,
-		triggeredChannel:   make(chan bool),
+		triggeredChannel:   make(chan struct{}),
 	}
 	go timeout.handleTrigger()
 	return timeout
@@ -86,7 +86,7 @@ func (timeout *Timeout) IsTriggered() bool {
 	return timeout.triggered
 }
 
-func (timeout *Timeout) GetTriggeredChannel() <-chan bool {
+func (timeout *Timeout) GetTriggeredChannel() <-chan struct{} {
 	return timeout.triggeredChannel
 }
 
