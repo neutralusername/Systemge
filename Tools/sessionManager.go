@@ -70,7 +70,7 @@ func NewSessionManager(name string, config *Config.SessionManager, onCreateSessi
 		onCreateSession: onCreateSession,
 		onRemoveSession: onRemoveSession,
 
-		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.8,
+		maxTotalSessions: math.Pow(float64(len(config.SessionIdAlphabet)), float64(config.SessionIdLength)) * 0.9,
 	}
 }
 

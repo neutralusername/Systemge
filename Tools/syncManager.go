@@ -2,22 +2,25 @@ package Tools
 
 import (
 	"errors"
+	"math"
 	"sync"
 	"time"
 )
 
 type SyncManager struct {
-	requests    map[string]*SyncRequest
-	mutex       sync.Mutex
-	randomizer  *Randomizer
-	tokenLength uint32
+	requests       map[string]*SyncRequest
+	mutex          sync.Mutex
+	randomizer     *Randomizer
+	tokenLength    uint32
+	maxTotalTokens float64
 }
 
-func NewSyncManager(tokenLength uint32, randomizerSeed int64) *SyncManager {
+func NewSyncManager(tokenLength uint32, tokenAlphabet string, randomizerSeed int64) *SyncManager {
 	return &SyncManager{
-		requests:    make(map[string]*SyncRequest),
-		randomizer:  NewRandomizer(randomizerSeed),
-		tokenLength: tokenLength,
+		requests:       make(map[string]*SyncRequest),
+		randomizer:     NewRandomizer(randomizerSeed),
+		tokenLength:    tokenLength,
+		maxTotalTokens: math.Pow(float64(len(tokenAlphabet)), float64(tokenLength)) * 0.9,
 	}
 }
 
