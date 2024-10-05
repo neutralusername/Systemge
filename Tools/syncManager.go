@@ -9,10 +9,10 @@ import (
 )
 
 type SyncManager struct {
-	syncRequests    map[string]*SyncRequest
-	mutex           sync.Mutex
-	randomizer      *Randomizer
-	syncTokenLength uint32
+	requests    map[string]*SyncRequest
+	mutex       sync.Mutex
+	randomizer  *Randomizer
+	tokenLength uint32
 }
 
 type SyncRequest struct {
@@ -23,104 +23,104 @@ type SyncRequest struct {
 	responseCount   uint64
 }
 
-func (syncRequest *SyncRequest) GetToken() string {
-	return syncRequest.token
+func (request *SyncRequest) GetToken() string {
+	return request.token
 }
 
-func (syncRequest *SyncRequest) GetResponseChannel() <-chan *Message.Message {
-	return syncRequest.responseChannel
+func (request *SyncRequest) GetResponseChannel() <-chan *Message.Message {
+	return request.responseChannel
 }
-func (syncRequest *SyncRequest) GetNextResponse() (*Message.Message, error) {
-	response, ok := <-syncRequest.responseChannel
+func (request *SyncRequest) GetNextResponse() (*Message.Message, error) {
+	response, ok := <-request.responseChannel
 	if !ok {
 		return nil, errors.New("response channel closed")
 	}
 	return response, nil
 }
 
-func NewSyncManager(syncTokenLength uint32, randomizerSeed int64) *SyncManager {
+func NewSyncManager(tokenLength uint32, randomizerSeed int64) *SyncManager {
 	return &SyncManager{
-		syncRequests:    make(map[string]*SyncRequest),
-		randomizer:      NewRandomizer(randomizerSeed),
-		syncTokenLength: syncTokenLength,
+		requests:    make(map[string]*SyncRequest),
+		randomizer:  NewRandomizer(randomizerSeed),
+		tokenLength: tokenLength,
 	}
 }
 
-func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadlineMs uint64) *SyncRequest {
+func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) *SyncRequest {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
-	syncRequests.mutex.Lock()
-	defer syncRequests.mutex.Unlock()
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
 
-	syncToken := syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, ALPHA_NUMERIC)
-	for _, ok := syncRequests.syncRequests[syncToken]; ok; {
-		syncToken = syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, ALPHA_NUMERIC)
+	token := manager.randomizer.GenerateRandomString(manager.tokenLength, ALPHA_NUMERIC)
+	for _, ok := manager.requests[token]; ok; {
+		token = manager.randomizer.GenerateRandomString(manager.tokenLength, ALPHA_NUMERIC)
 	}
-	syncRequestStruct := &SyncRequest{
-		token:           syncToken,
+	syncRequest := &SyncRequest{
+		token:           token,
 		responseChannel: make(chan *Message.Message, responseLimit),
 		abortChannel:    make(chan bool),
 		responseLimit:   responseLimit,
 		responseCount:   0,
 	}
-	syncRequests.syncRequests[syncToken] = syncRequestStruct
+	manager.requests[token] = syncRequest
 
 	if deadlineMs > 0 {
 		go func() {
 			select {
 			case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
-				syncRequests.AbortSyncRequest(syncToken)
-			case <-syncRequestStruct.abortChannel:
+				manager.AbortRequest(token)
+			case <-syncRequest.abortChannel:
 			}
 		}()
 	}
 
-	return syncRequestStruct
+	return syncRequest
 }
 
-func (syncRequests *SyncManager) AddSyncResponse(message *Message.Message) error {
-	syncRequests.mutex.Lock()
-	defer syncRequests.mutex.Unlock()
+func (manager *SyncManager) AddResponse(message *Message.Message) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
 
-	syncRequestStruct, ok := syncRequests.syncRequests[message.GetSyncToken()]
+	syncRequest, ok := manager.requests[message.GetSyncToken()]
 	if !ok {
 		return errors.New("no active sync request for token")
 	}
 
-	syncRequestStruct.responseChannel <- message
-	syncRequestStruct.responseCount++
+	syncRequest.responseChannel <- message
+	syncRequest.responseCount++
 
-	if syncRequestStruct.responseCount >= syncRequestStruct.responseLimit {
-		close(syncRequestStruct.responseChannel)
-		delete(syncRequests.syncRequests, message.GetSyncToken())
+	if syncRequest.responseCount >= syncRequest.responseLimit {
+		close(syncRequest.responseChannel)
+		delete(manager.requests, message.GetSyncToken())
 	}
 
 	return nil
 }
 
-func (syncRequests *SyncManager) AbortSyncRequest(syncToken string) error {
-	syncRequests.mutex.Lock()
-	defer syncRequests.mutex.Unlock()
+func (manager *SyncManager) AbortRequest(token string) error {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
 
-	syncRequestStruct, ok := syncRequests.syncRequests[syncToken]
+	syncRequestStruct, ok := manager.requests[token]
 	if !ok {
 		return errors.New("no active sync request for token")
 	}
 
 	close(syncRequestStruct.abortChannel)
-	delete(syncRequests.syncRequests, syncToken)
+	delete(manager.requests, token)
 
 	return nil
 }
 
 // returns a slice of syncTokens of open sync requests
-func (syncRequests *SyncManager) GetOpenSyncRequests() []string {
-	syncRequests.mutex.Lock()
-	defer syncRequests.mutex.Unlock()
-	syncTokens := make([]string, 0, len(syncRequests.syncRequests))
-	for k := range syncRequests.syncRequests {
-		syncTokens = append(syncTokens, k)
+func (manager *SyncManager) GetActiveRequests() []string {
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
+	tokens := make([]string, 0, len(manager.requests))
+	for k := range manager.requests {
+		tokens = append(tokens, k)
 	}
-	return syncTokens
+	return tokens
 }
