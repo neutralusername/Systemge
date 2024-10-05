@@ -3,6 +3,7 @@ package Tools
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/neutralusername/Systemge/Message"
 )
@@ -12,7 +13,6 @@ type SyncManager struct {
 	mutex           sync.Mutex
 	randomizer      *Randomizer
 	closeChannel    chan bool
-	deadlineMs      uint64
 	syncTokenLength uint32
 }
 
@@ -23,7 +23,7 @@ type SyncRequest struct {
 	responseCount   uint64
 }
 
-func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64) (string, *SyncRequest) {
+func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64, deadlineMs uint64) (string, *SyncRequest) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -40,6 +40,18 @@ func (syncRequests *SyncManager) InitResponseChannel(responseLimit uint64) (stri
 		responseLimit:   responseLimit,
 	}
 	syncRequests.syncRequests[syncToken] = syncRequestStruct
+
+	if deadlineMs > 0 {
+		go func() {
+			deadline := time.After(time.Duration(deadlineMs) * time.Millisecond)
+			select {
+			case <-deadline:
+				syncRequests.AbortSyncRequest(syncToken)
+			case <-syncRequestStruct.abortChannel:
+			case <-syncRequests.closeChannel:
+			}
+		}()
+	}
 
 	return syncToken, syncRequestStruct
 }
