@@ -63,7 +63,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 				select {
 				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
 					queue.mutex.Lock()
-					if queue.items[item.token] == item {
+					if queue.items[item.token] == item { // ????
 						queue.removeItem(item)
 					}
 					queue.mutex.Unlock()
