@@ -32,13 +32,14 @@ func NewTokenSemaphore(tokens []string) (*TokenSemaphore, error) {
 
 func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
 	tokenSemaphore.mutex.Lock()
+	defer tokenSemaphore.mutex.Unlock()
 	acquiredtokens := make([]string, 0)
 	for token, isAvailable := range tokenSemaphore.tokens {
 		if !isAvailable {
 			acquiredtokens = append(acquiredtokens, token)
 		}
 	}
-	tokenSemaphore.mutex.Unlock()
+
 	return acquiredtokens
 }
 
