@@ -14,22 +14,22 @@ type PriorityTokenQueue struct {
 }
 
 type priorityTokenQueueItem struct {
-	token            string
-	value            any
-	priority         uint32
-	deadline         uint64
-	retrievedChannel chan struct{}
-	index            int
-	isRetrieved      bool
+	token              string
+	value              any
+	priority           uint32
+	deadline           uint64
+	isRetrievedChannel chan struct{}
+	index              int
+	isRetrieved        bool
 }
 
 func NewPriorityTokenQueueItem(token string, value any, priority uint32, deadlineMs uint64) *priorityTokenQueueItem {
 	return &priorityTokenQueueItem{
-		token:            token,
-		value:            value,
-		priority:         priority,
-		deadline:         deadlineMs,
-		retrievedChannel: make(chan struct{}),
+		token:              token,
+		value:              value,
+		priority:           priority,
+		deadline:           deadlineMs,
+		isRetrievedChannel: make(chan struct{}),
 	}
 }
 
@@ -69,7 +69,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 					}
 					queue.mutex.Unlock()
 					return
-				case <-item.retrievedChannel:
+				case <-item.isRetrievedChannel:
 					return
 				}
 			}
@@ -92,7 +92,7 @@ func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 
 func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
 	item.isRetrieved = true
-	close(item.retrievedChannel)
+	close(item.isRetrievedChannel)
 	delete(queue.items, item.token)
 	heap.Remove(&queue.priorityQueue, item.index)
 }
@@ -105,7 +105,7 @@ func (queue *PriorityTokenQueue) GetNextItem() (any, error) {
 		return nil, errors.New("queue is empty")
 	}
 	item := heap.Pop(&queue.priorityQueue).(*priorityTokenQueueItem)
-	close(item.retrievedChannel)
+	close(item.isRetrievedChannel)
 	delete(queue.items, item.token)
 	return item.value, nil
 }
