@@ -6,15 +6,15 @@ import (
 )
 
 type PriorityTokenQueue struct {
-	items map[string]*priorityTokenQueueLinkedListItem
-	head  *priorityTokenQueueLinkedListItem
-	tail  *priorityTokenQueueLinkedListItem
+	items map[string]*priorityTokenQueueItem
+	head  *priorityTokenQueueItem
+	tail  *priorityTokenQueueItem
 	mutex sync.Mutex
 }
 
-type priorityTokenQueueLinkedListItem struct {
-	next     *priorityTokenQueueLinkedListItem
-	prev     *priorityTokenQueueLinkedListItem
+type priorityTokenQueueItem struct {
+	next     *priorityTokenQueueItem
+	prev     *priorityTokenQueueItem
 	token    string
 	item     any
 	priority uint32
@@ -23,7 +23,7 @@ type priorityTokenQueueLinkedListItem struct {
 
 func NewPriorityTokenQueue(capacity uint32) *PriorityTokenQueue {
 	buffer := &PriorityTokenQueue{
-		items: make(map[string]*priorityTokenQueueLinkedListItem, capacity),
+		items: make(map[string]*priorityTokenQueueItem, capacity),
 	}
 	return buffer
 }
@@ -79,7 +79,7 @@ func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint3
 	if buffer.items[token] != nil {
 		return errors.New("token already exists")
 	}
-	linkedListItem := &priorityTokenQueueLinkedListItem{
+	linkedListItem := &priorityTokenQueueItem{
 		token:    token,
 		item:     item,
 		priority: priority,
