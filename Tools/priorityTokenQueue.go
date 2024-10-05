@@ -1,72 +1,60 @@
 package Tools
 
-/* type PriorityTokenQueue struct {
-	items map[string]*priorityTokenQueueItem
-	head  *priorityTokenQueueItem
-	tail  *priorityTokenQueueItem
-	mutex sync.Mutex
+import (
+	"container/heap"
+	"errors"
+	"sync"
+	"time"
+)
+
+type PriorityTokenQueue struct {
+	items         map[string]*priorityTokenQueueItem
+	mutex         sync.Mutex
+	priorityQueue PriorityQueue
 }
 
 type priorityTokenQueueItem struct {
-	next      *priorityTokenQueueItem
-	prev      *priorityTokenQueueItem
 	token     string
-	item      any
+	value     any
 	priority  uint32
 	deadline  uint64
 	retrieved chan struct{}
+	index     int
 }
 
 func NewPriorityTokenQueue() *PriorityTokenQueue {
-	buffer := &PriorityTokenQueue{
+	queue := &PriorityTokenQueue{
 		items: make(map[string]*priorityTokenQueueItem),
 	}
-	return buffer
+	heap.Init(&queue.priorityQueue)
+	return queue
 }
 
-func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
-	buffer.mutex.Lock()
-	defer buffer.mutex.Unlock()
+func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, deadlineMs uint64) error {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
 
-	if buffer.items[token] != nil {
+	if queue.items[token] != nil {
 		return errors.New("token already exists")
 	}
-	linkedListItem := &priorityTokenQueueItem{
+	item := &priorityTokenQueueItem{
 		token:     token,
-		item:      item,
+		value:     value,
 		priority:  priority,
 		deadline:  deadlineMs,
 		retrieved: make(chan struct{}),
 	}
-	buffer.items[linkedListItem.token] = linkedListItem
-	if buffer.tail == nil {
-		buffer.head = linkedListItem
-		buffer.tail = linkedListItem
-		return nil
-	}
-	if linkedListItem.priority > buffer.head.priority {
-		linkedListItem.prev = buffer.head
-		buffer.head.next = linkedListItem
-		buffer.head = linkedListItem
-		return nil
-	}
-	current := buffer.tail
-	for current.priority < linkedListItem.priority {
-		current = current.next
-	}
-	linkedListItem.next = current
-	linkedListItem.prev = current.prev
-	current.prev.next = linkedListItem
-	current.prev = linkedListItem
+	queue.items[item.token] = item
+	heap.Push(&queue.priorityQueue, item)
 
 	if deadlineMs > 0 {
 		go func() {
 			for {
 				select {
 				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
-					buffer.GetItemByToken(token)
+					queue.RetrieveItem(token)
 					return
-				case <-linkedListItem.retrieved:
+				case <-item.retrieved:
 					return
 				}
 			}
@@ -75,49 +63,62 @@ func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint3
 	return nil
 }
 
-func (buffer *PriorityTokenQueue) GetNextItem() (any, error) {
-	buffer.mutex.Lock()
-	defer buffer.mutex.Unlock()
+func (queue *PriorityTokenQueue) RetrieveItem(token string) (any, error) {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
 
-	if buffer.head == nil {
-		return nil, errors.New("buffer is empty")
-	}
-	item := buffer.head
-
-	buffer.head = buffer.head.prev
-	if buffer.head == nil {
-		buffer.tail = nil
-	}
-	if item.prev != nil {
-		item.prev.next = nil
-	}
-	delete(buffer.items, item.token)
-	close(item.retrieved)
-	return item.item, nil
-}
-
-func (buffer *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
-	buffer.mutex.Lock()
-	defer buffer.mutex.Unlock()
-
-	item := buffer.items[token]
+	item := queue.items[token]
 	if item == nil {
-		return nil, errors.New("item not found")
+		return nil, errors.New("token not found")
 	}
-	if item.prev != nil {
-		item.prev.next = item.next
-	}
-	if item.next != nil {
-		item.next.prev = item.prev
-	}
-	if buffer.head == item {
-		buffer.head = item.prev
-	}
-	if buffer.tail == item {
-		buffer.tail = item.next
-	}
-	delete(buffer.items, item.token)
 	close(item.retrieved)
-	return item.item, nil
+	delete(queue.items, token)
+	heap.Remove(&queue.priorityQueue, item.index)
+	return item.value, nil
 }
-*/
+
+func (queue *PriorityTokenQueue) RetrieveNextItem() (any, error) {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
+
+	if len(queue.priorityQueue) == 0 {
+		return nil, errors.New("queue is empty")
+	}
+	item := heap.Pop(&queue.priorityQueue).(*priorityTokenQueueItem)
+	close(item.retrieved)
+	delete(queue.items, item.token)
+	return item.value, nil
+}
+
+func (pq PriorityQueue) Len() int {
+	return len(pq)
+}
+
+func (pq PriorityQueue) Less(i, j int) bool {
+	return pq[i].priority > pq[j].priority
+}
+
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
+}
+
+func (pq *PriorityQueue) Push(x any) {
+	n := len(*pq)
+	item := x.(*priorityTokenQueueItem)
+	item.index = n
+	*pq = append(*pq, item)
+}
+
+func (pq *PriorityQueue) Pop() any {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil
+	item.index = -1
+	*pq = old[0 : n-1]
+	return item
+}
+
+type PriorityQueue []*priorityTokenQueueItem
