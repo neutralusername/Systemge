@@ -60,10 +60,9 @@ func (tokenSemaphore *TokenSemaphore) ReturnToken(token string, replacementToken
 		delete(tokenSemaphore.tokens, token)
 		tokenSemaphore.tokens[replacementToken] = true
 		tokenSemaphore.tokenChannel <- replacementToken
-		return nil
 	} else {
 		tokenSemaphore.tokens[replacementToken] = true
 		tokenSemaphore.tokenChannel <- replacementToken
-		return nil
 	}
+	return nil
 }
