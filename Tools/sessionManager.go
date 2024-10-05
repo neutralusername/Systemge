@@ -129,7 +129,7 @@ func (manager *SessionManager) CreateSession(identityString string, keyValuePair
 
 	if len(manager.sessions) >= int(manager.maxTotalSessions) {
 		manager.sessionMutex.Unlock()
-		return nil, errors.New("max total sessions exceeded")
+		return nil, errors.New("maximum number of sessions reached")
 	}
 
 	identity, ok := manager.identities[identityString]
