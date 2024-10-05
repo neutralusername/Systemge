@@ -40,6 +40,8 @@ type WebsocketClient struct {
 
 	MessageChannelCapacity uint32 `json:"messageChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
 
+	SyncManagerConfig *SyncManager `json:"syncManagerConfig"` // *required*
+
 	HandleMessageReceptionSequentially bool `json:"handleMessageReceptionSequentially"` // default: false (if true, the server will handle messages from the same websocketConnection sequentially)
 
 	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)

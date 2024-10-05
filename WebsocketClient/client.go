@@ -65,7 +65,7 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 		messageChannel:          make(chan *Message.Message, config.MessageChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		messageChannelSemaphore: Tools.NewSemaphore(config.MessageChannelCapacity+1, config.MessageChannelCapacity+1),
 		eventHandler:            eventHandler,
-		syncManager:             Tools.NewSyncManager(config.SyncManagerMaxTokenLength, config.SyncManagerMinTokenLength, config.SyncManagerMaxActiveRequests),
+		syncManager:             Tools.NewSyncManager(config.SyncManagerConfig),
 	}
 	if config.RateLimiterBytes != nil {
 		connection.byteRateLimiter = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
