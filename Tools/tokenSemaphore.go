@@ -48,8 +48,8 @@ func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
 func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 	token := <-tokenSemaphore.tokenChannel
 	tokenSemaphore.mutex.Lock()
+	defer tokenSemaphore.mutex.Unlock()
 	tokenSemaphore.tokens[token] = false
-	tokenSemaphore.mutex.Unlock()
 	return token
 }
 
