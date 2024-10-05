@@ -1,6 +1,9 @@
 package Tools
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 // dynamic buffer:
 // items have an optional deadline, after which they are removed from the queue
@@ -12,10 +15,10 @@ import "errors"
 //
 
 type DynamicBuffer struct {
-	items    map[string]*dynamicBufferItem
-	head     *dynamicBufferItem // next item to be retrieved
-	tail     *dynamicBufferItem // lowest priority item/last item added
-	itemChan chan *dynamicBufferItem
+	items map[string]*dynamicBufferItem
+	head  *dynamicBufferItem // next item to be retrieved
+	tail  *dynamicBufferItem // lowest priority item/last item added
+	mutex sync.Mutex
 }
 
 type dynamicBufferItem struct {
@@ -29,44 +32,15 @@ type dynamicBufferItem struct {
 
 func NewDynamicBuffer(capacity uint32) *DynamicBuffer {
 	buffer := &DynamicBuffer{
-		items:    make(map[string]*dynamicBufferItem, capacity),
-		itemChan: make(chan *dynamicBufferItem, capacity),
+		items: make(map[string]*dynamicBufferItem, capacity),
 	}
-	go func() {
-		for item := range buffer.itemChan {
-			if buffer.items[item.token] != nil {
-				//
-				continue
-			}
-			buffer.items[item.token] = item
-			if buffer.tail == nil {
-				buffer.head = item
-				buffer.tail = item
-				continue
-			}
-			if item.priority > buffer.head.priority {
-				item.prev = buffer.head
-				buffer.head.next = item
-				buffer.head = item
-				continue
-			}
-			current := buffer.tail
-			for {
-				if current.priority >= item.priority {
-					item.next = current
-					item.prev = current.prev
-					current.prev.next = item
-					current.prev = item
-					break
-				}
-				current = current.next
-			}
-		}
-	}()
 	return buffer
 }
 
 func (buffer *DynamicBuffer) GetNextItem() (any, error) {
+	buffer.mutex.Lock()
+	defer buffer.mutex.Unlock()
+
 	if buffer.head == nil {
 		return nil, errors.New("buffer is empty")
 	}
@@ -84,6 +58,9 @@ func (buffer *DynamicBuffer) GetNextItem() (any, error) {
 }
 
 func (buffer *DynamicBuffer) GetItemByToken(token string) (any, error) {
+	buffer.mutex.Lock()
+	defer buffer.mutex.Unlock()
+
 	item := buffer.items[token]
 	if item == nil {
 		return nil, errors.New("item not found")
@@ -105,11 +82,40 @@ func (buffer *DynamicBuffer) GetItemByToken(token string) (any, error) {
 }
 
 func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
-	buffer.itemChan <- &dynamicBufferItem{
+	buffer.mutex.Lock()
+	defer buffer.mutex.Unlock()
+
+	if buffer.items[token] != nil {
+		return errors.New("token already exists")
+	}
+	linkedListItem := &dynamicBufferItem{
 		token:    token,
 		item:     item,
 		priority: priority,
 		deadline: deadlineMs,
+	}
+	buffer.items[linkedListItem.token] = linkedListItem
+	if buffer.tail == nil {
+		buffer.head = linkedListItem
+		buffer.tail = linkedListItem
+		return nil
+	}
+	if linkedListItem.priority > buffer.head.priority {
+		linkedListItem.prev = buffer.head
+		buffer.head.next = linkedListItem
+		buffer.head = linkedListItem
+		return nil
+	}
+	current := buffer.tail
+	for {
+		if current.priority >= linkedListItem.priority {
+			linkedListItem.next = current
+			linkedListItem.prev = current.prev
+			current.prev.next = linkedListItem
+			current.prev = linkedListItem
+			break
+		}
+		current = current.next
 	}
 	return nil
 }
