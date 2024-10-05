@@ -107,14 +107,12 @@ func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, de
 		return nil
 	}
 	current := buffer.tail
-	for {
-		if current.priority >= linkedListItem.priority {
-			linkedListItem.next = current
-			linkedListItem.prev = current.prev
-			current.prev.next = linkedListItem
-			current.prev = linkedListItem
-			return nil
-		}
+	for current.priority < linkedListItem.priority {
 		current = current.next
 	}
+	linkedListItem.next = current
+	linkedListItem.prev = current.prev
+	current.prev.next = linkedListItem
+	current.prev = linkedListItem
+	return nil
 }
