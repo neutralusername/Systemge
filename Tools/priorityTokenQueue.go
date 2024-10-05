@@ -48,11 +48,13 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
-	if queue.items[token] != nil {
-		return errors.New("token already exists")
-	}
 	item := NewPriorityTokenQueueItem(token, value, priority, deadlineMs)
-	queue.items[item.token] = item
+	if token != "" {
+		if queue.items[token] != nil {
+			return errors.New("token already exists")
+		}
+		queue.items[item.token] = item
+	}
 	heap.Push(&queue.priorityQueue, item)
 
 	if deadlineMs > 0 {
@@ -60,7 +62,11 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 			for {
 				select {
 				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
-					queue.GetItemByToken(token)
+					queue.mutex.Lock()
+					if queue.items[item.token] == item {
+						queue.removeItem(item)
+					}
+					queue.mutex.Unlock()
 					return
 				case <-item.retrieved:
 					return
@@ -79,10 +85,14 @@ func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 	if item == nil {
 		return nil, errors.New("token not found")
 	}
-	close(item.retrieved)
-	delete(queue.items, token)
-	heap.Remove(&queue.priorityQueue, item.index)
+	queue.removeItem(item)
 	return item.value, nil
+}
+
+func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
+	close(item.retrieved)
+	delete(queue.items, item.token)
+	heap.Remove(&queue.priorityQueue, item.index)
 }
 
 func (queue *PriorityTokenQueue) GetNextItem() (any, error) {

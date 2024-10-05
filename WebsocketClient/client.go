@@ -25,7 +25,8 @@ type WebsocketClient struct {
 
 	sendMutex sync.Mutex
 
-	syncManager *Tools.SyncManager
+	syncManager        *Tools.SyncManager
+	priorityTokenQueue *Tools.PriorityTokenQueue
 
 	messageHandlingLoopStopChannel chan<- bool
 	messageMutex                   sync.Mutex
@@ -62,6 +63,7 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 		config:                  config,
 		websocketConn:           websocketConn,
 		closeChannel:            make(chan bool),
+		priorityTokenQueue:      Tools.NewPriorityTokenQueue(nil),
 		messageChannel:          make(chan *Message.Message, config.MessageChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
 		messageChannelSemaphore: Tools.NewSemaphore(config.MessageChannelCapacity+1, config.MessageChannelCapacity+1),
 		eventHandler:            eventHandler,

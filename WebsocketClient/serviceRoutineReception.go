@@ -243,7 +243,7 @@ func (connection *WebsocketClient) handleMessageReception(messageBytes []byte, b
 		connection.messageChannelSemaphore.ReleaseBlocking()
 		return event.GetError()
 	}
-	connection.messageChannel <- message
+	connection.priorityTokenQueue.AddItem("", message, 0, 0)
 
 	connection.onEvent(Event.NewInfoNoOption(
 		Event.HandledMessageReception,
