@@ -4,23 +4,21 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/neutralusername/Systemge/Config"
 )
 
 type SyncManager struct {
-	requests          map[string]*SyncRequest
-	mutex             sync.Mutex
-	maxActiveRequests int
-	minTokenLength    int
-	maxTokenLength    int
+	config   *Config.SyncManager
+	requests map[string]*SyncRequest
+	mutex    sync.Mutex
 }
 
-func NewSyncManager(maxTokenLength int, minTokenLength int, maxActiveRequests int) *SyncManager {
+func NewSyncManager(config *Config.SyncManager) *SyncManager {
 	return &SyncManager{
-		requests:          make(map[string]*SyncRequest),
-		mutex:             sync.Mutex{},
-		minTokenLength:    minTokenLength,
-		maxTokenLength:    maxTokenLength,
-		maxActiveRequests: maxActiveRequests,
+		requests: make(map[string]*SyncRequest),
+		mutex:    sync.Mutex{},
+		config:   config,
 	}
 }
 
@@ -28,15 +26,15 @@ func (manager *SyncManager) NewRequest(token string, responseLimit uint64, deadl
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
-	if len(token) < manager.minTokenLength {
+	if manager.config.MinTokenLength > 0 && len(token) < manager.config.MinTokenLength {
 		return nil, errors.New("token too short")
 	}
-	if len(token) > manager.maxTokenLength {
+	if manager.config.MaxTokenLength > 0 && len(token) > manager.config.MaxTokenLength {
 		return nil, errors.New("token too long")
 	}
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
-	if len(manager.requests) >= manager.maxActiveRequests {
+	if manager.config.MaxActiveRequests > 0 && len(manager.requests) >= manager.config.MaxActiveRequests {
 		return nil, errors.New("too many active requests")
 	}
 	for _, ok := manager.requests[token]; ok; {

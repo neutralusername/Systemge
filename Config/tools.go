@@ -88,3 +88,9 @@ func UnmarshalTopicManager(data string) *TopicManager {
 	}
 	return &topicManagerConfig
 }
+
+type SyncManager struct {
+	MaxTokenLength    int `json:"maxTokenLength"`    // default: 0 == no limit
+	MinTokenLength    int `json:"minTokenLength"`    // default: 0 == no limit
+	MaxActiveRequests int `json:"maxActiveRequests"` // default: 0 == no limit
+}
