@@ -34,11 +34,11 @@ func (manager *SyncManager) NewRequest(token string, responseLimit uint64, deadl
 	if len(token) > manager.maxTokenLength {
 		return nil, errors.New("token too long")
 	}
+	manager.mutex.Lock()
+	defer manager.mutex.Unlock()
 	if len(manager.requests) >= manager.maxActiveRequests {
 		return nil, errors.New("too many active requests")
 	}
-	manager.mutex.Lock()
-	defer manager.mutex.Unlock()
 	for _, ok := manager.requests[token]; ok; {
 		return nil, errors.New("token already exists")
 	}
