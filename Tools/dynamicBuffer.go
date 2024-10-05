@@ -113,9 +113,8 @@ func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, de
 			linkedListItem.prev = current.prev
 			current.prev.next = linkedListItem
 			current.prev = linkedListItem
-			break
+			return nil
 		}
 		current = current.next
 	}
-	return nil
 }
