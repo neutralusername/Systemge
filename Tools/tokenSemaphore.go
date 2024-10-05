@@ -1,7 +1,6 @@
 package Tools
 
 import (
-	"math"
 	"sync"
 )
 
@@ -14,13 +13,7 @@ type TokenSemaphore struct {
 	tokenAlphabet   string
 }
 
-func NewTokenSemaphore(poolSize uint32, tokenSize uint32, tokenAlphabet string, randomizerSeed int64) *TokenSemaphore {
-	if poolSize <= 0 {
-		panic("Pool size must be greater than 0")
-	}
-	if poolSize > uint32(math.Pow(float64(len(tokenAlphabet)), float64(tokenSize))*0.9) {
-		panic("Pool size is too large for the given token size and alphabet")
-	}
+func NewTokenSemaphore(tokens []string) *TokenSemaphore {
 	tokenSemaphore := &TokenSemaphore{
 		acquiredTokens:  make(map[string]bool),
 		tokenSize:       tokenSize,
