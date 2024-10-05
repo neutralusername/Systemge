@@ -22,9 +22,13 @@ type syncRequest struct {
 	responseChannel chan *Message.Message
 	abortChannel    chan bool
 	responseLimit   uint64
+	responseCount   uint64
 }
 
 func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (string, <-chan *Message.Message) {
+	if responseLimit == 0 {
+		responseLimit = 1
+	}
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
 
@@ -33,7 +37,7 @@ func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (str
 		syncToken = syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, Tools.ALPHA_NUMERIC)
 	}
 	syncRequestStruct := &syncRequest{
-		responseChannel: make(chan *Message.Message, 1),
+		responseChannel: make(chan *Message.Message, responseLimit),
 		abortChannel:    make(chan bool),
 		responseLimit:   responseLimit,
 	}
@@ -43,7 +47,7 @@ func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (str
 	if syncRequests.deadlineMs > 0 {
 		timeout = time.After(time.Duration(syncRequests.deadlineMs) * time.Millisecond)
 	}
-	resChan := make(chan *Message.Message)
+	resChan := make(chan *Message.Message, responseLimit)
 	go func() {
 		select {
 		case responseMessage := <-syncRequestStruct.responseChannel:
@@ -66,6 +70,25 @@ func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (str
 	return syncToken, resChan
 }
 
+func (syncRequests *SyncRequests) AddSyncResponse(message *Message.Message) error {
+	syncRequests.mutex.Lock()
+	defer syncRequests.mutex.Unlock()
+
+	syncRequestStruct, ok := syncRequests.syncRequests[message.GetSyncToken()]
+	if !ok {
+		return errors.New("no response channel found")
+	}
+
+	syncRequestStruct.responseChannel <- message
+	syncRequestStruct.responseCount++
+	if syncRequestStruct.responseCount >= syncRequestStruct.responseLimit {
+		close(syncRequestStruct.responseChannel)
+		delete(syncRequests.syncRequests, message.GetSyncToken())
+	}
+
+	return nil
+}
+
 func (syncRequests *SyncRequests) AbortSyncRequest(syncToken string) error {
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
@@ -77,22 +100,6 @@ func (syncRequests *SyncRequests) AbortSyncRequest(syncToken string) error {
 
 	close(syncRequestStruct.abortChannel)
 	delete(syncRequests.syncRequests, syncToken)
-
-	return nil
-}
-
-func (syncRequests *SyncRequests) AddSyncResponse(message *Message.Message) error {
-	syncRequests.mutex.Lock()
-	defer syncRequests.mutex.Unlock()
-
-	syncRequestStruct, ok := syncRequests.syncRequests[message.GetSyncToken()]
-	if !ok {
-		return errors.New("no response channel found")
-	}
-
-	syncRequestStruct.responseChannel <- message
-	close(syncRequestStruct.responseChannel)
-	delete(syncRequests.syncRequests, message.GetSyncToken())
 
 	return nil
 }
