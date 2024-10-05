@@ -5,30 +5,30 @@ import (
 	"sync"
 )
 
-type PriorityQueue struct {
-	items map[string]*priorityQueueLinkedListItem
-	head  *priorityQueueLinkedListItem
-	tail  *priorityQueueLinkedListItem
+type PriorityTokenQueue struct {
+	items map[string]*priorityTokenQueueLinedListItem
+	head  *priorityTokenQueueLinedListItem
+	tail  *priorityTokenQueueLinedListItem
 	mutex sync.Mutex
 }
 
-type priorityQueueLinkedListItem struct {
-	next     *priorityQueueLinkedListItem
-	prev     *priorityQueueLinkedListItem
+type priorityTokenQueueLinedListItem struct {
+	next     *priorityTokenQueueLinedListItem
+	prev     *priorityTokenQueueLinedListItem
 	token    string
 	item     any
 	priority uint32
 	deadline uint64
 }
 
-func NewDynamicBuffer(capacity uint32) *PriorityQueue {
-	buffer := &PriorityQueue{
-		items: make(map[string]*priorityQueueLinkedListItem, capacity),
+func NewPriorityTokenQueue(capacity uint32) *PriorityTokenQueue {
+	buffer := &PriorityTokenQueue{
+		items: make(map[string]*priorityTokenQueueLinedListItem, capacity),
 	}
 	return buffer
 }
 
-func (buffer *PriorityQueue) GetNextItem() (any, error) {
+func (buffer *PriorityTokenQueue) GetNextItem() (any, error) {
 	buffer.mutex.Lock()
 	defer buffer.mutex.Unlock()
 
@@ -48,7 +48,7 @@ func (buffer *PriorityQueue) GetNextItem() (any, error) {
 	return item.item, nil
 }
 
-func (buffer *PriorityQueue) GetItemByToken(token string) (any, error) {
+func (buffer *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 	buffer.mutex.Lock()
 	defer buffer.mutex.Unlock()
 
@@ -72,14 +72,14 @@ func (buffer *PriorityQueue) GetItemByToken(token string) (any, error) {
 	return item.item, nil
 }
 
-func (buffer *PriorityQueue) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
+func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
 	buffer.mutex.Lock()
 	defer buffer.mutex.Unlock()
 
 	if buffer.items[token] != nil {
 		return errors.New("token already exists")
 	}
-	linkedListItem := &priorityQueueLinkedListItem{
+	linkedListItem := &priorityTokenQueueLinedListItem{
 		token:    token,
 		item:     item,
 		priority: priority,
