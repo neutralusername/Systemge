@@ -6,8 +6,8 @@ type TokenSemaphore struct {
 }
 
 // always uses the provided tokens. If the pool is empty, it will block until a token is available.
-// tokens can be returned manually or automatically after a deadline.
-func NewTokenSemaphore(tokens []string, deadlineMs uint32) *TokenSemaphore {
+// tokens can be returned manually.
+func NewTokenSemaphore(tokens []string) *TokenSemaphore {
 	tokenSemaphore := &TokenSemaphore{
 		tokens:       make(map[string]bool),
 		tokenChannel: make(chan string, len(tokens)),
@@ -41,11 +41,12 @@ func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 
 // ReturnToken returns a token to the pool.
 // If the token is not valid, it will return an error.
-func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
+func (tokenSemaphore *TokenSemaphore) ReturnToken(token string, replacementToken string) error {
 	if tokenSemaphore.tokens[token] {
 		return nil
 	}
-	tokenSemaphore.tokens[token] = true
-	tokenSemaphore.tokenChannel <- token
+	delete(tokenSemaphore.tokens, token)
+	tokenSemaphore.tokens[replacementToken] = true
+	tokenSemaphore.tokenChannel <- replacementToken
 	return nil
 }
