@@ -92,7 +92,6 @@ func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 }
 
 func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
-	item.isRetrieved = true
 	close(item.isRetrievedChannel)
 	delete(queue.items, item.token)
 	heap.Remove(&queue.priorityQueue, item.index)
