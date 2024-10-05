@@ -25,8 +25,7 @@ type WebsocketClient struct {
 
 	sendMutex sync.Mutex
 
-	syncRequests map[string]*syncRequestStruct
-	syncMutex    sync.Mutex
+	syncManager *Tools.SyncManager
 
 	messageHandlingLoopStopChannel chan<- bool
 	messageMutex                   sync.Mutex
