@@ -90,19 +90,6 @@ func (syncRequests *SyncManager) AbortSyncRequest(syncToken string) error {
 	return nil
 }
 
-func (syncRequests *SyncManager) removeSyncRequest(syncToken string) error {
-	syncRequests.mutex.Lock()
-	defer syncRequests.mutex.Unlock()
-
-	_, ok := syncRequests.syncRequests[syncToken]
-	if !ok {
-		return errors.New("no response channel found")
-	}
-	delete(syncRequests.syncRequests, syncToken)
-
-	return nil
-}
-
 // returns a slice of syncTokens of open sync requests
 func (syncRequests *SyncManager) GetOpenSyncRequests() []string {
 	syncRequests.mutex.Lock()
