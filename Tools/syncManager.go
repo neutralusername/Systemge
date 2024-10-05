@@ -67,6 +67,7 @@ func (syncRequests *SyncManager) AddSyncResponse(message *Message.Message) error
 
 	syncRequestStruct.responseChannel <- message
 	syncRequestStruct.responseCount++
+
 	if syncRequestStruct.responseCount >= syncRequestStruct.responseLimit {
 		close(syncRequestStruct.responseChannel)
 		delete(syncRequests.syncRequests, message.GetSyncToken())
