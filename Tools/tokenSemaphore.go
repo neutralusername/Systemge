@@ -1,57 +1,51 @@
 package Tools
 
-import (
-	"sync"
-)
-
 type TokenSemaphore struct {
-	acquiredTokens  map[string]bool // token -> isAcquired
-	availableTokens []string
-	mutex           sync.Mutex
-	randomizer      *Randomizer
-	tokenSize       uint32
-	tokenAlphabet   string
+	tokens       map[string]bool // token -> isAvailable
+	tokenChannel chan string
 }
 
 // always uses the provided tokens. If the pool is empty, it will block until a token is available.
 // tokens can be returned manually or automatically after a deadline.
 func NewTokenSemaphore(tokens []string, deadlineMs uint32) *TokenSemaphore {
 	tokenSemaphore := &TokenSemaphore{
-		acquiredTokens:  make(map[string]bool),
-		tokenSize:       tokenSize,
-		availableTokens: make([]string, 0, poolSize),
-		randomizer:      NewRandomizer(randomizerSeed),
-		tokenAlphabet:   tokenAlphabet,
+		tokens:       make(map[string]bool),
+		tokenChannel: make(chan string, len(tokens)),
 	}
 
-	for i := (uint32)(0); i < poolSize; i++ {
-		token := tokenSemaphore.randomizer.GenerateRandomString(tokenSize, tokenAlphabet)
-		for tokenSemaphore.acquiredTokens[token] {
-			token = tokenSemaphore.randomizer.GenerateRandomString(tokenSize, tokenAlphabet)
-		}
-		tokenSemaphore.availableTokens = append(tokenSemaphore.availableTokens, token)
+	for _, token := range tokens {
+		tokenSemaphore.tokens[token] = true
+		tokenSemaphore.tokenChannel <- token
 	}
+
 	return tokenSemaphore
 }
 
 func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
-	tokenSemaphore.mutex.Lock()
-	defer tokenSemaphore.mutex.Unlock()
-	acquiredTokens := make([]string, 0, len(tokenSemaphore.acquiredTokens))
-	for token := range tokenSemaphore.acquiredTokens {
-		acquiredTokens = append(acquiredTokens, token)
+	acquiredtokens := make([]string, 0)
+	for token, isAvailable := range tokenSemaphore.tokens {
+		if !isAvailable {
+			acquiredtokens = append(acquiredtokens, token)
+		}
 	}
-	return acquiredTokens
+	return acquiredtokens
 }
 
 // AcquireToken returns a token from the pool.
 // If the pool is empty, it will block until a token is available.
 func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
-
+	token := <-tokenSemaphore.tokenChannel
+	tokenSemaphore.tokens[token] = false
+	return token
 }
 
 // ReturnToken returns a token to the pool.
 // If the token is not valid, it will return an error.
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
-
+	if tokenSemaphore.tokens[token] {
+		return nil
+	}
+	tokenSemaphore.tokens[token] = true
+	tokenSemaphore.tokenChannel <- token
+	return nil
 }
