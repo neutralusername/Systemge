@@ -67,10 +67,9 @@ func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint3
 
 	if deadlineMs > 0 {
 		go func() {
-			deadline := time.After(time.Duration(deadlineMs) * time.Millisecond)
 			for {
 				select {
-				case <-deadline:
+				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
 					buffer.GetItemByToken(token)
 					return
 				case <-linkedListItem.retrieved:
