@@ -24,12 +24,15 @@ func NewSyncManager(tokenLength uint32, tokenAlphabet string, randomizerSeed int
 	}
 }
 
-func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) *SyncRequest {
+func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) (*SyncRequest, error) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
+	if len(manager.requests) >= int(manager.maxTotalTokens) {
+		return nil, errors.New("maximum number of active sync requests reached")
+	}
 
 	token := manager.randomizer.GenerateRandomString(manager.tokenLength, ALPHA_NUMERIC)
 	for _, ok := manager.requests[token]; ok; {
