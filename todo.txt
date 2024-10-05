@@ -21,7 +21,6 @@ build specialized "dashboards" for various packages. for example to add topics t
 consider/support config changes at runtime.
 right now this is not officially supported and works for some fields, but not for others.
 
-split up websocketServer into listener, server and connection like systemge
 add sync messaging system between websocketServer and its clients
 
 add authentication/key mechanism for listeners
@@ -46,8 +45,6 @@ maybe other types of csv files as well (e.g. connects/disconnects, message times
 
 refactor brokerResolver to use singleRequestServer
 
-update oauth2server (add dashboard client etc.)
-
 update readme
 
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
@@ -55,7 +52,7 @@ re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer
 add ChannelConnection and channelListener as more performant alternative for systems within a single process
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
-write something that takes in configs and create an executable, that can be used to easily perform systemge-operations through the (os-)command line (such as sending messages) i.e. through the provided args
+write something that takes in configs and creates an executable, that can be used to easily perform systemge-operations through the (os-)command line (such as sending messages) i.e. through the provided args
 
 possibly create a way to access systemge-operations (i.e. operations from a structs like systemgeServer) through os-level shared memory and synchronization (syscall package)
 

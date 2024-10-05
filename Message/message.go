@@ -56,6 +56,34 @@ func (message *Message) IsResponse() bool {
 	return message.response
 }
 
+func New(topic, payload, syncToken string) *Message {
+	return &Message{
+		topic:     topic,
+		syncToken: syncToken,
+		payload:   payload,
+	}
+}
+
+func (message *Message) NewResponse(success bool, payload string) *Message {
+	if message.IsResponse() {
+		panic("Cannot create a response to a response")
+	}
+	if success {
+		return &Message{
+			topic:     TOPIC_SUCCESS,
+			syncToken: message.syncToken,
+			payload:   payload,
+			response:  true,
+		}
+	}
+	return &Message{
+		topic:     TOPIC_FAILURE,
+		syncToken: message.syncToken,
+		payload:   payload,
+		response:  true,
+	}
+}
+
 func NewAsync(topic, payload string) *Message {
 	return &Message{
 		topic:   topic,

@@ -1,6 +1,8 @@
 package WebsocketClient
 
 import (
+	"errors"
+
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Event"
 )
@@ -13,43 +15,48 @@ func (connection *WebsocketClient) write(messageBytes []byte, circumstance strin
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
 
-	if event := connection.onEvent(Event.NewInfo(
-		Event.WritingMessage,
-		"sending message",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: circumstance,
-			Event.Bytes:        string(messageBytes),
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
+	if connection.eventHandler != nil {
+		if event := connection.onEvent(Event.New(
+			Event.WritingMessage,
+			Event.Context{
+				Event.Circumstance: circumstance,
+				Event.Bytes:        string(messageBytes),
+			},
+			Event.Continue,
+			Event.Cancel,
+		)); event.GetAction() == Event.Cancel {
+			return errors.New("write canceled")
+		}
 	}
 
 	err := connection.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
-		connection.onEvent(Event.NewWarningNoOption(
-			Event.WriteMessageFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: circumstance,
-				Event.Bytes:        string(messageBytes),
-			}),
-		)
+		if connection.eventHandler != nil {
+			connection.onEvent(Event.New(
+				Event.WriteMessageFailed,
+				Event.Context{
+					Event.Circumstance: circumstance,
+					Event.Bytes:        string(messageBytes),
+					Event.Error:        err.Error(),
+				},
+				Event.Cancel,
+			))
+		}
 		return err
 	}
 	connection.bytesSent.Add(uint64(len(messageBytes)))
 	connection.messagesSent.Add(1)
 
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.WroteMessage,
-		"message sent",
-		Event.Context{
-			Event.Circumstance: circumstance,
-			Event.Bytes:        string(messageBytes),
-		},
-	))
+	if connection.eventHandler != nil {
+		connection.onEvent(Event.New(
+			Event.WroteMessage,
+			Event.Context{
+				Event.Circumstance: circumstance,
+				Event.Bytes:        string(messageBytes),
+			},
+			Event.Continue,
+		))
+	}
 
 	return nil
 }

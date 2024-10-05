@@ -21,6 +21,8 @@ const TargetServiceType = "targetServiceType"
 const Target = "target"
 const Targets = "targets"
 
+const Error = "error"
+
 const Topic = "topic"
 const Payload = "payload"
 const SyncToken = "syncToken"

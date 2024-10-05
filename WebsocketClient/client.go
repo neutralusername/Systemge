@@ -85,27 +85,29 @@ func (connection *WebsocketClient) Close() error {
 	}
 	defer connection.closedMutex.Unlock()
 
-	if event := connection.onEvent(Event.NewInfo(
-		Event.ServiceStoping,
-		"closing websocketClient",
-		Event.Skip,
-		Event.Skip,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.ServiceStop,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
-	if connection.closed {
-		connection.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStarted,
-			"websocketClient already started",
+	if connection.eventHandler != nil {
+		if event := connection.onEvent(Event.New(
+			Event.ServiceStoping,
 			Event.Context{
 				Event.Circumstance: Event.ServiceStop,
 			},
-		))
+			Event.Continue,
+			Event.Cancel,
+		)); event.GetAction() == Event.Cancel {
+			return errors.New("close canceled")
+		}
+	}
+
+	if connection.closed {
+		if connection.eventHandler != nil {
+			connection.onEvent(Event.New(
+				Event.ServiceAlreadyStarted,
+				Event.Context{
+					Event.Circumstance: Event.ServiceStop,
+				},
+				Event.Cancel,
+			))
+		}
 		return errors.New("websocketClient already closed")
 	}
 
@@ -124,13 +126,15 @@ func (connection *WebsocketClient) Close() error {
 	}
 	close(connection.messageChannel)
 
-	connection.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStoped,
-		"websocketClient closed",
-		Event.Context{
-			Event.Circumstance: Event.ServiceStop,
-		},
-	))
+	if connection.eventHandler != nil {
+		connection.onEvent(Event.New(
+			Event.ServiceStoped,
+			Event.Context{
+				Event.Circumstance: Event.ServiceStop,
+			},
+			Event.Continue,
+		))
+	}
 
 	return nil
 }
