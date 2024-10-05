@@ -23,9 +23,9 @@ type priorityTokenQueueItem struct {
 	retrieved chan struct{}
 }
 
-func NewPriorityTokenQueue(capacity uint32) *PriorityTokenQueue {
+func NewPriorityTokenQueue() *PriorityTokenQueue {
 	buffer := &PriorityTokenQueue{
-		items: make(map[string]*priorityTokenQueueItem, capacity),
+		items: make(map[string]*priorityTokenQueueItem),
 	}
 	return buffer
 }
