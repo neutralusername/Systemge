@@ -3,6 +3,7 @@ package Tools
 import (
 	"errors"
 	"sync"
+	"time"
 )
 
 type PriorityTokenQueue struct {
@@ -13,12 +14,13 @@ type PriorityTokenQueue struct {
 }
 
 type priorityTokenQueueItem struct {
-	next     *priorityTokenQueueItem
-	prev     *priorityTokenQueueItem
-	token    string
-	item     any
-	priority uint32
-	deadline uint64
+	next      *priorityTokenQueueItem
+	prev      *priorityTokenQueueItem
+	token     string
+	item      any
+	priority  uint32
+	deadline  uint64
+	retrieved chan struct{}
 }
 
 func NewPriorityTokenQueue(capacity uint32) *PriorityTokenQueue {
@@ -26,6 +28,58 @@ func NewPriorityTokenQueue(capacity uint32) *PriorityTokenQueue {
 		items: make(map[string]*priorityTokenQueueItem, capacity),
 	}
 	return buffer
+}
+
+func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
+	buffer.mutex.Lock()
+	defer buffer.mutex.Unlock()
+
+	if buffer.items[token] != nil {
+		return errors.New("token already exists")
+	}
+	linkedListItem := &priorityTokenQueueItem{
+		token:     token,
+		item:      item,
+		priority:  priority,
+		deadline:  deadlineMs,
+		retrieved: make(chan struct{}),
+	}
+	buffer.items[linkedListItem.token] = linkedListItem
+	if buffer.tail == nil {
+		buffer.head = linkedListItem
+		buffer.tail = linkedListItem
+		return nil
+	}
+	if linkedListItem.priority > buffer.head.priority {
+		linkedListItem.prev = buffer.head
+		buffer.head.next = linkedListItem
+		buffer.head = linkedListItem
+		return nil
+	}
+	current := buffer.tail
+	for current.priority < linkedListItem.priority {
+		current = current.next
+	}
+	linkedListItem.next = current
+	linkedListItem.prev = current.prev
+	current.prev.next = linkedListItem
+	current.prev = linkedListItem
+
+	if deadlineMs > 0 {
+		go func() {
+			deadline := time.After(time.Duration(deadlineMs) * time.Millisecond)
+			for {
+				select {
+				case <-deadline:
+					buffer.GetItemByToken(token)
+					return
+				case <-linkedListItem.retrieved:
+					return
+				}
+			}
+		}()
+	}
+	return nil
 }
 
 func (buffer *PriorityTokenQueue) GetNextItem() (any, error) {
@@ -45,6 +99,7 @@ func (buffer *PriorityTokenQueue) GetNextItem() (any, error) {
 		item.prev.next = nil
 	}
 	delete(buffer.items, item.token)
+	close(item.retrieved)
 	return item.item, nil
 }
 
@@ -69,41 +124,6 @@ func (buffer *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 		buffer.tail = item.next
 	}
 	delete(buffer.items, item.token)
+	close(item.retrieved)
 	return item.item, nil
-}
-
-func (buffer *PriorityTokenQueue) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
-	buffer.mutex.Lock()
-	defer buffer.mutex.Unlock()
-
-	if buffer.items[token] != nil {
-		return errors.New("token already exists")
-	}
-	linkedListItem := &priorityTokenQueueItem{
-		token:    token,
-		item:     item,
-		priority: priority,
-		deadline: deadlineMs,
-	}
-	buffer.items[linkedListItem.token] = linkedListItem
-	if buffer.tail == nil {
-		buffer.head = linkedListItem
-		buffer.tail = linkedListItem
-		return nil
-	}
-	if linkedListItem.priority > buffer.head.priority {
-		linkedListItem.prev = buffer.head
-		buffer.head.next = linkedListItem
-		buffer.head = linkedListItem
-		return nil
-	}
-	current := buffer.tail
-	for current.priority < linkedListItem.priority {
-		current = current.next
-	}
-	linkedListItem.next = current
-	linkedListItem.prev = current.prev
-	current.prev.next = linkedListItem
-	current.prev = linkedListItem
-	return nil
 }
