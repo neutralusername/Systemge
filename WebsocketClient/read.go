@@ -5,10 +5,9 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 )
 
-func (connection *WebsocketClient) Read() (*Message.Message, error) {
+func (connection *WebsocketClient) Read() ([]byte, error) {
 	if connection.eventHandler != nil {
 		if event := connection.onEvent(Event.New(
 			Event.ReadingMessage,
@@ -56,33 +55,10 @@ func (connection *WebsocketClient) Read() (*Message.Message, error) {
 	}
 	connection.messagesReceived.Add(1)
 
-	message, err := connection.handleMessageReception(messageBytes, Event.Sequential)
-	if err != nil {
-		if connection.eventHandler != nil {
-			event := connection.onEvent(Event.New(
-				Event.HandleReceptionFailed,
-				Event.Context{
-					Event.Circumstance: Event.MessageReceptionRoutine,
-					Event.Behaviour:    Event.Sequential,
-					Event.Error:        err.Error(),
-				},
-				Event.Continue,
-				Event.Skip,
-				Event.Cancel,
-			))
-			if event.GetAction() == Event.Cancel {
-				return nil, err
-			}
-			if event.GetAction() == Event.Skip {
-				return nil, nil
-			}
-		}
-		connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
-		return nil, err
-	}
-	return message, nil
+	return messageBytes, nil
 }
 
+/*
 func (connection *WebsocketClient) handleMessageReception(messageBytes []byte, behaviour string) (*Message.Message, error) {
 	event := connection.onEvent(Event.NewInfo(
 		Event.HandlingMessageReception,
@@ -229,4 +205,31 @@ func (connection *WebsocketClient) validateMessage(message *Message.Message) err
 		return errors.New("message payload exceeds maximum size")
 	}
 	return nil
-}
+} */
+
+/*
+message, err := connection.handleMessageReception(messageBytes, Event.Sequential)
+	if err != nil {
+		if connection.eventHandler != nil {
+			event := connection.onEvent(Event.New(
+				Event.HandleReceptionFailed,
+				Event.Context{
+					Event.Circumstance: Event.MessageReceptionRoutine,
+					Event.Behaviour:    Event.Sequential,
+					Event.Error:        err.Error(),
+				},
+				Event.Continue,
+				Event.Skip,
+				Event.Cancel,
+			))
+			if event.GetAction() == Event.Cancel {
+				return nil, err
+			}
+			if event.GetAction() == Event.Skip {
+				return nil, nil
+			}
+		}
+		connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
+		return nil, err
+	}
+*/
