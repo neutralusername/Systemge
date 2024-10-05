@@ -1,5 +1,7 @@
 package Tools
 
+import "errors"
+
 type TokenSemaphore struct {
 	tokens       map[string]bool // token -> isAvailable
 	tokenChannel chan string
@@ -7,18 +9,21 @@ type TokenSemaphore struct {
 
 // always uses the provided tokens. If the pool is empty, it will block until a token is available.
 // tokens can be returned manually.
-func NewTokenSemaphore(tokens []string) *TokenSemaphore {
+func NewTokenSemaphore(tokens []string) (*TokenSemaphore, error) {
 	tokenSemaphore := &TokenSemaphore{
 		tokens:       make(map[string]bool),
 		tokenChannel: make(chan string, len(tokens)),
 	}
 
 	for _, token := range tokens {
+		if token == "" {
+			return nil, errors.New("empty string token")
+		}
 		tokenSemaphore.tokens[token] = true
 		tokenSemaphore.tokenChannel <- token
 	}
 
-	return tokenSemaphore
+	return tokenSemaphore, nil
 }
 
 func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
@@ -43,7 +48,13 @@ func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 // If the token is not valid, it will return an error.
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string, replacementToken string) error {
 	if tokenSemaphore.tokens[token] {
-		return nil
+		return errors.New("token is not acquired")
+	}
+	if replacementToken == "" {
+		return errors.New("empty string token")
+	}
+	if tokenSemaphore.tokens[replacementToken] && replacementToken != token {
+		return errors.New("token already exists")
 	}
 	delete(tokenSemaphore.tokens, token)
 	tokenSemaphore.tokens[replacementToken] = true
