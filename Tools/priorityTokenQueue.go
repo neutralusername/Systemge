@@ -44,6 +44,7 @@ func NewPriorityTokenQueue(priorityQueue PriorityQueue) *PriorityTokenQueue {
 	return queue
 }
 
+// token may be empty string
 func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, deadlineMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -78,7 +79,11 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 	}
 	return nil
 }
-
+func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
+	close(item.isRetrievedChannel)
+	delete(queue.items, item.token)
+	heap.Remove(&queue.priorityQueue, item.index)
+}
 func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -89,12 +94,6 @@ func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 	}
 	queue.removeItem(item)
 	return item.value, nil
-}
-
-func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
-	close(item.isRetrievedChannel)
-	delete(queue.items, item.token)
-	heap.Remove(&queue.priorityQueue, item.index)
 }
 
 func (queue *PriorityTokenQueue) GetNextItem() (any, error) {
