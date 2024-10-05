@@ -28,12 +28,21 @@ func (request *SyncRequest) GetToken() string {
 func (request *SyncRequest) GetResponseChannel() <-chan any {
 	return request.responseChannel
 }
+
 func (request *SyncRequest) GetNextResponse() (any, error) {
 	response, ok := <-request.responseChannel
 	if !ok {
 		return nil, errors.New("response channel closed")
 	}
 	return response, nil
+}
+
+func (request *SyncRequest) GetResponseCount() uint64 {
+	return request.responseCount
+}
+
+func (request *SyncRequest) GetResponseLimit() uint64 {
+	return request.responseLimit
 }
 
 func NewSyncRequestManager(tokenLength uint32, randomizerSeed int64) *SyncRequestManager {
