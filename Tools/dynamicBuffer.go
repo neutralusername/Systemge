@@ -11,11 +11,14 @@ package Tools
 
 type DynamicBuffer struct {
 	items    map[string]*dyamicBufferItem
-	order    []*dyamicBufferItem
+	head     *dyamicBufferItem // next item to be retrieved
+	tail     *dyamicBufferItem // lowest priority item/last item added
 	itemChan chan *dyamicBufferItem
 }
 
 type dyamicBufferItem struct {
+	next     *dyamicBufferItem
+	prev     *dyamicBufferItem
 	token    string
 	item     any
 	priority uint32
@@ -25,31 +28,48 @@ type dyamicBufferItem struct {
 func NewDynamicBuffer(capacity uint32) *DynamicBuffer {
 	buffer := &DynamicBuffer{
 		items:    make(map[string]*dyamicBufferItem, capacity),
-		order:    make([]*dyamicBufferItem, 0, capacity),
 		itemChan: make(chan *dyamicBufferItem, capacity),
 	}
-	/* go func() {
+	go func() {
 		for item := range buffer.itemChan {
+			if buffer.items[item.token] != nil {
+				//
+				continue
+			}
 			buffer.items[item.token] = item
-			for i := len(buffer.order) - 1; i >= 0; i-- {
-				if buffer.order[i].priority >= item.priority {
-					buffer.order = append(buffer.order, nil)
-					copy(buffer.order[i+1:], buffer.order[i:])
-					buffer.order[i] = item
+			if buffer.tail == nil {
+				buffer.head = item
+				buffer.tail = item
+				continue
+			}
+			if item.priority > buffer.head.priority {
+				item.prev = buffer.head
+				buffer.head.next = item
+				buffer.head = item
+				continue
+			}
+			current := buffer.tail
+			for {
+				if current.priority >= item.priority {
+					item.next = current
+					item.prev = current.prev
+					current.prev.next = item
+					current.prev = item
 					break
 				}
+				current = current.next
 			}
 		}
-	}() */
+	}()
 	return buffer
 }
 
-func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, deadlineMs uint64) (string, error) {
+func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
 	buffer.itemChan <- &dyamicBufferItem{
 		token:    token,
 		item:     item,
 		priority: priority,
 		deadline: deadlineMs,
 	}
-	return "", nil
+	return nil
 }
