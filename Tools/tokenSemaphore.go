@@ -1,9 +1,13 @@
 package Tools
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 type TokenSemaphore struct {
 	tokens       map[string]bool // token -> isAvailable
+	mutex        sync.Mutex
 	tokenChannel chan string
 }
 
@@ -27,12 +31,14 @@ func NewTokenSemaphore(tokens []string) (*TokenSemaphore, error) {
 }
 
 func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
+	tokenSemaphore.mutex.Lock()
 	acquiredtokens := make([]string, 0)
 	for token, isAvailable := range tokenSemaphore.tokens {
 		if !isAvailable {
 			acquiredtokens = append(acquiredtokens, token)
 		}
 	}
+	tokenSemaphore.mutex.Unlock()
 	return acquiredtokens
 }
 
@@ -40,7 +46,9 @@ func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
 // If the pool is empty, it will block until a token is available.
 func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 	token := <-tokenSemaphore.tokenChannel
+	tokenSemaphore.mutex.Lock()
 	tokenSemaphore.tokens[token] = false
+	tokenSemaphore.mutex.Unlock()
 	return token
 }
 
@@ -48,6 +56,8 @@ func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
 // If the token is not valid, it will return an error.
 // replacementToken must be either same as token or a new token.
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string, replacementToken string) error {
+	tokenSemaphore.mutex.Lock()
+	defer tokenSemaphore.mutex.Unlock()
 	if tokenSemaphore.tokens[token] {
 		return errors.New("token is not acquired")
 	}
