@@ -1,12 +1,6 @@
 package Tools
 
-import (
-	"errors"
-	"sync"
-	"time"
-)
-
-type PriorityTokenQueue struct {
+/* type PriorityTokenQueue struct {
 	items map[string]*priorityTokenQueueItem
 	head  *priorityTokenQueueItem
 	tail  *priorityTokenQueueItem
@@ -126,3 +120,4 @@ func (buffer *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 	close(item.retrieved)
 	return item.item, nil
 }
+*/
