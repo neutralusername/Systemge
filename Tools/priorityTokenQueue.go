@@ -24,7 +24,8 @@ type priorityTokenQueueItem struct {
 
 func NewPriorityTokenQueue() *PriorityTokenQueue {
 	queue := &PriorityTokenQueue{
-		items: make(map[string]*priorityTokenQueueItem),
+		items:         make(map[string]*priorityTokenQueueItem),
+		priorityQueue: make(PriorityQueue, 0),
 	}
 	heap.Init(&queue.priorityQueue)
 	return queue
