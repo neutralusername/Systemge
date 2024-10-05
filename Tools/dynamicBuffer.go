@@ -12,15 +12,15 @@ import "errors"
 //
 
 type DynamicBuffer struct {
-	items    map[string]*dyamicBufferItem
-	head     *dyamicBufferItem // next item to be retrieved
-	tail     *dyamicBufferItem // lowest priority item/last item added
-	itemChan chan *dyamicBufferItem
+	items    map[string]*dynamicBufferItem
+	head     *dynamicBufferItem // next item to be retrieved
+	tail     *dynamicBufferItem // lowest priority item/last item added
+	itemChan chan *dynamicBufferItem
 }
 
-type dyamicBufferItem struct {
-	next     *dyamicBufferItem
-	prev     *dyamicBufferItem
+type dynamicBufferItem struct {
+	next     *dynamicBufferItem
+	prev     *dynamicBufferItem
 	token    string
 	item     any
 	priority uint32
@@ -29,8 +29,8 @@ type dyamicBufferItem struct {
 
 func NewDynamicBuffer(capacity uint32) *DynamicBuffer {
 	buffer := &DynamicBuffer{
-		items:    make(map[string]*dyamicBufferItem, capacity),
-		itemChan: make(chan *dyamicBufferItem, capacity),
+		items:    make(map[string]*dynamicBufferItem, capacity),
+		itemChan: make(chan *dynamicBufferItem, capacity),
 	}
 	go func() {
 		for item := range buffer.itemChan {
@@ -105,7 +105,7 @@ func (buffer *DynamicBuffer) GetItemByToken(token string) (any, error) {
 }
 
 func (buffer *DynamicBuffer) AddItem(token string, item any, priority uint32, deadlineMs uint64) error {
-	buffer.itemChan <- &dyamicBufferItem{
+	buffer.itemChan <- &dynamicBufferItem{
 		token:    token,
 		item:     item,
 		priority: priority,
