@@ -1,42 +1,42 @@
 package Tools
 
 import (
-	"errors"
+	"math"
 	"sync"
 )
 
 type TokenSemaphore struct {
-	acquiredTokens map[string]bool // token -> isAcquired
-	channel        chan string
-	mutex          sync.Mutex
-	randomizer     *Randomizer
-	tokenSize      uint32
+	acquiredTokens  map[string]bool // token -> isAcquired
+	availableTokens []string
+	mutex           sync.Mutex
+	randomizer      *Randomizer
+	tokenSize       uint32
+	tokenAlphabet   string
 }
 
-// fix potential duplicate tokens...
-func NewTokenSemaphore(poolSize uint32, tokenSize uint32, randomizerSeed int64) *TokenSemaphore {
+func NewTokenSemaphore(poolSize uint32, tokenSize uint32, tokenAlphabet string, randomizerSeed int64) *TokenSemaphore {
 	if poolSize <= 0 {
 		panic("Pool size must be greater than 0")
 	}
-	randomizer := NewRandomizer(randomizerSeed)
-	tokens := make([]string, poolSize)
-	i := uint32(0)
-	for {
-		if i >= poolSize {
-			break
+	if poolSize > uint32(math.Pow(float64(len(tokenAlphabet)), float64(tokenSize))*0.9) {
+		panic("Pool size is too large for the given token size and alphabet")
+	}
+	tokenSemaphore := &TokenSemaphore{
+		acquiredTokens:  make(map[string]bool),
+		tokenSize:       tokenSize,
+		availableTokens: make([]string, 0, poolSize),
+		randomizer:      NewRandomizer(randomizerSeed),
+		tokenAlphabet:   tokenAlphabet,
+	}
+
+	for i := (uint32)(0); i < poolSize; i++ {
+		token := tokenSemaphore.randomizer.GenerateRandomString(tokenSize, tokenAlphabet)
+		for tokenSemaphore.acquiredTokens[token] {
+			token = tokenSemaphore.randomizer.GenerateRandomString(tokenSize, tokenAlphabet)
 		}
-		tokens[i] = randomizer.GenerateRandomString(tokenSize, ALPHA_NUMERIC)
-		i++
+		tokenSemaphore.availableTokens = append(tokenSemaphore.availableTokens, token)
 	}
-	channel := make(chan string, poolSize)
-	for _, token := range tokens {
-		channel <- token
-	}
-	return &TokenSemaphore{
-		acquiredTokens: make(map[string]bool),
-		channel:        channel,
-		randomizer:     randomizer,
-	}
+	return tokenSemaphore
 }
 
 func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
@@ -52,22 +52,11 @@ func (tokenSemaphore *TokenSemaphore) GetAcquiredTokens() []string {
 // AcquireToken returns a token from the pool.
 // If the pool is empty, it will block until a token is available.
 func (tokenSemaphore *TokenSemaphore) AcquireToken() string {
-	token := <-tokenSemaphore.channel
-	tokenSemaphore.mutex.Lock()
-	tokenSemaphore.acquiredTokens[token] = true
-	tokenSemaphore.mutex.Unlock()
-	return token
+
 }
 
 // ReturnToken returns a token to the pool.
 // If the token is not valid, it will return an error.
 func (tokenSemaphore *TokenSemaphore) ReturnToken(token string) error {
-	tokenSemaphore.mutex.Lock()
-	defer tokenSemaphore.mutex.Unlock()
-	if _, exists := tokenSemaphore.acquiredTokens[token]; !exists {
-		return errors.New("token is not valid")
-	}
-	delete(tokenSemaphore.acquiredTokens, token)
-	tokenSemaphore.channel <- tokenSemaphore.randomizer.GenerateRandomString(tokenSemaphore.tokenSize, ALPHA_NUMERIC)
-	return nil
+
 }
