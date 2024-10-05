@@ -1,4 +1,4 @@
-package SyncRequest
+package Tools
 
 import (
 	"errors"
@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 type SyncRequests struct {
 	syncRequests    map[string]*syncRequest
 	mutex           sync.Mutex
-	randomizer      *Tools.Randomizer
+	randomizer      *Randomizer
 	closeChannel    chan bool
 	deadlineMs      uint64
 	syncTokenLength uint32
@@ -32,9 +31,9 @@ func (syncRequests *SyncRequests) InitResponseChannel(responseLimit uint64) (str
 	syncRequests.mutex.Lock()
 	defer syncRequests.mutex.Unlock()
 
-	syncToken := syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, Tools.ALPHA_NUMERIC)
+	syncToken := syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, ALPHA_NUMERIC)
 	for _, ok := syncRequests.syncRequests[syncToken]; ok; {
-		syncToken = syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, Tools.ALPHA_NUMERIC)
+		syncToken = syncRequests.randomizer.GenerateRandomString(syncRequests.syncTokenLength, ALPHA_NUMERIC)
 	}
 	syncRequestStruct := &syncRequest{
 		responseChannel: make(chan *Message.Message, responseLimit),
