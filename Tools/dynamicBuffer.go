@@ -75,7 +75,6 @@ func (buffer *DynamicBuffer) GetNextItem() (any, error) {
 	buffer.head = buffer.head.prev
 	if buffer.head == nil {
 		buffer.tail = nil
-		return item.item, nil
 	}
 	if item.prev != nil {
 		item.prev.next = nil
