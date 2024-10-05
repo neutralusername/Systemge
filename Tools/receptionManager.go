@@ -1,6 +1,6 @@
 package Tools
 
-// queuemanger:
+// dynamic buffer:
 // items have an optional deadline, after which they are removed from the queue
 
 // Add (any, priority, deadlineMs) (token, error)
@@ -11,16 +11,15 @@ package Tools
 // GetItemByToken
 //
 
-type QueueManager struct {
+type DynamicBuffer struct {
 	channel chan any
 }
 
-func NewReceptionManager(capacity uint32) *QueueManager {
-	return &QueueManager{
+func NewDynamicBuffer(capacity uint32) *DynamicBuffer {
+	return &DynamicBuffer{
 		channel: make(chan any, capacity),
 	}
 }
 
-func (manager *QueueManager) Add(item any) (string, error) {
-
+func (buffer *DynamicBuffer) Add(item any, priority uint32, deadlineMs uint64) (string, error) {
 }
