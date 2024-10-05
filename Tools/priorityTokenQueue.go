@@ -14,12 +14,13 @@ type PriorityTokenQueue struct {
 }
 
 type priorityTokenQueueItem struct {
-	token     string
-	value     any
-	priority  uint32
-	deadline  uint64
-	retrieved chan struct{}
-	index     int
+	token         string
+	value         any
+	priority      uint32
+	deadline      uint64
+	retrieved     chan struct{}
+	index         int
+	channelClosed bool
 }
 
 func NewPriorityTokenQueueItem(token string, value any, priority uint32, deadlineMs uint64) *priorityTokenQueueItem {
@@ -63,7 +64,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 				select {
 				case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
 					queue.mutex.Lock()
-					if queue.items[item.token] == item { // ????
+					if !item.channelClosed {
 						queue.removeItem(item)
 					}
 					queue.mutex.Unlock()
@@ -90,6 +91,7 @@ func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
 }
 
 func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
+	item.channelClosed = true
 	close(item.retrieved)
 	delete(queue.items, item.token)
 	heap.Remove(&queue.priorityQueue, item.index)
