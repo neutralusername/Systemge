@@ -22,6 +22,16 @@ type priorityTokenQueueItem struct {
 	index     int
 }
 
+func NewPriorityTokenQueueItem(token string, value any, priority uint32, deadlineMs uint64) *priorityTokenQueueItem {
+	return &priorityTokenQueueItem{
+		token:     token,
+		value:     value,
+		priority:  priority,
+		deadline:  deadlineMs,
+		retrieved: make(chan struct{}),
+	}
+}
+
 func NewPriorityTokenQueue(priorityQueue PriorityQueue) *PriorityTokenQueue {
 	if priorityQueue == nil {
 		priorityQueue = make(PriorityQueue, 0)
@@ -41,13 +51,7 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 	if queue.items[token] != nil {
 		return errors.New("token already exists")
 	}
-	item := &priorityTokenQueueItem{
-		token:     token,
-		value:     value,
-		priority:  priority,
-		deadline:  deadlineMs,
-		retrieved: make(chan struct{}),
-	}
+	item := NewPriorityTokenQueueItem(token, value, priority, deadlineMs)
 	queue.items[item.token] = item
 	heap.Push(&queue.priorityQueue, item)
 
