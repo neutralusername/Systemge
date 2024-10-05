@@ -59,7 +59,7 @@ func (connection *WebsocketClient) Read() (*Message.Message, error) {
 	message, err := connection.handleMessageReception(messageBytes, Event.Sequential)
 	if err != nil {
 		if connection.eventHandler != nil {
-			connection.onEvent(Event.New(
+			event := connection.onEvent(Event.New(
 				Event.HandleReceptionFailed,
 				Event.Context{
 					Event.Circumstance: Event.MessageReceptionRoutine,
@@ -67,7 +67,15 @@ func (connection *WebsocketClient) Read() (*Message.Message, error) {
 					Event.Error:        err.Error(),
 				},
 				Event.Continue,
+				Event.Skip,
+				Event.Cancel,
 			))
+			if event.GetAction() == Event.Cancel {
+				return nil, err
+			}
+			if event.GetAction() == Event.Skip {
+				return nil, nil
+			}
 		}
 		connection.write(Message.NewAsync("error", err.Error()).Serialize(), Event.MessageReceptionRoutine)
 		return nil, err
