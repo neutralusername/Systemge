@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 )
 
-type SyncManager struct {
+type SyncRequestManager struct {
 	requests    map[string]*SyncRequest
 	mutex       sync.Mutex
 	randomizer  *Randomizer
@@ -38,15 +38,15 @@ func (request *SyncRequest) GetNextResponse() (*Message.Message, error) {
 	return response, nil
 }
 
-func NewSyncManager(tokenLength uint32, randomizerSeed int64) *SyncManager {
-	return &SyncManager{
+func NewSyncRequestManager(tokenLength uint32, randomizerSeed int64) *SyncRequestManager {
+	return &SyncRequestManager{
 		requests:    make(map[string]*SyncRequest),
 		randomizer:  NewRandomizer(randomizerSeed),
 		tokenLength: tokenLength,
 	}
 }
 
-func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) *SyncRequest {
+func (manager *SyncRequestManager) NewRequest(responseLimit uint64, deadlineMs uint64) *SyncRequest {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -79,7 +79,7 @@ func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) 
 	return syncRequest
 }
 
-func (manager *SyncManager) AddResponse(message *Message.Message) error {
+func (manager *SyncRequestManager) AddResponse(message *Message.Message) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -99,7 +99,7 @@ func (manager *SyncManager) AddResponse(message *Message.Message) error {
 	return nil
 }
 
-func (manager *SyncManager) AbortRequest(token string) error {
+func (manager *SyncRequestManager) AbortRequest(token string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -114,8 +114,8 @@ func (manager *SyncManager) AbortRequest(token string) error {
 	return nil
 }
 
-// returns a slice of syncTokens of open sync requests
-func (manager *SyncManager) GetActiveRequests() []string {
+// returns a slice of syncTokens of active sync requests
+func (manager *SyncRequestManager) GetActiveRequests() []string {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 	tokens := make([]string, 0, len(manager.requests))
