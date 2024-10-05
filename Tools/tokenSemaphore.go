@@ -59,11 +59,8 @@ func (tokenSemaphore *TokenSemaphore) ReturnToken(token string, replacementToken
 			return errors.New("token already exists")
 		}
 		delete(tokenSemaphore.tokens, token)
-		tokenSemaphore.tokens[replacementToken] = true
-		tokenSemaphore.tokenChannel <- replacementToken
-	} else {
-		tokenSemaphore.tokens[replacementToken] = true
-		tokenSemaphore.tokenChannel <- replacementToken
 	}
+	tokenSemaphore.tokens[replacementToken] = true
+	tokenSemaphore.tokenChannel <- replacementToken
 	return nil
 }
