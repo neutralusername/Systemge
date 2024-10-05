@@ -19,10 +19,15 @@ func NewTokenSemaphore(tokens []string) (*TokenSemaphore, error) {
 		tokenChannel: make(chan string, len(tokens)),
 	}
 
+	uniqueTokens := make(map[string]bool)
 	for _, token := range tokens {
 		if token == "" {
 			return nil, errors.New("empty string token")
 		}
+		if uniqueTokens[token] {
+			return nil, errors.New("duplicate token")
+		}
+		uniqueTokens[token] = true
 		tokenSemaphore.tokens[token] = true
 		tokenSemaphore.tokenChannel <- token
 	}
