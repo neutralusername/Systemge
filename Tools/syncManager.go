@@ -2,42 +2,47 @@ package Tools
 
 import (
 	"errors"
-	"math"
 	"sync"
 	"time"
 )
 
 type SyncManager struct {
-	requests       map[string]*SyncRequest
-	mutex          sync.Mutex
-	randomizer     *Randomizer
-	tokenLength    uint32
-	maxTotalTokens float64
+	requests          map[string]*SyncRequest
+	mutex             sync.Mutex
+	maxActiveRequests int
+	minTokenLength    int
+	maxTokenLength    int
 }
 
-func NewSyncManager(tokenLength uint32, tokenAlphabet string, randomizerSeed int64) *SyncManager {
+func NewSyncManager(maxTokenLength int, minTokenLength int, maxActiveRequests int) *SyncManager {
 	return &SyncManager{
-		requests:       make(map[string]*SyncRequest),
-		randomizer:     NewRandomizer(randomizerSeed),
-		tokenLength:    tokenLength,
-		maxTotalTokens: math.Pow(float64(len(tokenAlphabet)), float64(tokenLength)) * 0.9,
+		requests:          make(map[string]*SyncRequest),
+		mutex:             sync.Mutex{},
+		minTokenLength:    minTokenLength,
+		maxTokenLength:    maxTokenLength,
+		maxActiveRequests: maxActiveRequests,
 	}
 }
 
-func (manager *SyncManager) NewRequest(responseLimit uint64, deadlineMs uint64) (*SyncRequest, error) {
+func (manager *SyncManager) NewRequest(token string, responseLimit uint64, deadlineMs uint64) (*SyncRequest, error) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
+	if len(token) < manager.minTokenLength {
+		return nil, errors.New("token too short")
+	}
+	if len(token) > manager.maxTokenLength {
+		return nil, errors.New("token too long")
+	}
+	if len(manager.requests) >= manager.maxActiveRequests {
+		return nil, errors.New("too many active requests")
+	}
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
-	if len(manager.requests) >= int(manager.maxTotalTokens) {
-		return nil, errors.New("maximum number of active sync requests reached")
+	for _, ok := manager.requests[token]; ok; {
+		return nil, errors.New("token already exists")
 	}
 
-	token := manager.randomizer.GenerateRandomString(manager.tokenLength, ALPHA_NUMERIC)
-	for _, ok := manager.requests[token]; ok; {
-		token = manager.randomizer.GenerateRandomString(manager.tokenLength, ALPHA_NUMERIC)
-	}
 	syncRequest := &SyncRequest{
 		token:           token,
 		responseChannel: make(chan any, responseLimit),
