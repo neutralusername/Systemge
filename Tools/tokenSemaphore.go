@@ -13,6 +13,7 @@ type TokenSemaphore struct {
 	tokenSize      uint32
 }
 
+// fix potential duplicate tokens...
 func NewTokenSemaphore(poolSize uint32, tokenSize uint32, randomizerSeed int64) *TokenSemaphore {
 	if poolSize <= 0 {
 		panic("Pool size must be greater than 0")
