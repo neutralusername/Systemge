@@ -23,10 +23,10 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 					err:           err,
 					websocketConn: websocketConn,
 				}
-				acceptRequest.triggered.Wait()
 				if err != nil {
 					server.ClientsFailed.Add(1)
 				} else {
+					acceptRequest.triggered.Wait()
 					if acceptRequest.timedOut {
 						websocketConn.Close()
 						server.ClientsFailed.Add(1)
