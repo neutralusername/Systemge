@@ -52,6 +52,9 @@ type WebsocketServer struct {
 	AsyncMessageReceived atomic.Uint64
 	SyncRequestsReceived atomic.Uint64
 	SyncResponseReceived atomic.Uint64
+
+	ClientsAccepted atomic.Uint64
+	ClientsRejected atomic.Uint64
 }
 
 func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
