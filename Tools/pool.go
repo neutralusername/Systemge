@@ -91,7 +91,7 @@ func (pool *Pool[T]) AcquireItem() T {
 // If the pool is empty, it will block until a item becomes available.
 // The channel will be closed after the item is returned.
 func (pool *Pool[T]) AcquireItemChannel() <-chan T {
-	c := make(chan T)
+	c := make(chan T, 1)
 	go func() {
 		item := <-pool.itemChannel
 		pool.mutex.Lock()
