@@ -10,7 +10,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	defer func() {
 		if server.eventHandler != nil {
 			server.onEvent(Event.New(
-				Event.MessageReceptionRoutineEnds,
+				Event.ReceptionRoutineEnds,
 				Event.Context{},
 				Event.Continue,
 				Event.Cancel,
@@ -21,7 +21,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 
 	if server.eventHandler != nil {
 		event := server.onEvent(Event.New(
-			Event.MessageReceptionRoutineBegins,
+			Event.ReceptionRoutineBegins,
 			Event.Context{},
 			Event.Continue,
 			Event.Cancel,

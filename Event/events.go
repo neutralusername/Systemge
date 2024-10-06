@@ -22,8 +22,8 @@ const CreateClientFailed = "createClientFailed" // when a tcp systemge client cr
 const SessionRoutineBegins = "sessionRoutineBegins" // when a session routine begins
 const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine finishes
 
-const MessageReceptionRoutineBegins = "receptionRoutineBegins" // when a reception routine begins
-const MessageReceptionRoutineEnds = "receptionRoutineFinished" // when a reception routine finishes
+const ReceptionRoutineBegins = "receptionRoutineBegins" // when a reception routine begins
+const ReceptionRoutineEnds = "receptionRoutineFinished" // when a reception routine finishes
 
 const HandlingMessageReception = "handlingReception"  // before handling a reception
 const HandledMessageReception = "handledReception"    // after handling a reception

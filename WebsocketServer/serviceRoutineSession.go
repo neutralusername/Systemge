@@ -16,7 +16,6 @@ func (server *WebsocketServer) sessionRoutine() {
 				Event.SessionRoutineEnds,
 				Event.Context{},
 				Event.Continue,
-				Event.Cancel,
 			))
 		}
 		server.waitGroup.Done()
@@ -143,6 +142,7 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 			return
 		}
 	}
+
 	identity := ""
 	if server.handshakeHandler != nil {
 		id, err := server.handshakeHandler(websocketClient)
