@@ -12,27 +12,29 @@ func (listener *WebsocketListener) Start() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 
-	if event := listener.onEvent(Event.NewInfo(
-		Event.ServiceStarting,
-		"starting tcpSystemgeListener",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.ServiceStarting,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
-	if listener.status == Status.Started {
-		listener.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStarted,
-			"tcpSystemgeListener is already started",
+	if listener.eventHandler != nil {
+		if event := listener.onEvent(Event.New(
+			Event.ServiceStarting,
 			Event.Context{
 				Event.Circumstance: Event.ServiceStarting,
 			},
-		))
+			Event.Continue,
+			Event.Cancel,
+		)); event.GetAction() == Event.Cancel {
+			return errors.New("start canceled")
+		}
+	}
+
+	if listener.status == Status.Started {
+		if listener.eventHandler != nil {
+			listener.onEvent(Event.New(
+				Event.ServiceAlreadyStarted,
+				Event.Context{
+					Event.Circumstance: Event.ServiceStarting,
+				},
+				Event.Cancel,
+			))
+		}
 		return errors.New("tcpSystemgeListener is already started")
 	}
 
@@ -41,13 +43,15 @@ func (listener *WebsocketListener) Start() error {
 		listener.ipRateLimiter = Tools.NewIpRateLimiter(listener.config.IpRateLimiter)
 	}
 	if err := listener.httpServer.Start(); err != nil {
-		listener.onEvent(Event.NewErrorNoOption(
-			Event.ServiceStartFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: Event.ServiceStarting,
-			},
-		))
+		if listener.eventHandler != nil {
+			listener.onEvent(Event.New(
+				Event.ServiceStartFailed,
+				Event.Context{
+					Event.Error: err.Error(),
+				},
+				Event.Cancel,
+			))
+		}
 		listener.ipRateLimiter.Close()
 		listener.ipRateLimiter = nil
 		listener.status = Status.Stopped
@@ -55,12 +59,15 @@ func (listener *WebsocketListener) Start() error {
 	}
 
 	listener.status = Status.Started
-	listener.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStarted,
-		"tcpSystemgeListener started",
-		Event.Context{
-			Event.Circumstance: Event.ServiceStarting,
-		},
-	))
+
+	if listener.eventHandler != nil {
+		listener.onEvent(Event.New(
+			Event.ServiceStarted,
+			Event.Context{
+				Event.Circumstance: Event.ServiceStarting,
+			},
+			Event.Continue,
+		))
+	}
 	return nil
 }

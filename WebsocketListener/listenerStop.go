@@ -11,27 +11,29 @@ func (listener *WebsocketListener) Stop() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 
-	if event := listener.onEvent(Event.NewInfo(
-		Event.ServiceStoping,
-		"stopping websocketListener",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.ServiceStoping,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
-	if listener.status == Status.Stopped {
-		listener.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStoped,
-			"websocketListener is already stopped",
+	if listener.eventHandler != nil {
+		if event := listener.onEvent(Event.New(
+			Event.ServiceStoping,
 			Event.Context{
 				Event.Circumstance: Event.ServiceStoping,
 			},
-		))
+			Event.Continue,
+			Event.Cancel,
+		)); event.GetAction() == Event.Cancel {
+			return errors.New("stop canceled")
+		}
+	}
+
+	if listener.status == Status.Stopped {
+		if listener.eventHandler != nil {
+			listener.onEvent(Event.New(
+				Event.ServiceAlreadyStoped,
+				Event.Context{
+					Event.Circumstance: Event.ServiceStoping,
+				},
+				Event.Continue,
+			))
+		}
 		return errors.New("websocketListener is already stopped")
 	}
 
@@ -42,13 +44,15 @@ func (listener *WebsocketListener) Stop() error {
 		listener.ipRateLimiter = nil
 	}
 
-	listener.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStoped,
-		"websocketListener stopped",
-		Event.Context{
-			Event.Circumstance: Event.ServiceStoping,
-		},
-	))
+	if listener.eventHandler != nil {
+		listener.onEvent(Event.New(
+			Event.ServiceStoped,
+			Event.Context{
+				Event.Circumstance: Event.ServiceStoping,
+			},
+			Event.Continue,
+		))
+	}
 
 	listener.status = Status.Stopped
 	return nil

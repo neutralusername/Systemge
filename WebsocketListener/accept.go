@@ -105,7 +105,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 		}
 	}
 
-	websocketClient, err := WebsocketClient.New(clientName, config, websocketConn, eventHandler)
+	websocketClient, err := WebsocketClient.New(config, websocketConn, eventHandler)
 
 	if event := listener.onEvent(Event.NewInfo(
 		Event.AcceptedClient,
