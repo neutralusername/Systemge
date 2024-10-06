@@ -8,44 +8,51 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
-	if event := listener.onEvent(Event.NewInfo(
+func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, eventHandler Event.Handler) (*WebsocketClient.WebsocketClient, error) {
+	if event := listener.onEvent(Event.New(
 		Event.AcceptingClient,
-		"accepting websocketClient",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
 		Event.Context{},
-	)); !event.IsInfo() {
-		return nil, event.GetError()
+		Event.Continue,
+		Event.Cancel,
+	)); event.GetAction() == Event.Cancel {
+		return nil, errors.New("accept canceled")
 	}
 
-	websocketConn := <-listener.connectionChannel
+	websocketConn := <-listener.connectionChannel //problem with close
 	if websocketConn == nil {
-		listener.onEvent(Event.NewWarningNoOption(
+		listener.onEvent(Event.New(
 			Event.ReceivedNilValueFromChannel,
-			"received nil value from connection channel",
 			Event.Context{},
+			Event.Cancel,
 		))
-		listener.clientsFailed.Add(1)
 		return nil, errors.New("received nil value from connection channel")
 	}
 
 	websocketClient, err := WebsocketClient.New(config, websocketConn, eventHandler)
+	if err != nil {
+		listener.onEvent(Event.New(
+			Event.CreatingWebsocketClientFailed,
+			Event.Context{
+				Event.Address: websocketConn.RemoteAddr().String(),
+				Event.Error:   err.Error(),
+			},
+			Event.Cancel,
+		))
+		listener.clientsFailed.Add(1)
+		return nil, err
+	}
 
-	if event := listener.onEvent(Event.NewInfo(
+	if event := listener.onEvent(Event.New(
 		Event.AcceptedClient,
-		"accepted websocketClient",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
 		Event.Context{
 			Event.Address: websocketConn.RemoteAddr().String(),
 		},
-	)); !event.IsInfo() {
+		Event.Continue,
+		Event.Cancel,
+	)); event.GetAction() == Event.Cancel {
 		websocketClient.Close()
 		listener.clientsRejected.Add(1)
-		return nil, event.GetError()
+		return nil, errors.New("client rejected")
 	}
 
 	listener.clientsAccepted.Add(1)

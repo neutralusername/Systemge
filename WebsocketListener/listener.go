@@ -26,9 +26,6 @@ type WebsocketListener struct {
 	httpServer        *HTTPServer.HTTPServer
 	connectionChannel chan *websocket.Conn
 
-	blacklist *Tools.AccessControlList
-	whitelist *Tools.AccessControlList
-
 	eventHandler Event.Handler
 
 	// metrics
@@ -38,7 +35,7 @@ type WebsocketListener struct {
 	clientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketListener, error) {
+func New(name string, config *Config.WebsocketListener, eventHandler Event.Handler) (*WebsocketListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -48,15 +45,13 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 	listener := &WebsocketListener{
 		name:         name,
 		config:       config,
-		blacklist:    blacklist,
-		whitelist:    whitelist,
 		eventHandler: eventHandler,
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
-		whitelist, blacklist,
+		nil, nil,
 		map[string]http.HandlerFunc{
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
@@ -68,14 +63,6 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 
 func (listener *WebsocketListener) GetStatus() int {
 	return listener.status
-}
-
-func (server *WebsocketListener) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
-func (server *WebsocketListener) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
 }
 
 func (server *WebsocketListener) GetName() string {
