@@ -54,7 +54,13 @@ func (server *WebsocketServer) sessionRoutine() {
 		}
 
 		if server.config.AcceptClientsSequentially {
-			server.handleAccept(websocketClient)
+			err := server.handleAccept(websocketClient)
+			if err != nil {
+				websocketClient.Close()
+				server.ClientsRejected.Add(1)
+			} else {
+				server.ClientsAccepted.Add(1)
+			}
 		} else {
 			server.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
@@ -65,7 +71,7 @@ func (server *WebsocketServer) sessionRoutine() {
 	}
 }
 
-func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.WebsocketClient) {
+func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.WebsocketClient) error {
 	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 	if err != nil {
 		if server.eventHandler != nil {
@@ -78,8 +84,7 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 				Event.Skip,
 			))
 		}
-		websocketClient.Close()
-		return
+		return err
 	}
 
 	if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
@@ -94,12 +99,10 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 				Event.Continue,
 			))
 			if event.GetAction() == Event.Skip {
-				websocketClient.Close()
-				return
+				return errors.New("rate limited")
 			}
 		} else {
-			websocketClient.Close()
-			return
+			return errors.New("rate limited")
 		}
 	}
 
@@ -114,12 +117,10 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 				Event.Continue,
 			))
 			if event.GetAction() == Event.Skip {
-				websocketClient.Close()
-				return
+				return errors.New("blacklisted")
 			}
 		} else {
-			websocketClient.Close()
-			return
+			return errors.New("blacklisted")
 		}
 	}
 
@@ -134,12 +135,10 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 				Event.Continue,
 			))
 			if event.GetAction() == Event.Skip {
-				websocketClient.Close()
-				return
+				return errors.New("not whitelisted")
 			}
 		} else {
-			websocketClient.Close()
-			return
+			return errors.New("not whitelisted")
 		}
 	}
 
@@ -159,12 +158,10 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 					Event.Continue,
 				))
 				if event.GetAction() == Event.Skip {
-					websocketClient.Close()
-					return
+					return err
 				}
 			} else {
-				websocketClient.Close()
-				return
+				return err
 			}
 		}
 		identity = id
@@ -172,13 +169,14 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 
 	session := server.createSession(identity, websocketClient)
 	if session == nil {
-		websocketClient.Close()
-		return
+		return errors.New("session creation failed")
 	}
 
 	server.waitGroup.Add(2)
 	go server.websocketClientDisconnect(session, websocketClient)
 	go server.receptionRoutine(session, websocketClient)
+
+	return nil
 }
 
 func (server *WebsocketServer) createSession(identity string, websocketClient *WebsocketClient.WebsocketClient) *Tools.Session {
