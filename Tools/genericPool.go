@@ -123,6 +123,7 @@ func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T) error {
 	}
 	genericPool.items[replacement] = true
 	genericPool.itemChannel <- replacement
+	return nil
 }
 
 // RemoveItem removes a item from the pool.
