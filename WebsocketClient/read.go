@@ -15,7 +15,7 @@ func (connection *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
 			Event.Continue,
 			Event.Cancel,
 		)); event.GetAction() == Event.Cancel {
-			return nil, errors.New("connection closed")
+			return nil, errors.New("read canceled")
 		}
 	}
 
