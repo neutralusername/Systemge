@@ -22,6 +22,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 
 				websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 
+				// timeout branch could trigger here but for whatever (scheduler) reason, the goroutine does not progress until the mutex.Lock()
 				acceptRequest.upgraderResponseChannel <- &upgraderResponse{
 					err:           err,
 					websocketConn: websocketConn,
