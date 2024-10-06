@@ -1,74 +1,53 @@
 package Tools
 
-import (
-	"errors"
-	"sync"
-)
+import "errors"
 
 type GenericSemaphore[T comparable] struct {
-	items       map[T]bool // item -> isAvailable
-	mutex       sync.Mutex
-	itemChannel chan T
+	channel chan T
 }
 
-// items must be comparable and unique.
-// providing non comparable items, such as maps, slices, or functions, will result in a panic.
-func NewGenericSemaphore[T comparable](items []T) (*GenericSemaphore[T], error) {
-	genericSemaphore := &GenericSemaphore[T]{
-		items:       make(map[T]bool),
-		itemChannel: make(chan T, len(items)),
-	}
-
-	for _, item := range items {
-		if genericSemaphore.items[item] {
-			return nil, errors.New("duplicate item")
-		}
-		genericSemaphore.items[item] = true
-		genericSemaphore.itemChannel <- item
-	}
-
-	return genericSemaphore, nil
+func (semaphore *GenericSemaphore[T]) AvailableAcquires() uint32 {
+	return uint32(cap(semaphore.channel)) - uint32(len(semaphore.channel))
 }
 
-func (genericSemaphore *GenericSemaphore[T]) GetAcquiredItems() []T {
-	genericSemaphore.mutex.Lock()
-	defer genericSemaphore.mutex.Unlock()
-	acquiredItems := make([]T, 0)
-	for item, isAvailable := range genericSemaphore.items {
-		if !isAvailable {
-			acquiredItems = append(acquiredItems, item)
-		}
+func NewGenericSemaphore2[T comparable](maxAvailableAcquires uint32) *GenericSemaphore[T] {
+	if maxAvailableAcquires <= 0 {
+		panic("maxValue must be greater than 0")
 	}
-
-	return acquiredItems
+	channel := make(chan T, maxAvailableAcquires)
+	return &GenericSemaphore[T]{
+		channel: channel,
+	}
 }
 
-// AcquireItem returns a item from the pool.
-// If the pool is empty, it will block until a item is available.
-func (genericSemaphore *GenericSemaphore[T]) AcquireItem() T {
-	item := <-genericSemaphore.itemChannel
-	genericSemaphore.mutex.Lock()
-	defer genericSemaphore.mutex.Unlock()
-	genericSemaphore.items[item] = false
-	return item
+// receiving equals to AcquireBlocking and sending equals to ReleaseBlocking
+func (semaphore *GenericSemaphore[T]) GetChannel() chan T {
+	return semaphore.channel
 }
 
-// ReturnItem returns a item to the pool.
-// If the item is not valid, it will return an error.
-// replacementItem must be either same as item or a new item.
-func (genericSemaphore *GenericSemaphore[T]) ReturnItem(item T, replacementItem T) error {
-	genericSemaphore.mutex.Lock()
-	defer genericSemaphore.mutex.Unlock()
-	if genericSemaphore.items[item] {
-		return errors.New("item is not acquired")
+func (semaphore *GenericSemaphore[T]) AcquireBlocking() T {
+	return <-semaphore.channel
+}
+
+func (semaphore *GenericSemaphore[T]) TryAcquire() (T, error) {
+	select {
+	case item := <-semaphore.channel:
+		return item, nil
+	default:
+		var t T
+		return t, errors.New("no item available")
 	}
-	if replacementItem != item {
-		if genericSemaphore.items[replacementItem] {
-			return errors.New("item already exists")
-		}
-		delete(genericSemaphore.items, item)
+}
+
+func (semaphore *GenericSemaphore[T]) TryRelease(item T) error {
+	select {
+	case semaphore.channel <- item:
+		return nil
+	default:
+		return errors.New("no space available")
 	}
-	genericSemaphore.items[replacementItem] = true
-	genericSemaphore.itemChannel <- replacementItem
-	return nil
+}
+
+func (semaphore *GenericSemaphore[T]) ReleaseBlocking(item T) {
+	semaphore.channel <- item
 }
