@@ -21,6 +21,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				}
 
 				websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
+
 				acceptRequest.upgraderResponseChannel <- &upgraderResponse{
 					err:           err,
 					websocketConn: websocketConn,
@@ -33,6 +34,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 					acceptRequest.mutex.Unlock()
 					if timedOut {
 						websocketConn.Close()
+						server.ClientsFailed.Add(1)
 					}
 				}
 			}
