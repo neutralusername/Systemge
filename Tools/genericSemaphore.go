@@ -23,7 +23,7 @@ func NewGenericSemaphore[T comparable](maxAvailableAcquires uint32, initialItems
 	}
 	return &GenericSemaphore[T]{
 		channel: channel,
-	}
+	}, nil
 }
 
 // receiving equals to AcquireBlocking and sending equals to ReleaseBlocking
