@@ -42,38 +42,38 @@ func New(config *Config.WebsocketClient, websocketConn *websocket.Conn) (*Websoc
 		return nil, errors.New("websocketConn is nil")
 	}
 
-	connection := &WebsocketClient{
+	client := &WebsocketClient{
 		config:        config,
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
-	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
+	websocketConn.SetReadLimit(int64(client.config.IncomingMessageByteLimit))
 
-	return connection, nil
+	return client, nil
 }
 
-func (connection *WebsocketClient) GetStatus() int {
-	connection.closedMutex.Lock()
-	defer connection.closedMutex.Unlock()
-	if connection.closed {
+func (client *WebsocketClient) GetStatus() int {
+	client.closedMutex.Lock()
+	defer client.closedMutex.Unlock()
+	if client.closed {
 		return Status.Stopped
 	} else {
 		return Status.Started
 	}
 }
 
-func (connection *WebsocketClient) GetInstanceId() string {
-	return connection.instanceId
+func (client *WebsocketClient) GetInstanceId() string {
+	return client.instanceId
 }
 
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *WebsocketClient) GetCloseChannel() <-chan bool {
-	return connection.closeChannel
+func (connclientction *WebsocketClient) GetCloseChannel() <-chan bool {
+	return connclientction.closeChannel
 }
 
-func (connection *WebsocketClient) GetAddress() string {
-	return connection.websocketConn.RemoteAddr().String()
+func (client *WebsocketClient) GetAddress() string {
+	return client.websocketConn.RemoteAddr().String()
 }
