@@ -2,7 +2,6 @@ package WebsocketListener
 
 import (
 	"errors"
-	"net"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
@@ -16,9 +15,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 		Event.Cancel,
 		Event.Cancel,
 		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.AcceptClient,
-		},
+		Event.Context{},
 	)); !event.IsInfo() {
 		return nil, event.GetError()
 	}
@@ -28,22 +25,41 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.ReceivedNilValueFromChannel,
 			"received nil value from connection channel",
-			Event.Context{
-				Event.Circumstance: Event.AcceptClient,
-			},
+			Event.Context{},
 		))
 		listener.clientsFailed.Add(1)
 		return nil, errors.New("received nil value from connection channel")
 	}
 
+	websocketClient, err := WebsocketClient.New(config, websocketConn, eventHandler)
+
+	if event := listener.onEvent(Event.NewInfo(
+		Event.AcceptedClient,
+		"accepted websocketClient",
+		Event.Cancel,
+		Event.Cancel,
+		Event.Continue,
+		Event.Context{
+			Event.Address: websocketConn.RemoteAddr().String(),
+		},
+	)); !event.IsInfo() {
+		websocketClient.Close()
+		listener.clientsRejected.Add(1)
+		return nil, event.GetError()
+	}
+
+	listener.clientsAccepted.Add(1)
+	return websocketClient, nil
+}
+
+/*
 	ip, _, err := net.SplitHostPort(websocketConn.RemoteAddr().String())
 	if err != nil {
 		listener.onEvent(Event.NewWarningNoOption(
 			Event.SplittingHostPortFailed,
 			err.Error(),
 			Event.Context{
-				Event.Circumstance: Event.AcceptClient,
-				Event.Address:      websocketConn.RemoteAddr().String(),
+				Event.Address: websocketConn.RemoteAddr().String(),
 			},
 		))
 		listener.clientsFailed.Add(1)
@@ -58,7 +74,6 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance:    Event.AcceptClient,
 				Event.RateLimiterType: Event.Ip,
 				Event.Address:         websocketConn.RemoteAddr().String(),
 			},
@@ -77,8 +92,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptClient,
-				Event.Address:      websocketConn.RemoteAddr().String(),
+				Event.Address: websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
 			listener.clientsRejected.Add(1)
@@ -95,8 +109,7 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 			Event.Cancel,
 			Event.Continue,
 			Event.Context{
-				Event.Circumstance: Event.AcceptClient,
-				Event.Address:      websocketConn.RemoteAddr().String(),
+				Event.Address: websocketConn.RemoteAddr().String(),
 			},
 		)); !event.IsInfo() {
 			listener.clientsRejected.Add(1)
@@ -105,24 +118,4 @@ func (listener *WebsocketListener) AcceptClient(config *Config.WebsocketClient, 
 		}
 	}
 
-	websocketClient, err := WebsocketClient.New(config, websocketConn, eventHandler)
-
-	if event := listener.onEvent(Event.NewInfo(
-		Event.AcceptedClient,
-		"accepted websocketClient",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.AcceptClient,
-			Event.Address:      websocketConn.RemoteAddr().String(),
-		},
-	)); !event.IsInfo() {
-		websocketClient.Close()
-		listener.clientsRejected.Add(1)
-		return nil, event.GetError()
-	}
-
-	listener.clientsAccepted.Add(1)
-	return websocketClient, nil
-}
+*/

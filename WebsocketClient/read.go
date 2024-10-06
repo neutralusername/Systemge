@@ -8,6 +8,9 @@ import (
 )
 
 func (connection *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
+	connection.readMutex.Lock()
+	defer connection.readMutex.Unlock()
+
 	if connection.eventHandler != nil {
 		if event := connection.onEvent(Event.New(
 			Event.ReadingMessage,
