@@ -14,9 +14,7 @@ func (listener *WebsocketListener) Stop() error {
 	if listener.eventHandler != nil {
 		if event := listener.onEvent(Event.New(
 			Event.ServiceStoping,
-			Event.Context{
-				Event.Circumstance: Event.ServiceStoping,
-			},
+			Event.Context{},
 			Event.Continue,
 			Event.Cancel,
 		)); event.GetAction() == Event.Cancel {
@@ -28,9 +26,7 @@ func (listener *WebsocketListener) Stop() error {
 		if listener.eventHandler != nil {
 			listener.onEvent(Event.New(
 				Event.ServiceAlreadyStoped,
-				Event.Context{
-					Event.Circumstance: Event.ServiceStoping,
-				},
+				Event.Context{},
 				Event.Continue,
 			))
 		}
@@ -38,7 +34,18 @@ func (listener *WebsocketListener) Stop() error {
 	}
 
 	listener.status = Status.Pending
-	listener.httpServer.Stop()
+	if err := listener.httpServer.Stop(); err != nil {
+		if listener.eventHandler != nil {
+			listener.onEvent(Event.New(
+				Event.ServiceStopFailed,
+				Event.Context{
+					Event.Error: err.Error(),
+				},
+				Event.Continue,
+			))
+		}
+		listener.status = Status.Started
+	}
 	if listener.ipRateLimiter != nil {
 		listener.ipRateLimiter.Close()
 		listener.ipRateLimiter = nil
@@ -47,9 +54,7 @@ func (listener *WebsocketListener) Stop() error {
 	if listener.eventHandler != nil {
 		listener.onEvent(Event.New(
 			Event.ServiceStoped,
-			Event.Context{
-				Event.Circumstance: Event.ServiceStoping,
-			},
+			Event.Context{},
 			Event.Continue,
 		))
 	}

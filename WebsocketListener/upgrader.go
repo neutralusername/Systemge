@@ -46,9 +46,8 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 			server.onEvent(Event.New(
 				Event.SentToChannel,
 				Event.Context{
-					Event.Circumstance: Event.WebsocketUpgrade,
-					Event.ChannelType:  Event.WebsocketClient,
-					Event.Address:      websocketConn.RemoteAddr().String(),
+					Event.ChannelType: Event.WebsocketClient,
+					Event.Address:     websocketConn.RemoteAddr().String(),
 				},
 				Event.Continue,
 			))

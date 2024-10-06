@@ -15,9 +15,7 @@ func (listener *WebsocketListener) Start() error {
 	if listener.eventHandler != nil {
 		if event := listener.onEvent(Event.New(
 			Event.ServiceStarting,
-			Event.Context{
-				Event.Circumstance: Event.ServiceStarting,
-			},
+			Event.Context{},
 			Event.Continue,
 			Event.Cancel,
 		)); event.GetAction() == Event.Cancel {
@@ -29,9 +27,7 @@ func (listener *WebsocketListener) Start() error {
 		if listener.eventHandler != nil {
 			listener.onEvent(Event.New(
 				Event.ServiceAlreadyStarted,
-				Event.Context{
-					Event.Circumstance: Event.ServiceStarting,
-				},
+				Event.Context{},
 				Event.Cancel,
 			))
 		}
@@ -63,9 +59,7 @@ func (listener *WebsocketListener) Start() error {
 	if listener.eventHandler != nil {
 		listener.onEvent(Event.New(
 			Event.ServiceStarted,
-			Event.Context{
-				Event.Circumstance: Event.ServiceStarting,
-			},
+			Event.Context{},
 			Event.Continue,
 		))
 	}
