@@ -12,7 +12,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 				server.ClientsRejected.Add(1)
 				return
-			default:
+			default: // i think this usage of select/default shows that there is a better way to do this
 				select {
 				case <-server.stopChannel:
 					http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
