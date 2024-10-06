@@ -67,7 +67,6 @@ func (server *WebsocketServer) sessionRoutine() {
 }
 
 func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.WebsocketClient) {
-
 	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 	if err != nil {
 		if server.eventHandler != nil {
@@ -225,9 +224,8 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 		}
 	}
 
-	server.waitGroup.Add(1)
+	server.waitGroup.Add(2)
 	go server.websocketClientDisconnect(session, websocketClient)
-	server.waitGroup.Add(1)
 	go server.receptionRoutine(session, websocketClient)
 }
 
