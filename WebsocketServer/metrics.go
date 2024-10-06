@@ -1,9 +1,10 @@
 package WebsocketServer
 
-/*
+import "github.com/neutralusername/Systemge/Metrics"
+
 func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
+	/* metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
 			"bytes_sent":     server.CheckWebsocketClientMessagesBytesSent(),
 			"bytes_received": server.CheckWebsocketClientMessagesBytesReceived(),
@@ -21,13 +22,13 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 			"rejected_messages_received": server.CheckWebsocketClientRejectedMessagesReceived(),
 		}),
 	)
-	metricsTypes.Merge(server.websocketListener.CheckMetrics())
+	metricsTypes.Merge(server.websocketListener.CheckMetrics()) */
 	return metricsTypes
 }
 
 func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
+	/* metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
 			"bytes_sent":     uint64(server.GetWebsocketClientMessagesBytesSent()),
 			"bytes_received": uint64(server.GetWebsocketClientMessagesBytesReceived()),
@@ -51,10 +52,11 @@ func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
 			"clients_failed":      server.GetClientsFailed(),
 			"clients_rejected":    server.GetClientsRejected(),
 		},
-	))
+	)) */
 	return metricsTypes
 }
 
+/*
 func (server *WebsocketServer) GetClientsAccepted() uint64 {
 	return server.websocketListener.GetClientsAccepted()
 }
