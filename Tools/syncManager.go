@@ -22,7 +22,7 @@ func NewSyncManager(config *Config.SyncManager) *SyncManager {
 	}
 }
 
-func (manager *SyncManager) NewRequest(token string, responseLimit uint64, deadlineMs uint64) (*SyncRequest, error) {
+func (manager *SyncManager) NewRequest(token string, responseLimit uint64, timeoutMs uint64) (*SyncRequest, error) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -50,10 +50,10 @@ func (manager *SyncManager) NewRequest(token string, responseLimit uint64, deadl
 	}
 	manager.requests[token] = syncRequest
 
-	if deadlineMs > 0 {
+	if timeoutMs > 0 {
 		go func() {
 			select {
-			case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
+			case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
 				manager.AbortRequest(token)
 			case <-syncRequest.abortChannel:
 			}
