@@ -33,8 +33,26 @@ type WebsocketListener struct {
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 }
 
+func UnmarshalWebsocketListener(data string) *WebsocketListener {
+	var ws WebsocketListener
+	err := json.Unmarshal([]byte(data), &ws)
+	if err != nil {
+		return nil
+	}
+	return &ws
+}
+
 type WebsocketClient struct {
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
+}
+
+func UnmarshalWebsocketClient(data string) *WebsocketClient {
+	var ws WebsocketClient
+	err := json.Unmarshal([]byte(data), &ws)
+	if err != nil {
+		return nil
+	}
+	return &ws
 }
 
 type WebsocketServer struct {
