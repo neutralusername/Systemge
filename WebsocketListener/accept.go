@@ -22,7 +22,6 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
-		timeoutMs:               timeoutMs,
 		triggered:               sync.WaitGroup{},
 	}
 	acceptRequest.triggered.Add(1)
