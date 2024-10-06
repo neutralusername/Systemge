@@ -73,7 +73,7 @@ func (genericPool *GenericPool[T]) GetItems() map[T]bool {
 	return copiedItems
 }
 
-// AcquireItem returns a item from the pool.
+// AcquireItem returns an item from the pool.
 // If the pool is empty, it will block until a item is available.
 func (genericPool *GenericPool[T]) AcquireItem() T {
 	item := <-genericPool.itemChannel
@@ -83,8 +83,8 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 	return item
 }
 
-// TryAcquireItem returns a item from the pool.
-// If the item is not available, it will return an error.
+// TryAcquireItem returns an item from the pool.
+// If the item does not exist, it will return an error.
 // If the item is available, it will return a error.
 func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	genericPool.mutex.Lock()
@@ -101,9 +101,9 @@ func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	return nil
 }
 
-// ReplaceItem replaces a item in the pool.
+// ReplaceItem replaces an item in the pool.
 // If the item does not exist, it will return an error.
-// If the item is not acquired, it will return an error.
+// If the item is acquired, it will return an error.
 // If the replacement already exists, it will return an error.
 func (genericPool *GenericPool[T]) ReplaceItem(replacement T) error {
 	genericPool.mutex.Lock()
@@ -113,7 +113,7 @@ func (genericPool *GenericPool[T]) ReplaceItem(replacement T) error {
 		return errors.New("item does not exist")
 	}
 	if !val {
-		return errors.New("item is not acquired")
+		return errors.New("item is acquired")
 	}
 	if replacement != replacement {
 		if genericPool.items[replacement] {
@@ -158,6 +158,7 @@ func (genericPool *GenericPool[T]) AddItems(item ...T) error {
 	return nil
 }
 
+// Clear removes all items from the pool and returns them.
 func (genericPool *GenericPool[T]) Clear() []T {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
