@@ -27,8 +27,7 @@ type WebsocketListener struct {
 
 	httpServer *HTTPServer.HTTPServer
 
-	tokenSemaphore *Tools.TokenSemaphore
-	acceptChannel  chan *acceptRequest
+	anySemaphore *Tools.AnySemaphore
 
 	// metrics
 
@@ -57,11 +56,10 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	listener := &WebsocketListener{
-		name:          name,
-		config:        config,
-		status:        Status.Stopped,
-		acceptChannel: make(chan *acceptRequest),
-		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:       name,
+		config:     config,
+		status:     Status.Stopped,
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{
@@ -73,6 +71,15 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		},
 		nil,
 	)
+	simultaneousAccepts := []any{}
+	for i := 0; i < listener.config.SimultaneousAccepts; i++ {
+		simultaneousAccepts = append(simultaneousAccepts, &acceptRequest{})
+	}
+	anySemaphore, err := Tools.NewAnySemaphore(simultaneousAccepts)
+	if err != nil {
+		return nil, err
+	}
+	listener.anySemaphore = anySemaphore
 
 	return listener, nil
 }
