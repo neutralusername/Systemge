@@ -40,17 +40,26 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 			}
 		}
 
-		server.connectionChannel <- websocketConn
-
-		if server.eventHandler != nil {
-			server.onEvent(Event.New(
-				Event.SentToChannel,
-				Event.Context{
-					Event.ChannelType: Event.WebsocketClient,
-					Event.Address:     websocketConn.RemoteAddr().String(),
-				},
-				Event.Continue,
-			))
+		select {
+		case server.connectionChannel <- websocketConn:
+			if server.eventHandler != nil {
+				server.onEvent(Event.New(
+					Event.SentToChannel,
+					Event.Context{
+						Event.ChannelType: Event.WebsocketClient,
+						Event.Address:     websocketConn.RemoteAddr().String(),
+					},
+					Event.Continue,
+				))
+			}
+		case <-server.stopChannel:
+			if server.eventHandler != nil {
+				server.onEvent(Event.New(
+					Event.AbortedSendingToChannel,
+					Event.Context{},
+					Event.Continue,
+				))
+			}
 		}
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 type WebsocketListener struct {
@@ -19,9 +18,9 @@ type WebsocketListener struct {
 
 	status      int
 	statusMutex sync.Mutex
+	stopChannel chan bool
 
-	config        *Config.WebsocketListener
-	ipRateLimiter *Tools.IpRateLimiter
+	config *Config.WebsocketListener
 
 	httpServer        *HTTPServer.HTTPServer
 	connectionChannel chan *websocket.Conn
@@ -43,9 +42,11 @@ func New(name string, config *Config.WebsocketListener, eventHandler Event.Handl
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	listener := &WebsocketListener{
-		name:         name,
-		config:       config,
-		eventHandler: eventHandler,
+		name:              name,
+		config:            config,
+		eventHandler:      eventHandler,
+		status:            Status.Stopped,
+		connectionChannel: make(chan *websocket.Conn),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{

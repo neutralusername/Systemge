@@ -5,7 +5,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (listener *WebsocketListener) Start() error {
@@ -35,9 +34,7 @@ func (listener *WebsocketListener) Start() error {
 	}
 
 	listener.status = Status.Pending
-	if listener.config.IpRateLimiter != nil {
-		listener.ipRateLimiter = Tools.NewIpRateLimiter(listener.config.IpRateLimiter)
-	}
+
 	if err := listener.httpServer.Start(); err != nil {
 		if listener.eventHandler != nil {
 			listener.onEvent(Event.New(
@@ -48,8 +45,6 @@ func (listener *WebsocketListener) Start() error {
 				Event.Cancel,
 			))
 		}
-		listener.ipRateLimiter.Close()
-		listener.ipRateLimiter = nil
 		listener.status = Status.Stopped
 		return err
 	}

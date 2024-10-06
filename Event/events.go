@@ -65,8 +65,9 @@ const ReceivedFromChannel = "receivingFromChannel"                // after recei
 const ReceivedNilValueFromChannel = "receivedNilValueFromChannel" // after receiving a nil value from a channel
 const ReceivingFromChannelFailed = "receivingFromChannelFailed"   // when a receive operation returns an error
 
-const SendingToChannel = "sendingToChannel" // before sending an item to a channel
-const SentToChannel = "sentToChannel"       // after sending an item to a channel
+const SendingToChannel = "sendingToChannel"               // before sending an item to a channel
+const AbortedSendingToChannel = "abortedSendingToChannel" // when a send operation is aborted
+const SentToChannel = "sentToChannel"                     // after sending an item to a channel
 
 const HandlingHttpRequest = "handlingHttpRequest" // before handling an http request
 const HandledHttpRequest = "handledHttpRequest"   // after handling an http request

@@ -34,6 +34,8 @@ func (listener *WebsocketListener) Stop() error {
 	}
 
 	listener.status = Status.Pending
+	close(listener.stopChannel)
+
 	if err := listener.httpServer.Stop(); err != nil {
 		if listener.eventHandler != nil {
 			listener.onEvent(Event.New(
@@ -45,10 +47,6 @@ func (listener *WebsocketListener) Stop() error {
 			))
 		}
 		listener.status = Status.Started
-	}
-	if listener.ipRateLimiter != nil {
-		listener.ipRateLimiter.Close()
-		listener.ipRateLimiter = nil
 	}
 
 	if listener.eventHandler != nil {
