@@ -38,11 +38,11 @@ type WebsocketServer struct {
 
 	// metrics
 
-	bytesSent     uint64
-	bytesReceived uint64
+	BytesSent     uint64
+	BytesReceived uint64
 
-	messagesSent     uint64
-	messagesReceived uint64
+	MessagesSent     uint64
+	MessagesReceived uint64
 
 	AsyncMessageSent uint64
 	SyncRequestsSent uint64
