@@ -22,23 +22,24 @@ type WebsocketServer struct {
 	instanceId string
 	sessionId  string
 
-	eventHandler Event.Handler
-
-	handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)
-
-	websocketListener *WebsocketListener.WebsocketListener
-
-	sessionManager *Tools.SessionManager
-	topicManager   *Tools.TopicManager
-
 	status      int
 	statusMutex sync.Mutex
 	stopChannel chan struct{}
 	waitGroup   sync.WaitGroup
 
+	eventHandler Event.Handler
+
+	handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)
+
 	whitelist     *Tools.AccessControlList
 	blacklist     *Tools.AccessControlList
 	ipRateLimiter *Tools.IpRateLimiter
+
+	websocketListener *WebsocketListener.WebsocketListener
+
+	sessionManager *Tools.SessionManager
+	syncManager    *Tools.SyncManager
+	topicManager   *Tools.TopicManager
 
 	// metrics
 
@@ -75,22 +76,19 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	}
 
 	server := &WebsocketServer{
-		name:       name,
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-
-		whitelist: whitelist,
-		blacklist: blacklist,
-
-		config: config,
-
-		eventHandler: eventHandler,
-
+		config:           config,
+		name:             name,
+		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		eventHandler:     eventHandler,
 		handshakeHandler: handshakeHandler,
+		whitelist:        whitelist,
+		blacklist:        blacklist,
 	}
+	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
+	server.syncManager = Tools.NewSyncManager(config.SyncManagerConfig)
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
 	}
-	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.eventHandler)
 	if err != nil {
 		return nil, err

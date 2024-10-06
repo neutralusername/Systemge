@@ -13,8 +13,6 @@ import (
 type SessionManager struct {
 	config *Config.SessionManager
 
-	name string
-
 	instanceId string
 	sessionId  string
 
@@ -48,7 +46,7 @@ type Identity struct {
 	sessions map[string]*Session
 }
 
-func NewSessionManager(name string, config *Config.SessionManager, onCreateSession func(*Session) error, onRemoveSession func(*Session)) *SessionManager {
+func NewSessionManager(config *Config.SessionManager, onCreateSession func(*Session) error, onRemoveSession func(*Session)) *SessionManager {
 	if config == nil {
 		config = &Config.SessionManager{}
 	}
@@ -59,7 +57,6 @@ func NewSessionManager(name string, config *Config.SessionManager, onCreateSessi
 		config.SessionIdAlphabet = ALPHA_NUMERIC
 	}
 	return &SessionManager{
-		name:   name,
 		config: config,
 
 		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
@@ -253,10 +250,6 @@ func (manager *SessionManager) IdentityExists(identityString string) bool {
 		return true
 	}
 	return false
-}
-
-func (manager *SessionManager) GetName() string {
-	return manager.name
 }
 
 func (manager *SessionManager) GetStatus() int {

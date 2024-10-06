@@ -62,7 +62,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 			}
 		}
 
-		if server.config.AcceptClientsSequentially {
+		if server.config.HandleClientsSequentially {
 			handleAcceptionWrapper(websocketClient)
 		} else {
 			server.waitGroup.Add(1)

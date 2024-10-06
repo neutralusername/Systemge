@@ -56,14 +56,18 @@ func UnmarshalWebsocketClient(data string) *WebsocketClient {
 }
 
 type WebsocketServer struct {
-	WebsocketListenerConfig  *WebsocketListener      `json:"websocketListenerConfig"`   // *required*
-	WebsocketClientConfig    *WebsocketClient        `json:"websocketConnectionConfig"` // *required*
-	SessionManagerConfig     *SessionManager         `json:"sessionManagerConfig"`      // *required*
-	IpRateLimiterConfig      *IpRateLimiter          `json:"ipRateLimiterConfig"`       // *required*
-	BytesRateLimiterConfig   *TokenBucketRateLimiter `json:"bytesRateLimiterConfig"`    // *required*
-	MessageRateLimiterConfig *TokenBucketRateLimiter `json:"messageRateLimiterConfig"`  // *required*
+	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
+	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
 
-	AcceptClientsSequentially bool `json:"acceptClientsSequentially"` // default: false
+	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
+	SyncManagerConfig    *SyncManager    `json:"syncManagerConfig"`    // *required*
+
+	IpRateLimiterConfig      *IpRateLimiter          `json:"ipRateLimiterConfig"`      // *required*
+	BytesRateLimiterConfig   *TokenBucketRateLimiter `json:"bytesRateLimiterConfig"`   // *required*
+	MessageRateLimiterConfig *TokenBucketRateLimiter `json:"messageRateLimiterConfig"` // *required*
+
+	HandleClientsSequentially  bool `json:"handleClientsSequentially"`  // default: false
+	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
