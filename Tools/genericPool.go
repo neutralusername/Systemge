@@ -80,19 +80,37 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 // ReturnItem returns a item to the pool.
 // If the item is not valid, it will return an error.
 // replacementItem must be either same as item or a new item.
-func (genericPool *GenericPool[T]) ReturnItem(item T, replacementItem T) error {
+func (genericPool *GenericPool[T]) ReturnItem(item T, replacement T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
-	if genericPool.items[item] {
+	val, ok := genericPool.items[item]
+	if !ok {
+		return errors.New("item does not exist")
+	}
+	if !val {
 		return errors.New("item is not acquired")
 	}
-	if replacementItem != item {
-		if genericPool.items[replacementItem] {
-			return errors.New("item already exists")
+	if replacement != item {
+		if genericPool.items[replacement] {
+			return errors.New("replacement already exists")
 		}
 		delete(genericPool.items, item)
 	}
-	genericPool.items[replacementItem] = true
-	genericPool.itemChannel <- replacementItem
+	genericPool.items[replacement] = true
+	genericPool.itemChannel <- replacement
+	return nil
+}
+
+func (genericPool *GenericPool[T]) AddItem(item T) error {
+	genericPool.mutex.Lock()
+	defer genericPool.mutex.Unlock()
+	if genericPool.items[item] {
+		return errors.New("item already exists")
+	}
+	if len(genericPool.itemChannel) == cap(genericPool.itemChannel) {
+		return errors.New("pool is full")
+	}
+	genericPool.items[item] = true
+	genericPool.itemChannel <- item
 	return nil
 }
