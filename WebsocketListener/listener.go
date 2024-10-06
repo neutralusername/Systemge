@@ -22,8 +22,10 @@ type WebsocketListener struct {
 	sessionId  string
 
 	status      int
-	statusMutex sync.Mutex
+	statusMutex sync.RWMutex
 	stopChannel chan struct{}
+
+	waitgroup sync.WaitGroup
 
 	httpServer *HTTPServer.HTTPServer
 

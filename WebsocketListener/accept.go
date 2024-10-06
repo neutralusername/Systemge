@@ -6,10 +6,22 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
+	listener.statusMutex.RLock()
+	status := listener.status
+	listener.waitgroup.Add(1)
+	listener.statusMutex.RUnlock()
+
+	if status != Status.Started {
+		listener.waitgroup.Done()
+		return nil, errors.New("listener not started")
+	}
+	defer listener.waitgroup.Done()
+
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
 		timeoutMs:               timeoutMs,
