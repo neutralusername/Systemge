@@ -13,7 +13,6 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
 		timeoutMs:               timeoutMs,
-		timedOut:                false,
 		triggered:               sync.WaitGroup{},
 	}
 	acceptRequest.triggered.Add(1)
@@ -25,14 +24,15 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 	}
 	select {
 	case <-listener.stopChannel:
-		acceptRequest.timedOut = true
+		listener.pool.RemoveItems(true, acceptRequest)
 		acceptRequest.triggered.Done()
 		return nil, errors.New("listener stopped")
 	case <-deadline:
-		acceptRequest.timedOut = true
+		listener.pool.RemoveItems(true, acceptRequest)
 		acceptRequest.triggered.Done()
 		return nil, errors.New("timeout")
 	case upgraderResponse := <-acceptRequest.upgraderResponseChannel:
+		listener.pool.RemoveItems(true, acceptRequest)
 		acceptRequest.triggered.Done()
 		if upgraderResponse.err != nil {
 			return nil, upgraderResponse.err

@@ -40,7 +40,6 @@ type acceptRequest struct {
 	upgraderResponseChannel chan *upgraderResponse
 	timeoutMs               uint32
 	triggered               sync.WaitGroup
-	timedOut                bool
 }
 
 type upgraderResponse struct {

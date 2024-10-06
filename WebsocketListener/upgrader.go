@@ -13,19 +13,6 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				server.ClientsRejected.Add(1)
 				return
 			case acceptRequest := <-server.pool.AcquireItemChannel():
-
-				select {
-				case <-server.stopChannel:
-					http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-					server.ClientsRejected.Add(1)
-					return
-				default:
-				}
-
-				if acceptRequest.timedOut {
-					continue
-				}
-
 				websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 
 				acceptRequest.upgraderResponseChannel <- &upgraderResponse{
@@ -36,9 +23,11 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 					server.ClientsFailed.Add(1)
 				} else {
 					acceptRequest.triggered.Wait()
-					if acceptRequest.timedOut {
+					select {
+					case <-acceptRequest.upgraderResponseChannel:
 						websocketConn.Close()
 						server.ClientsFailed.Add(1)
+					default:
 					}
 				}
 			}
