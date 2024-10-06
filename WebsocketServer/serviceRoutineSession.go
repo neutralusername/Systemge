@@ -164,26 +164,6 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 		}
 	}
 
-	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
-			Event.CreatingSession,
-			Event.Context{
-				Event.Address: websocketClient.GetAddress(),
-			},
-			Event.Continue,
-			Event.Skip,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
-			websocketClient.Close()
-			break
-		}
-		if event.GetAction() == Event.Skip {
-			websocketClient.Close()
-			continue
-		}
-	}
-
 	identity := ""
 	if server.handshakeHandler != nil {
 		id, err := server.handshakeHandler(websocketClient)
@@ -213,6 +193,26 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 			}
 		}
 		identity = id
+	}
+
+	if server.eventHandler != nil {
+		event := server.onEvent(Event.New(
+			Event.CreatingSession,
+			Event.Context{
+				Event.Address: websocketClient.GetAddress(),
+			},
+			Event.Continue,
+			Event.Skip,
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
+			websocketClient.Close()
+			break
+		}
+		if event.GetAction() == Event.Skip {
+			websocketClient.Close()
+			continue
+		}
 	}
 
 	session, err := server.sessionManager.CreateSession(identity, map[string]any{
