@@ -26,7 +26,8 @@ func NewGenericSemaphore[T comparable](maxAvailableAcquires uint32, initialItems
 	}, nil
 }
 
-// receiving equals to Wait and sending equals to Signal
+// receiving equals Wait.
+// sending equals Signal.
 func (semaphore *GenericSemaphore[T]) GetChannel() chan T {
 	return semaphore.channel
 }
