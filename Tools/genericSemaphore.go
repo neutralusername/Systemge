@@ -14,27 +14,27 @@ type GenericSemaphore[T comparable] struct {
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
 func NewGenericSemaphore[T comparable](items []T) (*GenericSemaphore[T], error) {
-	anySemaphore := &GenericSemaphore[T]{
+	genericSemaphore := &GenericSemaphore[T]{
 		items:       make(map[T]bool),
 		itemChannel: make(chan T, len(items)),
 	}
 
 	for _, item := range items {
-		if anySemaphore.items[item] {
+		if genericSemaphore.items[item] {
 			return nil, errors.New("duplicate item")
 		}
-		anySemaphore.items[item] = true
-		anySemaphore.itemChannel <- item
+		genericSemaphore.items[item] = true
+		genericSemaphore.itemChannel <- item
 	}
 
-	return anySemaphore, nil
+	return genericSemaphore, nil
 }
 
-func (anySemaphore *GenericSemaphore[T]) GetAcquiredItems() []T {
-	anySemaphore.mutex.Lock()
-	defer anySemaphore.mutex.Unlock()
+func (genericSemaphore *GenericSemaphore[T]) GetAcquiredItems() []T {
+	genericSemaphore.mutex.Lock()
+	defer genericSemaphore.mutex.Unlock()
 	acquiredItems := make([]T, 0)
-	for item, isAvailable := range anySemaphore.items {
+	for item, isAvailable := range genericSemaphore.items {
 		if !isAvailable {
 			acquiredItems = append(acquiredItems, item)
 		}
@@ -45,30 +45,30 @@ func (anySemaphore *GenericSemaphore[T]) GetAcquiredItems() []T {
 
 // AcquireItem returns a item from the pool.
 // If the pool is empty, it will block until a item is available.
-func (anySemaphore *GenericSemaphore[T]) AcquireItem() T {
-	item := <-anySemaphore.itemChannel
-	anySemaphore.mutex.Lock()
-	defer anySemaphore.mutex.Unlock()
-	anySemaphore.items[item] = false
+func (genericSemaphore *GenericSemaphore[T]) AcquireItem() T {
+	item := <-genericSemaphore.itemChannel
+	genericSemaphore.mutex.Lock()
+	defer genericSemaphore.mutex.Unlock()
+	genericSemaphore.items[item] = false
 	return item
 }
 
 // ReturnItem returns a item to the pool.
 // If the item is not valid, it will return an error.
 // replacementItem must be either same as item or a new item.
-func (anySemaphore *GenericSemaphore[T]) ReturnItem(item T, replacementItem T) error {
-	anySemaphore.mutex.Lock()
-	defer anySemaphore.mutex.Unlock()
-	if anySemaphore.items[item] {
+func (genericSemaphore *GenericSemaphore[T]) ReturnItem(item T, replacementItem T) error {
+	genericSemaphore.mutex.Lock()
+	defer genericSemaphore.mutex.Unlock()
+	if genericSemaphore.items[item] {
 		return errors.New("item is not acquired")
 	}
 	if replacementItem != item {
-		if anySemaphore.items[replacementItem] {
+		if genericSemaphore.items[replacementItem] {
 			return errors.New("item already exists")
 		}
-		delete(anySemaphore.items, item)
+		delete(genericSemaphore.items, item)
 	}
-	anySemaphore.items[replacementItem] = true
-	anySemaphore.itemChannel <- replacementItem
+	genericSemaphore.items[replacementItem] = true
+	genericSemaphore.itemChannel <- replacementItem
 	return nil
 }
