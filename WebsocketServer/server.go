@@ -10,6 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
@@ -22,6 +23,8 @@ type WebsocketServer struct {
 	sessionId  string
 
 	eventHandler Event.Handler
+
+	handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)
 
 	websocketListener *WebsocketListener.WebsocketListener
 
@@ -57,7 +60,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error), eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -81,6 +84,8 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		config: config,
 
 		eventHandler: eventHandler,
+
+		handshakeHandler: handshakeHandler,
 	}
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)

@@ -184,9 +184,38 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 		}
 	}
 
-	// add option to perform handshake to obtain identity
+	identity := ""
+	if server.handshakeHandler != nil {
+		id, err := server.handshakeHandler(websocketClient)
+		if err != nil {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.HandshakeFailed,
+					Event.Context{
+						Event.Address: websocketClient.GetAddress(),
+						Event.Error:   err.Error(),
+					},
+					Event.Skip,
+					Event.Continue,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+					break
+				}
+				if event.GetAction() == Event.Skip {
+					websocketClient.Close()
+					continue
+				}
+			} else {
+				websocketClient.Close()
+				continue
+			}
+		}
+		identity = id
+	}
 
-	session, err := server.sessionManager.CreateSession("", map[string]any{
+	session, err := server.sessionManager.CreateSession(identity, map[string]any{
 		"websocketClient": websocketClient,
 	})
 	if err != nil {
