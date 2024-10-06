@@ -43,6 +43,19 @@ func (itemPool *ItemPool[T]) GetAcquiredItems() []T {
 	return acquiredItems
 }
 
+func (itemPool *ItemPool[T]) GetAvailableItems() []T {
+	itemPool.mutex.Lock()
+	defer itemPool.mutex.Unlock()
+	availableItems := make([]T, 0)
+	for item, isAvailable := range itemPool.items {
+		if isAvailable {
+			availableItems = append(availableItems, item)
+		}
+	}
+
+	return availableItems
+}
+
 // AcquireItem returns a item from the pool.
 // If the pool is empty, it will block until a item is available.
 func (itemPool *ItemPool[T]) AcquireItem() T {
