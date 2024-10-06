@@ -31,6 +31,8 @@ type WebsocketListener struct {
 	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
+
+	MaxSimultaneousAccepts uint32 `json:"maxSimultaneousAccepts"` // default: 0 (no limit)
 }
 
 func UnmarshalWebsocketListener(data string) *WebsocketListener {

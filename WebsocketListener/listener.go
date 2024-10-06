@@ -27,7 +27,7 @@ type WebsocketListener struct {
 
 	httpServer *HTTPServer.HTTPServer
 
-	anySemaphore *Tools.AnySemaphore
+	anySemaphore *Tools.GenericSemaphore[*acceptRequest]
 
 	// metrics
 
@@ -71,11 +71,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		},
 		nil,
 	)
-	anySemaphore, err := Tools.NewGenericSemaphore(listener.config.MaxSimultaneousAccepts)
-	if err != nil {
-		return nil, err
-	}
-	listener.anySemaphore = anySemaphore
+	listener.anySemaphore = Tools.NewGenericSemaphore(listener.config.MaxSimultaneousAccepts, []*acceptRequest{})
 
 	return listener, nil
 }
