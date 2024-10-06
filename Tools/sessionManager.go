@@ -11,12 +11,14 @@ import (
 )
 
 type SessionManager struct {
-	name             string
-	config           *Config.SessionManager
-	maxTotalSessions float64
+	config *Config.SessionManager
+
+	name string
 
 	instanceId string
 	sessionId  string
+
+	maxTotalSessions float64
 
 	sessionMutex sync.RWMutex
 	identities   map[string]*Identity
