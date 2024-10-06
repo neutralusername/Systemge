@@ -80,8 +80,8 @@ func (server *WebsocketServer) sessionRoutine() {
 				event := server.onEvent(Event.New(
 					Event.RateLimited,
 					Event.Context{
-						Event.RateLimiterType: Event.Ip,
 						Event.Address:         websocketClient.GetAddress(),
+						Event.RateLimiterType: Event.Ip,
 					},
 					Event.Skip,
 					Event.Continue,
@@ -162,9 +162,11 @@ func (server *WebsocketServer) sessionRoutine() {
 				Event.Cancel,
 			))
 			if event.GetAction() == Event.Cancel {
+				websocketClient.Close()
 				break
 			}
 			if event.GetAction() == Event.Skip {
+				websocketClient.Close()
 				continue
 			}
 		}
@@ -183,9 +185,11 @@ func (server *WebsocketServer) sessionRoutine() {
 					Event.Cancel,
 				))
 				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
 					break
 				}
 			}
+			websocketClient.Close()
 			continue
 		}
 
@@ -214,11 +218,12 @@ func (server *WebsocketServer) sessionRoutine() {
 }
 
 func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
+	websocketClient, ok := session.Get("websocketClient")
+	if !ok {
+		return errors.New("websocketClient not found")
+	}
+
 	if server.eventHandler != nil {
-		websocketClient, ok := session.Get("websocketClient")
-		if !ok {
-			return errors.New("websocketClient not found")
-		}
 		event := server.onEvent(Event.New(
 			Event.OnCreateSession,
 			Event.Context{
@@ -232,6 +237,7 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 			return errors.New("session rejected")
 		}
 	}
+
 	return nil
 }
 
