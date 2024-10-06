@@ -29,6 +29,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				if err != nil {
 					server.ClientsFailed.Add(1)
 				} else {
+					// race conditiion
 					acceptRequest.mutex.Lock()
 					timedOut := acceptRequest.timedOut
 					acceptRequest.mutex.Unlock()
