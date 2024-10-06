@@ -13,7 +13,7 @@ type GenericPool[T comparable] struct {
 
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
-func NewGenericPool[T comparable](maxItems uint32, initialItems []T) (*GenericPool[T], error) {
+func NewGenericPool[T comparable](maxItems uint32, initialItems ...T) (*GenericPool[T], error) {
 	if maxItems == 0 {
 		return nil, errors.New("maxItems must be greater than 0")
 	}
