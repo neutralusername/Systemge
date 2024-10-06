@@ -242,6 +242,10 @@ func (manager *SessionManager) IdentityExists(identityString string) bool {
 	return false
 }
 
+func (manager *SessionManager) GetName() string {
+	return manager.name
+}
+
 func (manager *SessionManager) GetStatus() int {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()

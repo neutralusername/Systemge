@@ -10,12 +10,12 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) SyncRequest(topic, payload string, ids ...string) (<-chan *Message.Message, error) {
+func (server *WebsocketServer) SyncRequest(topic, payload, syncToken string, ids ...string) (<-chan *Message.Message, error) {
 
 }
 
-func (server *WebsocketServer) SyncRequestBlocking(topic, payload string, ids ...string) ([]*Message.Message, error) {
-	responseChannel, err := server.SyncRequest(topic, payload, ids...)
+func (server *WebsocketServer) SyncRequestBlocking(topic, payload, syncToken string, ids ...string) ([]*Message.Message, error) {
+	responseChannel, err := server.SyncRequest(topic, payload, syncToken, ids...)
 	if err != nil {
 		return nil, err
 	}

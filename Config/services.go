@@ -41,6 +41,7 @@ type WebsocketServer struct {
 	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
 	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
 	SessionManagerConfig    *SessionManager    `json:"sessionManagerConfig"`      // *required*
+	IpRateLimiterConfig     *IpRateLimiter     `json:"ipRateLimiterConfig"`       // *required*
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {

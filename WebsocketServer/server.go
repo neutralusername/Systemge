@@ -33,9 +33,8 @@ type WebsocketServer struct {
 	stopChannel chan struct{}
 	waitGroup   sync.WaitGroup
 
-	whitelist *Tools.AccessControlList
-	blacklist *Tools.AccessControlList
-
+	whitelist     *Tools.AccessControlList
+	blacklist     *Tools.AccessControlList
 	ipRateLimiter *Tools.IpRateLimiter
 
 	// metrics
@@ -79,6 +78,9 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		config: config,
 
 		eventHandler: eventHandler,
+	}
+	if config.IpRateLimiterConfig != nil {
+		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
 	}
 	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.eventHandler)
