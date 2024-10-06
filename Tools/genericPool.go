@@ -115,8 +115,8 @@ func (genericPool *GenericPool[T]) RemoveItem(item T) error {
 	if !ok {
 		return errors.New("item does not exist")
 	}
-	if !val {
-		return errors.New("item is not acquired")
+	if val {
+		return errors.New("item is acquired")
 	}
 	delete(genericPool.items, item)
 	return nil
