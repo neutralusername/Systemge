@@ -31,7 +31,7 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, eventH
 	websocketClient, err := WebsocketClient.New(config, websocketConn, eventHandler)
 	if err != nil {
 		listener.onEvent(Event.New(
-			Event.CreatingWebsocketClientFailed,
+			Event.CreateClientFailed,
 			Event.Context{
 				Event.Address: websocketConn.RemoteAddr().String(),
 				Event.Error:   err.Error(),

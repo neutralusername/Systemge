@@ -17,6 +17,8 @@ const AcceptedClient = "acceptedTcpSystemgeConnection"    // after accepting a t
 const TcpListenerAcceptFailed = "tcpListenerAcceptFailed" // when a tcp listener accept operation returns an error
 const AcceptClientFailed = "acceptTcpListenerFailed"      // when a tcp listener accept operation returns an error
 
+const CreateClientFailed = "createClientFailed" // when a tcp systemge client creation operation returns an error
+
 const SessionRoutineBegins = "sessionRoutineBegins" // when a session routine begins
 const SessionRoutineEnds = "sessionRoutineEnds"     // when a session routine finishes
 
