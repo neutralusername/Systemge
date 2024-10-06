@@ -32,7 +32,7 @@ type WebsocketListener struct {
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 
-	MaxSimultaneousAccepts uint32 `json:"maxSimultaneousAccepts"` // default: 0 (no limit)
+	MaxSimultaneousAccepts uint32 `json:"maxSimultaneousAccepts"` // default: 1 (no limit)
 }
 
 func UnmarshalWebsocketListener(data string) *WebsocketListener {

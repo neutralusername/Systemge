@@ -55,6 +55,9 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 	if config.TcpServerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
+	if config.MaxSimultaneousAccepts == 0 {
+		config.MaxSimultaneousAccepts = 1
+	}
 	listener := &WebsocketListener{
 		name:       name,
 		config:     config,
