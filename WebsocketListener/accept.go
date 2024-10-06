@@ -18,7 +18,7 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, eventH
 		return nil, errors.New("accept canceled")
 	}
 
-	websocketConn := <-listener.connectionChannel //problem with close
+	websocketConn := <-listener.connectionChannel //problem with stop (there might be open http requests trying to send to the channel)
 	if websocketConn == nil {
 		listener.onEvent(Event.New(
 			Event.ReceivedNilValueFromChannel,
