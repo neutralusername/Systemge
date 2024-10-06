@@ -193,6 +193,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
+		websocketClient.SetName(session.GetId()) // consider whether i can remove name from (Websocket-)Client
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
 				Event.CreatedSession,
