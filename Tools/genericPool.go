@@ -77,7 +77,7 @@ func (genericPool *GenericPool[T]) GetItems() map[T]bool {
 }
 
 // AcquireItem returns an item from the pool.
-// If the pool is empty, it will block until a item is available.
+// If the pool is empty, it will block until a item becomes available.
 func (genericPool *GenericPool[T]) AcquireItem() T {
 	item := <-genericPool.itemChannel
 	genericPool.mutex.Lock()
@@ -87,6 +87,9 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 	return item
 }
 
+// AcquireItemChannel returns a channel that will return an item from the pool.
+// If the pool is empty, it will block until a item becomes available.
+// The channel will be closed after the item is returned.
 func (genericPool *GenericPool[T]) AcquireItemChannel() <-chan T {
 	c := make(chan T)
 	go func() {
