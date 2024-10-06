@@ -30,7 +30,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				if err != nil {
 					server.ClientsFailed.Add(1)
 				} else {
-					// race conditiion (timeout branch might be triggered but BEFORE locking the mutex.. which would cause the wsConn to be unclosed but unreachable)
+					// race conditiion (timeout branch could already be triggered here but did not set timeedOut to true yet ..which would cause the wsConn to stay open and unreachable)
 					acceptRequest.mutex.Lock()
 					timedOut := acceptRequest.timedOut
 					acceptRequest.mutex.Unlock()
