@@ -55,18 +55,18 @@ func (server *WebsocketServer) sessionRoutine() {
 		}
 
 		if server.config.AcceptClientsSequentially {
-			server.createSession(websocketClient)
+			server.handleAccept(websocketClient)
 		} else {
 			server.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				server.createSession(websocketClient)
+				server.handleAccept(websocketClient)
 				server.waitGroup.Done()
 			}(websocketClient)
 		}
 	}
 }
 
-func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.WebsocketClient) {
+func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.WebsocketClient) {
 	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 	if err != nil {
 		if server.eventHandler != nil {
@@ -170,14 +170,14 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 		identity = id
 	}
 
-	session := server.createSession_(identity, websocketClient)
+	session := server.createSession(identity, websocketClient)
 
 	server.waitGroup.Add(2)
 	go server.websocketClientDisconnect(session, websocketClient)
 	go server.receptionRoutine(session, websocketClient)
 }
 
-func (server *WebsocketServer) createSession_(identity string, websocketClient *WebsocketClient.WebsocketClient) *Tools.Session {
+func (server *WebsocketServer) createSession(identity string, websocketClient *WebsocketClient.WebsocketClient) *Tools.Session {
 	for {
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
