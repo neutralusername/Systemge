@@ -6,9 +6,8 @@ import (
 )
 
 type Pool[T comparable] struct {
-	items       map[T]bool // item -> isAvailable
-	mutex       sync.Mutex
-	itemChannel chan T
+	items map[T]bool // item -> isAvailable
+	mutex sync.Mutex
 }
 
 // items must be comparable and unique.
