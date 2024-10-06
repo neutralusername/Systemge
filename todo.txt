@@ -18,6 +18,8 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
+add sample how systemge can be used as a proxy
+
 consider/support config changes at runtime.
 right now this is not officially supported and works for some fields, but not for others.
 
