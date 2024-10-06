@@ -54,111 +54,51 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
-		if err != nil {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.SplittingHostPortFailed,
-					Event.Context{
-						Event.Address: websocketClient.GetAddress(),
-						Event.Error:   err.Error(),
-					},
-					Event.Skip,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
-				}
-			}
-			websocketClient.Close()
-			continue
+		if server.config.AcceptSequentially {
+			server.accept(websocketClient)
+		} else {
+			server.waitGroup.Add(1)
+			go func(websocketClient *WebsocketClient.WebsocketClient) {
+				server.accept(websocketClient)
+				server.waitGroup.Done()
+			}(websocketClient)
 		}
+	}
+}
 
-		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.RateLimited,
-					Event.Context{
-						Event.Address:         websocketClient.GetAddress(),
-						Event.RateLimiterType: Event.Ip,
-					},
-					Event.Skip,
-					Event.Continue,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
-				}
-				if event.GetAction() == Event.Skip {
-					websocketClient.Close()
-					continue
-				}
-			} else {
-				websocketClient.Close()
-				continue
-			}
-		}
+func (server *WebsocketServer) accept(websocketClient *WebsocketClient.WebsocketClient) {
 
-		if server.blacklist != nil && server.blacklist.Contains(ip) {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.Blacklisted,
-					Event.Context{
-						Event.Address: websocketClient.GetAddress(),
-					},
-					Event.Skip,
-					Event.Continue,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
-				}
-				if event.GetAction() == Event.Skip {
-					websocketClient.Close()
-					continue
-				}
-			} else {
-				websocketClient.Close()
-				continue
-			}
-		}
-
-		if server.whitelist != nil && server.whitelist.ElementCount() > 0 && !server.whitelist.Contains(ip) {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.NotWhitelisted,
-					Event.Context{
-						Event.Address: websocketClient.GetAddress(),
-					},
-					Event.Skip,
-					Event.Continue,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
-				}
-				if event.GetAction() == Event.Skip {
-					websocketClient.Close()
-					continue
-				}
-			} else {
-				websocketClient.Close()
-				continue
-			}
-		}
-
+	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
+	if err != nil {
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
-				Event.CreatingSession,
+				Event.SplittingHostPortFailed,
 				Event.Context{
 					Event.Address: websocketClient.GetAddress(),
+					Event.Error:   err.Error(),
 				},
-				Event.Continue,
 				Event.Skip,
+				Event.Cancel,
+			))
+			if event.GetAction() == Event.Cancel {
+				websocketClient.Close()
+				break
+			}
+		}
+		websocketClient.Close()
+		continue
+	}
+
+	if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.New(
+				Event.RateLimited,
+				Event.Context{
+					Event.Address:         websocketClient.GetAddress(),
+					Event.RateLimiterType: Event.Ip,
+				},
+				Event.Skip,
+				Event.Continue,
 				Event.Cancel,
 			))
 			if event.GetAction() == Event.Cancel {
@@ -169,53 +109,126 @@ func (server *WebsocketServer) sessionRoutine() {
 				websocketClient.Close()
 				continue
 			}
-		}
-
-		session, err := server.sessionManager.CreateSession("", map[string]any{
-			"websocketClient": websocketClient,
-		})
-		if err != nil {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.CreateSessionFailed,
-					Event.Context{
-						Event.Address: websocketClient.GetAddress(),
-					},
-					Event.Skip,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
-				}
-			}
+		} else {
 			websocketClient.Close()
 			continue
 		}
+	}
 
-		websocketClient.SetName(session.GetId()) // consider whether i can remove name from (Websocket-)Client
+	if server.blacklist != nil && server.blacklist.Contains(ip) {
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
-				Event.CreatedSession,
+				Event.Blacklisted,
 				Event.Context{
-					Event.SessionId: session.GetId(),
-					Event.Address:   websocketClient.GetAddress(),
+					Event.Address: websocketClient.GetAddress(),
 				},
+				Event.Skip,
 				Event.Continue,
 				Event.Cancel,
 			))
 			if event.GetAction() == Event.Cancel {
 				websocketClient.Close()
-				session.GetTimeout().Trigger()
+				break
+			}
+			if event.GetAction() == Event.Skip {
+				websocketClient.Close()
+				continue
+			}
+		} else {
+			websocketClient.Close()
+			continue
+		}
+	}
+
+	if server.whitelist != nil && server.whitelist.ElementCount() > 0 && !server.whitelist.Contains(ip) {
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.New(
+				Event.NotWhitelisted,
+				Event.Context{
+					Event.Address: websocketClient.GetAddress(),
+				},
+				Event.Skip,
+				Event.Continue,
+				Event.Cancel,
+			))
+			if event.GetAction() == Event.Cancel {
+				websocketClient.Close()
+				break
+			}
+			if event.GetAction() == Event.Skip {
+				websocketClient.Close()
+				continue
+			}
+		} else {
+			websocketClient.Close()
+			continue
+		}
+	}
+
+	if server.eventHandler != nil {
+		event := server.onEvent(Event.New(
+			Event.CreatingSession,
+			Event.Context{
+				Event.Address: websocketClient.GetAddress(),
+			},
+			Event.Continue,
+			Event.Skip,
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
+			websocketClient.Close()
+			break
+		}
+		if event.GetAction() == Event.Skip {
+			websocketClient.Close()
+			continue
+		}
+	}
+
+	session, err := server.sessionManager.CreateSession("", map[string]any{
+		"websocketClient": websocketClient,
+	})
+	if err != nil {
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.New(
+				Event.CreateSessionFailed,
+				Event.Context{
+					Event.Address: websocketClient.GetAddress(),
+				},
+				Event.Skip,
+				Event.Cancel,
+			))
+			if event.GetAction() == Event.Cancel {
+				websocketClient.Close()
 				break
 			}
 		}
-
-		server.waitGroup.Add(1)
-		go server.websocketClientDisconnect(session, websocketClient)
-		server.waitGroup.Add(1)
-		go server.receptionRoutine(session, websocketClient)
+		websocketClient.Close()
+		continue
 	}
+
+	websocketClient.SetName(session.GetId()) // consider whether i can remove name from (Websocket-)Client
+	if server.eventHandler != nil {
+		event := server.onEvent(Event.New(
+			Event.CreatedSession,
+			Event.Context{
+				Event.SessionId: session.GetId(),
+				Event.Address:   websocketClient.GetAddress(),
+			},
+			Event.Continue,
+			Event.Cancel,
+		))
+		if event.GetAction() == Event.Cancel {
+			websocketClient.Close()
+			session.GetTimeout().Trigger()
+			break
+		}
+	}
+
+	server.waitGroup.Add(1)
+	go server.websocketClientDisconnect(session, websocketClient)
+	server.waitGroup.Add(1)
+	go server.receptionRoutine(session, websocketClient)
 }
 
 func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
