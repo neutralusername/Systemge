@@ -74,7 +74,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		},
 		nil,
 	)
-	pool, err := Tools.NewGenericPool(make([]*acceptRequest, config.MaxSimultaneousAccepts))
+	pool, err := Tools.NewGenericPool([]*acceptRequest{})
 	if err != nil {
 		return nil, err
 	}
