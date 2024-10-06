@@ -154,21 +154,36 @@ func (genericPool *GenericPool[T]) RemoveItems(transactional bool, item ...T) er
 	return nil
 }
 
-// AddItem adds a new item to the pool.
-// If the item already exists, it will return an error.
-// If the pool is full, it will return an error.
-func (genericPool *GenericPool[T]) AddItems(item ...T) error {
+// AddItems adds new items to the pool.
+// if transactional is false, it will skip items that already exist and stop when the pool is full.
+// if transactional is true, it will return an error if any item already exists before modifying the pool.
+func (genericPool *GenericPool[T]) AddItems(transactional bool, item ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
-	if len(genericPool.items)+len(item) > cap(genericPool.itemChannel) {
-		return errors.New("item count exceeds pool capacity")
-	}
-	for _, item := range item {
-		if genericPool.items[item] {
-			return errors.New("item already exists")
+	if !transactional {
+		for _, item := range item {
+			if len(genericPool.items) == cap(genericPool.itemChannel) {
+				break
+			}
+			if genericPool.items[item] {
+				continue
+			}
+			genericPool.items[item] = true
+			genericPool.itemChannel <- item
 		}
-		genericPool.items[item] = true
-		genericPool.itemChannel <- item
+	} else {
+		if len(genericPool.items)+len(item) > cap(genericPool.itemChannel) {
+			return errors.New("item count exceeds pool capacity")
+		}
+		for _, item := range item {
+			if genericPool.items[item] {
+				return errors.New("item already exists")
+			}
+		}
+		for _, item := range item {
+			genericPool.items[item] = true
+			genericPool.itemChannel <- item
+		}
 	}
 	return nil
 }
