@@ -171,6 +171,10 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 	}
 
 	session := server.createSession(identity, websocketClient)
+	if session == nil {
+		websocketClient.Close()
+		return
+	}
 
 	server.waitGroup.Add(2)
 	go server.websocketClientDisconnect(session, websocketClient)
@@ -189,7 +193,6 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 				Event.Skip,
 			))
 			if event.GetAction() == Event.Skip {
-				websocketClient.Close()
 				return nil
 			}
 		}
@@ -212,7 +215,6 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 					continue
 				}
 			}
-			websocketClient.Close()
 			return nil
 		}
 
@@ -229,7 +231,6 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 				Event.Retry,
 			))
 			if event.GetAction() == Event.Skip {
-				websocketClient.Close()
 				session.GetTimeout().Trigger()
 				return nil
 			}
