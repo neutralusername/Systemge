@@ -31,7 +31,6 @@ func (connection *WebsocketClient) Read(deadlineMs uint32) ([]byte, error) {
 				Event.Continue,
 			))
 		}
-		connection.Close()
 		return nil, err
 	}
 	connection.bytesReceived.Add(uint64(len(messageBytes)))

@@ -2,12 +2,13 @@ package WebsocketClient
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Event"
 )
 
-func (connection *WebsocketClient) Write(messageBytes []byte) error {
+func (connection *WebsocketClient) Write(messageBytes []byte, deadlineMs uint32) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
 
@@ -24,6 +25,7 @@ func (connection *WebsocketClient) Write(messageBytes []byte) error {
 		}
 	}
 
+	connection.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(deadlineMs) * time.Millisecond))
 	err := connection.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		if connection.eventHandler != nil {
