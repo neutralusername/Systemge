@@ -64,7 +64,13 @@ func (server *WebsocketServer) sessionRoutine() {
 		} else {
 			server.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				server.handleAccept(websocketClient)
+				err := server.handleAccept(websocketClient)
+				if err != nil {
+					websocketClient.Close()
+					server.ClientsRejected.Add(1)
+				} else {
+					server.ClientsAccepted.Add(1)
+				}
 				server.waitGroup.Done()
 			}(websocketClient)
 		}
