@@ -20,6 +20,7 @@ func (listener *WebsocketListener) Stop() error {
 	if err := listener.httpServer.Stop(); err != nil {
 		listener.status = Status.Started
 	}
+	listener.waitgroup.Wait()
 
 	listener.status = Status.Stopped
 	return nil
