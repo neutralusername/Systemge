@@ -187,7 +187,7 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 			}
 		}
 
-		session, err := server.sessionManager.CreateSession(identity, map[string]any{
+		session_, err := server.sessionManager.CreateSession(identity, map[string]any{
 			"websocketClient": websocketClient,
 		})
 		if err != nil {
@@ -214,8 +214,8 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 				Event.CreatedSession,
 				Event.Context{
 					Event.Address:   websocketClient.GetAddress(),
-					Event.SessionId: session.GetId(),
-					Event.Identity:  session.GetIdentity(),
+					Event.SessionId: session_.GetId(),
+					Event.Identity:  session_.GetIdentity(),
 				},
 				Event.Continue,
 				Event.Skip,
@@ -223,15 +223,16 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 			))
 			if event.GetAction() == Event.Skip {
 				websocketClient.Close()
-				session.GetTimeout().Trigger()
+				session_.GetTimeout().Trigger()
 				return
 			}
 			if event.GetAction() == Event.Retry {
-				session.GetTimeout().Trigger()
+				session_.GetTimeout().Trigger()
 				continue
 			}
 		}
 
+		session = session_
 		break
 	}
 
