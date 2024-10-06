@@ -62,6 +62,8 @@ type WebsocketServer struct {
 	IpRateLimiterConfig      *IpRateLimiter          `json:"ipRateLimiterConfig"`       // *required*
 	BytesRateLimiterConfig   *TokenBucketRateLimiter `json:"bytesRateLimiterConfig"`    // *required*
 	MessageRateLimiterConfig *TokenBucketRateLimiter `json:"messageRateLimiterConfig"`  // *required*
+
+	AcceptClientsSequentially bool `json:"acceptClientsSequentially"` // default: false
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
