@@ -101,18 +101,18 @@ func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	return nil
 }
 
-// ReplaceItem returns and replaces an item in the pool.
+// ReplaceItem replaces an item in the pool.
 // If the item does not exist, it will return an error.
 // If the item is acquired, it will return an error.
 // If the replacement already exists, it will return an error.
-func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T) error {
+func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem bool) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 	val, ok := genericPool.items[item]
 	if !ok {
 		return errors.New("item does not exist")
 	}
-	if !val {
+	if returnItem && !val {
 		return errors.New("item is not acquired")
 	}
 	if replacement != item {
