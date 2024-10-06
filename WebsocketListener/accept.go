@@ -17,7 +17,7 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 		triggered:               sync.WaitGroup{},
 	}
 	acceptRequest.triggered.Add(1)
-	listener.acceptChannel <- acceptRequest
+	listener.pool.AddItems(true, acceptRequest)
 
 	var deadline <-chan time.Time
 	if timeoutMs > 0 {

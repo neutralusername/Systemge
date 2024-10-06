@@ -87,6 +87,19 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 	return item
 }
 
+func (genericPool *GenericPool[T]) AcquireItemChannel() <-chan T {
+	c := make(chan T)
+	go func() {
+		item := <-genericPool.itemChannel
+		genericPool.mutex.Lock()
+		defer genericPool.mutex.Unlock()
+
+		genericPool.items[item] = false
+		c <- item
+	}()
+	return c
+}
+
 // TryAcquireItem returns an item from the pool.
 // If the item does not exist, it will return an error.
 // If the item is available, it will return a error.
