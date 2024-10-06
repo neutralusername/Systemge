@@ -225,7 +225,7 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 	}
 
 	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
+		event := server.onEvent(Event.New( // blocking.. potentially problematic when using this event for validation/handshake
 			Event.OnCreateSession,
 			Event.Context{
 				Event.SessionId: session.GetId(),
