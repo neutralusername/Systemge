@@ -124,3 +124,17 @@ func (genericPool *GenericPool[T]) AddItem(item T) error {
 	genericPool.itemChannel <- item
 	return nil
 }
+
+func (genericPool *GenericPool[T]) Clear() []T {
+	genericPool.mutex.Lock()
+	defer genericPool.mutex.Unlock()
+	for item := range genericPool.items {
+		delete(genericPool.items, item)
+	}
+	items := make([]T, 0)
+	for len(genericPool.itemChannel) > 0 {
+		item := <-genericPool.itemChannel
+		items = append(items, item)
+	}
+	return items
+}
