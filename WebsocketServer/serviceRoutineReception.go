@@ -32,7 +32,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}
 
 	for {
-
+		messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
 	}
 }
 
