@@ -21,7 +21,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				))
 			}
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-			server.clientsFailed.Add(1)
+			server.ClientsFailed.Add(1)
 			return
 		}
 
@@ -36,7 +36,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 			)); event.GetAction() == Event.Cancel {
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 				websocketConn.Close()
-				server.clientsRejected.Add(1)
+				server.ClientsRejected.Add(1)
 			}
 		}
 
@@ -61,7 +61,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				))
 			}
 			websocketConn.Close()
-			server.clientsRejected.Add(1)
+			server.ClientsRejected.Add(1)
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 		}
 	}

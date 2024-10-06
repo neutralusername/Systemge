@@ -31,11 +31,11 @@ type WebsocketClient struct {
 
 	// metrics
 
-	bytesSent     atomic.Uint64
-	bytesReceived atomic.Uint64
+	BytesSent     atomic.Uint64
+	BytesReceived atomic.Uint64
 
-	messagesSent     atomic.Uint64
-	messagesReceived atomic.Uint64
+	MessagesSent     atomic.Uint64
+	MessagesReceived atomic.Uint64
 }
 
 func New(config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHandler Event.Handler) (*WebsocketClient, error) {

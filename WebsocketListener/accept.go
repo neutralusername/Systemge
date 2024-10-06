@@ -38,7 +38,7 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, eventH
 			},
 			Event.Cancel,
 		))
-		listener.clientsFailed.Add(1)
+		listener.ClientsFailed.Add(1)
 		return nil, err
 	}
 
@@ -51,11 +51,11 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, eventH
 		Event.Cancel,
 	)); event.GetAction() == Event.Cancel {
 		websocketClient.Close()
-		listener.clientsRejected.Add(1)
+		listener.ClientsRejected.Add(1)
 		return nil, errors.New("client rejected")
 	}
 
-	listener.clientsAccepted.Add(1)
+	listener.ClientsAccepted.Add(1)
 	return websocketClient, nil
 }
 

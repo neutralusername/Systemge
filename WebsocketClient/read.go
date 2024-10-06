@@ -36,7 +36,7 @@ func (connection *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
 		}
 		return nil, err
 	}
-	connection.bytesReceived.Add(uint64(len(messageBytes)))
+	connection.BytesReceived.Add(uint64(len(messageBytes)))
 
 	if connection.eventHandler != nil {
 		if event := connection.onEvent(Event.New(
@@ -50,7 +50,7 @@ func (connection *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
 			return nil, errors.New("read canceled")
 		}
 	}
-	connection.messagesReceived.Add(1)
+	connection.MessagesReceived.Add(1)
 
 	return messageBytes, nil
 }
