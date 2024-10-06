@@ -127,16 +127,17 @@ func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem
 	return nil
 }
 
-// RemoveItem removes a item from the pool.
-// If the item does not exist, it will return an error.
-func (genericPool *GenericPool[T]) RemoveItem(item T) error {
+// RemoveItems removes the item from the pool.
+// If the an item does not exist, it will be skipped.
+func (genericPool *GenericPool[T]) RemoveItems(item ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
-	_, ok := genericPool.items[item]
-	if !ok {
-		return errors.New("item does not exist")
+	for _, item := range item {
+		if !genericPool.items[item] {
+			continue
+		}
+		delete(genericPool.items, item)
 	}
-	delete(genericPool.items, item)
 	return nil
 }
 
