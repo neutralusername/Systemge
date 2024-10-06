@@ -84,7 +84,8 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 }
 
 // TryAcquireItem returns a item from the pool.
-// If the pool is empty, it will return an error.
+// If the item is not available, it will return an error.
+// If the item is available, it will return a error.
 func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
@@ -93,7 +94,7 @@ func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 		return errors.New("item does not exist")
 	}
 	if val {
-		return errors.New("item is not acquired")
+		return errors.New("item is available")
 	}
 	genericPool.items[item] = true
 	genericPool.itemChannel <- item
