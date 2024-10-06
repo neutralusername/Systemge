@@ -17,19 +17,8 @@ type priorityTokenQueueItem struct {
 	token              string
 	value              any
 	priority           uint32
-	deadline           uint64
 	isRetrievedChannel chan struct{}
 	index              int
-}
-
-func NewPriorityTokenQueueItem(token string, value any, priority uint32, deadlineMs uint64) *priorityTokenQueueItem {
-	return &priorityTokenQueueItem{
-		token:              token,
-		value:              value,
-		priority:           priority,
-		deadline:           deadlineMs,
-		isRetrievedChannel: make(chan struct{}),
-	}
 }
 
 func NewPriorityTokenQueue(priorityQueue PriorityQueue) *PriorityTokenQueue {
@@ -44,12 +33,21 @@ func NewPriorityTokenQueue(priorityQueue PriorityQueue) *PriorityTokenQueue {
 	return queue
 }
 
+func NewPriorityTokenQueueItem(token string, value any, priority uint32, timeoutMs uint64) *priorityTokenQueueItem {
+	return &priorityTokenQueueItem{
+		token:              token,
+		value:              value,
+		priority:           priority,
+		isRetrievedChannel: make(chan struct{}),
+	}
+}
+
 // token may be empty string
-func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, deadlineMs uint64) error {
+func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, timeoutMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
-	item := NewPriorityTokenQueueItem(token, value, priority, deadlineMs)
+	item := NewPriorityTokenQueueItem(token, value, priority, timeoutMs)
 	if token != "" {
 		if queue.items[token] != nil {
 			return errors.New("token already exists")
@@ -58,10 +56,10 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 	}
 	heap.Push(&queue.priorityQueue, item)
 
-	if deadlineMs > 0 {
+	if timeoutMs > 0 {
 		go func() {
 			select {
-			case <-time.After(time.Duration(deadlineMs) * time.Millisecond):
+			case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
 				queue.mutex.Lock()
 				defer queue.mutex.Unlock()
 				select {
