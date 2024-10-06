@@ -130,24 +130,23 @@ func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem
 // RemoveItems removes the item from the pool.
 // if transactional is false, it will skip items that do not exist.
 // if transactional is true, it will return an error if any item does not exist before modifying the pool.
-func (genericPool *GenericPool[T]) RemoveItems(transactional bool, item ...T) error {
+func (genericPool *GenericPool[T]) RemoveItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 	if !transactional {
-		for _, item := range item {
-			if !genericPool.items[item] {
-				continue
+		for _, item := range items {
+			if genericPool.items[item] {
+				delete(genericPool.items, item)
 			}
-			delete(genericPool.items, item)
 		}
 		return nil
 	} else {
-		for _, item := range item {
+		for _, item := range items {
 			if !genericPool.items[item] {
 				return errors.New("item does not exist")
 			}
 		}
-		for _, item := range item {
+		for _, item := range items {
 			delete(genericPool.items, item)
 		}
 	}
@@ -157,11 +156,11 @@ func (genericPool *GenericPool[T]) RemoveItems(transactional bool, item ...T) er
 // AddItems adds new items to the pool.
 // if transactional is false, it will skip items that already exist and stop when the pool is full.
 // if transactional is true, it will return an error if any item already exists before modifying the pool.
-func (genericPool *GenericPool[T]) AddItems(transactional bool, item ...T) error {
+func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 	if !transactional {
-		for _, item := range item {
+		for _, item := range items {
 			if len(genericPool.items) == cap(genericPool.itemChannel) {
 				break
 			}
@@ -172,15 +171,15 @@ func (genericPool *GenericPool[T]) AddItems(transactional bool, item ...T) error
 			genericPool.itemChannel <- item
 		}
 	} else {
-		if len(genericPool.items)+len(item) > cap(genericPool.itemChannel) {
+		if len(genericPool.items)+len(items) > cap(genericPool.itemChannel) {
 			return errors.New("item count exceeds pool capacity")
 		}
-		for _, item := range item {
+		for _, item := range items {
 			if genericPool.items[item] {
 				return errors.New("item already exists")
 			}
 		}
-		for _, item := range item {
+		for _, item := range items {
 			genericPool.items[item] = true
 			genericPool.itemChannel <- item
 		}
