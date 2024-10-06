@@ -30,10 +30,10 @@ func NewGenericSemaphore[T comparable](items []T) (*GenericSemaphore[T], error) 
 	return anySemaphore, nil
 }
 
-func (anySemaphore *GenericSemaphore[T]) GetAcquiredItems() []any {
+func (anySemaphore *GenericSemaphore[T]) GetAcquiredItems() []T {
 	anySemaphore.mutex.Lock()
 	defer anySemaphore.mutex.Unlock()
-	acquiredItems := make([]any, 0)
+	acquiredItems := make([]T, 0)
 	for item, isAvailable := range anySemaphore.items {
 		if !isAvailable {
 			acquiredItems = append(acquiredItems, item)
