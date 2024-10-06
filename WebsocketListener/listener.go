@@ -75,7 +75,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 	for i := 0; i < listener.config.MaxSimultaneousAccepts; i++ {
 		simultaneousAccepts = append(simultaneousAccepts, &acceptRequest{})
 	}
-	anySemaphore, err := Tools.NewAnySemaphore(simultaneousAccepts)
+	anySemaphore, err := Tools.NewGenericSemaphore(simultaneousAccepts)
 	if err != nil {
 		return nil, err
 	}

@@ -5,18 +5,18 @@ import (
 	"sync"
 )
 
-type AnySemaphore struct {
-	items       map[any]bool // item -> isAvailable
+type GenericSemaphore[T comparable] struct {
+	items       map[T]bool // item -> isAvailable
 	mutex       sync.Mutex
-	itemChannel chan any
+	itemChannel chan T
 }
 
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
-func NewAnySemaphore(items []any) (*AnySemaphore, error) {
-	anySemaphore := &AnySemaphore{
-		items:       make(map[any]bool),
-		itemChannel: make(chan any, len(items)),
+func NewGenericSemaphore[T comparable](items []T) (*GenericSemaphore[T], error) {
+	anySemaphore := &GenericSemaphore[T]{
+		items:       make(map[T]bool),
+		itemChannel: make(chan T, len(items)),
 	}
 
 	for _, item := range items {
@@ -30,7 +30,7 @@ func NewAnySemaphore(items []any) (*AnySemaphore, error) {
 	return anySemaphore, nil
 }
 
-func (anySemaphore *AnySemaphore) GetAcquiredItems() []any {
+func (anySemaphore *GenericSemaphore[T]) GetAcquiredItems() []any {
 	anySemaphore.mutex.Lock()
 	defer anySemaphore.mutex.Unlock()
 	acquiredItems := make([]any, 0)
@@ -45,7 +45,7 @@ func (anySemaphore *AnySemaphore) GetAcquiredItems() []any {
 
 // AcquireItem returns a item from the pool.
 // If the pool is empty, it will block until a item is available.
-func (anySemaphore *AnySemaphore) AcquireItem() any {
+func (anySemaphore *GenericSemaphore[T]) AcquireItem() T {
 	item := <-anySemaphore.itemChannel
 	anySemaphore.mutex.Lock()
 	defer anySemaphore.mutex.Unlock()
@@ -56,14 +56,11 @@ func (anySemaphore *AnySemaphore) AcquireItem() any {
 // ReturnItem returns a item to the pool.
 // If the item is not valid, it will return an error.
 // replacementItem must be either same as item or a new item.
-func (anySemaphore *AnySemaphore) ReturnItem(item any, replacementItem any) error {
+func (anySemaphore *GenericSemaphore[T]) ReturnItem(item T, replacementItem T) error {
 	anySemaphore.mutex.Lock()
 	defer anySemaphore.mutex.Unlock()
 	if anySemaphore.items[item] {
 		return errors.New("item is not acquired")
-	}
-	if replacementItem == "" {
-		return errors.New("empty string item")
 	}
 	if replacementItem != item {
 		if anySemaphore.items[replacementItem] {
