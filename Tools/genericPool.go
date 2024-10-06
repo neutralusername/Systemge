@@ -39,6 +39,7 @@ func NewGenericPool[T comparable](maxItems uint32, initialItems []T) (*GenericPo
 func (genericPool *GenericPool[T]) GetAcquiredItems() []T {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	acquiredItems := make([]T, 0)
 	for item, isAvailable := range genericPool.items {
 		if !isAvailable {
@@ -52,6 +53,7 @@ func (genericPool *GenericPool[T]) GetAcquiredItems() []T {
 func (genericPool *GenericPool[T]) GetAvailableItems() []T {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	availableItems := make([]T, 0)
 	for item, isAvailable := range genericPool.items {
 		if isAvailable {
@@ -66,6 +68,7 @@ func (genericPool *GenericPool[T]) GetAvailableItems() []T {
 func (genericPool *GenericPool[T]) GetItems() map[T]bool {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	copiedItems := make(map[T]bool)
 	for item, isAvailable := range genericPool.items {
 		copiedItems[item] = isAvailable
@@ -79,6 +82,7 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 	item := <-genericPool.itemChannel
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	genericPool.items[item] = false
 	return item
 }
@@ -89,6 +93,7 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	val, ok := genericPool.items[item]
 	if !ok {
 		return errors.New("item does not exist")
@@ -109,6 +114,7 @@ func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem bool) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	val, ok := genericPool.items[item]
 	if !ok {
 		return errors.New("item does not exist")
@@ -133,6 +139,7 @@ func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem
 func (genericPool *GenericPool[T]) RemoveItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	if !transactional {
 		for _, item := range items {
 			if genericPool.items[item] {
@@ -159,6 +166,7 @@ func (genericPool *GenericPool[T]) RemoveItems(transactional bool, items ...T) e
 func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	if !transactional {
 		for _, item := range items {
 			if len(genericPool.items) == cap(genericPool.itemChannel) {
@@ -191,6 +199,7 @@ func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) erro
 func (genericPool *GenericPool[T]) Clear() []T {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
+
 	for item := range genericPool.items {
 		delete(genericPool.items, item)
 	}
