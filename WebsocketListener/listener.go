@@ -71,7 +71,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		},
 		nil,
 	)
-	simultaneousAccepts := []any{}
+	simultaneousAccepts := []*acceptRequest{}
 	for i := 0; i < listener.config.MaxSimultaneousAccepts; i++ {
 		simultaneousAccepts = append(simultaneousAccepts, &acceptRequest{})
 	}

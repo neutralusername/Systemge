@@ -89,7 +89,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
 	}
-	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.eventHandler)
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig)
 	if err != nil {
 		return nil, err
 	}
