@@ -184,6 +184,8 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 		}
 	}
 
+	// add option to perform handshake to obtain identity
+
 	session, err := server.sessionManager.CreateSession("", map[string]any{
 		"websocketClient": websocketClient,
 	})
