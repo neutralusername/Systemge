@@ -84,7 +84,8 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 }
 
 // ReturnItem returns a item to the pool.
-// If the item is not valid, it will return an error.
+// If the item does not exist, it will return an error.
+// If the item is not acquired, it will return an error.
 // replacementItem must be either same as item or a new item.
 func (genericPool *GenericPool[T]) ReturnItem(item T, replacement T) error {
 	genericPool.mutex.Lock()
@@ -107,6 +108,9 @@ func (genericPool *GenericPool[T]) ReturnItem(item T, replacement T) error {
 	return nil
 }
 
+// AddItem adds a new item to the pool.
+// If the item already exists, it will return an error.
+// If the pool is full, it will return an error.
 func (genericPool *GenericPool[T]) AddItem(item T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
