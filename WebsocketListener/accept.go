@@ -12,15 +12,13 @@ import (
 
 func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
 	listener.statusMutex.RLock()
-	status := listener.status
-	listener.waitgroup.Add(1)
-	listener.statusMutex.RUnlock()
-
-	if status != Status.Started {
-		listener.waitgroup.Done()
+	if listener.status != Status.Started {
+		listener.statusMutex.RUnlock()
 		return nil, errors.New("listener not started")
 	}
+	listener.waitgroup.Add(1)
 	defer listener.waitgroup.Done()
+	listener.statusMutex.RUnlock()
 
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
