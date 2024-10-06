@@ -128,6 +128,8 @@ func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem
 }
 
 // RemoveItems removes the item from the pool.
+// if transactional is false, it will skip items that do not exist.
+// if transactional is true, it will return an error if any item does not exist before modifying the pool.
 func (genericPool *GenericPool[T]) RemoveItems(transactional bool, item ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
