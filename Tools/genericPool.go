@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-type ItemPool[T comparable] struct {
+type GenericPool[T comparable] struct {
 	items       map[T]bool // item -> isAvailable
 	mutex       sync.Mutex
 	itemChannel chan T
@@ -13,8 +13,8 @@ type ItemPool[T comparable] struct {
 
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
-func NewItemPool[T comparable](items []T) (*ItemPool[T], error) {
-	itemPool := &ItemPool[T]{
+func NewGenericPool[T comparable](items []T) (*GenericPool[T], error) {
+	itemPool := &GenericPool[T]{
 		items:       make(map[T]bool),
 		itemChannel: make(chan T, len(items)),
 	}
@@ -30,7 +30,7 @@ func NewItemPool[T comparable](items []T) (*ItemPool[T], error) {
 	return itemPool, nil
 }
 
-func (itemPool *ItemPool[T]) GetAcquiredItems() []T {
+func (itemPool *GenericPool[T]) GetAcquiredItems() []T {
 	itemPool.mutex.Lock()
 	defer itemPool.mutex.Unlock()
 	acquiredItems := make([]T, 0)
@@ -43,7 +43,7 @@ func (itemPool *ItemPool[T]) GetAcquiredItems() []T {
 	return acquiredItems
 }
 
-func (itemPool *ItemPool[T]) GetAvailableItems() []T {
+func (itemPool *GenericPool[T]) GetAvailableItems() []T {
 	itemPool.mutex.Lock()
 	defer itemPool.mutex.Unlock()
 	availableItems := make([]T, 0)
@@ -57,7 +57,7 @@ func (itemPool *ItemPool[T]) GetAvailableItems() []T {
 }
 
 // GetItems returns a copy of the map of items.
-func (itemPool *ItemPool[T]) GetItems() map[T]bool {
+func (itemPool *GenericPool[T]) GetItems() map[T]bool {
 	itemPool.mutex.Lock()
 	defer itemPool.mutex.Unlock()
 	copiedItems := make(map[T]bool)
@@ -69,7 +69,7 @@ func (itemPool *ItemPool[T]) GetItems() map[T]bool {
 
 // AcquireItem returns a item from the pool.
 // If the pool is empty, it will block until a item is available.
-func (itemPool *ItemPool[T]) AcquireItem() T {
+func (itemPool *GenericPool[T]) AcquireItem() T {
 	item := <-itemPool.itemChannel
 	itemPool.mutex.Lock()
 	defer itemPool.mutex.Unlock()
@@ -80,7 +80,7 @@ func (itemPool *ItemPool[T]) AcquireItem() T {
 // ReturnItem returns a item to the pool.
 // If the item is not valid, it will return an error.
 // replacementItem must be either same as item or a new item.
-func (itemPool *ItemPool[T]) ReturnItem(item T, replacementItem T) error {
+func (itemPool *GenericPool[T]) ReturnItem(item T, replacementItem T) error {
 	itemPool.mutex.Lock()
 	defer itemPool.mutex.Unlock()
 	if itemPool.items[item] {
