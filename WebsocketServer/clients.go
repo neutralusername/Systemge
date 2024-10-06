@@ -18,6 +18,19 @@ func (server *WebsocketServer) GetWebsocketClient(sessionId string) (*WebsocketC
 	return websocketClient.(*WebsocketClient.WebsocketClient), nil
 }
 
+func (server *WebsocketServer) GetIdentityWebsocketClients(identity string) []*WebsocketClient.WebsocketClient {
+	clients := []*WebsocketClient.WebsocketClient{}
+	sessions := server.sessionManager.GetIdentitySessions(identity)
+	for _, session := range sessions {
+		websocketClient, ok := session.Get("websocketClient")
+		if !ok {
+			continue
+		}
+		clients = append(clients, websocketClient.(*WebsocketClient.WebsocketClient))
+	}
+	return clients
+}
+
 func (server *WebsocketServer) GetWebsocketClients() []*WebsocketClient.WebsocketClient {
 	clients := []*WebsocketClient.WebsocketClient{}
 	sessions := server.sessionManager.GetSessions()
