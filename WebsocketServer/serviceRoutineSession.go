@@ -54,19 +54,19 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		if server.config.AcceptSequentially {
-			server.accept(websocketClient)
+		if server.config.CreateSessionsSequentially {
+			server.createSession(websocketClient)
 		} else {
 			server.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				server.accept(websocketClient)
+				server.createSession(websocketClient)
 				server.waitGroup.Done()
 			}(websocketClient)
 		}
 	}
 }
 
-func (server *WebsocketServer) accept(websocketClient *WebsocketClient.WebsocketClient) {
+func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.WebsocketClient) {
 
 	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 	if err != nil {
@@ -238,7 +238,7 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 	}
 
 	if server.eventHandler != nil {
-		event := server.onEvent(Event.New( // blocking.. potentially problematic when using this event for validation/handshake
+		event := server.onEvent(Event.New(
 			Event.OnCreateSession,
 			Event.Context{
 				Event.SessionId: session.GetId(),
