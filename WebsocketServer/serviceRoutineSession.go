@@ -299,8 +299,9 @@ func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session,
 		server.onEvent(Event.New(
 			Event.OnDisconnect,
 			Event.Context{
-				Event.Identity: session.GetId(),
-				Event.Address:  websocketClient.GetAddress(),
+				Event.Address:   websocketClient.GetAddress(),
+				Event.Identity:  session.GetId(),
+				Event.SessionId: session.GetIdentity(),
 			},
 			Event.Continue,
 		))
