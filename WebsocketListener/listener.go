@@ -38,7 +38,7 @@ type WebsocketListener struct {
 type acceptRequest struct {
 	upgraderResponseChannel chan *upgraderResponse
 	timeoutMs               uint32
-	mutex                   sync.Mutex
+	triggered               sync.WaitGroup
 	timedOut                bool
 }
 

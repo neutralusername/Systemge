@@ -13,9 +13,10 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
 		timeoutMs:               timeoutMs,
-		mutex:                   sync.Mutex{},
 		timedOut:                false,
+		triggered:               sync.WaitGroup{},
 	}
+	acceptRequest.triggered.Add(1)
 	listener.acceptChannel <- acceptRequest
 
 	var deadline <-chan time.Time
@@ -24,20 +25,18 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 	}
 	select {
 	case <-listener.stopChannel:
-		acceptRequest.mutex.Lock()
 		acceptRequest.timedOut = true
-		acceptRequest.mutex.Unlock()
+		acceptRequest.triggered.Done()
 		return nil, errors.New("listener stopped")
 	case <-deadline:
-		acceptRequest.mutex.Lock()
 		acceptRequest.timedOut = true
-		acceptRequest.mutex.Unlock()
+		acceptRequest.triggered.Done()
 		return nil, errors.New("timeout")
 	case upgraderResponse := <-acceptRequest.upgraderResponseChannel:
+		acceptRequest.triggered.Done()
 		if upgraderResponse.err != nil {
 			return nil, upgraderResponse.err
 		}
-
 		websocketClient, err := WebsocketClient.New(config, upgraderResponse.websocketConn)
 		if err != nil {
 			listener.ClientsFailed.Add(1)
