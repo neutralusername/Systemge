@@ -56,6 +56,7 @@ func (itemPool *ItemPool[T]) GetAvailableItems() []T {
 	return availableItems
 }
 
+// GetItems returns a copy of the map of items.
 func (itemPool *ItemPool[T]) GetItems() map[T]bool {
 	itemPool.mutex.Lock()
 	defer itemPool.mutex.Unlock()
