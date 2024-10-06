@@ -162,7 +162,7 @@ func (genericPool *GenericPool[T]) RemoveItems(transactional bool, items ...T) e
 
 // AddItems adds new items to the pool.
 // if transactional is false, it will skip items that already exist and stop when the pool is full.
-// if transactional is true, it will return an error if any item already exists before modifying the pool.
+// if transactional is true, it will return an error if any item already exists or if the amount of items exceeds the pool capacity.
 func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
