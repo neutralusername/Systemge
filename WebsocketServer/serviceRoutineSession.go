@@ -70,22 +70,17 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 	if err != nil {
 		if server.eventHandler != nil {
-			event := server.onEvent(Event.New(
+			server.onEvent(Event.New(
 				Event.SplittingHostPortFailed,
 				Event.Context{
 					Event.Address: websocketClient.GetAddress(),
 					Event.Error:   err.Error(),
 				},
 				Event.Skip,
-				Event.Cancel,
 			))
-			if event.GetAction() == Event.Cancel {
-				websocketClient.Close()
-				break
-			}
 		}
 		websocketClient.Close()
-		continue
+		return
 	}
 
 	if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
@@ -98,19 +93,14 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 				},
 				Event.Skip,
 				Event.Continue,
-				Event.Cancel,
 			))
-			if event.GetAction() == Event.Cancel {
-				websocketClient.Close()
-				break
-			}
 			if event.GetAction() == Event.Skip {
 				websocketClient.Close()
-				continue
+				return
 			}
 		} else {
 			websocketClient.Close()
-			continue
+			return
 		}
 	}
 
@@ -123,19 +113,14 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 				},
 				Event.Skip,
 				Event.Continue,
-				Event.Cancel,
 			))
-			if event.GetAction() == Event.Cancel {
-				websocketClient.Close()
-				break
-			}
 			if event.GetAction() == Event.Skip {
 				websocketClient.Close()
-				continue
+				return
 			}
 		} else {
 			websocketClient.Close()
-			continue
+			return
 		}
 	}
 
@@ -148,19 +133,14 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 				},
 				Event.Skip,
 				Event.Continue,
-				Event.Cancel,
 			))
-			if event.GetAction() == Event.Cancel {
-				websocketClient.Close()
-				break
-			}
 			if event.GetAction() == Event.Skip {
 				websocketClient.Close()
-				continue
+				return
 			}
 		} else {
 			websocketClient.Close()
-			continue
+			return
 		}
 	}
 
@@ -177,83 +157,82 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 					},
 					Event.Skip,
 					Event.Continue,
-					Event.Cancel,
 				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
-				}
 				if event.GetAction() == Event.Skip {
 					websocketClient.Close()
-					continue
+					return
 				}
 			} else {
 				websocketClient.Close()
-				continue
+				return
 			}
 		}
 		identity = id
 	}
 
-	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
-			Event.CreatingSession,
-			Event.Context{
-				Event.Address: websocketClient.GetAddress(),
-			},
-			Event.Continue,
-			Event.Skip,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
-			websocketClient.Close()
-			break
-		}
-		if event.GetAction() == Event.Skip {
-			websocketClient.Close()
-			continue
-		}
-	}
-
-	session, err := server.sessionManager.CreateSession(identity, map[string]any{
-		"websocketClient": websocketClient,
-	})
-	if err != nil {
+	var session *Tools.Session
+	for {
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
-				Event.CreateSessionFailed,
+				Event.CreatingSession,
 				Event.Context{
-					Event.Address:  websocketClient.GetAddress(),
-					Event.Identity: identity,
+					Event.Address: websocketClient.GetAddress(),
 				},
+				Event.Continue,
 				Event.Skip,
-				Event.Cancel,
 			))
-			if event.GetAction() == Event.Cancel {
+			if event.GetAction() == Event.Skip {
 				websocketClient.Close()
-				break
+				return
 			}
 		}
-		websocketClient.Close()
-		continue
-	}
 
-	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
-			Event.CreatedSession,
-			Event.Context{
-				Event.Address:   websocketClient.GetAddress(),
-				Event.SessionId: session.GetId(),
-				Event.Identity:  session.GetIdentity(),
-			},
-			Event.Continue,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
+		session, err := server.sessionManager.CreateSession(identity, map[string]any{
+			"websocketClient": websocketClient,
+		})
+		if err != nil {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.CreateSessionFailed,
+					Event.Context{
+						Event.Address:  websocketClient.GetAddress(),
+						Event.Identity: identity,
+					},
+					Event.Skip,
+					Event.Retry,
+				))
+				if event.GetAction() == Event.Retry {
+					continue
+				}
+			}
 			websocketClient.Close()
-			session.GetTimeout().Trigger()
-			break
+			return
 		}
+
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.New(
+				Event.CreatedSession,
+				Event.Context{
+					Event.Address:   websocketClient.GetAddress(),
+					Event.SessionId: session.GetId(),
+					Event.Identity:  session.GetIdentity(),
+				},
+				Event.Continue,
+				Event.Skip,
+				Event.Retry,
+			))
+			if event.GetAction() == Event.Skip {
+				websocketClient.Close()
+				session.GetTimeout().Trigger()
+				return
+			}
+			if event.GetAction() == Event.Retry {
+				session.GetTimeout().Trigger()
+				continue
+			}
+		}
+
+		break
 	}
 
 	server.waitGroup.Add(2)
@@ -276,9 +255,9 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 				Event.SessionId: session.GetId(),
 			},
 			Event.Continue,
-			Event.Cancel,
+			Event.Skip,
 		))
-		if event.GetAction() == Event.Cancel {
+		if event.GetAction() == Event.Skip {
 			return errors.New("session rejected")
 		}
 	}
