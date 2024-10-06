@@ -34,6 +34,7 @@ func (listener *WebsocketListener) Start() error {
 	}
 
 	listener.status = Status.Pending
+	listener.stopChannel = make(chan struct{})
 
 	if err := listener.httpServer.Start(); err != nil {
 		if listener.eventHandler != nil {
@@ -45,6 +46,7 @@ func (listener *WebsocketListener) Start() error {
 				Event.Cancel,
 			))
 		}
+		close(listener.stopChannel)
 		listener.status = Status.Stopped
 		return err
 	}

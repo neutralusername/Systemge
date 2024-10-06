@@ -14,13 +14,12 @@ import (
 )
 
 type WebsocketListener struct {
-	name string
+	config *Config.WebsocketListener
+	name   string
 
 	status      int
 	statusMutex sync.Mutex
-	stopChannel chan bool
-
-	config *Config.WebsocketListener
+	stopChannel chan struct{}
 
 	httpServer        *HTTPServer.HTTPServer
 	connectionChannel chan *websocket.Conn
