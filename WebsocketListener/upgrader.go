@@ -12,7 +12,7 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 				server.ClientsRejected.Add(1)
 				return
-			case acceptRequest := <-server.pool.AcquireItem():
+			case acceptRequest := <-server.pool.AcquireItemChannel():
 
 				select {
 				case <-server.stopChannel:
