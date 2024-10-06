@@ -25,11 +25,11 @@ func (semaphore *GenericSemaphore[T]) GetChannel() chan T {
 	return semaphore.channel
 }
 
-func (semaphore *GenericSemaphore[T]) AcquireBlocking() T {
+func (semaphore *GenericSemaphore[T]) Wait() T {
 	return <-semaphore.channel
 }
 
-func (semaphore *GenericSemaphore[T]) TryAcquire() (T, error) {
+func (semaphore *GenericSemaphore[T]) TryWait() (T, error) {
 	select {
 	case item := <-semaphore.channel:
 		return item, nil
@@ -39,7 +39,7 @@ func (semaphore *GenericSemaphore[T]) TryAcquire() (T, error) {
 	}
 }
 
-func (semaphore *GenericSemaphore[T]) TryRelease(item T) error {
+func (semaphore *GenericSemaphore[T]) TrySignal(item T) error {
 	select {
 	case semaphore.channel <- item:
 		return nil
@@ -48,6 +48,6 @@ func (semaphore *GenericSemaphore[T]) TryRelease(item T) error {
 	}
 }
 
-func (semaphore *GenericSemaphore[T]) ReleaseBlocking(item T) {
+func (semaphore *GenericSemaphore[T]) Signal(item T) {
 	semaphore.channel <- item
 }
