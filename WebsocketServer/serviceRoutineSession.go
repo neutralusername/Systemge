@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"errors"
+	"net"
 
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
@@ -53,7 +54,102 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		// blacklist, whitelist, ip rate limit
+		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
+		if err != nil {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.SplittingHostPortFailed,
+					Event.Context{
+						Event.Address: websocketClient.GetAddress(),
+						Event.Error:   err.Error(),
+					},
+					Event.Skip,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+					break
+				}
+			}
+			websocketClient.Close()
+			continue
+		}
+
+		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.RateLimited,
+					Event.Context{
+						Event.RateLimiterType: Event.Ip,
+						Event.Address:         websocketClient.GetAddress(),
+					},
+					Event.Skip,
+					Event.Continue,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+					break
+				}
+				if event.GetAction() == Event.Skip {
+					websocketClient.Close()
+					continue
+				}
+			} else {
+				websocketClient.Close()
+				continue
+			}
+		}
+
+		if server.blacklist != nil && server.blacklist.Contains(ip) {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.Blacklisted,
+					Event.Context{
+						Event.Address: websocketClient.GetAddress(),
+					},
+					Event.Skip,
+					Event.Continue,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+					break
+				}
+				if event.GetAction() == Event.Skip {
+					websocketClient.Close()
+					continue
+				}
+			} else {
+				websocketClient.Close()
+				continue
+			}
+		}
+
+		if server.whitelist != nil && server.whitelist.ElementCount() > 0 && !server.whitelist.Contains(ip) {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.NotWhitelisted,
+					Event.Context{
+						Event.Address: websocketClient.GetAddress(),
+					},
+					Event.Skip,
+					Event.Continue,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+					break
+				}
+				if event.GetAction() == Event.Skip {
+					websocketClient.Close()
+					continue
+				}
+			} else {
+				websocketClient.Close()
+				continue
+			}
+		}
 
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
@@ -112,6 +208,8 @@ func (server *WebsocketServer) sessionRoutine() {
 
 		server.waitGroup.Add(1)
 		go server.websocketClientDisconnect(session, websocketClient)
+		server.waitGroup.Add(1)
+		go server.receptionRoutine(session, websocketClient)
 	}
 }
 
@@ -138,6 +236,8 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 }
 
 func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
+	defer server.waitGroup.Done()
+
 	select {
 	case <-websocketClient.GetCloseChannel():
 	case <-session.GetTimeout().GetTriggeredChannel():
@@ -157,6 +257,4 @@ func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session,
 
 	session.GetTimeout().Trigger()
 	websocketClient.Close()
-
-	server.waitGroup.Done()
 }

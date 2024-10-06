@@ -11,7 +11,7 @@ import (
 func (connection *TcpSystemgeConnection) receptionRoutine() {
 	defer func() {
 		connection.onEvent(Event.NewInfoNoOption(
-			Event.MessageReceptionRoutineFinished,
+			Event.MessageReceptionRoutineEnds,
 			"stopped tcpSystemgeConnection message reception",
 			Event.Context{
 				Event.Circumstance: Event.MessageReceptionRoutine,
