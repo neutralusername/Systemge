@@ -25,8 +25,10 @@ type WebsocketListener struct {
 	statusMutex sync.Mutex
 	stopChannel chan struct{}
 
-	httpServer    *HTTPServer.HTTPServer
-	acceptChannel chan *acceptRequest
+	httpServer *HTTPServer.HTTPServer
+
+	tokenSemaphore *Tools.TokenSemaphore
+	acceptChannel  chan *acceptRequest
 
 	// metrics
 
