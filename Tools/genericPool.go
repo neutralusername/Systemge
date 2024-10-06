@@ -108,6 +108,20 @@ func (genericPool *GenericPool[T]) ReturnItem(item T, replacement T) error {
 	return nil
 }
 
+func (genericPool *GenericPool[T]) RemoveItem(item T) error {
+	genericPool.mutex.Lock()
+	defer genericPool.mutex.Unlock()
+	val, ok := genericPool.items[item]
+	if !ok {
+		return errors.New("item does not exist")
+	}
+	if !val {
+		return errors.New("item is not acquired")
+	}
+	delete(genericPool.items, item)
+	return nil
+}
+
 // AddItem adds a new item to the pool.
 // If the item already exists, it will return an error.
 // If the pool is full, it will return an error.
