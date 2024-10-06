@@ -37,10 +37,12 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 		listener.pool.RemoveItems(true, acceptRequest)
 		acceptRequest.triggered.Done()
 		return nil, errors.New("listener stopped")
+
 	case <-deadline:
 		listener.pool.RemoveItems(true, acceptRequest)
 		acceptRequest.triggered.Done()
 		return nil, errors.New("timeout")
+
 	case upgraderResponse := <-acceptRequest.upgraderResponseChannel:
 		listener.pool.RemoveItems(true, acceptRequest)
 		acceptRequest.triggered.Done()
@@ -53,7 +55,6 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeou
 			upgraderResponse.websocketConn.Close()
 			return nil, err
 		}
-
 		listener.ClientsAccepted.Add(1)
 		return websocketClient, nil
 	}
