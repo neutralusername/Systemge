@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) Accept(config *Config.WebsocketClient) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) Accept(config *Config.WebsocketClient, timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
 	upgraderResponseChannel := make(chan *upgraderResponse)
 	listener.acceptChannel <- upgraderResponseChannel
 	upgraderResponse := <-upgraderResponseChannel
