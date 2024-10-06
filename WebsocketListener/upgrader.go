@@ -60,6 +60,9 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 					Event.Continue,
 				))
 			}
+			websocketConn.Close()
+			server.clientsRejected.Add(1)
+			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError) // idk if this will work after upgrade
 		}
 	}
 }

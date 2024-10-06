@@ -30,8 +30,6 @@ type WebsocketListener struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
 
-	IpRateLimiter *IpRateLimiter `json:"ipRateLimiter"` // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
-
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 }
 
