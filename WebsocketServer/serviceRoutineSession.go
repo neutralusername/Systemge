@@ -53,6 +53,8 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
+		// blacklist, whitelist, ip rate limit
+
 		if server.eventHandler != nil {
 			event := server.onEvent(Event.New(
 				Event.CreatingSession,
