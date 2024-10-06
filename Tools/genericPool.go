@@ -111,17 +111,19 @@ func (genericPool *GenericPool[T]) ReturnItem(item T, replacement T) error {
 // AddItem adds a new item to the pool.
 // If the item already exists, it will return an error.
 // If the pool is full, it will return an error.
-func (genericPool *GenericPool[T]) AddItem(item T) error {
+func (genericPool *GenericPool[T]) AddItems(item ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
-	if genericPool.items[item] {
-		return errors.New("item already exists")
+	if len(genericPool.items)+len(item) > cap(genericPool.itemChannel) {
+		return errors.New("item count exceeds pool capacity")
 	}
-	if len(genericPool.itemChannel) == cap(genericPool.itemChannel) {
-		return errors.New("pool is full")
+	for _, item := range item {
+		if genericPool.items[item] {
+			return errors.New("item already exists")
+		}
+		genericPool.items[item] = true
+		genericPool.itemChannel <- item
 	}
-	genericPool.items[item] = true
-	genericPool.itemChannel <- item
 	return nil
 }
 
