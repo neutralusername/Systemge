@@ -80,6 +80,8 @@ const RateLimited = "rateLimited"       // when a client is rate limited
 const Blacklisted = "blacklisted"       // when a client is blacklisted
 const NotWhitelisted = "notWhitelisted" // when a client is not whitelisted (and whitelisting is required)
 
+const HandshakeFailed = "handshakeFailed" // when a handshake operation returns an error
+
 const SplittingHostPortFailed = "splittingHostPortFailed"   // when a address string cannot be split into host and port
 const NormalizingAddressFailed = "normalizingAddressFailed" // when a normalizing address operation returns an error
 
