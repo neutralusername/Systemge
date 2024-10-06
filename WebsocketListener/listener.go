@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -26,10 +25,8 @@ type WebsocketListener struct {
 	statusMutex sync.Mutex
 	stopChannel chan struct{}
 
-	httpServer        *HTTPServer.HTTPServer
-	connectionChannel chan *websocket.Conn
-
-	eventHandler Event.Handler
+	httpServer    *HTTPServer.HTTPServer
+	acceptChannel chan chan *upgraderResponse
 
 	// metrics
 
@@ -38,7 +35,12 @@ type WebsocketListener struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketListener, eventHandler Event.Handler) (*WebsocketListener, error) {
+type upgraderResponse struct {
+	err           error
+	websocketConn *websocket.Conn
+}
+
+func New(name string, config *Config.WebsocketListener) (*WebsocketListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -46,12 +48,11 @@ func New(name string, config *Config.WebsocketListener, eventHandler Event.Handl
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	listener := &WebsocketListener{
-		name:              name,
-		config:            config,
-		eventHandler:      eventHandler,
-		status:            Status.Stopped,
-		connectionChannel: make(chan *websocket.Conn),
-		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:          name,
+		config:        config,
+		status:        Status.Stopped,
+		acceptChannel: make(chan chan *upgraderResponse),
+		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{
@@ -61,7 +62,7 @@ func New(name string, config *Config.WebsocketListener, eventHandler Event.Handl
 		map[string]http.HandlerFunc{
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
-		eventHandler,
+		nil,
 	)
 
 	return listener, nil
@@ -81,22 +82,4 @@ func (listener *WebsocketListener) GetStatus() int {
 
 func (server *WebsocketListener) GetName() string {
 	return server.name
-}
-
-func (server *WebsocketListener) onEvent(listener *Event.Event) *Event.Event {
-	listener.GetContext().Merge(server.GetContext())
-	if server.eventHandler != nil {
-		server.eventHandler(listener)
-	}
-	return listener
-}
-func (listener *WebsocketListener) GetContext() Event.Context {
-	return Event.Context{
-		Event.ServiceType:       Event.TcpSystemgeListener,
-		Event.ServiceName:       listener.name,
-		Event.ServiceStatus:     Status.ToString(listener.GetStatus()),
-		Event.ServiceInstanceId: listener.instanceId,
-		Event.ServiceSessionId:  listener.sessionId,
-		//	Event.Function:          Event.GetCallerFuncName(2),
-	}
 }

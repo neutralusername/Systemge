@@ -8,7 +8,6 @@ import (
 )
 
 func (listener *WebsocketListener) Accept(config *Config.WebsocketClient) (*WebsocketClient.WebsocketClient, error) {
-
 	websocketConn := <-listener.connectionChannel
 	if websocketConn == nil {
 		return nil, errors.New("received nil value from connection channel")
