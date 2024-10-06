@@ -11,6 +11,7 @@ type AnySemaphore struct {
 	itemChannel chan any
 }
 
+// items must be comparable and unique
 func NewAnySemaphore(items []any) (*AnySemaphore, error) {
 	tokenSemaphore := &AnySemaphore{
 		items:       make(map[any]bool),
