@@ -34,7 +34,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 	}
 
 	for {
-		websocketClient, err := server.websocketListener.Accept(server.config.WebsocketClientConfig)
+		websocketClient, err := server.websocketListener.Accept(server.config.WebsocketClientConfig, server.config.AcceptTimeoutMs)
 		if err != nil {
 			websocketClient.Close()
 			if server.eventHandler != nil {

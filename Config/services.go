@@ -72,8 +72,9 @@ type WebsocketServer struct {
 	HandleClientsSequentially  bool `json:"handleClientsSequentially"`  // default: false
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
 
-	ReadTimeoutMs  uint32 `json:"readTimeoutMs"`  // default: 0 (no timeout)
-	WriteTimeoutMs uint32 `json:"writeTimeoutMs"` // default: 0 (no timeout)
+	AcceptTimeoutMs uint32 `json:"acceptTimeoutMs"` // default: 0 (no timeout)
+	ReadTimeoutMs   uint32 `json:"readTimeoutMs"`   // default: 0 (no timeout)
+	WriteTimeoutMs  uint32 `json:"writeTimeoutMs"`  // default: 0 (no timeout)
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
