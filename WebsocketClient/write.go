@@ -8,10 +8,6 @@ import (
 )
 
 func (connection *WebsocketClient) Write(messageBytes []byte) error {
-	return connection.write(messageBytes, Event.WriteRuntime)
-}
-
-func (connection *WebsocketClient) write(messageBytes []byte, circumstance string) error {
 	connection.sendMutex.Lock()
 	defer connection.sendMutex.Unlock()
 
@@ -19,8 +15,7 @@ func (connection *WebsocketClient) write(messageBytes []byte, circumstance strin
 		if event := connection.onEvent(Event.New(
 			Event.WritingMessage,
 			Event.Context{
-				Event.Circumstance: circumstance,
-				Event.Bytes:        string(messageBytes),
+				Event.Bytes: string(messageBytes),
 			},
 			Event.Continue,
 			Event.Cancel,
@@ -35,9 +30,8 @@ func (connection *WebsocketClient) write(messageBytes []byte, circumstance strin
 			connection.onEvent(Event.New(
 				Event.WriteMessageFailed,
 				Event.Context{
-					Event.Circumstance: circumstance,
-					Event.Bytes:        string(messageBytes),
-					Event.Error:        err.Error(),
+					Event.Bytes: string(messageBytes),
+					Event.Error: err.Error(),
 				},
 				Event.Cancel,
 			))
@@ -51,8 +45,7 @@ func (connection *WebsocketClient) write(messageBytes []byte, circumstance strin
 		connection.onEvent(Event.New(
 			Event.WroteMessage,
 			Event.Context{
-				Event.Circumstance: circumstance,
-				Event.Bytes:        string(messageBytes),
+				Event.Bytes: string(messageBytes),
 			},
 			Event.Continue,
 		))

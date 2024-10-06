@@ -11,9 +11,7 @@ func (connection *WebsocketClient) Read(deadlineMs uint32) ([]byte, error) {
 	if connection.eventHandler != nil {
 		if event := connection.onEvent(Event.New(
 			Event.ReadingMessage,
-			Event.Context{
-				Event.Circumstance: Event.MessageReceptionRoutine,
-			},
+			Event.Context{},
 			Event.Continue,
 			Event.Cancel,
 		)); event.GetAction() == Event.Cancel {
@@ -28,8 +26,7 @@ func (connection *WebsocketClient) Read(deadlineMs uint32) ([]byte, error) {
 			connection.onEvent(Event.New(
 				Event.ReadMessageFailed,
 				Event.Context{
-					Event.Circumstance: Event.MessageReceptionRoutine,
-					Event.Error:        err.Error(),
+					Event.Error: err.Error(),
 				},
 				Event.Continue,
 			))
@@ -43,8 +40,7 @@ func (connection *WebsocketClient) Read(deadlineMs uint32) ([]byte, error) {
 		if event := connection.onEvent(Event.New(
 			Event.ReadMessage,
 			Event.Context{
-				Event.Circumstance: Event.MessageReceptionRoutine,
-				Event.Bytes:        string(messageBytes),
+				Event.Bytes: string(messageBytes),
 			},
 			Event.Continue,
 			Event.Cancel,
