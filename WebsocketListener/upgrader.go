@@ -12,31 +12,32 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 				server.ClientsRejected.Add(1)
 				return
-			default: // i think this usage of select/default shows that there is a better way to do this
+			case acceptRequest := <-server.acceptChannel:
 				select {
 				case <-server.stopChannel:
 					http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 					server.ClientsRejected.Add(1)
 					return
-				case acceptRequest := <-server.acceptChannel:
+				default:
+				}
+
+				if acceptRequest.timedOut {
+					continue
+				}
+
+				websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
+
+				acceptRequest.upgraderResponseChannel <- &upgraderResponse{
+					err:           err,
+					websocketConn: websocketConn,
+				}
+				if err != nil {
+					server.ClientsFailed.Add(1)
+				} else {
+					acceptRequest.triggered.Wait()
 					if acceptRequest.timedOut {
-						continue
-					}
-
-					websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
-
-					acceptRequest.upgraderResponseChannel <- &upgraderResponse{
-						err:           err,
-						websocketConn: websocketConn,
-					}
-					if err != nil {
+						websocketConn.Close()
 						server.ClientsFailed.Add(1)
-					} else {
-						acceptRequest.triggered.Wait()
-						if acceptRequest.timedOut {
-							websocketConn.Close()
-							server.ClientsFailed.Add(1)
-						}
 					}
 				}
 			}
