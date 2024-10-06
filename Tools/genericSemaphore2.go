@@ -10,12 +10,9 @@ func (semaphore *GenericSemaphore2[T]) AvailableAcquires() uint32 {
 	return uint32(cap(semaphore.channel)) - uint32(len(semaphore.channel))
 }
 
-func NewGenericSemaphore2[T comparable](maxAvailableAcquires uint32, initialAvailableAcquires uint32) *GenericSemaphore2[T] {
+func NewGenericSemaphore2[T comparable](maxAvailableAcquires uint32) *GenericSemaphore2[T] {
 	if maxAvailableAcquires <= 0 {
 		panic("maxValue must be greater than 0")
-	}
-	if initialAvailableAcquires > maxAvailableAcquires {
-		panic("initialValue must be less than or equal to maxValue")
 	}
 	channel := make(chan T, maxAvailableAcquires)
 	return &GenericSemaphore2[T]{
