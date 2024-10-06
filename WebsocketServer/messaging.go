@@ -41,7 +41,7 @@ func (server *WebsocketServer) broadcast(message *Message.Message) error {
 
 	sessions := server.sessionManager.GetSessions("")
 	targets := []string{}
-	connections := []*WebsocketClient.WebsocketClient{}
+	/* connections := []*WebsocketClient.WebsocketClient{}
 	for _, session := range sessions {
 		connection, ok := session.Get("websocketClient")
 		if !ok {
@@ -56,7 +56,7 @@ func (server *WebsocketServer) broadcast(message *Message.Message) error {
 		if id != "" {
 			targets = append(targets, id)
 		}
-	}
+	} */
 
 	targetsMarshalled := Helpers.JsonMarshal(targets)
 	if server.eventHandler != nil {
