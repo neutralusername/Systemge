@@ -19,7 +19,6 @@ type WebsocketClient struct {
 	closed       bool
 	closedMutex  sync.Mutex
 	closeChannel chan bool
-	waitGroup    sync.WaitGroup
 
 	sendMutex sync.Mutex
 
@@ -34,7 +33,7 @@ type WebsocketClient struct {
 	messagesReceived atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHandler Event.Handler) (*WebsocketClient, error) {
+func New(config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHandler Event.Handler) (*WebsocketClient, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -43,7 +42,6 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 	}
 
 	connection := &WebsocketClient{
-		name:          name,
 		config:        config,
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
@@ -51,7 +49,6 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 	}
 	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
 
-	connection.waitGroup.Add(1)
 	return connection, nil
 }
 
@@ -90,7 +87,6 @@ func (connection *WebsocketClient) Close() error {
 	connection.closed = true
 	connection.websocketConn.Close()
 	close(connection.closeChannel)
-	connection.waitGroup.Wait()
 
 	if connection.eventHandler != nil {
 		connection.onEvent(Event.New(
@@ -113,6 +109,10 @@ func (connection *WebsocketClient) GetStatus() int {
 	} else {
 		return Status.Started
 	}
+}
+
+func (connection *WebsocketClient) SetName(name string) {
+	connection.name = name
 }
 
 func (connection *WebsocketClient) GetName() string {
