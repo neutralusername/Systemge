@@ -11,17 +11,15 @@ func (server *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFu
 			http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
 			server.ClientsRejected.Add(1)
 			return
-		case responseChannel := <-server.acceptChannel:
+		case acceptRequest := <-server.acceptChannel:
 			websocketConn, err := server.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
-			upgraderResponse := &upgraderResponse{
+			if err != nil {
+				server.ClientsFailed.Add(1)
+			}
+			acceptRequest.upgraderResponseChannel <- &upgraderResponse{
 				err:           err,
 				websocketConn: websocketConn,
 			}
-			if err != nil {
-				http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
-				server.ClientsFailed.Add(1)
-			}
-			responseChannel <- upgraderResponse
 		}
 	}
 }

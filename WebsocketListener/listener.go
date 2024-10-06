@@ -26,13 +26,20 @@ type WebsocketListener struct {
 	stopChannel chan struct{}
 
 	httpServer    *HTTPServer.HTTPServer
-	acceptChannel chan chan *upgraderResponse
+	acceptChannel chan *acceptRequest
 
 	// metrics
 
 	ClientsAccepted atomic.Uint64
 	ClientsFailed   atomic.Uint64
 	ClientsRejected atomic.Uint64
+}
+
+type acceptRequest struct {
+	upgraderResponseChannel chan *upgraderResponse
+	timeoutMs               uint32
+	mutex                   sync.Mutex
+	timedOut                bool
 }
 
 type upgraderResponse struct {
@@ -51,7 +58,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		name:          name,
 		config:        config,
 		status:        Status.Stopped,
-		acceptChannel: make(chan chan *upgraderResponse),
+		acceptChannel: make(chan *acceptRequest),
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
