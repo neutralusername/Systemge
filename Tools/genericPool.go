@@ -213,17 +213,17 @@ func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) erro
 }
 
 // Clear removes all items from the pool and returns them.
-func (genericPool *GenericPool[T]) Clear() []T {
+func (genericPool *GenericPool[T]) Clear() map[T]bool {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
+	items := make(map[T]bool)
 	for item := range genericPool.items {
+		items[item] = true
 		delete(genericPool.items, item)
 	}
-	items := make([]T, 0)
 	for len(genericPool.itemChannel) > 0 {
-		item := <-genericPool.itemChannel
-		items = append(items, item)
+		<-genericPool.itemChannel
 	}
 	return items
 }
