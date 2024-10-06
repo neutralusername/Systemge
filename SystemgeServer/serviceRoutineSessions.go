@@ -11,7 +11,7 @@ import (
 func (server *SystemgeServer) sessionRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
-			Event.SessionRoutineEnds,
+			Event.AcceptionRoutineEnds,
 			"stopped systemgeServer session routine",
 			Event.Context{
 				Event.Circumstance: Event.SessionRoutine,
@@ -21,7 +21,7 @@ func (server *SystemgeServer) sessionRoutine() {
 	}()
 
 	if event := server.onEvent(Event.NewInfo(
-		Event.SessionRoutineBegins,
+		Event.AcceptionRoutineBegins,
 		"started systemgeServer session routine",
 		Event.Cancel,
 		Event.Cancel,

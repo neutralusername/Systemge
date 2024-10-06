@@ -9,11 +9,11 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) sessionRoutine() {
+func (server *WebsocketServer) acceptionRoutine() {
 	defer func() {
 		if server.eventHandler != nil {
 			server.onEvent(Event.New(
-				Event.SessionRoutineEnds,
+				Event.AcceptionRoutineEnds,
 				Event.Context{},
 				Event.Continue,
 			))
@@ -23,7 +23,7 @@ func (server *WebsocketServer) sessionRoutine() {
 
 	if server.eventHandler != nil {
 		event := server.onEvent(Event.New(
-			Event.SessionRoutineBegins,
+			Event.AcceptionRoutineBegins,
 			Event.Context{},
 			Event.Continue,
 			Event.Cancel,
@@ -54,7 +54,7 @@ func (server *WebsocketServer) sessionRoutine() {
 		}
 
 		handleAcceptWrapper := func(websocketClient *WebsocketClient.WebsocketClient) {
-			if err := server.handleAccept(websocketClient); err != nil {
+			if err := server.handleAcception(websocketClient); err != nil {
 				websocketClient.Close()
 				server.ClientsRejected.Add(1)
 			} else {
@@ -74,7 +74,7 @@ func (server *WebsocketServer) sessionRoutine() {
 	}
 }
 
-func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.WebsocketClient) error {
+func (server *WebsocketServer) handleAcception(websocketClient *WebsocketClient.WebsocketClient) error {
 	ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 	if err != nil {
 		if server.eventHandler != nil {
