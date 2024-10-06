@@ -96,6 +96,7 @@ func (genericPool *GenericPool[T]) AcquireItemChannel() <-chan T {
 
 		genericPool.items[item] = false
 		c <- item
+		close(c)
 	}()
 	return c
 }
