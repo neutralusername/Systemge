@@ -101,7 +101,7 @@ func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	return nil
 }
 
-// ReplaceItem replaces an item in the pool.
+// ReplaceItem returns and replaces an item in the pool.
 // If the item does not exist, it will return an error.
 // If the item is acquired, it will return an error.
 // If the replacement already exists, it will return an error.
