@@ -97,6 +97,6 @@ func (listener *WebsocketListener) GetContext() Event.Context {
 		Event.ServiceStatus:     Status.ToString(listener.GetStatus()),
 		Event.ServiceInstanceId: listener.instanceId,
 		Event.ServiceSessionId:  listener.sessionId,
-		Event.Function:          Event.GetCallerFuncName(2),
+		//	Event.Function:          Event.GetCallerFuncName(2),
 	}
 }

@@ -102,9 +102,9 @@ func (connection *WebsocketClient) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.WebsocketClient,
 		Event.ServiceName:       connection.name,
-		Event.Address:           connection.GetAddress(),
 		Event.ServiceStatus:     Status.ToString(connection.GetStatus()),
 		Event.ServiceInstanceId: connection.instanceId,
-		Event.Function:          Event.GetCallerFuncName(2),
+		Event.Address:           connection.GetAddress(),
+		//	Event.Function:          Event.GetCallerFuncName(2),
 	}
 }
