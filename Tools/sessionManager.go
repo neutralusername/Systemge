@@ -220,7 +220,7 @@ func (manager *SessionManager) GetIdentities() []string {
 	return identities
 }
 
-func (manager *SessionManager) GetSessions(identityString string) []*Session {
+func (manager *SessionManager) GetIdentitySessions(identityString string) []*Session {
 	manager.sessionMutex.RLock()
 	defer manager.sessionMutex.RUnlock()
 
@@ -232,6 +232,17 @@ func (manager *SessionManager) GetSessions(identityString string) []*Session {
 		return sessions
 	}
 	return nil
+}
+
+func (manager *SessionManager) GetSessions() []*Session {
+	manager.sessionMutex.RLock()
+	defer manager.sessionMutex.RUnlock()
+
+	sessions := []*Session{}
+	for _, session := range manager.sessions {
+		sessions = append(sessions, session)
+	}
+	return sessions
 }
 
 func (manager *SessionManager) IdentityExists(identityString string) bool {

@@ -39,7 +39,7 @@ func (server *WebsocketServer) broadcast(message *Message.Message) error {
 	messageBytes := message.Serialize()
 	waitGroup := Tools.NewTaskGroup()
 
-	sessions := server.sessionManager.GetSessions("")
+	sessions := server.sessionManager.GetSessions()
 	targets := []string{}
 	/* connections := []*WebsocketClient.WebsocketClient{}
 	for _, session := range sessions {

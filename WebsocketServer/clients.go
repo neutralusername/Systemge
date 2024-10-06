@@ -20,7 +20,7 @@ func (server *WebsocketServer) GetWebsocketClient(sessionId string) (*WebsocketC
 
 func (server *WebsocketServer) GetWebsocketClients() []*WebsocketClient.WebsocketClient {
 	clients := []*WebsocketClient.WebsocketClient{}
-	sessions := server.sessionManager.GetSessions("")
+	sessions := server.sessionManager.GetSessions()
 	for _, session := range sessions {
 		websocketClient, ok := session.Get("websocketClient")
 		if !ok {
