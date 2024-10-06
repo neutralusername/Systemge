@@ -14,28 +14,29 @@ import (
 )
 
 type WebsocketServer struct {
+	config *Config.WebsocketServer
+
 	name string
-
-	status      int
-	statusMutex sync.Mutex
-
-	stopChannel chan struct{}
-	waitGroup   sync.WaitGroup
 
 	instanceId string
 	sessionId  string
 
-	config *Config.WebsocketServer
+	eventHandler Event.Handler
 
 	websocketListener *WebsocketListener.WebsocketListener
-
-	whitelist *Tools.AccessControlList
-	blacklist *Tools.AccessControlList
 
 	sessionManager *Tools.SessionManager
 	topicManager   *Tools.TopicManager
 
-	eventHandler Event.Handler
+	status      int
+	statusMutex sync.Mutex
+	stopChannel chan struct{}
+	waitGroup   sync.WaitGroup
+
+	whitelist *Tools.AccessControlList
+	blacklist *Tools.AccessControlList
+
+	ipRateLimiter *Tools.IpRateLimiter
 
 	// metrics
 
