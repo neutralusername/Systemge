@@ -117,7 +117,7 @@ func (server *WebsocketServer) GetServerContext() Event.Context {
 		Event.ServiceName:   server.name,
 		Event.ServiceStatus: Status.ToString(server.status),
 		//Event.Function:          Event.GetCallerFuncName(2),
-		Event.ServiceInstanceId: server.instanceId,
-		Event.ServiceSessionId:  server.sessionId,
+		Event.ServiceInstanceId: server.GetInstanceId(),
+		Event.ServiceSessionId:  server.GetSessionId(),
 	}
 }

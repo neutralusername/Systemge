@@ -7,14 +7,18 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type WebsocketClient struct {
 	name          string
 	config        *Config.WebsocketClient
 	websocketConn *websocket.Conn
+
+	instanceId string
 
 	closed       bool
 	closedMutex  sync.Mutex
@@ -47,6 +51,7 @@ func New(config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHan
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
 		eventHandler:  eventHandler,
+		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
 
@@ -71,6 +76,10 @@ func (connection *WebsocketClient) GetName() string {
 	return connection.name
 }
 
+func (connection *WebsocketClient) GetInstanceId() string {
+	return connection.instanceId
+}
+
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
@@ -91,10 +100,11 @@ func (connection *WebsocketClient) onEvent(event *Event.Event) *Event.Event {
 }
 func (connection *WebsocketClient) GetContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.WebsocketClient,
-		Event.ServiceName:   connection.name,
-		Event.Address:       connection.GetAddress(),
-		Event.ServiceStatus: Status.ToString(connection.GetStatus()),
-		Event.Function:      Event.GetCallerFuncName(2),
+		Event.ServiceType:       Event.WebsocketClient,
+		Event.ServiceName:       connection.name,
+		Event.Address:           connection.GetAddress(),
+		Event.ServiceStatus:     Status.ToString(connection.GetStatus()),
+		Event.ServiceInstanceId: connection.instanceId,
+		Event.Function:          Event.GetCallerFuncName(2),
 	}
 }

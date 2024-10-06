@@ -3,8 +3,10 @@ package WebsocketListener
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (listener *WebsocketListener) Start() error {
@@ -32,7 +34,7 @@ func (listener *WebsocketListener) Start() error {
 		}
 		return errors.New("tcpSystemgeListener is already started")
 	}
-
+	listener.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	listener.status = Status.Pending
 	listener.stopChannel = make(chan struct{})
 

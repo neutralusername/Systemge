@@ -8,14 +8,19 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type WebsocketListener struct {
 	config *Config.WebsocketListener
 	name   string
+
+	instanceId string
+	sessionId  string
 
 	status      int
 	statusMutex sync.Mutex
@@ -46,6 +51,7 @@ func New(name string, config *Config.WebsocketListener, eventHandler Event.Handl
 		eventHandler:      eventHandler,
 		status:            Status.Stopped,
 		connectionChannel: make(chan *websocket.Conn),
+		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{
@@ -61,6 +67,14 @@ func New(name string, config *Config.WebsocketListener, eventHandler Event.Handl
 	return listener, nil
 }
 
+func (listener *WebsocketListener) GetInstanceId() string {
+	return listener.instanceId
+}
+
+func (listener *WebsocketListener) GetSessionId() string {
+	return listener.sessionId
+}
+
 func (listener *WebsocketListener) GetStatus() int {
 	return listener.status
 }
@@ -69,18 +83,20 @@ func (server *WebsocketListener) GetName() string {
 	return server.name
 }
 
-func (server *WebsocketListener) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(server.GetServerContext())
+func (server *WebsocketListener) onEvent(listener *Event.Event) *Event.Event {
+	listener.GetContext().Merge(server.GetContext())
 	if server.eventHandler != nil {
-		server.eventHandler(event)
+		server.eventHandler(listener)
 	}
-	return event
+	return listener
 }
-func (server *WebsocketListener) GetServerContext() Event.Context {
+func (listener *WebsocketListener) GetContext() Event.Context {
 	return Event.Context{
-		Event.ServiceType:   Event.TcpSystemgeListener,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.GetStatus()),
-		Event.Function:      Event.GetCallerFuncName(2),
+		Event.ServiceType:       Event.TcpSystemgeListener,
+		Event.ServiceName:       listener.name,
+		Event.ServiceStatus:     Status.ToString(listener.GetStatus()),
+		Event.ServiceInstanceId: listener.instanceId,
+		Event.ServiceSessionId:  listener.sessionId,
+		Event.Function:          Event.GetCallerFuncName(2),
 	}
 }
