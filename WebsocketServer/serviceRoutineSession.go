@@ -54,7 +54,7 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		if server.config.CreateSessionsSequentially {
+		if server.config.AcceptClientsSequentially {
 			server.createSession(websocketClient)
 		} else {
 			server.waitGroup.Add(1)
