@@ -223,7 +223,8 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 			event := server.onEvent(Event.New(
 				Event.CreateSessionFailed,
 				Event.Context{
-					Event.Address: websocketClient.GetAddress(),
+					Event.Address:  websocketClient.GetAddress(),
+					Event.Identity: identity,
 				},
 				Event.Skip,
 				Event.Cancel,
@@ -237,13 +238,13 @@ func (server *WebsocketServer) createSession(websocketClient *WebsocketClient.We
 		continue
 	}
 
-	websocketClient.SetName(session.GetId()) // consider whether i can remove name from (Websocket-)Client
 	if server.eventHandler != nil {
 		event := server.onEvent(Event.New(
 			Event.CreatedSession,
 			Event.Context{
-				Event.SessionId: session.GetId(),
 				Event.Address:   websocketClient.GetAddress(),
+				Event.SessionId: session.GetId(),
+				Event.Identity:  session.GetIdentity(),
 			},
 			Event.Continue,
 			Event.Cancel,
@@ -270,8 +271,9 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 		event := server.onEvent(Event.New(
 			Event.OnCreateSession,
 			Event.Context{
-				Event.SessionId: session.GetId(),
 				Event.Address:   websocketClient.(*WebsocketClient.WebsocketClient).GetAddress(),
+				Event.Identity:  session.GetIdentity(),
+				Event.SessionId: session.GetId(),
 			},
 			Event.Continue,
 			Event.Cancel,

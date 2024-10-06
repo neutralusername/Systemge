@@ -14,7 +14,6 @@ import (
 )
 
 type WebsocketClient struct {
-	name          string
 	config        *Config.WebsocketClient
 	websocketConn *websocket.Conn
 
@@ -68,14 +67,6 @@ func (connection *WebsocketClient) GetStatus() int {
 	}
 }
 
-func (connection *WebsocketClient) SetName(name string) {
-	connection.name = name
-}
-
-func (connection *WebsocketClient) GetName() string {
-	return connection.name
-}
-
 func (connection *WebsocketClient) GetInstanceId() string {
 	return connection.instanceId
 }
@@ -101,7 +92,6 @@ func (connection *WebsocketClient) onEvent(event *Event.Event) *Event.Event {
 func (connection *WebsocketClient) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.WebsocketClient,
-		Event.ServiceName:       connection.name,
 		Event.ServiceStatus:     Status.ToString(connection.GetStatus()),
 		Event.ServiceInstanceId: connection.instanceId,
 		Event.Address:           connection.GetAddress(),
