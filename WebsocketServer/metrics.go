@@ -1,9 +1,6 @@
 package WebsocketServer
 
-import (
-	"github.com/neutralusername/Systemge/Metrics"
-)
-
+/*
 func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
@@ -180,3 +177,4 @@ func (server *WebsocketServer) CheckWebsocketClientRejectedMessagesReceived() ui
 	}
 	return rejectedMessagesReceived
 }
+*/

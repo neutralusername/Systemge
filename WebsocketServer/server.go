@@ -35,6 +35,22 @@ type WebsocketServer struct {
 	topicManager   *Tools.TopicManager
 
 	eventHandler Event.Handler
+
+	// metrics
+
+	bytesSent     uint64
+	bytesReceived uint64
+
+	messagesSent     uint64
+	messagesReceived uint64
+
+	AsyncMessageSent uint64
+	SyncRequestsSent uint64
+	SyncResponseSent uint64
+
+	AsyncMessageReceived uint64
+	SyncRequestsReceived uint64
+	SyncResponseReceived uint64
 }
 
 func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
@@ -63,7 +79,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		eventHandler: eventHandler,
 	}
 	server.sessionManager = Tools.NewSessionManager(name+"_sessionManager", config.SessionManagerConfig, server.onCreateSession, nil)
-	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, server.eventHandler)
 	if err != nil {
 		return nil, err
 	}
