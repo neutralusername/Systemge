@@ -36,21 +36,7 @@ type WebsocketListener struct {
 }
 
 type WebsocketClient struct {
-	ReadDeadlineMs int `json:"serverReadDeadlineMs"` // default: 60000 (1 minute, the server will disconnect websocketConnections that do not send messages within this time)
-
-	MessageChannelCapacity uint32 `json:"messageChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
-
-	SyncManagerConfig *SyncManager `json:"syncManagerConfig"` // *required*
-
-	HandleMessageReceptionSequentially bool `json:"handleMessageReceptionSequentially"` // default: false (if true, the server will handle messages from the same websocketConnection sequentially)
-
-	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
-	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional* (rate limiter for incoming messages) (allows to limit the number of incoming messages per second)
-
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 = unlimited (connections that attempt to send messages larger than this will be disconnected)
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: 0 = unlimited (topics that attempt to store more messages than this will be truncated)
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: 0 = unlimited (payloads that attempt to store more messages than this will be truncated)
-
 }
 
 type WebsocketServer struct {

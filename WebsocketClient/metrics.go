@@ -30,29 +30,13 @@ func (client *WebsocketClient) CheckMessagesReceived() uint64 {
 	return client.messagesReceived.Load()
 }
 
-func (client *WebsocketClient) GetInvalidMessagesReceived() uint64 {
-	return client.invalidMessagesReceived.Swap(0)
-}
-func (client *WebsocketClient) CheckInvalidMessagesReceived() uint64 {
-	return client.invalidMessagesReceived.Load()
-}
-
-func (client *WebsocketClient) GetRejectedMessagesReceived() uint64 {
-	return client.rejectedMessagesReceived.Swap(0)
-}
-func (client *WebsocketClient) CheckRejectedMessagesReceived() uint64 {
-	return client.rejectedMessagesReceived.Load()
-}
-
 func (client *WebsocketClient) GetMetrics() Metrics.MetricsTypes {
 	return Metrics.MetricsTypes{
 		"websocketClient": Metrics.New(map[string]uint64{
-			"bytesSent":                client.GetBytesSent(),
-			"bytesReceived":            client.GetBytesReceived(),
-			"messagesSent":             client.GetMessagesSent(),
-			"messagesReceived":         client.GetMessagesReceived(),
-			"invalidMessagesReceived":  client.GetInvalidMessagesReceived(),
-			"rejectedMessagesReceived": client.GetRejectedMessagesReceived(),
+			"bytesSent":        client.GetBytesSent(),
+			"bytesReceived":    client.GetBytesReceived(),
+			"messagesSent":     client.GetMessagesSent(),
+			"messagesReceived": client.GetMessagesReceived(),
 		}),
 	}
 }
@@ -60,12 +44,10 @@ func (client *WebsocketClient) GetMetrics() Metrics.MetricsTypes {
 func (client *WebsocketClient) CheckMetrics() Metrics.MetricsTypes {
 	return Metrics.MetricsTypes{
 		"websocketClient": Metrics.New(map[string]uint64{
-			"bytesSent":                client.CheckBytesSent(),
-			"bytesReceived":            client.CheckBytesReceived(),
-			"messagesSent":             client.CheckMessagesSent(),
-			"messagesReceived":         client.CheckMessagesReceived(),
-			"invalidMessagesReceived":  client.CheckInvalidMessagesReceived(),
-			"rejectedMessagesReceived": client.CheckRejectedMessagesReceived(),
+			"bytesSent":        client.CheckBytesSent(),
+			"bytesReceived":    client.CheckBytesReceived(),
+			"messagesSent":     client.CheckMessagesSent(),
+			"messagesReceived": client.CheckMessagesReceived(),
 		}),
 	}
 }

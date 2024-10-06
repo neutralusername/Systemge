@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 type WebsocketClient struct {
@@ -24,11 +23,6 @@ type WebsocketClient struct {
 
 	sendMutex sync.Mutex
 
-	syncManager *Tools.SyncManager
-
-	byteRateLimiter    *Tools.TokenBucketRateLimiter
-	messageRateLimiter *Tools.TokenBucketRateLimiter
-
 	eventHandler Event.Handler
 
 	// metrics
@@ -38,9 +32,6 @@ type WebsocketClient struct {
 
 	messagesSent     atomic.Uint64
 	messagesReceived atomic.Uint64
-
-	invalidMessagesReceived  atomic.Uint64
-	rejectedMessagesReceived atomic.Uint64
 }
 
 func New(name string, config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHandler Event.Handler) (*WebsocketClient, error) {
@@ -57,13 +48,6 @@ func New(name string, config *Config.WebsocketClient, websocketConn *websocket.C
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
 		eventHandler:  eventHandler,
-		syncManager:   Tools.NewSyncManager(config.SyncManagerConfig),
-	}
-	if config.RateLimiterBytes != nil {
-		connection.byteRateLimiter = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
-	}
-	if config.RateLimiterMessages != nil {
-		connection.messageRateLimiter = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
 	}
 	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
 
@@ -107,15 +91,6 @@ func (connection *WebsocketClient) Close() error {
 	connection.websocketConn.Close()
 	close(connection.closeChannel)
 	connection.waitGroup.Wait()
-
-	if connection.byteRateLimiter != nil {
-		connection.byteRateLimiter.Close()
-		connection.byteRateLimiter = nil
-	}
-	if connection.messageRateLimiter != nil {
-		connection.messageRateLimiter.Close()
-		connection.messageRateLimiter = nil
-	}
 
 	if connection.eventHandler != nil {
 		connection.onEvent(Event.New(
