@@ -3,6 +3,7 @@ package WebsocketServer
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
@@ -38,19 +39,19 @@ type WebsocketServer struct {
 
 	// metrics
 
-	BytesSent     uint64
-	BytesReceived uint64
+	BytesSent     atomic.Uint64
+	BytesReceived atomic.Uint64
 
-	MessagesSent     uint64
-	MessagesReceived uint64
+	MessagesSent     atomic.Uint64
+	MessagesReceived atomic.Uint64
 
-	AsyncMessageSent uint64
-	SyncRequestsSent uint64
-	SyncResponseSent uint64
+	AsyncMessageSent atomic.Uint64
+	SyncRequestsSent atomic.Uint64
+	SyncResponseSent atomic.Uint64
 
-	AsyncMessageReceived uint64
-	SyncRequestsReceived uint64
-	SyncResponseReceived uint64
+	AsyncMessageReceived atomic.Uint64
+	SyncRequestsReceived atomic.Uint64
+	SyncResponseReceived atomic.Uint64
 }
 
 func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*WebsocketServer, error) {
