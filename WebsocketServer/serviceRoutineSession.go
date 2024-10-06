@@ -53,24 +53,21 @@ func (server *WebsocketServer) sessionRoutine() {
 			continue
 		}
 
-		if server.config.AcceptClientsSequentially {
-			err := server.handleAccept(websocketClient)
-			if err != nil {
+		handleAccept := func(websocketClient *WebsocketClient.WebsocketClient) {
+			if err := server.handleAccept(websocketClient); err != nil {
 				websocketClient.Close()
 				server.ClientsRejected.Add(1)
 			} else {
 				server.ClientsAccepted.Add(1)
 			}
+		}
+
+		if server.config.AcceptClientsSequentially {
+			handleAccept(websocketClient)
 		} else {
 			server.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				err := server.handleAccept(websocketClient)
-				if err != nil {
-					websocketClient.Close()
-					server.ClientsRejected.Add(1)
-				} else {
-					server.ClientsAccepted.Add(1)
-				}
+				handleAccept(websocketClient)
 				server.waitGroup.Done()
 			}(websocketClient)
 		}
