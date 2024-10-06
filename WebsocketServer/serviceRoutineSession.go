@@ -147,7 +147,7 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 
 	identity := ""
 	if server.handshakeHandler != nil {
-		id, err := server.handshakeHandler(websocketClient)
+		identity_, err := server.handshakeHandler(websocketClient)
 		if err != nil {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
@@ -167,7 +167,7 @@ func (server *WebsocketServer) handleAccept(websocketClient *WebsocketClient.Web
 				return err
 			}
 		}
-		identity = id
+		identity = identity_
 	}
 
 	session := server.createSession(identity, websocketClient)
