@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-type GenericPool[T comparable] struct {
+type Pool[T comparable] struct {
 	items       map[T]bool // item -> isAvailable
 	mutex       sync.Mutex
 	itemChannel chan T
@@ -13,14 +13,14 @@ type GenericPool[T comparable] struct {
 
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
-func NewGenericPool[T comparable](maxItems uint32, initialItems []T) (*GenericPool[T], error) {
+func NewPool[T comparable](maxItems uint32, initialItems []T) (*Pool[T], error) {
 	if maxItems == 0 {
 		return nil, errors.New("maxItems must be greater than 0")
 	}
 	if len(initialItems) > int(maxItems) {
 		return nil, errors.New("initialItems must be less than or equal to maxItems")
 	}
-	genericPool := &GenericPool[T]{
+	genericPool := &Pool[T]{
 		items:       make(map[T]bool),
 		itemChannel: make(chan T, maxItems),
 	}
@@ -36,7 +36,7 @@ func NewGenericPool[T comparable](maxItems uint32, initialItems []T) (*GenericPo
 	return genericPool, nil
 }
 
-func (genericPool *GenericPool[T]) GetAcquiredItems() []T {
+func (genericPool *Pool[T]) GetAcquiredItems() []T {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -50,7 +50,7 @@ func (genericPool *GenericPool[T]) GetAcquiredItems() []T {
 	return acquiredItems
 }
 
-func (genericPool *GenericPool[T]) GetAvailableItems() []T {
+func (genericPool *Pool[T]) GetAvailableItems() []T {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -65,7 +65,7 @@ func (genericPool *GenericPool[T]) GetAvailableItems() []T {
 }
 
 // GetItems returns a copy of the map of items.
-func (genericPool *GenericPool[T]) GetItems() map[T]bool {
+func (genericPool *Pool[T]) GetItems() map[T]bool {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -78,7 +78,7 @@ func (genericPool *GenericPool[T]) GetItems() map[T]bool {
 
 // AcquireItem returns an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
-func (genericPool *GenericPool[T]) AcquireItem() T {
+func (genericPool *Pool[T]) AcquireItem() T {
 	item := <-genericPool.itemChannel
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
@@ -90,7 +90,7 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 // AcquireItemChannel returns a channel that will return an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
 // The channel will be closed after the item is returned.
-func (genericPool *GenericPool[T]) AcquireItemChannel() <-chan T {
+func (genericPool *Pool[T]) AcquireItemChannel() <-chan T {
 	c := make(chan T)
 	go func() {
 		item := <-genericPool.itemChannel
@@ -107,7 +107,7 @@ func (genericPool *GenericPool[T]) AcquireItemChannel() <-chan T {
 // ReturnItem returns an item from the pool.
 // If the item does not exist, it will return an error.
 // If the item is available, it will return a error.
-func (genericPool *GenericPool[T]) ReturnItem(item T) error {
+func (genericPool *Pool[T]) ReturnItem(item T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -128,7 +128,7 @@ func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 // If the item does not exist, it will return an error.
 // If the item is acquired, it will return an error.
 // If the replacement already exists, it will return an error.
-func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem bool) error {
+func (genericPool *Pool[T]) ReplaceItem(item T, replacement T, returnItem bool) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -153,7 +153,7 @@ func (genericPool *GenericPool[T]) ReplaceItem(item T, replacement T, returnItem
 // RemoveItems removes the item from the pool.
 // if transactional is false, it will skip items that do not exist.
 // if transactional is true, it will return an error if any item does not exist before modifying the pool.
-func (genericPool *GenericPool[T]) RemoveItems(transactional bool, items ...T) error {
+func (genericPool *Pool[T]) RemoveItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -180,7 +180,7 @@ func (genericPool *GenericPool[T]) RemoveItems(transactional bool, items ...T) e
 // AddItems adds new items to the pool.
 // if transactional is false, it will skip items that already exist and stop when the pool is full.
 // if transactional is true, it will return an error if any item already exists or if the amount of items exceeds the pool capacity.
-func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) error {
+func (genericPool *Pool[T]) AddItems(transactional bool, items ...T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 
@@ -213,7 +213,7 @@ func (genericPool *GenericPool[T]) AddItems(transactional bool, items ...T) erro
 }
 
 // Clear removes all items from the pool and returns them.
-func (genericPool *GenericPool[T]) Clear() map[T]bool {
+func (genericPool *Pool[T]) Clear() map[T]bool {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 

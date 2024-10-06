@@ -2,15 +2,15 @@ package Tools
 
 import "errors"
 
-type GenericSemaphore[T comparable] struct {
+type Semaphore[T comparable] struct {
 	channel chan T
 }
 
-func (semaphore *GenericSemaphore[T]) AvailableAcquires() uint32 {
+func (semaphore *Semaphore[T]) AvailableAcquires() uint32 {
 	return uint32(cap(semaphore.channel)) - uint32(len(semaphore.channel))
 }
 
-func NewGenericSemaphore[T comparable](maxAvailableAcquires uint32, initialItems []T) (*GenericSemaphore[T], error) {
+func NewSemaphore[T comparable](maxAvailableAcquires uint32, initialItems []T) (*Semaphore[T], error) {
 	if maxAvailableAcquires == 0 {
 		return nil, errors.New("maxAvailableAcquires must be greater than 0")
 	}
@@ -21,22 +21,22 @@ func NewGenericSemaphore[T comparable](maxAvailableAcquires uint32, initialItems
 	for _, item := range initialItems {
 		channel <- item
 	}
-	return &GenericSemaphore[T]{
+	return &Semaphore[T]{
 		channel: channel,
 	}, nil
 }
 
 // receiving equals Wait.
 // sending equals Signal.
-func (semaphore *GenericSemaphore[T]) GetChannel() chan T {
+func (semaphore *Semaphore[T]) GetChannel() chan T {
 	return semaphore.channel
 }
 
-func (semaphore *GenericSemaphore[T]) Wait() T {
+func (semaphore *Semaphore[T]) Wait() T {
 	return <-semaphore.channel
 }
 
-func (semaphore *GenericSemaphore[T]) TryWait() (T, error) {
+func (semaphore *Semaphore[T]) TryWait() (T, error) {
 	select {
 	case item := <-semaphore.channel:
 		return item, nil
@@ -46,7 +46,7 @@ func (semaphore *GenericSemaphore[T]) TryWait() (T, error) {
 	}
 }
 
-func (semaphore *GenericSemaphore[T]) TrySignal(item T) error {
+func (semaphore *Semaphore[T]) TrySignal(item T) error {
 	select {
 	case semaphore.channel <- item:
 		return nil
@@ -55,6 +55,6 @@ func (semaphore *GenericSemaphore[T]) TrySignal(item T) error {
 	}
 }
 
-func (semaphore *GenericSemaphore[T]) Signal(item T) {
+func (semaphore *Semaphore[T]) Signal(item T) {
 	semaphore.channel <- item
 }

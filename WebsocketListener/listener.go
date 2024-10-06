@@ -29,7 +29,7 @@ type WebsocketListener struct {
 
 	httpServer *HTTPServer.HTTPServer
 
-	pool *Tools.GenericPool[*acceptRequest]
+	pool *Tools.Pool[*acceptRequest]
 
 	// metrics
 
@@ -75,7 +75,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		},
 		nil,
 	)
-	pool, err := Tools.NewGenericPool(config.MaxSimultaneousAccepts, []*acceptRequest{})
+	pool, err := Tools.NewPool(config.MaxSimultaneousAccepts, []*acceptRequest{})
 	if err != nil {
 		return nil, err
 	}
