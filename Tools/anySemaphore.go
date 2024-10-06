@@ -6,7 +6,7 @@ import (
 )
 
 type AnySemaphore struct {
-	items       map[any]bool // token -> isAvailable
+	items       map[any]bool // item -> isAvailable
 	mutex       sync.Mutex
 	itemChannel chan any
 }
@@ -14,64 +14,64 @@ type AnySemaphore struct {
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
 func NewAnySemaphore(items []any) (*AnySemaphore, error) {
-	tokenSemaphore := &AnySemaphore{
+	anySemaphore := &AnySemaphore{
 		items:       make(map[any]bool),
 		itemChannel: make(chan any, len(items)),
 	}
 
-	for _, token := range items {
-		if tokenSemaphore.items[token] {
-			return nil, errors.New("duplicate token")
+	for _, item := range items {
+		if anySemaphore.items[item] {
+			return nil, errors.New("duplicate item")
 		}
-		tokenSemaphore.items[token] = true
-		tokenSemaphore.itemChannel <- token
+		anySemaphore.items[item] = true
+		anySemaphore.itemChannel <- item
 	}
 
-	return tokenSemaphore, nil
+	return anySemaphore, nil
 }
 
-func (tokenSemaphore *AnySemaphore) GetAcquiredTokens() []any {
-	tokenSemaphore.mutex.Lock()
-	defer tokenSemaphore.mutex.Unlock()
-	acquiredtokens := make([]any, 0)
-	for token, isAvailable := range tokenSemaphore.items {
+func (anySemaphore *AnySemaphore) GetAcquiredItems() []any {
+	anySemaphore.mutex.Lock()
+	defer anySemaphore.mutex.Unlock()
+	acquiredItems := make([]any, 0)
+	for item, isAvailable := range anySemaphore.items {
 		if !isAvailable {
-			acquiredtokens = append(acquiredtokens, token)
+			acquiredItems = append(acquiredItems, item)
 		}
 	}
 
-	return acquiredtokens
+	return acquiredItems
 }
 
-// AcquireToken returns a token from the pool.
-// If the pool is empty, it will block until a token is available.
-func (tokenSemaphore *AnySemaphore) AcquireToken() any {
-	token := <-tokenSemaphore.itemChannel
-	tokenSemaphore.mutex.Lock()
-	defer tokenSemaphore.mutex.Unlock()
-	tokenSemaphore.items[token] = false
-	return token
+// AcquireItem returns a item from the pool.
+// If the pool is empty, it will block until a item is available.
+func (anySemaphore *AnySemaphore) AcquireItem() any {
+	item := <-anySemaphore.itemChannel
+	anySemaphore.mutex.Lock()
+	defer anySemaphore.mutex.Unlock()
+	anySemaphore.items[item] = false
+	return item
 }
 
-// ReturnToken returns a token to the pool.
-// If the token is not valid, it will return an error.
-// replacementToken must be either same as token or a new token.
-func (tokenSemaphore *AnySemaphore) ReturnToken(item any, replacementItem any) error {
-	tokenSemaphore.mutex.Lock()
-	defer tokenSemaphore.mutex.Unlock()
-	if tokenSemaphore.items[item] {
-		return errors.New("token is not acquired")
+// ReturnItem returns a item to the pool.
+// If the item is not valid, it will return an error.
+// replacementItem must be either same as item or a new item.
+func (anySemaphore *AnySemaphore) ReturnItem(item any, replacementItem any) error {
+	anySemaphore.mutex.Lock()
+	defer anySemaphore.mutex.Unlock()
+	if anySemaphore.items[item] {
+		return errors.New("item is not acquired")
 	}
 	if replacementItem == "" {
-		return errors.New("empty string token")
+		return errors.New("empty string item")
 	}
 	if replacementItem != item {
-		if tokenSemaphore.items[replacementItem] {
-			return errors.New("token already exists")
+		if anySemaphore.items[replacementItem] {
+			return errors.New("item already exists")
 		}
-		delete(tokenSemaphore.items, item)
+		delete(anySemaphore.items, item)
 	}
-	tokenSemaphore.items[replacementItem] = true
-	tokenSemaphore.itemChannel <- replacementItem
+	anySemaphore.items[replacementItem] = true
+	anySemaphore.itemChannel <- replacementItem
 	return nil
 }
