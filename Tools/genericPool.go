@@ -104,7 +104,7 @@ func (genericPool *GenericPool[T]) AcquireItemChannel() <-chan T {
 	return c
 }
 
-// TryAcquireItem returns an item from the pool.
+// ReturnItem returns an item from the pool.
 // If the item does not exist, it will return an error.
 // If the item is available, it will return a error.
 func (genericPool *GenericPool[T]) ReturnItem(item T) error {
