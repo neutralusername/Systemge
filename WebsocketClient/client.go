@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -26,8 +25,6 @@ type WebsocketClient struct {
 	sendMutex sync.Mutex
 	readMutex sync.Mutex
 
-	eventHandler Event.Handler
-
 	// metrics
 
 	BytesSent     atomic.Uint64
@@ -37,7 +34,7 @@ type WebsocketClient struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHandler Event.Handler) (*WebsocketClient, error) {
+func New(config *Config.WebsocketClient, websocketConn *websocket.Conn) (*WebsocketClient, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -49,7 +46,6 @@ func New(config *Config.WebsocketClient, websocketConn *websocket.Conn, eventHan
 		config:        config,
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
-		eventHandler:  eventHandler,
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	websocketConn.SetReadLimit(int64(connection.config.IncomingMessageByteLimit))
@@ -80,21 +76,4 @@ func (connection *WebsocketClient) GetCloseChannel() <-chan bool {
 
 func (connection *WebsocketClient) GetAddress() string {
 	return connection.websocketConn.RemoteAddr().String()
-}
-
-func (connection *WebsocketClient) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(connection.GetContext())
-	if connection.eventHandler != nil {
-		connection.eventHandler(event)
-	}
-	return event
-}
-func (connection *WebsocketClient) GetContext() Event.Context {
-	return Event.Context{
-		Event.ServiceType:       Event.WebsocketClient,
-		Event.ServiceStatus:     Status.ToString(connection.GetStatus()),
-		Event.ServiceInstanceId: connection.instanceId,
-		Event.Address:           connection.GetAddress(),
-		//	Event.Function:          Event.GetCallerFuncName(2),
-	}
 }

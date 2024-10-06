@@ -33,6 +33,25 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 
 	for {
 		messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
+		if err != nil {
+			if server.eventHandler != nil {
+				event := server.onEvent(Event.New(
+					Event.ReadMessageFailed,
+					Event.Context{
+						Event.Error: err.Error(),
+					},
+					Event.Cancel,
+					Event.Continue,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+					break
+				}
+			} else {
+				websocketClient.Close()
+				break
+			}
+		}
 	}
 }
 
