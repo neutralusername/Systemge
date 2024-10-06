@@ -83,32 +83,9 @@ func (genericPool *GenericPool[T]) AcquireItem() T {
 	return item
 }
 
-// ReturnItem returns a item to the pool.
-// If the item does not exist, it will return an error.
-// If the item is not acquired, it will return an error.
-// replacementItem must be either same as item or a new item.
-func (genericPool *GenericPool[T]) ReturnItem(item T, replacement T) error {
-	genericPool.mutex.Lock()
-	defer genericPool.mutex.Unlock()
-	val, ok := genericPool.items[item]
-	if !ok {
-		return errors.New("item does not exist")
-	}
-	if !val {
-		return errors.New("item is not acquired")
-	}
-	if replacement != item {
-		if genericPool.items[replacement] {
-			return errors.New("replacement already exists")
-		}
-		delete(genericPool.items, item)
-	}
-	genericPool.items[replacement] = true
-	genericPool.itemChannel <- replacement
-	return nil
-}
-
-func (genericPool *GenericPool[T]) RemoveItem(item T) error {
+// TryAcquireItem returns a item from the pool.
+// If the pool is empty, it will return an error.
+func (genericPool *GenericPool[T]) ReturnItem(item T) error {
 	genericPool.mutex.Lock()
 	defer genericPool.mutex.Unlock()
 	val, ok := genericPool.items[item]
@@ -116,7 +93,46 @@ func (genericPool *GenericPool[T]) RemoveItem(item T) error {
 		return errors.New("item does not exist")
 	}
 	if val {
-		return errors.New("item is acquired")
+		return errors.New("item is not acquired")
+	}
+	genericPool.items[item] = true
+	genericPool.itemChannel <- item
+	return nil
+}
+
+// ReplaceItem replaces a item in the pool.
+// If the item does not exist, it will return an error.
+// If the item is not acquired, it will return an error.
+// If the replacement already exists, it will return an error.
+func (genericPool *GenericPool[T]) ReplaceItem(replacement T) error {
+	genericPool.mutex.Lock()
+	defer genericPool.mutex.Unlock()
+	val, ok := genericPool.items[replacement]
+	if !ok {
+		return errors.New("item does not exist")
+	}
+	if !val {
+		return errors.New("item is not acquired")
+	}
+	if replacement != replacement {
+		if genericPool.items[replacement] {
+			return errors.New("replacement already exists")
+		}
+		delete(genericPool.items, replacement)
+	}
+	genericPool.items[replacement] = true
+	genericPool.itemChannel <- replacement
+	return nil
+}
+
+// RemoveItem removes a item from the pool.
+// If the item does not exist, it will return an error.
+func (genericPool *GenericPool[T]) RemoveItem(item T) error {
+	genericPool.mutex.Lock()
+	defer genericPool.mutex.Unlock()
+	_, ok := genericPool.items[item]
+	if !ok {
+		return errors.New("item does not exist")
 	}
 	delete(genericPool.items, item)
 	return nil
