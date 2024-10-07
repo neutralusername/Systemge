@@ -129,14 +129,9 @@ func (pool *Pool[T]) ReturnItem(item T) error {
 	if !pool.acquiredItems[item] {
 		return errors.New("item does not exist")
 	}
+
 	delete(pool.acquiredItems, item)
-	if len(pool.waiters) > 0 {
-		waiter := pool.waiters[0]
-		pool.waiters = pool.waiters[1:]
-		waiter <- item
-	} else {
-		pool.availableItems[item] = true
-	}
+	pool.addItem(item)
 	return nil
 }
 
@@ -159,18 +154,12 @@ func (pool *Pool[T]) ReplaceItem(item T, replacement T) error {
 
 	if pool.acquiredItems[item] {
 		delete(pool.acquiredItems, item)
-		if len(pool.waiters) > 0 {
-			waiter := pool.waiters[0]
-			pool.waiters = pool.waiters[1:]
-			waiter <- replacement
-		} else {
-			pool.availableItems[replacement] = true
-		}
+		pool.addItem(replacement)
 		return nil
 	}
 	if pool.availableItems[item] {
 		delete(pool.availableItems, item)
-		pool.availableItems[replacement] = true
+		pool.addItem(replacement)
 		return nil
 	}
 
@@ -264,4 +253,14 @@ func (pool *Pool[T]) Clear() map[T]bool {
 	}
 	pool.acquiredItems = make(map[T]bool)
 	return items
+}
+
+func (pool *Pool[T]) addItem(item T) {
+	if len(pool.waiters) > 0 {
+		waiter := pool.waiters[0]
+		pool.waiters = pool.waiters[1:]
+		waiter <- item
+	} else {
+		pool.availableItems[item] = true
+	}
 }
