@@ -102,6 +102,7 @@ func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			pool.mutex.Lock()
 			defer pool.mutex.Unlock()
+
 			select {
 			case item, ok := <-waiter:
 				if ok {
@@ -110,6 +111,7 @@ func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 			default:
 				delete(pool.waiters, waiter)
 			}
+
 			var nilItem T
 			return nilItem, errors.New("timeout")
 		}
