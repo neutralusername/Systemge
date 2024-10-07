@@ -51,6 +51,25 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 			break
 		}
 
+		handleReceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
+			if err := server.handleReception(websocketClient, messageBytes); err != nil {
+				websocketClient.Close()
+				server.ClientsRejected.Add(1)
+			} else {
+				server.ClientsAccepted.Add(1)
+			}
+		}
+
+		if server.config.HandleMessagesSequentially {
+			handleReceptionWrapper(websocketClient, messageBytes)
+		} else {
+			server.waitGroup.Add(1)
+			go func(websocketClient *WebsocketClient.WebsocketClient) {
+				handleReceptionWrapper(websocketClient, messageBytes)
+				server.waitGroup.Done()
+			}(websocketClient)
+		}
+
 	}
 }
 
