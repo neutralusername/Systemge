@@ -41,7 +41,10 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 				event := server.onEvent(Event.New(
 					Event.ReadMessageFailed,
 					Event.Context{
-						Event.Error: err.Error(),
+						Event.SessionId: session.GetId(),
+						Event.Identity:  session.GetIdentity(),
+						Event.Address:   websocketClient.GetAddress(),
+						Event.Error:     err.Error(),
 					},
 					Event.Cancel,
 					Event.Skip,
@@ -82,7 +85,9 @@ func (server *WebsocketServer) handleReception(session *Tools.Session, websocket
 			if event := server.onEvent(Event.New(
 				Event.RateLimited,
 				Event.Context{
-					Event.Circumstance:    Event.HandleMessageReception,
+					Event.SessionId:       session.GetId(),
+					Event.Identity:        session.GetIdentity(),
+					Event.Address:         websocketClient.GetAddress(),
 					Event.RateLimiterType: Event.TokenBucket,
 					Event.TokenBucketType: Event.Bytes,
 				},
@@ -101,7 +106,9 @@ func (server *WebsocketServer) handleReception(session *Tools.Session, websocket
 			if event := server.onEvent(Event.New(
 				Event.RateLimited,
 				Event.Context{
-					Event.Circumstance:    Event.HandleMessageReception,
+					Event.SessionId:       session.GetId(),
+					Event.Identity:        session.GetIdentity(),
+					Event.Address:         websocketClient.GetAddress(),
 					Event.RateLimiterType: Event.TokenBucket,
 					Event.TokenBucketType: Event.Messages,
 				},
@@ -115,7 +122,7 @@ func (server *WebsocketServer) handleReception(session *Tools.Session, websocket
 		}
 	}
 
-	message, err := Message.Deserialize(messageBytes, websocketClient.GetName())
+	message, err := Message.Deserialize(messageBytes, session.GetId())
 	if err != nil {
 		websocketClient.invalidMessagesReceived.Add(1)
 		websocketClient.messageChannelSemaphore.ReleaseBlocking()
