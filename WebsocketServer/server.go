@@ -38,7 +38,7 @@ type WebsocketServer struct {
 	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
-	syncManager    *Tools.SyncManager
+	syncManager    *Tools.RequestResponseManager
 	topicManager   *Tools.TopicManager
 
 	// metrics
