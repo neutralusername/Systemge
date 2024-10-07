@@ -41,7 +41,7 @@ func (pool *Pool[T]) GetAcquiredItems() []T {
 	defer pool.mutex.Unlock()
 
 	acquiredItems := make([]T, 0)
-	for item, isAvailable := range pool.acquiredItems {
+	for item := range pool.acquiredItems {
 		acquiredItems = append(acquiredItems, item)
 	}
 
@@ -53,23 +53,26 @@ func (pool *Pool[T]) GetAvailableItems() []T {
 	defer pool.mutex.Unlock()
 
 	availableItems := make([]T, 0)
-	for item, isAvailable := range pool.availableItems {
+	for item := range pool.availableItems {
 		availableItems = append(availableItems, item)
 	}
 
 	return availableItems
 }
 
-// GetItems returns a copy of the map of items.
+// GetItems returns a map of items in the pool. The value is true if the item is available.
 func (pool *Pool[T]) GetItems() map[T]bool {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	copiedItems := make(map[T]bool)
-	for item, isAvailable := range pool.acquiredItems {
-		copiedItems[item] = isAvailable
+	items := make(map[T]bool)
+	for item, _ := range pool.acquiredItems {
+		items[item] = false
 	}
-	return copiedItems
+	for item, _ := range pool.availableItems {
+		items[item] = true
+	}
+	return items
 }
 
 // AcquireItem returns an item from the pool.
