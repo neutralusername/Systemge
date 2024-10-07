@@ -1,3 +1,4 @@
+add some default message handlers for websocketServer and sysServer
 add "enable event handling"-flag if overhead from event handling is measureable
 specifier field is pretty redundant
 create a bunch of wrapper functions with events (commands, httpRequests etc)
