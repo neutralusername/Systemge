@@ -229,7 +229,7 @@ func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 }
 
 // AddItems adds new items to the pool.
-// if transactional is true, it will either add all items or none.
+// If transactional is true, it will either add all items or none.
 func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
