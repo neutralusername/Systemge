@@ -36,6 +36,8 @@ func newKeyDequeueNode[K comparable, V any](key K, value V) *keyDequeueNode[K, V
 	}
 }
 
+// Push adds a new key-value pair to the end of the map.
+// returns an error if the key already exists.
 func (keyDequeue *KeyDequeue[K, V]) Push(key K, value V) error {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
@@ -58,6 +60,8 @@ func (keyDequeue *KeyDequeue[K, V]) Push(key K, value V) error {
 	return nil
 }
 
+// PopFront removes and returns the first key-value pair in the map.
+// returns an error if the map is empty.
 func (keyDequeue *KeyDequeue[K, V]) PopFront() (K, V, error) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
@@ -78,6 +82,8 @@ func (keyDequeue *KeyDequeue[K, V]) PopFront() (K, V, error) {
 	return node.key, node.value, nil
 }
 
+// PopBack removes and returns the last key-value pair in the map.
+// returns an error if the map is empty.
 func (keyDequeue *KeyDequeue[K, V]) PopBack() (K, V, error) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
@@ -98,6 +104,8 @@ func (keyDequeue *KeyDequeue[K, V]) PopBack() (K, V, error) {
 	return node.key, node.value, nil
 }
 
+// PopKey removes and returns the key-value pair associated with the provided key.
+// returns an error if the key is not found.
 func (keyDequeue *KeyDequeue[K, V]) PopKey(key K) (V, error) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
@@ -121,6 +129,8 @@ func (keyDequeue *KeyDequeue[K, V]) PopKey(key K) (V, error) {
 	return node.value, nil
 }
 
+// Update updates the value associated with the provided key.
+// returns an error if the key is not found.
 func (keyDequeue *KeyDequeue[K, V]) Update(key K, value V) error {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
@@ -133,6 +143,7 @@ func (keyDequeue *KeyDequeue[K, V]) Update(key K, value V) error {
 	return nil
 }
 
+// Upsert inserts or updates the value associated with the provided key.
 func (keyDequeue *KeyDequeue[K, V]) Upsert(key K, value V) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
@@ -185,6 +196,7 @@ func (keyDequeue *KeyDequeue[K, V]) GetValues() []V {
 	return values
 }
 
+// returns the number of elements in the key-dequeue
 func (keyDequeue *KeyDequeue[K, V]) Len() int {
 	keyDequeue.mutex.RLock()
 	defer keyDequeue.mutex.RUnlock()

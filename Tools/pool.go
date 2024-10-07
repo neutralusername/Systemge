@@ -38,6 +38,7 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 	return pool, nil
 }
 
+// GetAvailableItems returns a list of available items.
 func (pool *Pool[T]) GetAvailableItems() []T {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
@@ -50,6 +51,7 @@ func (pool *Pool[T]) GetAvailableItems() []T {
 	return availableItems
 }
 
+// GetAcquiredItems returns a list of acquired items.
 func (pool *Pool[T]) GetAcquiredItems() []T {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
@@ -118,6 +120,8 @@ func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 	}
 }
 
+// TryAcquireItem returns an item from the pool.
+// If the pool is empty, it will return an error.
 func (pool *Pool[T]) TryAcquireItem() (T, error) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
