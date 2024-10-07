@@ -17,12 +17,13 @@ type Pool[T comparable] struct {
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
 // maxItems == 0 means no limit.
 func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error) {
-	if len(availableItems) > int(maxItems) {
+	if maxItems > 0 && len(availableItems) > int(maxItems) {
 		return nil, errors.New("initialItems must be less than or equal to maxItems")
 	}
 	pool := &Pool[T]{
 		acquiredItems:  make(map[T]bool),
 		availableItems: make(map[T]bool),
+		maxItems:       maxItems,
 	}
 
 	for _, item := range availableItems {
