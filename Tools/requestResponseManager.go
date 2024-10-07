@@ -29,6 +29,13 @@ func NewRequestResponseManager[T any](config *Config.RequestResponseManager) *Re
 	}
 }
 
+// NewRequest creates a new request with the given token, response limit and timeout in milliseconds.
+// If responseLimit is 0, it will be set to 1.
+// If the token is too short or too long, an error will be returned.
+// If the maximum number of active requests is reached, an error will be returned.
+// If a request with the same token already exists, an error will be returned.
+// If a timeout is set, the request will be aborted after the timeout.
+// The request will be removed from the manager when the response limit is reached.
 func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit uint64, timeoutMs uint64) (*request[T], error) {
 	if responseLimit == 0 {
 		responseLimit = 1
@@ -70,6 +77,9 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 	return request, nil
 }
 
+// AddResponse adds a response to the request with the given token.
+// If no request with the token exists, an error will be returned.
+// If the response limit is reached, the request will be removed from the manager.
 func (manager *RequestResponseManager[T]) AddResponse(token string, response T) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
@@ -91,6 +101,8 @@ func (manager *RequestResponseManager[T]) AddResponse(token string, response T) 
 	return nil
 }
 
+// AbortRequest aborts the request with the given token.
+// If no request with the token exists, an error will be returned.
 func (manager *RequestResponseManager[T]) AbortRequest(token string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
@@ -107,6 +119,19 @@ func (manager *RequestResponseManager[T]) AbortRequest(token string) error {
 	return nil
 }
 
+// GetRequest returns the request with the given token.
+// If no request with the token exists, an error will be returned.
+func (manager *RequestResponseManager[T]) GetRequest(token string) (*request[T], error) {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
+	request, ok := manager.requests[token]
+	if !ok {
+		return nil, errors.New("no active request for token")
+	}
+	return request, nil
+}
+
+// GetActiveRequestTokens returns a list of all active request tokens.
 func (manager *RequestResponseManager[T]) GetActiveRequestTokens() []string {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
@@ -117,14 +142,19 @@ func (manager *RequestResponseManager[T]) GetActiveRequestTokens() []string {
 	return tokens
 }
 
+// GetToken returns the token of the request.
 func (request *request[T]) GetToken() string {
 	return request.token
 }
 
+// GetResponseChannel returns the response channel of the request.
 func (request *request[T]) GetResponseChannel() <-chan T {
 	return request.responseChannel
 }
 
+// GetNextResponse returns the next response from the request.
+// If the response channel is closed, an error will be returned.
+// If the response channel is empty, it will block until a response is available.
 func (request *request[T]) GetNextResponse() (T, error) {
 	response, ok := <-request.responseChannel
 	if !ok {
@@ -134,10 +164,12 @@ func (request *request[T]) GetNextResponse() (T, error) {
 	return response, nil
 }
 
+// GetResponseCount returns the number of responses received.
 func (request *request[T]) GetResponseCount() uint64 {
 	return request.responseCount
 }
 
+// GetResponseLimit returns the response limit of the request.
 func (request *request[T]) GetResponseLimit() uint64 {
 	return request.responseLimit
 }
