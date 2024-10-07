@@ -121,8 +121,7 @@ func (pool *Pool[T]) AcquireItemChannel() <-chan T {
 }
 
 // RemoveItems removes the item from the pool.
-// if transactional is false, it will skip items that do not exist.
-// if transactional is true, it will return an error if any item does not exist before modifying the pool.
+// if transactional is true, it will either remove all items or none.
 func (pool *Pool[T]) RemoveItems(transactional bool, items ...T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
@@ -194,8 +193,7 @@ func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 }
 
 // AddItems adds new items to the pool.
-// if transactional is false, it will skip items that already exist and stop when the pool is full.
-// if transactional is true, it will return an error if any item already exists or if the amount of items exceeds the pool capacity.
+// if transactional is true, it will either add all items or none.
 func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
