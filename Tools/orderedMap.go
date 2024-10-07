@@ -98,6 +98,29 @@ func (orderedMap *OrderedMap[K, V]) RetrieveLIFO() (K, V, error) {
 	return node.key, node.value, nil
 }
 
+func (orderedMap *OrderedMap[K, V]) RetrieveKey(key K) (V, error) {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
+	node, ok := orderedMap.values[key]
+	if !ok {
+		var nilValue V
+		return nilValue, errors.New("key not found")
+	}
+	delete(orderedMap.values, key)
+	if node.prev != nil {
+		node.prev.next = node.next
+	} else {
+		orderedMap.head = node.next
+	}
+	if node.next != nil {
+		node.next.prev = node.prev
+	} else {
+		orderedMap.tail = node.prev
+	}
+	return node.value, nil
+}
+
 func (orderedMap *OrderedMap[K, V]) UpdateValue(key K, value V) error {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
@@ -112,7 +135,7 @@ func (orderedMap *OrderedMap[K, V]) UpdateValue(key K, value V) error {
 
 // returns the value associated with the provided key.
 // returns an error if the key is not found.
-func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
+func (orderedMap *OrderedMap[K, V]) GetValue(key K) (V, error) {
 	orderedMap.mutex.RLock()
 	defer orderedMap.mutex.RUnlock()
 
@@ -121,32 +144,6 @@ func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
 	}
 	var nilValue V
 	return nilValue, errors.New("key not found")
-}
-
-// removes the provided key from the map.
-// returns an error if the key is not found.
-func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
-	orderedMap.mutex.Lock()
-	defer orderedMap.mutex.Unlock()
-
-	node, ok := orderedMap.values[key]
-	if !ok {
-		return errors.New("key not found")
-	}
-
-	delete(orderedMap.values, key)
-	if node.prev != nil {
-		node.prev.next = node.next
-	} else {
-		orderedMap.head = node.next
-	}
-
-	if node.next != nil {
-		node.next.prev = node.prev
-	} else {
-		orderedMap.tail = node.prev
-	}
-	return nil
 }
 
 // returns the keys in the order they were pushed
