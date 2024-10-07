@@ -109,9 +109,9 @@ func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 					return item, nil
 				}
 			default:
-				delete(pool.waiters, waiter)
 			}
 
+			delete(pool.waiters, waiter)
 			var nilItem T
 			return nilItem, errors.New("timeout")
 		}
@@ -193,7 +193,6 @@ func (pool *Pool[T]) ReturnItem(item T) error {
 	if isAvailable {
 		return errors.New("item is not acquired")
 	}
-	delete(pool.items, item)
 	pool.addItem(item)
 	return nil
 }
@@ -252,6 +251,7 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 
 func (pool *Pool[T]) addItem(item T) {
 	if len(pool.waiters) > 0 {
+		pool.items[item] = false
 		var waiter chan T
 		for waiter = range pool.waiters {
 			delete(pool.waiters, waiter)
