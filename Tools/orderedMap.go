@@ -2,7 +2,6 @@ package Tools
 
 import "errors"
 
-// O(1) delete
 type OrderedMap[K comparable, V any] struct {
 	head   *orderedMapNode[K, V]
 	tail   *orderedMapNode[K, V]
@@ -57,22 +56,24 @@ func (fifoMap *OrderedMap[K, V]) Get(key K) (V, error) {
 }
 
 func (fifoMap *OrderedMap[K, V]) Delete(key K) error {
-	if node, ok := fifoMap.values[key]; ok {
-		delete(fifoMap.values, key)
-		if node.prev != nil {
-			node.prev.next = node.next
-		} else {
-			fifoMap.head = node.next
-		}
-
-		if node.next != nil {
-			node.next.prev = node.prev
-		} else {
-			fifoMap.tail = node.prev
-		}
-		return nil
+	node, ok := fifoMap.values[key]
+	if !ok {
+		return errors.New("key not found")
 	}
-	return errors.New("key not found")
+
+	delete(fifoMap.values, key)
+	if node.prev != nil {
+		node.prev.next = node.next
+	} else {
+		fifoMap.head = node.next
+	}
+
+	if node.next != nil {
+		node.next.prev = node.prev
+	} else {
+		fifoMap.tail = node.prev
+	}
+	return nil
 }
 
 func (fifoMap *OrderedMap[K, V]) Pop() (K, V, error) {
