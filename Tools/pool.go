@@ -177,9 +177,8 @@ func (pool *Pool[T]) ReturnItem(item T) error {
 }
 
 // ReplaceItem replaces an item in the pool.
-// If isReturned is true, the item must be acquired.
 // If the item does not exist, it will return an error.
-// If the item is acquired, it will return an error.
+// If isReturned is true, the item must be acquired.
 // If the replacement already exists, it will return an error.
 func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 	pool.mutex.Lock()
@@ -192,10 +191,8 @@ func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 	if isAvailable && isReturned {
 		return errors.New("item is not acquired")
 	}
-	if item != replacement {
-		if pool.items[replacement] {
-			return errors.New("replacement already exists")
-		}
+	if pool.items[replacement] {
+		return errors.New("replacement already exists")
 	}
 
 	delete(pool.items, item)
