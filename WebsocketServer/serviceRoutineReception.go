@@ -59,7 +59,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 				websocketClient.Close()
 				server.RejectedMessages.Add(1)
 			} else {
-				server.RejectedMessages.Add(1)
+				server.AcceptedMessages.Add(1)
 			}
 		}
 
@@ -72,7 +72,6 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 				server.waitGroup.Done()
 			}(websocketClient)
 		}
-
 	}
 }
 

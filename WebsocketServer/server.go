@@ -50,6 +50,7 @@ type WebsocketServer struct {
 	MessagesReceived atomic.Uint64
 
 	RejectedMessages atomic.Uint64
+	AcceptedMessages atomic.Uint64
 
 	AsyncMessageSent atomic.Uint64
 	SyncRequestsSent atomic.Uint64
@@ -87,6 +88,9 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		whitelist:        whitelist,
 		blacklist:        blacklist,
 	}
+	if server.messageHandler == nil {
+		server.messageHandler = server.GetDefaultMessageHandler()
+	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
@@ -98,6 +102,13 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	server.websocketListener = websocketListener
 
 	return server, nil
+}
+
+func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
+	// init stuff
+	return func(client *WebsocketClient.WebsocketClient, message []byte) error {
+		return nil
+	}
 }
 
 func (server *WebsocketServer) GetName() string {
