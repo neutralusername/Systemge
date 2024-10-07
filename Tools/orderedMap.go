@@ -9,7 +9,7 @@ type OrderedMap[K comparable, V any] struct {
 	head   *orderedMapNode[K, V]
 	tail   *orderedMapNode[K, V]
 	values map[K]*orderedMapNode[K, V]
-	mutex  sync.Mutex
+	mutex  sync.RWMutex
 }
 
 type orderedMapNode[K comparable, V any] struct {
@@ -78,9 +78,11 @@ func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
 	return node.key, node.value, nil
 }
 
+// returns the value associated with the provided key.
+// returns an error if the key is not found.
 func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
-	orderedMap.mutex.Lock()
-	defer orderedMap.mutex.Unlock()
+	orderedMap.mutex.RLock()
+	defer orderedMap.mutex.RUnlock()
 
 	if node, ok := orderedMap.values[key]; ok {
 		return node.value, nil
@@ -89,6 +91,8 @@ func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
 	return nilValue, errors.New("key not found")
 }
 
+// removes the provided key from the map.
+// returns an error if the key is not found.
 func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
@@ -115,8 +119,8 @@ func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
 
 // returns the keys in the order they were pushed
 func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
-	orderedMap.mutex.Lock()
-	defer orderedMap.mutex.Unlock()
+	orderedMap.mutex.RLock()
+	defer orderedMap.mutex.RUnlock()
 
 	keys := make([]K, 0, len(orderedMap.values))
 	currentNode := orderedMap.head
@@ -129,8 +133,8 @@ func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
 
 // returns the values in the order they were pushed
 func (orderedMap *OrderedMap[K, V]) GetValues() []V {
-	orderedMap.mutex.Lock()
-	defer orderedMap.mutex.Unlock()
+	orderedMap.mutex.RLock()
+	defer orderedMap.mutex.RUnlock()
 
 	values := make([]V, 0, len(orderedMap.values))
 	currentNode := orderedMap.head
