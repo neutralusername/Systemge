@@ -52,8 +52,8 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 			break
 		}
 
-		handleReceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
-			if err := server.handleReception(websocketClient, messageBytes); err != nil {
+		handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
+			if err := server.handleReception(session, websocketClient, messageBytes); err != nil {
 				websocketClient.Close()
 				server.RejectedMessages.Add(1)
 			} else {
@@ -62,11 +62,11 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		}
 
 		if server.config.HandleMessagesSequentially {
-			handleReceptionWrapper(websocketClient, messageBytes)
+			handleReceptionWrapper(session, websocketClient, messageBytes)
 		} else {
 			server.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				handleReceptionWrapper(websocketClient, messageBytes)
+				handleReceptionWrapper(session, websocketClient, messageBytes)
 				server.waitGroup.Done()
 			}(websocketClient)
 		}
@@ -74,8 +74,8 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}
 }
 
-func (server *WebsocketServer) handleReception(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
-	if websocketClient.byteRateLimiter != nil && !websocketClient.byteRateLimiter.Consume(uint64(len(messageBytes))) {
+func (server *WebsocketServer) handleReception(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
 		if event := websocketClient.onEvent(Event.NewWarning(
 			Event.RateLimited,
 			"byte rate limited",
