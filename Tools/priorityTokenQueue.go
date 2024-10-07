@@ -83,19 +83,6 @@ func (queue *PriorityTokenQueue[T]) Add(token string, value T, priority uint32, 
 	return nil
 }
 
-func (queue *PriorityTokenQueue[T]) RetrieveByToken(token string) (T, error) {
-	queue.mutex.Lock()
-	defer queue.mutex.Unlock()
-
-	element, ok := queue.elements[token]
-	if !ok {
-		var nilValue T
-		return nilValue, errors.New("token not found")
-	}
-	queue.remove(element)
-	return element.value.item, nil
-}
-
 func (queue *PriorityTokenQueue[T]) RetrieveNext() (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -107,6 +94,19 @@ func (queue *PriorityTokenQueue[T]) RetrieveNext() (T, error) {
 	element := heap.Pop(&queue.priorityQueue).(*priorityQueueElement[*tokenItem[T]])
 	close(element.value.isRetrievedChannel)
 	delete(queue.elements, element.value.token)
+	return element.value.item, nil
+}
+
+func (queue *PriorityTokenQueue[T]) RetrieveByToken(token string) (T, error) {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
+
+	element, ok := queue.elements[token]
+	if !ok {
+		var nilValue T
+		return nilValue, errors.New("token not found")
+	}
+	queue.remove(element)
 	return element.value.item, nil
 }
 
