@@ -81,6 +81,8 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 
 // AcquireItem returns an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
+// If the timeout is reached, it will return an error.
+// timeoutMs == 0 means no timeout.
 func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 	pool.mutex.Lock()
 
@@ -139,6 +141,7 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 // AcquireItemChannel returns a channel that will return an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
 // If the timeout is reached, the channel will be closed without sending an item.
+// timeoutMs == 0 means no timeout.
 func (pool *Pool[T]) AcquireItemChannel(timeoutMs uint32) <-chan T {
 	channel := make(chan T, 1)
 	go func() {
