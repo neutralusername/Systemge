@@ -55,7 +55,7 @@ func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
 	return nilValue, errors.New("key not found")
 }
 
-func (orderedMap *OrderedMap[K, V]) Delete(key K) error {
+func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
 	node, ok := orderedMap.values[key]
 	if !ok {
 		return errors.New("key not found")
