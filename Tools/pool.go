@@ -157,13 +157,14 @@ func (pool *Pool[T]) RemoveItems(transactional bool, items ...T) error {
 
 	if transactional {
 		for _, item := range items {
-			if !pool.items[item] {
+			if !pool.availableItems[item] && !pool.acquiredItems[item] {
 				return errors.New("item does not exist")
 			}
 		}
 	}
 	for _, item := range items {
-		delete(pool.items, item)
+		delete(pool.availableItems, item)
+		delete(pool.acquiredItems, item)
 	}
 	return nil
 }
@@ -173,8 +174,15 @@ func (pool *Pool[T]) Clear() map[T]bool {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	items := pool.items
-	pool.items = make(map[T]bool)
+	items := make(map[T]bool)
+	for item := range pool.availableItems {
+		items[item] = true
+	}
+	for item := range pool.acquiredItems {
+		items[item] = false
+	}
+	pool.availableItems = make(map[T]bool)
+	pool.acquiredItems = make(map[T]bool)
 	return items
 }
 
@@ -185,11 +193,7 @@ func (pool *Pool[T]) ReturnItem(item T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	isAvailable, ok := pool.items[item]
-	if !ok {
-		return errors.New("item does not exist")
-	}
-	if isAvailable {
+	if !pool.acquiredItems[item] {
 		return errors.New("item is not acquired")
 	}
 	pool.addItem(item)
@@ -204,18 +208,22 @@ func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	isAvailable, ok := pool.items[item]
-	if !ok {
-		return errors.New("item does not exist")
-	}
-	if isAvailable && isReturned {
-		return errors.New("item is not acquired")
-	}
-	if pool.items[replacement] {
+	if pool.availableItems[replacement] || pool.acquiredItems[replacement] {
 		return errors.New("replacement already exists")
 	}
+	if !pool.acquiredItems[item] {
+		if isReturned {
+			return errors.New("item is not acquired")
+		}
+		if !pool.availableItems[item] {
+			return errors.New("item does not exist")
+		} else {
+			delete(pool.availableItems, item)
+		}
+	} else {
+		delete(pool.acquiredItems, item)
+	}
 
-	delete(pool.items, item)
 	pool.addItem(replacement)
 	return nil
 }
