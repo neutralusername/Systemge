@@ -58,7 +58,7 @@ func (orderedMap *OrderedMap[K, V]) Push(key K, value V) error {
 	return nil
 }
 
-func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
+func (orderedMap *OrderedMap[K, V]) PopFIFO() (K, V, error) {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
 
@@ -74,6 +74,26 @@ func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
 		node.next.prev = nil
 	} else {
 		orderedMap.tail = nil
+	}
+	return node.key, node.value, nil
+}
+
+func (orderedMap *OrderedMap[K, V]) PopLIFO() (K, V, error) {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
+	if orderedMap.tail == nil {
+		var nilKey K
+		var nilValue V
+		return nilKey, nilValue, errors.New("empty map")
+	}
+	node := orderedMap.tail
+	delete(orderedMap.values, node.key)
+	orderedMap.tail = node.prev
+	if node.prev != nil {
+		node.prev.next = nil
+	} else {
+		orderedMap.head = nil
 	}
 	return node.key, node.value, nil
 }
