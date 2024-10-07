@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
@@ -76,42 +78,40 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 
 func (server *WebsocketServer) handleReception(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
-		if event := websocketClient.onEvent(Event.NewWarning(
-			Event.RateLimited,
-			"byte rate limited",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance:    Event.HandleMessageReception,
-				Event.Behaviour:       behaviour,
-				Event.RateLimiterType: Event.TokenBucket,
-				Event.TokenBucketType: Event.Messages,
-			},
-		)); !event.IsInfo() {
-			websocketClient.rejectedMessagesReceived.Add(1)
-			websocketClient.messageChannelSemaphore.ReleaseBlocking()
-			return event.GetError()
+		if server.eventHandler != nil {
+			if event := server.onEvent(Event.New(
+				Event.RateLimited,
+				Event.Context{
+					Event.Circumstance:    Event.HandleMessageReception,
+					Event.RateLimiterType: Event.TokenBucket,
+					Event.TokenBucketType: Event.Bytes,
+				},
+				Event.Continue,
+				Event.Cancel,
+			)); event.GetAction() == Event.Cancel {
+				return errors.New(Event.RateLimited)
+			}
+		} else {
+			return errors.New(Event.RateLimited)
 		}
 	}
 
-	if websocketClient.messageRateLimiter != nil && !websocketClient.messageRateLimiter.Consume(1) {
-		if event := websocketClient.onEvent(Event.NewWarning(
-			Event.RateLimited,
-			"message rate limited",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance:    Event.HandleMessageReception,
-				Event.Behaviour:       behaviour,
-				Event.RateLimiterType: Event.TokenBucket,
-				Event.TokenBucketType: Event.Messages,
-			},
-		)); !event.IsInfo() {
-			websocketClient.rejectedMessagesReceived.Add(1)
-			websocketClient.messageChannelSemaphore.ReleaseBlocking()
-			return event.GetError()
+	if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
+		if server.eventHandler != nil {
+			if event := server.onEvent(Event.New(
+				Event.RateLimited,
+				Event.Context{
+					Event.Circumstance:    Event.HandleMessageReception,
+					Event.RateLimiterType: Event.TokenBucket,
+					Event.TokenBucketType: Event.Messages,
+				},
+				Event.Continue,
+				Event.Cancel,
+			)); event.GetAction() == Event.Cancel {
+				return errors.New(Event.RateLimited)
+			}
+		} else {
+			return errors.New(Event.RateLimited)
 		}
 	}
 
