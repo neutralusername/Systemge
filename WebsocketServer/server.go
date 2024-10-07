@@ -104,13 +104,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	return server, nil
 }
 
-func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
-	// init stuff
-	return func(client *WebsocketClient.WebsocketClient, message []byte) error {
-		return nil
-	}
-}
-
 func (server *WebsocketServer) GetName() string {
 	return server.name
 }

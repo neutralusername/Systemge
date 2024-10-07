@@ -75,6 +75,13 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}
 }
 
+func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
+	// init stuff
+	return func(client *WebsocketClient.WebsocketClient, message []byte) error {
+		return nil
+	}
+}
+
 /*
 func (server *WebsocketServer) handleReception(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
