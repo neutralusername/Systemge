@@ -78,7 +78,7 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 
 // AcquireItem returns an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
-func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
+func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 	pool.mutex.Lock()
 
 	for item, isAvailable := range pool.items {
@@ -93,13 +93,13 @@ func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 	pool.waiters[waiter] = true
 	pool.mutex.Unlock()
 
-	if timeout == 0 {
+	if timeoutMs == 0 {
 		return <-waiter, nil
 	} else {
 		select {
 		case item := <-waiter:
 			return item, nil
-		case <-time.After(time.Duration(timeout) * time.Millisecond):
+		case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
 			pool.mutex.Lock()
 			defer pool.mutex.Unlock()
 
