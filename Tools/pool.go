@@ -129,7 +129,8 @@ func (pool *Pool[T]) RemoveItems(transactional bool, items ...T) error {
 
 	if !transactional {
 		for _, item := range items {
-			if pool.items[item] {
+			_, ok := pool.items[item]
+			if ok {
 				delete(pool.items, item)
 			}
 		}
