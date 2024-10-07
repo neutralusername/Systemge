@@ -78,6 +78,18 @@ func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
 	return node.key, node.value, nil
 }
 
+func (orderedMap *OrderedMap[K, V]) UpdateValue(key K, value V) error {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
+	node, ok := orderedMap.values[key]
+	if !ok {
+		return errors.New("key not found")
+	}
+	node.value = value
+	return nil
+}
+
 // returns the value associated with the provided key.
 // returns an error if the key is not found.
 func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
