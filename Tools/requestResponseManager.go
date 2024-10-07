@@ -16,7 +16,7 @@ type RequestResponseManager[T any] struct {
 type request[T any] struct {
 	token           string
 	responseChannel chan T
-	abortChannel    chan struct{}
+	doneChannel     chan struct{}
 	responseLimit   uint64
 	responseCount   uint64
 }
@@ -51,7 +51,7 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 	syncRequest := &request[T]{
 		token:           token,
 		responseChannel: make(chan T, responseLimit),
-		abortChannel:    make(chan struct{}),
+		doneChannel:     make(chan struct{}),
 		responseLimit:   responseLimit,
 		responseCount:   0,
 	}
@@ -62,7 +62,7 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 			select {
 			case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
 				manager.AbortRequest(token)
-			case <-syncRequest.abortChannel:
+			case <-syncRequest.doneChannel:
 			}
 		}()
 	}
@@ -84,6 +84,7 @@ func (manager *RequestResponseManager[T]) AddResponse(token string, response T) 
 
 	if syncRequest.responseCount >= syncRequest.responseLimit {
 		close(syncRequest.responseChannel)
+		close(syncRequest.doneChannel)
 		delete(manager.requests, token)
 	}
 
@@ -99,7 +100,8 @@ func (manager *RequestResponseManager[T]) AbortRequest(token string) error {
 		return errors.New("no active sync request for token")
 	}
 
-	close(syncRequestStruct.abortChannel)
+	close(syncRequestStruct.doneChannel)
+	close(syncRequestStruct.responseChannel)
 	delete(manager.requests, token)
 
 	return nil
