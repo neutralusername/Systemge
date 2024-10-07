@@ -78,7 +78,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
 	if messageHandler == nil && config.DefaultMessageHandlerConfig == nil {
-		return nil, errors.New("messageHandler is nil and config.DefaultMessageHandlerConfig is nil")
+		config.DefaultMessageHandlerConfig = &Config.DefaultMessageHandler{}
 	}
 
 	server := &WebsocketServer{
