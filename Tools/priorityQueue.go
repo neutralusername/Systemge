@@ -28,6 +28,7 @@ func (priorityQueue *PriorityQueue[T]) Len() int {
 func (priorityQueue *PriorityQueue[T]) Push(element T, priority uint32) error {
 	priorityQueue.mutex.Lock()
 	defer priorityQueue.mutex.Unlock()
+
 	if priorityQueue.maxItems > 0 && uint32(len(priorityQueue.priorityQueue)) >= priorityQueue.maxItems {
 		if !priorityQueue.replaceOnFull {
 			return errors.New("priority queue is full")
@@ -44,6 +45,7 @@ func (priorityQueue *PriorityQueue[T]) Push(element T, priority uint32) error {
 func (priorityQueue *PriorityQueue[T]) Pop() (T, error) {
 	priorityQueue.mutex.Lock()
 	defer priorityQueue.mutex.Unlock()
+
 	if len(priorityQueue.priorityQueue) == 0 {
 		var nilValue T
 		return nilValue, errors.New("priority queue is empty")
