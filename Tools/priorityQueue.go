@@ -9,14 +9,14 @@ import (
 type PriorityQueue[T any] struct {
 	mutex         sync.Mutex
 	priorityQueue priorityQueue[T]
-	maxItems      uint32
+	maxElements   uint32
 	replaceIfFull bool
 }
 
-func NewPriorityQueue[T any](maxItems uint32, replaceIfFull bool) *PriorityQueue[T] {
+func NewPriorityQueue[T any](maxElements uint32, replaceIfFull bool) *PriorityQueue[T] {
 	return &PriorityQueue[T]{
 		priorityQueue: make(priorityQueue[T], 0),
-		maxItems:      maxItems,
+		maxElements:   maxElements,
 		replaceIfFull: replaceIfFull,
 	}
 }
@@ -25,18 +25,18 @@ func (priorityQueue *PriorityQueue[T]) Len() int {
 	return len(priorityQueue.priorityQueue)
 }
 
-func (priorityQueue *PriorityQueue[T]) Push(element T, priority uint32) error {
+func (priorityQueue *PriorityQueue[T]) Push(value T, priority uint32) error {
 	priorityQueue.mutex.Lock()
 	defer priorityQueue.mutex.Unlock()
 
-	if priorityQueue.maxItems > 0 && uint32(len(priorityQueue.priorityQueue)) >= priorityQueue.maxItems {
+	if priorityQueue.maxElements > 0 && uint32(len(priorityQueue.priorityQueue)) >= priorityQueue.maxElements {
 		if !priorityQueue.replaceIfFull {
 			return errors.New("priority queue is full")
 		}
 		heap.Pop(&priorityQueue.priorityQueue)
 	}
 	heap.Push(&priorityQueue.priorityQueue, &priorityQueueElement[T]{
-		value:    element,
+		value:    value,
 		priority: priority,
 	})
 	return nil
