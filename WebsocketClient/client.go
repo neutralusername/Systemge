@@ -22,8 +22,6 @@ type WebsocketClient struct {
 	closedMutex  sync.Mutex
 	closeChannel chan bool
 
-	state map[string]any
-
 	sendMutex sync.Mutex
 	readMutex sync.Mutex
 
@@ -48,30 +46,11 @@ func New(config *Config.WebsocketClient, websocketConn *websocket.Conn) (*Websoc
 		config:        config,
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
-		state:         make(map[string]any),
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	websocketConn.SetReadLimit(int64(client.config.IncomingMessageByteLimit))
 
 	return client, nil
-}
-
-func (client *WebsocketClient) SetState(key string, value any) {
-	client.sendMutex.Lock()
-	defer client.sendMutex.Unlock()
-	client.state[key] = value
-}
-
-func (client *WebsocketClient) GetState(key string) any {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
-	return client.state[key]
-}
-
-func (client *WebsocketClient) RemoveState(key string) {
-	client.sendMutex.Lock()
-	defer client.sendMutex.Unlock()
-	delete(client.state, key)
 }
 
 func (client *WebsocketClient) GetStatus() int {

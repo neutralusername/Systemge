@@ -58,11 +58,6 @@ func UnmarshalWebsocketClient(data string) *WebsocketClient {
 	return &ws
 }
 
-type DefaultMessageHandler struct {
-	BytesRateLimiterConfig   *TokenBucketRateLimiter `json:"bytesRateLimiterConfig"`   // *required*
-	MessageRateLimiterConfig *TokenBucketRateLimiter `json:"messageRateLimiterConfig"` // *required*
-}
-
 type WebsocketServer struct {
 	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
 	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
@@ -70,8 +65,6 @@ type WebsocketServer struct {
 	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
 
 	IpRateLimiterConfig *IpRateLimiter `json:"ipRateLimiterConfig"` // *required*
-
-	DefaultMessageHandlerConfig *DefaultMessageHandler `json:"defaultMessageHandlerConfig"` // *optional*
 
 	HandleClientsSequentially  bool `json:"handleClientsSequentially"`  // default: false
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false

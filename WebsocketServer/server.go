@@ -77,9 +77,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if config.WebsocketListenerConfig == nil {
 		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
-	if messageHandler == nil && config.DefaultMessageHandlerConfig == nil {
-		config.DefaultMessageHandlerConfig = &Config.DefaultMessageHandler{}
-	}
 
 	server := &WebsocketServer{
 		config:           config,
@@ -92,7 +89,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		blacklist:        blacklist,
 	}
 	if server.messageHandler == nil {
-		server.messageHandler = server.GetDefaultMessageHandler(config.DefaultMessageHandlerConfig)
+		server.messageHandler = server.GetDefaultMessageHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
 	if config.IpRateLimiterConfig != nil {
