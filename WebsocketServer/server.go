@@ -85,7 +85,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		blacklist:        blacklist,
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
-	server.syncManager = Tools.NewSyncManager(config.SyncManagerConfig)
+	server.syncManager = Tools.NewRequestResponseManager(config.SyncManagerConfig)
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
 	}

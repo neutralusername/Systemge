@@ -9,7 +9,7 @@ import (
 )
 
 type RequestResponseManager[T any] struct {
-	config   *Config.SyncManager
+	config   *Config.RequestResponseManager
 	requests map[string]*request[T]
 	mutex    sync.RWMutex
 }
@@ -21,7 +21,7 @@ type request[T any] struct {
 	responseCount   uint64
 }
 
-func NewSyncManager[T any](config *Config.SyncManager) *RequestResponseManager[T] {
+func NewRequestResponseManager[T any](config *Config.RequestResponseManager) *RequestResponseManager[T] {
 	return &RequestResponseManager[T]{
 		requests: make(map[string]*request[T]),
 		mutex:    sync.RWMutex{},
@@ -48,43 +48,43 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 		return nil, errors.New("token already exists")
 	}
 
-	syncRequest := &request[T]{
+	request := &request[T]{
 		token:           token,
 		responseChannel: make(chan T, responseLimit),
 		doneChannel:     make(chan struct{}),
 		responseLimit:   responseLimit,
 		responseCount:   0,
 	}
-	manager.requests[token] = syncRequest
+	manager.requests[token] = request
 
 	if timeoutMs > 0 {
 		go func() {
 			select {
 			case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
 				manager.AbortRequest(token)
-			case <-syncRequest.doneChannel:
+			case <-request.doneChannel:
 			}
 		}()
 	}
 
-	return syncRequest, nil
+	return request, nil
 }
 
 func (manager *RequestResponseManager[T]) AddResponse(token string, response T) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
-	syncRequest, ok := manager.requests[token]
+	request, ok := manager.requests[token]
 	if !ok {
-		return errors.New("no active sync request for token")
+		return errors.New("no active request for token")
 	}
 
-	syncRequest.responseChannel <- response
-	syncRequest.responseCount++
+	request.responseChannel <- response
+	request.responseCount++
 
-	if syncRequest.responseCount >= syncRequest.responseLimit {
-		close(syncRequest.responseChannel)
-		close(syncRequest.doneChannel)
+	if request.responseCount >= request.responseLimit {
+		close(request.responseChannel)
+		close(request.doneChannel)
 		delete(manager.requests, token)
 	}
 
@@ -95,19 +95,18 @@ func (manager *RequestResponseManager[T]) AbortRequest(token string) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
-	syncRequestStruct, ok := manager.requests[token]
+	request, ok := manager.requests[token]
 	if !ok {
-		return errors.New("no active sync request for token")
+		return errors.New("no active request for token")
 	}
 
-	close(syncRequestStruct.doneChannel)
-	close(syncRequestStruct.responseChannel)
+	close(request.doneChannel)
+	close(request.responseChannel)
 	delete(manager.requests, token)
 
 	return nil
 }
 
-// returns a slice of syncTokens of active sync requests
 func (manager *RequestResponseManager[T]) GetActiveRequestTokens() []string {
 	manager.mutex.RLock()
 	defer manager.mutex.RUnlock()
