@@ -196,6 +196,7 @@ func (pool *Pool[T]) ReturnItem(item T) error {
 	if !pool.acquiredItems[item] {
 		return errors.New("item is not acquired")
 	}
+	delete(pool.acquiredItems, item)
 	pool.addItem(item)
 	return nil
 }
@@ -213,7 +214,7 @@ func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 	}
 	if !pool.acquiredItems[item] {
 		if isReturned {
-			return errors.New("item is not acquired")
+			return errors.New("item can not be returned")
 		}
 		if !pool.availableItems[item] {
 			return errors.New("item does not exist")
@@ -235,20 +236,20 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 	defer pool.mutex.Unlock()
 
 	if transactional {
-		if pool.maxItems > 0 && len(pool.items)+len(items) > int(pool.maxItems) {
+		if pool.maxItems > 0 && len(pool.acquiredItems)+len(pool.availableItems)+len(items) > int(pool.maxItems) {
 			return errors.New("amount of items exceeds pool capacity")
 		}
 		for _, item := range items {
-			if pool.items[item] {
+			if pool.availableItems[item] || pool.acquiredItems[item] {
 				return errors.New("an item already exists")
 			}
 		}
 	}
 	for _, item := range items {
-		if pool.maxItems > 0 && len(pool.items) == int(pool.maxItems) {
+		if pool.maxItems > 0 && len(pool.acquiredItems)+len(pool.availableItems) == int(pool.maxItems) {
 			break
 		}
-		if pool.items[item] {
+		if pool.availableItems[item] || pool.acquiredItems[item] {
 			continue
 		}
 		pool.addItem(item)
@@ -258,7 +259,7 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 
 func (pool *Pool[T]) addItem(item T) {
 	if len(pool.waiters) > 0 {
-		pool.items[item] = false
+		pool.acquiredItems[item] = true
 		var waiter chan T
 		for waiter = range pool.waiters {
 			delete(pool.waiters, waiter)
@@ -266,6 +267,6 @@ func (pool *Pool[T]) addItem(item T) {
 		}
 		waiter <- item
 	} else {
-		pool.items[item] = true
+		pool.availableItems[item] = true
 	}
 }
