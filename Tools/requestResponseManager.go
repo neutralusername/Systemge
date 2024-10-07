@@ -11,7 +11,7 @@ import (
 type RequestResponseManager[T any] struct {
 	config   *Config.SyncManager
 	requests map[string]*request[T]
-	mutex    sync.Mutex
+	mutex    sync.RWMutex
 }
 type request[T any] struct {
 	token           string
@@ -24,7 +24,7 @@ type request[T any] struct {
 func NewSyncManager[T any](config *Config.SyncManager) *RequestResponseManager[T] {
 	return &RequestResponseManager[T]{
 		requests: make(map[string]*request[T]),
-		mutex:    sync.Mutex{},
+		mutex:    sync.RWMutex{},
 		config:   config,
 	}
 }
@@ -108,9 +108,9 @@ func (manager *RequestResponseManager[T]) AbortRequest(token string) error {
 }
 
 // returns a slice of syncTokens of active sync requests
-func (manager *RequestResponseManager[T]) GetActiveRequests() []string {
-	manager.mutex.Lock()
-	defer manager.mutex.Unlock()
+func (manager *RequestResponseManager[T]) GetActiveRequestTokens() []string {
+	manager.mutex.RLock()
+	defer manager.mutex.RUnlock()
 	tokens := make([]string, 0, len(manager.requests))
 	for k := range manager.requests {
 		tokens = append(tokens, k)
