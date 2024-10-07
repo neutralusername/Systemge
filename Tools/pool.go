@@ -10,7 +10,7 @@ type Pool[T comparable] struct {
 	availableItems map[T]bool
 	acquiredItems  map[T]bool
 	mutex          sync.Mutex
-	waiters        map[chan T]bool // todo: make fifo with O(1) delete
+	waiters        *KeyDequeue[chan T, bool]
 	maxItems       uint32
 }
 
@@ -24,7 +24,7 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 	pool := &Pool[T]{
 		acquiredItems:  make(map[T]bool),
 		availableItems: make(map[T]bool),
-		waiters:        make(map[chan T]bool),
+		waiters:        NewKeyDequeue(make(map[chan T]bool)),
 		maxItems:       maxItems,
 	}
 
@@ -90,7 +90,7 @@ func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 	}
 
 	waiter := make(chan T, 1)
-	pool.waiters[waiter] = true
+	pool.waiters.Push(waiter, true)
 	pool.mutex.Unlock()
 
 	if timeoutMs == 0 {
@@ -111,7 +111,7 @@ func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 			default:
 			}
 
-			delete(pool.waiters, waiter)
+			pool.waiters.PopKey(waiter)
 			var nilItem T
 			return nilItem, errors.New("timeout")
 		}
@@ -257,13 +257,9 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 }
 
 func (pool *Pool[T]) addItem(item T) {
-	if len(pool.waiters) > 0 {
+	waiter, _, err := pool.waiters.PopFront()
+	if err == nil {
 		pool.acquiredItems[item] = true
-		var waiter chan T
-		for waiter = range pool.waiters {
-			delete(pool.waiters, waiter)
-			break
-		}
 		waiter <- item
 	} else {
 		pool.availableItems[item] = true

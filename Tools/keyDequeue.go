@@ -24,7 +24,7 @@ func NewKeyDequeue[K comparable, V any](initialItems map[K]V) *KeyDequeue[K, V] 
 		values: make(map[K]*keyDequeueNode[K, V]),
 	}
 	for key, value := range initialItems {
-		orderedMap.Add(key, value)
+		orderedMap.Push(key, value)
 	}
 	return orderedMap
 }
@@ -36,7 +36,7 @@ func newKeyDequeueNode[K comparable, V any](key K, value V) *keyDequeueNode[K, V
 	}
 }
 
-func (keyDequeue *KeyDequeue[K, V]) Add(key K, value V) error {
+func (keyDequeue *KeyDequeue[K, V]) Push(key K, value V) error {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
 
@@ -58,7 +58,7 @@ func (keyDequeue *KeyDequeue[K, V]) Add(key K, value V) error {
 	return nil
 }
 
-func (keyDequeue *KeyDequeue[K, V]) RetrieveFIFO() (K, V, error) {
+func (keyDequeue *KeyDequeue[K, V]) PopFront() (K, V, error) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
 
@@ -78,7 +78,7 @@ func (keyDequeue *KeyDequeue[K, V]) RetrieveFIFO() (K, V, error) {
 	return node.key, node.value, nil
 }
 
-func (keyDequeue *KeyDequeue[K, V]) RetrieveLIFO() (K, V, error) {
+func (keyDequeue *KeyDequeue[K, V]) PopBack() (K, V, error) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
 
@@ -98,7 +98,7 @@ func (keyDequeue *KeyDequeue[K, V]) RetrieveLIFO() (K, V, error) {
 	return node.key, node.value, nil
 }
 
-func (keyDequeue *KeyDequeue[K, V]) RetrieveKey(key K) (V, error) {
+func (keyDequeue *KeyDequeue[K, V]) PopKey(key K) (V, error) {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
 
@@ -121,7 +121,7 @@ func (keyDequeue *KeyDequeue[K, V]) RetrieveKey(key K) (V, error) {
 	return node.value, nil
 }
 
-func (keyDequeue *KeyDequeue[K, V]) UpdateValue(key K, value V) error {
+func (keyDequeue *KeyDequeue[K, V]) Update(key K, value V) error {
 	keyDequeue.mutex.Lock()
 	defer keyDequeue.mutex.Unlock()
 
@@ -131,6 +131,17 @@ func (keyDequeue *KeyDequeue[K, V]) UpdateValue(key K, value V) error {
 	}
 	node.value = value
 	return nil
+}
+
+func (keyDequeue *KeyDequeue[K, V]) Upsert(key K, value V) {
+	keyDequeue.mutex.Lock()
+	defer keyDequeue.mutex.Unlock()
+
+	if node, ok := keyDequeue.values[key]; ok {
+		node.value = value
+		return
+	}
+	keyDequeue.Push(key, value)
 }
 
 // returns the value associated with the provided key.
@@ -172,4 +183,11 @@ func (keyDequeue *KeyDequeue[K, V]) GetValues() []V {
 		currentNode = currentNode.next
 	}
 	return values
+}
+
+func (keyDequeue *KeyDequeue[K, V]) Len() int {
+	keyDequeue.mutex.RLock()
+	defer keyDequeue.mutex.RUnlock()
+
+	return len(keyDequeue.values)
 }
