@@ -9,7 +9,7 @@ import (
 type Pool[T comparable] struct {
 	availableItems map[T]bool
 	acquiredItems  map[T]bool
-	mutex          sync.Mutex
+	mutex          sync.RWMutex
 	waiters        *KeyDequeue[chan T, bool]
 	maxItems       uint32
 }
@@ -40,8 +40,8 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 
 // GetAvailableItems returns a list of available items.
 func (pool *Pool[T]) GetAvailableItems() []T {
-	pool.mutex.Lock()
-	defer pool.mutex.Unlock()
+	pool.mutex.RLock()
+	defer pool.mutex.RUnlock()
 
 	availableItems := make([]T, 0)
 	for item := range pool.availableItems {
@@ -53,8 +53,8 @@ func (pool *Pool[T]) GetAvailableItems() []T {
 
 // GetAcquiredItems returns a list of acquired items.
 func (pool *Pool[T]) GetAcquiredItems() []T {
-	pool.mutex.Lock()
-	defer pool.mutex.Unlock()
+	pool.mutex.RLock()
+	defer pool.mutex.RUnlock()
 
 	acquiredItems := make([]T, 0)
 	for item := range pool.acquiredItems {
@@ -66,8 +66,8 @@ func (pool *Pool[T]) GetAcquiredItems() []T {
 
 // GetItems returns a map of items in the pool. The value is true if the item is available.
 func (pool *Pool[T]) GetItems() map[T]bool {
-	pool.mutex.Lock()
-	defer pool.mutex.Unlock()
+	pool.mutex.RLock()
+	defer pool.mutex.RUnlock()
 
 	items := make(map[T]bool)
 	for item := range pool.availableItems {
