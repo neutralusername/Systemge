@@ -1,11 +1,15 @@
 package Tools
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 type OrderedMap[K comparable, V any] struct {
 	head   *orderedMapNode[K, V]
 	tail   *orderedMapNode[K, V]
 	values map[K]*orderedMapNode[K, V]
+	mutex  sync.Mutex
 }
 
 type orderedMapNode[K comparable, V any] struct {
@@ -33,6 +37,9 @@ func newOrderedMapNode[K comparable, V any](key K, value V) *orderedMapNode[K, V
 }
 
 func (orderedMap *OrderedMap[K, V]) Push(key K, value V) error {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
 	if _, ok := orderedMap.values[key]; ok {
 		return errors.New("key already exists")
 	}
@@ -52,6 +59,9 @@ func (orderedMap *OrderedMap[K, V]) Push(key K, value V) error {
 }
 
 func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
 	if orderedMap.head == nil {
 		var nilKey K
 		var nilValue V
@@ -69,6 +79,9 @@ func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
 }
 
 func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
 	if node, ok := orderedMap.values[key]; ok {
 		return node.value, nil
 	}
@@ -77,6 +90,9 @@ func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
 }
 
 func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
 	node, ok := orderedMap.values[key]
 	if !ok {
 		return errors.New("key not found")
@@ -98,6 +114,9 @@ func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
 }
 
 func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
 	keys := make([]K, 0, len(orderedMap.values))
 	currentNode := orderedMap.tail
 	for currentNode != nil {
@@ -108,6 +127,9 @@ func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
 }
 
 func (orderedMap *OrderedMap[K, V]) GetValues() []V {
+	orderedMap.mutex.Lock()
+	defer orderedMap.mutex.Unlock()
+
 	values := make([]V, 0, len(orderedMap.values))
 	currentNode := orderedMap.tail
 	for currentNode != nil {
