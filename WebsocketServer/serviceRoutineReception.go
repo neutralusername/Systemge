@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -78,6 +80,48 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
 	// init stuff
 	return func(client *WebsocketClient.WebsocketClient, message []byte) error {
+		if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
+			if server.eventHandler != nil {
+				if event := server.onEvent(Event.New(
+					Event.RateLimited,
+					Event.Context{
+						Event.SessionId:       session.GetId(),
+						Event.Identity:        session.GetIdentity(),
+						Event.Address:         websocketClient.GetAddress(),
+						Event.RateLimiterType: Event.TokenBucket,
+						Event.TokenBucketType: Event.Bytes,
+					},
+					Event.Continue,
+					Event.Cancel,
+				)); event.GetAction() == Event.Cancel {
+					return errors.New(Event.RateLimited)
+				}
+			} else {
+				return errors.New(Event.RateLimited)
+			}
+		}
+
+		if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
+			if server.eventHandler != nil {
+				if event := server.onEvent(Event.New(
+					Event.RateLimited,
+					Event.Context{
+						Event.SessionId:       session.GetId(),
+						Event.Identity:        session.GetIdentity(),
+						Event.Address:         websocketClient.GetAddress(),
+						Event.RateLimiterType: Event.TokenBucket,
+						Event.TokenBucketType: Event.Messages,
+					},
+					Event.Continue,
+					Event.Cancel,
+				)); event.GetAction() == Event.Cancel {
+					return errors.New(Event.RateLimited)
+				}
+			} else {
+				return errors.New(Event.RateLimited)
+			}
+		}
+
 		return nil
 	}
 }
