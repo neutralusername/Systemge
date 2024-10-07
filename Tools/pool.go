@@ -3,12 +3,13 @@ package Tools
 import (
 	"errors"
 	"sync"
+	"time"
 )
 
 type Pool[T comparable] struct {
 	items    map[T]bool // item -> isAvailable
 	mutex    sync.Mutex
-	waiters  []chan T
+	waiters  map[chan T]bool
 	maxItems uint32
 }
 
@@ -21,6 +22,7 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 	}
 	pool := &Pool[T]{
 		items:    make(map[T]bool),
+		waiters:  make(map[chan T]bool),
 		maxItems: maxItems,
 	}
 
@@ -76,21 +78,35 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 
 // AcquireItem returns an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
-func (pool *Pool[T]) AcquireItem() T {
+func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 	pool.mutex.Lock()
 
 	for item, isAvailable := range pool.items {
 		if isAvailable {
 			pool.items[item] = false
 			pool.mutex.Unlock()
-			return item
+			return item, nil
 		}
 	}
 
 	waiter := make(chan T)
-	pool.waiters = append(pool.waiters, waiter)
+	pool.waiters[waiter] = true
 	pool.mutex.Unlock()
-	return <-waiter
+
+	if timeout == 0 {
+		return <-waiter, nil
+	} else {
+		select {
+		case item := <-waiter:
+			return item, nil
+		case <-time.After(time.Duration(timeout) * time.Millisecond):
+			pool.mutex.Lock()
+			defer pool.mutex.Unlock()
+			delete(pool.waiters, waiter)
+			var nilItem T
+			return nilItem, errors.New("timeout")
+		}
+	}
 }
 
 func (pool *Pool[T]) TryAcquireItem() (T, error) {
@@ -111,13 +127,18 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 // AcquireItemChannel returns a channel that will return an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
 // The channel will be closed after the item is returned.
-func (pool *Pool[T]) AcquireItemChannel() <-chan T {
-	c := make(chan T, 1)
+func (pool *Pool[T]) AcquireItemChannel(timeoutMs uint32) <-chan T {
+	channel := make(chan T, 1)
 	go func() {
-		c <- pool.AcquireItem()
-		close(c)
+		item, err := pool.AcquireItem(timeoutMs)
+		if err != nil {
+			close(channel)
+		} else {
+			channel <- item
+			close(channel)
+		}
 	}()
-	return c
+	return channel
 }
 
 // RemoveItems removes the item from the pool.
@@ -222,8 +243,11 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 
 func (pool *Pool[T]) addItem(item T) {
 	if len(pool.waiters) > 0 {
-		waiter := pool.waiters[0]
-		pool.waiters = pool.waiters[1:]
+		var waiter chan T
+		for waiter = range pool.waiters {
+			delete(pool.waiters, waiter)
+			break
+		}
 		waiter <- item
 	} else {
 		pool.items[item] = true
