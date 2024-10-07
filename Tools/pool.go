@@ -89,7 +89,7 @@ func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 		}
 	}
 
-	waiter := make(chan T)
+	waiter := make(chan T, 1)
 	pool.waiters[waiter] = true
 	pool.mutex.Unlock()
 
