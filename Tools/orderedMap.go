@@ -24,7 +24,7 @@ func NewOrderedMap[K comparable, V any](initialItems map[K]V) *OrderedMap[K, V] 
 		values: make(map[K]*orderedMapNode[K, V]),
 	}
 	for key, value := range initialItems {
-		orderedMap.Push(key, value)
+		orderedMap.Add(key, value)
 	}
 	return orderedMap
 }
@@ -36,7 +36,7 @@ func newOrderedMapNode[K comparable, V any](key K, value V) *orderedMapNode[K, V
 	}
 }
 
-func (orderedMap *OrderedMap[K, V]) Push(key K, value V) error {
+func (orderedMap *OrderedMap[K, V]) Add(key K, value V) error {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
 
@@ -58,7 +58,7 @@ func (orderedMap *OrderedMap[K, V]) Push(key K, value V) error {
 	return nil
 }
 
-func (orderedMap *OrderedMap[K, V]) PopFIFO() (K, V, error) {
+func (orderedMap *OrderedMap[K, V]) RetrieveFIFO() (K, V, error) {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
 
@@ -78,7 +78,7 @@ func (orderedMap *OrderedMap[K, V]) PopFIFO() (K, V, error) {
 	return node.key, node.value, nil
 }
 
-func (orderedMap *OrderedMap[K, V]) PopLIFO() (K, V, error) {
+func (orderedMap *OrderedMap[K, V]) RetrieveLIFO() (K, V, error) {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
 
