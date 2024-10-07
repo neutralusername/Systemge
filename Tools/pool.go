@@ -113,22 +113,8 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 func (pool *Pool[T]) AcquireItemChannel() <-chan T {
 	c := make(chan T, 1)
 	go func() {
-		pool.mutex.Lock()
-		if len(pool.availableItems) == 0 {
-			waiter := make(chan T)
-			pool.waiters = append(pool.waiters, waiter)
-			pool.mutex.Unlock()
-			c <- <-waiter
-		} else {
-			for i := range pool.availableItems {
-				pool.acquiredItems[i] = true
-				delete(pool.availableItems, i)
-				pool.mutex.Unlock()
-				c <- i
-				close(c)
-				return
-			}
-		}
+		c <- pool.AcquireItem()
+		close(c)
 	}()
 	return c
 }
