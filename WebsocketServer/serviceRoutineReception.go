@@ -77,7 +77,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}
 }
 
-func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
+func (server *WebsocketServer) GetDefaultMessageHandler(config *Config.DefaultMessageHandler) func(*WebsocketClient.WebsocketClient, []byte) error {
 	// init stuff
 	// (todo: find clever way to init rate limters once per client...)
 	return func(client *WebsocketClient.WebsocketClient, message []byte) error {
