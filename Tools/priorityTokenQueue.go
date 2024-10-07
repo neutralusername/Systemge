@@ -7,56 +7,51 @@ import (
 	"time"
 )
 
-type priorityTokenQueueItem struct {
-	token              string
-	value              any
-	priority           uint32
-	isRetrievedChannel chan struct{}
-	index              int
-}
-
-type PriorityQueue []*priorityTokenQueueItem
-
-type PriorityTokenQueue struct {
-	items         map[string]*priorityTokenQueueItem
+type PriorityTokenQueue[T comparable] struct {
+	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
-	priorityQueue PriorityQueue
+	priorityQueue priorityQueue[*tokenItem[T]]
 }
 
-func NewPriorityTokenQueue(priorityQueue PriorityQueue) *PriorityTokenQueue {
-	if priorityQueue == nil {
-		priorityQueue = make(PriorityQueue, 0)
-	}
-	queue := &PriorityTokenQueue{
-		items:         make(map[string]*priorityTokenQueueItem),
-		priorityQueue: priorityQueue,
+type tokenItem[T comparable] struct {
+	item               T
+	token              string
+	isRetrievedChannel chan struct{}
+}
+
+func NewPriorityTokenQueue[T comparable]() *PriorityTokenQueue[T] {
+	queue := &PriorityTokenQueue[T]{
+		elements:      make(map[string]*priorityQueueElement[*tokenItem[T]]),
+		priorityQueue: make(priorityQueue[*tokenItem[T]], 0),
 	}
 	heap.Init(&queue.priorityQueue)
 	return queue
 }
 
-func NewPriorityTokenQueueItem(token string, value any, priority uint32, timeoutMs uint64) *priorityTokenQueueItem {
-	return &priorityTokenQueueItem{
+func newTokenItem[T comparable](token string, value T) *tokenItem[T] {
+	return &tokenItem[T]{
+		item:               value,
 		token:              token,
-		value:              value,
-		priority:           priority,
 		isRetrievedChannel: make(chan struct{}),
 	}
 }
 
 // token may be empty string
-func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint32, timeoutMs uint64) error {
+func (queue *PriorityTokenQueue[T]) Add(token string, value T, priority uint32, timeoutMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
-	item := NewPriorityTokenQueueItem(token, value, priority, timeoutMs)
+	element := &priorityQueueElement[*tokenItem[T]]{
+		value:    newTokenItem(token, value),
+		priority: priority,
+	}
 	if token != "" {
-		if queue.items[token] != nil {
+		if queue.elements[token] != nil {
 			return errors.New("token already exists")
 		}
-		queue.items[item.token] = item
+		queue.elements[token] = element
 	}
-	heap.Push(&queue.priorityQueue, item)
+	heap.Push(&queue.priorityQueue, element)
 
 	if timeoutMs > 0 {
 		go func() {
@@ -65,73 +60,46 @@ func (queue *PriorityTokenQueue) AddItem(token string, value any, priority uint3
 				queue.mutex.Lock()
 				defer queue.mutex.Unlock()
 				select {
-				case <-item.isRetrievedChannel:
+				case <-element.value.isRetrievedChannel:
 				default:
-					queue.removeItem(item)
+					queue.remove(element)
 				}
-			case <-item.isRetrievedChannel:
+			case <-element.value.isRetrievedChannel:
 			}
 		}()
 	}
 	return nil
 }
-func (queue *PriorityTokenQueue) removeItem(item *priorityTokenQueueItem) {
-	close(item.isRetrievedChannel)
-	delete(queue.items, item.token)
-	heap.Remove(&queue.priorityQueue, item.index)
+
+func (queue *PriorityTokenQueue[T]) remove(element *priorityQueueElement[*tokenItem[T]]) {
+	close(element.value.isRetrievedChannel)
+	delete(queue.elements, element.value.token)
+	heap.Remove(&queue.priorityQueue, element.index)
 }
-func (queue *PriorityTokenQueue) GetItemByToken(token string) (any, error) {
+
+func (queue *PriorityTokenQueue[T]) RetrieveByToken(token string) (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
-	item := queue.items[token]
-	if item == nil {
-		return nil, errors.New("token not found")
+	element, ok := queue.elements[token]
+	if !ok {
+		var nilValue T
+		return nilValue, errors.New("token not found")
 	}
-	queue.removeItem(item)
-	return item.value, nil
+	queue.remove(element)
+	return element.value.item, nil
 }
 
-func (queue *PriorityTokenQueue) GetNextItem() (any, error) {
+func (queue *PriorityTokenQueue[T]) RetrieveNext() (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
 	if len(queue.priorityQueue) == 0 {
-		return nil, errors.New("queue is empty")
+		var nilValue T
+		return nilValue, errors.New("queue is empty")
 	}
-	item := heap.Pop(&queue.priorityQueue).(*priorityTokenQueueItem)
-	close(item.isRetrievedChannel)
-	delete(queue.items, item.token)
-	return item.value, nil
-}
-
-func (pq PriorityQueue) Len() int {
-	return len(pq)
-}
-
-func (pq PriorityQueue) Less(i, j int) bool {
-	return pq[i].priority > pq[j].priority
-}
-
-func (pq PriorityQueue) Swap(i, j int) {
-	pq[i], pq[j] = pq[j], pq[i]
-	pq[i].index = i
-	pq[j].index = j
-}
-
-func (pq *PriorityQueue) Push(x any) {
-	n := len(*pq)
-	item := x.(*priorityTokenQueueItem)
-	item.index = n
-	*pq = append(*pq, item)
-}
-
-func (pq *PriorityQueue) Pop() any {
-	old := *pq
-	n := len(old)
-	item := old[n-1]
-	old[n-1] = nil
-	item.index = -1
-	*pq = old[0 : n-1]
-	return item
+	element := heap.Pop(&queue.priorityQueue).(*priorityQueueElement[*tokenItem[T]])
+	close(element.value.isRetrievedChannel)
+	delete(queue.elements, element.value.token)
+	return element.value.item, nil
 }
