@@ -62,8 +62,7 @@ type WebsocketServer struct {
 	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
 	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
 
-	SessionManagerConfig *SessionManager         `json:"sessionManagerConfig"` // *required*
-	SyncManagerConfig    *RequestResponseManager `json:"syncManagerConfig"`    // *required*
+	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
 
 	IpRateLimiterConfig      *IpRateLimiter          `json:"ipRateLimiterConfig"`      // *required*
 	BytesRateLimiterConfig   *TokenBucketRateLimiter `json:"bytesRateLimiterConfig"`   // *required*

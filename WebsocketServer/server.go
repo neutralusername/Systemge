@@ -39,7 +39,6 @@ type WebsocketServer struct {
 	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
-	syncManager    *Tools.RequestResponseManager[*Message.Message]
 	topicManager   *Tools.TopicManager
 
 	// metrics
@@ -64,7 +63,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error), eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error), messageHandler func(*WebsocketClient.WebsocketClient, *Message.Message) error, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -88,7 +87,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		blacklist:        blacklist,
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
-	server.syncManager = Tools.NewRequestResponseManager[*Message.Message](config.SyncManagerConfig)
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
 	}
