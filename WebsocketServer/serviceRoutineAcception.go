@@ -179,6 +179,15 @@ func (server *WebsocketServer) handleAcception(websocketClient *WebsocketClient.
 	requestResponseManager := Tools.NewRequestResponseManager[*Message.Message](server.config.SyncManagerConfig)
 	session.Set("requestResponseManager", requestResponseManager)
 
+	if server.config.BytesRateLimiterConfig != nil {
+		bytesRateLimiter := Tools.NewTokenBucketRateLimiter(server.config.BytesRateLimiterConfig)
+		session.Set("bytesRateLimiter", bytesRateLimiter)
+	}
+	if server.config.MessageRateLimiterConfig != nil {
+		messageRateLimiter := Tools.NewTokenBucketRateLimiter(server.config.MessageRateLimiterConfig)
+		session.Set("messageRateLimiter", messageRateLimiter)
+	}
+
 	server.waitGroup.Add(2)
 	go server.websocketClientDisconnect(session, websocketClient)
 	go server.receptionRoutine(session, websocketClient)

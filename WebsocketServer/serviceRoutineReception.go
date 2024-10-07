@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -54,9 +55,9 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		handleReceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
 			if err := server.handleReception(websocketClient, messageBytes); err != nil {
 				websocketClient.Close()
-				server.ClientsRejected.Add(1)
+				server.RejectedMessages.Add(1)
 			} else {
-				server.ClientsAccepted.Add(1)
+				server.RejectedMessages.Add(1)
 			}
 		}
 
@@ -73,7 +74,88 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}
 }
 
+func (server *WebsocketServer) handleReception(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+	if websocketClient.byteRateLimiter != nil && !websocketClient.byteRateLimiter.Consume(uint64(len(messageBytes))) {
+		if event := websocketClient.onEvent(Event.NewWarning(
+			Event.RateLimited,
+			"byte rate limited",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:    Event.HandleMessageReception,
+				Event.Behaviour:       behaviour,
+				Event.RateLimiterType: Event.TokenBucket,
+				Event.TokenBucketType: Event.Messages,
+			},
+		)); !event.IsInfo() {
+			websocketClient.rejectedMessagesReceived.Add(1)
+			websocketClient.messageChannelSemaphore.ReleaseBlocking()
+			return event.GetError()
+		}
+	}
+
+	if websocketClient.messageRateLimiter != nil && !websocketClient.messageRateLimiter.Consume(1) {
+		if event := websocketClient.onEvent(Event.NewWarning(
+			Event.RateLimited,
+			"message rate limited",
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance:    Event.HandleMessageReception,
+				Event.Behaviour:       behaviour,
+				Event.RateLimiterType: Event.TokenBucket,
+				Event.TokenBucketType: Event.Messages,
+			},
+		)); !event.IsInfo() {
+			websocketClient.rejectedMessagesReceived.Add(1)
+			websocketClient.messageChannelSemaphore.ReleaseBlocking()
+			return event.GetError()
+		}
+	}
+
+	message, err := Message.Deserialize(messageBytes, websocketClient.GetName())
+	if err != nil {
+		websocketClient.invalidMessagesReceived.Add(1)
+		websocketClient.messageChannelSemaphore.ReleaseBlocking()
+		websocketClient.onEvent(Event.NewWarningNoOption(
+			Event.DeserializingFailed,
+			err.Error(),
+			Event.Context{
+				Event.Circumstance: Event.HandleMessageReception,
+				Event.Behaviour:    behaviour,
+				Event.StructType:   Event.Message,
+				Event.Bytes:        string(messageBytes),
+			},
+		))
+		return err
+	}
+
+	if err := websocketClient.validateMessage(message); err != nil {
+		if event := websocketClient.onEvent(Event.NewWarning(
+			Event.InvalidMessage,
+			err.Error(),
+			Event.Cancel,
+			Event.Cancel,
+			Event.Continue,
+			Event.Context{
+				Event.Circumstance: Event.HandleMessageReception,
+				Event.Behaviour:    behaviour,
+				Event.Topic:        message.GetTopic(),
+				Event.Payload:      message.GetPayload(),
+				Event.SyncToken:    message.GetSyncToken(),
+			},
+		)); !event.IsInfo() {
+			websocketClient.invalidMessagesReceived.Add(1)
+			websocketClient.messageChannelSemaphore.ReleaseBlocking()
+			return event.GetError()
+		}
+	}
+}
+
 /*
+
 message, err := connection.handleMessageReception(messageBytes, Event.Sequential)
 if err != nil {
 	if connection.eventHandler != nil {
