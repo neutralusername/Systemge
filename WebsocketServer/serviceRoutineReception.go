@@ -41,17 +41,16 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 						Event.Error: err.Error(),
 					},
 					Event.Cancel,
-					Event.Continue,
+					Event.Skip,
 				))
-				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
-					break
+				if event.GetAction() == Event.Skip {
+					continue
 				}
-			} else {
-				websocketClient.Close()
-				break
 			}
+			websocketClient.Close()
+			break
 		}
+
 	}
 }
 

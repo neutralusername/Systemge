@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -174,6 +175,9 @@ func (server *WebsocketServer) handleAcception(websocketClient *WebsocketClient.
 	if session == nil {
 		return errors.New("session creation failed")
 	}
+
+	requestResponseManager := Tools.NewRequestResponseManager[*Message.Message](server.config.SyncManagerConfig)
+	session.Set("requestResponseManager", requestResponseManager)
 
 	server.waitGroup.Add(2)
 	go server.websocketClientDisconnect(session, websocketClient)
