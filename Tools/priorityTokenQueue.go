@@ -7,18 +7,20 @@ import (
 	"time"
 )
 
-type PriorityTokenQueue struct {
-	items         map[string]*priorityTokenQueueItem
-	mutex         sync.Mutex
-	priorityQueue PriorityQueue
-}
-
 type priorityTokenQueueItem struct {
 	token              string
 	value              any
 	priority           uint32
 	isRetrievedChannel chan struct{}
 	index              int
+}
+
+type PriorityQueue []*priorityTokenQueueItem
+
+type PriorityTokenQueue struct {
+	items         map[string]*priorityTokenQueueItem
+	mutex         sync.Mutex
+	priorityQueue PriorityQueue
 }
 
 func NewPriorityTokenQueue(priorityQueue PriorityQueue) *PriorityTokenQueue {
@@ -102,8 +104,6 @@ func (queue *PriorityTokenQueue) GetNextItem() (any, error) {
 	delete(queue.items, item.token)
 	return item.value, nil
 }
-
-type PriorityQueue []*priorityTokenQueueItem
 
 func (pq PriorityQueue) Len() int {
 	return len(pq)

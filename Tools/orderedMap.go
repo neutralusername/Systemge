@@ -28,74 +28,74 @@ func newOrderedMapNode[K comparable, V any](key K, value V) *orderedMapNode[K, V
 	}
 }
 
-func (fifoMap *OrderedMap[K, V]) Add(key K, value V) error {
-	if _, ok := fifoMap.values[key]; ok {
+func (orderedMap *OrderedMap[K, V]) Add(key K, value V) error {
+	if _, ok := orderedMap.values[key]; ok {
 		return errors.New("key already exists")
 	}
 
 	node := newOrderedMapNode(key, value)
-	fifoMap.values[key] = node
-	if fifoMap.head == nil {
-		fifoMap.head = node
-		fifoMap.tail = node
+	orderedMap.values[key] = node
+	if orderedMap.head == nil {
+		orderedMap.head = node
+		orderedMap.tail = node
 		return nil
 	}
 
-	fifoMap.tail.next = node
-	node.prev = fifoMap.tail
-	fifoMap.tail = node
+	orderedMap.tail.next = node
+	node.prev = orderedMap.tail
+	orderedMap.tail = node
 	return nil
 }
 
-func (fifoMap *OrderedMap[K, V]) Get(key K) (V, error) {
-	if node, ok := fifoMap.values[key]; ok {
+func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
+	if node, ok := orderedMap.values[key]; ok {
 		return node.value, nil
 	}
 	var nilValue V
 	return nilValue, errors.New("key not found")
 }
 
-func (fifoMap *OrderedMap[K, V]) Delete(key K) error {
-	node, ok := fifoMap.values[key]
+func (orderedMap *OrderedMap[K, V]) Delete(key K) error {
+	node, ok := orderedMap.values[key]
 	if !ok {
 		return errors.New("key not found")
 	}
 
-	delete(fifoMap.values, key)
+	delete(orderedMap.values, key)
 	if node.prev != nil {
 		node.prev.next = node.next
 	} else {
-		fifoMap.head = node.next
+		orderedMap.head = node.next
 	}
 
 	if node.next != nil {
 		node.next.prev = node.prev
 	} else {
-		fifoMap.tail = node.prev
+		orderedMap.tail = node.prev
 	}
 	return nil
 }
 
-func (fifoMap *OrderedMap[K, V]) Pop() (K, V, error) {
-	if fifoMap.head == nil {
+func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
+	if orderedMap.head == nil {
 		var nilKey K
 		var nilValue V
 		return nilKey, nilValue, errors.New("empty map")
 	}
-	node := fifoMap.head
-	delete(fifoMap.values, node.key)
-	fifoMap.head = node.next
+	node := orderedMap.head
+	delete(orderedMap.values, node.key)
+	orderedMap.head = node.next
 	if node.next != nil {
 		node.next.prev = nil
 	} else {
-		fifoMap.tail = nil
+		orderedMap.tail = nil
 	}
 	return node.key, node.value, nil
 }
 
-func (fifoMap *OrderedMap[K, V]) GetKeys() []K {
-	keys := make([]K, 0, len(fifoMap.values))
-	currentNode := fifoMap.tail
+func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
+	keys := make([]K, 0, len(orderedMap.values))
+	currentNode := orderedMap.tail
 	for currentNode != nil {
 		keys = append(keys, currentNode.key)
 		currentNode = currentNode.prev
@@ -103,9 +103,9 @@ func (fifoMap *OrderedMap[K, V]) GetKeys() []K {
 	return keys
 }
 
-func (fifoMap *OrderedMap[K, V]) GetValues() []V {
-	values := make([]V, 0, len(fifoMap.values))
-	currentNode := fifoMap.tail
+func (orderedMap *OrderedMap[K, V]) GetValues() []V {
+	values := make([]V, 0, len(orderedMap.values))
+	currentNode := orderedMap.tail
 	for currentNode != nil {
 		values = append(values, currentNode.value)
 		currentNode = currentNode.prev
