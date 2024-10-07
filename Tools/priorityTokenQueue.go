@@ -22,10 +22,12 @@ type tokenItem[T any] struct {
 	isRetrievedChannel chan struct{}
 }
 
-func NewPriorityTokenQueue[T any]() *PriorityTokenQueue[T] {
+func NewPriorityTokenQueue[T any](maxElements uint32, replaceIfFull bool) *PriorityTokenQueue[T] {
 	queue := &PriorityTokenQueue[T]{
 		elements:      make(map[string]*priorityQueueElement[*tokenItem[T]]),
 		priorityQueue: make(priorityQueue[*tokenItem[T]], 0),
+		maxElements:   maxElements,
+		replaceIfFull: replaceIfFull,
 	}
 	heap.Init(&queue.priorityQueue)
 	return queue
@@ -39,10 +41,17 @@ func newTokenItem[T any](token string, value T) *tokenItem[T] {
 	}
 }
 
-// token may be empty string
+// token may be empty string if not needed (can not be retrieved by token).
 func (queue *PriorityTokenQueue[T]) Add(token string, value T, priority uint32, timeoutMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
+
+	if queue.maxElements > 0 && uint32(len(queue.priorityQueue)) >= queue.maxElements {
+		if !queue.replaceIfFull {
+			return errors.New("priority queue is full")
+		}
+		heap.Pop(&queue.priorityQueue)
+	}
 
 	element := &priorityQueueElement[*tokenItem[T]]{
 		value:    newTokenItem(token, value),
