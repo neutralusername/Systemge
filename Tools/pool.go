@@ -127,22 +127,15 @@ func (pool *Pool[T]) RemoveItems(transactional bool, items ...T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	if !transactional {
-		for _, item := range items {
-			_, ok := pool.items[item]
-			if ok {
-				delete(pool.items, item)
-			}
-		}
-	} else {
+	if transactional {
 		for _, item := range items {
 			if !pool.items[item] {
 				return errors.New("item does not exist")
 			}
 		}
-		for _, item := range items {
-			delete(pool.items, item)
-		}
+	}
+	for _, item := range items {
+		delete(pool.items, item)
 	}
 	return nil
 }
@@ -207,17 +200,7 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	if !transactional {
-		for _, item := range items {
-			if pool.maxItems > 0 && len(pool.items) == int(pool.maxItems) {
-				break
-			}
-			if pool.items[item] {
-				continue
-			}
-			pool.addItem(item)
-		}
-	} else {
+	if transactional {
 		if pool.maxItems > 0 && len(pool.items)+len(items) > int(pool.maxItems) {
 			return errors.New("amount of items exceeds pool capacity")
 		}
@@ -226,9 +209,15 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 				return errors.New("an item already exists")
 			}
 		}
-		for _, item := range items {
-			pool.addItem(item)
+	}
+	for _, item := range items {
+		if pool.maxItems > 0 && len(pool.items) == int(pool.maxItems) {
+			break
 		}
+		if pool.items[item] {
+			continue
+		}
+		pool.addItem(item)
 	}
 	return nil
 }
