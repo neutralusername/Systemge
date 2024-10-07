@@ -10,14 +10,13 @@ type Pool[T comparable] struct {
 	availableItems map[T]bool
 	mutex          sync.Mutex
 	waiters        []chan T
+	maxItems       uint32
 }
 
 // items must be comparable and unique.
 // providing non comparable items, such as maps, slices, or functions, will result in a panic.
+// maxItems == 0 means no limit.
 func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error) {
-	if maxItems == 0 {
-		return nil, errors.New("maxItems must be greater than 0")
-	}
 	if len(availableItems) > int(maxItems) {
 		return nil, errors.New("initialItems must be less than or equal to maxItems")
 	}
