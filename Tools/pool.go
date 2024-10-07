@@ -10,7 +10,7 @@ type Pool[T comparable] struct {
 	availableItems map[T]bool
 	acquiredItems  map[T]bool
 	mutex          sync.Mutex
-	waiters        map[chan T]bool
+	waiters        map[chan T]bool // todo: make fifo with O(1) delete
 	maxItems       uint32
 }
 
