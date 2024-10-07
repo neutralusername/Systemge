@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -38,7 +39,7 @@ type WebsocketServer struct {
 	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
-	syncManager    *Tools.RequestResponseManager
+	syncManager    *Tools.RequestResponseManager[*Message.Message]
 	topicManager   *Tools.TopicManager
 
 	// metrics
@@ -85,7 +86,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		blacklist:        blacklist,
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
-	server.syncManager = Tools.NewRequestResponseManager(config.SyncManagerConfig)
+	server.syncManager = Tools.NewRequestResponseManager[*Message.Message](config.SyncManagerConfig)
 	if config.IpRateLimiterConfig != nil {
 		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
 	}

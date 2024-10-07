@@ -22,6 +22,9 @@ type request[T any] struct {
 }
 
 func NewRequestResponseManager[T any](config *Config.RequestResponseManager) *RequestResponseManager[T] {
+	if config == nil {
+		config = &Config.RequestResponseManager{}
+	}
 	return &RequestResponseManager[T]{
 		requests: make(map[string]*request[T]),
 		mutex:    sync.RWMutex{},
