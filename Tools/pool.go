@@ -103,6 +103,13 @@ func (pool *Pool[T]) AcquireItem(timeout uint32) (T, error) {
 			pool.mutex.Lock()
 			defer pool.mutex.Unlock()
 			delete(pool.waiters, waiter)
+			select {
+			case item, ok := <-waiter:
+				if ok {
+					return item, nil
+				}
+			default:
+			}
 			var nilItem T
 			return nilItem, errors.New("timeout")
 		}
