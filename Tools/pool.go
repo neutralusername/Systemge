@@ -43,10 +43,8 @@ func (pool *Pool[T]) GetAvailableItems() []T {
 	defer pool.mutex.Unlock()
 
 	availableItems := make([]T, 0)
-	for item, isAvailable := range pool.items {
-		if isAvailable {
-			availableItems = append(availableItems, item)
-		}
+	for item := range pool.availableItems {
+		availableItems = append(availableItems, item)
 	}
 
 	return availableItems
@@ -57,10 +55,8 @@ func (pool *Pool[T]) GetAcquiredItems() []T {
 	defer pool.mutex.Unlock()
 
 	acquiredItems := make([]T, 0)
-	for item, isAvailable := range pool.items {
-		if !isAvailable {
-			acquiredItems = append(acquiredItems, item)
-		}
+	for item := range pool.acquiredItems {
+		acquiredItems = append(acquiredItems, item)
 	}
 
 	return acquiredItems
@@ -72,8 +68,11 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 	defer pool.mutex.Unlock()
 
 	items := make(map[T]bool)
-	for item, isAvailable := range pool.items {
-		items[item] = isAvailable
+	for item := range pool.availableItems {
+		items[item] = true
+	}
+	for item := range pool.acquiredItems {
+		items[item] = false
 	}
 	return items
 }
@@ -83,12 +82,11 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 	pool.mutex.Lock()
 
-	for item, isAvailable := range pool.items {
-		if isAvailable {
-			pool.items[item] = false
-			pool.mutex.Unlock()
-			return item, nil
-		}
+	for item := range pool.availableItems {
+		delete(pool.availableItems, item)
+		pool.acquiredItems[item] = true
+		pool.mutex.Unlock()
+		return item, nil
 	}
 
 	waiter := make(chan T, 1)
@@ -124,11 +122,10 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	for item, isAvailable := range pool.items {
-		if isAvailable {
-			pool.items[item] = false
-			return item, nil
-		}
+	for item := range pool.availableItems {
+		delete(pool.availableItems, item)
+		pool.acquiredItems[item] = true
+		return item, nil
 	}
 
 	var nilItem T
