@@ -7,10 +7,11 @@ import (
 )
 
 type Pool[T comparable] struct {
-	items    map[T]bool // item -> isAvailable
-	mutex    sync.Mutex
-	waiters  map[chan T]bool
-	maxItems uint32
+	availableItems map[T]bool
+	acquiredItems  map[T]bool
+	mutex          sync.Mutex
+	waiters        map[chan T]bool
+	maxItems       uint32
 }
 
 // items must be comparable and unique.
@@ -21,16 +22,17 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 		return nil, errors.New("initialItems must be less than or equal to maxItems")
 	}
 	pool := &Pool[T]{
-		items:    make(map[T]bool),
-		waiters:  make(map[chan T]bool),
-		maxItems: maxItems,
+		acquiredItems:  make(map[T]bool),
+		availableItems: make(map[T]bool),
+		waiters:        make(map[chan T]bool),
+		maxItems:       maxItems,
 	}
 
 	for _, item := range availableItems {
-		if pool.items[item] {
+		if pool.availableItems[item] {
 			return nil, errors.New("duplicate item")
 		}
-		pool.items[item] = true
+		pool.availableItems[item] = true
 	}
 
 	return pool, nil
