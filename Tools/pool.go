@@ -138,7 +138,7 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 
 // AcquireItemChannel returns a channel that will return an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
-// The channel will be closed after the item is returned.
+// If the timeout is reached, the channel will be closed without sending an item.
 func (pool *Pool[T]) AcquireItemChannel(timeoutMs uint32) <-chan T {
 	channel := make(chan T, 1)
 	go func() {
