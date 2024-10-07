@@ -80,22 +80,17 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 func (pool *Pool[T]) AcquireItem() T {
 	pool.mutex.Lock()
 
-	var item T
-	if len(pool.availableItems) == 0 {
-		waiter := make(chan T)
-		pool.waiters = append(pool.waiters, waiter)
+	for item := range pool.availableItems {
+		pool.acquiredItems[item] = true
+		delete(pool.availableItems, item)
 		pool.mutex.Unlock()
-		item = <-waiter
-	} else {
-		for i := range pool.availableItems {
-			pool.acquiredItems[item] = true
-			delete(pool.availableItems, item)
-			item = i
-			break
-		}
-		pool.mutex.Unlock()
+		return item
 	}
-	return item
+
+	waiter := make(chan T)
+	pool.waiters = append(pool.waiters, waiter)
+	pool.mutex.Unlock()
+	return <-waiter
 }
 
 func (pool *Pool[T]) TryAcquireItem() (T, error) {
