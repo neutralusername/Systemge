@@ -50,6 +50,5 @@ func (priorityQueue *PriorityQueue[T]) Pop() (T, error) {
 		var nilValue T
 		return nilValue, errors.New("priority queue is empty")
 	}
-	element := heap.Pop(&priorityQueue.priorityQueue).(*priorityQueueElement[T])
-	return element.value, nil
+	return heap.Pop(&priorityQueue.priorityQueue).(*priorityQueueElement[T]).value, nil
 }

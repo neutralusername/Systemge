@@ -11,6 +11,9 @@ type PriorityTokenQueue[T any] struct {
 	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
 	priorityQueue priorityQueue[*tokenItem[T]]
+
+	maxElements   uint32
+	replaceIfFull bool
 }
 
 type tokenItem[T any] struct {
