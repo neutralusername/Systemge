@@ -42,9 +42,7 @@ func (pool *Pool[T]) GetAcquiredItems() []T {
 
 	acquiredItems := make([]T, 0)
 	for item, isAvailable := range pool.acquiredItems {
-		if !isAvailable {
-			acquiredItems = append(acquiredItems, item)
-		}
+		acquiredItems = append(acquiredItems, item)
 	}
 
 	return acquiredItems
@@ -56,9 +54,7 @@ func (pool *Pool[T]) GetAvailableItems() []T {
 
 	availableItems := make([]T, 0)
 	for item, isAvailable := range pool.availableItems {
-		if isAvailable {
-			availableItems = append(availableItems, item)
-		}
+		availableItems = append(availableItems, item)
 	}
 
 	return availableItems
