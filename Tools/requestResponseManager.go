@@ -44,7 +44,7 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 	if manager.config.MaxActiveRequests > 0 && len(manager.requests) >= manager.config.MaxActiveRequests {
 		return nil, errors.New("too many active requests")
 	}
-	for _, ok := manager.requests[token]; ok; {
+	if _, ok := manager.requests[token]; ok {
 		return nil, errors.New("token already exists")
 	}
 
