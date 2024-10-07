@@ -7,19 +7,19 @@ import (
 	"time"
 )
 
-type PriorityTokenQueue[T comparable] struct {
+type PriorityTokenQueue[T any] struct {
 	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
 	priorityQueue priorityQueue[*tokenItem[T]]
 }
 
-type tokenItem[T comparable] struct {
+type tokenItem[T any] struct {
 	item               T
 	token              string
 	isRetrievedChannel chan struct{}
 }
 
-func NewPriorityTokenQueue[T comparable]() *PriorityTokenQueue[T] {
+func NewPriorityTokenQueue[T any]() *PriorityTokenQueue[T] {
 	queue := &PriorityTokenQueue[T]{
 		elements:      make(map[string]*priorityQueueElement[*tokenItem[T]]),
 		priorityQueue: make(priorityQueue[*tokenItem[T]], 0),
@@ -28,7 +28,7 @@ func NewPriorityTokenQueue[T comparable]() *PriorityTokenQueue[T] {
 	return queue
 }
 
-func newTokenItem[T comparable](token string, value T) *tokenItem[T] {
+func newTokenItem[T any](token string, value T) *tokenItem[T] {
 	return &tokenItem[T]{
 		item:               value,
 		token:              token,

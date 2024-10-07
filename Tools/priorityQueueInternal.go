@@ -1,11 +1,11 @@
 package Tools
 
-type priorityQueueElement[T comparable] struct {
+type priorityQueueElement[T any] struct {
 	value    T
 	priority uint32
 	index    int
 }
-type priorityQueue[T comparable] []*priorityQueueElement[T]
+type priorityQueue[T any] []*priorityQueueElement[T]
 
 func (priorityQueue priorityQueue[T]) Len() int {
 	return len(priorityQueue)
