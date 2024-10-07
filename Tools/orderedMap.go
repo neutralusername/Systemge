@@ -113,28 +113,30 @@ func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
 	return nil
 }
 
+// returns the keys in the order they were pushed
 func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
 
 	keys := make([]K, 0, len(orderedMap.values))
-	currentNode := orderedMap.tail
+	currentNode := orderedMap.head
 	for currentNode != nil {
 		keys = append(keys, currentNode.key)
-		currentNode = currentNode.prev
+		currentNode = currentNode.next
 	}
 	return keys
 }
 
+// returns the values in the order they were pushed
 func (orderedMap *OrderedMap[K, V]) GetValues() []V {
 	orderedMap.mutex.Lock()
 	defer orderedMap.mutex.Unlock()
 
 	values := make([]V, 0, len(orderedMap.values))
-	currentNode := orderedMap.tail
+	currentNode := orderedMap.head
 	for currentNode != nil {
 		values = append(values, currentNode.value)
-		currentNode = currentNode.prev
+		currentNode = currentNode.next
 	}
 	return values
 }
