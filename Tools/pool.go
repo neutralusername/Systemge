@@ -27,7 +27,7 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 	}
 
 	for _, item := range availableItems {
-		if pool.acquiredItems[item] {
+		if pool.availableItems[item] {
 			return nil, errors.New("duplicate item")
 		}
 		pool.availableItems[item] = true
