@@ -15,10 +15,14 @@ type orderedMapNode[K comparable, V any] struct {
 	prev  *orderedMapNode[K, V]
 }
 
-func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
-	return &OrderedMap[K, V]{
+func NewOrderedMap[K comparable, V any](initialItems map[K]V) *OrderedMap[K, V] {
+	orderedMap := &OrderedMap[K, V]{
 		values: make(map[K]*orderedMapNode[K, V]),
 	}
+	for key, value := range initialItems {
+		orderedMap.Push(key, value)
+	}
+	return orderedMap
 }
 
 func newOrderedMapNode[K comparable, V any](key K, value V) *orderedMapNode[K, V] {
