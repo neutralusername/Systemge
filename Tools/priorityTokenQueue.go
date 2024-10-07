@@ -41,8 +41,12 @@ func newTokenItem[T any](token string, value T) *tokenItem[T] {
 	}
 }
 
-// token may be empty string if not needed (can not be retrieved by token).
-func (queue *PriorityTokenQueue[T]) Add(token string, value T, priority uint32, timeoutMs uint64) error {
+// Push pushes a new item into the queue based on its priority.
+// If the queue is full and replaceIfFull is false, an error is returned.
+// The token may be an emptry string, which means that the item cannot be retrieved by token.
+// If the token is not empty and already exists, an error is returned.
+// If a timeout is set, the item will be removed from the queue after the timeout.
+func (queue *PriorityTokenQueue[T]) Push(token string, value T, priority uint32, timeoutMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -83,7 +87,9 @@ func (queue *PriorityTokenQueue[T]) Add(token string, value T, priority uint32, 
 	return nil
 }
 
-func (queue *PriorityTokenQueue[T]) RetrieveNext() (T, error) {
+// Pop returns the next item from the queue.
+// If the queue is empty, an error is returned.
+func (queue *PriorityTokenQueue[T]) Pop() (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -97,7 +103,9 @@ func (queue *PriorityTokenQueue[T]) RetrieveNext() (T, error) {
 	return element.value.item, nil
 }
 
-func (queue *PriorityTokenQueue[T]) RetrieveByToken(token string) (T, error) {
+// PopToken returns the item with the given token from the queue.
+// If the token does not exist, an error is returned.
+func (queue *PriorityTokenQueue[T]) PopToken(token string) (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
@@ -108,6 +116,13 @@ func (queue *PriorityTokenQueue[T]) RetrieveByToken(token string) (T, error) {
 	}
 	queue.remove(element)
 	return element.value.item, nil
+}
+
+// Len returns the number of items in the queue.
+func (queue *PriorityTokenQueue[T]) Len() int {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
+	return len(queue.priorityQueue)
 }
 
 func (queue *PriorityTokenQueue[T]) remove(element *priorityQueueElement[*tokenItem[T]]) {
