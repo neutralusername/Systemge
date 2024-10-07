@@ -6,11 +6,10 @@ import (
 )
 
 type Pool[T comparable] struct {
-	acquiredItems  map[T]bool // item -> isAvailable
-	availableItems map[T]bool
-	mutex          sync.Mutex
-	waiters        []chan T
-	maxItems       uint32
+	items    map[T]bool // item -> isAvailable
+	mutex    sync.Mutex
+	waiters  []chan T
+	maxItems uint32
 }
 
 // items must be comparable and unique.
@@ -21,31 +20,18 @@ func NewPool[T comparable](maxItems uint32, availableItems []T) (*Pool[T], error
 		return nil, errors.New("initialItems must be less than or equal to maxItems")
 	}
 	pool := &Pool[T]{
-		acquiredItems:  make(map[T]bool),
-		availableItems: make(map[T]bool),
-		maxItems:       maxItems,
+		items:    make(map[T]bool),
+		maxItems: maxItems,
 	}
 
 	for _, item := range availableItems {
-		if pool.availableItems[item] {
+		if pool.items[item] {
 			return nil, errors.New("duplicate item")
 		}
-		pool.availableItems[item] = true
+		pool.items[item] = true
 	}
 
 	return pool, nil
-}
-
-func (pool *Pool[T]) GetAcquiredItems() []T {
-	pool.mutex.Lock()
-	defer pool.mutex.Unlock()
-
-	acquiredItems := make([]T, 0)
-	for item := range pool.acquiredItems {
-		acquiredItems = append(acquiredItems, item)
-	}
-
-	return acquiredItems
 }
 
 func (pool *Pool[T]) GetAvailableItems() []T {
@@ -53,11 +39,27 @@ func (pool *Pool[T]) GetAvailableItems() []T {
 	defer pool.mutex.Unlock()
 
 	availableItems := make([]T, 0)
-	for item := range pool.availableItems {
-		availableItems = append(availableItems, item)
+	for item, isAvailable := range pool.items {
+		if isAvailable {
+			availableItems = append(availableItems, item)
+		}
 	}
 
 	return availableItems
+}
+
+func (pool *Pool[T]) GetAcquiredItems() []T {
+	pool.mutex.Lock()
+	defer pool.mutex.Unlock()
+
+	acquiredItems := make([]T, 0)
+	for item, isAvailable := range pool.items {
+		if !isAvailable {
+			acquiredItems = append(acquiredItems, item)
+		}
+	}
+
+	return acquiredItems
 }
 
 // GetItems returns a map of items in the pool. The value is true if the item is available.
@@ -66,11 +68,8 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 	defer pool.mutex.Unlock()
 
 	items := make(map[T]bool)
-	for item, _ := range pool.acquiredItems {
-		items[item] = false
-	}
-	for item, _ := range pool.availableItems {
-		items[item] = true
+	for item, isAvailable := range pool.items {
+		items[item] = isAvailable
 	}
 	return items
 }
@@ -80,11 +79,12 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 func (pool *Pool[T]) AcquireItem() T {
 	pool.mutex.Lock()
 
-	for item := range pool.availableItems {
-		pool.acquiredItems[item] = true
-		delete(pool.availableItems, item)
-		pool.mutex.Unlock()
-		return item
+	for item, isAvailable := range pool.items {
+		if isAvailable {
+			pool.items[item] = false
+			pool.mutex.Unlock()
+			return item
+		}
 	}
 
 	waiter := make(chan T)
@@ -97,14 +97,15 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	for item := range pool.availableItems {
-		pool.acquiredItems[item] = true
-		delete(pool.availableItems, item)
-		return item, nil
+	for item, isAvailable := range pool.items {
+		if isAvailable {
+			pool.items[item] = false
+			return item, nil
+		}
 	}
 
 	var nilItem T
-	return nilItem, errors.New("pool is empty")
+	return nilItem, errors.New("no items available")
 }
 
 // AcquireItemChannel returns a channel that will return an item from the pool.
@@ -128,22 +129,18 @@ func (pool *Pool[T]) RemoveItems(transactional bool, items ...T) error {
 
 	if !transactional {
 		for _, item := range items {
-			if pool.acquiredItems[item] {
-				delete(pool.acquiredItems, item)
-			}
-			if pool.availableItems[item] {
-				delete(pool.availableItems, item)
+			if pool.items[item] {
+				delete(pool.items, item)
 			}
 		}
 	} else {
 		for _, item := range items {
-			if !pool.acquiredItems[item] && !pool.availableItems[item] {
+			if !pool.items[item] {
 				return errors.New("item does not exist")
 			}
 		}
 		for _, item := range items {
-			delete(pool.acquiredItems, item)
-			delete(pool.availableItems, item)
+			delete(pool.items, item)
 		}
 	}
 	return nil
@@ -154,15 +151,8 @@ func (pool *Pool[T]) Clear() map[T]bool {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	items := make(map[T]bool)
-	for item, isAvailable := range pool.acquiredItems {
-		if isAvailable {
-			pool.availableItems[item] = true
-		} else {
-			items[item] = true
-		}
-	}
-	pool.acquiredItems = make(map[T]bool)
+	items := pool.items
+	pool.items = make(map[T]bool)
 	return items
 }
 
@@ -173,44 +163,43 @@ func (pool *Pool[T]) ReturnItem(item T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	if !pool.acquiredItems[item] {
+	isAvailable, ok := pool.items[item]
+	if !ok {
 		return errors.New("item does not exist")
 	}
-
-	delete(pool.acquiredItems, item)
+	if isAvailable {
+		return errors.New("item is not acquired")
+	}
+	delete(pool.items, item)
 	pool.addItem(item)
 	return nil
 }
 
 // ReplaceItem replaces an item in the pool.
+// If isReturned is true, the item must be acquired.
 // If the item does not exist, it will return an error.
 // If the item is acquired, it will return an error.
 // If the replacement already exists, it will return an error.
-func (pool *Pool[T]) ReplaceItem(item T, replacement T) error {
+func (pool *Pool[T]) ReplaceItem(item T, replacement T, isReturned bool) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
+	isAvailable, ok := pool.items[item]
+	if !ok {
+		return errors.New("item does not exist")
+	}
+	if isAvailable && isReturned {
+		return errors.New("item is not acquired")
+	}
 	if item != replacement {
-		if pool.acquiredItems[replacement] {
-			return errors.New("replacement already exists")
-		}
-		if pool.availableItems[replacement] {
+		if pool.items[replacement] {
 			return errors.New("replacement already exists")
 		}
 	}
 
-	if pool.acquiredItems[item] {
-		delete(pool.acquiredItems, item)
-		pool.addItem(replacement)
-		return nil
-	}
-	if pool.availableItems[item] {
-		delete(pool.availableItems, item)
-		pool.addItem(replacement)
-		return nil
-	}
-
-	return errors.New("item does not exist")
+	delete(pool.items, item)
+	pool.addItem(replacement)
+	return nil
 }
 
 // AddItems adds new items to the pool.
@@ -222,20 +211,20 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 
 	if !transactional {
 		for _, item := range items {
-			if pool.maxItems > 0 && len(pool.availableItems)+len(pool.acquiredItems) == len(pool.availableItems) {
+			if pool.maxItems > 0 && len(pool.items) == int(pool.maxItems) {
 				break
 			}
-			if pool.acquiredItems[item] || pool.availableItems[item] {
+			if pool.items[item] {
 				continue
 			}
 			pool.addItem(item)
 		}
 	} else {
-		if pool.maxItems > 0 && len(pool.availableItems)+len(pool.acquiredItems)+len(items) > len(pool.availableItems) {
+		if pool.maxItems > 0 && len(pool.items)+len(items) > int(pool.maxItems) {
 			return errors.New("amount of items exceeds pool capacity")
 		}
 		for _, item := range items {
-			if pool.acquiredItems[item] || pool.availableItems[item] {
+			if pool.items[item] {
 				return errors.New("an item already exists")
 			}
 		}
@@ -252,6 +241,6 @@ func (pool *Pool[T]) addItem(item T) {
 		pool.waiters = pool.waiters[1:]
 		waiter <- item
 	} else {
-		pool.availableItems[item] = true
+		pool.items[item] = true
 	}
 }
