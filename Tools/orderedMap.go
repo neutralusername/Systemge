@@ -28,7 +28,7 @@ func newOrderedMapNode[K comparable, V any](key K, value V) *orderedMapNode[K, V
 	}
 }
 
-func (orderedMap *OrderedMap[K, V]) Add(key K, value V) error {
+func (orderedMap *OrderedMap[K, V]) Push(key K, value V) error {
 	if _, ok := orderedMap.values[key]; ok {
 		return errors.New("key already exists")
 	}
@@ -45,6 +45,23 @@ func (orderedMap *OrderedMap[K, V]) Add(key K, value V) error {
 	node.prev = orderedMap.tail
 	orderedMap.tail = node
 	return nil
+}
+
+func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
+	if orderedMap.head == nil {
+		var nilKey K
+		var nilValue V
+		return nilKey, nilValue, errors.New("empty map")
+	}
+	node := orderedMap.head
+	delete(orderedMap.values, node.key)
+	orderedMap.head = node.next
+	if node.next != nil {
+		node.next.prev = nil
+	} else {
+		orderedMap.tail = nil
+	}
+	return node.key, node.value, nil
 }
 
 func (orderedMap *OrderedMap[K, V]) Get(key K) (V, error) {
@@ -74,23 +91,6 @@ func (orderedMap *OrderedMap[K, V]) Remove(key K) error {
 		orderedMap.tail = node.prev
 	}
 	return nil
-}
-
-func (orderedMap *OrderedMap[K, V]) Pop() (K, V, error) {
-	if orderedMap.head == nil {
-		var nilKey K
-		var nilValue V
-		return nilKey, nilValue, errors.New("empty map")
-	}
-	node := orderedMap.head
-	delete(orderedMap.values, node.key)
-	orderedMap.head = node.next
-	if node.next != nil {
-		node.next.prev = nil
-	} else {
-		orderedMap.tail = nil
-	}
-	return node.key, node.value, nil
 }
 
 func (orderedMap *OrderedMap[K, V]) GetKeys() []K {
