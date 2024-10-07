@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -30,6 +29,7 @@ type WebsocketServer struct {
 
 	eventHandler Event.Handler
 
+	messageHandler   func(*WebsocketClient.WebsocketClient, []byte) error
 	handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)
 
 	whitelist     *Tools.AccessControlList
@@ -63,7 +63,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error), messageHandler func(*WebsocketClient.WebsocketClient, *Message.Message) error, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error), messageHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -83,6 +83,7 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		eventHandler:     eventHandler,
 		handshakeHandler: handshakeHandler,
+		messageHandler:   messageHandler,
 		whitelist:        whitelist,
 		blacklist:        blacklist,
 	}

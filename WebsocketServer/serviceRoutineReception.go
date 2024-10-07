@@ -1,10 +1,7 @@
 package WebsocketServer
 
 import (
-	"errors"
-
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -58,7 +55,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		}
 
 		handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
-			if err := server.handleReception(session, websocketClient, messageBytes); err != nil {
+			if err := server.messageHandler(websocketClient, messageBytes); err != nil {
 				websocketClient.Close()
 				server.RejectedMessages.Add(1)
 			} else {
@@ -79,6 +76,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}
 }
 
+/*
 func (server *WebsocketServer) handleReception(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
 		if server.eventHandler != nil {
@@ -159,7 +157,7 @@ func (server *WebsocketServer) handleReception(session *Tools.Session, websocket
 			return event.GetError()
 		}
 	}
-}
+} */
 
 /*
 
