@@ -205,34 +205,25 @@ func (pool *Pool[T]) AddItems(transactional bool, items ...T) error {
 
 	if !transactional {
 		for _, item := range items {
+			if pool.maxItems > 0 && len(pool.availableItems)+len(pool.acquiredItems) == len(pool.availableItems) {
+				break
+			}
 			if pool.acquiredItems[item] || pool.availableItems[item] {
 				continue
 			}
-			if len(pool.waiters) > 0 {
-				waiter := pool.waiters[0]
-				pool.waiters = pool.waiters[1:]
-				waiter <- item
-			} else {
-				pool.availableItems[item] = true
-			}
+			pool.addItem(item)
 		}
 	} else {
+		if pool.maxItems > 0 && len(pool.availableItems)+len(pool.acquiredItems)+len(items) > len(pool.availableItems) {
+			return errors.New("amount of items exceeds pool capacity")
+		}
 		for _, item := range items {
 			if pool.acquiredItems[item] || pool.availableItems[item] {
-				return errors.New("item already exists")
+				return errors.New("an item already exists")
 			}
 		}
 		for _, item := range items {
-			if len(pool.availableItems)+len(pool.acquiredItems) >= len(pool.availableItems) {
-				return errors.New("pool is full")
-			}
-			if len(pool.waiters) > 0 {
-				waiter := pool.waiters[0]
-				pool.waiters = pool.waiters[1:]
-				waiter <- item
-			} else {
-				pool.availableItems[item] = true
-			}
+			pool.addItem(item)
 		}
 	}
 	return nil
