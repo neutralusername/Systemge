@@ -139,12 +139,11 @@ func (pool *Pool[T]) AcquireItemChannel(timeoutMs uint32) <-chan T {
 	channel := make(chan T, 1)
 	go func() {
 		item, err := pool.AcquireItem(timeoutMs)
-		if err != nil {
-			close(channel)
-		} else {
+		if err == nil {
 			channel <- item
-			close(channel)
 		}
+		close(channel)
+
 	}()
 	return channel
 }
