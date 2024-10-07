@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -31,6 +32,15 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		}
 	}
 
+	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
+		if err := server.messageHandler(websocketClient, messageBytes); err != nil {
+			websocketClient.Close()
+			server.RejectedMessages.Add(1)
+		} else {
+			server.AcceptedMessages.Add(1)
+		}
+	}
+
 	for {
 		messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
 		if err != nil {
@@ -54,15 +64,6 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 			break
 		}
 
-		handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
-			if err := server.messageHandler(websocketClient, messageBytes); err != nil {
-				websocketClient.Close()
-				server.RejectedMessages.Add(1)
-			} else {
-				server.AcceptedMessages.Add(1)
-			}
-		}
-
 		if server.config.HandleMessagesSequentially {
 			handleReceptionWrapper(session, websocketClient, messageBytes)
 		} else {
@@ -76,14 +77,14 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 }
 
 func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
-	return func(client *WebsocketClient.WebsocketClient, message []byte) error {
+	return func(client *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+		message, err := Message.Deserialize(messageBytes, client.GetInstanceId())
 
 		return nil
 	}
 }
 
 /*
-
 	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
 			if server.eventHandler != nil {
 				if event := server.onEvent(Event.New(
