@@ -97,16 +97,14 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 
-	var nilItem T
-	if len(pool.availableItems) == 0 {
-		return nilItem, errors.New("pool is empty")
-	}
 	for item := range pool.availableItems {
 		pool.acquiredItems[item] = true
 		delete(pool.availableItems, item)
 		return item, nil
 	}
-	return nilItem, errors.New("can not occur")
+
+	var nilItem T
+	return nilItem, errors.New("pool is empty")
 }
 
 // AcquireItemChannel returns a channel that will return an item from the pool.
