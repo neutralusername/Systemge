@@ -9,6 +9,12 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
+func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
+	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
+		return "", nil
+	}
+}
+
 func (server *WebsocketServer) GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) func(*WebsocketClient.WebsocketClient) (string, error) {
 	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
@@ -81,12 +87,6 @@ func (server *WebsocketServer) GetAccessControlAcceptionHandler(blacklist *Tools
 			}
 		}
 
-		return "", nil
-	}
-}
-
-func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
-	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		return "", nil
 	}
 }
