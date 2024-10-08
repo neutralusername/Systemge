@@ -1,8 +1,6 @@
 package WebsocketServer
 
 import (
-	"errors"
-
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -142,31 +140,6 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 		}
 		return session
 	}
-}
-
-func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
-	websocketClient, ok := session.Get("websocketClient")
-	if !ok {
-		return errors.New("websocketClient not found")
-	}
-
-	if server.eventHandler != nil {
-		event := server.eventHandler.Handle(Event.New(
-			Event.OnCreateSession,
-			Event.Context{
-				Event.Address:   websocketClient.(*WebsocketClient.WebsocketClient).GetAddress(),
-				Event.Identity:  session.GetIdentity(),
-				Event.SessionId: session.GetId(),
-			},
-			Event.Continue,
-			Event.Skip,
-		))
-		if event.GetAction() == Event.Skip {
-			return errors.New("session rejected")
-		}
-	}
-
-	return nil
 }
 
 func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {

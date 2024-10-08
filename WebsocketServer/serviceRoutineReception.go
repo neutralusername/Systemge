@@ -31,8 +31,9 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		}
 	}
 
+	receptionHandler := server.getReceptionHandler()
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
-		if err := server.receptionHandler(server, websocketClient, messageBytes); err != nil {
+		if err := receptionHandler(server, websocketClient, messageBytes); err != nil {
 			websocketClient.Close()
 			server.RejectedMessages.Add(1)
 		} else {

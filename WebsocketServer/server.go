@@ -16,6 +16,7 @@ import (
 
 type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
 type ReceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient, []byte) error
+type GetReceptionHandler func() ReceptionHandler
 
 type WebsocketServer struct {
 	config *Config.WebsocketServer
@@ -32,8 +33,8 @@ type WebsocketServer struct {
 
 	eventHandler *Event.Handler
 
-	receptionHandler ReceptionHandler
-	acceptionHandler AcceptionHandler
+	getReceptionHandler GetReceptionHandler
+	acceptionHandler    AcceptionHandler
 
 	websocketListener *WebsocketListener.WebsocketListener
 
@@ -62,7 +63,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, acceptionHandler AcceptionHandler, receptionHandler ReceptionHandler, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, acceptionHandler AcceptionHandler, getReceptionHandler GetReceptionHandler, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -77,28 +78,28 @@ func New(name string, config *Config.WebsocketServer, acceptionHandler Acception
 	}
 
 	server := &WebsocketServer{
-		config:           config,
-		name:             name,
-		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		acceptionHandler: acceptionHandler,
-		receptionHandler: receptionHandler,
+		config:              config,
+		name:                name,
+		instanceId:          Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		acceptionHandler:    acceptionHandler,
+		getReceptionHandler: getReceptionHandler,
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = GetDefaultAcceptionHandler()
 	}
-	if server.receptionHandler == nil {
-		server.receptionHandler = GetDefaultReceptionHandler()
+	if server.getReceptionHandler == nil {
+		server.getReceptionHandler = GetDefaultReceptionHandler
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
 	}
-	if server.receptionHandler == nil {
-		server.receptionHandler = GetDefaultReceptionHandler()
+	if server.getReceptionHandler == nil {
+		server.getReceptionHandler = GetDefaultReceptionHandler
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = GetDefaultAcceptionHandler()
 	}
-	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
+	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, nil, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig)
 	if err != nil {
 		return nil, err
@@ -135,8 +136,8 @@ func (server *WebsocketServer) SetAcceptionHandler(acceptionHandler AcceptionHan
 	server.acceptionHandler = acceptionHandler
 }
 
-func (server *WebsocketServer) SetReceptionHandler(receptionHandler ReceptionHandler) {
-	server.receptionHandler = receptionHandler
+func (server *WebsocketServer) SetGetReceptionHandler(getReceptionHandler GetReceptionHandler) {
+	server.getReceptionHandler = getReceptionHandler
 }
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
