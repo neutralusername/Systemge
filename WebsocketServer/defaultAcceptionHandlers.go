@@ -16,7 +16,7 @@ func GetDefaultAcceptionHandler() AcceptionHandler {
 }
 
 func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler {
-	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) { // i don't like the passing of eventHandler as a parameter...
+	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) { // server being passed automatically here makes this feel like a method
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
 			if websocketServer.eventHandler != nil {
