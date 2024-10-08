@@ -27,7 +27,7 @@ type WebsocketServer struct {
 	stopChannel chan struct{}
 	waitGroup   sync.WaitGroup
 
-	eventHandler Event.Handler
+	eventHandler *Event.Handler
 
 	receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
 	acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error)
@@ -64,7 +64,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler func(*Event.Event)) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -82,15 +82,17 @@ func New(name string, config *Config.WebsocketServer, acceptionHandler func(*Web
 		config:           config,
 		name:             name,
 		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		eventHandler:     eventHandler,
 		acceptionHandler: acceptionHandler,
 		receptionHandler: receptionHandler,
 	}
+	if eventHandler != nil {
+		server.eventHandler = Event.NewHandler(eventHandler, server.GetServerContext)
+	}
 	if server.receptionHandler == nil {
-		server.receptionHandler = server.GetDefaultReceptionHandler()
+		server.receptionHandler = GetDefaultReceptionHandler()
 	}
 	if server.acceptionHandler == nil {
-		server.acceptionHandler = server.GetDefaultAcceptionHandler()
+		server.acceptionHandler = GetDefaultAcceptionHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig)
@@ -118,11 +120,6 @@ func (server *WebsocketServer) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *WebsocketServer) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(server.GetServerContext())
-	server.eventHandler(event)
-	return event
-}
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.WebsocketServer,

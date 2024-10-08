@@ -4,7 +4,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) GetDefaultReceptionHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
+func GetDefaultReceptionHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
 	return func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 		return nil
 	}

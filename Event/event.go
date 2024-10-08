@@ -7,7 +7,25 @@ import (
 	"strconv"
 )
 
-type Handler func(*Event)
+type Handler struct {
+	eventHandler      func(*Event)
+	getDefaultContext func() Context
+}
+
+func (handler *Handler) Handle(event *Event) *Event {
+	if handler.eventHandler != nil {
+		event.GetContext().Merge(handler.getDefaultContext())
+		handler.eventHandler(event)
+	}
+	return event
+}
+
+func NewHandler(eventHandler func(*Event), getDefaultContext func() Context) *Handler {
+	return &Handler{
+		eventHandler:      eventHandler,
+		getDefaultContext: getDefaultContext,
+	}
+}
 
 type Handlers struct {
 	Handlers       map[string]Handler

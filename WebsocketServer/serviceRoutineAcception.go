@@ -11,7 +11,7 @@ import (
 func (server *WebsocketServer) acceptionRoutine() {
 	defer func() {
 		if server.eventHandler != nil {
-			server.onEvent(Event.New(
+			server.eventHandler.Handle(Event.New(
 				Event.AcceptionRoutineEnds,
 				Event.Context{},
 				Event.Continue,
@@ -21,7 +21,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 	}()
 
 	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
+		event := server.eventHandler.Handle(Event.New(
 			Event.AcceptionRoutineBegins,
 			Event.Context{},
 			Event.Continue,
@@ -40,7 +40,6 @@ func (server *WebsocketServer) acceptionRoutine() {
 				websocketClient.Close()
 				return
 			}
-
 			server.ClientsAccepted.Add(1)
 			server.waitGroup.Add(2)
 			go server.websocketClientDisconnect(session, websocketClient)
@@ -56,7 +55,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 		if err != nil {
 			websocketClient.Close()
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.AcceptClientFailed,
 					Event.Context{
 						Event.Address: websocketClient.GetAddress(),
@@ -86,7 +85,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 func (server *WebsocketServer) createSession(identity string, websocketClient *WebsocketClient.WebsocketClient) *Tools.Session {
 	for {
 		if server.eventHandler != nil {
-			event := server.onEvent(Event.New(
+			event := server.eventHandler.Handle(Event.New(
 				Event.CreatingSession,
 				Event.Context{
 					Event.Address: websocketClient.GetAddress(),
@@ -104,7 +103,7 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 		})
 		if err != nil {
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.CreateSessionFailed,
 					Event.Context{
 						Event.Address:  websocketClient.GetAddress(),
@@ -121,7 +120,7 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 		}
 
 		if server.eventHandler != nil {
-			event := server.onEvent(Event.New(
+			event := server.eventHandler.Handle(Event.New(
 				Event.CreatedSession,
 				Event.Context{
 					Event.Address:   websocketClient.GetAddress(),
@@ -152,7 +151,7 @@ func (server *WebsocketServer) onCreateSession(session *Tools.Session) error {
 	}
 
 	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
+		event := server.eventHandler.Handle(Event.New(
 			Event.OnCreateSession,
 			Event.Context{
 				Event.Address:   websocketClient.(*WebsocketClient.WebsocketClient).GetAddress(),
@@ -180,7 +179,7 @@ func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session,
 	}
 
 	if server.eventHandler != nil {
-		server.onEvent(Event.New(
+		server.eventHandler.Handle(Event.New(
 			Event.OnDisconnect,
 			Event.Context{
 				Event.Address:   websocketClient.GetAddress(),

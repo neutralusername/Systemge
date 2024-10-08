@@ -9,7 +9,7 @@ import (
 func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
 	defer func() {
 		if server.eventHandler != nil {
-			server.onEvent(Event.New(
+			server.eventHandler.Handle(Event.New(
 				Event.ReceptionRoutineEnds,
 				Event.Context{},
 				Event.Continue,
@@ -20,7 +20,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 	}()
 
 	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
+		event := server.eventHandler.Handle(Event.New(
 			Event.ReceptionRoutineBegins,
 			Event.Context{},
 			Event.Continue,
@@ -44,7 +44,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
 		if err != nil {
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.ReadMessageFailed,
 					Event.Context{
 						Event.SessionId: session.GetId(),

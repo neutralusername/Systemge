@@ -14,7 +14,7 @@ func (server *WebsocketServer) Start() error {
 	defer server.statusMutex.Unlock()
 
 	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
+		event := server.eventHandler.Handle(Event.New(
 			Event.ServiceStarting,
 			Event.Context{},
 			Event.Continue,
@@ -27,7 +27,7 @@ func (server *WebsocketServer) Start() error {
 
 	if server.status != Status.Stopped {
 		if server.eventHandler != nil {
-			server.onEvent(Event.New(
+			server.eventHandler.Handle(Event.New(
 				Event.ServiceAlreadyStarted,
 				Event.Context{},
 				Event.Cancel,
@@ -46,7 +46,7 @@ func (server *WebsocketServer) Start() error {
 	server.status = Status.Started
 
 	if server.eventHandler != nil {
-		server.onEvent(Event.New(
+		server.eventHandler.Handle(Event.New(
 			Event.ServiceStarted,
 			Event.Context{},
 			Event.Continue,
