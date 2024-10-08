@@ -64,7 +64,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -85,8 +85,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		eventHandler:     eventHandler,
 		acceptionHandler: acceptionHandler,
 		receptionHandler: receptionHandler,
-		whitelist:        whitelist,
-		blacklist:        blacklist,
 	}
 	if server.receptionHandler == nil {
 		server.receptionHandler = server.GetDefaultReceptionHandler()
@@ -95,9 +93,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		server.acceptionHandler = server.GetDefaultAcceptionHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
-	if config.IpRateLimiterConfig != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiterConfig)
-	}
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig)
 	if err != nil {
 		return nil, err

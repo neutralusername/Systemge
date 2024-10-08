@@ -64,8 +64,6 @@ type WebsocketServer struct {
 
 	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
 
-	IpRateLimiterConfig *IpRateLimiter `json:"ipRateLimiterConfig"` // *required*
-
 	HandleClientsSequentially  bool `json:"handleClientsSequentially"`  // default: false
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
 
