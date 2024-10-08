@@ -14,7 +14,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
-type AcceptionHandler func(*Event.Handler, *WebsocketClient.WebsocketClient) (string, error)
+type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
 type ReceptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
 
 type WebsocketServer struct {
