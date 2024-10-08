@@ -18,8 +18,8 @@ func GetDefaultReceptionHandler() ReceptionHandler {
 func GetValidationReceptionHandler() ReceptionHandler { // how to have access to session/identity/rateLimiters here? ...
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 		if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
-			if websocketServer.eventHandler != nil {
-				if event := websocketServer.onEvent(Event.New(
+			if websocketServer.GetEventHandler() != nil {
+				if event := websocketServer.GetEventHandler().Handle(Event.New(
 					Event.RateLimited,
 					Event.Context{
 						Event.SessionId:       session.GetId(),
@@ -40,7 +40,7 @@ func GetValidationReceptionHandler() ReceptionHandler { // how to have access to
 
 		if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
 			if websocketServer.eventHandler != nil {
-				if event := websocketServer.onEvent(Event.New(
+				if event := websocketServer.GetEventHandler().Handle(Event.New(
 					Event.RateLimited,
 					Event.Context{
 						Event.SessionId:       session.GetId(),
