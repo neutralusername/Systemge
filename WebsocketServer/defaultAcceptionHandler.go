@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) GetDefaultAcceptionHandler2(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) func(*WebsocketClient.WebsocketClient) (string, error) {
+func (server *WebsocketServer) GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) func(*WebsocketClient.WebsocketClient) (string, error) {
 	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
