@@ -11,7 +11,7 @@ import (
 )
 
 func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
-	return func() ReceptionHandler {
+	return func(identity, sessionId string) ReceptionHandler {
 		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 			return nil
 		}
@@ -19,7 +19,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
-	return func() ReceptionHandler {
+	return func(identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
 			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
@@ -34,8 +34,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.RateLimited,
 						Event.Context{
-							Event.SessionId:       session.GetId(),
-							Event.Identity:        session.GetIdentity(),
+							Event.SessionId:       sessionId,
+							Event.Identity:        identity,
 							Event.Address:         websocketClient.GetAddress(),
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Bytes,
@@ -55,8 +55,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.RateLimited,
 						Event.Context{
-							Event.SessionId:       session.GetId(),
-							Event.Identity:        session.GetIdentity(),
+							Event.SessionId:       sessionId,
+							Event.Identity:        identity,
 							Event.Address:         websocketClient.GetAddress(),
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Messages,
@@ -71,7 +71,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			message, err := Message.Deserialize(messageBytes, session.GetId())
+			message, err := Message.Deserialize(messageBytes, sessionId)
 			if err != nil {
 				websocketClient.invalidMessagesReceived.Add(1)
 				websocketClient.messageChannelSemaphore.ReleaseBlocking()
