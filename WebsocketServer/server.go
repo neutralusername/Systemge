@@ -120,6 +120,10 @@ func (server *WebsocketServer) GetSessionId() string {
 	return server.sessionId
 }
 
+func (server *WebsocketServer) GetEventHandler() *Event.Handler {
+	return server.eventHandler
+}
+
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.WebsocketServer,
