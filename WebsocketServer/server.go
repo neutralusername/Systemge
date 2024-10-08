@@ -29,8 +29,7 @@ type WebsocketServer struct {
 
 	eventHandler Event.Handler
 
-	messageHandler   func(*WebsocketClient.WebsocketClient, []byte) error
-	handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)
+	acceptionHandler func(*WebsocketClient.WebsocketClient) error
 
 	whitelist     *Tools.AccessControlList
 	blacklist     *Tools.AccessControlList
@@ -64,7 +63,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error), messageHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler func(*WebsocketClient.WebsocketClient) error, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -83,13 +82,12 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		name:             name,
 		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		eventHandler:     eventHandler,
-		handshakeHandler: handshakeHandler,
-		messageHandler:   messageHandler,
+		acceptionHandler: acceptionHandler,
 		whitelist:        whitelist,
 		blacklist:        blacklist,
 	}
-	if server.messageHandler == nil {
-		server.messageHandler = server.GetDefaultMessageHandler()
+	if server.acceptionHandler == nil {
+		server.acceptionHandler = server.GetDefaultAcceptionHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, server.onCreateSession, nil)
 	if config.IpRateLimiterConfig != nil {

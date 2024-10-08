@@ -2,86 +2,60 @@ package WebsocketServer
 
 import (
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
-	defer func() {
-		if server.eventHandler != nil {
-			server.onEvent(Event.New(
-				Event.ReceptionRoutineEnds,
-				Event.Context{},
-				Event.Continue,
-				Event.Cancel,
-			))
-		}
-		server.waitGroup.Done()
-	}()
+func (server *WebsocketServer) GetDefaultReceptionHandler(identity, sessionId string) func(*WebsocketClient.WebsocketClient) error {
+	return func(websocketClient *WebsocketClient.WebsocketClient) error {
 
-	if server.eventHandler != nil {
-		event := server.onEvent(Event.New(
-			Event.ReceptionRoutineBegins,
-			Event.Context{},
-			Event.Continue,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
-			return
-		}
-	}
-
-	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
-		if err := server.messageHandler(websocketClient, messageBytes); err != nil {
-			websocketClient.Close()
-			server.RejectedMessages.Add(1)
-		} else {
-			server.AcceptedMessages.Add(1)
-		}
-	}
-
-	for {
-		messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
-		if err != nil {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.ReadMessageFailed,
-					Event.Context{
-						Event.SessionId: session.GetId(),
-						Event.Identity:  session.GetIdentity(),
-						Event.Address:   websocketClient.GetAddress(),
-						Event.Error:     err.Error(),
-					},
-					Event.Cancel,
-					Event.Skip,
-				))
-				if event.GetAction() == Event.Skip {
-					continue
-				}
+		handleReceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
+			if err := handleReception(identity, sessionId, websocketClient, messageBytes); err != nil {
+				websocketClient.Close()
+				server.RejectedMessages.Add(1)
+			} else {
+				server.AcceptedMessages.Add(1)
 			}
-			websocketClient.Close()
-			break
 		}
 
-		if server.config.HandleMessagesSequentially {
-			handleReceptionWrapper(session, websocketClient, messageBytes)
-		} else {
-			server.waitGroup.Add(1)
-			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				handleReceptionWrapper(session, websocketClient, messageBytes)
-				server.waitGroup.Done()
-			}(websocketClient)
+		for {
+			messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
+			if err != nil {
+				if server.eventHandler != nil {
+					event := server.onEvent(Event.New(
+						Event.ReadMessageFailed,
+						Event.Context{
+							Event.SessionId: sessionId,
+							Event.Identity:  identity,
+							Event.Address:   websocketClient.GetAddress(),
+							Event.Error:     err.Error(),
+						},
+						Event.Cancel,
+						Event.Skip,
+					))
+					if event.GetAction() == Event.Skip {
+						continue
+					}
+				}
+				websocketClient.Close()
+				break
+			}
+
+			if server.config.HandleMessagesSequentially {
+				handleReceptionWrapper(websocketClient, messageBytes)
+			} else {
+				server.waitGroup.Add(1)
+				go func(websocketClient *WebsocketClient.WebsocketClient) {
+					handleReceptionWrapper(websocketClient, messageBytes)
+					server.waitGroup.Done()
+				}(websocketClient)
+			}
 		}
+		return nil
 	}
 }
 
-func (server *WebsocketServer) GetDefaultMessageHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
-	return func(client *WebsocketClient.WebsocketClient, messageBytes []byte) error {
-		message, err := Message.Deserialize(messageBytes, client.GetInstanceId())
+func handleReception(identity, sessionId string, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 
-		return nil
-	}
 }
 
 /*
