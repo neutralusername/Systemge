@@ -15,7 +15,7 @@ import (
 )
 
 type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
-type ReceptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
+type ReceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient, []byte) error
 
 type WebsocketServer struct {
 	config *Config.WebsocketServer
@@ -62,7 +62,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, acceptionHandler AcceptionHandler, receptionHandler ReceptionHandler, eventHandler Event.HandleFunc) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, acceptionHandler AcceptionHandler, receptionHandler ReceptionHandler, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -83,8 +83,14 @@ func New(name string, config *Config.WebsocketServer, acceptionHandler Acception
 		acceptionHandler: acceptionHandler,
 		receptionHandler: receptionHandler,
 	}
-	if eventHandler != nil {
-		server.eventHandler = Event.NewHandler(eventHandler, server.GetServerContext)
+	if server.acceptionHandler == nil {
+		server.acceptionHandler = GetDefaultAcceptionHandler()
+	}
+	if server.receptionHandler == nil {
+		server.receptionHandler = GetDefaultReceptionHandler()
+	}
+	if eventHandleFunc != nil {
+		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
 	}
 	if server.receptionHandler == nil {
 		server.receptionHandler = GetDefaultReceptionHandler()

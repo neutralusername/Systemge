@@ -5,7 +5,7 @@ import (
 )
 
 func GetDefaultReceptionHandler() ReceptionHandler {
-	return func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 		return nil
 	}
 }
