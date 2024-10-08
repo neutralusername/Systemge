@@ -15,7 +15,7 @@ func GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string
 	}
 }
 
-func GetAccessControlAcceptionHandler(eventHandler *Event.Handler, blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) func(*WebsocketClient.WebsocketClient) (string, error) {
+func GetAccessControlAcceptionHandler(eventHandler *Event.Handler, blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) func(*WebsocketClient.WebsocketClient) (string, error) {
 	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
@@ -87,6 +87,31 @@ func GetAccessControlAcceptionHandler(eventHandler *Event.Handler, blacklist *To
 			}
 		}
 
-		return "", nil
+		identity := ""
+		if handshakeHandler != nil {
+			identity_, err := handshakeHandler(websocketClient)
+			if err != nil {
+				if eventHandler != nil {
+					event := eventHandler.Handle(Event.New(
+						Event.HandshakeFailed,
+						Event.Context{
+							Event.Address:  websocketClient.GetAddress(),
+							Event.Identity: identity,
+							Event.Error:    err.Error(),
+						},
+						Event.Skip,
+						Event.Continue,
+					))
+					if event.GetAction() == Event.Skip {
+						return "", err
+					}
+				} else {
+					return "", err
+				}
+			}
+			identity = identity_
+		}
+
+		return identity, nil
 	}
 }

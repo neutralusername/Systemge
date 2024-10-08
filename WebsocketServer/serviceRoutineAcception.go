@@ -193,30 +193,3 @@ func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session,
 	session.GetTimeout().Trigger()
 	websocketClient.Close()
 }
-
-/*
-	identity := ""
-	if server.handshakeHandler != nil {
-		identity_, err := server.handshakeHandler(websocketClient)
-		if err != nil {
-			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
-					Event.HandshakeFailed,
-					Event.Context{
-						Event.Address:  websocketClient.GetAddress(),
-						Event.Identity: identity,
-						Event.Error:    err.Error(),
-					},
-					Event.Skip,
-					Event.Continue,
-				))
-				if event.GetAction() == Event.Skip {
-					return err
-				}
-			} else {
-				return err
-			}
-		}
-		identity = identity_
-	}
-*/
