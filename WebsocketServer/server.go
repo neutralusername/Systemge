@@ -63,7 +63,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, acceptionHandler AcceptionHandler, getReceptionHandler ReceptionHandlerFactory, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler AcceptionHandler, getReceptionHandler ReceptionHandlerFactory, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -100,7 +100,7 @@ func New(name string, config *Config.WebsocketServer, acceptionHandler Acception
 		server.acceptionHandler = NewDefaultAcceptionHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, nil, nil)
-	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig)
+	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, whitelist, blacklist)
 	if err != nil {
 		return nil, err
 	}
