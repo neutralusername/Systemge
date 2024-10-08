@@ -1,3 +1,3 @@
 package Tools
 
-// idk yet
+// idk yet (servers and possibly connections)
