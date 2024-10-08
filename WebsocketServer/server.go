@@ -16,7 +16,7 @@ import (
 
 type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
 type ReceptionHandler func([]byte) error
-type ReceptionHandlerFactory func(identity, sessionId string, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) ReceptionHandler
+type ReceptionHandlerFactory func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler
 
 type WebsocketServer struct {
 	config *Config.WebsocketServer

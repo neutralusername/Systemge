@@ -11,7 +11,7 @@ import (
 )
 
 func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
-	return func(identity, sessionId string, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) ReceptionHandler {
+	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		return func(messageBytes []byte) error {
 			return nil
 		}
@@ -19,7 +19,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
-	return func(identity, sessionId string, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) ReceptionHandler {
+	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
 			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
