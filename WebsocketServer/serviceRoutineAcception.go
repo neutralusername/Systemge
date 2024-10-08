@@ -29,6 +29,15 @@ func (server *WebsocketServer) acceptionRoutine() {
 		}
 	}
 
+	handleAcceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient) {
+		if err := server.acceptionHandler(websocketClient); err != nil {
+			websocketClient.Close()
+			server.ClientsRejected.Add(1)
+		} else {
+			server.ClientsAccepted.Add(1)
+		}
+	}
+
 	for {
 		websocketClient, err := server.websocketListener.Accept(server.config.WebsocketClientConfig, server.config.AcceptTimeoutMs)
 		if err != nil {
@@ -47,15 +56,6 @@ func (server *WebsocketServer) acceptionRoutine() {
 				}
 			}
 			continue
-		}
-
-		handleAcceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient) {
-			if err := server.acceptionHandler(websocketClient); err != nil {
-				websocketClient.Close()
-				server.ClientsRejected.Add(1)
-			} else {
-				server.ClientsAccepted.Add(1)
-			}
 		}
 
 		if server.config.HandleClientsSequentially {
