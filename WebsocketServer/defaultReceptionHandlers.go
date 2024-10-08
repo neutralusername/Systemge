@@ -3,6 +3,7 @@ package WebsocketServer
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
@@ -17,8 +18,16 @@ func GetGetDefaultReceptionHandler() GetReceptionHandler {
 	}
 }
 
-func GetGetValidationReceptionHandler(byteRateLimiter *Tools.TokenBucketRateLimiter, messageRateLimiter *Tools.TokenBucketRateLimiter) GetReceptionHandler {
+func GetGetValidationReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) GetReceptionHandler {
 	return func() ReceptionHandler {
+		var byteRateLimiter *Tools.TokenBucketRateLimiter
+		if byteRateLimiterConfig != nil {
+			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
+		}
+		var messageRateLimiter *Tools.TokenBucketRateLimiter
+		if messageRateLimiterConfig != nil {
+			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
+		}
 		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 			if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
 				if websocketServer.GetEventHandler() != nil {
