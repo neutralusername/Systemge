@@ -1,6 +1,11 @@
 package WebsocketServer
 
 import (
+	"errors"
+
+	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
@@ -10,17 +15,11 @@ func GetDefaultReceptionHandler() ReceptionHandler {
 	}
 }
 
-func GetValidationReceptionHandler() ReceptionHandler {
+func GetValidationReceptionHandler() ReceptionHandler { // how to have access to session/identity/rateLimiters here? ...
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
-
-		return nil
-	}
-}
-
-/*
-	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
-			if server.eventHandler != nil {
-				if event := server.onEvent(Event.New(
+		if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
+			if websocketServer.eventHandler != nil {
+				if event := websocketServer.onEvent(Event.New(
 					Event.RateLimited,
 					Event.Context{
 						Event.SessionId:       session.GetId(),
@@ -40,8 +39,8 @@ func GetValidationReceptionHandler() ReceptionHandler {
 		}
 
 		if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
-			if server.eventHandler != nil {
-				if event := server.onEvent(Event.New(
+			if websocketServer.eventHandler != nil {
+				if event := websocketServer.onEvent(Event.New(
 					Event.RateLimited,
 					Event.Context{
 						Event.SessionId:       session.GetId(),
@@ -59,7 +58,52 @@ func GetValidationReceptionHandler() ReceptionHandler {
 				return errors.New(Event.RateLimited)
 			}
 		}
-*/
+
+		message, err := Message.Deserialize(messageBytes, session.GetId())
+		if err != nil {
+			websocketClient.invalidMessagesReceived.Add(1)
+			websocketClient.messageChannelSemaphore.ReleaseBlocking()
+			websocketClient.onEvent(Event.NewWarningNoOption(
+				Event.DeserializingFailed,
+				err.Error(),
+				Event.Context{
+					Event.Circumstance: Event.HandleMessageReception,
+					Event.Behaviour:    behaviour,
+					Event.StructType:   Event.Message,
+					Event.Bytes:        string(messageBytes),
+				},
+			))
+			return err
+		}
+
+		if err := websocketClient.validateMessage(message); err != nil {
+			if event := websocketClient.onEvent(Event.NewWarning(
+				Event.InvalidMessage,
+				err.Error(),
+				Event.Cancel,
+				Event.Cancel,
+				Event.Continue,
+				Event.Context{
+					Event.Circumstance: Event.HandleMessageReception,
+					Event.Behaviour:    behaviour,
+					Event.Topic:        message.GetTopic(),
+					Event.Payload:      message.GetPayload(),
+					Event.SyncToken:    message.GetSyncToken(),
+				},
+			)); !event.IsInfo() {
+				websocketClient.invalidMessagesReceived.Add(1)
+				websocketClient.messageChannelSemaphore.ReleaseBlocking()
+				return event.GetError()
+			}
+		}
+
+		return nil
+	}
+}
+
+/*
+
+ */
 
 /*
 func (server *WebsocketServer) handleReception(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
