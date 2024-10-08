@@ -5,10 +5,11 @@ import (
 	"net"
 
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
+func (server *WebsocketServer) GetDefaultAcceptionHandler2(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) func(*WebsocketClient.WebsocketClient) (string, error) {
 	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
@@ -25,7 +26,7 @@ func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClien
 			return "", err
 		}
 
-		if server.ipRateLimiter != nil && !server.ipRateLimiter.RegisterConnectionAttempt(ip) {
+		if ipRateLimiter != nil && !ipRateLimiter.RegisterConnectionAttempt(ip) {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.RateLimited,
@@ -44,7 +45,7 @@ func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClien
 			}
 		}
 
-		if server.blacklist != nil && server.blacklist.Contains(ip) {
+		if blacklist != nil && blacklist.Contains(ip) {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.Blacklisted,
@@ -62,7 +63,7 @@ func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClien
 			}
 		}
 
-		if server.whitelist != nil && server.whitelist.ElementCount() > 0 && !server.whitelist.Contains(ip) {
+		if whitelist != nil && whitelist.ElementCount() > 0 && !whitelist.Contains(ip) {
 			if server.eventHandler != nil {
 				event := server.onEvent(Event.New(
 					Event.NotWhitelisted,
@@ -80,6 +81,12 @@ func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClien
 			}
 		}
 
+		return "", nil
+	}
+}
+
+func (server *WebsocketServer) GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
+	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		return "", nil
 	}
 }
