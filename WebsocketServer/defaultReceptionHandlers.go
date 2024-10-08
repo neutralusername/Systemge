@@ -29,7 +29,7 @@ func GetGetValidationReceptionHandler(byteRateLimiterConfig *Config.TokenBucketR
 			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
 		}
 		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
-			if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
+			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(messageBytes))) {
 				if websocketServer.GetEventHandler() != nil {
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.RateLimited,
@@ -50,7 +50,7 @@ func GetGetValidationReceptionHandler(byteRateLimiterConfig *Config.TokenBucketR
 				}
 			}
 
-			if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
+			if messageRateLimiter != nil && !messageRateLimiter.Consume(1) {
 				if websocketServer.eventHandler != nil {
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.RateLimited,
