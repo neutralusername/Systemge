@@ -20,6 +20,10 @@ func (handler *Handler) Handle(event *Event) *Event {
 	return event
 }
 
+func (handler *Handler) SetDefaultContext(getDefaultContext func() Context) {
+	handler.getDefaultContext = getDefaultContext
+}
+
 type HandleFunc func(*Event)
 
 func NewHandler(eventHandler HandleFunc, getDefaultContext func() Context) *Handler {

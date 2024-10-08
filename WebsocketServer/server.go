@@ -14,6 +14,9 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
+type AcceptionHandler func(*Event.Handler, *WebsocketClient.WebsocketClient) (string, error)
+type ReceptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
+
 type WebsocketServer struct {
 	config *Config.WebsocketServer
 
@@ -29,8 +32,8 @@ type WebsocketServer struct {
 
 	eventHandler *Event.Handler
 
-	receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
-	acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error)
+	receptionHandler ReceptionHandler
+	acceptionHandler AcceptionHandler
 
 	websocketListener *WebsocketListener.WebsocketListener
 
@@ -59,7 +62,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.HandleFunc) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, acceptionHandler AcceptionHandler, receptionHandler ReceptionHandler, eventHandler Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -122,17 +125,11 @@ func (server *WebsocketServer) SetEventHandler(eventHandler Event.HandleFunc) {
 	server.eventHandler = Event.NewHandler(eventHandler, server.GetServerContext)
 }
 
-func (server *WebsocketServer) GetAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
-	return server.acceptionHandler
-}
-func (server *WebsocketServer) SetAcceptionHandler(acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error)) {
+func (server *WebsocketServer) SetAcceptionHandler(acceptionHandler AcceptionHandler) {
 	server.acceptionHandler = acceptionHandler
 }
 
-func (server *WebsocketServer) GetReceptionHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
-	return server.receptionHandler
-}
-func (server *WebsocketServer) SetReceptionHandler(receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error) {
+func (server *WebsocketServer) SetReceptionHandler(receptionHandler ReceptionHandler) {
 	server.receptionHandler = receptionHandler
 }
 

@@ -33,7 +33,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 	}
 
 	handleAcceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient) {
-		if identity, err := server.acceptionHandler(websocketClient); err == nil {
+		if identity, err := server.acceptionHandler(server.eventHandler, websocketClient); err == nil {
 			session := server.createSession(identity, websocketClient)
 			if session == nil {
 				server.ClientsRejected.Add(1)

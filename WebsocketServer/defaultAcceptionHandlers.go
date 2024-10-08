@@ -9,15 +9,14 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
-	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
+func GetDefaultAcceptionHandler() AcceptionHandler {
+	return func(eventHandler *Event.Handler, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		return "", nil
 	}
 }
 
-// initialization is a bit problematic rn since the eventHandler with defaultContext can not be acquired until the server is created, which expects a acceptionHandler on creation..
-func GetAccessControlAcceptionHandler(eventHandler *Event.Handler, blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) func(*WebsocketClient.WebsocketClient) (string, error) {
-	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
+func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler {
+	return func(eventHandler *Event.Handler, websocketClient *WebsocketClient.WebsocketClient) (string, error) { // i don't like the passing of eventHandler as a parameter...
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
 			if eventHandler != nil {
