@@ -37,13 +37,15 @@ func (server *WebsocketServer) acceptionRoutine() {
 			server.ClientsRejected.Add(1)
 			websocketClient.Close()
 		} else {
-			server.ClientsAccepted.Add(1)
 
 			session := server.createSession(identity, websocketClient)
 			if session == nil {
-				return errors.New("session creation failed")
+				server.ClientsRejected.Add(1)
+				websocketClient.Close()
+				return
 			}
 
+			server.ClientsAccepted.Add(1)
 			server.waitGroup.Add(2)
 			go server.websocketClientDisconnect(session, websocketClient)
 			go server.receptionRoutine(session, websocketClient)
