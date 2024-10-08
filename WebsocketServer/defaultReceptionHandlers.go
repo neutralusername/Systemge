@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func GetGetDefaultReceptionHandler() GetReceptionHandler {
+func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	return func() ReceptionHandler {
 		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
 			return nil
@@ -18,7 +18,7 @@ func GetGetDefaultReceptionHandler() GetReceptionHandler {
 	}
 }
 
-func GetGetValidationReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) GetReceptionHandler {
+func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
 	return func() ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {

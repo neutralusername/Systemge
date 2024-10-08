@@ -9,13 +9,13 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func GetDefaultAcceptionHandler() AcceptionHandler {
+func NewDefaultAcceptionHandler() AcceptionHandler {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		return "", nil
 	}
 }
 
-func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler {
+func NewAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
