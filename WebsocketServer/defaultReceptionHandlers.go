@@ -10,8 +10,9 @@ func GetDefaultReceptionHandler() ReceptionHandler {
 	}
 }
 
-func GetValidatedReceptionHandlerHandler() ReceptionHandler {
+func GetValidationReceptionHandler() ReceptionHandler {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+
 		return nil
 	}
 }
