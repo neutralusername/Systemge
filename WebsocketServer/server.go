@@ -88,13 +88,13 @@ func New(name string, config *Config.WebsocketServer, acceptionHandler Acception
 		server.acceptionHandler = GetDefaultAcceptionHandler()
 	}
 	if server.getReceptionHandler == nil {
-		server.getReceptionHandler = GetDefaultReceptionHandler
+		server.getReceptionHandler = GetGetDefaultReceptionHandler()
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
 	}
 	if server.getReceptionHandler == nil {
-		server.getReceptionHandler = GetDefaultReceptionHandler
+		server.getReceptionHandler = GetGetDefaultReceptionHandler()
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = GetDefaultAcceptionHandler()
