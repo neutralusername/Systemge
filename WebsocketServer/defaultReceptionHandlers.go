@@ -15,89 +15,91 @@ func GetDefaultReceptionHandler() ReceptionHandler {
 	}
 }
 
-func GetValidationReceptionHandler() ReceptionHandler { // how to have access to session/identity/rateLimiters here? ...
-	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
-		if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
-			if websocketServer.GetEventHandler() != nil {
-				if event := websocketServer.GetEventHandler().Handle(Event.New(
-					Event.RateLimited,
-					Event.Context{
-						Event.SessionId:       session.GetId(),
-						Event.Identity:        session.GetIdentity(),
-						Event.Address:         websocketClient.GetAddress(),
-						Event.RateLimiterType: Event.TokenBucket,
-						Event.TokenBucketType: Event.Bytes,
-					},
-					Event.Continue,
-					Event.Cancel,
-				)); event.GetAction() == Event.Cancel {
+func GetGetValidationReceptionHandler(byteRateLimiter *Tools.TokenBucketRateLimiter, messageRateLimiter *Tools.TokenBucketRateLimiter) GetReceptionHandler {
+	return func() ReceptionHandler {
+		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+			if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
+				if websocketServer.GetEventHandler() != nil {
+					if event := websocketServer.GetEventHandler().Handle(Event.New(
+						Event.RateLimited,
+						Event.Context{
+							Event.SessionId:       session.GetId(),
+							Event.Identity:        session.GetIdentity(),
+							Event.Address:         websocketClient.GetAddress(),
+							Event.RateLimiterType: Event.TokenBucket,
+							Event.TokenBucketType: Event.Bytes,
+						},
+						Event.Continue,
+						Event.Cancel,
+					)); event.GetAction() == Event.Cancel {
+						return errors.New(Event.RateLimited)
+					}
+				} else {
 					return errors.New(Event.RateLimited)
 				}
-			} else {
-				return errors.New(Event.RateLimited)
 			}
-		}
 
-		if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
-			if websocketServer.eventHandler != nil {
-				if event := websocketServer.GetEventHandler().Handle(Event.New(
-					Event.RateLimited,
-					Event.Context{
-						Event.SessionId:       session.GetId(),
-						Event.Identity:        session.GetIdentity(),
-						Event.Address:         websocketClient.GetAddress(),
-						Event.RateLimiterType: Event.TokenBucket,
-						Event.TokenBucketType: Event.Messages,
-					},
-					Event.Continue,
-					Event.Cancel,
-				)); event.GetAction() == Event.Cancel {
+			if messageRateLimiter, ok := session.Get("messageRateLimiter"); ok && !messageRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(1) {
+				if websocketServer.eventHandler != nil {
+					if event := websocketServer.GetEventHandler().Handle(Event.New(
+						Event.RateLimited,
+						Event.Context{
+							Event.SessionId:       session.GetId(),
+							Event.Identity:        session.GetIdentity(),
+							Event.Address:         websocketClient.GetAddress(),
+							Event.RateLimiterType: Event.TokenBucket,
+							Event.TokenBucketType: Event.Messages,
+						},
+						Event.Continue,
+						Event.Cancel,
+					)); event.GetAction() == Event.Cancel {
+						return errors.New(Event.RateLimited)
+					}
+				} else {
 					return errors.New(Event.RateLimited)
 				}
-			} else {
-				return errors.New(Event.RateLimited)
 			}
-		}
 
-		message, err := Message.Deserialize(messageBytes, session.GetId())
-		if err != nil {
-			websocketClient.invalidMessagesReceived.Add(1)
-			websocketClient.messageChannelSemaphore.ReleaseBlocking()
-			websocketClient.onEvent(Event.NewWarningNoOption(
-				Event.DeserializingFailed,
-				err.Error(),
-				Event.Context{
-					Event.Circumstance: Event.HandleMessageReception,
-					Event.Behaviour:    behaviour,
-					Event.StructType:   Event.Message,
-					Event.Bytes:        string(messageBytes),
-				},
-			))
-			return err
-		}
-
-		if err := websocketClient.validateMessage(message); err != nil {
-			if event := websocketClient.onEvent(Event.NewWarning(
-				Event.InvalidMessage,
-				err.Error(),
-				Event.Cancel,
-				Event.Cancel,
-				Event.Continue,
-				Event.Context{
-					Event.Circumstance: Event.HandleMessageReception,
-					Event.Behaviour:    behaviour,
-					Event.Topic:        message.GetTopic(),
-					Event.Payload:      message.GetPayload(),
-					Event.SyncToken:    message.GetSyncToken(),
-				},
-			)); !event.IsInfo() {
+			message, err := Message.Deserialize(messageBytes, session.GetId())
+			if err != nil {
 				websocketClient.invalidMessagesReceived.Add(1)
 				websocketClient.messageChannelSemaphore.ReleaseBlocking()
-				return event.GetError()
+				websocketClient.onEvent(Event.NewWarningNoOption(
+					Event.DeserializingFailed,
+					err.Error(),
+					Event.Context{
+						Event.Circumstance: Event.HandleMessageReception,
+						Event.Behaviour:    behaviour,
+						Event.StructType:   Event.Message,
+						Event.Bytes:        string(messageBytes),
+					},
+				))
+				return err
 			}
-		}
 
-		return nil
+			if err := websocketClient.validateMessage(message); err != nil {
+				if event := websocketClient.onEvent(Event.NewWarning(
+					Event.InvalidMessage,
+					err.Error(),
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.Circumstance: Event.HandleMessageReception,
+						Event.Behaviour:    behaviour,
+						Event.Topic:        message.GetTopic(),
+						Event.Payload:      message.GetPayload(),
+						Event.SyncToken:    message.GetSyncToken(),
+					},
+				)); !event.IsInfo() {
+					websocketClient.invalidMessagesReceived.Add(1)
+					websocketClient.messageChannelSemaphore.ReleaseBlocking()
+					return event.GetError()
+				}
+			}
+
+			return nil
+		}
 	}
 }
 
