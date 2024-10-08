@@ -10,6 +10,12 @@ func GetDefaultReceptionHandler() ReceptionHandler {
 	}
 }
 
+func GetValidatedReceptionHandlerHandler() ReceptionHandler {
+	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+		return nil
+	}
+}
+
 /*
 	if byteRateLimiter, ok := session.Get("byteRateLimiter"); ok && !byteRateLimiter.(*Tools.TokenBucketRateLimiter).Consume(uint64(len(messageBytes))) {
 			if server.eventHandler != nil {
