@@ -15,7 +15,7 @@ func GetDefaultAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string
 	}
 }
 
-// initialization is a bit problematic rn since the eventHandler with defaultContext can not be acquired until the server is started, which expects the handler on creation..
+// initialization is a bit problematic rn since the eventHandler with defaultContext can not be acquired until the server is created, which expects a handler on creation..
 func GetAccessControlAcceptionHandler(eventHandler *Event.Handler, blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) func(*WebsocketClient.WebsocketClient) (string, error) {
 	return func(websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
