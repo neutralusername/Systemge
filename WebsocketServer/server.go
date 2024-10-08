@@ -118,6 +118,23 @@ func (server *WebsocketServer) GetSessionId() string {
 func (server *WebsocketServer) GetEventHandler() *Event.Handler {
 	return server.eventHandler
 }
+func (server *WebsocketServer) SetEventHandler(eventHandler Event.HandleFunc) {
+	server.eventHandler = Event.NewHandler(eventHandler, server.GetServerContext)
+}
+
+func (server *WebsocketServer) GetAcceptionHandler() func(*WebsocketClient.WebsocketClient) (string, error) {
+	return server.acceptionHandler
+}
+func (server *WebsocketServer) SetAcceptionHandler(acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error)) {
+	server.acceptionHandler = acceptionHandler
+}
+
+func (server *WebsocketServer) GetReceptionHandler() func(*WebsocketClient.WebsocketClient, []byte) error {
+	return server.receptionHandler
+}
+func (server *WebsocketServer) SetReceptionHandler(receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error) {
+	server.receptionHandler = receptionHandler
+}
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
 	return Event.Context{
