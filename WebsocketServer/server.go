@@ -32,14 +32,9 @@ type WebsocketServer struct {
 	receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
 	acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error)
 
-	whitelist     *Tools.AccessControlList
-	blacklist     *Tools.AccessControlList
-	ipRateLimiter *Tools.IpRateLimiter
-
 	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
-	topicManager   *Tools.TopicManager
 
 	// metrics
 
