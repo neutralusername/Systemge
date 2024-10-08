@@ -5,8 +5,32 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) GetDefaultReceptionHandler(identity, sessionId string) func(*WebsocketClient.WebsocketClient) error {
-	return func(websocketClient *WebsocketClient.WebsocketClient) error {
+func (server *WebsocketServer) GetDefaultReceptionHandler(identity, sessionId string) func(*WebsocketClient.WebsocketClient) {
+	return func(websocketClient *WebsocketClient.WebsocketClient) {
+
+		defer func() {
+			if server.eventHandler != nil {
+				server.onEvent(Event.New(
+					Event.ReceptionRoutineEnds,
+					Event.Context{},
+					Event.Continue,
+					Event.Cancel,
+				))
+			}
+			server.waitGroup.Done()
+		}()
+
+		if server.eventHandler != nil {
+			event := server.onEvent(Event.New(
+				Event.ReceptionRoutineBegins,
+				Event.Context{},
+				Event.Continue,
+				Event.Cancel,
+			))
+			if event.GetAction() == Event.Cancel {
+				return
+			}
+		}
 
 		handleReceptionWrapper := func(websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
 			if err := handleReception(identity, sessionId, websocketClient, messageBytes); err != nil {
@@ -50,7 +74,6 @@ func (server *WebsocketServer) GetDefaultReceptionHandler(identity, sessionId st
 				}(websocketClient)
 			}
 		}
-		return nil
 	}
 }
 
