@@ -11,15 +11,15 @@ import (
 )
 
 func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
-	return func(identity, sessionId string) ReceptionHandler {
-		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+	return func(identity, sessionId string, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) ReceptionHandler {
+		return func(messageBytes []byte) error {
 			return nil
 		}
 	}
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
-	return func(identity, sessionId string) ReceptionHandler {
+	return func(identity, sessionId string, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
 			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
@@ -28,7 +28,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 		if messageRateLimiterConfig != nil {
 			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
 		}
-		return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) error {
+		return func(messageBytes []byte) error {
 			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(messageBytes))) {
 				if websocketServer.GetEventHandler() != nil {
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
