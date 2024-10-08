@@ -19,8 +19,8 @@ func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitel
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
-			if websocketServer.eventHandler != nil {
-				websocketServer.eventHandler.Handle(Event.New(
+			if websocketServer.GetEventHandler() != nil {
+				websocketServer.GetEventHandler().Handle(Event.New(
 					Event.SplittingHostPortFailed,
 					Event.Context{
 						Event.Address: websocketClient.GetAddress(),
@@ -33,8 +33,8 @@ func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitel
 		}
 
 		if ipRateLimiter != nil && !ipRateLimiter.RegisterConnectionAttempt(ip) {
-			if websocketServer.eventHandler != nil {
-				event := websocketServer.eventHandler.Handle(Event.New(
+			if websocketServer.GetEventHandler() != nil {
+				event := websocketServer.GetEventHandler().Handle(Event.New(
 					Event.RateLimited,
 					Event.Context{
 						Event.Address:         websocketClient.GetAddress(),
@@ -52,8 +52,8 @@ func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitel
 		}
 
 		if blacklist != nil && blacklist.Contains(ip) {
-			if websocketServer.eventHandler != nil {
-				event := websocketServer.eventHandler.Handle(Event.New(
+			if websocketServer.GetEventHandler() != nil {
+				event := websocketServer.GetEventHandler().Handle(Event.New(
 					Event.Blacklisted,
 					Event.Context{
 						Event.Address: websocketClient.GetAddress(),
@@ -70,8 +70,8 @@ func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitel
 		}
 
 		if whitelist != nil && whitelist.ElementCount() > 0 && !whitelist.Contains(ip) {
-			if websocketServer.eventHandler != nil {
-				event := websocketServer.eventHandler.Handle(Event.New(
+			if websocketServer.GetEventHandler() != nil {
+				event := websocketServer.GetEventHandler().Handle(Event.New(
 					Event.NotWhitelisted,
 					Event.Context{
 						Event.Address: websocketClient.GetAddress(),
@@ -91,8 +91,8 @@ func GetAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitel
 		if handshakeHandler != nil {
 			identity_, err := handshakeHandler(websocketClient)
 			if err != nil {
-				if websocketServer.eventHandler != nil {
-					event := websocketServer.eventHandler.Handle(Event.New(
+				if websocketServer.GetEventHandler() != nil {
+					event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.HandshakeFailed,
 						Event.Context{
 							Event.Address:  websocketClient.GetAddress(),
