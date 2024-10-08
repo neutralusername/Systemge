@@ -29,7 +29,8 @@ type WebsocketServer struct {
 
 	eventHandler Event.Handler
 
-	acceptionHandler func(*WebsocketClient.WebsocketClient) error
+	receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error
+	acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error)
 
 	whitelist     *Tools.AccessControlList
 	blacklist     *Tools.AccessControlList
@@ -63,7 +64,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler func(*WebsocketClient.WebsocketClient) error, eventHandler Event.Handler) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.Handler) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -83,8 +84,12 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		eventHandler:     eventHandler,
 		acceptionHandler: acceptionHandler,
+		receptionHandler: receptionHandler,
 		whitelist:        whitelist,
 		blacklist:        blacklist,
+	}
+	if server.receptionHandler == nil {
+		server.receptionHandler = server.GetDefaultReceptionHandler()
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = server.GetDefaultAcceptionHandler()
