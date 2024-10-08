@@ -64,7 +64,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler func(*Event.Event)) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, acceptionHandler func(*WebsocketClient.WebsocketClient) (string, error), receptionHandler func(*WebsocketClient.WebsocketClient, []byte) error, eventHandler Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

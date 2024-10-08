@@ -8,7 +8,7 @@ import (
 )
 
 type Handler struct {
-	eventHandler      func(*Event)
+	eventHandler      HandleFunc
 	getDefaultContext func() Context
 }
 
@@ -20,7 +20,9 @@ func (handler *Handler) Handle(event *Event) *Event {
 	return event
 }
 
-func NewHandler(eventHandler func(*Event), getDefaultContext func() Context) *Handler {
+type HandleFunc func(*Event)
+
+func NewHandler(eventHandler HandleFunc, getDefaultContext func() Context) *Handler {
 	return &Handler{
 		eventHandler:      eventHandler,
 		getDefaultContext: getDefaultContext,
