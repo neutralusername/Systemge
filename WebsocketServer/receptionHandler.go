@@ -87,7 +87,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return nil
 	}
-	// if queue != nil, acquire items from queue in separate goroutine (handle goroutine lifetime until websocketClient disconnects and queue is empty)
+	// if queue != nil, acquire items from queue in separate goroutine (handle goroutine lifetime until websocketClient disconnects and queue is empty or receptionHandler is replaced)
 	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
 
