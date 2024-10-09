@@ -47,6 +47,9 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	}
 	handler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
+
+		// queue(-config) and topic-priority&timeout missing
+
 		topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
 
 		return nil
