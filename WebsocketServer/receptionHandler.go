@@ -13,7 +13,7 @@ import (
 type ReceptionHandler func([]byte) error
 type ReceptionHandlerFactory func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler
 
-type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
+type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) (any, error)
 type ObjectDeserializer func([]byte) (any, error)
 type ObjectValidator func(any) error
 
@@ -26,7 +26,7 @@ func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers m
 			websocketClient := args[2].(*WebsocketClient.WebsocketClient)
 			identity := args[3].(string)
 			sessionId := args[4].(string)
-			return nil, objectHandler(message, websocketServer, websocketClient, identity, sessionId)
+			return objectHandler(message, websocketServer, websocketClient, identity, sessionId)
 		}
 	}
 	unknownTopicHandler := func(args ...any) (any, error) {
@@ -35,7 +35,7 @@ func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers m
 		websocketClient := args[2].(*WebsocketClient.WebsocketClient)
 		identity := args[3].(string)
 		sessionId := args[4].(string)
-		return nil, unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
+		return unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
 	}
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
 }
@@ -74,14 +74,13 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return nil
 	}
-	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) (any, error) {
 		message := object.(*Message.Message)
 
 		// queue(-config) and topic-priority&timeout missing
 
 		result, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
 
-		return nil
 	}
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler)
 }
@@ -183,7 +182,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			return objectHandler(object, websocketServer, websocketClient, identity, sessionId)
+			result, err := objectHandler(object, websocketServer, websocketClient, identity, sessionId)
+
 		}
 	}
 }
