@@ -17,9 +17,9 @@ type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketC
 type ObjectDeserializer func([]byte) any
 type ObjectValidator func(any) error
 
-func NewWebsocketTopicManager(config *Config.TopicManager, websocketMessageHandlers map[string]ObjectHandler, unknownWebsocketMessageHandler ObjectHandler) *Tools.TopicManager {
+func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler, unknownObjectHandler ObjectHandler) *Tools.TopicManager {
 	topicHandlers := make(Tools.TopicHandlers)
-	for topic, handler := range websocketMessageHandlers {
+	for topic, handler := range topicObjectHandlers {
 		topicHandlers[topic] = func(args ...any) (any, error) {
 			message := args[0].(*Message.Message)
 			websocketServer := args[1].(*WebsocketServer)
@@ -35,7 +35,7 @@ func NewWebsocketTopicManager(config *Config.TopicManager, websocketMessageHandl
 		websocketClient := args[2].(*WebsocketClient.WebsocketClient)
 		identity := args[3].(string)
 		sessionId := args[4].(string)
-		return nil, unknownWebsocketMessageHandler(message, websocketServer, websocketClient, identity, sessionId)
+		return nil, unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
 	}
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
 }
