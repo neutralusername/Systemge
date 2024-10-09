@@ -14,7 +14,7 @@ type ReceptionHandler func([]byte) error
 type ReceptionHandlerFactory func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler
 
 type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
-type ObjectDeserializer func([]byte) any
+type ObjectDeserializer func([]byte) (any, error)
 type ObjectValidator func(any) error
 
 func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler, unknownObjectHandler ObjectHandler) *Tools.TopicManager {
@@ -49,9 +49,8 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 }
 
 func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager /*, queueConfigs */) ReceptionHandlerFactory {
-	objectDeserializer := func(messageBytes []byte) any {
-		message, _ := Message.Deserialize(messageBytes)
-		return message
+	objectDeserializer := func(messageBytes []byte) (any, error) {
+		return Message.Deserialize(messageBytes)
 	}
 	objectValidator := func(object any) error {
 		message := object.(*Message.Message)
@@ -144,8 +143,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			object := deserializer(bytes)
-			if object != nil {
+			object, err := deserializer(bytes)
+			if err != nil {
 				if websocketServer.GetEventHandler() != nil {
 					websocketServer.GetEventHandler().Handle(Event.New(
 						Event.DeserializingFailed,
@@ -154,6 +153,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.Identity:  identity,
 							Event.Address:   websocketClient.GetAddress(),
 							Event.Bytes:     string(bytes),
+							Event.Error:     err.Error(),
 						},
 						Event.Skip,
 					))
