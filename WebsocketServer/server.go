@@ -48,8 +48,8 @@ type WebsocketServer struct {
 	MessagesSent     atomic.Uint64
 	MessagesReceived atomic.Uint64
 
-	RejectedMessages atomic.Uint64
-	AcceptedMessages atomic.Uint64
+	MessagesRejected atomic.Uint64
+	MessagesAccepted atomic.Uint64
 
 	AsyncMessageSent atomic.Uint64
 	SyncRequestsSent atomic.Uint64

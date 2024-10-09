@@ -5,7 +5,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -18,7 +17,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
+func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer func([]byte) any, validator func(any) error) ReceptionHandlerFactory {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
@@ -28,6 +27,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 		if messageRateLimiterConfig != nil {
 			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
 		}
+
 		return func(messageBytes []byte) error {
 			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(messageBytes))) {
 				if websocketServer.GetEventHandler() != nil {
@@ -40,9 +40,9 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Bytes,
 						},
+						Event.Skip,
 						Event.Continue,
-						Event.Cancel,
-					)); event.GetAction() == Event.Cancel {
+					)); event.GetAction() == Event.Skip {
 						return errors.New(Event.RateLimited)
 					}
 				} else {
@@ -61,9 +61,9 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Messages,
 						},
+						Event.Skip,
 						Event.Continue,
-						Event.Cancel,
-					)); event.GetAction() == Event.Cancel {
+					)); event.GetAction() == Event.Skip {
 						return errors.New(Event.RateLimited)
 					}
 				} else {
@@ -71,21 +71,19 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			message, err := Message.Deserialize(messageBytes, sessionId)
-			if err != nil {
-				websocketClient.invalidMessagesReceived.Add(1)
-				websocketClient.messageChannelSemaphore.ReleaseBlocking()
-				websocketClient.onEvent(Event.NewWarningNoOption(
+			message := deserializer(messageBytes)
+			if message != nil {
+				websocketServer.GetEventHandler().Handle(Event.New(
 					Event.DeserializingFailed,
-					err.Error(),
 					Event.Context{
-						Event.Circumstance: Event.HandleMessageReception,
-						Event.Behaviour:    behaviour,
-						Event.StructType:   Event.Message,
-						Event.Bytes:        string(messageBytes),
+						Event.SessionId: sessionId,
+						Event.Identity:  identity,
+						Event.Address:   websocketClient.GetAddress(),
+						Event.Bytes:     string(messageBytes),
 					},
+					Event.Skip,
 				))
-				return err
+				return errors.New(Event.DeserializingFailed)
 			}
 
 			if err := websocketClient.validateMessage(message); err != nil {
