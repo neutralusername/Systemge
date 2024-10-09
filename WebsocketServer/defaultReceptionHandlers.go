@@ -5,7 +5,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -18,7 +17,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, validationRequirements Config.ValidationRequirementsIdk) ReceptionHandlerFactory {
+func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer func([]byte) any, validator func(any) error) ReceptionHandlerFactory {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
@@ -72,8 +71,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			message, err := Message.Deserialize(messageBytes)
-			if err != nil {
+			object := deserializer(messageBytes)
+			if object != nil {
 				websocketServer.GetEventHandler().Handle(Event.New(
 					Event.DeserializingFailed,
 					Event.Context{
@@ -81,14 +80,13 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 						Event.Identity:  identity,
 						Event.Address:   websocketClient.GetAddress(),
 						Event.Bytes:     string(messageBytes),
-						Event.Error:     err.Error(),
 					},
 					Event.Skip,
 				))
 				return errors.New(Event.DeserializingFailed)
 			}
 
-			if err := websocketClient.validateMessage(message); err != nil {
+			if err := validator(object); err != nil {
 				if event := websocketClient.onEvent(Event.NewWarning(
 					Event.InvalidMessage,
 					err.Error(),
@@ -98,9 +96,9 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 					Event.Context{
 						Event.Circumstance: Event.HandleMessageReception,
 						Event.Behaviour:    behaviour,
-						Event.Topic:        message.GetTopic(),
-						Event.Payload:      message.GetPayload(),
-						Event.SyncToken:    message.GetSyncToken(),
+						Event.Topic:        object.GetTopic(),
+						Event.Payload:      object.GetPayload(),
+						Event.SyncToken:    object.GetSyncToken(),
 					},
 				)); !event.IsInfo() {
 					websocketClient.invalidMessagesReceived.Add(1)
