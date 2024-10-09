@@ -46,6 +46,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 	handler := func(object any) error {
+		message := object.(*Message.Message)
 
 	}
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, handler)
