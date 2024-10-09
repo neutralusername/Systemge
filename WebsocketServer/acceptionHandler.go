@@ -9,6 +9,8 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
+type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
+
 func NewDefaultAcceptionHandler() AcceptionHandler {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		return "", nil

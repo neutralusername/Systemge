@@ -10,13 +10,8 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
-
-type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
-type ReceptionHandler func([]byte) error
-type ReceptionHandlerFactory func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler
 
 type WebsocketServer struct {
 	config *Config.WebsocketServer
