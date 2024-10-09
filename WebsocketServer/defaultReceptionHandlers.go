@@ -18,7 +18,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter /*  passValidationConditions_suchAsMaxPayloadSize */) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
 	deserializer := func(messageBytes []byte) any {
 		message, _ := Message.Deserialize(messageBytes)
 		return message
@@ -45,10 +45,13 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return nil
 	}
-	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator)
+	handler := func(object any) error {
+
+	}
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, handler)
 }
 
-func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer func([]byte) any, validator func(any) error) ReceptionHandlerFactory {
+func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer func([]byte) any, validator func(any) error, handler func(any) error) ReceptionHandlerFactory {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
@@ -144,7 +147,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			return nil
+			return handler(object)
 		}
 	}
 }
