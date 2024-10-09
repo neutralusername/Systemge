@@ -11,5 +11,5 @@ type TopicHandler func(message *Message.Message, websocketServer *WebsocketServe
 
 func NewWebsocketTopicManager(config *Config.TopicManager, topicHandlers map[string]TopicHandler, unknownTopicHandler TopicHandler) *Tools.TopicManager {
 
-	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
+	return Tools.NewTopicManager(config, convertedTopicHandlers, convertedUnknownTopicHandler)
 }
