@@ -18,7 +18,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, messageHandlerConfig *Config.MessageHandler) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicHandlers map[string]TopicHandler /*, queueConfigs */) ReceptionHandlerFactory {
 	deserializer := func(messageBytes []byte) any {
 		message, _ := Message.Deserialize(messageBytes)
 		return message
@@ -48,6 +48,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	handler := func(object any) error {
 		message := object.(*Message.Message)
 
+		return nil
 	}
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, handler)
 }
