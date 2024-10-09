@@ -93,10 +93,10 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		// queue(-config) and topic-priority&timeout missing
 		// feed message into queue, if queue enabled, or directly into topic manager
 
-		if noQueue {
-			handleTopic(message, websocketServer, websocketClient, identity, sessionId)
-		} else {
+		if priorityQueue != nil {
 			priorityQueue.Push("", message, 0, 0)
+		} else {
+			handleTopic(message, websocketServer, websocketClient, identity, sessionId)
 		}
 
 		return nil
