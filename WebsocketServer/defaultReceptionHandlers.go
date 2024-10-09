@@ -39,6 +39,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.Address:         websocketClient.GetAddress(),
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Bytes,
+							Event.Bytes:           string(messageBytes),
 						},
 						Event.Skip,
 						Event.Continue,
@@ -60,6 +61,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.Address:         websocketClient.GetAddress(),
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Messages,
+							Event.Bytes:           string(messageBytes),
 						},
 						Event.Skip,
 						Event.Continue,
@@ -87,23 +89,19 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 			}
 
 			if err := validator(object); err != nil {
-				if event := websocketClient.onEvent(Event.NewWarning(
+				if event := websocketServer.GetEventHandler().Handle(Event.New(
 					Event.InvalidMessage,
-					err.Error(),
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
 					Event.Context{
-						Event.Circumstance: Event.HandleMessageReception,
-						Event.Behaviour:    behaviour,
-						Event.Topic:        object.GetTopic(),
-						Event.Payload:      object.GetPayload(),
-						Event.SyncToken:    object.GetSyncToken(),
+						Event.SessionId: sessionId,
+						Event.Identity:  identity,
+						Event.Address:   websocketClient.GetAddress(),
+						Event.Bytes:     string(messageBytes),
+						Event.Error:     err.Error(),
 					},
-				)); !event.IsInfo() {
-					websocketClient.invalidMessagesReceived.Add(1)
-					websocketClient.messageChannelSemaphore.ReleaseBlocking()
-					return event.GetError()
+					Event.Skip,
+					Event.Continue,
+				)); event.GetAction() == Event.Skip {
+					return errors.New(Event.InvalidMessage)
 				}
 			}
 
