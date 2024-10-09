@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -17,7 +18,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer func([]byte) any, validator func(any) error) ReceptionHandlerFactory {
+func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, validationRequirements Config.ValidationRequirementsIdk) ReceptionHandlerFactory {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
@@ -71,8 +72,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			message := deserializer(messageBytes)
-			if message != nil {
+			message, err := Message.Deserialize(messageBytes)
+			if err != nil {
 				websocketServer.GetEventHandler().Handle(Event.New(
 					Event.DeserializingFailed,
 					Event.Context{
@@ -80,6 +81,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 						Event.Identity:  identity,
 						Event.Address:   websocketClient.GetAddress(),
 						Event.Bytes:     string(messageBytes),
+						Event.Error:     err.Error(),
 					},
 					Event.Skip,
 				))

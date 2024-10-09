@@ -11,7 +11,6 @@ type Message struct {
 	syncToken string
 	response  bool
 	payload   string
-	origin    string
 }
 
 type messageData struct {
@@ -46,10 +45,6 @@ func (message *Message) GetSyncToken() string {
 
 func (message *Message) GetPayload() string {
 	return message.payload
-}
-
-func (message *Message) GetOrigin() string {
-	return message.origin
 }
 
 func (message *Message) IsResponse() bool {
@@ -137,7 +132,7 @@ func (message *Message) Serialize() []byte {
 	return bytes
 }
 
-func Deserialize(bytes []byte, origin string) (*Message, error) {
+func Deserialize(bytes []byte) (*Message, error) {
 	var messageData messageData
 	err := json.Unmarshal(bytes, &messageData)
 	if err != nil {
@@ -148,7 +143,6 @@ func Deserialize(bytes []byte, origin string) (*Message, error) {
 		syncToken: messageData.SyncToken,
 		payload:   messageData.Payload,
 		response:  messageData.Response,
-		origin:    origin,
 	}, nil
 }
 
@@ -158,7 +152,6 @@ func DeserializeMessages(bytes []byte) ([]*Message, error) {
 		SyncToken string `json:"syncToken"`
 		Response  bool   `json:"response"`
 		Payload   string `json:"payload"`
-		Origin    string `json:"origin"`
 	}
 	err := json.Unmarshal(bytes, &messageData)
 	if err != nil {
@@ -171,7 +164,6 @@ func DeserializeMessages(bytes []byte) ([]*Message, error) {
 			syncToken: data.SyncToken,
 			payload:   data.Payload,
 			response:  data.Response,
-			origin:    data.Origin,
 		}
 	}
 	return messages, nil
