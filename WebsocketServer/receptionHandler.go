@@ -79,7 +79,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 
 		// queue(-config) and topic-priority&timeout missing
 
-		topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
+		result, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
 
 		return nil
 	}
