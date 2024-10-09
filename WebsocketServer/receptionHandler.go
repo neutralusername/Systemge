@@ -75,6 +75,19 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 
+	handleTopic := func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+		response, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
+		if err != nil {
+			// event
+			return err
+		}
+
+		if response != nil {
+			// handle response
+		}
+		return nil
+	}
+
 	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
 
@@ -82,16 +95,10 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		// feed message into queue, if queue enabled, or directly into topic manager
 
 		if noQueue {
-			response, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
-			if err != nil {
-				// event
-				return err
-			}
+
 		} else {
 			priorityQueue.Push("", message, 0, 0)
 		}
-
-		// handle response
 
 		return nil
 	}
