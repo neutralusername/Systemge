@@ -5,6 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -15,6 +16,17 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 			return nil
 		}
 	}
+}
+
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, validationAttribute1 uint32) ReceptionHandlerFactory {
+	deserializer := func(messageBytes []byte) any {
+		message, _ := Message.Deserialize(messageBytes)
+		return message
+	}
+	validator := func(object any) error {
+		return nil
+	}
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator)
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer func([]byte) any, validator func(any) error) ReceptionHandlerFactory {
