@@ -79,7 +79,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 
 		// queue(-config) and topic-priority&timeout missing
 
-		// if queue enabled, acquire messages from the queue and feed them into the topic manager, otherwise handle directly
+		// if queue enabled, acquire messages from the queue and feed them into the topic manager (in separate goroutine), otherwise feed them directly into the topic manager
 		response, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
 		if err != nil {
 			// event
