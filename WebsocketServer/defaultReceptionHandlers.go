@@ -24,6 +24,25 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return message
 	}
 	validator := func(object any) error {
+		message := object.(*Message.Message)
+		if len(message.GetSyncToken()) > maxSyncTokenSize {
+			return errors.New("message contains sync token")
+		}
+		if len(message.GetSyncToken()) < minSyncTokenSize {
+			return errors.New("message contains sync token")
+		}
+		if len(message.GetTopic()) > maxTopicSize {
+			return errors.New("message missing topic")
+		}
+		if len(message.GetTopic()) < minTopicSize {
+			return errors.New("message missing topic")
+		}
+		if len(message.GetPayload()) > maxPayloadSize {
+			return errors.New("message payload exceeds maximum size")
+		}
+		if len(message.GetPayload()) < minPayloadSize {
+			return errors.New("message payload exceeds maximum size")
+		}
 		return nil
 	}
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator)
