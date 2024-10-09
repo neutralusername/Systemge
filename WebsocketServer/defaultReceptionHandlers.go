@@ -18,7 +18,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, passValidationConditions_suchAsMaxPayloadSize) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter /*  passValidationConditions_suchAsMaxPayloadSize */) ReceptionHandlerFactory {
 	deserializer := func(messageBytes []byte) any {
 		message, _ := Message.Deserialize(messageBytes)
 		return message
@@ -41,6 +41,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 		}
 
 		return func(bytes []byte) error {
+
 			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
 				if websocketServer.GetEventHandler() != nil {
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
@@ -64,7 +65,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 			}
 
 			if messageRateLimiter != nil && !messageRateLimiter.Consume(1) {
-				if websocketServer.eventHandler != nil {
+				if websocketServer.GetEventHandler() != nil {
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.RateLimited,
 						Event.Context{
@@ -87,32 +88,39 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 
 			object := deserializer(bytes)
 			if object != nil {
-				websocketServer.GetEventHandler().Handle(Event.New(
-					Event.DeserializingFailed,
-					Event.Context{
-						Event.SessionId: sessionId,
-						Event.Identity:  identity,
-						Event.Address:   websocketClient.GetAddress(),
-						Event.Bytes:     string(bytes),
-					},
-					Event.Skip,
-				))
+				if websocketServer.GetEventHandler() != nil {
+					websocketServer.GetEventHandler().Handle(Event.New(
+						Event.DeserializingFailed,
+						Event.Context{
+							Event.SessionId: sessionId,
+							Event.Identity:  identity,
+							Event.Address:   websocketClient.GetAddress(),
+							Event.Bytes:     string(bytes),
+						},
+						Event.Skip,
+					))
+				}
 				return errors.New(Event.DeserializingFailed)
 			}
 
 			if err := validator(object); err != nil {
-				if event := websocketServer.GetEventHandler().Handle(Event.New(
-					Event.InvalidMessage,
-					Event.Context{
-						Event.SessionId: sessionId,
-						Event.Identity:  identity,
-						Event.Address:   websocketClient.GetAddress(),
-						Event.Bytes:     string(bytes),
-						Event.Error:     err.Error(),
-					},
-					Event.Skip,
-					Event.Continue,
-				)); event.GetAction() == Event.Skip {
+				if websocketServer.GetEventHandler() != nil {
+					event := websocketServer.GetEventHandler().Handle(Event.New(
+						Event.InvalidMessage,
+						Event.Context{
+							Event.SessionId: sessionId,
+							Event.Identity:  identity,
+							Event.Address:   websocketClient.GetAddress(),
+							Event.Bytes:     string(bytes),
+							Event.Error:     err.Error(),
+						},
+						Event.Skip,
+						Event.Continue,
+					))
+					if event.GetAction() == Event.Skip {
+						return errors.New(Event.InvalidMessage)
+					}
+				} else {
 					return errors.New(Event.InvalidMessage)
 				}
 			}
