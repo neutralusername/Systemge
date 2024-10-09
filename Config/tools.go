@@ -94,3 +94,12 @@ type RequestResponseManager struct {
 	MinTokenLength    int `json:"minTokenLength"`    // default: 0 == no limit
 	MaxActiveRequests int `json:"maxActiveRequests"` // default: 0 == no limit
 }
+
+type MessageValidator struct {
+	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == no limit
+	MinSyncTokenSize int `json:"minSyncTokenSize"` // default: <=0 == no limit
+	MaxTopicSize     int `json:"maxTopicSize"`     // default: <=0 == no limit
+	MinTopicSize     int `json:"minTopicSize"`     // default: <=0 == no limit
+	MaxPayloadSize   int `json:"maxPayloadSize"`   // default: <=0 == no limit
+	MinPayloadSize   int `json:"minPayloadSize"`   // default: <=0 == no limit
+}

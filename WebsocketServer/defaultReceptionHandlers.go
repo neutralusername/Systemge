@@ -18,29 +18,29 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator) ReceptionHandlerFactory {
 	deserializer := func(messageBytes []byte) any {
 		message, _ := Message.Deserialize(messageBytes)
 		return message
 	}
 	validator := func(object any) error {
 		message := object.(*Message.Message)
-		if len(message.GetSyncToken()) > maxSyncTokenSize {
+		if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
 			return errors.New("message contains sync token")
 		}
-		if len(message.GetSyncToken()) < minSyncTokenSize {
+		if messageValidatorConfig.MaxSyncTokenSize >= 0 && len(message.GetSyncToken()) > messageValidatorConfig.MaxSyncTokenSize {
 			return errors.New("message contains sync token")
 		}
-		if len(message.GetTopic()) > maxTopicSize {
+		if messageValidatorConfig.MinTopicSize >= 0 && len(message.GetTopic()) < messageValidatorConfig.MinTopicSize {
 			return errors.New("message missing topic")
 		}
-		if len(message.GetTopic()) < minTopicSize {
+		if messageValidatorConfig.MaxTopicSize >= 0 && len(message.GetTopic()) > messageValidatorConfig.MaxTopicSize {
 			return errors.New("message missing topic")
 		}
-		if len(message.GetPayload()) > maxPayloadSize {
+		if messageValidatorConfig.MinPayloadSize >= 0 && len(message.GetPayload()) < messageValidatorConfig.MinPayloadSize {
 			return errors.New("message payload exceeds maximum size")
 		}
-		if len(message.GetPayload()) < minPayloadSize {
+		if messageValidatorConfig.MaxPayloadSize >= 0 && len(message.GetPayload()) > messageValidatorConfig.MaxPayloadSize {
 			return errors.New("message payload exceeds maximum size")
 		}
 		return nil
