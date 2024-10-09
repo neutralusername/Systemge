@@ -91,7 +91,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		message := object.(*Message.Message)
 
 		// queue(-config) and topic-priority&timeout missing
-		// feed message into queue, if queue enabled, or directly into topic manager
 
 		if priorityQueue != nil {
 			priorityQueue.Push("", message, 0, 0)
