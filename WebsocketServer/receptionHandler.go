@@ -19,14 +19,14 @@ type ObjectValidator func(any) error
 
 func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler, unknownObjectHandler ObjectHandler) *Tools.TopicManager {
 	topicHandlers := make(Tools.TopicHandlers)
-	for topic, handler := range topicObjectHandlers {
+	for topic, objectHandler := range topicObjectHandlers {
 		topicHandlers[topic] = func(args ...any) (any, error) {
 			message := args[0].(*Message.Message)
 			websocketServer := args[1].(*WebsocketServer)
 			websocketClient := args[2].(*WebsocketClient.WebsocketClient)
 			identity := args[3].(string)
 			sessionId := args[4].(string)
-			return nil, handler(message, websocketServer, websocketClient, identity, sessionId)
+			return nil, objectHandler(message, websocketServer, websocketClient, identity, sessionId)
 		}
 	}
 	unknownTopicHandler := func(args ...any) (any, error) {
