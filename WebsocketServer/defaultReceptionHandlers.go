@@ -12,7 +12,7 @@ import (
 
 func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
-		return func(messageBytes []byte) error {
+		return func(bytes []byte) error {
 			return nil
 		}
 	}
