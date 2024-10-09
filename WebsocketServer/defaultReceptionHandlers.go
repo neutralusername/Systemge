@@ -18,7 +18,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, passValidationCondidtions_suchAsMaxPayloadSize) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, passValidationConditions_suchAsMaxPayloadSize) ReceptionHandlerFactory {
 	deserializer := func(messageBytes []byte) any {
 		message, _ := Message.Deserialize(messageBytes)
 		return message
@@ -40,8 +40,8 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
 		}
 
-		return func(messageBytes []byte) error {
-			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(messageBytes))) {
+		return func(bytes []byte) error {
+			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
 				if websocketServer.GetEventHandler() != nil {
 					if event := websocketServer.GetEventHandler().Handle(Event.New(
 						Event.RateLimited,
@@ -51,7 +51,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.Address:         websocketClient.GetAddress(),
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Bytes,
-							Event.Bytes:           string(messageBytes),
+							Event.Bytes:           string(bytes),
 						},
 						Event.Skip,
 						Event.Continue,
@@ -73,7 +73,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 							Event.Address:         websocketClient.GetAddress(),
 							Event.RateLimiterType: Event.TokenBucket,
 							Event.TokenBucketType: Event.Messages,
-							Event.Bytes:           string(messageBytes),
+							Event.Bytes:           string(bytes),
 						},
 						Event.Skip,
 						Event.Continue,
@@ -85,7 +85,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 				}
 			}
 
-			object := deserializer(messageBytes)
+			object := deserializer(bytes)
 			if object != nil {
 				websocketServer.GetEventHandler().Handle(Event.New(
 					Event.DeserializingFailed,
@@ -93,7 +93,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 						Event.SessionId: sessionId,
 						Event.Identity:  identity,
 						Event.Address:   websocketClient.GetAddress(),
-						Event.Bytes:     string(messageBytes),
+						Event.Bytes:     string(bytes),
 					},
 					Event.Skip,
 				))
@@ -107,7 +107,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 						Event.SessionId: sessionId,
 						Event.Identity:  identity,
 						Event.Address:   websocketClient.GetAddress(),
-						Event.Bytes:     string(messageBytes),
+						Event.Bytes:     string(bytes),
 						Event.Error:     err.Error(),
 					},
 					Event.Skip,
