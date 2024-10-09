@@ -18,8 +18,6 @@ type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (
 type ReceptionHandler func([]byte) error
 type ReceptionHandlerFactory func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler
 
-type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
-
 type WebsocketServer struct {
 	config *Config.WebsocketServer
 

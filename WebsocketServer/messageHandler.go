@@ -7,9 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-type WebsocketMessageHandler func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
-
-func NewWebsocketTopicManager(config *Config.TopicManager, websocketMessageHandlers map[string]WebsocketMessageHandler, unknownWebsocketMessageHandler WebsocketMessageHandler) *Tools.TopicManager {
+func NewWebsocketTopicManager(config *Config.TopicManager, websocketMessageHandlers map[string]ObjectHandler, unknownWebsocketMessageHandler ObjectHandler) *Tools.TopicManager {
 	topicHandlers := make(Tools.TopicHandlers)
 	for topic, handler := range websocketMessageHandlers {
 		topicHandlers[topic] = func(args ...any) (any, error) {
