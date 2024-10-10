@@ -94,10 +94,17 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	var objectHandler ObjectHandler
 	if priorityQueue != nil {
 		mutex := &sync.Mutex{}
-		initializerFunc = func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) {
+		initializerFunc = func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any {
 			go func() {
-
+				for {
+					message, err := priorityQueue.Pop()
+					if message == nil {
+						break
+					}
+					handleTopic(message.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
+				}
 			}()
+			return nil
 		}
 		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 			message := object.(*Message.Message)

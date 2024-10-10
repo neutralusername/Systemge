@@ -11,6 +11,7 @@ type PriorityTokenQueue[T any] struct {
 	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
 	priorityQueue priorityQueue[*tokenItem[T]]
+	waiting       []chan T
 
 	maxElements   uint32
 	replaceIfFull bool
@@ -49,6 +50,13 @@ func newTokenItem[T any](token string, value T) *tokenItem[T] {
 func (queue *PriorityTokenQueue[T]) Push(token string, value T, priority uint32, timeoutMs uint64) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
+
+	for _, waiting := range queue.waiting {
+		waiting <- value
+		close(waiting)
+		queue.waiting = queue.waiting[1:]
+		return nil
+	}
 
 	if queue.maxElements > 0 && uint32(len(queue.priorityQueue)) >= queue.maxElements {
 		if !queue.replaceIfFull {
@@ -101,6 +109,24 @@ func (queue *PriorityTokenQueue[T]) Pop() (T, error) {
 	close(element.value.isRetrievedChannel)
 	delete(queue.elements, element.value.token)
 	return element.value.item, nil
+}
+
+func (queue *PriorityTokenQueue[T]) PopBlocking() T {
+	queue.mutex.Lock()
+
+	if len(queue.priorityQueue) == 0 {
+		waiting := make(chan T)
+		queue.waiting = append(queue.waiting, waiting)
+		value := <-waiting
+		queue.mutex.Unlock()
+		return value
+	}
+
+	element := heap.Pop(&queue.priorityQueue).(*priorityQueueElement[*tokenItem[T]])
+	close(element.value.isRetrievedChannel)
+	delete(queue.elements, element.value.token)
+	queue.mutex.Unlock()
+	return element.value.item
 }
 
 // PopToken returns the item with the given token from the queue.
