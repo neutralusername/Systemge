@@ -17,11 +17,12 @@ type ReceptionHandler struct {
 	objectDeserializer ObjectDeserializer
 	objectValidator    ObjectValidator
 	objectHandler      ObjectHandler
-	getEventHandler    func() *Event.Handler
-	context            Event.Context
+
+	getEventHandler func() *Event.Handler
+	context         Event.Context
 }
 
-func NewReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, objectDeserializer ObjectDeserializer, objectValidator ObjectValidator, objectHandler ObjectHandler, newReceptionHandler func(args ...any) ReceptionHandler) *ReceptionHandler {
+func NewReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, objectDeserializer ObjectDeserializer, objectValidator ObjectValidator, objectHandler ObjectHandler) *ReceptionHandler {
 	receptionHandler := &ReceptionHandler{
 		objectDeserializer: objectDeserializer,
 		objectValidator:    objectValidator,
