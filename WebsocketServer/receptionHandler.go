@@ -48,6 +48,31 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
+func NewMessageValidator(messageValidatorConfig *Config.MessageValidator) Tools.ObjectValidator {
+	return func(object any) error {
+		message := object.(*Message.Message)
+		if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
+			return errors.New("message contains sync token")
+		}
+		if messageValidatorConfig.MaxSyncTokenSize >= 0 && len(message.GetSyncToken()) > messageValidatorConfig.MaxSyncTokenSize {
+			return errors.New("message contains sync token")
+		}
+		if messageValidatorConfig.MinTopicSize >= 0 && len(message.GetTopic()) < messageValidatorConfig.MinTopicSize {
+			return errors.New("message missing topic")
+		}
+		if messageValidatorConfig.MaxTopicSize >= 0 && len(message.GetTopic()) > messageValidatorConfig.MaxTopicSize {
+			return errors.New("message missing topic")
+		}
+		if messageValidatorConfig.MinPayloadSize >= 0 && len(message.GetPayload()) < messageValidatorConfig.MinPayloadSize {
+			return errors.New("message payload exceeds maximum size")
+		}
+		if messageValidatorConfig.MaxPayloadSize >= 0 && len(message.GetPayload()) > messageValidatorConfig.MaxPayloadSize {
+			return errors.New("message payload exceeds maximum size")
+		}
+		return nil
+	}
+}
+
 func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message]) ReceptionHandlerFactory {
 	objectDeserializer := func(messageBytes []byte) (any, error) {
 		return Message.Deserialize(messageBytes)
