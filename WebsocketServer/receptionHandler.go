@@ -78,18 +78,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 
-	handleTopic := func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-		response, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
-		if err != nil {
-			// event
-			return err
-		}
-
-		if response != nil {
-			// handle response
-		}
-		return nil
-	}
+	var handleTopic func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
 	var initializerFunc InitializerFunc
 	var messageHandler func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
 	var objectHandler ObjectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
@@ -100,8 +89,22 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return messageHandler(message, websocketServer, websocketClient, identity, sessionId)
 	}
+	if topicManager != nil {
+		handleTopic = func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			response, err := topicManager.HandleTopic(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
+			if err != nil {
+				// event
+				return err
+			}
+
+			if response != nil {
+				// handle response
+			}
+			return nil
+		}
+	}
 	if priorityQueue != nil {
-		if handleTopic != nil {
+		if topicManager != nil {
 			initializerFunc = func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any {
 				go func() {
 					for {
@@ -127,8 +130,14 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			return priorityQueue.Push("", message, priority, timeoutMs)
 		}
 	} else {
-		messageHandler = func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-			return handleTopic(message, websocketServer, websocketClient, identity, sessionId)
+		if topicManager != nil {
+			messageHandler = func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+				return handleTopic(message, websocketServer, websocketClient, identity, sessionId)
+			}
+		} else {
+			messageHandler = func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+				return nil
+			}
 		}
 	}
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, initializerFunc)
