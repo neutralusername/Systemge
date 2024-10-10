@@ -2,6 +2,7 @@ package WebsocketServer
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
@@ -88,11 +89,16 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 	// if queue != nil, acquire items from queue in separate goroutine (handle goroutine lifetime until (websocketClient disconnects and queue is empty))
+	mutex := &sync.Mutex{}
 	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
 
 		if priorityQueue != nil {
-			priorityQueue.Push("", message, topicPriorities[message.GetTopic()], topicTimeoutMs[message.GetTopic()]) //access control maps
+			mutex.Lock()
+			priority := topicPriorities[message.GetTopic()]
+			timeoutMs := topicTimeoutMs[message.GetTopic()]
+			mutex.Unlock()
+			priorityQueue.Push("", message, priority, timeoutMs)
 		} else {
 			handleTopic(message, websocketServer, websocketClient, identity, sessionId)
 		}
