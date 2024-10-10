@@ -100,7 +100,8 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 					select {
 					case message := <-priorityQueue.PopChannel():
 						handleTopic(message, websocketServer, websocketClient, identity, sessionId)
-
+					case <-websocketClient.GetCloseChannel():
+						return
 					}
 				}
 			}()
