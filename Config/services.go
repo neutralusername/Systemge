@@ -64,7 +64,8 @@ type WebsocketServer struct {
 	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
 	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
 
-	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
+	SessionManagerConfig         *SessionManager         `json:"sessionManagerConfig"`         // *required*
+	RequestResponseManagerConfig *RequestResponseManager `json:"requestResponseManagerConfig"` // *required*
 
 	HandleClientsSequentially  bool `json:"handleClientsSequentially"`  // default: false
 	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
