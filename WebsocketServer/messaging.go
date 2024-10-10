@@ -122,8 +122,6 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 func (server *WebsocketServer) broadcast(messageBytes []byte) error {
 	waitGroup := Tools.NewTaskGroup()
 
-	sessions := server.sessionManager.GetSessions()
-
 	if server.eventHandler != nil {
 		if event := server.eventHandler.Handle(Event.New(
 			Event.SendingBroadcast,
@@ -137,7 +135,7 @@ func (server *WebsocketServer) broadcast(messageBytes []byte) error {
 		}
 	}
 
-	for _, session := range sessions {
+	for _, session := range server.sessionManager.GetSessions() {
 		if !session.IsAccepted() {
 			if server.eventHandler != nil {
 				event := server.eventHandler.Handle(Event.New(
