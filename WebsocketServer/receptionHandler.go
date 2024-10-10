@@ -79,8 +79,8 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	}
 
 	var handleTopic func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
-	var initializerFunc InitializerFunc
 	var messageHandler func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
+	var initializerFunc InitializerFunc
 	var objectHandler ObjectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
 		if message.IsResponse() {
