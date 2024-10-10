@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 )
 
@@ -48,20 +47,22 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["asyncMessage"] = func(args []string) (string, error) {
+	commands["message"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("invalid number of arguments")
 		}
-		topic := args[0]
-		payload := args[1]
-		ids := args[2:]
-		err := server.AsyncMessage(topic, payload, ids...)
+		bytes, err := json.Marshal(args[0])
+		if err != nil {
+			return "", err
+		}
+		ids := args[1:]
+		err = server.Message(bytes, ids...)
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	commands["syncMessage"] = func(args []string) (string, error) {
+	/* 	commands["syncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("invalid number of arguments")
 		}
@@ -74,6 +75,6 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			return "", err
 		}
 		return Helpers.JsonMarshal(responses), nil
-	}
+	} */
 	return commands
 }
