@@ -31,9 +31,15 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		}
 	}
 
-	receptionHandler := server.getReceptionHandler(server, websocketClient, session.GetIdentity(), session.GetId())
+	receptionHandler := Tools.NewReceptionHandler(
+		server.config.ByteRateLimiterConfig,
+		server.config.MessageRatelimiterConfig,
+		server.newObjectDeserializer(server, websocketClient, session.GetIdentity(), session.GetId()),
+		server.newObjectValidator(server, websocketClient, session.GetIdentity(), session.GetId()),
+		server.newObjectHandler(server, websocketClient, session.GetIdentity(), session.GetId()),
+	)
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
-		if err := receptionHandler(messageBytes); err != nil {
+		if err := receptionHandler.Handle(messageBytes); err != nil {
 			websocketClient.Close()
 			server.MessagesRejected.Add(1)
 		} else {

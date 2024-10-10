@@ -18,8 +18,8 @@ type ReceptionHandler struct {
 	objectValidator    ObjectValidator
 	objectHandler      ObjectHandler
 
-	getEventHandler func() *Event.Handler
-	context         Event.Context
+	getEventHandler              func() *Event.Handler
+	receptionHandlerEventContext Event.Context
 }
 
 func NewReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, objectDeserializer ObjectDeserializer, objectValidator ObjectValidator, objectHandler ObjectHandler) *ReceptionHandler {
@@ -46,7 +46,7 @@ func (receptionHandler *ReceptionHandler) Handle(bytes []byte) error {
 					Event.RateLimiterType: Event.TokenBucket,
 					Event.TokenBucketType: Event.Bytes,
 					Event.Bytes:           string(bytes),
-				}.Merge(receptionHandler.context),
+				}.Merge(receptionHandler.receptionHandlerEventContext),
 				Event.Skip,
 				Event.Continue,
 			)); event.GetAction() == Event.Skip {

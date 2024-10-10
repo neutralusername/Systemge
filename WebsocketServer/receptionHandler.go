@@ -9,33 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-/*
-type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
-
-	func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler, unknownObjectHandler ObjectHandler) *Tools.TopicManager {
-		topicHandlers := make(Tools.TopicHandlers)
-		for topic, objectHandler := range topicObjectHandlers {
-			topicHandlers[topic] = func(args ...any) (any, error) {
-				message := args[0].(*Message.Message)
-				websocketServer := args[1].(*WebsocketServer)
-				websocketClient := args[2].(*WebsocketClient.WebsocketClient)
-				identity := args[3].(string)
-				sessionId := args[4].(string)
-				return nil, objectHandler(message, websocketServer, websocketClient, identity, sessionId)
-			}
-		}
-		unknownTopicHandler := func(args ...any) (any, error) {
-			message := args[0].(*Message.Message)
-			websocketServer := args[1].(*WebsocketServer)
-			websocketClient := args[2].(*WebsocketClient.WebsocketClient)
-			identity := args[3].(string)
-			sessionId := args[4].(string)
-			return nil, unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
-		}
-		return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
-	}
-*/
-
 func NewMessageValidator(messageValidatorConfig *Config.MessageValidator) Tools.ObjectValidator {
 	return func(object any) error {
 		message := object.(*Message.Message)
@@ -95,6 +68,33 @@ func NewMessageHandler(websocketServer *WebsocketServer, websocketClient *Websoc
 		return nil
 	}
 }
+
+/*
+type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
+
+	func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler, unknownObjectHandler ObjectHandler) *Tools.TopicManager {
+		topicHandlers := make(Tools.TopicHandlers)
+		for topic, objectHandler := range topicObjectHandlers {
+			topicHandlers[topic] = func(args ...any) (any, error) {
+				message := args[0].(*Message.Message)
+				websocketServer := args[1].(*WebsocketServer)
+				websocketClient := args[2].(*WebsocketClient.WebsocketClient)
+				identity := args[3].(string)
+				sessionId := args[4].(string)
+				return nil, objectHandler(message, websocketServer, websocketClient, identity, sessionId)
+			}
+		}
+		unknownTopicHandler := func(args ...any) (any, error) {
+			message := args[0].(*Message.Message)
+			websocketServer := args[1].(*WebsocketServer)
+			websocketClient := args[2].(*WebsocketClient.WebsocketClient)
+			identity := args[3].(string)
+			sessionId := args[4].(string)
+			return nil, unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
+		}
+		return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
+	}
+*/
 
 /*
 
