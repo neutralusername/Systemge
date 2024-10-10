@@ -38,6 +38,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		server.newObjectValidator(server, websocketClient, session.GetIdentity(), session.GetId()),
 		server.newObjectHandler(server, websocketClient, session.GetIdentity(), session.GetId()),
 	)
+	// to manually stop the reception handler, use a server-method and the session state-map
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
 		if err := receptionHandler.Handle(messageBytes); err != nil {
 			websocketClient.Close()
