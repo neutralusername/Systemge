@@ -10,7 +10,6 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
@@ -29,15 +28,12 @@ type WebsocketServer struct {
 
 	eventHandler *Event.Handler
 
-	acceptionHandler AcceptionHandler
+	receptionHandlerFactory ReceptionHandlerFactory
+	acceptionHandler        AcceptionHandler
 
 	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
-
-	newObjectDeserializer func(server *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity string, sessionId string) Tools.ObjectDeserializer
-	newObjectValidator    func(server *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity string, sessionId string) Tools.ObjectValidator
-	newObjectHandler      func(server *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity string, sessionId string) Tools.ObjectHandler
 
 	// metrics
 
@@ -62,7 +58,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler AcceptionHandler, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, acceptionHandler AcceptionHandler, receptionHandlerFactory ReceptionHandlerFactory, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -77,16 +73,26 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	}
 
 	server := &WebsocketServer{
-		config:           config,
-		name:             name,
-		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		acceptionHandler: acceptionHandler,
+		config:                  config,
+		name:                    name,
+		instanceId:              Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		acceptionHandler:        acceptionHandler,
+		receptionHandlerFactory: receptionHandlerFactory,
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = NewDefaultAcceptionHandler()
 	}
+	if server.receptionHandlerFactory == nil {
+		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory()
+	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
+	}
+	if server.receptionHandlerFactory == nil {
+		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory()
+	}
+	if server.acceptionHandler == nil {
+		server.acceptionHandler = NewDefaultAcceptionHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, nil, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, whitelist, blacklist)
@@ -123,6 +129,10 @@ func (server *WebsocketServer) SetEventHandler(eventHandler Event.HandleFunc) {
 
 func (server *WebsocketServer) SetAcceptionHandler(acceptionHandler AcceptionHandler) {
 	server.acceptionHandler = acceptionHandler
+}
+
+func (server *WebsocketServer) SetGetReceptionHandler(getReceptionHandler ReceptionHandlerFactory) {
+	server.receptionHandlerFactory = getReceptionHandler
 }
 
 func (server *WebsocketServer) GetServerContext() Event.Context {
