@@ -114,7 +114,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 			message := object.(*Message.Message)
 			if message.IsResponse() {
-				websocketServer.AddResponse(message.GetSyncToken(), message)
+				websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
 			}
 			mutex.Lock()
 			priority := topicPriorities[message.GetTopic()]
