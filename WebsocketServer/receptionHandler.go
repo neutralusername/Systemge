@@ -48,7 +48,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message]) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint64) ReceptionHandlerFactory {
 	objectDeserializer := func(messageBytes []byte) (any, error) {
 		return Message.Deserialize(messageBytes)
 	}
@@ -94,7 +94,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		// queue(-config) and topic-priority&timeout missing
 
 		if priorityQueue != nil {
-			priorityQueue.Push("", message, 0, 0)
+			priorityQueue.Push("", message, topicPriorities[message.GetTopic()], topicTimeoutMs[message.GetTopic()])
 		} else {
 			handleTopic(message, websocketServer, websocketClient, identity, sessionId)
 		}
