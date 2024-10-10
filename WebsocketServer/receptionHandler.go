@@ -124,6 +124,10 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 	} else {
 		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			message := object.(*Message.Message)
+			if message.IsResponse() {
+				websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
+			}
 			return handleTopic(object.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
 		}
 	}
