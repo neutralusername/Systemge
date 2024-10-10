@@ -18,7 +18,7 @@ type ObjectHandler func(object any, websocketServer *WebsocketServer, websocketC
 type ObjectDeserializer func([]byte) (any, error)
 type ObjectValidator func(any) error
 
-type InitializerFunc func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
+type InitializerFunc func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any
 
 func NewWebsocketTopicManager(config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler, unknownObjectHandler ObjectHandler) *Tools.TopicManager {
 	topicHandlers := make(Tools.TopicHandlers)
@@ -93,7 +93,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	var initializerFunc InitializerFunc
 	var objectHandler ObjectHandler
 	if priorityQueue != nil {
-		// if queue != nil, acquire items from queue in separate goroutine (handle goroutine lifetime until (websocketClient disconnects and queue is empty))
 		mutex := &sync.Mutex{}
 		initializerFunc = func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) {
 			go func() {
@@ -117,6 +116,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ObjectDeserializer, validator ObjectValidator, objectHandler ObjectHandler, initializerFunc InitializerFunc) ReceptionHandlerFactory {
+
 	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
