@@ -92,7 +92,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		message := object.(*Message.Message)
 
 		if priorityQueue != nil {
-			priorityQueue.Push("", message, topicPriorities[message.GetTopic()], topicTimeoutMs[message.GetTopic()])
+			priorityQueue.Push("", message, topicPriorities[message.GetTopic()], topicTimeoutMs[message.GetTopic()]) //access control maps
 		} else {
 			handleTopic(message, websocketServer, websocketClient, identity, sessionId)
 		}
