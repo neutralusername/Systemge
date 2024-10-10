@@ -10,6 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
@@ -33,6 +34,10 @@ type WebsocketServer struct {
 	websocketListener *WebsocketListener.WebsocketListener
 
 	sessionManager *Tools.SessionManager
+
+	newObjectDeserializer func(server *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity string, sessionId string) Tools.ObjectDeserializer
+	newObjectValidator    func(server *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity string, sessionId string) Tools.ObjectValidator
+	newObjectHandler      func(server *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity string, sessionId string) Tools.ObjectHandler
 
 	// metrics
 
