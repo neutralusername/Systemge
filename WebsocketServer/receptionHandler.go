@@ -91,7 +91,15 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 	var initializerFunc InitializerFunc
-	var objectHandler ObjectHandler
+	var messageHandler func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
+	var objectHandlerWrapper ObjectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+		message := object.(*Message.Message)
+		if message.IsResponse() {
+			websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
+			return nil
+		}
+		return messageHandler(message, websocketServer, websocketClient, identity, sessionId)
+	}
 	if priorityQueue != nil {
 		if handleTopic != nil {
 			initializerFunc = func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any {
@@ -111,12 +119,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			}
 		}
 		mutex := &sync.Mutex{}
-		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-			message := object.(*Message.Message)
-			if message.IsResponse() {
-				websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
-				return nil
-			}
+		messageHandler = func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 			mutex.Lock()
 			priority := topicPriorities[message.GetTopic()]
 			timeoutMs := topicTimeoutMs[message.GetTopic()]
@@ -124,16 +127,11 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			return priorityQueue.Push("", message, priority, timeoutMs)
 		}
 	} else {
-		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-			message := object.(*Message.Message)
-			if message.IsResponse() {
-				websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
-				return nil
-			}
-			return handleTopic(object.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
+		messageHandler = func(message *Message.Message, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			return handleTopic(message, websocketServer, websocketClient, identity, sessionId)
 		}
 	}
-	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, initializerFunc)
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandlerWrapper, initializerFunc)
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ObjectDeserializer, validator ObjectValidator, objectHandler ObjectHandler, initializerFunc InitializerFunc) ReceptionHandlerFactory {
