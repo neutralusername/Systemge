@@ -63,7 +63,7 @@ func NewTopicManager(config *Config.TopicManager, topicHandlers TopicHandlers, u
 }
 
 // can not be called after Close or will cause panic.
-func (topicManager *TopicManager) HandleTopic(topic string, args ...any) (any, error) {
+func (topicManager *TopicManager) Handle(topic string, args ...any) (any, error) {
 	queueStruct := &queueStruct{
 		topic:                topic,
 		args:                 args,
