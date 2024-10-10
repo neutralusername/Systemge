@@ -115,6 +115,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			message := object.(*Message.Message)
 			if message.IsResponse() {
 				websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
+				return nil
 			}
 			mutex.Lock()
 			priority := topicPriorities[message.GetTopic()]
@@ -127,6 +128,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			message := object.(*Message.Message)
 			if message.IsResponse() {
 				websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
+				return nil
 			}
 			return handleTopic(object.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
 		}
