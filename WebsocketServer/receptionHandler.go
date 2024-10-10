@@ -109,6 +109,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 					// event
 				}
 			}
+			// event
 			return nil
 		}
 	}
