@@ -132,6 +132,17 @@ func (queue *PriorityTokenQueue[T]) PopBlocking() T {
 func (queue *PriorityTokenQueue[T]) PopChannel() <-chan T {
 	c := make(chan T)
 	go func() {
+		queue.mutex.Lock()
+		if len(queue.priorityQueue) == 0 {
+			queue.waiting = append(queue.waiting, c)
+			queue.mutex.Unlock()
+			return
+		}
+
+		element := heap.Pop(&queue.priorityQueue).(*priorityQueueElement[*tokenItem[T]])
+		close(element.value.isRetrievedChannel)
+		delete(queue.elements, element.value.token)
+		queue.mutex.Unlock()
 		c <- queue.PopBlocking()
 		close(c)
 	}()
