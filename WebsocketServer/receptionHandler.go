@@ -87,7 +87,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			message := object.(*Message.Message)
 			if message.IsResponse() {
 				// event
-				requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
+				requestResponseManager.AddResponse(message.GetSyncToken(), message)
 				return nil
 			}
 			return messageHandler(message, websocketServer, websocketClient, identity, sessionId)
