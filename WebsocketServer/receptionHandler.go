@@ -97,11 +97,11 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		initializerFunc = func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any {
 			go func() {
 				for {
-					message, err := priorityQueue.Pop()
-					if message == nil {
-						break
+					select {
+					case message := <-priorityQueue.PopChannel():
+						handleTopic(message, websocketServer, websocketClient, identity, sessionId)
+
 					}
-					handleTopic(message.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
 				}
 			}()
 			return nil
