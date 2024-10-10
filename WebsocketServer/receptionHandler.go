@@ -167,6 +167,7 @@ func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBuc
 		}
 
 		if initializerFunc != nil {
+			// event
 			initializerFunc(websocketServer, websocketClient, identity, sessionId)
 		}
 
