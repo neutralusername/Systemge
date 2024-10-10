@@ -92,7 +92,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	}
 	var initializerFunc InitializerFunc
 	var messageHandler func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
-	var objectHandlerWrapper ObjectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+	var objectHandler ObjectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
 		if message.IsResponse() {
 			websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
@@ -131,7 +131,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			return handleTopic(message, websocketServer, websocketClient, identity, sessionId)
 		}
 	}
-	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandlerWrapper, initializerFunc)
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, initializerFunc)
 }
 
 func NewValidationReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ObjectDeserializer, validator ObjectValidator, objectHandler ObjectHandler, initializerFunc InitializerFunc) ReceptionHandlerFactory {
