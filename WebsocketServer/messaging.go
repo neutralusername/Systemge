@@ -13,7 +13,6 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 	if len(ids) == 0 {
 		return server.broadcast(messageBytes)
 	}
-	waitGroup := Tools.NewTaskGroup()
 
 	targetsMarshalled := Helpers.JsonMarshal(ids)
 	if server.eventHandler != nil {
@@ -31,6 +30,7 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 		}
 	}
 
+	waitGroup := Tools.NewTaskGroup()
 	for _, id := range ids {
 		session := server.sessionManager.GetSession(id)
 		if session == nil {
