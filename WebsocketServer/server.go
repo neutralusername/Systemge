@@ -73,9 +73,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 	if config.WebsocketListenerConfig == nil {
 		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
-	if config.RequestResponseManagerConfig == nil {
-		return nil, errors.New("config.RequestResponseManagerConfig is nil")
-	}
 
 	server := &WebsocketServer{
 		config:                  config,
@@ -100,7 +97,6 @@ func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessCon
 		server.acceptionHandler = NewDefaultAcceptionHandler()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, nil, nil)
-	server.requestResponseManager = Tools.NewRequestResponseManager[*Message.Message](config.RequestResponseManagerConfig)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, whitelist, blacklist)
 	if err != nil {
 		return nil, err
