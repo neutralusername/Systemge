@@ -81,7 +81,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	var handleTopic func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
 	var messageHandler func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
 	var initializerFunc InitializerFunc
-	var objectHandler ObjectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		message := object.(*Message.Message)
 		if message.IsResponse() {
 			websocketServer.requestResponseManager.AddResponse(message.GetSyncToken(), message) // can't be accessed by custom functions outside of this package currently
@@ -98,7 +98,14 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			}
 
 			if response != nil {
-				// handle response
+				message, ok := response.(*Message.Message)
+				if !ok {
+					// event
+					return errors.New("invalid response type")
+				}
+				if err := websocketClient.Write(message.Serialize(), websocketServer.config.WriteTimeoutMs); err != nil {
+					// event
+				}
 			}
 			return nil
 		}
