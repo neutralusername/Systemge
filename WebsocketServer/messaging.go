@@ -17,14 +17,12 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 
 	targetsMarshalled := Helpers.JsonMarshal(ids)
 	if server.eventHandler != nil {
-		if event := server.onEvent(Event.New(
+		if event := server.eventHandler.Handle(Event.New(
 			Event.SendingMulticast,
 			Event.Context{
 				Event.Circumstance: Event.Multicast,
 				Event.Targets:      targetsMarshalled,
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
+				Event.Bytes:        string(messageBytes),
 			},
 			Event.Continue,
 			Event.Cancel,
@@ -37,15 +35,13 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 		session := server.sessionManager.GetSession(id)
 		if session == nil {
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.SessionDoesNotExist,
 					Event.Context{
 						Event.Circumstance: Event.Multicast,
 						Event.Target:       id,
 						Event.Targets:      targetsMarshalled,
-						Event.Topic:        message.GetTopic(),
-						Event.Payload:      message.GetPayload(),
-						Event.SyncToken:    message.GetSyncToken(),
+						Event.Bytes:        string(messageBytes),
 					},
 					Event.Skip,
 					Event.Cancel,
@@ -57,19 +53,17 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 			continue
 		}
 
-		websocketClient, ok := session.Get("connection")
+		websocketClient, ok := session.Get("websocketClient")
 		if !ok {
 			// should never occur
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.SessionDoesNotExist,
 					Event.Context{
 						Event.Circumstance: Event.Multicast,
 						Event.Target:       id,
 						Event.Targets:      targetsMarshalled,
-						Event.Topic:        message.GetTopic(),
-						Event.Payload:      message.GetPayload(),
-						Event.SyncToken:    message.GetSyncToken(),
+						Event.Bytes:        string(messageBytes),
 					},
 					Event.Skip,
 					Event.Cancel,
@@ -83,19 +77,21 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 
 		if !session.IsAccepted() {
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.SessionNotAccepted,
 					Event.Context{
 						Event.Circumstance: Event.Multicast,
 						Event.Target:       id,
 						Event.Targets:      targetsMarshalled,
-						Event.Topic:        message.GetTopic(),
-						Event.Payload:      message.GetPayload(),
-						Event.SyncToken:    message.GetSyncToken(),
+						Event.Bytes:        string(messageBytes),
 					},
 					Event.Continue,
+					Event.Skip,
 					Event.Cancel,
 				))
+				if event.GetAction() == Event.Skip {
+					continue
+				}
 				if event.GetAction() == Event.Cancel {
 					return errors.New("multicast cancelled")
 				}
@@ -103,21 +99,19 @@ func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.(*WebsocketClient.WebsocketClient).Write(messageBytes)
+			websocketClient.(*WebsocketClient.WebsocketClient).Write(messageBytes, server.config.WriteTimeoutMs)
 		})
 	}
 
 	waitGroup.ExecuteTasksConcurrently()
 
 	if server.eventHandler != nil {
-		server.onEvent(Event.New(
+		server.eventHandler.Handle(Event.New(
 			Event.SentMulticast,
 			Event.Context{
 				Event.Circumstance: Event.Multicast,
 				Event.Targets:      targetsMarshalled,
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
+				Event.Bytes:        string(messageBytes),
 			},
 			Event.Continue,
 		))
@@ -129,33 +123,12 @@ func (server *WebsocketServer) broadcast(messageBytes []byte) error {
 	waitGroup := Tools.NewTaskGroup()
 
 	sessions := server.sessionManager.GetSessions()
-	targets := []string{}
-	connections := []*WebsocketClient.WebsocketClient{}
-	for _, session := range sessions {
-		connection, ok := session.Get("websocketClient")
-		if !ok {
-			continue
-		}
-		websocketClient, ok := connection.(*WebsocketClient.WebsocketClient)
-		if !ok {
-			continue
-		}
-		connections = append(connections, websocketClient)
-		id := websocketClient.GetName()
-		if id != "" {
-			targets = append(targets, id)
-		}
-	}
 
-	targetsMarshalled := Helpers.JsonMarshal(targets)
 	if server.eventHandler != nil {
-		if event := server.onEvent(Event.New(
+		if event := server.eventHandler.Handle(Event.New(
 			Event.SendingBroadcast,
 			Event.Context{
-				Event.Targets:   targetsMarshalled,
-				Event.Topic:     message.GetTopic(),
-				Event.Payload:   message.GetPayload(),
-				Event.SyncToken: message.GetSyncToken(),
+				Event.Bytes: string(messageBytes),
 			},
 			Event.Continue,
 			Event.Cancel,
@@ -164,49 +137,65 @@ func (server *WebsocketServer) broadcast(messageBytes []byte) error {
 		}
 	}
 
-	for _, websocketClient := range connections {
-		if websocketClient.GetName() == "" {
+	for _, session := range sessions {
+		if !session.IsAccepted() {
 			if server.eventHandler != nil {
-				event := server.onEvent(Event.New(
+				event := server.eventHandler.Handle(Event.New(
 					Event.SessionNotAccepted,
 					Event.Context{
 						Event.Circumstance: Event.Broadcast,
-						Event.SessionId:    websocketClient.GetName(),
-						Event.Targets:      targetsMarshalled,
-						Event.Topic:        message.GetTopic(),
-						Event.Payload:      message.GetPayload(),
-						Event.SyncToken:    message.GetSyncToken(),
+						Event.Target:       session.GetId(),
+						Event.Bytes:        string(messageBytes),
 					},
 					Event.Skip,
 					Event.Continue,
 					Event.Cancel,
 				))
-				if event.GetAction() == Event.Cancel {
-					return errors.New("broadcast cancelled")
-				}
 				if event.GetAction() == Event.Skip {
 					continue
+				}
+				if event.GetAction() == Event.Cancel {
+					return errors.New("broadcast cancelled")
 				}
 			} else {
 				continue
 			}
 		}
+
+		websocketClient, ok := session.Get("websocketClient")
+		if !ok {
+			// should never occur
+			if server.eventHandler != nil {
+				event := server.eventHandler.Handle(Event.New(
+					Event.SessionDoesNotExist,
+					Event.Context{
+						Event.Circumstance: Event.Broadcast,
+						Event.Target:       session.GetId(),
+						Event.Bytes:        string(messageBytes),
+					},
+					Event.Skip,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					return errors.New("broadcast cancelled")
+				}
+			}
+			continue
+		}
+
 		waitGroup.AddTask(func() {
-			websocketClient.Write(messageBytes)
+			websocketClient.(*WebsocketClient.WebsocketClient).Write(messageBytes, server.config.WriteTimeoutMs)
 		})
 	}
 
 	waitGroup.ExecuteTasksConcurrently()
 
 	if server.eventHandler != nil {
-		server.onEvent(Event.New(
+		server.eventHandler.Handle(Event.New(
 			Event.SentBroadcast,
 			Event.Context{
 				Event.Circumstance: Event.Broadcast,
-				Event.Targets:      targetsMarshalled,
-				Event.Topic:        message.GetTopic(),
-				Event.Payload:      message.GetPayload(),
-				Event.SyncToken:    message.GetSyncToken(),
+				Event.Bytes:        string(messageBytes),
 			},
 			Event.Continue,
 		))
