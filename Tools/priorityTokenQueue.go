@@ -129,6 +129,15 @@ func (queue *PriorityTokenQueue[T]) PopBlocking() T {
 	return element.value.item
 }
 
+func (queue *PriorityTokenQueue[T]) PopChannel() <-chan T {
+	c := make(chan T)
+	go func() {
+		c <- queue.PopBlocking()
+		close(c)
+	}()
+	return c
+}
+
 // PopToken returns the item with the given token from the queue.
 // If the token does not exist, an error is returned.
 func (queue *PriorityTokenQueue[T]) PopToken(token string) (T, error) {
