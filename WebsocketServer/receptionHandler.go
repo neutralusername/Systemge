@@ -89,21 +89,21 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 	// if queue != nil, acquire items from queue in separate goroutine (handle goroutine lifetime until (websocketClient disconnects and queue is empty))
-	mutex := &sync.Mutex{}
-	objectHandler := func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-		message := object.(*Message.Message)
-
-		if priorityQueue != nil {
+	var objectHandler ObjectHandler
+	if priorityQueue != nil {
+		mutex := &sync.Mutex{}
+		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			message := object.(*Message.Message)
 			mutex.Lock()
 			priority := topicPriorities[message.GetTopic()]
 			timeoutMs := topicTimeoutMs[message.GetTopic()]
 			mutex.Unlock()
-			priorityQueue.Push("", message, priority, timeoutMs)
-		} else {
-			handleTopic(message, websocketServer, websocketClient, identity, sessionId)
+			return priorityQueue.Push("", message, priority, timeoutMs)
 		}
-
-		return nil
+	} else {
+		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			return handleTopic(object.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
+		}
 	}
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler)
 }
