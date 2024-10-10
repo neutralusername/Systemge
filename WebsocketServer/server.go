@@ -8,7 +8,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketListener"
@@ -34,8 +33,7 @@ type WebsocketServer struct {
 
 	websocketListener *WebsocketListener.WebsocketListener
 
-	sessionManager         *Tools.SessionManager
-	requestResponseManager *Tools.RequestResponseManager[*Message.Message]
+	sessionManager *Tools.SessionManager
 
 	// metrics
 
