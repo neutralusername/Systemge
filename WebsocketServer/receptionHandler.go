@@ -51,7 +51,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint64) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, requestResponseManager *Tools.RequestResponseManager[*Message.Message], priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint64) ReceptionHandlerFactory {
 	objectDeserializer := func(messageBytes []byte) (any, error) {
 		return Message.Deserialize(messageBytes)
 	}
