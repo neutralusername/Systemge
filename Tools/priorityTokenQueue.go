@@ -117,8 +117,8 @@ func (queue *PriorityTokenQueue[T]) PopBlocking() T {
 	if len(queue.priorityQueue) == 0 {
 		waiting := make(chan T)
 		queue.waiting = append(queue.waiting, waiting)
-		value := <-waiting
 		queue.mutex.Unlock()
+		value := <-waiting
 		return value
 	}
 
