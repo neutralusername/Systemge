@@ -11,7 +11,7 @@ type ObjectHandler func(object any) error
 type ObjectDeserializer func([]byte) (any, error)
 type ObjectValidator func(any) error
 
-type ReceptionHandler struct {
+type ReceptionManager struct {
 	byteRateLimiter    *TokenBucketRateLimiter
 	messageRateLimiter *TokenBucketRateLimiter
 	objectDeserializer ObjectDeserializer
@@ -22,8 +22,8 @@ type ReceptionHandler struct {
 	receptionHandlerEventContext Event.Context
 }
 
-func NewReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, objectDeserializer ObjectDeserializer, objectValidator ObjectValidator, objectHandler ObjectHandler) *ReceptionHandler {
-	receptionHandler := &ReceptionHandler{
+func NewReceptionManager(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, objectDeserializer ObjectDeserializer, objectValidator ObjectValidator, objectHandler ObjectHandler) *ReceptionManager {
+	receptionHandler := &ReceptionManager{
 		objectDeserializer: objectDeserializer,
 		objectValidator:    objectValidator,
 		objectHandler:      objectHandler,
@@ -37,7 +37,7 @@ func NewReceptionHandler(byteRateLimiterConfig *Config.TokenBucketRateLimiter, m
 	return receptionHandler
 }
 
-func (receptionHandler *ReceptionHandler) Handle(bytes []byte) error {
+func (receptionHandler *ReceptionManager) Handle(bytes []byte) error {
 	if receptionHandler.byteRateLimiter != nil && !receptionHandler.byteRateLimiter.Consume(uint64(len(bytes))) {
 		if receptionHandler.getEventHandler() != nil {
 			if event := receptionHandler.getEventHandler().Handle(Event.New(

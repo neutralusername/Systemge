@@ -31,7 +31,7 @@ func (server *WebsocketServer) receptionRoutine(session *Tools.Session, websocke
 		}
 	}
 
-	receptionHandler := Tools.NewReceptionHandler(
+	receptionHandler := Tools.NewReceptionManager(
 		server.config.ByteRateLimiterConfig,
 		server.config.MessageRatelimiterConfig,
 		server.newObjectDeserializer(server, websocketClient, session.GetIdentity(), session.GetId()),
