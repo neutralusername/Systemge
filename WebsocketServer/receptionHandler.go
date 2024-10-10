@@ -114,7 +114,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 			message := object.(*Message.Message)
 			if message.IsResponse() {
-				websocketServer.AddResponse(message)
+				websocketServer.AddResponse(message.GetSyncToken(), message)
 			}
 			mutex.Lock()
 			priority := topicPriorities[message.GetTopic()]
