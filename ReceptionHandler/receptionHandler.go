@@ -10,7 +10,6 @@ type ByteHandler[T any] func([]byte) error
 type ObjectDeserializer[T any] func([]byte) (T, error)
 
 type ObjectHandler[T any] func(T) error
-type ObjectValidator[T any] func(T) error
 
 type ObtainResponseToken[T any] func(T) string
 type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
@@ -41,7 +40,7 @@ func NewResponseObjectHandler[T any](
 }
 
 func NewValidationObjectHandler[T any](
-	validator ObjectValidator[T],
+	validator func(T) error,
 ) ObjectHandler[T] {
 	return func(object T) error {
 		return validator(object)
