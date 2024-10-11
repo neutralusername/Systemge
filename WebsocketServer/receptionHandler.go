@@ -5,12 +5,11 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/ReceptionHandler"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-type WebsocketServerReceptionHandlerFactory[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler
+type WebsocketServerReceptionHandlerFactory[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) Tools.ReceptionHandler
 type WebsocketServerObjectHandler[T any] func(object T, websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
 type WebsocketReceptionHandlerInitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
 
@@ -20,7 +19,7 @@ func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerF
 		websocketClient *WebsocketClient.WebsocketClient,
 		identity string,
 		sessionId string,
-	) ReceptionHandler.ReceptionHandler {
+	) Tools.ReceptionHandler {
 
 		return func(bytes []byte) error {
 			return nil
@@ -62,23 +61,23 @@ func NewValidationMessageReceptionHandlerFactory(
 	messageValidatorConfig *Config.MessageValidator,
 	//topicManager *Tools.TopicManager,
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
-	obtainEnqueueConfigs ReceptionHandler.ObtainEnqueueConfigs[*Message.Message],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message],
 	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
 ) WebsocketServerReceptionHandlerFactory[*Message.Message] {
 
-	byteHandlers := []ReceptionHandler.ByteHandler[*Message.Message]{}
+	byteHandlers := []Tools.ByteHandler[*Message.Message]{}
 	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
 	}
 	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, ReceptionHandler.NewMessageRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
 	}
 
 	objectDeserializer := func(messageBytes []byte) (*Message.Message, error) {
 		return Message.Deserialize(messageBytes)
 	}
 
-	objectHandlers := []ReceptionHandler.ObjectHandler[*Message.Message]{}
+	objectHandlers := []Tools.ObjectHandler[*Message.Message]{}
 	if messageValidatorConfig != nil {
 		objectValidator := func(message *Message.Message) error {
 			if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
@@ -101,7 +100,7 @@ func NewValidationMessageReceptionHandlerFactory(
 			}
 			return nil
 		}
-		objectHandlers = append(objectHandlers, ReceptionHandler.NewValidationObjectHandler(objectValidator))
+		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
 	}
 	if requestResponseManager != nil {
 		obtainResponseToken := func(message *Message.Message) string {
@@ -110,7 +109,7 @@ func NewValidationMessageReceptionHandlerFactory(
 			}
 			return ""
 		}
-		objectHandlers = append(objectHandlers, ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
+		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
 	}
 	if priorityQueue != nil {
 		if obtainEnqueueConfigs == nil {
@@ -118,21 +117,21 @@ func NewValidationMessageReceptionHandlerFactory(
 				return "", 0, 0
 			}
 		}
-		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 
 	}
 
 	return NewValidationReceptionHandlerFactory(
-		ReceptionHandler.NewChainByteHandler(byteHandlers...),
+		Tools.NewChainByteHandler(byteHandlers...),
 		objectDeserializer,
-		ReceptionHandler.NewChainObjecthandler(objectHandlers...),
+		Tools.NewChainObjecthandler(objectHandlers...),
 	)
 }
 
 func NewValidationReceptionHandlerFactory[T any](
-	byteHandler ReceptionHandler.ByteHandler[T],
-	deserializer ReceptionHandler.ObjectDeserializer[T],
-	objectHandler ReceptionHandler.ObjectHandler[T],
+	byteHandler Tools.ByteHandler[T],
+	deserializer Tools.ObjectDeserializer[T],
+	objectHandler Tools.ObjectHandler[T],
 ) WebsocketServerReceptionHandlerFactory[T] {
 
 	return func(
@@ -140,9 +139,9 @@ func NewValidationReceptionHandlerFactory[T any](
 		websocketClient *WebsocketClient.WebsocketClient,
 		identity string,
 		sessionId string,
-	) ReceptionHandler.ReceptionHandler {
+	) Tools.ReceptionHandler {
 
-		return ReceptionHandler.NewReceptionHandler[T](
+		return Tools.NewReceptionHandler[T](
 			byteHandler,
 			deserializer,
 			objectHandler,

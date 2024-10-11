@@ -1,6 +1,28 @@
-package ReceptionHandler
+package Tools
 
-import "github.com/neutralusername/Systemge/Tools"
+type ReceptionHandler func([]byte) error
+type ObjectDeserializer[T any] func([]byte) (T, error)
+
+func NewReceptionHandler[T any](
+	byteHandler ByteHandler[T],
+	deserializer ObjectDeserializer[T],
+	objectHandler ObjectHandler[T],
+) ReceptionHandler {
+	return func(bytes []byte) error {
+
+		err := byteHandler(bytes)
+		if err != nil {
+			return err
+		}
+
+		object, err := deserializer(bytes)
+		if err != nil {
+			return err
+		}
+
+		return objectHandler(object)
+	}
+}
 
 type ObjectHandler[T any] func(T) error
 
@@ -23,7 +45,7 @@ func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T]
 }
 
 func NewQueueObjectHandler[T any](
-	priorityTokenQueue *Tools.PriorityTokenQueue[T],
+	priorityTokenQueue *PriorityTokenQueue[T],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
 ) ObjectHandler[T] {
 	return func(object T) error {
@@ -33,7 +55,7 @@ func NewQueueObjectHandler[T any](
 }
 
 func NewResponseObjectHandler[T any](
-	requestResponseManager *Tools.RequestResponseManager[T],
+	requestResponseManager *RequestResponseManager[T],
 	obtainResponseToken ObtainResponseToken[T],
 ) ObjectHandler[T] {
 	return func(object T) error {
@@ -49,7 +71,7 @@ func NewResponseObjectHandler[T any](
 
 // resultHandler requires check for nil if applicable
 func NewTopicObjectHandler[P any, R any](
-	topicManager *Tools.TopicManager[P, R],
+	topicManager *TopicManager[P, R],
 	obtainTopic func(P) string,
 	resultHandler ResultHandler[R],
 ) ObjectHandler[P] {
@@ -68,5 +90,33 @@ func NewTopicObjectHandler[P any, R any](
 func NewValidationObjectHandler[T any](validator ObjectValidator[T]) ObjectHandler[T] {
 	return func(object T) error {
 		return validator(object)
+	}
+}
+
+type ByteHandler[T any] func([]byte) error
+
+// executes all handlers in order, return error if any handler returns an error
+func NewChainByteHandler[T any](handlers ...ByteHandler[T]) ByteHandler[T] {
+	return func(bytes []byte) error {
+		for _, handler := range handlers {
+			if err := handler(bytes); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+func NewByteRateLimitByteHandler[T any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[T] {
+	return func(bytes []byte) error {
+		tokenBucketRateLimiter.Consume(uint64(len(bytes)))
+		return nil
+	}
+}
+
+func NewMessageRateLimitByteHandler[T any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[T] {
+	return func(bytes []byte) error {
+		tokenBucketRateLimiter.Consume(1)
+		return nil
 	}
 }
