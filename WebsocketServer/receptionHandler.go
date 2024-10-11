@@ -70,26 +70,26 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return nil
 	}
-	obtainEnqueueConfigs := func(message *Message.Message) (string, uint32, uint32) {
-		priority := topicPriorities[message.GetTopic()]
-		timeoutMs := topicTimeoutMs[message.GetTopic()]
-		return "", priority, timeoutMs
-	}
-	obtainResponseToken := func(message *Message.Message) string {
-		if message.IsResponse() {
-			return message.GetSyncToken()
-		}
-		return ""
-	}
 
 	objectHandlers := []ReceptionHandler.ObjectHandler[*Message.Message]{}
 	if objectValidator != nil {
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewValidationObjectHandler(objectValidator))
 	}
-	if requestResponseManager != nil && obtainResponseToken != nil {
+	if requestResponseManager != nil {
+		obtainResponseToken := func(message *Message.Message) string {
+			if message.IsResponse() {
+				return message.GetSyncToken()
+			}
+			return ""
+		}
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
 	}
-	if priorityQueue != nil && obtainEnqueueConfigs != nil {
+	if priorityQueue != nil {
+		obtainEnqueueConfigs := func(message *Message.Message) (string, uint32, uint32) {
+			priority := topicPriorities[message.GetTopic()]
+			timeoutMs := topicTimeoutMs[message.GetTopic()]
+			return "", priority, timeoutMs
+		}
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
