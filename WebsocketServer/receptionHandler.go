@@ -71,7 +71,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 
-	var messageHandler func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
 	var websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[*Message.Message]
 	objectHandler := func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		ReceptionHandler.NewChainObjecthandler(
@@ -88,12 +87,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 				return "", priority, timeoutMs
 			}),
 		)
-		if message.IsResponse() {
-			// event
-			websocketServer.GetRequestResponseManager().AddResponse(message.GetSyncToken(), message)
-			return nil
-		}
-		return messageHandler(message, websocketServer, websocketClient, identity, sessionId)
+		return nil
 	}
 
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectHandler, websocketReceptionHandlerInitFunc)
