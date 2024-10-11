@@ -9,16 +9,16 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-type WebsocketServerReceptionHandlerFactory[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) Tools.ReceptionHandler
+type WebsocketServerReceptionHandlerFactory[T any] func( /* websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string */ ) Tools.ReceptionHandler
 type WebsocketServerObjectHandler[T any] func(object T, websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
 type WebsocketReceptionHandlerInitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
 
 func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerFactory[T] {
 	return func(
-		websocketServer *WebsocketServer[T],
-		websocketClient *WebsocketClient.WebsocketClient,
-		identity string,
-		sessionId string,
+	/* 	websocketServer *WebsocketServer[T],
+	websocketClient *WebsocketClient.WebsocketClient,
+	identity string,
+	sessionId string, */
 	) Tools.ReceptionHandler {
 
 		return func(bytes []byte) error {
@@ -135,10 +135,10 @@ func NewValidationReceptionHandlerFactory[T any](
 ) WebsocketServerReceptionHandlerFactory[T] {
 
 	return func(
-		websocketServer *WebsocketServer[T],
-		websocketClient *WebsocketClient.WebsocketClient,
-		identity string,
-		sessionId string,
+	/* 	websocketServer *WebsocketServer[T],
+	websocketClient *WebsocketClient.WebsocketClient,
+	identity string,
+	sessionId string, */
 	) Tools.ReceptionHandler {
 
 		return Tools.NewReceptionHandler[T](
