@@ -11,9 +11,7 @@ type ObtainTopic[T any] func(T) string
 type ResultHandler[T any] func(T) error
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjecthandler[T any](
-	handlers ...ObjectHandler[T],
-) ObjectHandler[T] {
+func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
 	return func(object T) error {
 		for _, handler := range handlers {
 			if err := handler(object); err != nil {
@@ -67,9 +65,7 @@ func NewTopicObjectHandler[P any, R any](
 	}
 }
 
-func NewValidationObjectHandler[T any](
-	validator ObjectValidator[T],
-) ObjectHandler[T] {
+func NewValidationObjectHandler[T any](validator ObjectValidator[T]) ObjectHandler[T] {
 	return func(object T) error {
 		return validator(object)
 	}
