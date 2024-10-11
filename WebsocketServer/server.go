@@ -92,13 +92,13 @@ func New[T any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		server.acceptionHandler = NewDefaultAcceptionHandler[T]()
 	}
 	if server.receptionHandlerFactory == nil {
-		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory[T]()
+		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory()
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
 	}
 	if server.receptionHandlerFactory == nil {
-		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory[T]()
+		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory()
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = NewDefaultAcceptionHandler[T]()
@@ -140,8 +140,8 @@ func (server *WebsocketServer[T]) SetAcceptionHandler(acceptionHandler Acception
 	server.acceptionHandler = acceptionHandler
 }
 
-func (server *WebsocketServer[T]) SetGetReceptionHandler(getReceptionHandler WebsocketServerReceptionHandlerFactory[T]) {
-	server.receptionHandlerFactory = getReceptionHandler
+func (server *WebsocketServer[T]) SetReceptionHandlerFactory(receptionHandlerFactory Tools.ReceptionHandlerFactory[*structName123]) {
+	server.receptionHandlerFactory = receptionHandlerFactory
 }
 
 /* func (server *WebsocketServer[T]) GetRequestResponseManager() *Tools.RequestResponseManager[T] {

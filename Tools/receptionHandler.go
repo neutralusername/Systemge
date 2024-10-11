@@ -1,6 +1,6 @@
 package Tools
 
-type ReceptionHandlerFactory[T any, S any] func(T) ReceptionHandler[S]
+type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
 type ReceptionHandler[S any] func(S, []byte) error
 type ObjectDeserializer[T any] func([]byte) (T, error)
 
@@ -8,7 +8,6 @@ func NewReceptionHandler[T any, S any](
 	byteHandler ByteHandler[T],
 	deserializer ObjectDeserializer[T],
 	objectHandler ObjectHandler[T],
-	structName123 S,
 ) ReceptionHandler[S] {
 	return func(structName123 S, bytes []byte) error {
 

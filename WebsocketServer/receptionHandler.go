@@ -11,15 +11,10 @@ import (
 //type WebsocketServerObjectHandler[T any] func(object T, websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
 //type WebsocketReceptionHandlerInitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
 
-func NewDefaultReceptionHandlerFactory[T any]() *Tools.ReceptionHandlerFactory[*structName123] {
-	return func(
-	/* 	websocketServer *WebsocketServer[T],
-	websocketClient *WebsocketClient.WebsocketClient,
-	identity string,
-	sessionId string, */
-	) Tools.ReceptionHandler {
+func NewDefaultReceptionHandlerFactory() Tools.ReceptionHandlerFactory[*structName123] {
+	return func() Tools.ReceptionHandler[*structName123] {
 
-		return func(bytes []byte) error {
+		return func(structName123 *structName123, bytes []byte) error {
 			return nil
 		}
 	}
@@ -53,7 +48,7 @@ func NewDefaultReceptionHandlerFactory[T any]() *Tools.ReceptionHandlerFactory[*
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
 } */
 
-func NewValidationMessageReceptionHandlerFactory[S any](
+func NewValidationMessageReceptionHandlerFactory(
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageValidatorConfig *Config.MessageValidator,
@@ -61,7 +56,7 @@ func NewValidationMessageReceptionHandlerFactory[S any](
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message],
 	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
-) Tools.ReceptionHandlerFactory[S] {
+) Tools.ReceptionHandlerFactory[*structName123] {
 
 	byteHandlers := []Tools.ByteHandler[*Message.Message]{}
 	if byteRateLimiterConfig != nil {
@@ -119,32 +114,30 @@ func NewValidationMessageReceptionHandlerFactory[S any](
 
 	}
 
-	return NewValidationReceptionHandlerFactory[*Message.Message, S](
+	return NewValidationReceptionHandlerFactory[*Message.Message](
 		Tools.NewChainByteHandler(byteHandlers...),
 		objectDeserializer,
 		Tools.NewChainObjecthandler(objectHandlers...),
 	)
 }
 
-func NewValidationReceptionHandlerFactory[T any, S any](
+func NewValidationReceptionHandlerFactory[T any](
 	byteHandler Tools.ByteHandler[T],
 	deserializer Tools.ObjectDeserializer[T],
 	objectHandler Tools.ObjectHandler[T],
-) Tools.ReceptionHandlerFactory[S] {
+) Tools.ReceptionHandlerFactory[*structName123] {
 
 	return func(
-		/* 	websocketServer *WebsocketServer[T],
-		websocketClient *WebsocketClient.WebsocketClient,
-		identity string,
-		sessionId string, */
-		structName123 S,
-	) Tools.ReceptionHandler {
+	/* 	websocketServer *WebsocketServer[T],
+	websocketClient *WebsocketClient.WebsocketClient,
+	identity string,
+	sessionId string, */
+	) Tools.ReceptionHandler[*structName123] {
 
-		return Tools.NewReceptionHandler[T](
+		return Tools.NewReceptionHandler[T, *structName123](
 			byteHandler,
 			deserializer,
 			objectHandler,
-			structName123,
 		)
 	}
 }
