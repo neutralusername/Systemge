@@ -70,35 +70,35 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return nil
 	}
+	obtainEnqueueConfigs := func(message *Message.Message) (string, uint32, uint32) {
+		priority := topicPriorities[message.GetTopic()]
+		timeoutMs := topicTimeoutMs[message.GetTopic()]
+		return "", priority, timeoutMs
+	}
+	obtainResponseToken := func(message *Message.Message) string {
+		if message.IsResponse() {
+			return message.GetSyncToken()
+		}
+		return ""
+	}
 
-	var websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[*Message.Message]
 	objectHandler := func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		ReceptionHandler.NewChainObjecthandler(
 			ReceptionHandler.NewValidationObjectHandler(objectValidator),
-			ReceptionHandler.NewResponseObjectHandler(websocketServer.GetRequestResponseManager(), func(message *Message.Message) string {
-				if message.IsResponse() {
-					return message.GetSyncToken()
-				}
-				return ""
-			}),
-			ReceptionHandler.NewQueueObjectHandler(priorityQueue, func(message *Message.Message) (string, uint32, uint32) {
-				priority := topicPriorities[message.GetTopic()]
-				timeoutMs := topicTimeoutMs[message.GetTopic()]
-				return "", priority, timeoutMs
-			}),
+			ReceptionHandler.NewResponseObjectHandler(websocketServer.GetRequestResponseManager(), obtainResponseToken),
+			ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs),
 		)
 		return nil
 	}
 
-	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectHandler, websocketReceptionHandlerInitFunc)
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectHandler)
 }
 
-func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T], websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[T]) WebsocketServerReceptionHandlerFactory[T] {
+func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
 	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
 		objectHandler := func(object T) error {
 			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
 		}
-		websocketReceptionHandlerInitFunc(websocketServer, websocketClient, identity, sessionId)
 		var byteRateLimiter *Tools.TokenBucketRateLimiter
 		if byteRateLimiterConfig != nil {
 			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
@@ -118,3 +118,70 @@ func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.T
 		)
 	}
 }
+
+/*
+var websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[*Message.Message]
+		if topicManager != nil {
+		handleTopic = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			// event
+
+			response, err := topicManager.Handle(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
+			if err != nil {
+				// event
+				return err
+			}
+
+			if response != nil {
+				message, ok := response.(*Message.Message)
+				if !ok {
+					// event
+					return errors.New("invalid response type")
+				}
+				if err := websocketClient.Write(message.Serialize(), websocketServer.config.WriteTimeoutMs); err != nil {
+					// event
+				}
+			}
+			// event
+			return nil
+		}
+	}
+	if priorityQueue != nil {
+		if topicManager != nil {
+			websocketReceptionHandlerInitFunc = func(websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) {
+				go func() {
+					for {
+						select {
+						case message := <-priorityQueue.PopChannel():
+							handleTopic(message, websocketServer, websocketClient, identity, sessionId)
+						case <-websocketClient.GetCloseChannel():
+							if priorityQueue.Len() == 0 {
+								return
+							}
+						}
+					}
+				}()
+			}
+		}
+		mutex := &sync.Mutex{}
+		messageHandler = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+			mutex.Lock()
+			priority := topicPriorities[message.GetTopic()]
+			timeoutMs := topicTimeoutMs[message.GetTopic()]
+			mutex.Unlock()
+			// event
+			return priorityQueue.Push("", message, priority, timeoutMs)
+		}
+	} else {
+		if topicManager != nil {
+			messageHandler = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+				return handleTopic(message, websocketServer, websocketClient, identity, sessionId)
+			}
+		} else {
+			messageHandler = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+				return nil
+			}
+		}
+	}
+
+
+*/
