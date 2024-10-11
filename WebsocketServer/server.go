@@ -96,16 +96,10 @@ func New[T any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		server.acceptionHandler = NewDefaultAcceptionHandler[T]()
 	}
 	if server.receptionHandlerFactory == nil {
-		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory()
+		server.receptionHandlerFactory = NewWebsocketMessageReceptionHandlerFactory[T](nil, nil, nil, nil, nil, nil)
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
-	}
-	if server.receptionHandlerFactory == nil {
-		server.receptionHandlerFactory = NewDefaultReceptionHandlerFactory()
-	}
-	if server.acceptionHandler == nil {
-		server.acceptionHandler = NewDefaultAcceptionHandler[T]()
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, nil, nil)
 	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, whitelist, blacklist)
