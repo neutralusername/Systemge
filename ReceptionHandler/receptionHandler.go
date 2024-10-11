@@ -3,7 +3,6 @@ package ReceptionHandler
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -67,23 +66,13 @@ func NewChainObjecthandler[T any](
 func NewValidationReceptionHandler[T any](
 	eventHandler *Event.Handler,
 	defaultContext Event.Context,
-	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
-	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
+	/* 	byteRateLimiter *Tools.TokenBucketRateLimiter,
+	   	messageRateLimiter *Tools.TokenBucketRateLimiter, */
 
 	deserializer ObjectDeserializer[T],
 	objectHandler ObjectHandler[T],
 
 ) ReceptionHandler {
-
-	var byteRateLimiter *Tools.TokenBucketRateLimiter
-	if byteRateLimiterConfig != nil {
-		byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
-	}
-	var messageRateLimiter *Tools.TokenBucketRateLimiter
-	if messageRateLimiterConfig != nil {
-		messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
-	}
-
 	return func(bytes []byte) error {
 
 		if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
