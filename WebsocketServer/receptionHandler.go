@@ -116,8 +116,19 @@ func NewValidationMessageReceptionHandlerFactory(
 	)
 }
 
-func NewValidationReceptionHandlerFactory[T any](byteHandler ReceptionHandler.ByteHandler[T], deserializer ReceptionHandler.ObjectDeserializer[T], objectHandler ReceptionHandler.ObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
-	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
+func NewValidationReceptionHandlerFactory[T any](
+	byteHandler ReceptionHandler.ByteHandler[T],
+	deserializer ReceptionHandler.ObjectDeserializer[T],
+	objectHandler ReceptionHandler.ObjectHandler[T],
+) WebsocketServerReceptionHandlerFactory[T] {
+
+	return func(
+		websocketServer *WebsocketServer[T],
+		websocketClient *WebsocketClient.WebsocketClient,
+		identity string,
+		sessionId string,
+	) ReceptionHandler.ReceptionHandler {
+
 		return ReceptionHandler.NewReceptionHandler[T](
 			byteHandler,
 			deserializer,
