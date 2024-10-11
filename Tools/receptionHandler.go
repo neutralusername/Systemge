@@ -1,6 +1,11 @@
 package Tools
 
+/* type ReceptionHandler[S any] interface {
+	Handle([]byte, S) error
+} */
+
 type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
+
 type ReceptionHandler[S any] func([]byte, S) error
 
 type ByteHandler[S any] func([]byte, S) error
