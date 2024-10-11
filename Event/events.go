@@ -48,6 +48,8 @@ const ReadingMessage = "receivingMessage"     // before reading a message
 const ReadMessage = "receivedMessage"         // after reading a message
 const ReadMessageFailed = "readMessageFailed" // when a write operation returns an error
 
+const ReceptionHandlerFailed = "receptionHandlerFailed" // when a reception handler operation returns an error
+
 const WritingMessage = "writingMessage"         // before writing a message
 const WroteMessage = "wroteMessage"             // after writing a message
 const WriteMessageFailed = "writeMessageFailed" // when a write operation returns an error
