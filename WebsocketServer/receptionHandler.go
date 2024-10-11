@@ -45,19 +45,24 @@ func NewWebsocketTopicManager[T any](config *Config.TopicManager, topicObjectHan
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint32, requestResponseManager *Tools.RequestResponseManager[*Message.Message]) WebsocketServerReceptionHandlerFactory[*Message.Message] {
-	var byteRateLimiter *Tools.TokenBucketRateLimiter
+func NewValidationMessageReceptionHandlerFactory(
+	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
+	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
+	messageValidatorConfig *Config.MessageValidator,
+	topicManager *Tools.TopicManager,
+	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
+	topicPriorities map[string]uint32,
+	topicTimeoutMs map[string]uint32,
+	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
+) WebsocketServerReceptionHandlerFactory[*Message.Message] {
+
+	byteHandlers := []ReceptionHandler.ByteHandler[*Message.Message]{}
 	if byteRateLimiterConfig != nil {
-		byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
+		byteHandlers = append(byteHandlers, ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
 	}
-	var messageRateLimiter *Tools.TokenBucketRateLimiter
 	if messageRateLimiterConfig != nil {
-		messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
+		byteHandlers = append(byteHandlers, ReceptionHandler.NewMessageRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
 	}
-	byteHandler := ReceptionHandler.NewChainByteHandler(
-		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewMessageRateLimitByteHandler[*Message.Message](messageRateLimiter)),
-		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](byteRateLimiter)),
-	)
 
 	objectDeserializer := func(messageBytes []byte) (*Message.Message, error) {
 		return Message.Deserialize(messageBytes)
@@ -104,7 +109,11 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
-	return NewValidationReceptionHandlerFactory(byteHandler, objectDeserializer, ReceptionHandler.NewChainObjecthandler(objectHandlers...))
+	return NewValidationReceptionHandlerFactory(
+		ReceptionHandler.NewChainByteHandler(byteHandlers...),
+		objectDeserializer,
+		ReceptionHandler.NewChainObjecthandler(objectHandlers...),
+	)
 }
 
 func NewValidationReceptionHandlerFactory[T any](byteHandler ReceptionHandler.ByteHandler[T], deserializer ReceptionHandler.ObjectDeserializer[T], objectHandler ReceptionHandler.ObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
