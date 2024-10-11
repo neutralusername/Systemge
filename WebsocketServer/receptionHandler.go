@@ -114,12 +114,11 @@ func NewValidationMessageReceptionHandlerFactory(
 	}
 	if priorityQueue != nil {
 		if obtainEnqueueConfigs == nil {
-			objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, func(message *Message.Message) (string, uint32, uint32) {
+			obtainEnqueueConfigs = func(message *Message.Message) (string, uint32, uint32) {
 				return "", 0, 0
-			}))
-		} else {
-			objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+			}
 		}
+		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 
 	}
 
