@@ -13,7 +13,6 @@ type ReceptionHandler func([]byte) error
 type ObjectDeserializer[T any] func([]byte) (T, error)
 type ObjectValidator[T any] func(T) error
 
-type AssertIsResponse[T any] func(T) bool
 type ObtainResponseToken[T any] func(T) string
 type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
 
@@ -29,9 +28,8 @@ func NewValidationReceptionHandler[T any](
 	requestResponseManager *Tools.RequestResponseManager[T],
 	priorityTokenQueue *Tools.PriorityTokenQueue[T],
 
-	getObjectIsResponse AssertIsResponse[T],
-	getObjectResponseToken ObtainResponseToken[T],
-	getObjectQueueConfig ObtainEnqueueConfigs[T],
+	obtainResponseToken ObtainResponseToken[T],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
 ) ReceptionHandler {
 
 	var byteRateLimiter *Tools.TokenBucketRateLimiter
@@ -117,16 +115,16 @@ func NewValidationReceptionHandler[T any](
 			}
 		}
 
-		if getObjectIsResponse(object) {
+		if responseToken := obtainResponseToken(object); responseToken != "" {
 			if requestResponseManager != nil {
-				if err := requestResponseManager.AddResponse(getObjectResponseToken(object), object); err != nil {
+				if err := requestResponseManager.AddResponse(responseToken, object); err != nil {
 					return err
 				}
 				return nil
 			}
 		}
 
-		token, priority, timeoutMs := getObjectQueueConfig(object)
+		token, priority, timeoutMs := obtainEnqueueConfigs(object)
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
