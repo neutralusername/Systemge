@@ -34,10 +34,25 @@ func (server *WebsocketServer[T]) receptionRoutine(session *Tools.Session, webso
 	receptionHandler := server.receptionHandlerFactory()
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
 		if err := receptionHandler(messageBytes, &structName123{}); err != nil {
-			websocketClient.Close()
-			server.MessagesRejected.Add(1)
+			server.FailedReceptions.Add(1)
+			if server.eventHandler != nil {
+				event := server.eventHandler.Handle(Event.New(
+					Event.ReceptionHandlerFailed,
+					Event.Context{
+						Event.SessionId: session.GetId(),
+						Event.Identity:  session.GetIdentity(),
+						Event.Address:   websocketClient.GetAddress(),
+						Event.Error:     err.Error(),
+					},
+					Event.Skip,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					websocketClient.Close()
+				}
+			}
 		} else {
-			server.MessagesAccepted.Add(1)
+			server.SuccessfulReceptions.Add(1)
 		}
 	}
 
