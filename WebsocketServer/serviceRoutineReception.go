@@ -31,12 +31,11 @@ func (server *WebsocketServer[T]) receptionRoutine(session *Tools.Session, webso
 		}
 	}
 
-	receptionHandler := server.receptionHandlerFactory()
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
 
 		// event
 
-		if err := receptionHandler(messageBytes, &structName123{
+		if err := server.receptionHandler(messageBytes, &structName123{
 			Client:    websocketClient,
 			SessionId: session.GetId(),
 			Identity:  session.GetIdentity(),
