@@ -16,6 +16,30 @@ type ObjectValidator[T any] func(T) error
 type ObtainResponseToken[T any] func(T) string
 type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
 
+type ObjectHandler[T any] func(T) error
+
+func NewQueueObjectHandler[T any](
+	requestResponseManager *Tools.RequestResponseManager[T],
+	priorityTokenQueue *Tools.PriorityTokenQueue[T],
+	obtainResponseToken ObtainResponseToken[T],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
+) ObjectHandler[T] {
+
+	return func(object T) error {
+		if responseToken := obtainResponseToken(object); responseToken != "" {
+			if requestResponseManager != nil {
+				if err := requestResponseManager.AddResponse(responseToken, object); err != nil {
+					return err
+				}
+				return nil
+			}
+		}
+
+		token, priority, timeoutMs := obtainEnqueueConfigs(object)
+		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
+	}
+}
+
 func NewValidationReceptionHandler[T any](
 	eventHandler *Event.Handler,
 	defaultContext Event.Context,
@@ -24,12 +48,8 @@ func NewValidationReceptionHandler[T any](
 
 	deserializer ObjectDeserializer[T],
 	validator ObjectValidator[T],
+	objectHandler ObjectHandler[T],
 
-	requestResponseManager *Tools.RequestResponseManager[T],
-	priorityTokenQueue *Tools.PriorityTokenQueue[T],
-
-	obtainResponseToken ObtainResponseToken[T],
-	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
 ) ReceptionHandler {
 
 	var byteRateLimiter *Tools.TokenBucketRateLimiter
@@ -115,16 +135,6 @@ func NewValidationReceptionHandler[T any](
 			}
 		}
 
-		if responseToken := obtainResponseToken(object); responseToken != "" {
-			if requestResponseManager != nil {
-				if err := requestResponseManager.AddResponse(responseToken, object); err != nil {
-					return err
-				}
-				return nil
-			}
-		}
-
-		token, priority, timeoutMs := obtainEnqueueConfigs(object)
-		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
+		return objectHandler(object)
 	}
 }
