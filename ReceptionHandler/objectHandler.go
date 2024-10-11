@@ -7,6 +7,7 @@ type ObjectHandler[T any] func(T) error
 type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
 type ObtainResponseToken[T any] func(T) string
 type ObjectValidator[T any] func(T) error
+type ObtainTopic[T any] func(T) string
 
 // executes all handlers in order, return error if any handler returns an error
 func NewChainObjecthandler[T any](
@@ -42,6 +43,19 @@ func NewResponseObjectHandler[T any](
 			if requestResponseManager != nil {
 				return requestResponseManager.AddResponse(responseToken, object)
 			}
+		}
+		return nil
+	}
+}
+
+func NewTopicObjectHandler[T any](
+	topicManager *Tools.TopicManager,
+	obtainTopic func(T) string,
+) ObjectHandler[T] {
+	return func(object T) error {
+		if topicManager != nil {
+			result, err := topicManager.Handle(obtainTopic(object), object)
+
 		}
 		return nil
 	}

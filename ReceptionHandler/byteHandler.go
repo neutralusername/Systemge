@@ -4,6 +4,7 @@ import "github.com/neutralusername/Systemge/Tools"
 
 type ByteHandler[T any] func([]byte) error
 
+// executes all handlers in order, return error if any handler returns an error
 func NewChainByteHandler[T any](
 	handlers ...ByteHandler[T],
 ) ByteHandler[T] {
