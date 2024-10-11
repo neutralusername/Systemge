@@ -4,10 +4,11 @@ type ReceptionHandlerFactory[T any] func(T) ReceptionHandler
 type ReceptionHandler func([]byte) error
 type ObjectDeserializer[T any] func([]byte) (T, error)
 
-func NewReceptionHandler[T any](
+func NewReceptionHandler[T any, S any](
 	byteHandler ByteHandler[T],
 	deserializer ObjectDeserializer[T],
 	objectHandler ObjectHandler[T],
+	structName123 S,
 ) ReceptionHandler {
 	return func(bytes []byte) error {
 

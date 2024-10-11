@@ -55,7 +55,7 @@ func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerF
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
 } */
 
-func NewValidationMessageReceptionHandlerFactory(
+func NewValidationMessageReceptionHandlerFactory[S any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageValidatorConfig *Config.MessageValidator,
@@ -63,7 +63,7 @@ func NewValidationMessageReceptionHandlerFactory(
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message],
 	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
-) WebsocketServerReceptionHandlerFactory[*Message.Message] {
+) Tools.ReceptionHandlerFactory[S] {
 
 	byteHandlers := []Tools.ByteHandler[*Message.Message]{}
 	if byteRateLimiterConfig != nil {
@@ -121,30 +121,32 @@ func NewValidationMessageReceptionHandlerFactory(
 
 	}
 
-	return NewValidationReceptionHandlerFactory(
+	return NewValidationReceptionHandlerFactory[*Message.Message, S](
 		Tools.NewChainByteHandler(byteHandlers...),
 		objectDeserializer,
 		Tools.NewChainObjecthandler(objectHandlers...),
 	)
 }
 
-func NewValidationReceptionHandlerFactory[T any](
+func NewValidationReceptionHandlerFactory[T any, S any](
 	byteHandler Tools.ByteHandler[T],
 	deserializer Tools.ObjectDeserializer[T],
 	objectHandler Tools.ObjectHandler[T],
-) WebsocketServerReceptionHandlerFactory[T] {
+) Tools.ReceptionHandlerFactory[S] {
 
 	return func(
-	/* 	websocketServer *WebsocketServer[T],
-	websocketClient *WebsocketClient.WebsocketClient,
-	identity string,
-	sessionId string, */
+		/* 	websocketServer *WebsocketServer[T],
+		websocketClient *WebsocketClient.WebsocketClient,
+		identity string,
+		sessionId string, */
+		structName123 S,
 	) Tools.ReceptionHandler {
 
 		return Tools.NewReceptionHandler[T](
 			byteHandler,
 			deserializer,
 			objectHandler,
+			structName123,
 		)
 	}
 }
