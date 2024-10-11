@@ -56,7 +56,7 @@ func NewValidationObjectHandler[T any](
 	}
 }
 
-func ChainObjectHandlers[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
+func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
 	return func(object T) error {
 		for _, handler := range handlers {
 			if err := handler(object); err != nil {

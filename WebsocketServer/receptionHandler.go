@@ -24,7 +24,7 @@ func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerF
 	}
 }
 
-func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], validator ReceptionHandler.ObjectValidator[T], websocketServerObjectHandler WebsocketServerObjectHandler[T], websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[T]) WebsocketServerReceptionHandlerFactory[T] {
+func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T], websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[T]) WebsocketServerReceptionHandlerFactory[T] {
 	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
 		objectHandler := func(object T) error {
 			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
@@ -34,7 +34,7 @@ func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.T
 			Event.Identity:  identity,
 			Event.SessionId: sessionId,
 			Event.Address:   websocketClient.GetAddress(),
-		}, byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, objectHandler)
+		}, byteRateLimiterConfig, messageRateLimiterConfig, deserializer, objectHandler)
 	}
 }
 
@@ -164,5 +164,5 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 	}
 
-	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, websocketReceptionHandlerInitFunc)
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectHandler, websocketReceptionHandlerInitFunc)
 }
