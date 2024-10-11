@@ -151,7 +151,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			}
 		}
 	}
-	return NewValidationReceptionHandlerFactory[*Message.Message](byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, initializerFunc)
+	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, initializerFunc)
 }
 
 func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ObjectDeserializer[T], validator ObjectValidator[T], objectHandler ObjectHandler[T], initializerFunc InitializerFunc[T]) ReceptionHandlerFactory[T] {
