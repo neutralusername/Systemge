@@ -49,14 +49,19 @@ func NewResponseObjectHandler[T any](
 	}
 }
 
-func NewTopicObjectHandler[T any](
-	topicManager *Tools.TopicManager,
-	obtainTopic func(T) string,
-) ObjectHandler[T] {
-	return func(object T) error {
+// resultHandler requires check for nil if applicable
+func NewTopicObjectHandler[P any, R any](
+	topicManager *Tools.TopicManager[P, R],
+	obtainTopic func(P) string,
+	resultHandler ResultHandler[R],
+) ObjectHandler[P] {
+	return func(object P) error {
 		if topicManager != nil {
 			result, err := topicManager.Handle(obtainTopic(object), object)
-
+			if err != nil {
+				return err
+			}
+			return resultHandler(result)
 		}
 		return nil
 	}
