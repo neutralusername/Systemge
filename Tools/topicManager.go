@@ -78,7 +78,7 @@ func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (R, er
 		case topicManager.queue <- queueStruct:
 		default:
 			close(queueStruct.responseChannel)
-			return nil, errors.New("queue full")
+			return <-queueStruct.responseChannel, errors.New("queue full")
 		}
 	}
 	return <-queueStruct.responseChannel, <-queueStruct.responseErrorChannel
