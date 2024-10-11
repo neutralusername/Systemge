@@ -1,7 +1,10 @@
 package Tools
 
-/* type ReceptionHandler[S any] interface {
+/* type ReceptionHandler[S any] interface {	(2manage queue retrieval)
 	Handle([]byte, S) error
+	Start() error
+	Stop() error
+	GetStatus() int
 } */
 
 type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
