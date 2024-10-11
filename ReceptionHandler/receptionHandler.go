@@ -10,13 +10,12 @@ import (
 
 type ReceptionHandler func([]byte) error
 
+type ObjectHandler[T any] func(T) error
 type ObjectDeserializer[T any] func([]byte) (T, error)
 type ObjectValidator[T any] func(T) error
 
 type ObtainResponseToken[T any] func(T) string
 type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
-
-type ObjectHandler[T any] func(T) error
 
 func NewQueueObjectHandler[T any](
 	priorityTokenQueue *Tools.PriorityTokenQueue[T],
@@ -36,9 +35,7 @@ func NewResponseObjectHandler[T any](
 		responseToken := obtainResponseToken(object)
 		if responseToken != "" {
 			if requestResponseManager != nil {
-				if err := requestResponseManager.AddResponse(responseToken, object); err != nil {
-					return err
-				}
+				return requestResponseManager.AddResponse(responseToken, object)
 			}
 		}
 		return nil
@@ -49,15 +46,14 @@ func NewValidationObjectHandler[T any](
 	validator ObjectValidator[T],
 ) ObjectHandler[T] {
 	return func(object T) error {
-		if err := validator(object); err != nil {
-			return err
-		}
-		return nil
+		return validator(object)
 	}
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
+func NewChainObjecthandler[T any](
+	handlers ...ObjectHandler[T],
+) ObjectHandler[T] {
 	return func(object T) error {
 		for _, handler := range handlers {
 			if err := handler(object); err != nil {
