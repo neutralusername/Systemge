@@ -85,7 +85,13 @@ func NewResponseObjectHandler[T any, S any](
 	}
 }
 
-// resultHandler requires check for nil if applicable
+func NewValidationObjectHandler[T any, S any](validator ObjectValidator[T, S]) ObjectHandler[T, S] {
+	return func(object T, structName123 S) error {
+		return validator(object, structName123)
+	}
+}
+
+/* // resultHandler requires check for nil if applicable
 func NewTopicObjectHandler[T any, R any, S any](
 	topicManager *TopicManager[T, R],
 	obtainTopic func(T) string,
@@ -101,13 +107,7 @@ func NewTopicObjectHandler[T any, R any, S any](
 		}
 		return nil
 	}
-}
-
-func NewValidationObjectHandler[T any, S any](validator ObjectValidator[T, S]) ObjectHandler[T, S] {
-	return func(object T, structName123 S) error {
-		return validator(object, structName123)
-	}
-}
+} */
 
 // executes all handlers in order, return error if any handler returns an error
 func NewChainByteHandler[S any](handlers ...ByteHandler[S]) ByteHandler[S] {

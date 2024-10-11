@@ -100,11 +100,3 @@ func NewWebsocketReceptionHandlerFactory[T any](
 		Tools.NewChainObjecthandler(objectHandlers...),
 	)
 }
-
-/*
-
-	objectValidator := func(message T, s S) error {
-
-		}
-
-*/
