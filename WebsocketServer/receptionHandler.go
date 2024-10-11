@@ -91,28 +91,30 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 
-	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectHandler)
+	var byteRateLimiter *Tools.TokenBucketRateLimiter
+	if byteRateLimiterConfig != nil {
+		byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
+	}
+	var messageRateLimiter *Tools.TokenBucketRateLimiter
+	if messageRateLimiterConfig != nil {
+		messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
+	}
+	byteHandler := ReceptionHandler.NewChainByteHandler(
+		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewMessageRateLimitByteHandler[*Message.Message](messageRateLimiter)),
+		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](byteRateLimiter)),
+	)
+
+	return NewValidationReceptionHandlerFactory(byteHandler, objectDeserializer, objectHandler)
 }
 
-func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
+func NewValidationReceptionHandlerFactory[T any](byteHandler ReceptionHandler.ByteHandler[T], deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
 	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
 		objectHandler := func(object T) error {
 			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
 		}
-		var byteRateLimiter *Tools.TokenBucketRateLimiter
-		if byteRateLimiterConfig != nil {
-			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
-		}
-		var messageRateLimiter *Tools.TokenBucketRateLimiter
-		if messageRateLimiterConfig != nil {
-			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
-		}
 
 		return ReceptionHandler.NewReceptionHandler[T](
-			ReceptionHandler.NewChainByteHandler(
-				ReceptionHandler.ByteHandler[T](ReceptionHandler.NewMessageRateLimitByteHandler[T](messageRateLimiter)),
-				ReceptionHandler.ByteHandler[T](ReceptionHandler.NewByteRateLimitByteHandler[T](byteRateLimiter)),
-			),
+			byteHandler,
 			deserializer,
 			objectHandler,
 		)
