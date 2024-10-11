@@ -1,20 +1,14 @@
 package Tools
 
-/*
-
-type ReceptionHandler[S any] interface {	(2manage queue retrieval)
-	Handle([]byte, S) error
-	Start() error
-	Stop() error
-	GetStatus() int
-}
-
-type ReceptionHandler[S any] struct {
-
+/* type ReceptionHandler[S any] struct {
+	onStart  func() error
+	onStop   func() error
+	onHandle func([]byte, S) error
+	status   int
 }
 
 func (handler *ReceptionHandler[S]) Handle(bytes []byte, structName123 S) error {
-	if handler.status != StatusRunning {
+	if handler.status != Status.Stopped {
 		return errors.New("handler is not running")
 	}
 	if handler.onHandle == nil {
@@ -27,14 +21,13 @@ func NewReceptionHandler[S any](
 	onStart func() error,
 	onStop func() error,
 	onHandle func([]byte, S) error,
-) ReceptionHandler[S] {
+) *ReceptionHandler[S] {
 	return &ReceptionHandler[S]{
-
+		onStart:  onStart,
+		onStop:   onStop,
+		onHandle: onHandle,
 	}
-}
-
-
-*/
+} */
 
 type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
 
