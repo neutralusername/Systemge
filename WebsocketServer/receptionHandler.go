@@ -2,8 +2,26 @@ package WebsocketServer
 
 import (
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
+
+func NewWebsocketMessageReceptionHandlerFactory(
+	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
+	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
+
+	deserializer Tools.ObjectDeserializer[*Message.Message, *structName123],
+
+	messageValidatorConfig *Config.MessageValidator,
+
+	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
+	obtainResponseToken Tools.ObtainResponseToken[*Message.Message, *structName123],
+
+	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *structName123],
+) Tools.ReceptionHandlerFactory[*structName123] {
+
+}
 
 func NewWebsocketReceptionHandlerFactory[T any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
@@ -47,3 +65,29 @@ func NewWebsocketReceptionHandlerFactory[T any](
 		Tools.NewChainObjecthandler(objectHandlers...),
 	)
 }
+
+/*
+
+	objectValidator := func(message T, s S) error {
+			if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
+				return errors.New("message contains sync token")
+			}
+			if messageValidatorConfig.MaxSyncTokenSize >= 0 && len(message.GetSyncToken()) > messageValidatorConfig.MaxSyncTokenSize {
+				return errors.New("message contains sync token")
+			}
+			if messageValidatorConfig.MinTopicSize >= 0 && len(message.GetTopic()) < messageValidatorConfig.MinTopicSize {
+				return errors.New("message missing topic")
+			}
+			if messageValidatorConfig.MaxTopicSize >= 0 && len(message.GetTopic()) > messageValidatorConfig.MaxTopicSize {
+				return errors.New("message missing topic")
+			}
+			if messageValidatorConfig.MinPayloadSize >= 0 && len(message.GetPayload()) < messageValidatorConfig.MinPayloadSize {
+				return errors.New("message payload exceeds maximum size")
+			}
+			if messageValidatorConfig.MaxPayloadSize >= 0 && len(message.GetPayload()) > messageValidatorConfig.MaxPayloadSize {
+				return errors.New("message payload exceeds maximum size")
+			}
+			return nil
+		}
+
+*/
