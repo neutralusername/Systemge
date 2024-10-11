@@ -15,14 +15,25 @@ type WebsocketServerObjectHandler[T any] func(object T, websocketServer *Websock
 type WebsocketReceptionHandlerInitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
 
 func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerFactory[T] {
-	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
+	return func(
+		websocketServer *WebsocketServer[T],
+		websocketClient *WebsocketClient.WebsocketClient,
+		identity string,
+		sessionId string,
+	) ReceptionHandler.ReceptionHandler {
+
 		return func(bytes []byte) error {
 			return nil
 		}
 	}
 }
 
-func NewWebsocketTopicManager[T any](config *Config.TopicManager, topicObjectHandlers map[string]WebsocketServerObjectHandler[T], unknownObjectHandler WebsocketServerObjectHandler[T]) *Tools.TopicManager {
+func NewWebsocketTopicManager[T any](
+	config *Config.TopicManager,
+	topicObjectHandlers map[string]WebsocketServerObjectHandler[T],
+	unknownObjectHandler WebsocketServerObjectHandler[T],
+) *Tools.TopicManager {
+
 	topicHandlers := make(Tools.TopicHandlers)
 	for topic, objectHandler := range topicObjectHandlers {
 		topicHandlers[topic] = func(args ...any) (any, error) {
