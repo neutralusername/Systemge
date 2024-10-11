@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
+// out message may be any type/structure of data. incoming must correlate to the websocketServers T type (may be any...)
 func (server *WebsocketServer[T]) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[T], error) {
 
 }
