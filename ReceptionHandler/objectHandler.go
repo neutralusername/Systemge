@@ -8,6 +8,7 @@ type ObtainEnqueueConfigs[T any] func(T) (token string, priority uint32, timeout
 type ObtainResponseToken[T any] func(T) string
 type ObjectValidator[T any] func(T) error
 type ObtainTopic[T any] func(T) string
+type ResultHandler[T any] func(T) error
 
 // executes all handlers in order, return error if any handler returns an error
 func NewChainObjecthandler[T any](

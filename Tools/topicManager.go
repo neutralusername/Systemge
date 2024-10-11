@@ -8,27 +8,27 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 )
 
-type TopicHandler func(...any) (any, error)
-type TopicHandlers map[string]TopicHandler
+type TopicHandler[P any, R any] func(P) (R, error)
+type TopicHandlers[P any, R any] map[string]TopicHandler[P, R]
 
-type TopicManager struct {
+type TopicManager[P any, R any] struct {
 	config *Config.TopicManager
 
-	topicHandlers       TopicHandlers
-	unknownTopicHandler TopicHandler
+	topicHandlers       TopicHandlers[P, R]
+	unknownTopicHandler TopicHandler[P, R]
 
 	isClosed bool
 	mutex    sync.Mutex
 
-	queue             chan *queueStruct
-	topicQueues       map[string]chan *queueStruct
-	unknownTopicQueue chan *queueStruct
+	queue             chan *queueStruct[P, R]
+	topicQueues       map[string]chan *queueStruct[P, R]
+	unknownTopicQueue chan *queueStruct[P, R]
 }
 
-type queueStruct struct {
+type queueStruct[P any, R any] struct {
 	topic                string
-	args                 []any
-	responseAnyChannel   chan any
+	parameter            P
+	responseAnyChannel   chan R
 	responseErrorChannel chan error
 }
 
