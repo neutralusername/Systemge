@@ -47,7 +47,7 @@ func newTokenItem[T any](token string, value T) *tokenItem[T] {
 // The token may be an emptry string, which means that the item cannot be retrieved by token.
 // If the token is not empty and already exists, an error is returned.
 // If a timeout is set, the item will be removed from the queue after the timeout.
-func (queue *PriorityTokenQueue[T]) Push(token string, value T, priority uint32, timeoutMs uint64) error {
+func (queue *PriorityTokenQueue[T]) Push(token string, value T, priority uint32, timeoutMs uint32) error {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 
