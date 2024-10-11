@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) GetWebsocketClient(sessionId string) (*WebsocketClient.WebsocketClient, error) {
+func (server *WebsocketServer[T]) GetWebsocketClient(sessionId string) (*WebsocketClient.WebsocketClient, error) {
 	session := server.sessionManager.GetSession(sessionId)
 	if session == nil {
 		return nil, errors.New("Session not found")
@@ -18,7 +18,7 @@ func (server *WebsocketServer) GetWebsocketClient(sessionId string) (*WebsocketC
 	return websocketClient.(*WebsocketClient.WebsocketClient), nil
 }
 
-func (server *WebsocketServer) GetIdentityWebsocketClients(identity string) []*WebsocketClient.WebsocketClient {
+func (server *WebsocketServer[T]) GetIdentityWebsocketClients(identity string) []*WebsocketClient.WebsocketClient {
 	clients := []*WebsocketClient.WebsocketClient{}
 	sessions := server.sessionManager.GetIdentitySessions(identity)
 	for _, session := range sessions {
@@ -31,7 +31,7 @@ func (server *WebsocketServer) GetIdentityWebsocketClients(identity string) []*W
 	return clients
 }
 
-func (server *WebsocketServer) GetWebsocketClients() []*WebsocketClient.WebsocketClient {
+func (server *WebsocketServer[T]) GetWebsocketClients() []*WebsocketClient.WebsocketClient {
 	clients := []*WebsocketClient.WebsocketClient{}
 	sessions := server.sessionManager.GetSessions()
 	for _, session := range sessions {

@@ -9,16 +9,16 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-type AcceptionHandler func(*WebsocketServer, *WebsocketClient.WebsocketClient) (string, error)
+type AcceptionHandler[T any] func(*WebsocketServer[T], *WebsocketClient.WebsocketClient) (string, error)
 
-func NewDefaultAcceptionHandler() AcceptionHandler {
-	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
+func NewDefaultAcceptionHandler[T any]() AcceptionHandler[T] {
+	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		return "", nil
 	}
 }
 
-func NewAccessControlAcceptionHandler(blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler {
-	return func(websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient) (string, error) {
+func NewAccessControlAcceptionHandler[T any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[T] {
+	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient) (string, error) {
 		ip, _, err := net.SplitHostPort(websocketClient.GetAddress())
 		if err != nil {
 			if websocketServer.GetEventHandler() != nil {

@@ -2,7 +2,7 @@ package WebsocketServer
 
 import "github.com/neutralusername/Systemge/Metrics"
 
-func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
+func (server *WebsocketServer[T]) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	/* metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{
@@ -26,7 +26,7 @@ func (server *WebsocketServer) CheckMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *WebsocketServer) GetMetrics() Metrics.MetricsTypes {
+func (server *WebsocketServer[T]) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	/* metricsTypes.AddMetrics("websocketServer_byteTransmissions", Metrics.New(
 		map[string]uint64{

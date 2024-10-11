@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (server *WebsocketServer) Start() error {
+func (server *WebsocketServer[T]) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 

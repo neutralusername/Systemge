@@ -9,11 +9,11 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[any], error) {
+func (server *WebsocketServer[T]) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[T], error) {
 
 }
 
-func (server *WebsocketServer) AsyncMessage(messageBytes []byte, ids ...string) error {
+func (server *WebsocketServer[T]) AsyncMessage(messageBytes []byte, ids ...string) error {
 	if len(ids) == 0 {
 		return server.broadcast(messageBytes)
 	}
@@ -123,7 +123,7 @@ func (server *WebsocketServer) AsyncMessage(messageBytes []byte, ids ...string) 
 	return nil
 }
 
-func (server *WebsocketServer) broadcast(messageBytes []byte) error {
+func (server *WebsocketServer[T]) broadcast(messageBytes []byte) error {
 
 	if server.eventHandler != nil {
 		if event := server.eventHandler.Handle(Event.New(

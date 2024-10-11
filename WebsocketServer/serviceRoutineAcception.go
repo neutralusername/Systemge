@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) acceptionRoutine() {
+func (server *WebsocketServer[T]) acceptionRoutine() {
 	defer func() {
 		if server.eventHandler != nil {
 			server.eventHandler.Handle(Event.New(
@@ -80,7 +80,7 @@ func (server *WebsocketServer) acceptionRoutine() {
 	}
 }
 
-func (server *WebsocketServer) createSession(identity string, websocketClient *WebsocketClient.WebsocketClient) *Tools.Session {
+func (server *WebsocketServer[T]) createSession(identity string, websocketClient *WebsocketClient.WebsocketClient) *Tools.Session {
 	for {
 		if server.eventHandler != nil {
 			event := server.eventHandler.Handle(Event.New(
@@ -142,7 +142,7 @@ func (server *WebsocketServer) createSession(identity string, websocketClient *W
 	}
 }
 
-func (server *WebsocketServer) websocketClientDisconnect(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
+func (server *WebsocketServer[T]) websocketClientDisconnect(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
 	defer server.waitGroup.Done()
 
 	select {
