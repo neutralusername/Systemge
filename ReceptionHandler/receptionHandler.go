@@ -56,6 +56,7 @@ func NewValidationObjectHandler[T any](
 	}
 }
 
+// executes all handlers in order, return error if any handler returns an error
 func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
 	return func(object T) error {
 		for _, handler := range handlers {
