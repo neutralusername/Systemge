@@ -13,6 +13,9 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
+type structName123 struct {
+}
+
 type WebsocketServer[T any] struct {
 	config *Config.WebsocketServer
 
@@ -28,7 +31,7 @@ type WebsocketServer[T any] struct {
 
 	eventHandler *Event.Handler
 
-	receptionHandlerFactory WebsocketServerReceptionHandlerFactory[T]
+	receptionHandlerFactory Tools.ReceptionHandlerFactory[*structName123]
 	acceptionHandler        AcceptionHandler[T]
 	//requestResponseManager  *Tools.RequestResponseManager[T]
 
@@ -59,7 +62,7 @@ type WebsocketServer[T any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New[T any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc /*  requestResponseManager *Tools.RequestResponseManager[T],  */, acceptionHandler AcceptionHandler[T], receptionHandlerFactory WebsocketServerReceptionHandlerFactory[T]) (*WebsocketServer[T], error) {
+func New[T any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc /*  requestResponseManager *Tools.RequestResponseManager[T],  */, acceptionHandler AcceptionHandler[T], receptionHandlerFactory Tools.ReceptionHandlerFactory[*structName123]) (*WebsocketServer[T], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

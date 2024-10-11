@@ -8,12 +8,10 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type WebsocketServerReceptionHandlerFactory[T any] func( /* websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string */ ) Tools.ReceptionHandler
-
 //type WebsocketServerObjectHandler[T any] func(object T, websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
 //type WebsocketReceptionHandlerInitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
 
-func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerFactory[T] {
+func NewDefaultReceptionHandlerFactory[T any]() *Tools.ReceptionHandlerFactory[*structName123] {
 	return func(
 	/* 	websocketServer *WebsocketServer[T],
 	websocketClient *WebsocketClient.WebsocketClient,
