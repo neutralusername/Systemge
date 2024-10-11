@@ -45,7 +45,7 @@ func NewWebsocketTopicManager[T any](config *Config.TopicManager, topicObjectHan
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint32) WebsocketServerReceptionHandlerFactory[*Message.Message] {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint32, requestResponseManager *Tools.RequestResponseManager[*Message.Message]) WebsocketServerReceptionHandlerFactory[*Message.Message] {
 	objectDeserializer := func(messageBytes []byte) (*Message.Message, error) {
 		return Message.Deserialize(messageBytes)
 	}
@@ -85,7 +85,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	objectHandler := func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		ReceptionHandler.NewChainObjecthandler(
 			ReceptionHandler.NewValidationObjectHandler(objectValidator),
-			ReceptionHandler.NewResponseObjectHandler(websocketServer.GetRequestResponseManager(), obtainResponseToken),
+			ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken),
 			ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs),
 		)
 		return nil
