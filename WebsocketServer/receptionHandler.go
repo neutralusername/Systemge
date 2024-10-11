@@ -28,7 +28,7 @@ func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerF
 	}
 }
 
-func NewWebsocketTopicManager[P any, R any](
+/* func NewWebsocketTopicManager[P any, R any](
 	config *Config.TopicManager,
 	topicObjectHandlers map[string]WebsocketServerObjectHandler[P],
 	unknownObjectHandler WebsocketServerObjectHandler[P],
@@ -54,7 +54,7 @@ func NewWebsocketTopicManager[P any, R any](
 		return nil, unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
 	}
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
-}
+} */
 
 func NewValidationMessageReceptionHandlerFactory(
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
