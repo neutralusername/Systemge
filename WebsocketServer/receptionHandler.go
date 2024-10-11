@@ -13,9 +13,7 @@ import (
 )
 
 type WebsocketServerReceptionHandlerFactory[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler
-
 type WebsocketServerObjectHandler[T any] func(object T, websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
-
 type WebsocketReceptionHandlerInitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
 
 func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerFactory[T] {
@@ -32,7 +30,11 @@ func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.T
 			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
 		}
 		websocketReceptionHandlerInitFunc(websocketServer, websocketClient, identity, sessionId)
-		return ReceptionHandler.NewValidationReceptionHandler[T](websocketServer.GetEventHandler(), Event.Context{}, byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, objectHandler)
+		return ReceptionHandler.NewValidationReceptionHandler[T](websocketServer.GetEventHandler(), Event.Context{
+			Event.Identity:  identity,
+			Event.SessionId: sessionId,
+			Event.Address:   websocketClient.GetAddress(),
+		}, byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, objectHandler)
 	}
 }
 
