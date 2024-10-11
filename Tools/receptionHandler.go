@@ -11,10 +11,27 @@ type ReceptionHandler[S any] interface {	(2manage queue retrieval)
 
 type ReceptionHandler[S any] struct {
 
-
 }
 
+func (handler *ReceptionHandler[S]) Handle(bytes []byte, structName123 S) error {
+	if handler.status != StatusRunning {
+		return errors.New("handler is not running")
+	}
+	if handler.onHandle == nil {
+		return errors.New("onHandle is nil")
+	}
+	return handler.onHandle(bytes, structName123)
+}
 
+func NewReceptionHandler[S any](
+	onStart func() error,
+	onStop func() error,
+	onHandle func([]byte, S) error,
+) ReceptionHandler[S] {
+	return &ReceptionHandler[S]{
+
+	}
+}
 
 
 */
