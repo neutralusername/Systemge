@@ -66,9 +66,6 @@ func NewChainObjecthandler[T any](
 }
 
 func NewValidationReceptionHandler[T any](
-	eventHandler *Event.Handler,
-	defaultContext Event.Context,
-
 	byteHandler ByteHandler[T],
 	objectHandler ObjectHandler[T],
 
@@ -115,16 +112,6 @@ func NewValidationReceptionHandler[T any](
 
 		object, err := byteHandler(bytes)
 		if err != nil {
-			if eventHandler != nil {
-				eventHandler.Handle(Event.New(
-					Event.DeserializingFailed,
-					Event.Context{
-						Event.Bytes: string(bytes),
-						Event.Error: err.Error(),
-					}.Merge(defaultContext),
-					Event.Skip,
-				))
-			}
 			return errors.New(Event.DeserializingFailed)
 		}
 
