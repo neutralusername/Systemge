@@ -28,7 +28,7 @@ type TopicManager[P any, R any] struct {
 type queueStruct[P any, R any] struct {
 	topic                string
 	parameter            P
-	responseChanneö      chan R
+	responseChannel      chan R
 	responseErrorChannel chan error
 }
 
@@ -63,11 +63,11 @@ func NewTopicManager[P any, R any](config *Config.TopicManager, topicHandlers To
 }
 
 // can not be called after Close or will cause panic.
-func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (any, error) {
+func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (R, error) {
 	queueStruct := &queueStruct[P, R]{
 		topic:                topic,
 		parameter:            parameter,
-		responseChanneö:      make(chan R),
+		responseChannel:      make(chan R),
 		responseErrorChannel: make(chan error),
 	}
 
@@ -77,10 +77,11 @@ func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (any, 
 		select {
 		case topicManager.queue <- queueStruct:
 		default:
+			close(queueStruct.responseChannel)
 			return nil, errors.New("queue full")
 		}
 	}
-	return <-queueStruct.responseChanneö, <-queueStruct.responseErrorChannel
+	return <-queueStruct.responseChannel, <-queueStruct.responseErrorChannel
 }
 
 func (topicManager *TopicManager[P, R]) handleCalls() {
@@ -90,7 +91,7 @@ func (topicManager *TopicManager[P, R]) handleCalls() {
 			if topicManager.unknownTopicQueue != nil {
 				queue = topicManager.unknownTopicQueue
 			} else {
-				close(queueStruct.responseChanneö)
+				close(queueStruct.responseChannel)
 				queueStruct.responseErrorChannel <- errors.New("no handler for topic")
 				continue
 			}
@@ -101,7 +102,7 @@ func (topicManager *TopicManager[P, R]) handleCalls() {
 			select {
 			case queue <- queueStruct:
 			default:
-				close(queueStruct.responseChanneö)
+				close(queueStruct.responseChannel)
 				queueStruct.responseErrorChannel <- errors.New("topic queue full")
 			}
 		}
@@ -122,19 +123,19 @@ func (topicManager *TopicManager[P, R]) handleCall(queueStruct *queueStruct[P, R
 		var callback chan struct{} = make(chan struct{})
 		go func() {
 			response, err := handler(queueStruct.parameter)
-			queueStruct.responseChanneö <- response
+			queueStruct.responseChannel <- response
 			queueStruct.responseErrorChannel <- err
 			close(callback)
 		}()
 		select {
 		case <-time.After(time.Duration(topicManager.config.TimeoutMs) * time.Millisecond):
-			close(queueStruct.responseChanneö)
+			close(queueStruct.responseChannel)
 			queueStruct.responseErrorChannel <- errors.New("deadline exceeded")
 		case <-callback:
 		}
 	} else {
 		response, err := handler(queueStruct.parameter)
-		queueStruct.responseChanneö <- response
+		queueStruct.responseChannel <- response
 		queueStruct.responseErrorChannel <- err
 	}
 }
