@@ -15,6 +15,27 @@ type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
 type ObtainResponseToken[T any] func(T) string
 type ObjectValidator[T any] func(T) error
 
+func NewReceptionHandler[T any](
+	byteHandler ByteHandler[T],
+	deserializer ObjectDeserializer[T],
+	objectHandler ObjectHandler[T],
+) ReceptionHandler {
+	return func(bytes []byte) error {
+
+		err := byteHandler(bytes)
+		if err != nil {
+			return err
+		}
+
+		object, err := deserializer(bytes)
+		if err != nil {
+			return err
+		}
+
+		return objectHandler(object)
+	}
+}
+
 func NewQueueObjectHandler[T any](
 	priorityTokenQueue *Tools.PriorityTokenQueue[T],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
@@ -90,26 +111,5 @@ func NewMessageRateLimitByteHandler[T any](
 	return func(bytes []byte) error {
 		tokenBucketRateLimiter.Consume(1)
 		return nil
-	}
-}
-
-func NewReceptionHandler[T any](
-	byteHandler ByteHandler[T],
-	deserializer ObjectDeserializer[T],
-	objectHandler ObjectHandler[T],
-) ReceptionHandler {
-	return func(bytes []byte) error {
-
-		err := byteHandler(bytes)
-		if err != nil {
-			return err
-		}
-
-		object, err := deserializer(bytes)
-		if err != nil {
-			return err
-		}
-
-		return objectHandler(object)
 	}
 }
