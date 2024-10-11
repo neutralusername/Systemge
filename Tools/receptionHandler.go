@@ -4,6 +4,7 @@ type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
 type ReceptionHandler[S any] func([]byte, S) error
 type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
 type ByteHandler[S any] func([]byte, S) error
+type ObjectHandler[T any, S any] func(T, S) error
 
 func NewReceptionHandler[T any, S any](
 	byteHandler ByteHandler[S],
@@ -25,8 +26,6 @@ func NewReceptionHandler[T any, S any](
 		return objectHandler(object, structName123)
 	}
 }
-
-type ObjectHandler[T any, S any] func(T, S) error
 
 type ObtainEnqueueConfigs[T any] func(T) (token string, priority uint32, timeout uint32)
 type ObtainResponseToken[T any] func(T) string
