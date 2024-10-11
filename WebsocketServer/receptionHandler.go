@@ -82,13 +82,15 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return ""
 	}
 
-	objectHandler := func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-		ReceptionHandler.NewChainObjecthandler(
-			ReceptionHandler.NewValidationObjectHandler(objectValidator),
-			ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken),
-			ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs),
-		)
-		return nil
+	objectHandlers := []ReceptionHandler.ObjectHandler[*Message.Message]{}
+	if objectValidator != nil {
+		objectHandlers = append(objectHandlers, ReceptionHandler.NewValidationObjectHandler(objectValidator))
+	}
+	if requestResponseManager != nil && obtainResponseToken != nil {
+		objectHandlers = append(objectHandlers, ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
+	}
+	if priorityQueue != nil && obtainEnqueueConfigs != nil {
+		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
 	var byteRateLimiter *Tools.TokenBucketRateLimiter
@@ -104,15 +106,11 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](byteRateLimiter)),
 	)
 
-	return NewValidationReceptionHandlerFactory(byteHandler, objectDeserializer, objectHandler)
+	return NewValidationReceptionHandlerFactory(byteHandler, objectDeserializer, ReceptionHandler.NewChainObjecthandler(objectHandlers...))
 }
 
-func NewValidationReceptionHandlerFactory[T any](byteHandler ReceptionHandler.ByteHandler[T], deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
+func NewValidationReceptionHandlerFactory[T any](byteHandler ReceptionHandler.ByteHandler[T], deserializer ReceptionHandler.ObjectDeserializer[T], objectHandler ReceptionHandler.ObjectHandler[T]) WebsocketServerReceptionHandlerFactory[T] {
 	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
-		objectHandler := func(object T) error {
-			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
-		}
-
 		return ReceptionHandler.NewReceptionHandler[T](
 			byteHandler,
 			deserializer,
