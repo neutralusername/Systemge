@@ -2,8 +2,8 @@ package Tools
 
 type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
 type ReceptionHandler[S any] func([]byte, S) error
-type ByteHandler[S any] func([]byte, S) error
 
+type ByteHandler[S any] func([]byte, S) error
 type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
 type ObjectHandler[T any, S any] func(T, S) error
 
