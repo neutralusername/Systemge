@@ -46,9 +46,24 @@ func NewWebsocketTopicManager[T any](config *Config.TopicManager, topicObjectHan
 }
 
 func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint32, requestResponseManager *Tools.RequestResponseManager[*Message.Message]) WebsocketServerReceptionHandlerFactory[*Message.Message] {
+	var byteRateLimiter *Tools.TokenBucketRateLimiter
+	if byteRateLimiterConfig != nil {
+		byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
+	}
+	var messageRateLimiter *Tools.TokenBucketRateLimiter
+	if messageRateLimiterConfig != nil {
+		messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
+	}
+	byteHandler := ReceptionHandler.NewChainByteHandler(
+		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewMessageRateLimitByteHandler[*Message.Message](messageRateLimiter)),
+		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](byteRateLimiter)),
+	)
+
 	objectDeserializer := func(messageBytes []byte) (*Message.Message, error) {
 		return Message.Deserialize(messageBytes)
 	}
+
+	objectHandlers := []ReceptionHandler.ObjectHandler[*Message.Message]{}
 	objectValidator := func(message *Message.Message) error {
 		if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
 			return errors.New("message contains sync token")
@@ -70,11 +85,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		return nil
 	}
-
-	objectHandlers := []ReceptionHandler.ObjectHandler[*Message.Message]{}
-	if objectValidator != nil {
-		objectHandlers = append(objectHandlers, ReceptionHandler.NewValidationObjectHandler(objectValidator))
-	}
+	objectHandlers = append(objectHandlers, ReceptionHandler.NewValidationObjectHandler(objectValidator))
 	if requestResponseManager != nil {
 		obtainResponseToken := func(message *Message.Message) string {
 			if message.IsResponse() {
@@ -92,19 +103,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		}
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
-
-	var byteRateLimiter *Tools.TokenBucketRateLimiter
-	if byteRateLimiterConfig != nil {
-		byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
-	}
-	var messageRateLimiter *Tools.TokenBucketRateLimiter
-	if messageRateLimiterConfig != nil {
-		messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
-	}
-	byteHandler := ReceptionHandler.NewChainByteHandler(
-		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewMessageRateLimitByteHandler[*Message.Message](messageRateLimiter)),
-		ReceptionHandler.ByteHandler[*Message.Message](ReceptionHandler.NewByteRateLimitByteHandler[*Message.Message](byteRateLimiter)),
-	)
 
 	return NewValidationReceptionHandlerFactory(byteHandler, objectDeserializer, ReceptionHandler.NewChainObjecthandler(objectHandlers...))
 }
