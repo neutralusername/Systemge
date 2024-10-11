@@ -9,7 +9,11 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) Message(messageBytes []byte, ids ...string) error {
+func (server *WebsocketServer) SyncMessage(token string, messageBytes []byte, ids ...string) (response, error) {
+
+}
+
+func (server *WebsocketServer) AsyncMessage(messageBytes []byte, ids ...string) error {
 	if len(ids) == 0 {
 		return server.broadcast(messageBytes)
 	}

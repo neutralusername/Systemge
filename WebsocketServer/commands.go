@@ -47,7 +47,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["message"] = func(args []string) (string, error) {
+	commands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("invalid number of arguments")
 		}
@@ -56,7 +56,7 @@ func (server *WebsocketServer) GetDefaultCommands() Commands.Handlers {
 			return "", err
 		}
 		ids := args[1:]
-		err = server.Message(bytes, ids...)
+		err = server.AsyncMessage(bytes, ids...)
 		if err != nil {
 			return "", err
 		}
