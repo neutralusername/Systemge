@@ -11,9 +11,9 @@ type ObjectDeserializer[T any] func([]byte) (T, error)
 
 type ObjectHandler[T any] func(T) error
 
-type ObjectValidator[T any] func(T) error
-type ObtainResponseToken[T any] func(T) string
 type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
+type ObtainResponseToken[T any] func(T) string
+type ObjectValidator[T any] func(T) error
 
 func NewQueueObjectHandler[T any](
 	priorityTokenQueue *Tools.PriorityTokenQueue[T],
@@ -93,7 +93,7 @@ func NewMessageRateLimitByteHandler[T any](
 	}
 }
 
-func NewValidationReceptionHandler[T any](
+func NewReceptionHandler[T any](
 	byteHandler ByteHandler[T],
 	deserializer ObjectDeserializer[T],
 	objectHandler ObjectHandler[T],

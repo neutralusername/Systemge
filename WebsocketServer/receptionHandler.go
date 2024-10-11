@@ -30,7 +30,7 @@ func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.T
 			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
 		}
 		websocketReceptionHandlerInitFunc(websocketServer, websocketClient, identity, sessionId)
-		return ReceptionHandler.NewValidationReceptionHandler[T](websocketServer.GetEventHandler(), Event.Context{
+		return ReceptionHandler.NewReceptionHandler[T](websocketServer.GetEventHandler(), Event.Context{
 			Event.Identity:  identity,
 			Event.SessionId: sessionId,
 			Event.Address:   websocketClient.GetAddress(),
