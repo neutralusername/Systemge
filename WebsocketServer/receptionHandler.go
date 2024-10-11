@@ -7,18 +7,34 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/ReceptionHandler"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-type ReceptionHandler func([]byte) error
-type ReceptionHandlerFactory[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler
+type ReceptionHandlerFactory[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler
 
 type ObjectHandler[T any] func(object T, websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error
-type ObjectDeserializer[T any] func([]byte) (T, error)
-type ObjectValidator[T any] func(T) error
 
-type InitializerFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any
+type InitFunc[T any] func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string)
+
+func NewDefaultReceptionHandlerFactory[T any]() ReceptionHandlerFactory[T] {
+	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
+		return func(bytes []byte) error {
+			return nil
+		}
+	}
+}
+
+func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], validator ReceptionHandler.ObjectValidator[T], websocketServerObjectHandler ObjectHandler[T], initFunc InitFunc[T]) ReceptionHandlerFactory[T] {
+	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
+		objectHandler := func(object T) error {
+			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
+		}
+		initFunc(websocketServer, websocketClient, identity, sessionId)
+		return ReceptionHandler.NewValidationReceptionHandler[T](websocketServer.GetEventHandler(), Event.Context{}, byteRateLimiterConfig, messageRateLimiterConfig, deserializer, validator, objectHandler)
+	}
+}
 
 func NewWebsocketTopicManager[T any](config *Config.TopicManager, topicObjectHandlers map[string]ObjectHandler[T], unknownObjectHandler ObjectHandler[T]) *Tools.TopicManager {
 	topicHandlers := make(Tools.TopicHandlers)
@@ -41,14 +57,6 @@ func NewWebsocketTopicManager[T any](config *Config.TopicManager, topicObjectHan
 		return nil, unknownObjectHandler(message, websocketServer, websocketClient, identity, sessionId)
 	}
 	return Tools.NewTopicManager(config, topicHandlers, unknownTopicHandler)
-}
-
-func NewDefaultReceptionHandlerFactory[T any]() ReceptionHandlerFactory[T] {
-	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
-		return func(bytes []byte) error {
-			return nil
-		}
-	}
 }
 
 func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint64) ReceptionHandlerFactory[*Message.Message] {
@@ -79,7 +87,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 
 	var handleTopic func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
 	var messageHandler func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
-	var initializerFunc InitializerFunc[*Message.Message]
+	var initializerFunc InitFunc[*Message.Message]
 	var objectHandler ObjectHandler[*Message.Message]
 	objectHandler = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 		if message.IsResponse() {
@@ -115,7 +123,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	}
 	if priorityQueue != nil {
 		if topicManager != nil {
-			initializerFunc = func(websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) any {
+			initializerFunc = func(websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) {
 				go func() {
 					for {
 						select {
@@ -128,7 +136,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 						}
 					}
 				}()
-				return nil
 			}
 		}
 		mutex := &sync.Mutex{}
@@ -151,113 +158,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 			}
 		}
 	}
+
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectValidator, objectHandler, initializerFunc)
-}
-
-func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ObjectDeserializer[T], validator ObjectValidator[T], objectHandler ObjectHandler[T], initializerFunc InitializerFunc[T]) ReceptionHandlerFactory[T] {
-
-	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler {
-		var byteRateLimiter *Tools.TokenBucketRateLimiter
-		if byteRateLimiterConfig != nil {
-			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
-		}
-		var messageRateLimiter *Tools.TokenBucketRateLimiter
-		if messageRateLimiterConfig != nil {
-			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
-		}
-
-		if initializerFunc != nil {
-			// event
-			initializerFunc(websocketServer, websocketClient, identity, sessionId)
-		}
-
-		return func(bytes []byte) error {
-
-			if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
-				if websocketServer.GetEventHandler() != nil {
-					if event := websocketServer.GetEventHandler().Handle(Event.New(
-						Event.RateLimited,
-						Event.Context{
-							Event.SessionId:       sessionId,
-							Event.Identity:        identity,
-							Event.Address:         websocketClient.GetAddress(),
-							Event.RateLimiterType: Event.TokenBucket,
-							Event.TokenBucketType: Event.Bytes,
-							Event.Bytes:           string(bytes),
-						},
-						Event.Skip,
-						Event.Continue,
-					)); event.GetAction() == Event.Skip {
-						return errors.New(Event.RateLimited)
-					}
-				} else {
-					return errors.New(Event.RateLimited)
-				}
-			}
-
-			if messageRateLimiter != nil && !messageRateLimiter.Consume(1) {
-				if websocketServer.GetEventHandler() != nil {
-					if event := websocketServer.GetEventHandler().Handle(Event.New(
-						Event.RateLimited,
-						Event.Context{
-							Event.SessionId:       sessionId,
-							Event.Identity:        identity,
-							Event.Address:         websocketClient.GetAddress(),
-							Event.RateLimiterType: Event.TokenBucket,
-							Event.TokenBucketType: Event.Messages,
-							Event.Bytes:           string(bytes),
-						},
-						Event.Skip,
-						Event.Continue,
-					)); event.GetAction() == Event.Skip {
-						return errors.New(Event.RateLimited)
-					}
-				} else {
-					return errors.New(Event.RateLimited)
-				}
-			}
-
-			object, err := deserializer(bytes)
-			if err != nil {
-				if websocketServer.GetEventHandler() != nil {
-					websocketServer.GetEventHandler().Handle(Event.New(
-						Event.DeserializingFailed,
-						Event.Context{
-							Event.SessionId: sessionId,
-							Event.Identity:  identity,
-							Event.Address:   websocketClient.GetAddress(),
-							Event.Bytes:     string(bytes),
-							Event.Error:     err.Error(),
-						},
-						Event.Skip,
-					))
-				}
-				return errors.New(Event.DeserializingFailed)
-			}
-
-			if err := validator(object); err != nil {
-				if websocketServer.GetEventHandler() != nil {
-					event := websocketServer.GetEventHandler().Handle(Event.New(
-						Event.InvalidMessage,
-						Event.Context{
-							Event.SessionId: sessionId,
-							Event.Identity:  identity,
-							Event.Address:   websocketClient.GetAddress(),
-							Event.Bytes:     string(bytes),
-							Event.Error:     err.Error(),
-						},
-						Event.Skip,
-						Event.Continue,
-					))
-					if event.GetAction() == Event.Skip {
-						return errors.New(Event.InvalidMessage)
-					}
-				} else {
-					return errors.New(Event.InvalidMessage)
-				}
-			}
-
-			return objectHandler(object, websocketServer, websocketClient, identity, sessionId)
-		}
-	}
 }
