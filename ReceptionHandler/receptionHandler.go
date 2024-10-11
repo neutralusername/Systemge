@@ -19,24 +19,40 @@ type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
 type ObjectHandler[T any] func(T) error
 
 func NewQueueObjectHandler[T any](
-	requestResponseManager *Tools.RequestResponseManager[T],
 	priorityTokenQueue *Tools.PriorityTokenQueue[T],
-	obtainResponseToken ObtainResponseToken[T],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
 ) ObjectHandler[T] {
-
 	return func(object T) error {
-		if responseToken := obtainResponseToken(object); responseToken != "" {
+		token, priority, timeoutMs := obtainEnqueueConfigs(object)
+		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
+	}
+}
+
+func NewResponseObjectHandler[T any](
+	requestResponseManager *Tools.RequestResponseManager[T],
+	obtainResponseToken ObtainResponseToken[T],
+) ObjectHandler[T] {
+	return func(object T) error {
+		responseToken := obtainResponseToken(object)
+		if responseToken != "" {
 			if requestResponseManager != nil {
 				if err := requestResponseManager.AddResponse(responseToken, object); err != nil {
 					return err
 				}
-				return nil
 			}
 		}
+		return nil
+	}
+}
 
-		token, priority, timeoutMs := obtainEnqueueConfigs(object)
-		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
+func ChainObjectHandlers[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
+	return func(object T) error {
+		for _, handler := range handlers {
+			if err := handler(object); err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 
