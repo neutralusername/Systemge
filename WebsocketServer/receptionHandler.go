@@ -28,11 +28,11 @@ func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerF
 	}
 }
 
-func NewWebsocketTopicManager[T any](
+func NewWebsocketTopicManager[P any, R any](
 	config *Config.TopicManager,
-	topicObjectHandlers map[string]WebsocketServerObjectHandler[T],
-	unknownObjectHandler WebsocketServerObjectHandler[T],
-) *Tools.TopicManager {
+	topicObjectHandlers map[string]WebsocketServerObjectHandler[P],
+	unknownObjectHandler WebsocketServerObjectHandler[P],
+) *Tools.TopicManager[P, R] {
 
 	topicHandlers := make(Tools.TopicHandlers)
 	for topic, objectHandler := range topicObjectHandlers {
