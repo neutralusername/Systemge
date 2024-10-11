@@ -4,7 +4,7 @@ import "github.com/neutralusername/Systemge/Tools"
 
 type ObjectHandler[T any] func(T) error
 
-type ObtainEnqueueConfigs[T any] func(T) (string, uint32, uint32)
+type ObtainEnqueueConfigs[T any] func(T) (token string, priority uint32, timeout uint32)
 type ObtainResponseToken[T any] func(T) string
 type ObjectValidator[T any] func(T) error
 type ObtainTopic[T any] func(T) string

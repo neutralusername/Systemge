@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/ReceptionHandler"
 	"github.com/neutralusername/Systemge/Tools"
@@ -21,20 +20,6 @@ func NewDefaultReceptionHandlerFactory[T any]() WebsocketServerReceptionHandlerF
 		return func(bytes []byte) error {
 			return nil
 		}
-	}
-}
-
-func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T], websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[T]) WebsocketServerReceptionHandlerFactory[T] {
-	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
-		objectHandler := func(object T) error {
-			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
-		}
-		websocketReceptionHandlerInitFunc(websocketServer, websocketClient, identity, sessionId)
-		return ReceptionHandler.NewReceptionHandler[T](websocketServer.GetEventHandler(), Event.Context{
-			Event.Identity:  identity,
-			Event.SessionId: sessionId,
-			Event.Address:   websocketClient.GetAddress(),
-		}, byteRateLimiterConfig, messageRateLimiterConfig, deserializer, objectHandler)
 	}
 }
 
@@ -90,8 +75,21 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	var handleTopic func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
 	var messageHandler func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
 	var websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[*Message.Message]
-	var objectHandler WebsocketServerObjectHandler[*Message.Message]
-	objectHandler = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+	objectHandler := func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+		ReceptionHandler.NewChainObjecthandler(
+			ReceptionHandler.NewValidationObjectHandler(objectValidator),
+			ReceptionHandler.NewResponseObjectHandler(websocketServer.GetRequestResponseManager(), func(message *Message.Message) string {
+				if message.IsResponse() {
+					return message.GetSyncToken()
+				}
+				return ""
+			}),
+			ReceptionHandler.NewQueueObjectHandler(priorityQueue, func(message *Message.Message) (string, uint32, uint32) {
+				priority := topicPriorities[message.GetTopic()]
+				timeoutMs := topicTimeoutMs[message.GetTopic()]
+				return "", priority, timeoutMs
+			}),
+		)
 		if message.IsResponse() {
 			// event
 			websocketServer.GetRequestResponseManager().AddResponse(message.GetSyncToken(), message)
@@ -104,9 +102,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		handleTopic = func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
 			// event
 
-			// unsure whether i want to include a distinction between sync and async message(-handlers)
-
-			/* response, err := topicManager.Handle(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
+			response, err := topicManager.Handle(message.GetTopic(), message, websocketServer, websocketClient, identity, sessionId)
 			if err != nil {
 				// event
 				return err
@@ -121,7 +117,7 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 				if err := websocketClient.Write(message.Serialize(), websocketServer.config.WriteTimeoutMs); err != nil {
 					// event
 				}
-			} */
+			}
 			// event
 			return nil
 		}
@@ -165,4 +161,30 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	}
 
 	return NewValidationReceptionHandlerFactory(byteRateLimiterConfig, messageRateLimiterConfig, objectDeserializer, objectHandler, websocketReceptionHandlerInitFunc)
+}
+
+func NewValidationReceptionHandlerFactory[T any](byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, deserializer ReceptionHandler.ObjectDeserializer[T], websocketServerObjectHandler WebsocketServerObjectHandler[T], websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[T]) WebsocketServerReceptionHandlerFactory[T] {
+	return func(websocketServer *WebsocketServer[T], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) ReceptionHandler.ReceptionHandler {
+		objectHandler := func(object T) error {
+			return websocketServerObjectHandler(object, websocketServer, websocketClient, identity, sessionId)
+		}
+		websocketReceptionHandlerInitFunc(websocketServer, websocketClient, identity, sessionId)
+		var byteRateLimiter *Tools.TokenBucketRateLimiter
+		if byteRateLimiterConfig != nil {
+			byteRateLimiter = Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)
+		}
+		var messageRateLimiter *Tools.TokenBucketRateLimiter
+		if messageRateLimiterConfig != nil {
+			messageRateLimiter = Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)
+		}
+
+		return ReceptionHandler.NewReceptionHandler[T](
+			ReceptionHandler.NewChainByteHandler(
+				ReceptionHandler.ByteHandler[T](ReceptionHandler.NewMessageRateLimitByteHandler[T](messageRateLimiter)),
+				ReceptionHandler.ByteHandler[T](ReceptionHandler.NewByteRateLimitByteHandler[T](byteRateLimiter)),
+			),
+			deserializer,
+			objectHandler,
+		)
+	}
 }
