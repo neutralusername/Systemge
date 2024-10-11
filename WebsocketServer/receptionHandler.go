@@ -51,7 +51,7 @@ func NewDefaultReceptionHandlerFactory() ReceptionHandlerFactory {
 	}
 }
 
-func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, requestResponseManager *Tools.RequestResponseManager[*Message.Message], priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint64) ReceptionHandlerFactory {
+func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.TokenBucketRateLimiter, messageRateLimiterConfig *Config.TokenBucketRateLimiter, messageValidatorConfig *Config.MessageValidator, topicManager *Tools.TopicManager, priorityQueue *Tools.PriorityTokenQueue[*Message.Message], topicPriorities map[string]uint32, topicTimeoutMs map[string]uint64) ReceptionHandlerFactory {
 	objectDeserializer := func(messageBytes []byte) (any, error) {
 		return Message.Deserialize(messageBytes)
 	}
@@ -82,20 +82,14 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 	var messageHandler func(*Message.Message, *WebsocketServer, *WebsocketClient.WebsocketClient, string, string) error
 	var initializerFunc InitializerFunc
 	var objectHandler ObjectHandler
-	if requestResponseManager != nil {
-		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-			message := object.(*Message.Message)
-			if message.IsResponse() {
-				// event
-				requestResponseManager.AddResponse(message.GetSyncToken(), message)
-				return nil
-			}
-			return messageHandler(message, websocketServer, websocketClient, identity, sessionId)
+	objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
+		message := object.(*Message.Message)
+		if message.IsResponse() {
+			// event
+			websocketServer.GetRequestResponseManager().AddResponse(message.GetSyncToken(), message)
+			return nil
 		}
-	} else {
-		objectHandler = func(object any, websocketServer *WebsocketServer, websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
-			return messageHandler(object.(*Message.Message), websocketServer, websocketClient, identity, sessionId)
-		}
+		return messageHandler(message, websocketServer, websocketClient, identity, sessionId)
 	}
 
 	if topicManager != nil {
