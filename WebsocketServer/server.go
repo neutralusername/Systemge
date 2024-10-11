@@ -36,7 +36,7 @@ type WebsocketServer struct {
 
 	sessionManager *Tools.SessionManager
 
-	requestResponseManager *Tools.RequestResponseManager[*Message.Message]
+	requestResponseManager *Tools.RequestResponseManager[any]
 
 	// metrics
 
@@ -61,7 +61,7 @@ type WebsocketServer struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, requestResponseManager *Tools.RequestResponseManager[*Message.Message], acceptionHandler AcceptionHandler, receptionHandlerFactory ReceptionHandlerFactory, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
+func New(name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, requestResponseManager *Tools.RequestResponseManager[any], acceptionHandler AcceptionHandler, receptionHandlerFactory ReceptionHandlerFactory, eventHandleFunc Event.HandleFunc) (*WebsocketServer, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
