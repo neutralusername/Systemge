@@ -28,7 +28,7 @@ type TopicManager[P any, R any] struct {
 type queueStruct[P any, R any] struct {
 	topic                string
 	parameter            P
-	responseAnyChannel   chan R
+	responseChanneö      chan R
 	responseErrorChannel chan error
 }
 
@@ -67,7 +67,7 @@ func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (any, 
 	queueStruct := &queueStruct[P, R]{
 		topic:                topic,
 		parameter:            parameter,
-		responseAnyChannel:   make(chan R),
+		responseChanneö:      make(chan R),
 		responseErrorChannel: make(chan error),
 	}
 
@@ -80,7 +80,7 @@ func (topicManager *TopicManager[P, R]) Handle(topic string, parameter P) (any, 
 			return nil, errors.New("queue full")
 		}
 	}
-	return <-queueStruct.responseAnyChannel, <-queueStruct.responseErrorChannel
+	return <-queueStruct.responseChanneö, <-queueStruct.responseErrorChannel
 }
 
 func (topicManager *TopicManager[P, R]) handleCalls() {
@@ -90,7 +90,7 @@ func (topicManager *TopicManager[P, R]) handleCalls() {
 			if topicManager.unknownTopicQueue != nil {
 				queue = topicManager.unknownTopicQueue
 			} else {
-				close(queueStruct.responseAnyChannel)
+				close(queueStruct.responseChanneö)
 				queueStruct.responseErrorChannel <- errors.New("no handler for topic")
 				continue
 			}
@@ -101,7 +101,7 @@ func (topicManager *TopicManager[P, R]) handleCalls() {
 			select {
 			case queue <- queueStruct:
 			default:
-				close(queueStruct.responseAnyChannel)
+				close(queueStruct.responseChanneö)
 				queueStruct.responseErrorChannel <- errors.New("topic queue full")
 			}
 		}
@@ -122,19 +122,19 @@ func (topicManager *TopicManager[P, R]) handleCall(queueStruct *queueStruct[P, R
 		var callback chan struct{} = make(chan struct{})
 		go func() {
 			response, err := handler(queueStruct.parameter)
-			queueStruct.responseAnyChannel <- response
+			queueStruct.responseChanneö <- response
 			queueStruct.responseErrorChannel <- err
 			close(callback)
 		}()
 		select {
 		case <-time.After(time.Duration(topicManager.config.TimeoutMs) * time.Millisecond):
-			close(queueStruct.responseAnyChannel)
+			close(queueStruct.responseChanneö)
 			queueStruct.responseErrorChannel <- errors.New("deadline exceeded")
 		case <-callback:
 		}
 	} else {
 		response, err := handler(queueStruct.parameter)
-		queueStruct.responseAnyChannel <- response
+		queueStruct.responseChanneö <- response
 		queueStruct.responseErrorChannel <- err
 	}
 }
