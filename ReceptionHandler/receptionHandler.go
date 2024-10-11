@@ -68,16 +68,14 @@ func NewChainObjecthandler[T any](
 func NewValidationReceptionHandler[T any](
 	eventHandler *Event.Handler,
 	defaultContext Event.Context,
-	/* 	byteRateLimiter *Tools.TokenBucketRateLimiter,
-	   	messageRateLimiter *Tools.TokenBucketRateLimiter, */
 
-	deserializer ObjectDeserializer[T],
+	byteHandler ByteHandler[T],
 	objectHandler ObjectHandler[T],
 
 ) ReceptionHandler {
 	return func(bytes []byte) error {
 
-		if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
+		/* if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
 			if eventHandler != nil {
 				if event := eventHandler.Handle(Event.New(
 					Event.RateLimited,
@@ -113,9 +111,9 @@ func NewValidationReceptionHandler[T any](
 			} else {
 				return errors.New(Event.RateLimited)
 			}
-		}
+		} */
 
-		object, err := deserializer(bytes)
+		object, err := byteHandler(bytes)
 		if err != nil {
 			if eventHandler != nil {
 				eventHandler.Handle(Event.New(
