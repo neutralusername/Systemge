@@ -28,7 +28,7 @@ type WebsocketServer[T any] struct {
 
 	eventHandler *Event.Handler
 
-	receptionHandlerFactory ReceptionHandlerFactory[T]
+	receptionHandlerFactory WebsocketServerReceptionHandlerFactory[T]
 	acceptionHandler        AcceptionHandler[T]
 	requestResponseManager  *Tools.RequestResponseManager[T]
 
@@ -59,7 +59,7 @@ type WebsocketServer[T any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New[T any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc, requestResponseManager *Tools.RequestResponseManager[T], acceptionHandler AcceptionHandler[T], receptionHandlerFactory ReceptionHandlerFactory[T]) (*WebsocketServer[T], error) {
+func New[T any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc, requestResponseManager *Tools.RequestResponseManager[T], acceptionHandler AcceptionHandler[T], receptionHandlerFactory WebsocketServerReceptionHandlerFactory[T]) (*WebsocketServer[T], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -137,7 +137,7 @@ func (server *WebsocketServer[T]) SetAcceptionHandler(acceptionHandler Acception
 	server.acceptionHandler = acceptionHandler
 }
 
-func (server *WebsocketServer[T]) SetGetReceptionHandler(getReceptionHandler ReceptionHandlerFactory[T]) {
+func (server *WebsocketServer[T]) SetGetReceptionHandler(getReceptionHandler WebsocketServerReceptionHandlerFactory[T]) {
 	server.receptionHandlerFactory = getReceptionHandler
 }
 
