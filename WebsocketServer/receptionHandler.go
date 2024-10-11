@@ -62,8 +62,7 @@ func NewValidationMessageReceptionHandlerFactory(
 	messageValidatorConfig *Config.MessageValidator,
 	topicManager *Tools.TopicManager,
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
-	topicPriorities map[string]uint32,
-	topicTimeoutMs map[string]uint32,
+	obtainEnqueueConfigs ReceptionHandler.ObtainEnqueueConfigs[*Message.Message],
 	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
 ) WebsocketServerReceptionHandlerFactory[*Message.Message] {
 
@@ -112,12 +111,14 @@ func NewValidationMessageReceptionHandlerFactory(
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
 	}
 	if priorityQueue != nil {
-		obtainEnqueueConfigs := func(message *Message.Message) (string, uint32, uint32) {
-			priority := topicPriorities[message.GetTopic()]
-			timeoutMs := topicTimeoutMs[message.GetTopic()]
-			return "", priority, timeoutMs
+		if obtainEnqueueConfigs == nil {
+			objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, func(message *Message.Message) (string, uint32, uint32) {
+				return "", 0, 0
+			}))
+		} else {
+			objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 		}
-		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+
 	}
 
 	return NewValidationReceptionHandlerFactory(
