@@ -23,25 +23,25 @@ func NewValidationMessageReceptionHandlerFactory(
 	messageValidatorConfig *Config.MessageValidator,
 	//topicManager *Tools.TopicManager,
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *structName123],
 	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
 ) Tools.ReceptionHandlerFactory[*structName123] {
 
-	byteHandlers := []Tools.ByteHandler[*Message.Message]{}
+	byteHandlers := []Tools.ByteHandler[*structName123]{}
 	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
 	}
 	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*Message.Message](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
 	}
 
-	objectDeserializer := func(messageBytes []byte) (*Message.Message, error) {
+	objectDeserializer := func(messageBytes []byte, s *structName123) (*Message.Message, error) {
 		return Message.Deserialize(messageBytes)
 	}
 
-	objectHandlers := []Tools.ObjectHandler[*Message.Message]{}
+	objectHandlers := []Tools.ObjectHandler[*Message.Message, *structName123]{}
 	if messageValidatorConfig != nil {
-		objectValidator := func(message *Message.Message) error {
+		objectValidator := func(message *Message.Message, s *structName123) error {
 			if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
 				return errors.New("message contains sync token")
 			}
@@ -65,7 +65,7 @@ func NewValidationMessageReceptionHandlerFactory(
 		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
 	}
 	if requestResponseManager != nil {
-		obtainResponseToken := func(message *Message.Message) string {
+		obtainResponseToken := func(message *Message.Message, s *structName123) string {
 			if message.IsResponse() {
 				return message.GetSyncToken()
 			}
@@ -75,7 +75,7 @@ func NewValidationMessageReceptionHandlerFactory(
 	}
 	if priorityQueue != nil {
 		if obtainEnqueueConfigs == nil {
-			obtainEnqueueConfigs = func(message *Message.Message) (string, uint32, uint32) {
+			obtainEnqueueConfigs = func(message *Message.Message, s *structName123) (string, uint32, uint32) {
 				return "", 0, 0
 			}
 		}
@@ -83,7 +83,7 @@ func NewValidationMessageReceptionHandlerFactory(
 
 	}
 
-	return NewValidationReceptionHandlerFactory[*Message.Message](
+	return NewValidationReceptionHandlerFactory(
 		Tools.NewChainByteHandler(byteHandlers...),
 		objectDeserializer,
 		Tools.NewChainObjecthandler(objectHandlers...),
@@ -91,9 +91,9 @@ func NewValidationMessageReceptionHandlerFactory(
 }
 
 func NewValidationReceptionHandlerFactory[T any](
-	byteHandler Tools.ByteHandler[T],
-	deserializer Tools.ObjectDeserializer[T],
-	objectHandler Tools.ObjectHandler[T],
+	byteHandler Tools.ByteHandler[*structName123],
+	deserializer Tools.ObjectDeserializer[T, *structName123],
+	objectHandler Tools.ObjectHandler[T, *structName123],
 ) Tools.ReceptionHandlerFactory[*structName123] {
 
 	return func() Tools.ReceptionHandler[*structName123] {

@@ -107,14 +107,14 @@ func NewChainByteHandler[S any](handlers ...ByteHandler[S]) ByteHandler[S] {
 	}
 }
 
-func NewByteRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter, structName123 S) ByteHandler[S] {
+func NewByteRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[S] {
 	return func(bytes []byte, structName123 S) error {
 		tokenBucketRateLimiter.Consume(uint64(len(bytes)))
 		return nil
 	}
 }
 
-func NewMessageRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter, structName123 S) ByteHandler[S] {
+func NewMessageRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[S] {
 	return func(bytes []byte, structName123 S) error {
 		tokenBucketRateLimiter.Consume(1)
 		return nil
