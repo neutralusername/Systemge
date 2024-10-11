@@ -2,7 +2,6 @@ package WebsocketServer
 
 import (
 	"errors"
-	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
@@ -113,12 +112,17 @@ func NewValidationMessageReceptionHandlerFactory(
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
 	}
 	if priorityQueue != nil {
-		mutex := &sync.RWMutex{}
+		clonedPriorities := make(map[string]uint32)
+		clonedTimeoutMs := make(map[string]uint32)
+		for topic, priority := range topicPriorities {
+			clonedPriorities[topic] = priority
+		}
+		for topic, timeoutMs := range topicTimeoutMs {
+			clonedTimeoutMs[topic] = timeoutMs
+		}
 		obtainEnqueueConfigs := func(message *Message.Message) (string, uint32, uint32) {
-			mutex.RLock()
-			priority := topicPriorities[message.GetTopic()]
-			timeoutMs := topicTimeoutMs[message.GetTopic()]
-			mutex.RUnlock()
+			priority := clonedPriorities[message.GetTopic()]
+			timeoutMs := clonedTimeoutMs[message.GetTopic()]
 			return "", priority, timeoutMs
 		}
 		objectHandlers = append(objectHandlers, ReceptionHandler.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
