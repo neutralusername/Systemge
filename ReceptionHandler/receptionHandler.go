@@ -6,7 +6,7 @@ import (
 
 type ReceptionHandler func([]byte) error
 
-type ByteHandler[T any] func([]byte) (T, error)
+type ByteHandler[T any] func([]byte) error
 type ObjectDeserializer[T any] func([]byte) (T, error)
 
 type ObjectHandler[T any] func(T) error
@@ -62,51 +62,50 @@ func NewChainObjecthandler[T any](
 	}
 }
 
+func NewChainByteHandler[T any](
+	handlers ...ByteHandler[T],
+) ByteHandler[T] {
+	return func(bytes []byte) error {
+		for _, handler := range handlers {
+			if err := handler(bytes); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+func NewByteRateLimitByteHandler[T any](
+	tokenBucketRateLimiter *Tools.TokenBucketRateLimiter,
+) ByteHandler[T] {
+	return func(bytes []byte) error {
+		tokenBucketRateLimiter.Consume(uint64(len(bytes)))
+		return nil
+	}
+}
+
+func NewMessageRateLimitByteHandler[T any](
+	tokenBucketRateLimiter *Tools.TokenBucketRateLimiter,
+) ByteHandler[T] {
+	return func(bytes []byte) error {
+		tokenBucketRateLimiter.Consume(1)
+		return nil
+	}
+}
+
 func NewValidationReceptionHandler[T any](
 	byteHandler ByteHandler[T],
+	deserializer ObjectDeserializer[T],
 	objectHandler ObjectHandler[T],
 ) ReceptionHandler {
 	return func(bytes []byte) error {
 
-		/* if byteRateLimiter != nil && !byteRateLimiter.Consume(uint64(len(bytes))) {
-			if eventHandler != nil {
-				if event := eventHandler.Handle(Event.New(
-					Event.RateLimited,
-					Event.Context{
-						Event.RateLimiterType: Event.TokenBucket,
-						Event.TokenBucketType: Event.Bytes,
-						Event.Bytes:           string(bytes),
-					}.Merge(defaultContext),
-					Event.Skip,
-					Event.Continue,
-				)); event.GetAction() == Event.Skip {
-					return errors.New(Event.RateLimited)
-				}
-			} else {
-				return errors.New(Event.RateLimited)
-			}
+		err := byteHandler(bytes)
+		if err != nil {
+			return err
 		}
 
-		if messageRateLimiter != nil && !messageRateLimiter.Consume(1) {
-			if eventHandler != nil {
-				if event := eventHandler.Handle(Event.New(
-					Event.RateLimited,
-					Event.Context{
-						Event.RateLimiterType: Event.TokenBucket,
-						Event.TokenBucketType: Event.Messages,
-						Event.Bytes:           string(bytes),
-					}.Merge(defaultContext),
-					Event.Skip,
-					Event.Continue,
-				)); event.GetAction() == Event.Skip {
-					return errors.New(Event.RateLimited)
-				}
-			} else {
-				return errors.New(Event.RateLimited)
-			}
-		} */
-
-		object, err := byteHandler(bytes)
+		object, err := deserializer(bytes)
 		if err != nil {
 			return err
 		}
