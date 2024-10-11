@@ -71,7 +71,6 @@ func NewValidationMessageReceptionHandlerFactory(byteRateLimiterConfig *Config.T
 		return nil
 	}
 
-	var handleTopic func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
 	var messageHandler func(*Message.Message, *WebsocketServer[*Message.Message], *WebsocketClient.WebsocketClient, string, string) error
 	var websocketReceptionHandlerInitFunc WebsocketReceptionHandlerInitFunc[*Message.Message]
 	objectHandler := func(message *Message.Message, websocketServer *WebsocketServer[*Message.Message], websocketClient *WebsocketClient.WebsocketClient, identity, sessionId string) error {
