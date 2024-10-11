@@ -10,10 +10,14 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
 type structName123 struct {
+	Client    *WebsocketClient.WebsocketClient
+	SessionId string
+	Identity  string
 }
 
 type WebsocketServer[T any] struct {

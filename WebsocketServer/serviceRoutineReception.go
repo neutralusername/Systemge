@@ -36,7 +36,11 @@ func (server *WebsocketServer[T]) receptionRoutine(session *Tools.Session, webso
 
 		// event
 
-		if err := receptionHandler(messageBytes, &structName123{}); err != nil {
+		if err := receptionHandler(messageBytes, &structName123{
+			Client:    websocketClient,
+			SessionId: session.GetId(),
+			Identity:  session.GetIdentity(),
+		}); err != nil {
 			server.FailedReceptions.Add(1)
 			if server.eventHandler != nil {
 				event := server.eventHandler.Handle(Event.New(
