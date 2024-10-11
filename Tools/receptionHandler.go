@@ -1,43 +1,44 @@
 package Tools
 
 type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
-type ReceptionHandler[S any] func(S, []byte) error
-type ObjectDeserializer[T any] func([]byte) (T, error)
+type ReceptionHandler[S any] func([]byte, S) error
+type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
+type ByteHandler[S any] func([]byte, S) error
 
 func NewReceptionHandler[T any, S any](
-	byteHandler ByteHandler[T],
-	deserializer ObjectDeserializer[T],
-	objectHandler ObjectHandler[T],
+	byteHandler ByteHandler[S],
+	deserializer ObjectDeserializer[T, S],
+	objectHandler ObjectHandler[T, S],
 ) ReceptionHandler[S] {
-	return func(structName123 S, bytes []byte) error {
+	return func(bytes []byte, structName123 S) error {
 
-		err := byteHandler(bytes)
+		err := byteHandler(bytes, structName123)
 		if err != nil {
 			return err
 		}
 
-		object, err := deserializer(bytes)
+		object, err := deserializer(bytes, structName123)
 		if err != nil {
 			return err
 		}
 
-		return objectHandler(object)
+		return objectHandler(object, structName123)
 	}
 }
 
-type ObjectHandler[T any] func(T) error
+type ObjectHandler[T any, S any] func(T, S) error
 
 type ObtainEnqueueConfigs[T any] func(T) (token string, priority uint32, timeout uint32)
 type ObtainResponseToken[T any] func(T) string
-type ObjectValidator[T any] func(T) error
+type ObjectValidator[T any, S any] func(T, S) error
 type ObtainTopic[T any] func(T) string
 type ResultHandler[T any] func(T) error
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
-	return func(object T) error {
+func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) ObjectHandler[T, S] {
+	return func(object T, structName123 S) error {
 		for _, handler := range handlers {
-			if err := handler(object); err != nil {
+			if err := handler(object, structName123); err != nil {
 				return err
 			}
 		}
@@ -45,21 +46,21 @@ func NewChainObjecthandler[T any](handlers ...ObjectHandler[T]) ObjectHandler[T]
 	}
 }
 
-func NewQueueObjectHandler[T any](
+func NewQueueObjectHandler[T any, S any](
 	priorityTokenQueue *PriorityTokenQueue[T],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
-) ObjectHandler[T] {
-	return func(object T) error {
+) ObjectHandler[T, S] {
+	return func(object T, structName123 S) error {
 		token, priority, timeoutMs := obtainEnqueueConfigs(object)
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
 
-func NewResponseObjectHandler[T any](
+func NewResponseObjectHandler[T any, S any](
 	requestResponseManager *RequestResponseManager[T],
 	obtainResponseToken ObtainResponseToken[T],
-) ObjectHandler[T] {
-	return func(object T) error {
+) ObjectHandler[T, S] {
+	return func(object T, structName123 S) error {
 		responseToken := obtainResponseToken(object)
 		if responseToken != "" {
 			if requestResponseManager != nil {
@@ -71,12 +72,12 @@ func NewResponseObjectHandler[T any](
 }
 
 // resultHandler requires check for nil if applicable
-func NewTopicObjectHandler[P any, R any](
-	topicManager *TopicManager[P, R],
-	obtainTopic func(P) string,
+func NewTopicObjectHandler[T any, R any, S any](
+	topicManager *TopicManager[T, R],
+	obtainTopic func(T) string,
 	resultHandler ResultHandler[R],
-) ObjectHandler[P] {
-	return func(object P) error {
+) ObjectHandler[T, S] {
+	return func(object T, structName123 S) error {
 		if topicManager != nil {
 			result, err := topicManager.Handle(obtainTopic(object), object)
 			if err != nil {
@@ -88,19 +89,17 @@ func NewTopicObjectHandler[P any, R any](
 	}
 }
 
-func NewValidationObjectHandler[T any](validator ObjectValidator[T]) ObjectHandler[T] {
-	return func(object T) error {
-		return validator(object)
+func NewValidationObjectHandler[T any, S any](validator ObjectValidator[T, S]) ObjectHandler[T, S] {
+	return func(object T, structName123 S) error {
+		return validator(object, structName123)
 	}
 }
 
-type ByteHandler[T any] func([]byte) error
-
 // executes all handlers in order, return error if any handler returns an error
-func NewChainByteHandler[T any](handlers ...ByteHandler[T]) ByteHandler[T] {
-	return func(bytes []byte) error {
+func NewChainByteHandler[S any](handlers ...ByteHandler[S]) ByteHandler[S] {
+	return func(bytes []byte, structName123 S) error {
 		for _, handler := range handlers {
-			if err := handler(bytes); err != nil {
+			if err := handler(bytes, structName123); err != nil {
 				return err
 			}
 		}
@@ -108,15 +107,15 @@ func NewChainByteHandler[T any](handlers ...ByteHandler[T]) ByteHandler[T] {
 	}
 }
 
-func NewByteRateLimitByteHandler[T any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[T] {
-	return func(bytes []byte) error {
+func NewByteRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter, structName123 S) ByteHandler[S] {
+	return func(bytes []byte, structName123 S) error {
 		tokenBucketRateLimiter.Consume(uint64(len(bytes)))
 		return nil
 	}
 }
 
-func NewMessageRateLimitByteHandler[T any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[T] {
-	return func(bytes []byte) error {
+func NewMessageRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter, structName123 S) ByteHandler[S] {
+	return func(bytes []byte, structName123 S) error {
 		tokenBucketRateLimiter.Consume(1)
 		return nil
 	}
