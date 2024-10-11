@@ -45,6 +45,17 @@ func NewResponseObjectHandler[T any](
 	}
 }
 
+func NewValidationObjectHandler[T any](
+	validator ObjectValidator[T],
+) ObjectHandler[T] {
+	return func(object T) error {
+		if err := validator(object); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
 func ChainObjectHandlers[T any](handlers ...ObjectHandler[T]) ObjectHandler[T] {
 	return func(object T) error {
 		for _, handler := range handlers {
@@ -63,7 +74,6 @@ func NewValidationReceptionHandler[T any](
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
 	deserializer ObjectDeserializer[T],
-	validator ObjectValidator[T],
 	objectHandler ObjectHandler[T],
 
 ) ReceptionHandler {
@@ -130,25 +140,6 @@ func NewValidationReceptionHandler[T any](
 				))
 			}
 			return errors.New(Event.DeserializingFailed)
-		}
-
-		if err := validator(object); err != nil {
-			if eventHandler != nil {
-				event := eventHandler.Handle(Event.New(
-					Event.InvalidMessage,
-					Event.Context{
-						Event.Bytes: string(bytes),
-						Event.Error: err.Error(),
-					}.Merge(defaultContext),
-					Event.Skip,
-					Event.Continue,
-				))
-				if event.GetAction() == Event.Skip {
-					return errors.New(Event.InvalidMessage)
-				}
-			} else {
-				return errors.New(Event.InvalidMessage)
-			}
 		}
 
 		return objectHandler(object)
