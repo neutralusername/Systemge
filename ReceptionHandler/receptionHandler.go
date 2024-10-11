@@ -1,9 +1,6 @@
 package ReceptionHandler
 
 import (
-	"errors"
-
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -68,7 +65,6 @@ func NewChainObjecthandler[T any](
 func NewValidationReceptionHandler[T any](
 	byteHandler ByteHandler[T],
 	objectHandler ObjectHandler[T],
-
 ) ReceptionHandler {
 	return func(bytes []byte) error {
 
@@ -112,7 +108,7 @@ func NewValidationReceptionHandler[T any](
 
 		object, err := byteHandler(bytes)
 		if err != nil {
-			return errors.New(Event.DeserializingFailed)
+			return err
 		}
 
 		return objectHandler(object)
