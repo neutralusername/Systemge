@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func NewWebsocketMessageReceptionHandler(
+func NewWebsocketMessageReceptionHandlerFactory(
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
@@ -19,8 +19,8 @@ func NewWebsocketMessageReceptionHandler(
 
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *structName123],
-) Tools.ReceptionHandler[*structName123] {
-	return NewWebsocketReceptionHandler[*Message.Message](
+) Tools.ReceptionHandlerFactory[*structName123] {
+	return NewWebsocketReceptionHandlerFactory[*Message.Message](
 		byteRateLimiterConfig,
 		messageRateLimiterConfig,
 
@@ -58,7 +58,7 @@ func NewWebsocketMessageReceptionHandler(
 	)
 }
 
-func NewWebsocketReceptionHandler[T any](
+func NewWebsocketReceptionHandlerFactory[T any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
@@ -73,7 +73,7 @@ func NewWebsocketReceptionHandler[T any](
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[T, *structName123],
 
 	//topicManager *Tools.TopicManager,
-) Tools.ReceptionHandler[*structName123] {
+) Tools.ReceptionHandlerFactory[*structName123] {
 
 	byteHandlers := []Tools.ByteHandler[*structName123]{}
 	if byteRateLimiterConfig != nil {
@@ -94,7 +94,7 @@ func NewWebsocketReceptionHandler[T any](
 		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
-	return Tools.NewReceptionHandler[T, *structName123](
+	return Tools.NewReceptionHandlerFactory[T, *structName123](
 		Tools.NewChainByteHandler(byteHandlers...),
 		deserializer,
 		Tools.NewChainObjecthandler(objectHandlers...),
