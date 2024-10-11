@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer) SyncMessage(token string, messageBytes []byte, ids ...string) (response, error) {
+func (server *WebsocketServer) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[any], error) {
 
 }
 

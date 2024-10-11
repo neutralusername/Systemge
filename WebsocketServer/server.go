@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
-type WebsocketServer struct {
+type WebsocketServer[T any] struct {
 	config *Config.WebsocketServer
 
 	name string
@@ -35,7 +35,7 @@ type WebsocketServer struct {
 
 	sessionManager *Tools.SessionManager
 
-	requestResponseManager *Tools.RequestResponseManager[any]
+	requestResponseManager *Tools.RequestResponseManager[T]
 
 	// metrics
 
