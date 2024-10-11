@@ -2,8 +2,9 @@ package Tools
 
 type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
 type ReceptionHandler[S any] func([]byte, S) error
-type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
 type ByteHandler[S any] func([]byte, S) error
+
+type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
 type ObjectHandler[T any, S any] func(T, S) error
 
 func NewReceptionHandler[T any, S any](
@@ -27,11 +28,11 @@ func NewReceptionHandler[T any, S any](
 	}
 }
 
-type ObtainEnqueueConfigs[T any] func(T) (token string, priority uint32, timeout uint32)
-type ObtainResponseToken[T any] func(T) string
+type ObtainEnqueueConfigs[T any, S any] func(T, S) (token string, priority uint32, timeout uint32)
+type ObtainResponseToken[T any, S any] func(T, S) string
 type ObjectValidator[T any, S any] func(T, S) error
-type ObtainTopic[T any] func(T) string
-type ResultHandler[T any] func(T) error
+type ObtainTopic[T any, S any] func(T, S) string
+type ResultHandler[T any, R any, S any] func(T, R, S) error
 
 // executes all handlers in order, return error if any handler returns an error
 func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) ObjectHandler[T, S] {
@@ -47,20 +48,20 @@ func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) Object
 
 func NewQueueObjectHandler[T any, S any](
 	priorityTokenQueue *PriorityTokenQueue[T],
-	obtainEnqueueConfigs ObtainEnqueueConfigs[T],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[T, S],
 ) ObjectHandler[T, S] {
 	return func(object T, structName123 S) error {
-		token, priority, timeoutMs := obtainEnqueueConfigs(object)
+		token, priority, timeoutMs := obtainEnqueueConfigs(object, structName123)
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
 
 func NewResponseObjectHandler[T any, S any](
 	requestResponseManager *RequestResponseManager[T],
-	obtainResponseToken ObtainResponseToken[T],
+	obtainResponseToken ObtainResponseToken[T, S],
 ) ObjectHandler[T, S] {
 	return func(object T, structName123 S) error {
-		responseToken := obtainResponseToken(object)
+		responseToken := obtainResponseToken(object, structName123)
 		if responseToken != "" {
 			if requestResponseManager != nil {
 				return requestResponseManager.AddResponse(responseToken, object)
@@ -74,7 +75,7 @@ func NewResponseObjectHandler[T any, S any](
 func NewTopicObjectHandler[T any, R any, S any](
 	topicManager *TopicManager[T, R],
 	obtainTopic func(T) string,
-	resultHandler ResultHandler[R],
+	resultHandler ResultHandler[T, R, S],
 ) ObjectHandler[T, S] {
 	return func(object T, structName123 S) error {
 		if topicManager != nil {
@@ -82,7 +83,7 @@ func NewTopicObjectHandler[T any, R any, S any](
 			if err != nil {
 				return err
 			}
-			return resultHandler(result)
+			return resultHandler(object, result, structName123)
 		}
 		return nil
 	}

@@ -11,7 +11,7 @@ import (
 func NewDefaultReceptionHandlerFactory() Tools.ReceptionHandlerFactory[*structName123] {
 	return func() Tools.ReceptionHandler[*structName123] {
 
-		return func(structName123 *structName123, bytes []byte) error {
+		return func(bytes []byte, structName123 *structName123) error {
 			return nil
 		}
 	}
