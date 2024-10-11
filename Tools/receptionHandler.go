@@ -7,6 +7,20 @@ type ByteHandler[S any] func([]byte, S) error
 type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
 type ObjectHandler[T any, S any] func(T, S) error
 
+func NewReceptionHandlerFactory[T any, S any](
+	byteHandler ByteHandler[S],
+	deserializer ObjectDeserializer[T, S],
+	objectHandler ObjectHandler[T, S],
+) ReceptionHandlerFactory[S] {
+	return func() ReceptionHandler[S] {
+		return NewReceptionHandler[T, S](
+			byteHandler,
+			deserializer,
+			objectHandler,
+		)
+	}
+}
+
 func NewReceptionHandler[T any, S any](
 	byteHandler ByteHandler[S],
 	deserializer ObjectDeserializer[T, S],
@@ -118,21 +132,5 @@ func NewMessageRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRa
 	return func(bytes []byte, structName123 S) error {
 		tokenBucketRateLimiter.Consume(1)
 		return nil
-	}
-}
-
-func NewReceptionHandlerFactory[T any, S any](
-	byteHandler ByteHandler[S],
-	deserializer ObjectDeserializer[T, S],
-	objectHandler ObjectHandler[T, S],
-) ReceptionHandlerFactory[S] {
-
-	return func() ReceptionHandler[S] {
-
-		return NewReceptionHandler[T, S](
-			byteHandler,
-			deserializer,
-			objectHandler,
-		)
 	}
 }

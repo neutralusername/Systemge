@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func NewWebsocketMessageReceptionHandlerFactory[T any](
+func NewWebsocketReceptionHandlerFactory[T any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
@@ -17,13 +17,13 @@ func NewWebsocketMessageReceptionHandlerFactory[T any](
 ) Tools.ReceptionHandlerFactory[*structName123] {
 
 	return Tools.NewReceptionHandlerFactory[*structName123](
-		Tools.NewByteRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)),
-		Tools.NewMessageRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)),
-		objectValidator,
-		//topicManager,
-		priorityQueue,
-		obtainEnqueueConfigs,
-		requestResponseManager,
+	/* 	Tools.NewByteRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)),
+	Tools.NewMessageRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)),
+	objectValidator,
+	//topicManager,
+	priorityQueue,
+	obtainEnqueueConfigs,
+	requestResponseManager, */
 	)
 }
 
