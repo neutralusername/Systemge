@@ -16,8 +16,8 @@ type ReceptionHandler[S any] struct {
 }
 
 func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
-	if handler.status != Status.Stopped {
-		return errors.New("handler is not running")
+	if handler.status != Status.Started {
+		return errors.New("handler is not started")
 	}
 	if handler.onReception == nil {
 		return errors.New("onHandle is nil")
