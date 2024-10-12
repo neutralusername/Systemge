@@ -72,9 +72,9 @@ func NewWebsocketReceptionHandlerFactory[O any](
 	priorityQueue *Tools.PriorityTokenQueue[O],
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionHandlerCaller],
 
-	/* topicManager *Tools.TopicManager[O, O],
+	//topicManager *Tools.TopicManager[O, O],
 	onStart Tools.OnReceptionHandlerStart[*websocketServerReceptionHandlerCaller],
-	onStop Tools.OnReceptionHandlerStop[*websocketServerReceptionHandlerCaller], */
+	onStop Tools.OnReceptionHandlerStop[*websocketServerReceptionHandlerCaller],
 ) Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller] {
 
 	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionHandlerCaller]{}
@@ -97,8 +97,8 @@ func NewWebsocketReceptionHandlerFactory[O any](
 	}
 
 	return Tools.NewReceptionHandlerFactory[*websocketServerReceptionHandlerCaller](
-		nil,
-		nil,
+		onStart,
+		onStop,
 		Tools.NewOnReception(
 			Tools.NewChainByteHandler(byteHandlers...),
 			deserializer,
