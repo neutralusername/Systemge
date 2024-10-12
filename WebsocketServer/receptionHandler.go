@@ -56,7 +56,6 @@ func NewWebsocketMessageReceptionManagerFactory(
 		priorityQueue,
 		obtainEnqueueConfigs,
 
-		//topicManager,
 		nil,
 		nil,
 	)
@@ -76,7 +75,6 @@ func NewWebsocketReceptionManagerFactory[O any](
 	priorityQueue *Tools.PriorityTokenQueue[O],
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
 
-	//topicManager *Tools.TopicManager[O, O],
 	onStart Tools.OnReceptionManagerStart[*websocketServerReceptionManagerCaller],
 	onStop Tools.OnReceptionManagerStop[*websocketServerReceptionManagerCaller],
 ) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
