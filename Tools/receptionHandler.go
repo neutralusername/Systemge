@@ -8,9 +8,9 @@ import (
 )
 
 type ReceptionHandler[S any] struct {
-	onStart     func(S) error
-	onStop      func(S) error
-	onReception func([]byte, S) error
+	onStart     OnReceptionHandlerStart[S]
+	onStop      OnReceptionHandlerStop[S]
+	onReception OnReception[S]
 	status      int
 	statusMutex sync.Mutex
 }
@@ -81,6 +81,9 @@ func (handler *ReceptionHandler[S]) GetStatus() int {
 type ReceptionHandlerFactory[S any] func() OnReception[S]
 
 type OnReception[S any] func([]byte, S) error
+
+type OnReceptionHandlerStart[S any] func(S) error
+type OnReceptionHandlerStop[S any] func(S) error
 
 type ByteHandler[S any] func([]byte, S) error
 type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
