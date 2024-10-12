@@ -43,12 +43,13 @@ func NewServiceRoutine[P any, R any](triggerCondition chan triggerRequest[P, R],
 }
 
 func (service *ServiceRoutine[P, R]) Trigger(val P) (R, error) {
-	responseChannel := make(chan R)
+	responseChannel := make(chan responseStruct[R])
 	service.triggerChannel <- triggerRequest[P, R]{
 		parameter: val,
 		response:  responseChannel,
 	}
-	return <-responseChannel, nil
+	response := <-responseChannel
+	return response.response, response.err
 }
 
 func (service *ServiceRoutine) Stop() error {
