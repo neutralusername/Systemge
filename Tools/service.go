@@ -21,7 +21,7 @@ type Service struct {
 	name       string
 	status     int
 
-	serviceRoutines map[string]ServiceRoutineFunc
+	serviceRoutines map[string]ServiceFunc
 	startFunc       StartFunc
 	stopFunc        StopFunc
 
@@ -30,7 +30,7 @@ type Service struct {
 	closeChannel chan struct{}
 }
 
-type ServiceRoutineFunc func() error
+type ServiceFunc func() error
 type StartFunc func() error
 type StopFunc func() error
 
@@ -40,7 +40,7 @@ func NewService(name string, startFunc StartFunc, stopFunc StopFunc) *Service {
 		name:       name,
 		status:     Stopped,
 
-		serviceRoutines: make(map[string]ServiceRoutineFunc),
+		serviceRoutines: make(map[string]ServiceFunc),
 		startFunc:       startFunc,
 		stopFunc:        stopFunc,
 	}
@@ -110,9 +110,46 @@ func (service *Service) Restart() error {
 	return nil */
 }
 
-func (service *Service) StartServiceRoutine(serviceRoutine ServiceRoutineFunc) (string, error) {
+func (service *Service) StartServiceRoutine(serviceFunc ServiceFunc) *ServiceRoutine {
+	stopChannel := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-service.closeChannel:
+				return
+			case <-stopChannel:
+				return
+			case <-triggerCondition:
+				if err := serviceFunc(); err != nil {
+					return
+				}
+			}
+		}
+	}()
+	return &ServiceRoutine{
+		stopChannel: stopChannel,
+	}
+}
+
+type ServiceRoutine struct {
+}
+
+func (service *ServiceRoutine) Stop() error {
 
 }
+
+func (service *ServiceRoutine) Pause() error {
+
+}
+
+func (service *ServiceRoutine) Resume() error {
+
+}
+
+func (service *ServiceRoutine) GetStatus() int {
+
+}
+
 func (service *Service) StopServiceRoutine(str string) error {
 
 }
