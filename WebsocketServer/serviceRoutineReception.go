@@ -40,6 +40,7 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 	err := receptionHandler.Start(websocketServerReceptionHandlerCaller)
 	if err != nil {
 		// event
+		// close connection?
 		return
 	}
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
