@@ -4,7 +4,7 @@ type ServiceRoutine[P any, R any] struct {
 	stopChannel chan struct{}
 	stopped     bool
 
-	triggerChannel     chan P // not satisfied with current (parameters of) mechanism to trigger service routine
+	triggerChannel     chan triggerRequest[P, R]
 	serviceRoutineFunc ServiceFunc[P]
 }
 
@@ -15,7 +15,7 @@ type triggerRequest[P any, R any] struct {
 
 type ServiceFunc[P any] func(P) error
 
-func NewServiceRoutine[P any](triggerCondition chan P, serviceRoutineFunc ServiceFunc[P]) *ServiceRoutine[P] {
+func NewServiceRoutine[P any, R any](triggerCondition chan P, serviceRoutineFunc ServiceFunc[P]) *ServiceRoutine[P, R] {
 	serviceRoutine := &ServiceRoutine[P]{
 		stopChannel:        make(chan struct{}),
 		serviceRoutineFunc: serviceRoutineFunc,
@@ -35,8 +35,13 @@ func NewServiceRoutine[P any](triggerCondition chan P, serviceRoutineFunc Servic
 	return serviceRoutine
 }
 
-func (service *ServiceRoutine[P]) Trigger(val P) error {
-	service.triggerCondition <- val
+func (service *ServiceRoutine[P, R]) Trigger(val P) (R, error) {
+	responseChannel := make(chan R)
+	service.triggerChannel <- triggerRequest[P, R]{
+		parameter: val,
+		response:  responseChannel,
+	}
+	return <-responseChannel, nilw
 }
 
 func (service *ServiceRoutine) Stop() error {
