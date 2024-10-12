@@ -130,7 +130,7 @@ func NewOnReceptionManagerHandle[O any, C any](
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjecthandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
+func NewChainObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
 	return func(object O, caller C) error {
 		for _, handler := range handlers {
 			if err := handler(object, caller); err != nil {

@@ -1,6 +1,8 @@
 package WebsocketServer
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
@@ -19,46 +21,20 @@ func NewWebsocketMessageReceptionManagerFactory(
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *websocketServerReceptionManagerCaller],
 ) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
 
-	/* byteRateLimiterConfig *Config.TokenBucketRateLimiter,
-	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
+	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionManagerCaller]{}
+	if byteRateLimiterConfig != nil {
+		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
+	}
+	if messageRateLimiterConfig != nil {
+		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
+	}
 
-	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionManagerCaller],
-
-	objectValidator Tools.ObjectValidator[O, *websocketServerReceptionManagerCaller],
-
-	requestResponseManager *Tools.RequestResponseManager[O],
-	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionManagerCaller],
-
-	priorityQueue *Tools.PriorityTokenQueue[O],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller], */
-
-	/* 	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionManagerCaller]{}
-	   	if byteRateLimiterConfig != nil {
-	   		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
-	   	}
-	   	if messageRateLimiterConfig != nil {
-	   		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
-	   	} */
-
-	/* 	objectHandlers := []Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller]{}
-	   	if objectValidator != nil {
-	   		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
-	   	}
-	   	if requestResponseManager != nil && obtainResponseToken != nil {
-	   		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
-	   	}
-	   	if priorityQueue != nil && obtainEnqueueConfigs != nil {
-	   		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
-	   	} */
-
-	/* 	byteRateLimiterConfig,
-	messageRateLimiterConfig,
-
-	func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
+	deserializer := func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
 		return Message.Deserialize(bytes)
-	},
+	}
 
-	func(message *Message.Message, caller *websocketServerReceptionManagerCaller) error {
+	objectHandlers := []Tools.ObjectHandler[*Message.Message, *websocketServerReceptionManagerCaller]{}
+	objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(func(message *Message.Message, caller *websocketServerReceptionManagerCaller) error {
 		if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
 			return errors.New("message contains sync token")
 		}
@@ -78,25 +54,26 @@ func NewWebsocketMessageReceptionManagerFactory(
 			return errors.New("message payload exceeds maximum size")
 		}
 		return nil
-	},
-
-	requestResponseManager,
-	obtainResponseToken,
-
-	priorityQueue,
-	obtainEnqueueConfigs, */
-
-	/* 		Tools.NewOnReceptionManagerHandle(
-		Tools.NewChainByteHandler(byteHandlers...),
-		deserializer,
-		Tools.NewChainObjecthandler(objectHandlers...),
-	), */
+	}))
+	if requestResponseManager != nil && obtainResponseToken != nil {
+		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
+	}
+	if priorityQueue != nil && obtainEnqueueConfigs != nil {
+		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+	}
 
 	return NewWebsocketReceptionManagerFactory(
-
 		nil,
 		nil,
-		nil,
+		Tools.NewOnReceptionManagerHandle(
+			Tools.NewChainByteHandler(
+				byteHandlers...,
+			),
+			deserializer,
+			Tools.NewChainObjectHandler(
+				objectHandlers...,
+			),
+		),
 	)
 }
 
