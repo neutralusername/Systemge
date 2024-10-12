@@ -55,6 +55,7 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 						Event.Identity:  session.GetIdentity(),
 						Event.Address:   websocketClient.GetAddress(),
 						Event.Error:     err.Error(),
+						Event.Bytes:     string(bytes),
 					},
 					Event.Skip,
 					Event.Cancel,
