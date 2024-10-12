@@ -8,11 +8,24 @@ import (
 )
 
 type ReceptionHandler[S any] struct {
-	onStart     func() error
-	onStop      func() error
+	onStart     func(S) error
+	onStop      func(S) error
 	onReception func([]byte, S) error
 	status      int
 	statusMutex sync.Mutex
+}
+
+func NewReceptionHandler[S any](
+	onStart func(S) error,
+	onStop func(S) error,
+	OnReception OnReception[S],
+) *ReceptionHandler[S] {
+	return &ReceptionHandler[S]{
+		onStart:     onStart,
+		onStop:      onStop,
+		onReception: OnReception,
+		status:      Status.Stopped,
+	}
 }
 
 func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
@@ -25,20 +38,7 @@ func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 
 	return handler.onReception(bytes, structName123)
 }
 
-func NewReceptionHandler[S any](
-	onStart func() error,
-	onStop func() error,
-	OnReception OnReception[S],
-) *ReceptionHandler[S] {
-	return &ReceptionHandler[S]{
-		onStart:     onStart,
-		onStop:      onStop,
-		onReception: OnReception,
-		status:      Status.Stopped,
-	}
-}
-
-func (handler *ReceptionHandler[S]) Start() error {
+func (handler *ReceptionHandler[S]) Start(structName123 S) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
 	if handler.status != Status.Stopped {
@@ -46,7 +46,7 @@ func (handler *ReceptionHandler[S]) Start() error {
 	}
 	handler.status = Status.Pending
 	if handler.onStart != nil {
-		err := handler.onStart()
+		err := handler.onStart(structName123)
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func (handler *ReceptionHandler[S]) Start() error {
 	return nil
 }
 
-func (handler *ReceptionHandler[S]) Stop() error {
+func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
 	if handler.status != Status.Started {
@@ -63,7 +63,7 @@ func (handler *ReceptionHandler[S]) Stop() error {
 	}
 	handler.status = Status.Pending
 	if handler.onStop != nil {
-		err := handler.onStop()
+		err := handler.onStop(structName123)
 		if err != nil {
 			return err
 		}
