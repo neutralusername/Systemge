@@ -15,13 +15,13 @@ const (
 	Paused       = 3
 )
 
-type Service struct {
+type Service[P any, R any] struct {
 	instanceId string
 	sessionId  string
 	name       string
 	status     int
 
-	serviceRoutines map[string]*ServiceRoutine
+	serviceRoutines map[string]*ServiceRoutine[P, R]
 	startFunc       StartFunc
 	stopFunc        StopFunc
 
@@ -33,19 +33,19 @@ type Service struct {
 type StartFunc func() error
 type StopFunc func() error
 
-func NewService(name string, startFunc StartFunc, stopFunc StopFunc) *Service {
-	return &Service{
+func NewService[P any, R any](name string, startFunc StartFunc, stopFunc StopFunc) *Service[P, R] {
+	return &Service[P, R]{
 		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
 		name:       name,
 		status:     Stopped,
 
-		serviceRoutines: make(map[string]*ServiceRoutine),
+		serviceRoutines: make(map[string]*ServiceRoutine[P, R]),
 		startFunc:       startFunc,
 		stopFunc:        stopFunc,
 	}
 }
 
-func (service *Service) Start() error {
+func (service *Service[P, R]) Start() error {
 	service.mutex.Lock()
 	defer service.mutex.Unlock()
 
@@ -65,7 +65,7 @@ func (service *Service) Start() error {
 
 }
 
-func (service *Service) Stop() error {
+func (service *Service[P, R]) Stop() error {
 	service.mutex.Lock()
 	defer service.mutex.Unlock()
 
@@ -86,30 +86,30 @@ func (service *Service) Stop() error {
 	return nil
 }
 
-func (service *Service) Restart() error {
+func (service *Service[P, R]) Restart() error {
 
 }
 
-func (service *Service) Pause() error {
+func (service *Service[P, R]) Pause() error {
 
 }
 
-func (service *Service) Resume() error {
+func (service *Service[P, R]) Resume() error {
 
 }
 
-func (service *Service) GetInstanceId() string {
+func (service *Service[P, R]) GetInstanceId() string {
 	return service.instanceId
 }
 
-func (service *Service) GetSessionId() string {
+func (service *Service[P, R]) GetSessionId() string {
 	return service.sessionId
 }
 
-func (service *Service) GetStatus() int {
+func (service *Service[P, R]) GetStatus() int {
 	return service.status
 }
 
-func (service *Service) GetName() string {
+func (service *Service[P, R]) GetName() string {
 	return service.name
 }
