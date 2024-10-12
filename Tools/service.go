@@ -21,7 +21,7 @@ type Service struct {
 	name       string
 	status     int
 
-	serviceRoutines map[string]ServiceFunc
+	serviceRoutines map[string]*ServiceRoutine
 	startFunc       StartFunc
 	stopFunc        StopFunc
 
@@ -40,7 +40,7 @@ func NewService(name string, startFunc StartFunc, stopFunc StopFunc) *Service {
 		name:       name,
 		status:     Stopped,
 
-		serviceRoutines: make(map[string]ServiceFunc),
+		serviceRoutines: make(map[string]*ServiceRoutine),
 		startFunc:       startFunc,
 		stopFunc:        stopFunc,
 	}
@@ -132,6 +132,7 @@ func (service *Service) StartServiceRoutine(serviceFunc ServiceFunc) *ServiceRou
 }
 
 type ServiceRoutine struct {
+	stopChannel chan struct{}
 }
 
 func (service *ServiceRoutine) Stop() error {
