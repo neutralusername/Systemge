@@ -3,6 +3,7 @@ package WebsocketServer
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -44,7 +45,7 @@ func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Message.Message
 	}
 }
 
-func NewWebsocketReceptionManagerFactory(
+func NewReceptionManagerFactory(
 	onStart Tools.OnReceptionManagerStart[*websocketServerReceptionManagerCaller],
 	onStop Tools.OnReceptionManagerStop[*websocketServerReceptionManagerCaller],
 	onHandle Tools.OnReceptionManagerHandle[*websocketServerReceptionManagerCaller],
@@ -53,5 +54,37 @@ func NewWebsocketReceptionManagerFactory(
 		onStart,
 		onStop,
 		onHandle,
+	)
+}
+
+func AssembleNewReceptionManagerFactory[O any](
+	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
+	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
+
+	messageValidator Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller],
+	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionManagerCaller],
+
+	requestResponseManager *Tools.RequestResponseManager[O],
+	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionManagerCaller],
+
+	priorityQueue *Tools.PriorityTokenQueue[O],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
+
+	// topicManager *Tools.TopicManager,
+) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
+	return Tools.AssembleNewReceptionManagerFactory[O, *websocketServerReceptionManagerCaller](
+		byteRateLimiterConfig,
+		messageRateLimiterConfig,
+
+		messageValidator,
+		deserializer,
+
+		requestResponseManager,
+		obtainResponseToken,
+
+		priorityQueue,
+		obtainEnqueueConfigs,
+
+		// topicManager,
 	)
 }
