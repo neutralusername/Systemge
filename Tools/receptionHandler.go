@@ -87,28 +87,24 @@ func (handler *ReceptionHandler[S]) GetStatus(lock bool) int {
 	return handler.status
 }
 
-type ReceptionHandlerFactory[S any] func() OnReception[S]
-
-type OnReception[S any] func([]byte, S) error
+type ReceptionHandlerFactory[S any] func() *ReceptionHandler[S]
 
 type OnReceptionHandlerStart[S any] func(S) error
 type OnReceptionHandlerStop[S any] func(S) error
+
+type OnReception[S any] func([]byte, S) error
 
 type ByteHandler[S any] func([]byte, S) error
 type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
 type ObjectHandler[T any, S any] func(T, S) error
 
-func NewReceptionHandlerFactory[T any, S any](
+func NewReceptionHandlerFactory[S any](
+	onStart OnReceptionHandlerStart[S],
+	onStop OnReceptionHandlerStop[S],
 	byteHandler ByteHandler[S],
-	deserializer ObjectDeserializer[T, S],
-	objectHandler ObjectHandler[T, S],
 ) ReceptionHandlerFactory[S] {
-	return func() OnReception[S] {
-		return NewOnReception[T, S](
-			byteHandler,
-			deserializer,
-			objectHandler,
-		)
+	return func() *ReceptionHandler[S] {
+		return NewReceptionHandler[S](onStart, onStop, NewOnReception[S](byteHandler, nil, nil))
 	}
 }
 
@@ -133,12 +129,6 @@ func NewOnReception[T any, S any](
 	}
 }
 
-type ObtainEnqueueConfigs[T any, S any] func(T, S) (token string, priority uint32, timeout uint32)
-type ObtainResponseToken[T any, S any] func(T, S) string
-type ObjectValidator[T any, S any] func(T, S) error
-type ObtainTopic[T any, S any] func(T, S) string
-type ResultHandler[T any, R any, S any] func(T, R, S) error
-
 // executes all handlers in order, return error if any handler returns an error
 func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) ObjectHandler[T, S] {
 	return func(object T, structName123 S) error {
@@ -151,6 +141,8 @@ func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) Object
 	}
 }
 
+type ObtainEnqueueConfigs[T any, S any] func(T, S) (token string, priority uint32, timeout uint32)
+
 func NewQueueObjectHandler[T any, S any](
 	priorityTokenQueue *PriorityTokenQueue[T],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[T, S],
@@ -160,6 +152,8 @@ func NewQueueObjectHandler[T any, S any](
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
+
+type ObtainResponseToken[T any, S any] func(T, S) string
 
 func NewResponseObjectHandler[T any, S any](
 	requestResponseManager *RequestResponseManager[T],
@@ -176,13 +170,19 @@ func NewResponseObjectHandler[T any, S any](
 	}
 }
 
+type ObjectValidator[T any, S any] func(T, S) error
+
 func NewValidationObjectHandler[T any, S any](validator ObjectValidator[T, S]) ObjectHandler[T, S] {
 	return func(object T, structName123 S) error {
 		return validator(object, structName123)
 	}
 }
 
-/* // resultHandler requires check for nil if applicable
+/*
+type ObtainTopic[T any, S any] func(T, S) string
+type ResultHandler[T any, R any, S any] func(T, R, S) error
+
+ // resultHandler requires check for nil if applicable
 func NewTopicObjectHandler[T any, R any, S any](
 	topicManager *TopicManager[T, R],
 	obtainTopic func(T) string,
@@ -198,7 +198,8 @@ func NewTopicObjectHandler[T any, R any, S any](
 		}
 		return nil
 	}
-} */
+}
+*/
 
 // executes all handlers in order, return error if any handler returns an error
 func NewChainByteHandler[S any](handlers ...ByteHandler[S]) ByteHandler[S] {
