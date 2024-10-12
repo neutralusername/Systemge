@@ -55,6 +55,10 @@ func NewWebsocketMessageReceptionHandlerFactory(
 
 		priorityQueue,
 		obtainEnqueueConfigs,
+
+		//topicManager,
+		nil,
+		nil,
 	)
 }
 
