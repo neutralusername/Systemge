@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -96,7 +97,7 @@ func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		server.acceptionHandler = NewDefaultAcceptionHandler[O]()
 	}
 	if server.receptionManagerFactory == nil {
-		server.receptionManagerFactory = NewWebsocketMessageReceptionManagerFactory[O](nil, nil, nil, nil, nil, nil, nil, nil)
+		server.receptionManagerFactory = Tools.AssembleNewReceptionManagerFactory[*Message.Message, *websocketServerReceptionManagerCaller](nil, nil, nil, nil, nil, nil, nil, nil)
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
