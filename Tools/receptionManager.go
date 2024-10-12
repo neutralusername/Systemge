@@ -165,6 +165,8 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 		objectHandlers = append(objectHandlers, NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
+	// todo handle topicManager parameter and corresponding start/stop functions
+
 	return NewReceptionManagerFactory(
 		nil,
 		nil,
