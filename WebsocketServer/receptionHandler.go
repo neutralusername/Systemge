@@ -45,6 +45,7 @@ func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Message.Message
 	}
 }
 
+// consider approaches to get rid of this
 func NewReceptionManagerFactory(
 	onStart Tools.OnReceptionManagerStart[*websocketServerReceptionManagerCaller],
 	onStop Tools.OnReceptionManagerStop[*websocketServerReceptionManagerCaller],
@@ -57,6 +58,7 @@ func NewReceptionManagerFactory(
 	)
 }
 
+// consider approaches to get rid of this
 func AssembleNewReceptionManagerFactory[O any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
