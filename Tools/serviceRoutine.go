@@ -16,7 +16,7 @@ type triggerRequest[P any, R any] struct {
 type ServiceFunc[P any] func(P) error
 
 func NewServiceRoutine[P any, R any](triggerCondition chan P, serviceRoutineFunc ServiceFunc[P]) *ServiceRoutine[P, R] {
-	serviceRoutine := &ServiceRoutine[P]{
+	serviceRoutine := &ServiceRoutine[P, R]{
 		stopChannel:        make(chan struct{}),
 		serviceRoutineFunc: serviceRoutineFunc,
 	}
@@ -41,7 +41,7 @@ func (service *ServiceRoutine[P, R]) Trigger(val P) (R, error) {
 		parameter: val,
 		response:  responseChannel,
 	}
-	return <-responseChannel, nilw
+	return <-responseChannel, nil
 }
 
 func (service *ServiceRoutine) Stop() error {
