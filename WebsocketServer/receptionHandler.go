@@ -8,6 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+// consider approaches to get rid of this (in this package)
 func NewWebsocketMessageValidator(
 	minSyncTokenSize int,
 	maxSyncTokenSize int,
@@ -39,6 +40,7 @@ func NewWebsocketMessageValidator(
 	})
 }
 
+// consider approaches to get rid of this (in this package)
 func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Message.Message, *websocketServerReceptionManagerCaller] {
 	return func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
 		return Message.Deserialize(bytes)
