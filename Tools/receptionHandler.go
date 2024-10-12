@@ -31,6 +31,7 @@ func NewReceptionHandler[S any](
 func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
 	handler.statusMutex.RLock()
 	defer handler.statusMutex.RUnlock()
+
 	if handler.status == Status.Stopped {
 		return errors.New("handler is stopped")
 	}
@@ -43,6 +44,7 @@ func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 
 func (handler *ReceptionHandler[S]) Start(structName123 S) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
+
 	if handler.status != Status.Stopped {
 		return errors.New("handler is not stopped")
 	}
@@ -61,6 +63,7 @@ func (handler *ReceptionHandler[S]) Start(structName123 S) error {
 func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
+
 	if handler.status != Status.Started {
 		return errors.New("handler is not started")
 	}
