@@ -101,10 +101,10 @@ type ObjectHandler[T any, S any] func(T, S) error
 func NewReceptionHandlerFactory[S any](
 	onStart OnReceptionHandlerStart[S],
 	onStop OnReceptionHandlerStop[S],
-	byteHandler ByteHandler[S],
+	onReception OnReception[S],
 ) ReceptionHandlerFactory[S] {
 	return func() *ReceptionHandler[S] {
-		return NewReceptionHandler[S](onStart, onStop, NewOnReception[S](byteHandler, nil, nil))
+		return NewReceptionHandler[S](onStart, onStop, onReception)
 	}
 }
 
