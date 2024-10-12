@@ -8,17 +8,57 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func NewWebsocketMessageReceptionManagerFactory(
+func NewWebsocketMessageValidator(
+	minSyncTokenSize int,
+	maxSyncTokenSize int,
+	minTopicSize int,
+	maxTopicSize int,
+	minPayloadSize int,
+	maxPayloadSize int,
+) Tools.ObjectHandler[*Message.Message, *websocketServerReceptionManagerCaller] {
+	return Tools.NewValidationObjectHandler(func(message *Message.Message, caller *websocketServerReceptionManagerCaller) error {
+		if minSyncTokenSize >= 0 && len(message.GetSyncToken()) < minSyncTokenSize {
+			return errors.New("message contains sync token")
+		}
+		if maxSyncTokenSize >= 0 && len(message.GetSyncToken()) > maxSyncTokenSize {
+			return errors.New("message contains sync token")
+		}
+		if minTopicSize >= 0 && len(message.GetTopic()) < minTopicSize {
+			return errors.New("message missing topic")
+		}
+		if maxTopicSize >= 0 && len(message.GetTopic()) > maxTopicSize {
+			return errors.New("message missing topic")
+		}
+		if minPayloadSize >= 0 && len(message.GetPayload()) < minPayloadSize {
+			return errors.New("message payload exceeds maximum size")
+		}
+		if maxPayloadSize >= 0 && len(message.GetPayload()) > maxPayloadSize {
+			return errors.New("message payload exceeds maximum size")
+		}
+		return nil
+	})
+}
+
+func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Message.Message, *websocketServerReceptionManagerCaller] {
+	return func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
+		return Message.Deserialize(bytes)
+	}
+}
+
+func NewWebsocketMessageReceptionManagerFactory[O any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
-	messageValidatorConfig *Config.MessageValidator,
+	messageValidator Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller],
+	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionManagerCaller],
 
-	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
-	obtainResponseToken Tools.ObtainResponseToken[*Message.Message, *websocketServerReceptionManagerCaller],
+	requestResponseManager *Tools.RequestResponseManager[O],
+	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionManagerCaller],
 
-	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *websocketServerReceptionManagerCaller],
+	priorityQueue *Tools.PriorityTokenQueue[O],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
+
+	// topicManager *Tools.TopicManager,
 ) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
 
 	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionManagerCaller]{}
@@ -29,33 +69,9 @@ func NewWebsocketMessageReceptionManagerFactory(
 		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
 	}
 
-	deserializer := func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
-		return Message.Deserialize(bytes)
-	}
-
-	objectHandlers := []Tools.ObjectHandler[*Message.Message, *websocketServerReceptionManagerCaller]{}
-	if messageValidatorConfig != nil {
-		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(func(message *Message.Message, caller *websocketServerReceptionManagerCaller) error {
-			if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
-				return errors.New("message contains sync token")
-			}
-			if messageValidatorConfig.MaxSyncTokenSize >= 0 && len(message.GetSyncToken()) > messageValidatorConfig.MaxSyncTokenSize {
-				return errors.New("message contains sync token")
-			}
-			if messageValidatorConfig.MinTopicSize >= 0 && len(message.GetTopic()) < messageValidatorConfig.MinTopicSize {
-				return errors.New("message missing topic")
-			}
-			if messageValidatorConfig.MaxTopicSize >= 0 && len(message.GetTopic()) > messageValidatorConfig.MaxTopicSize {
-				return errors.New("message missing topic")
-			}
-			if messageValidatorConfig.MinPayloadSize >= 0 && len(message.GetPayload()) < messageValidatorConfig.MinPayloadSize {
-				return errors.New("message payload exceeds maximum size")
-			}
-			if messageValidatorConfig.MaxPayloadSize >= 0 && len(message.GetPayload()) > messageValidatorConfig.MaxPayloadSize {
-				return errors.New("message payload exceeds maximum size")
-			}
-			return nil
-		}))
+	objectHandlers := []Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller]{}
+	if messageValidator != nil {
+		objectHandlers = append(objectHandlers, messageValidator)
 	}
 	if requestResponseManager != nil && obtainResponseToken != nil {
 		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
