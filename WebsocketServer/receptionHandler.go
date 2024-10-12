@@ -94,9 +94,13 @@ func NewWebsocketReceptionHandlerFactory[T any](
 		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
-	return Tools.NewReceptionHandlerFactory[T, *structName123](
-		Tools.NewChainByteHandler(byteHandlers...),
-		deserializer,
-		Tools.NewChainObjecthandler(objectHandlers...),
+	return Tools.NewReceptionHandlerFactory[*structName123](
+		nil,
+		nil,
+		Tools.NewOnReception(
+			Tools.NewChainByteHandler(byteHandlers...),
+			deserializer,
+			Tools.NewChainObjecthandler(objectHandlers...),
+		),
 	)
 }
