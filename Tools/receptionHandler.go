@@ -79,7 +79,11 @@ func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	return nil
 }
 
-func (handler *ReceptionHandler[S]) GetStatus() int {
+func (handler *ReceptionHandler[S]) GetStatus(lock bool) int {
+	if lock {
+		handler.statusMutex.RLock()
+		defer handler.statusMutex.RUnlock()
+	}
 	return handler.status
 }
 
