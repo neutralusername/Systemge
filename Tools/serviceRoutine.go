@@ -1,17 +1,22 @@
 package Tools
 
-type ServiceRoutine[T any] struct {
+type ServiceRoutine[P any, R any] struct {
 	stopChannel chan struct{}
 	stopped     bool
 
-	triggerCondition   chan T // not satisfied with current (parameters of) mechanism to trigger service routine
-	serviceRoutineFunc ServiceFunc[T]
+	triggerChannel     chan P // not satisfied with current (parameters of) mechanism to trigger service routine
+	serviceRoutineFunc ServiceFunc[P]
 }
 
-type ServiceFunc[T any] func(T) error
+type triggerRequest[P any, R any] struct {
+	parameter P
+	response  chan R
+}
 
-func NewServiceRoutine[T any](triggerCondition chan T, serviceRoutineFunc ServiceFunc[T]) *ServiceRoutine[T] {
-	serviceRoutine := &ServiceRoutine[T]{
+type ServiceFunc[P any] func(P) error
+
+func NewServiceRoutine[P any](triggerCondition chan P, serviceRoutineFunc ServiceFunc[P]) *ServiceRoutine[P] {
+	serviceRoutine := &ServiceRoutine[P]{
 		stopChannel:        make(chan struct{}),
 		serviceRoutineFunc: serviceRoutineFunc,
 	}
@@ -30,7 +35,7 @@ func NewServiceRoutine[T any](triggerCondition chan T, serviceRoutineFunc Servic
 	return serviceRoutine
 }
 
-func (service *ServiceRoutine[T]) Trigger(val T) error {
+func (service *ServiceRoutine[P]) Trigger(val P) error {
 	service.triggerCondition <- val
 }
 
