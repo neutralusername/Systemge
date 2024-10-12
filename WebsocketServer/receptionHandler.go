@@ -15,20 +15,20 @@ func NewWebsocketMessageReceptionHandlerFactory(
 	messageValidatorConfig *Config.MessageValidator,
 
 	requestResponseManager *Tools.RequestResponseManager[*Message.Message],
-	obtainResponseToken Tools.ObtainResponseToken[*Message.Message, *structName123],
+	obtainResponseToken Tools.ObtainResponseToken[*Message.Message, *websocketServerReceptionHandlerCaller],
 
 	priorityQueue *Tools.PriorityTokenQueue[*Message.Message],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *structName123],
-) Tools.ReceptionHandlerFactory[*structName123] {
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[*Message.Message, *websocketServerReceptionHandlerCaller],
+) Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller] {
 	return NewWebsocketReceptionHandlerFactory[*Message.Message](
 		byteRateLimiterConfig,
 		messageRateLimiterConfig,
 
-		func(bytes []byte, structName123 *structName123) (*Message.Message, error) {
+		func(bytes []byte, receptionHandlerCaller *websocketServerReceptionHandlerCaller) (*Message.Message, error) {
 			return Message.Deserialize(bytes)
 		},
 
-		func(message *Message.Message, structName123 *structName123) error {
+		func(message *Message.Message, websocketServerReceptionHandlerCaller *websocketServerReceptionHandlerCaller) error {
 			if messageValidatorConfig.MinSyncTokenSize >= 0 && len(message.GetSyncToken()) < messageValidatorConfig.MinSyncTokenSize {
 				return errors.New("message contains sync token")
 			}
@@ -62,28 +62,28 @@ func NewWebsocketReceptionHandlerFactory[T any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
-	deserializer Tools.ObjectDeserializer[T, *structName123],
+	deserializer Tools.ObjectDeserializer[T, *websocketServerReceptionHandlerCaller],
 
-	objectValidator Tools.ObjectValidator[T, *structName123],
+	objectValidator Tools.ObjectValidator[T, *websocketServerReceptionHandlerCaller],
 
 	requestResponseManager *Tools.RequestResponseManager[T],
-	obtainResponseToken Tools.ObtainResponseToken[T, *structName123],
+	obtainResponseToken Tools.ObtainResponseToken[T, *websocketServerReceptionHandlerCaller],
 
 	priorityQueue *Tools.PriorityTokenQueue[T],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[T, *structName123],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[T, *websocketServerReceptionHandlerCaller],
 
 	//topicManager *Tools.TopicManager,
-) Tools.ReceptionHandlerFactory[*structName123] {
+) Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller] {
 
-	byteHandlers := []Tools.ByteHandler[*structName123]{}
+	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionHandlerCaller]{}
 	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*websocketServerReceptionHandlerCaller](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
 	}
 	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*structName123](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionHandlerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
 	}
 
-	objectHandlers := []Tools.ObjectHandler[T, *structName123]{}
+	objectHandlers := []Tools.ObjectHandler[T, *websocketServerReceptionHandlerCaller]{}
 	if objectValidator != nil {
 		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
 	}
@@ -94,7 +94,7 @@ func NewWebsocketReceptionHandlerFactory[T any](
 		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
-	return Tools.NewReceptionHandlerFactory[*structName123](
+	return Tools.NewReceptionHandlerFactory[*websocketServerReceptionHandlerCaller](
 		nil,
 		nil,
 		Tools.NewOnReception(

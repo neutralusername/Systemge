@@ -7,20 +7,20 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-type ReceptionHandler[S any] struct {
-	onStart     OnReceptionHandlerStart[S]
-	onStop      OnReceptionHandlerStop[S]
-	onReception OnReception[S]
+type ReceptionHandler[C any] struct {
+	onStart     OnReceptionHandlerStart[C]
+	onStop      OnReceptionHandlerStop[C]
+	onReception OnReception[C]
 	status      int
 	statusMutex sync.RWMutex
 }
 
-func NewReceptionHandler[S any](
-	onStart OnReceptionHandlerStart[S],
-	onStop OnReceptionHandlerStop[S],
-	OnReception OnReception[S],
-) *ReceptionHandler[S] {
-	return &ReceptionHandler[S]{
+func NewReceptionHandler[C any](
+	onStart OnReceptionHandlerStart[C],
+	onStop OnReceptionHandlerStop[C],
+	OnReception OnReception[C],
+) *ReceptionHandler[C] {
+	return &ReceptionHandler[C]{
 		onStart:     onStart,
 		onStop:      onStop,
 		onReception: OnReception,
@@ -28,7 +28,7 @@ func NewReceptionHandler[S any](
 	}
 }
 
-func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
+func (handler *ReceptionHandler[C]) HandleReception(bytes []byte, caller C) error {
 	handler.statusMutex.RLock()
 	defer handler.statusMutex.RUnlock()
 
@@ -38,10 +38,10 @@ func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 
 	if handler.onReception == nil {
 		return errors.New("onHandle is nil")
 	}
-	return handler.onReception(bytes, structName123)
+	return handler.onReception(bytes, caller)
 }
 
-func (handler *ReceptionHandler[S]) Start(structName123 S) error {
+func (handler *ReceptionHandler[C]) Start(caller C) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
 
@@ -50,7 +50,7 @@ func (handler *ReceptionHandler[S]) Start(structName123 S) error {
 	}
 	handler.status = Status.Pending
 	if handler.onStart != nil {
-		err := handler.onStart(structName123)
+		err := handler.onStart(caller)
 		if err != nil {
 			handler.status = Status.Stopped
 			return err
@@ -60,7 +60,7 @@ func (handler *ReceptionHandler[S]) Start(structName123 S) error {
 	return nil
 }
 
-func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
+func (handler *ReceptionHandler[C]) Stop(caller C) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
 
@@ -69,7 +69,7 @@ func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	}
 	handler.status = Status.Pending
 	if handler.onStop != nil {
-		err := handler.onStop(structName123)
+		err := handler.onStop(caller)
 		if err != nil {
 			handler.status = Status.Started
 			return err
@@ -79,7 +79,7 @@ func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	return nil
 }
 
-func (handler *ReceptionHandler[S]) GetStatus(lock bool) int {
+func (handler *ReceptionHandler[C]) GetStatus(lock bool) int {
 	if lock {
 		handler.statusMutex.RLock()
 		defer handler.statusMutex.RUnlock()
@@ -87,53 +87,53 @@ func (handler *ReceptionHandler[S]) GetStatus(lock bool) int {
 	return handler.status
 }
 
-type ReceptionHandlerFactory[S any] func() *ReceptionHandler[S]
+type ReceptionHandlerFactory[C any] func() *ReceptionHandler[C]
 
-type OnReceptionHandlerStart[S any] func(S) error
-type OnReceptionHandlerStop[S any] func(S) error
+type OnReceptionHandlerStart[C any] func(C) error
+type OnReceptionHandlerStop[C any] func(C) error
 
-type OnReception[S any] func([]byte, S) error
+type OnReception[C any] func([]byte, C) error
 
-type ByteHandler[S any] func([]byte, S) error
-type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
-type ObjectHandler[T any, S any] func(T, S) error
+type ByteHandler[C any] func([]byte, C) error
+type ObjectDeserializer[T any, C any] func([]byte, C) (T, error)
+type ObjectHandler[T any, C any] func(T, C) error
 
-func NewReceptionHandlerFactory[S any](
-	onStart OnReceptionHandlerStart[S],
-	onStop OnReceptionHandlerStop[S],
-	onReception OnReception[S],
-) ReceptionHandlerFactory[S] {
-	return func() *ReceptionHandler[S] {
-		return NewReceptionHandler[S](onStart, onStop, onReception)
+func NewReceptionHandlerFactory[C any](
+	onStart OnReceptionHandlerStart[C],
+	onStop OnReceptionHandlerStop[C],
+	onReception OnReception[C],
+) ReceptionHandlerFactory[C] {
+	return func() *ReceptionHandler[C] {
+		return NewReceptionHandler[C](onStart, onStop, onReception)
 	}
 }
 
-func NewOnReception[T any, S any](
-	byteHandler ByteHandler[S],
-	deserializer ObjectDeserializer[T, S],
-	objectHandler ObjectHandler[T, S],
-) OnReception[S] {
-	return func(bytes []byte, structName123 S) error {
+func NewOnReception[T any, C any](
+	byteHandler ByteHandler[C],
+	deserializer ObjectDeserializer[T, C],
+	objectHandler ObjectHandler[T, C],
+) OnReception[C] {
+	return func(bytes []byte, caller C) error {
 
-		err := byteHandler(bytes, structName123)
+		err := byteHandler(bytes, caller)
 		if err != nil {
 			return err
 		}
 
-		object, err := deserializer(bytes, structName123)
+		object, err := deserializer(bytes, caller)
 		if err != nil {
 			return err
 		}
 
-		return objectHandler(object, structName123)
+		return objectHandler(object, caller)
 	}
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) ObjectHandler[T, S] {
-	return func(object T, structName123 S) error {
+func NewChainObjecthandler[T any, C any](handlers ...ObjectHandler[T, C]) ObjectHandler[T, C] {
+	return func(object T, caller C) error {
 		for _, handler := range handlers {
-			if err := handler(object, structName123); err != nil {
+			if err := handler(object, caller); err != nil {
 				return err
 			}
 		}
@@ -141,26 +141,26 @@ func NewChainObjecthandler[T any, S any](handlers ...ObjectHandler[T, S]) Object
 	}
 }
 
-type ObtainEnqueueConfigs[T any, S any] func(T, S) (token string, priority uint32, timeout uint32)
+type ObtainEnqueueConfigs[T any, C any] func(T, C) (token string, priority uint32, timeout uint32)
 
-func NewQueueObjectHandler[T any, S any](
+func NewQueueObjectHandler[T any, C any](
 	priorityTokenQueue *PriorityTokenQueue[T],
-	obtainEnqueueConfigs ObtainEnqueueConfigs[T, S],
-) ObjectHandler[T, S] {
-	return func(object T, structName123 S) error {
-		token, priority, timeoutMs := obtainEnqueueConfigs(object, structName123)
+	obtainEnqueueConfigs ObtainEnqueueConfigs[T, C],
+) ObjectHandler[T, C] {
+	return func(object T, caller C) error {
+		token, priority, timeoutMs := obtainEnqueueConfigs(object, caller)
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
 
-type ObtainResponseToken[T any, S any] func(T, S) string
+type ObtainResponseToken[T any, C any] func(T, C) string
 
-func NewResponseObjectHandler[T any, S any](
+func NewResponseObjectHandler[T any, C any](
 	requestResponseManager *RequestResponseManager[T],
-	obtainResponseToken ObtainResponseToken[T, S],
-) ObjectHandler[T, S] {
-	return func(object T, structName123 S) error {
-		responseToken := obtainResponseToken(object, structName123)
+	obtainResponseToken ObtainResponseToken[T, C],
+) ObjectHandler[T, C] {
+	return func(object T, caller C) error {
+		responseToken := obtainResponseToken(object, caller)
 		if responseToken != "" {
 			if requestResponseManager != nil {
 				return requestResponseManager.AddResponse(responseToken, object)
@@ -170,40 +170,40 @@ func NewResponseObjectHandler[T any, S any](
 	}
 }
 
-type ObjectValidator[T any, S any] func(T, S) error
+type ObjectValidator[T any, C any] func(T, C) error
 
-func NewValidationObjectHandler[T any, S any](validator ObjectValidator[T, S]) ObjectHandler[T, S] {
-	return func(object T, structName123 S) error {
-		return validator(object, structName123)
+func NewValidationObjectHandler[T any, C any](validator ObjectValidator[T, C]) ObjectHandler[T, C] {
+	return func(object T, caller C) error {
+		return validator(object, caller)
 	}
 }
 
-type ObtainTopic[T any, S any] func(T, S) string
-type ResultHandler[T any, R any, S any] func(T, R, S) error
+type ObtainTopic[T any, C any] func(T, C) string
+type ResultHandler[T any, R any, C any] func(T, R, C) error
 
 // resultHandler requires check for nil if applicable
-func NewTopicObjectHandler[T any, R any, S any](
+func NewTopicObjectHandler[T any, R any, C any](
 	topicManager *TopicManager[T, R],
 	obtainTopic func(T) string,
-	resultHandler ResultHandler[T, R, S],
-) ObjectHandler[T, S] {
-	return func(object T, structName123 S) error {
+	resultHandler ResultHandler[T, R, C],
+) ObjectHandler[T, C] {
+	return func(object T, caller C) error {
 		if topicManager != nil {
 			result, err := topicManager.Handle(obtainTopic(object), object)
 			if err != nil {
 				return err
 			}
-			return resultHandler(object, result, structName123)
+			return resultHandler(object, result, caller)
 		}
 		return nil
 	}
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainByteHandler[S any](handlers ...ByteHandler[S]) ByteHandler[S] {
-	return func(bytes []byte, structName123 S) error {
+func NewChainByteHandler[C any](handlers ...ByteHandler[C]) ByteHandler[C] {
+	return func(bytes []byte, caller C) error {
 		for _, handler := range handlers {
-			if err := handler(bytes, structName123); err != nil {
+			if err := handler(bytes, caller); err != nil {
 				return err
 			}
 		}
@@ -211,15 +211,15 @@ func NewChainByteHandler[S any](handlers ...ByteHandler[S]) ByteHandler[S] {
 	}
 }
 
-func NewByteRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[S] {
-	return func(bytes []byte, structName123 S) error {
+func NewByteRateLimitByteHandler[C any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[C] {
+	return func(bytes []byte, caller C) error {
 		tokenBucketRateLimiter.Consume(uint64(len(bytes)))
 		return nil
 	}
 }
 
-func NewMessageRateLimitByteHandler[S any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[S] {
-	return func(bytes []byte, structName123 S) error {
+func NewMessageRateLimitByteHandler[C any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[C] {
+	return func(bytes []byte, caller C) error {
 		tokenBucketRateLimiter.Consume(1)
 		return nil
 	}
