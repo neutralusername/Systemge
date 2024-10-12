@@ -1,37 +1,76 @@
 package Tools
 
-/* type ReceptionHandler[S any] struct {
-	onStart  func() error
-	onStop   func() error
-	onHandle func([]byte, S) error
-	status   int
+import (
+	"errors"
+	"sync"
+
+	"github.com/neutralusername/Systemge/Status"
+)
+
+type ReceptionHandler[S any] struct {
+	onStart     func() error
+	onStop      func() error
+	onReception func([]byte, S) error
+	status      int
+	statusMutex sync.Mutex
 }
 
-func (handler *ReceptionHandler[S]) Handle(bytes []byte, structName123 S) error {
+func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
 	if handler.status != Status.Stopped {
 		return errors.New("handler is not running")
 	}
-	if handler.onHandle == nil {
+	if handler.onReception == nil {
 		return errors.New("onHandle is nil")
 	}
-	return handler.onHandle(bytes, structName123)
+	return handler.onReception(bytes, structName123)
 }
 
 func NewReceptionHandler[S any](
 	onStart func() error,
 	onStop func() error,
-	onHandle func([]byte, S) error,
+	OnReception OnReception[S],
 ) *ReceptionHandler[S] {
 	return &ReceptionHandler[S]{
-		onStart:  onStart,
-		onStop:   onStop,
-		onHandle: onHandle,
+		onStart:     onStart,
+		onStop:      onStop,
+		onReception: OnReception,
+		status:      Status.Stopped,
 	}
-} */
+}
 
-type ReceptionHandlerFactory[S any] func() ReceptionHandler[S]
+func (handler *ReceptionHandler[S]) Start() error {
+	handler.statusMutex.Lock()
+	defer handler.statusMutex.Unlock()
+	if handler.status != Status.Stopped {
+		return errors.New("handler is not stopped")
+	}
+	handler.status = Status.Pending
+	err := handler.onStart()
+	if err != nil {
+		return err
+	}
+	handler.status = Status.Started
+	return nil
+}
 
-type ReceptionHandler[S any] func([]byte, S) error
+func (handler *ReceptionHandler[S]) Stop() error {
+	handler.statusMutex.Lock()
+	defer handler.statusMutex.Unlock()
+	if handler.status != Status.Started {
+		return errors.New("handler is not started")
+	}
+	handler.status = Status.Pending
+	err := handler.onStop()
+	if err != nil {
+		return err
+	}
+	handler.status = Status.Stopped
+	return nil
+}
+
+type ReceptionHandlerFactory[S any] func() OnReception[S]
+
+type OnReception[S any] func([]byte, S) error
 
 type ByteHandler[S any] func([]byte, S) error
 type ObjectDeserializer[T any, S any] func([]byte, S) (T, error)
@@ -42,8 +81,8 @@ func NewReceptionHandlerFactory[T any, S any](
 	deserializer ObjectDeserializer[T, S],
 	objectHandler ObjectHandler[T, S],
 ) ReceptionHandlerFactory[S] {
-	return func() ReceptionHandler[S] {
-		return NewReceptionHandler[T, S](
+	return func() OnReception[S] {
+		return NewOnReception[T, S](
 			byteHandler,
 			deserializer,
 			objectHandler,
@@ -51,11 +90,11 @@ func NewReceptionHandlerFactory[T any, S any](
 	}
 }
 
-func NewReceptionHandler[T any, S any](
+func NewOnReception[T any, S any](
 	byteHandler ByteHandler[S],
 	deserializer ObjectDeserializer[T, S],
 	objectHandler ObjectHandler[T, S],
-) ReceptionHandler[S] {
+) OnReception[S] {
 	return func(bytes []byte, structName123 S) error {
 
 		err := byteHandler(bytes, structName123)
