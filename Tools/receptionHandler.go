@@ -45,9 +45,11 @@ func (handler *ReceptionHandler[S]) Start() error {
 		return errors.New("handler is not stopped")
 	}
 	handler.status = Status.Pending
-	err := handler.onStart()
-	if err != nil {
-		return err
+	if handler.onStart != nil {
+		err := handler.onStart()
+		if err != nil {
+			return err
+		}
 	}
 	handler.status = Status.Started
 	return nil
@@ -60,9 +62,11 @@ func (handler *ReceptionHandler[S]) Stop() error {
 		return errors.New("handler is not started")
 	}
 	handler.status = Status.Pending
-	err := handler.onStop()
-	if err != nil {
-		return err
+	if handler.onStop != nil {
+		err := handler.onStop()
+		if err != nil {
+			return err
+		}
 	}
 	handler.status = Status.Stopped
 	return nil
