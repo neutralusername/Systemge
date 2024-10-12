@@ -1,6 +1,8 @@
 package Tools
 
 import (
+	"sync"
+
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 )
@@ -19,6 +21,7 @@ type Service struct {
 	name         string
 	status       int
 	eventHandler *Event.Handler
+	statusMutex  sync.RWMutex
 }
 
 func NewService(name string) *Service {
