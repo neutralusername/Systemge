@@ -61,7 +61,7 @@ func NewWebsocketMessageReceptionManagerFactory(
 	)
 }
 
-func NewWebsocketReceptionManagerFactory[O any](
+func NewWebsocketReceptionManagerFactory(
 	/* byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
