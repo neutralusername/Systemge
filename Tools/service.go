@@ -25,7 +25,9 @@ type Service struct {
 	startFunc       StartFunc
 	stopFunc        StopFunc
 
-	mutex sync.RWMutex
+	mutex        sync.RWMutex
+	waitgroup    sync.WaitGroup
+	closeChannel chan struct{}
 }
 
 type ServiceRoutineFunc func() error
