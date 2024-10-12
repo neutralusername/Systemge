@@ -48,6 +48,7 @@ func (handler *ReceptionHandler[S]) Start(structName123 S) error {
 	if handler.onStart != nil {
 		err := handler.onStart(structName123)
 		if err != nil {
+			handler.status = Status.Stopped
 			return err
 		}
 	}
@@ -65,6 +66,7 @@ func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	if handler.onStop != nil {
 		err := handler.onStop(structName123)
 		if err != nil {
+			handler.status = Status.Started
 			return err
 		}
 	}
