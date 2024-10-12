@@ -31,13 +31,13 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 		}
 	}
 
-	websocketServerReceptionHandlerCaller := &websocketServerReceptionHandlerCaller{
+	websocketServerReceptionManagerCaller := &websocketServerReceptionManagerCaller{
 		Client:    websocketClient,
 		SessionId: session.GetId(),
 		Identity:  session.GetIdentity(),
 	}
-	receptionHandler := server.receptionHandlerFactory()
-	err := receptionHandler.Start(websocketServerReceptionHandlerCaller)
+	receptionManager := server.receptionManagerFactory()
+	err := receptionManager.Start(websocketServerReceptionManagerCaller)
 	if err != nil {
 		// event
 		// close connection?
@@ -45,7 +45,7 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 	}
 	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, messageBytes []byte) {
 		// event
-		if err := receptionHandler.HandleReception(messageBytes, websocketServerReceptionHandlerCaller); err != nil {
+		if err := receptionManager.Handle(messageBytes, websocketServerReceptionManagerCaller); err != nil {
 			server.FailedReceptions.Add(1)
 			if server.eventHandler != nil {
 				event := server.eventHandler.Handle(Event.New(

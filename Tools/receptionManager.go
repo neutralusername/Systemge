@@ -7,20 +7,20 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-type ReceptionHandler[C any] struct {
-	onStart     OnReceptionHandlerStart[C]
-	onStop      OnReceptionHandlerStop[C]
-	onReception OnReception[C]
+type ReceptionManager[C any] struct {
+	onStart     OnReceptionManagerStart[C]
+	onStop      OnReceptionManagerStop[C]
+	onReception OnReceptionManagerHandle[C]
 	status      int
 	statusMutex sync.RWMutex
 }
 
-func NewReceptionHandler[C any](
-	onStart OnReceptionHandlerStart[C],
-	onStop OnReceptionHandlerStop[C],
-	OnReception OnReception[C],
-) *ReceptionHandler[C] {
-	return &ReceptionHandler[C]{
+func NewReceptionManager[C any](
+	onStart OnReceptionManagerStart[C],
+	onStop OnReceptionManagerStop[C],
+	OnReception OnReceptionManagerHandle[C],
+) *ReceptionManager[C] {
+	return &ReceptionManager[C]{
 		onStart:     onStart,
 		onStop:      onStop,
 		onReception: OnReception,
@@ -28,20 +28,20 @@ func NewReceptionHandler[C any](
 	}
 }
 
-func (handler *ReceptionHandler[C]) HandleReception(bytes []byte, caller C) error {
-	handler.statusMutex.RLock()
-	defer handler.statusMutex.RUnlock()
+func (manager *ReceptionManager[C]) Handle(bytes []byte, caller C) error {
+	manager.statusMutex.RLock()
+	defer manager.statusMutex.RUnlock()
 
-	if handler.status == Status.Stopped {
+	if manager.status == Status.Stopped {
 		return errors.New("handler is stopped")
 	}
-	if handler.onReception == nil {
+	if manager.onReception == nil {
 		return errors.New("onHandle is nil")
 	}
-	return handler.onReception(bytes, caller)
+	return manager.onReception(bytes, caller)
 }
 
-func (handler *ReceptionHandler[C]) Start(caller C) error {
+func (handler *ReceptionManager[C]) Start(caller C) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
 
@@ -60,7 +60,7 @@ func (handler *ReceptionHandler[C]) Start(caller C) error {
 	return nil
 }
 
-func (handler *ReceptionHandler[C]) Stop(caller C) error {
+func (handler *ReceptionManager[C]) Stop(caller C) error {
 	handler.statusMutex.Lock()
 	defer handler.statusMutex.Unlock()
 
@@ -79,7 +79,7 @@ func (handler *ReceptionHandler[C]) Stop(caller C) error {
 	return nil
 }
 
-func (handler *ReceptionHandler[C]) GetStatus(lock bool) int {
+func (handler *ReceptionManager[C]) GetStatus(lock bool) int {
 	if lock {
 		handler.statusMutex.RLock()
 		defer handler.statusMutex.RUnlock()
@@ -87,32 +87,32 @@ func (handler *ReceptionHandler[C]) GetStatus(lock bool) int {
 	return handler.status
 }
 
-type ReceptionHandlerFactory[C any] func() *ReceptionHandler[C]
+type ReceptionManagerFactory[C any] func() *ReceptionManager[C]
 
-type OnReceptionHandlerStart[C any] func(C) error
-type OnReceptionHandlerStop[C any] func(C) error
+type OnReceptionManagerStart[C any] func(C) error
+type OnReceptionManagerStop[C any] func(C) error
 
-type OnReception[C any] func([]byte, C) error
+type OnReceptionManagerHandle[C any] func([]byte, C) error
 
 type ByteHandler[C any] func([]byte, C) error
 type ObjectDeserializer[O any, C any] func([]byte, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
 
-func NewReceptionHandlerFactory[C any](
-	onStart OnReceptionHandlerStart[C],
-	onStop OnReceptionHandlerStop[C],
-	onReception OnReception[C],
-) ReceptionHandlerFactory[C] {
-	return func() *ReceptionHandler[C] {
-		return NewReceptionHandler[C](onStart, onStop, onReception)
+func NewReceptionManagerFactory[C any](
+	onStart OnReceptionManagerStart[C],
+	onStop OnReceptionManagerStop[C],
+	onReception OnReceptionManagerHandle[C],
+) ReceptionManagerFactory[C] {
+	return func() *ReceptionManager[C] {
+		return NewReceptionManager[C](onStart, onStop, onReception)
 	}
 }
 
-func NewOnReception[O any, C any](
+func NewOnReceptionManagerHandle[O any, C any](
 	byteHandler ByteHandler[C],
 	deserializer ObjectDeserializer[O, C],
 	objectHandler ObjectHandler[O, C],
-) OnReception[C] {
+) OnReceptionManagerHandle[C] {
 	return func(bytes []byte, caller C) error {
 
 		err := byteHandler(bytes, caller)

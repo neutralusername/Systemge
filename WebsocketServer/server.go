@@ -14,7 +14,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
-type websocketServerReceptionHandlerCaller struct {
+type websocketServerReceptionManagerCaller struct {
 	Client    *WebsocketClient.WebsocketClient
 	SessionId string
 	Identity  string
@@ -35,7 +35,7 @@ type WebsocketServer[O any] struct {
 
 	eventHandler *Event.Handler
 
-	receptionHandlerFactory Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller]
+	receptionManagerFactory Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller]
 	acceptionHandler        AcceptionHandler[O]
 	//requestResponseManager  *Tools.RequestResponseManager[T]
 
@@ -66,7 +66,7 @@ type WebsocketServer[O any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc /*  requestResponseManager *Tools.RequestResponseManager[T],  */, acceptionHandler AcceptionHandler[O], receptionHandlerFactory Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller]) (*WebsocketServer[O], error) {
+func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc /*  requestResponseManager *Tools.RequestResponseManager[T],  */, acceptionHandler AcceptionHandler[O], receptionManagerFactory Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller]) (*WebsocketServer[O], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -89,14 +89,14 @@ func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		acceptionHandler:        acceptionHandler,
-		receptionHandlerFactory: receptionHandlerFactory,
+		receptionManagerFactory: receptionManagerFactory,
 		//requestResponseManager:  requestResponseManager,
 	}
 	if server.acceptionHandler == nil {
 		server.acceptionHandler = NewDefaultAcceptionHandler[O]()
 	}
-	if server.receptionHandlerFactory == nil {
-		server.receptionHandlerFactory = NewWebsocketMessageReceptionHandlerFactory(nil, nil, nil, nil, nil, nil, nil)
+	if server.receptionManagerFactory == nil {
+		server.receptionManagerFactory = NewWebsocketMessageReceptionManagerFactory(nil, nil, nil, nil, nil, nil, nil)
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
@@ -138,8 +138,8 @@ func (server *WebsocketServer[O]) SetAcceptionHandler(acceptionHandler Acception
 	server.acceptionHandler = acceptionHandler
 }
 
-func (server *WebsocketServer[O]) SetReceptionHandlerFactory(receptionHandlerFactory Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller]) {
-	server.receptionHandlerFactory = receptionHandlerFactory
+func (server *WebsocketServer[O]) SetReceptionManagerFactory(receptionManagerFactory Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller]) {
+	server.receptionManagerFactory = receptionManagerFactory
 }
 
 /* func (server *WebsocketServer[T]) GetRequestResponseManager() *Tools.RequestResponseManager[T] {
