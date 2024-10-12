@@ -95,8 +95,8 @@ type OnReceptionHandlerStop[C any] func(C) error
 type OnReception[C any] func([]byte, C) error
 
 type ByteHandler[C any] func([]byte, C) error
-type ObjectDeserializer[T any, C any] func([]byte, C) (T, error)
-type ObjectHandler[T any, C any] func(T, C) error
+type ObjectDeserializer[O any, C any] func([]byte, C) (O, error)
+type ObjectHandler[O any, C any] func(O, C) error
 
 func NewReceptionHandlerFactory[C any](
 	onStart OnReceptionHandlerStart[C],
@@ -108,10 +108,10 @@ func NewReceptionHandlerFactory[C any](
 	}
 }
 
-func NewOnReception[T any, C any](
+func NewOnReception[O any, C any](
 	byteHandler ByteHandler[C],
-	deserializer ObjectDeserializer[T, C],
-	objectHandler ObjectHandler[T, C],
+	deserializer ObjectDeserializer[O, C],
+	objectHandler ObjectHandler[O, C],
 ) OnReception[C] {
 	return func(bytes []byte, caller C) error {
 
@@ -130,8 +130,8 @@ func NewOnReception[T any, C any](
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjecthandler[T any, C any](handlers ...ObjectHandler[T, C]) ObjectHandler[T, C] {
-	return func(object T, caller C) error {
+func NewChainObjecthandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
+	return func(object O, caller C) error {
 		for _, handler := range handlers {
 			if err := handler(object, caller); err != nil {
 				return err
@@ -141,25 +141,25 @@ func NewChainObjecthandler[T any, C any](handlers ...ObjectHandler[T, C]) Object
 	}
 }
 
-type ObtainEnqueueConfigs[T any, C any] func(T, C) (token string, priority uint32, timeout uint32)
+type ObtainEnqueueConfigs[O any, C any] func(O, C) (token string, priority uint32, timeout uint32)
 
-func NewQueueObjectHandler[T any, C any](
-	priorityTokenQueue *PriorityTokenQueue[T],
-	obtainEnqueueConfigs ObtainEnqueueConfigs[T, C],
-) ObjectHandler[T, C] {
-	return func(object T, caller C) error {
+func NewQueueObjectHandler[O any, C any](
+	priorityTokenQueue *PriorityTokenQueue[O],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
+) ObjectHandler[O, C] {
+	return func(object O, caller C) error {
 		token, priority, timeoutMs := obtainEnqueueConfigs(object, caller)
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
 
-type ObtainResponseToken[T any, C any] func(T, C) string
+type ObtainResponseToken[O any, C any] func(O, C) string
 
-func NewResponseObjectHandler[T any, C any](
-	requestResponseManager *RequestResponseManager[T],
-	obtainResponseToken ObtainResponseToken[T, C],
-) ObjectHandler[T, C] {
-	return func(object T, caller C) error {
+func NewResponseObjectHandler[O any, C any](
+	requestResponseManager *RequestResponseManager[O],
+	obtainResponseToken ObtainResponseToken[O, C],
+) ObjectHandler[O, C] {
+	return func(object O, caller C) error {
 		responseToken := obtainResponseToken(object, caller)
 		if responseToken != "" {
 			if requestResponseManager != nil {
@@ -170,24 +170,24 @@ func NewResponseObjectHandler[T any, C any](
 	}
 }
 
-type ObjectValidator[T any, C any] func(T, C) error
+type ObjectValidator[O any, C any] func(O, C) error
 
-func NewValidationObjectHandler[T any, C any](validator ObjectValidator[T, C]) ObjectHandler[T, C] {
-	return func(object T, caller C) error {
+func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) ObjectHandler[O, C] {
+	return func(object O, caller C) error {
 		return validator(object, caller)
 	}
 }
 
-type ObtainTopic[T any, C any] func(T, C) string
-type ResultHandler[T any, R any, C any] func(T, R, C) error
+type ObtainTopic[O any, C any] func(O, C) string
+type ResultHandler[O any, R any, C any] func(O, R, C) error
 
 // resultHandler requires check for nil if applicable
-func NewTopicObjectHandler[T any, R any, C any](
-	topicManager *TopicManager[T, R],
-	obtainTopic func(T) string,
-	resultHandler ResultHandler[T, R, C],
-) ObjectHandler[T, C] {
-	return func(object T, caller C) error {
+func NewTopicObjectHandler[O any, R any, C any](
+	topicManager *TopicManager[O, R],
+	obtainTopic func(O) string,
+	resultHandler ResultHandler[O, R, C],
+) ObjectHandler[O, C] {
+	return func(object O, caller C) error {
 		if topicManager != nil {
 			result, err := topicManager.Handle(obtainTopic(object), object)
 			if err != nil {

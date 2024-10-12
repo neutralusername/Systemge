@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (server *WebsocketServer[T]) Stop() error {
+func (server *WebsocketServer[O]) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 

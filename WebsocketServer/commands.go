@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (server *WebsocketServer[T]) GetDefaultCommands() Commands.Handlers {
+func (server *WebsocketServer[O]) GetDefaultCommands() Commands.Handlers {
 	websocketListenerCommands := server.websocketListener.GetDefaultCommands()
 	commands := Commands.Handlers{}
 	for key, value := range websocketListenerCommands {

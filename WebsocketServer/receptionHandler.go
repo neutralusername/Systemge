@@ -58,19 +58,19 @@ func NewWebsocketMessageReceptionHandlerFactory(
 	)
 }
 
-func NewWebsocketReceptionHandlerFactory[T any](
+func NewWebsocketReceptionHandlerFactory[O any](
 	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
-	deserializer Tools.ObjectDeserializer[T, *websocketServerReceptionHandlerCaller],
+	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionHandlerCaller],
 
-	objectValidator Tools.ObjectValidator[T, *websocketServerReceptionHandlerCaller],
+	objectValidator Tools.ObjectValidator[O, *websocketServerReceptionHandlerCaller],
 
-	requestResponseManager *Tools.RequestResponseManager[T],
-	obtainResponseToken Tools.ObtainResponseToken[T, *websocketServerReceptionHandlerCaller],
+	requestResponseManager *Tools.RequestResponseManager[O],
+	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionHandlerCaller],
 
-	priorityQueue *Tools.PriorityTokenQueue[T],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[T, *websocketServerReceptionHandlerCaller],
+	priorityQueue *Tools.PriorityTokenQueue[O],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionHandlerCaller],
 
 	//topicManager *Tools.TopicManager,
 ) Tools.ReceptionHandlerFactory[*websocketServerReceptionHandlerCaller] {
@@ -83,7 +83,7 @@ func NewWebsocketReceptionHandlerFactory[T any](
 		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionHandlerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
 	}
 
-	objectHandlers := []Tools.ObjectHandler[T, *websocketServerReceptionHandlerCaller]{}
+	objectHandlers := []Tools.ObjectHandler[O, *websocketServerReceptionHandlerCaller]{}
 	if objectValidator != nil {
 		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
 	}

@@ -10,11 +10,11 @@ import (
 )
 
 // out message may be any type/structure of data. incoming must correlate to the websocketServers T type (may be any...)
-func (server *WebsocketServer[T]) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[T], error) {
+func (server *WebsocketServer[O]) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[O], error) {
 
 }
 
-func (server *WebsocketServer[T]) AsyncMessage(messageBytes []byte, ids ...string) error {
+func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...string) error {
 	if len(ids) == 0 {
 		return server.broadcast(messageBytes)
 	}
@@ -124,7 +124,7 @@ func (server *WebsocketServer[T]) AsyncMessage(messageBytes []byte, ids ...strin
 	return nil
 }
 
-func (server *WebsocketServer[T]) broadcast(messageBytes []byte) error {
+func (server *WebsocketServer[O]) broadcast(messageBytes []byte) error {
 
 	if server.eventHandler != nil {
 		if event := server.eventHandler.Handle(Event.New(

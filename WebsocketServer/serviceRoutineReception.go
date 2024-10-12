@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer[T]) receptionRoutine(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
+func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
 	defer func() {
 		if server.eventHandler != nil {
 			server.eventHandler.Handle(Event.New(
