@@ -1,10 +1,10 @@
 package Tools
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 )
 
 const (
@@ -16,31 +16,100 @@ const (
 )
 
 type Service struct {
-	instanceId   string
-	sessionId    string
-	name         string
-	status       int
-	eventHandler *Event.Handler
-	statusMutex  sync.RWMutex
+	instanceId string
+	sessionId  string
+	name       string
+	status     int
+
+	serviceRoutines map[string]ServiceRoutineFunc
+	startFunc       StartFunc
+	stopFunc        StopFunc
+
+	mutex sync.RWMutex
 }
 
-func NewService(name string) *Service {
+type ServiceRoutineFunc func() error
+type StartFunc func() error
+type StopFunc func() error
+
+func NewService(name string, startFunc StartFunc, stopFunc StopFunc) *Service {
 	return &Service{
 		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
 		name:       name,
 		status:     0,
+
+		serviceRoutines: make(map[string]ServiceRoutineFunc),
+		startFunc:       startFunc,
+		stopFunc:        stopFunc,
 	}
 }
 
-func (manager *Service) Start() error {
+func (service *Service) Start() error {
+	service.mutex.Lock()
+	defer service.mutex.Unlock()
+
+	if service.status != Stopped {
+		return errors.New("service is not stopped")
+	}
+	service.status = Pending
+
+	if err := service.startFunc(); err != nil {
+		service.status = Stopped
+		return err
+	}
+
+	service.sessionId = GenerateRandomString(Constants.SessionIdLength, ALPHA_NUMERIC)
+	service.status = Started
+	return nil
 
 }
 
-func (manager *Service) Stop() error {
+func (service *Service) Stop() error {
+	service.mutex.Lock()
+	defer service.mutex.Unlock()
 
+	if service.status != Started {
+		return errors.New("service is not started")
+	}
+	service.status = Pending
+
+	if err := service.stopFunc(); err != nil {
+		service.status = Started
+		return err
+	}
+
+	service.sessionId = ""
+	service.status = Stopped
+	return nil
 }
 
-func (manager *Service) Restart() error {
+func (service *Service) Restart() error {
+	service.mutex.Lock()
+	defer service.mutex.Unlock()
+
+	if service.status != Started {
+		return errors.New("service is not started")
+	}
+	service.status = Pending
+
+	if err := service.stopFunc(); err != nil {
+		service.status = Started
+		return err
+	}
+
+	if err := service.startFunc(); err != nil {
+		service.status = Stopped
+		return err
+	}
+
+	service.status = Started
+	return nil
+}
+
+func (service *Service) StartServiceRoutine(serviceRoutine ServiceRoutineFunc) (string, error) {
+
+}
+func (service *Service) StopServiceRoutine(str string) error {
 
 }
 
@@ -52,22 +121,18 @@ func (manager *LifeCycleManager) Resume() error {
 
 } */
 
-func (manager *Service) GetInstanceId() string {
-
+func (service *Service) GetInstanceId() string {
+	return service.instanceId
 }
 
-func (manager *Service) GetSessionId() string {
-
+func (service *Service) GetSessionId() string {
+	return service.sessionId
 }
 
-func (manager *Service) GetStatus() int {
-
+func (service *Service) GetStatus() int {
+	return service.status
 }
 
-func (manager *Service) GetName() string {
-
-}
-
-func (manager *Service) GetEventHandler() *Event.Handler {
-
+func (service *Service) GetName() string {
+	return service.name
 }
