@@ -12,7 +12,7 @@ type ReceptionHandler[S any] struct {
 	onStop      OnReceptionHandlerStop[S]
 	onReception OnReception[S]
 	status      int
-	statusMutex sync.Mutex
+	statusMutex sync.RWMutex
 }
 
 func NewReceptionHandler[S any](
@@ -29,6 +29,8 @@ func NewReceptionHandler[S any](
 }
 
 func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
+	handler.statusMutex.RLock()
+	defer handler.statusMutex.RUnlock()
 	if handler.status == Status.Stopped {
 		return errors.New("handler is stopped")
 	}
