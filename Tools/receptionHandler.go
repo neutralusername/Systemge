@@ -16,8 +16,8 @@ type ReceptionHandler[S any] struct {
 }
 
 func NewReceptionHandler[S any](
-	onStart func(S) error,
-	onStop func(S) error,
+	onStart OnReceptionHandlerStart[S],
+	onStop OnReceptionHandlerStop[S],
 	OnReception OnReception[S],
 ) *ReceptionHandler[S] {
 	return &ReceptionHandler[S]{
