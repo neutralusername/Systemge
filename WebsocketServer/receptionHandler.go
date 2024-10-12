@@ -3,7 +3,6 @@ package WebsocketServer
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -43,56 +42,6 @@ func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Message.Message
 	return func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
 		return Message.Deserialize(bytes)
 	}
-}
-
-func NewWebsocketMessageReceptionManagerFactory[O any](
-	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
-	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
-
-	messageValidator Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller],
-	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionManagerCaller],
-
-	requestResponseManager *Tools.RequestResponseManager[O],
-	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionManagerCaller],
-
-	priorityQueue *Tools.PriorityTokenQueue[O],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
-
-	// topicManager *Tools.TopicManager,
-) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
-
-	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionManagerCaller]{}
-	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
-	}
-	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
-	}
-
-	objectHandlers := []Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller]{}
-	if messageValidator != nil {
-		objectHandlers = append(objectHandlers, messageValidator)
-	}
-	if requestResponseManager != nil && obtainResponseToken != nil {
-		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
-	}
-	if priorityQueue != nil && obtainEnqueueConfigs != nil {
-		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
-	}
-
-	return NewWebsocketReceptionManagerFactory(
-		nil,
-		nil,
-		Tools.NewOnReceptionManagerHandle(
-			Tools.NewChainByteHandler(
-				byteHandlers...,
-			),
-			deserializer,
-			Tools.NewChainObjectHandler(
-				objectHandlers...,
-			),
-		),
-	)
 }
 
 func NewWebsocketReceptionManagerFactory(

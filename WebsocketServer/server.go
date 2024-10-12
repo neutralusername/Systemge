@@ -96,7 +96,7 @@ func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		server.acceptionHandler = NewDefaultAcceptionHandler[O]()
 	}
 	if server.receptionManagerFactory == nil {
-		server.receptionManagerFactory = NewWebsocketMessageReceptionManagerFactory(nil, nil, nil, nil, nil, nil, nil)
+		server.receptionManagerFactory = NewWebsocketMessageReceptionManagerFactory[O](nil, nil, nil, nil, nil, nil, nil, nil)
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
