@@ -1,28 +1,32 @@
 package Tools
 
-type ServiceRoutine struct {
+type ServiceRoutine[T any] struct {
 	stopChannel chan struct{}
+
+	triggerCondition chan T // not satisfied with current (parameters of) mechanism to trigger service routine
+	serviceFunc      ServiceFunc[T]
 }
 
-func NewServiceRoutine(serviceFunc ServiceFunc) *ServiceRoutine {
-	stopChannel := make(chan struct{})
+type ServiceFunc[T any] func(T) error
+
+func NewServiceRoutine[T any](triggerCondition chan T, serviceFunc ServiceFunc[T]) *ServiceRoutine[T] {
+	serviceRoutine := &ServiceRoutine[T]{
+		stopChannel: make(chan struct{}),
+		serviceFunc: serviceFunc,
+	}
 	go func() {
 		for {
 			select {
-			case <-service.closeChannel:
+			case <-serviceRoutine.stopChannel:
 				return
-			case <-stopChannel:
-				return
-			case <-triggerCondition:
-				if err := serviceFunc(); err != nil {
+			case val := <-triggerCondition:
+				if err := serviceFunc(val); err != nil {
 					return
 				}
 			}
 		}
 	}()
-	return &ServiceRoutine{
-		stopChannel: stopChannel,
-	}
+	return serviceRoutine
 }
 
 func (service *ServiceRoutine) Stop() error {

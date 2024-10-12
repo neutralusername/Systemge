@@ -30,7 +30,6 @@ type Service struct {
 	closeChannel chan struct{}
 }
 
-type ServiceFunc func() error
 type StartFunc func() error
 type StopFunc func() error
 
@@ -88,35 +87,16 @@ func (service *Service) Stop() error {
 }
 
 func (service *Service) Restart() error {
-	/* service.mutex.Lock()
-	defer service.mutex.Unlock()
-
-	if service.status != Started {
-		return errors.New("service is not started")
-	}
-	service.status = Pending
-
-	if err := service.stopFunc(); err != nil {
-		service.status = Started
-		return err
-	}
-
-	if err := service.startFunc(); err != nil {
-		service.status = Stopped
-		return err
-	}
-
-	service.status = Started
-	return nil */
-}
-
-/* func (manager *LifeCycleManager) Pause() error {
 
 }
 
-func (manager *LifeCycleManager) Resume() error {
+func (service *Service) Pause() error {
 
-} */
+}
+
+func (service *Service) Resume() error {
+
+}
 
 func (service *Service) GetInstanceId() string {
 	return service.instanceId
