@@ -88,7 +88,7 @@ func (service *Service) Stop() error {
 }
 
 func (service *Service) Restart() error {
-	service.mutex.Lock()
+	/* service.mutex.Lock()
 	defer service.mutex.Unlock()
 
 	if service.status != Started {
@@ -107,7 +107,7 @@ func (service *Service) Restart() error {
 	}
 
 	service.status = Started
-	return nil
+	return nil */
 }
 
 func (service *Service) StartServiceRoutine(serviceRoutine ServiceRoutineFunc) (string, error) {
