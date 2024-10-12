@@ -62,7 +62,7 @@ func NewWebsocketMessageReceptionManagerFactory(
 }
 
 func NewWebsocketReceptionManagerFactory[O any](
-	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
+	/* byteRateLimiterConfig *Config.TokenBucketRateLimiter,
 	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
 
 	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionManagerCaller],
@@ -73,38 +73,40 @@ func NewWebsocketReceptionManagerFactory[O any](
 	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionManagerCaller],
 
 	priorityQueue *Tools.PriorityTokenQueue[O],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
+	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller], */
 
 	onStart Tools.OnReceptionManagerStart[*websocketServerReceptionManagerCaller],
 	onStop Tools.OnReceptionManagerStop[*websocketServerReceptionManagerCaller],
+	onHandle Tools.OnReceptionManagerHandle[*websocketServerReceptionManagerCaller],
 ) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
 
-	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionManagerCaller]{}
-	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
-	}
-	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
-	}
+	/* 	byteHandlers := []Tools.ByteHandler[*websocketServerReceptionManagerCaller]{}
+	   	if byteRateLimiterConfig != nil {
+	   		byteHandlers = append(byteHandlers, Tools.NewByteRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(byteRateLimiterConfig)))
+	   	}
+	   	if messageRateLimiterConfig != nil {
+	   		byteHandlers = append(byteHandlers, Tools.NewMessageRateLimitByteHandler[*websocketServerReceptionManagerCaller](Tools.NewTokenBucketRateLimiter(messageRateLimiterConfig)))
+	   	} */
 
-	objectHandlers := []Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller]{}
-	if objectValidator != nil {
-		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
-	}
-	if requestResponseManager != nil && obtainResponseToken != nil {
-		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
-	}
-	if priorityQueue != nil && obtainEnqueueConfigs != nil {
-		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
-	}
+	/* 	objectHandlers := []Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller]{}
+	   	if objectValidator != nil {
+	   		objectHandlers = append(objectHandlers, Tools.NewValidationObjectHandler(objectValidator))
+	   	}
+	   	if requestResponseManager != nil && obtainResponseToken != nil {
+	   		objectHandlers = append(objectHandlers, Tools.NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
+	   	}
+	   	if priorityQueue != nil && obtainEnqueueConfigs != nil {
+	   		objectHandlers = append(objectHandlers, Tools.NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+	   	} */
 
 	return Tools.NewReceptionManagerFactory[*websocketServerReceptionManagerCaller](
 		onStart,
 		onStop,
-		Tools.NewOnReceptionManagerHandle(
+		onHandle,
+		/* 		Tools.NewOnReceptionManagerHandle(
 			Tools.NewChainByteHandler(byteHandlers...),
 			deserializer,
 			Tools.NewChainObjecthandler(objectHandlers...),
-		),
+		), */
 	)
 }
