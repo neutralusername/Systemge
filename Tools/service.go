@@ -38,7 +38,7 @@ func NewService(name string, startFunc StartFunc, stopFunc StopFunc) *Service {
 	return &Service{
 		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
 		name:       name,
-		status:     0,
+		status:     Stopped,
 
 		serviceRoutines: make(map[string]ServiceRoutineFunc),
 		startFunc:       startFunc,
@@ -75,10 +75,12 @@ func (service *Service) Stop() error {
 	}
 	service.status = Pending
 
+	close(service.closeChannel)
 	if err := service.stopFunc(); err != nil {
 		service.status = Started
 		return err
 	}
+	service.waitgroup.Wait() // not sure whether is will work as intended here
 
 	service.sessionId = ""
 	service.status = Stopped
