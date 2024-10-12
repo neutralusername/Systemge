@@ -66,7 +66,6 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 		} else {
 			server.SuccessfulReceptions.Add(1)
 		}
-
 		// event
 	}
 
