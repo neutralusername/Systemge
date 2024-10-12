@@ -29,8 +29,8 @@ func NewReceptionHandler[S any](
 }
 
 func (handler *ReceptionHandler[S]) HandleReception(bytes []byte, structName123 S) error {
-	if handler.status != Status.Started {
-		return errors.New("handler is not started")
+	if handler.status == Status.Stopped {
+		return errors.New("handler is stopped")
 	}
 	if handler.onReception == nil {
 		return errors.New("onHandle is nil")
@@ -72,6 +72,10 @@ func (handler *ReceptionHandler[S]) Stop(structName123 S) error {
 	}
 	handler.status = Status.Stopped
 	return nil
+}
+
+func (handler *ReceptionHandler[S]) GetStatus() int {
+	return handler.status
 }
 
 type ReceptionHandlerFactory[S any] func() OnReception[S]
