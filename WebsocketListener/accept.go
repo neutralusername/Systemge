@@ -21,6 +21,8 @@ func (listener *WebsocketListener) accept() (*WebsocketClient.WebsocketClient, e
 	if timeoutMs > 0 {
 		deadline = time.After(time.Duration(timeoutMs) * time.Millisecond)
 	}
+
+	// this feels needlessly complicated
 	select {
 	case <-listener.stopChannel:
 		listener.pool.RemoveItems(true, acceptRequest)
