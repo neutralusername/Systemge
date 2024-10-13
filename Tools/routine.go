@@ -42,7 +42,7 @@ func (routine *Routine) StartRoutine() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
-	if routine.status != Status.Stoped {
+	if routine.status != Status.Stopped {
 		return errors.New("routine already started")
 	}
 
@@ -62,7 +62,7 @@ func (routine *Routine) StopRoutine() error {
 		return errors.New("routine not started")
 	}
 
-	routine.status = Status.Stoped
+	routine.status = Status.Stopped
 
 	close(routine.stopChannel)
 	routine.waitgroup.Wait()

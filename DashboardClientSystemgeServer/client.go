@@ -68,7 +68,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.Stoped), nil
+				return Helpers.IntToString(Status.Stopped), nil
 			},
 			DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeServer.Start()
@@ -110,7 +110,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *SystemgeSe
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.Stoped), nil
+				return Helpers.IntToString(Status.Stopped), nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())

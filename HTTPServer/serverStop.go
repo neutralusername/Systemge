@@ -47,7 +47,7 @@ func (server *HTTPServer) Stop() error {
 		))
 	}
 	server.httpServer = nil
-	server.status = Status.Stoped
+	server.status = Status.Stopped
 
 	server.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStoped,

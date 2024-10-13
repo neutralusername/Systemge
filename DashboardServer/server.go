@@ -192,7 +192,7 @@ func (server *Server) Start() error {
 func (server *Server) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status == Status.Stoped {
+	if server.status == Status.Stopped {
 		return Event.New("Already stopped", nil)
 	}
 	server.status = Status.Pending
@@ -212,7 +212,7 @@ func (server *Server) Stop() error {
 			server.errorLogger.Log(Event.New("Failed to stop HTTP server", err).Error())
 		}
 	}
-	server.status = Status.Stoped
+	server.status = Status.Stopped
 	return nil
 }
 

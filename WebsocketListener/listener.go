@@ -65,7 +65,7 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 	listener := &WebsocketListener{
 		name:            name,
 		config:          config,
-		status:          Status.Stoped,
+		status:          Status.Stopped,
 		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		upgradeRequests: make(chan (<-chan *upgraderResponse)),
 	}

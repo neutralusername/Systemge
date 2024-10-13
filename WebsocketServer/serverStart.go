@@ -25,7 +25,7 @@ func (server *WebsocketServer[O]) Start() error {
 		}
 	}
 
-	if server.status != Status.Stoped {
+	if server.status != Status.Stopped {
 		if server.eventHandler != nil {
 			server.eventHandler.Handle(Event.New(
 				Event.ServiceAlreadyStarted,

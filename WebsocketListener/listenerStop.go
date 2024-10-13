@@ -10,7 +10,7 @@ func (listener *WebsocketListener) Stop() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 
-	if listener.status == Status.Stoped {
+	if listener.status == Status.Stopped {
 		return errors.New("websocketListener is already stopped")
 	}
 
@@ -23,6 +23,6 @@ func (listener *WebsocketListener) Stop() error {
 	listener.StopAcceptRoutine()
 	listener.waitgroup.Wait()
 
-	listener.status = Status.Stoped
+	listener.status = Status.Stopped
 	return nil
 }

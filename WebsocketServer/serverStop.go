@@ -23,7 +23,7 @@ func (server *WebsocketServer[O]) Stop() error {
 		}
 	}
 
-	if server.status == Status.Stoped {
+	if server.status == Status.Stopped {
 		if server.eventHandler != nil {
 			server.eventHandler.Handle(Event.New(
 				Event.ServiceAlreadyStoped,
@@ -39,7 +39,7 @@ func (server *WebsocketServer[O]) Stop() error {
 
 	close(server.stopChannel)
 	server.waitGroup.Wait()
-	server.status = Status.Stoped
+	server.status = Status.Stopped
 
 	if server.eventHandler != nil {
 		server.eventHandler.Handle(Event.New(

@@ -56,7 +56,7 @@ func (client *WebsocketClient) GetStatus() int {
 	client.closedMutex.Lock()
 	defer client.closedMutex.Unlock()
 	if client.closed {
-		return Status.Stoped
+		return Status.Stopped
 	} else {
 		return Status.Started
 	}

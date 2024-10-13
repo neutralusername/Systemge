@@ -21,7 +21,7 @@ func (listener *WebsocketListener) Start() error {
 
 	if err := listener.httpServer.Start(); err != nil {
 		close(listener.stopChannel)
-		listener.status = Status.Stoped
+		listener.status = Status.Stopped
 		return err
 	}
 

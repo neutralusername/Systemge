@@ -27,7 +27,7 @@ func (server *SystemgeServer) Start() error {
 		return event.GetError()
 	}
 
-	if server.status != Status.Stoped {
+	if server.status != Status.Stopped {
 		server.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"systemgeServer not stopped",
@@ -49,7 +49,7 @@ func (server *SystemgeServer) Start() error {
 				Event.Circumstance: Event.ServiceStart,
 			},
 		))
-		server.status = Status.Stoped
+		server.status = Status.Stopped
 		return err
 	}
 	server.listener = listener

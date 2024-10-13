@@ -29,7 +29,7 @@ func (c *QueueConsumer[T]) Start() {
 	c.statusMutex.Lock()
 	defer c.statusMutex.Unlock()
 
-	if c.status == Status.Stoped {
+	if c.status == Status.Stopped {
 		return
 	}
 
@@ -44,14 +44,14 @@ func (c *QueueConsumer[T]) Stop() {
 	c.statusMutex.Lock()
 	defer c.statusMutex.Unlock()
 
-	if c.status == Status.Stoped {
+	if c.status == Status.Stopped {
 		return
 	}
 
 	close(c.stopChannel)
 	c.waitgroup.Wait()
 
-	c.status = Status.Stoped
+	c.status = Status.Stopped
 }
 
 func (c *QueueConsumer[T]) consumeRoutine() {
