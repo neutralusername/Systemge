@@ -1,13 +1,24 @@
 package WebsocketClient
 
 import (
+	"errors"
+
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) SetReceptionHandler(receptionHandler Tools.ReceptionHandler[*WebsocketClient]) {
+func (client *WebsocketClient) SetReceptionHandler(receptionHandler Tools.ReceptionHandler[*WebsocketClient]) error {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
+
+	if client.receptionHandler != nil {
+		return errors.New("receptionHandler is already running")
+	}
+
 	client.receptionHandler = receptionHandler
 	go client.receptionRoutine()
+
+	return nil
 }
 
 func (client *WebsocketClient) receptionRoutine() {
