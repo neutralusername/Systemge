@@ -89,28 +89,8 @@ func (client *WebsocketClient) readRoutine() {
 		}
 	}
 
-	handleReceptionWrapper := func(bytes []byte) {
-		if err := client.receptionHandler(bytes, client); err != nil {
-			if client.eventHandler != nil {
-				event := client.eventHandler.Handle(Event.New(
-					Event.ReceptionHandlerFailed,
-					Event.Context{
-						Event.Address: client.GetAddress(),
-						Event.Error:   err.Error(),
-						Event.Bytes:   string(bytes),
-					},
-					Event.Skip,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					client.Close()
-				}
-			}
-		}
-	}
-
 	for {
-		messageBytes, err := client.Read(client.config.ReadTimeoutMs) // pondering how best to handle timeoutMs / corresponding behavior / stoping of readRoutine (while connection is alive)
+		bytes, err := client.read()
 		if err != nil {
 			if client.eventHandler != nil {
 				event := client.eventHandler.Handle(Event.New(
@@ -130,14 +110,22 @@ func (client *WebsocketClient) readRoutine() {
 			break
 		}
 
-		if client.config.HandleMessagesSequentially {
-			handleReceptionWrapper(messageBytes)
-		} else {
-			client.waitGroup.Add(1)
-			go func() {
-				handleReceptionWrapper(messageBytes)
-				client.waitGroup.Done()
-			}()
+		if err := client.receptionHandler(bytes, client); err != nil {
+			if client.eventHandler != nil {
+				event := client.eventHandler.Handle(Event.New(
+					Event.ReceptionHandlerFailed,
+					Event.Context{
+						Event.Address: client.GetAddress(),
+						Event.Error:   err.Error(),
+						Event.Bytes:   string(bytes),
+					},
+					Event.Skip,
+					Event.Cancel,
+				))
+				if event.GetAction() == Event.Cancel {
+					client.Close()
+				}
+			}
 		}
 	}
 }
