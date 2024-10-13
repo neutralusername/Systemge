@@ -8,7 +8,6 @@ import (
 )
 
 func (listener *WebsocketListener) accept(cancel chan struct{}) (*WebsocketClient.WebsocketClient, error) {
-
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")
