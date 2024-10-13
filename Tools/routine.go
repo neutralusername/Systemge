@@ -36,7 +36,7 @@ func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs i
 		timeoutNs:    timeoutNs,
 		routineFunc:  routineFunc,
 		semaphore:    semaphore,
-		interceptors: make(chan func(), 1),
+		interceptors: make(chan func(), 1), // fix problems
 	}
 }
 
