@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 type CustomMux struct {
@@ -31,6 +32,11 @@ func (c *CustomMux) RemoveRoute(pattern string) {
 }
 
 func (c *CustomMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	if c.delayNs > 0 {
+		time.Sleep(time.Duration(c.delayNs) * time.Nanosecond)
+	}
+
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
