@@ -3,13 +3,11 @@ package WebsocketListener
 import (
 	"net/http"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-		upgradeRequest := make(chan *websocket.Conn)
+		upgradeResponseChannel := make(chan *upgraderResponse)
 
 		var deadline <-chan time.Time
 		if listener.config.UpgradeRequestTimeoutMs > 0 {
@@ -27,11 +25,35 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 			listener.ClientsRejected.Add(1)
 			return
 
-		case listener.upgadeRequests <- upgradeRequest:
+		case listener.upgadeRequests <- upgradeResponseChannel:
+			websocketConn, err := listener.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 
+			select {
+			case upgradeResponseChannel <- &upgraderResponse{
+				err:           err,
+				websocketConn: websocketConn,
+			}:
+
+			default:
+
+			}
 		}
 	}
 }
+
+/*
+
+if err != nil {
+	listener.ClientsFailed.Add(1)
+} else {
+	select {
+	case <-upgradeResponseChannel:
+		listener.ClientsFailed.Add(1)
+	default:
+	}
+}
+
+*/
 
 /*
 
