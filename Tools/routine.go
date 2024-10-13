@@ -17,10 +17,10 @@ type Routine struct {
 	delayNs   int64
 	timeoutNs int64
 
-	handler                  RoutineHandler
-	acceptRoutineStopChannel chan struct{}
-	acceptRoutineWaitGroup   sync.WaitGroup
-	acceptRoutineSemaphore   *Semaphore[struct{}]
+	handler     RoutineHandler
+	stopChannel chan struct{}
+	waitgroup   sync.WaitGroup
+	semaphore   *Semaphore[struct{}]
 }
 
 func NewRoutine(handler RoutineHandler, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
@@ -29,12 +29,12 @@ func NewRoutine(handler RoutineHandler, maxConcurrentHandlers uint32, delayNs in
 		return nil
 	}
 	return &Routine{
-		status:                   0,
-		delayNs:                  delayNs,
-		timeoutNs:                timeoutNs,
-		handler:                  handler,
-		acceptRoutineStopChannel: make(chan struct{}),
-		acceptRoutineSemaphore:   semaphore,
+		status:      0,
+		delayNs:     delayNs,
+		timeoutNs:   timeoutNs,
+		handler:     handler,
+		stopChannel: make(chan struct{}),
+		semaphore:   semaphore,
 	}
 }
 
@@ -48,7 +48,7 @@ func (routine *Routine) StartRoutine() error {
 
 	routine.status = Status.Started
 
-	routine.acceptRoutineWaitGroup.Add(1)
+	routine.waitgroup.Add(1)
 	go routine.routine()
 
 	return nil
@@ -64,8 +64,8 @@ func (routine *Routine) StopRoutine() error {
 
 	routine.status = Status.Stoped
 
-	close(routine.acceptRoutineStopChannel)
-	routine.acceptRoutineWaitGroup.Wait()
+	close(routine.stopChannel)
+	routine.waitgroup.Wait()
 
 	return nil
 }
@@ -78,17 +78,17 @@ func (routine *Routine) IsRoutineRunning() bool {
 }
 
 func (routine *Routine) routine() {
-	defer routine.acceptRoutineWaitGroup.Done()
+	defer routine.waitgroup.Done()
 	for {
 		if routine.delayNs > 0 {
 			time.Sleep(time.Duration(routine.delayNs) * time.Nanosecond)
 		}
 		select {
-		case <-routine.acceptRoutineStopChannel:
+		case <-routine.stopChannel:
 			return
 
-		case <-routine.acceptRoutineSemaphore.GetChannel():
-			routine.acceptRoutineWaitGroup.Add(1)
+		case <-routine.semaphore.GetChannel():
+			routine.waitgroup.Add(1)
 
 			var deadline <-chan time.Time
 			if routine.timeoutNs > 0 {
@@ -99,8 +99,8 @@ func (routine *Routine) routine() {
 
 			go func() {
 				defer func() {
-					routine.acceptRoutineSemaphore.Signal(struct{}{})
-					routine.acceptRoutineWaitGroup.Done()
+					routine.semaphore.Signal(struct{}{})
+					routine.waitgroup.Done()
 				}()
 
 				routine.handler()
