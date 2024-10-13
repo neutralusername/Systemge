@@ -8,6 +8,8 @@ only create events where some sort of state is altered (or error occurs)
 go once again over events/circumstances/context in general and search for patterns
 add onDisconnectHandler that can be optionally set for SystemgeConnections, that is triggered on close (instead of acquiring the close Channel and doing this manually)
 
+find a way to properly rate limit http server or write my own
+
 add ip rate limiter to http server
 
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
