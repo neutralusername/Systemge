@@ -12,7 +12,7 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 			listener.ClientsRejected.Add(1)
 			return
 
-		case acceptRequest, ok := <-listener.pool.AcquireItemChannel(listener.config.WebsocketRequestTimeoutMs):
+		case acceptRequest, ok := <-listener.pool.AcquireItemChannel(listener.config.UpgradeRequestTimeoutMs):
 			if !ok {
 				http.Error(responseWriter, "Request timeout", http.StatusRequestTimeout)
 				listener.ClientsRejected.Add(1)
