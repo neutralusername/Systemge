@@ -33,10 +33,6 @@ func (listener *WebsocketListener) StopAcceptRoutine() error {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
-	return listener.stopAcceptRoutine()
-}
-
-func (listener *WebsocketListener) stopAcceptRoutine() error {
 	if listener.acceptHandler == nil {
 		return errors.New("receptionHandler is not running")
 	}
