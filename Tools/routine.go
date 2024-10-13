@@ -31,6 +31,7 @@ func NewRoutine[T any](handler RoutineHandler[T], maxConcurrentHandlers uint32, 
 	return &Routine[T]{
 		status:                   0,
 		delayNs:                  delayNs,
+		timeoutNs:                timeoutNs,
 		handler:                  handler,
 		acceptRoutineStopChannel: make(chan struct{}),
 		acceptRoutineSemaphore:   semaphore,
@@ -88,19 +89,29 @@ func (routine *Routine[T]) routine(data T) {
 
 		case <-routine.acceptRoutineSemaphore.GetChannel():
 			routine.acceptRoutineWaitGroup.Add(1)
+
+			var deadline <-chan time.Time
+			if routine.timeoutNs > 0 {
+				deadline = time.After(time.Duration(routine.timeoutNs) * time.Nanosecond)
+			}
+
+			var done chan struct{} = make(chan struct{})
+
 			go func() {
 				defer func() {
 					routine.acceptRoutineSemaphore.Signal(struct{}{})
 					routine.acceptRoutineWaitGroup.Done()
 				}()
 
-				select {
-				case <-routine.acceptRoutineStopChannel:
-					return
-				default:
-					routine.handler(data)
-				}
+				routine.handler(data)
+				close(done)
 			}()
+
+			select {
+			case <-deadline:
+				close(done)
+			case <-done:
+			}
 		}
 	}
 }
