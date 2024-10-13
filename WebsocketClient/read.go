@@ -57,7 +57,18 @@ func (client *WebsocketClient) StartReadHandler(receptionHandler Tools.ReadHandl
 }
 
 func (client *WebsocketClient) StopReadHandler() error {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
 
+	if client.receptionHandler == nil {
+		return errors.New("receptionHandler is not running")
+	}
+
+	// close(readRoutineChannel)
+	client.websocketConn.SetReadDeadline(time.Now())
+	// wg.Wait()
+	client.receptionHandler = nil
+	return nil
 }
 
 func (client *WebsocketClient) readRoutine() {
