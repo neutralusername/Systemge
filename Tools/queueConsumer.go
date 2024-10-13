@@ -60,8 +60,8 @@ func (c *QueueConsumer[T]) consumeRoutine() {
 		select {
 		case <-c.stopChannel:
 			return
-		default:
-			c.handler(c.queue.PopBlocking())
+		case item := <-c.queue.PopChannel():
+			c.handler(item)
 		}
 	}
 }
