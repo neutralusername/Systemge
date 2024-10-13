@@ -10,6 +10,13 @@ import (
 )
 
 func (listener *WebsocketListener) accept() (*WebsocketClient.WebsocketClient, error) {
+
+	select {
+	case <-listener.stopChannel:
+		return nil, errors.New("listener stopped")
+	case upgraderResponse := <-listener.upgadeRequests:
+	}
+
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
 		triggered:               sync.WaitGroup{},
@@ -49,10 +56,6 @@ func (listener *WebsocketListener) accept() (*WebsocketClient.WebsocketClient, e
 		listener.ClientsAccepted.Add(1)
 		return websocketClient, nil
 	}
-}
-
-func (listener *WebsocketListener) SetAcceptDeadline(timeoutMs uint32) {
-
 }
 
 func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, error) {
