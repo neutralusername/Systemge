@@ -42,14 +42,28 @@ func (listener *WebsocketListener) acceptRoutine() {
 	defer listener.acceptRoutineWaitGroup.Done()
 	for {
 		select {
+		case <-listener.acceptRoutineSemaphore.GetChannel():
+			listener.waitgroup.Add(1)
+			go func() {
+				defer listener.acceptRoutineSemaphore.Signal(struct{}{})
+
+				select {
+				case <-listener.acceptRoutineStopChannel:
+					return
+				default:
+					client, err := listener.accept()
+					if err != nil {
+						listener.ClientsFailed.Add(1)
+						return
+					}
+					listener.ClientsAccepted.Add(1)
+					listener.acceptHandler(client)
+				}
+			}()
+
 		case <-listener.acceptRoutineStopChannel:
 			return
-		default:
-			client, err := listener.accept()
-			if err != nil {
-				continue
-			}
-			listener.acceptHandler(client)
 		}
+
 	}
 }

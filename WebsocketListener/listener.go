@@ -29,14 +29,13 @@ type WebsocketListener struct {
 	acceptHandler            Tools.AcceptHandler[*WebsocketClient.WebsocketClient]
 	acceptRoutineStopChannel chan struct{}
 	acceptRoutineWaitGroup   sync.WaitGroup
+	acceptRoutineSemaphore   *Tools.Semaphore[struct{}]
 
 	waitgroup sync.WaitGroup
 
 	httpServer *HTTPServer.HTTPServer
 
 	upgadeRequests chan<- chan *upgraderResponse
-
-	pool *Tools.Pool[*acceptRequest]
 
 	// metrics
 
@@ -81,12 +80,6 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 		},
 		nil,
 	)
-	pool, err := Tools.NewPool(config.MaxSimultaneousAccepts, []*acceptRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	listener.pool = pool
 
 	return listener, nil
 }
