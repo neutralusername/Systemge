@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -67,71 +66,12 @@ func (client *WebsocketClient) StopReadHandler() error {
 }
 
 func (client *WebsocketClient) readRoutine() {
-	defer func() {
-		if client.eventHandler != nil {
-			client.eventHandler.Handle(Event.New(
-				Event.ReceptionRoutineEnds,
-				Event.Context{
-					Event.Address: client.GetAddress(),
-				},
-				Event.Continue,
-				Event.Cancel,
-			))
-		}
-		client.waitGroup.Done()
-	}()
-
-	if client.eventHandler != nil {
-		event := client.eventHandler.Handle(Event.New(
-			Event.ReceptionRoutineBegins,
-			Event.Context{
-				Event.Address: client.GetAddress(),
-			},
-			Event.Continue,
-			Event.Cancel,
-		))
-		if event.GetAction() == Event.Cancel {
-			return
-		}
-	}
-
 	for {
 		bytes, err := client.read()
 		if err != nil {
-			if client.eventHandler != nil {
-				event := client.eventHandler.Handle(Event.New(
-					Event.ReadMessageFailed,
-					Event.Context{
-						Event.Address: client.GetAddress(),
-						Event.Error:   err.Error(),
-					},
-					Event.Cancel,
-					Event.Skip,
-				))
-				if event.GetAction() == Event.Skip {
-					continue
-				}
-			}
-			client.Close()
-			break
+			continue
 		}
 
-		if err := client.receptionHandler(bytes, client); err != nil {
-			if client.eventHandler != nil {
-				event := client.eventHandler.Handle(Event.New(
-					Event.ReceptionHandlerFailed,
-					Event.Context{
-						Event.Address: client.GetAddress(),
-						Event.Error:   err.Error(),
-						Event.Bytes:   string(bytes),
-					},
-					Event.Skip,
-					Event.Cancel,
-				))
-				if event.GetAction() == Event.Cancel {
-					client.Close()
-				}
-			}
-		}
+		client.receptionHandler(bytes, client)
 	}
 }

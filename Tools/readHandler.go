@@ -6,7 +6,7 @@ import (
 
 type ReadHandlerFactory[C any] func() ReadHandler[C]
 
-type ReadHandler[C any] func([]byte, C) error
+type ReadHandler[C any] func([]byte, C)
 
 type ByteHandler[C any] func([]byte, C) error
 type ObjectDeserializer[O any, C any] func([]byte, C) (O, error)
@@ -22,19 +22,19 @@ func NewReadHandler[O any, C any](
 	deserializer ObjectDeserializer[O, C],
 	objectHandler ObjectHandler[O, C],
 ) ReadHandler[C] {
-	return func(bytes []byte, caller C) error {
+	return func(bytes []byte, caller C) {
 
 		err := byteHandler(bytes, caller)
 		if err != nil {
-			return err
+			return
 		}
 
 		object, err := deserializer(bytes, caller)
 		if err != nil {
-			return err
+			return
 		}
 
-		return objectHandler(object, caller)
+		objectHandler(object, caller)
 	}
 }
 
