@@ -66,10 +66,10 @@ func (routine *Routine) StopRoutine() error {
 		return errors.New("routine not started")
 	}
 
-	routine.status = Status.Stopped
-
 	close(routine.stopChannel)
 	routine.waitgroup.Wait()
+
+	routine.status = Status.Stopped
 
 	return nil
 }
