@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
+// if acceptRoutine is started and all already acceptRoutineSemaphore are taken, it won't do anything until they free up
 func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
