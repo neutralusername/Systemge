@@ -1,11 +1,6 @@
 package WebsocketServer
 
-import (
-	"errors"
-
-	"github.com/neutralusername/Systemge/Tools"
-)
-
+/*
 // consider approaches to get rid of this (in this package)
 func NewWebsocketMessageValidator(
 	minSyncTokenSize int,
@@ -37,3 +32,11 @@ func NewWebsocketMessageValidator(
 		return nil
 	})
 }
+
+// consider approaches to get rid of this (in this package)
+func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Tools.Message, *WebsocketReceptionCaller] {
+	return func(bytes []byte, caller *WebsocketReceptionCaller) (*Tools.Message, error) {
+		return Tools.DeserializeMessage(bytes)
+	}
+}
+*/
