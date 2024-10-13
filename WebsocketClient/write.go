@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 func (client *WebsocketClient) write(messageBytes []byte) error {
 	err := client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
-		if isWebsocketConnClosedErr(err) {
+		if Helpers.IsWebsocketConnClosedErr(err) {
 			client.Close()
 		}
 		return err
