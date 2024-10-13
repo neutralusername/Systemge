@@ -74,27 +74,6 @@ func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) O
 	}
 }
 
-type ObtainTopic[O any, C any] func(O, C) string
-type ResultHandler[O any, R any, C any] func(O, R, C) error
-
-// resultHandler requires check for nil if applicable
-func NewTopicObjectHandler[O any, R any, C any](
-	topicManager *TopicManager[O, R],
-	obtainTopic func(O) string,
-	resultHandler ResultHandler[O, R, C],
-) ObjectHandler[O, C] {
-	return func(object O, caller C) error {
-		if topicManager != nil {
-			result, err := topicManager.Handle(obtainTopic(object), object)
-			if err != nil {
-				return err
-			}
-			return resultHandler(object, result, caller)
-		}
-		return nil
-	}
-}
-
 // executes all handlers in order, return error if any handler returns an error
 func NewChainByteHandler[C any](handlers ...ByteHandler[C]) ByteHandler[C] {
 	return func(bytes []byte, caller C) error {
