@@ -29,6 +29,14 @@ func (client *WebsocketClient) Read() ([]byte, error) {
 	return client.read()
 }
 
+func (client *WebsocketClient) ReadTimeout(timeoutMs uint64) ([]byte, error) {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
+
+	client.SetReadDeadline(timeoutMs)
+	return client.read()
+}
+
 // can be used to cancel an ongoing read operation
 func (client *WebsocketClient) SetReadDeadline(timeoutMs uint64) {
 	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
