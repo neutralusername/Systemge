@@ -77,6 +77,10 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 	return listener, nil
 }
 
+func (listener *WebsocketListener) GetStopChannel() <-chan struct{} {
+	return listener.stopChannel
+}
+
 func (listener *WebsocketListener) GetInstanceId() string {
 	return listener.instanceId
 }
