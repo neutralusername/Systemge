@@ -2,59 +2,40 @@ package WebsocketListener
 
 import (
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) accept() (*WebsocketClient.WebsocketClient, error) {
-
-	select {
-	case <-listener.stopChannel:
-		return nil, errors.New("listener stopped")
-	case upgraderResponse := <-listener.upgadeRequests:
-	}
-
-	acceptRequest := &acceptRequest{
-		upgraderResponseChannel: make(chan *upgraderResponse),
-		triggered:               sync.WaitGroup{},
-	}
-	acceptRequest.triggered.Add(1)
-	listener.pool.AddItems(true, acceptRequest)
-
+func (listener *WebsocketListener) accept(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
 	var deadline <-chan time.Time
 	if timeoutMs > 0 {
 		deadline = time.After(time.Duration(timeoutMs) * time.Millisecond)
 	}
-
-	// this feels needlessly complicated
 	select {
 	case <-listener.stopChannel:
-		listener.pool.RemoveItems(true, acceptRequest)
-		acceptRequest.triggered.Done()
 		return nil, errors.New("listener stopped")
-
 	case <-deadline:
-		listener.pool.RemoveItems(true, acceptRequest)
-		acceptRequest.triggered.Done()
-		return nil, errors.New("timeout")
+		return nil, errors.New("accept timeout")
+	case upgraderResponseChannel := <-listener.upgadeRequests:
 
-	case upgraderResponse := <-acceptRequest.upgraderResponseChannel:
-		listener.pool.RemoveItems(true, acceptRequest)
-		acceptRequest.triggered.Done()
-		if upgraderResponse.err != nil {
-			return nil, upgraderResponse.err
+		select {
+		case <-listener.stopChannel:
+			return nil, errors.New("listener stopped")
+		case <-deadline:
+			return nil, errors.New("accept timeout")
+		case upgraderResponse := <-upgraderResponseChannel:
+			if upgraderResponse.err != nil {
+				return nil, upgraderResponse.err
+			}
+			websocketClient, err := WebsocketClient.New(upgraderResponse.websocketConn)
+			if err != nil {
+				upgraderResponse.websocketConn.Close()
+				return nil, err
+			}
+			return websocketClient, nil
 		}
-		websocketClient, err := WebsocketClient.New(upgraderResponse.websocketConn)
-		if err != nil {
-			listener.ClientsFailed.Add(1)
-			upgraderResponse.websocketConn.Close()
-			return nil, err
-		}
-		listener.ClientsAccepted.Add(1)
-		return websocketClient, nil
 	}
 }
 

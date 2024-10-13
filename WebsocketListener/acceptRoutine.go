@@ -55,7 +55,7 @@ func (listener *WebsocketListener) acceptRoutine() {
 				case <-listener.acceptRoutineStopChannel:
 					return
 				default:
-					client, err := listener.accept()
+					client, err := listener.accept(0)
 					if err != nil {
 						listener.ClientsFailed.Add(1)
 						return
