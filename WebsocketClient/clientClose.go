@@ -18,7 +18,9 @@ func (client *WebsocketClient) Close() error {
 	client.websocketConn.Close()
 	close(client.closeChannel)
 
-	client.StopReadRoutine()
+	if client.readRoutine != nil {
+		client.readRoutine.StopRoutine()
+	}
 
 	return nil
 }
