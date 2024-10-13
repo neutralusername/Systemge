@@ -14,11 +14,11 @@ type QueueConsumer[T any] struct {
 	waitgroup   sync.WaitGroup
 	stopChannel chan struct{}
 
-	queue   Queue[T]
+	queue   IQueueConsumption[T]
 	handler QueueConsumerFunc[T]
 }
 
-func NewQueueConsumer[T any](queue Queue[T], handler QueueConsumerFunc[T]) *QueueConsumer[T] {
+func NewQueueConsumer[T any](queue IQueueConsumption[T], handler QueueConsumerFunc[T]) *QueueConsumer[T] {
 	return &QueueConsumer[T]{
 		queue:   queue,
 		handler: handler,
