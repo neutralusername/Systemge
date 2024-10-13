@@ -2,22 +2,17 @@ package WebsocketListener
 
 import (
 	"errors"
-	"time"
 
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) accept(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
-	var deadline <-chan time.Time
-	if timeoutMs > 0 {
-		deadline = time.After(time.Duration(timeoutMs) * time.Millisecond)
-	}
+func (listener *WebsocketListener) accept(cancel chan struct{}) (*WebsocketClient.WebsocketClient, error) {
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")
 
-	case <-deadline:
+	case <-cancel:
 		return nil, errors.New("accept timeout")
 
 	case upgraderResponseChannel := <-listener.upgadeRequests:
@@ -25,7 +20,7 @@ func (listener *WebsocketListener) accept(timeoutMs uint32) (*WebsocketClient.We
 		case <-listener.stopChannel:
 			return nil, errors.New("listener stopped")
 
-		case <-deadline:
+		case <-cancel:
 			return nil, errors.New("accept timeout")
 
 		case upgraderResponse := <-upgraderResponseChannel:
@@ -56,6 +51,11 @@ func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, e
 }
 
 func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
+	/* 	var deadline <-chan time.Time
+	   	if timeoutMs > 0 {
+	   		deadline = time.After(time.Duration(timeoutMs) * time.Millisecond)
+	   	} */
+
 	listener.mutex.RLock()
 	if listener.status != Status.Started {
 		listener.mutex.RUnlock()
