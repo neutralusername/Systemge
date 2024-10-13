@@ -99,7 +99,7 @@ func (server *WebsocketServer[O]) SendMessage(bytes []byte, ids ...string) error
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.(*WebsocketClient.WebsocketClient).Write(bytes, server.config.WriteTimeoutMs)
+			websocketClient.(*WebsocketClient.WebsocketClient).WriteTimeout(bytes, server.config.WriteTimeoutMs)
 		})
 	}
 
@@ -182,7 +182,7 @@ func (server *WebsocketServer[O]) broadcast(messageBytes []byte) error {
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.(*WebsocketClient.WebsocketClient).Write(messageBytes, server.config.WriteTimeoutMs)
+			websocketClient.(*WebsocketClient.WebsocketClient).WriteTimeout(messageBytes, server.config.WriteTimeoutMs)
 		})
 	}
 

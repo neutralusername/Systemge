@@ -71,7 +71,7 @@ type WebsocketServer struct {
 
 	AcceptTimeoutMs uint32 `json:"acceptTimeoutMs"` // default: 0 (no timeout)
 	ReadTimeoutMs   uint32 `json:"readTimeoutMs"`   // default: 0 (no timeout)
-	WriteTimeoutMs  uint32 `json:"writeTimeoutMs"`  // default: 0 (no timeout)
+	WriteTimeoutMs  uint64 `json:"writeTimeoutMs"`  // default: 0 (no timeout)
 }
 
 func UnmarshalWebsocketServer(data string) *WebsocketServer {
