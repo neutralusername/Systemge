@@ -58,7 +58,6 @@ func (listener *WebsocketListener) acceptRoutine() {
 	defer listener.acceptRoutineWaitGroup.Done()
 	for {
 		select {
-
 		case <-listener.acceptRoutineStopChannel:
 			return
 
