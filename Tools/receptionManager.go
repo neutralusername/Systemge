@@ -12,6 +12,11 @@ type ByteHandler[C any] func([]byte, C) error
 type ObjectDeserializer[O any, C any] func([]byte, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
 
+type QueueWrapper[O any, C any] struct {
+	object O
+	caller C
+}
+
 func NewReceptionHandlerFactory[C any](
 	receptionHandler ReceptionHandler[C],
 ) ReceptionHandlerFactory[C] {

@@ -7,19 +7,18 @@ import (
 	"time"
 )
 
-type PriorityTokenQueue[O any, C any] struct {
-	elements      map[string]*priorityQueueElement[*tokenItem[O, C]]
+type PriorityTokenQueue[T any] struct {
+	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
-	priorityQueue priorityQueue[*tokenItem[O, C]]
-	waiting       []chan *tokenItem[O, C]
+	priorityQueue priorityQueue[*tokenItem[T]]
+	waiting       []chan T
 
 	maxElements   uint32
 	replaceIfFull bool
 }
 
-type tokenItem[O any, C any] struct {
-	object             O
-	caller             C
+type tokenItem[T any] struct {
+	item               T
 	token              string
 	isRetrievedChannel chan struct{}
 }
@@ -37,7 +36,7 @@ func NewPriorityTokenQueue[T any](maxElements uint32, replaceIfFull bool) *Prior
 
 func newTokenItem[T any](token string, value T) *tokenItem[T] {
 	return &tokenItem[T]{
-		object:             value,
+		item:               value,
 		token:              token,
 		isRetrievedChannel: make(chan struct{}),
 	}
@@ -109,7 +108,7 @@ func (queue *PriorityTokenQueue[T]) Pop() (T, error) {
 	element := heap.Pop(&queue.priorityQueue).(*priorityQueueElement[*tokenItem[T]])
 	close(element.value.isRetrievedChannel)
 	delete(queue.elements, element.value.token)
-	return element.value.object, nil
+	return element.value.item, nil
 }
 
 func (queue *PriorityTokenQueue[T]) PopBlocking() T {
