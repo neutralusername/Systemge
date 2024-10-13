@@ -38,6 +38,10 @@ func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs i
 	}
 }
 
+func (routine *Routine) GetStopChannel() <-chan struct{} {
+	return routine.stopChannel
+}
+
 func (routine *Routine) StartRoutine() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()

@@ -12,7 +12,6 @@ import (
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 type WebsocketListener struct {
@@ -29,10 +28,7 @@ type WebsocketListener struct {
 
 	stopChannel chan struct{}
 
-	acceptHandler            Tools.AcceptHandler[*WebsocketClient.WebsocketClient]
-	acceptRoutineStopChannel chan struct{}
-	acceptRoutineWaitGroup   sync.WaitGroup
-	acceptRoutineSemaphore   *Tools.Semaphore[struct{}]
+	acceptRoutine *Tools.Routine
 
 	waitgroup sync.WaitGroup
 
