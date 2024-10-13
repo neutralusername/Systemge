@@ -52,7 +52,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRatherLimiter *Tools.IpRateLimiter) (*WebsocketListener, error) {
+func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*WebsocketListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -73,7 +73,7 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 		&Config.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
-		whitelist, blacklist, ipRatherLimiter,
+		whitelist, blacklist, ipRateLimiter,
 		map[string]http.HandlerFunc{
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
