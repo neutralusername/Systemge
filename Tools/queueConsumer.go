@@ -11,6 +11,8 @@ type QueueConsumerFunc[T any] func(T)
 type QueueConsumer[T any] struct {
 	status      int
 	statusMutex sync.Mutex
+	waitgroup   sync.WaitGroup
+	stopChannel chan struct{}
 
 	queue   *PriorityTokenQueue[T]
 	handler QueueConsumerFunc[T]
@@ -31,7 +33,11 @@ func (c *QueueConsumer[T]) Start() {
 		return
 	}
 
+	c.stopChannel = make(chan struct{})
 	c.status = Status.Started
+
+	c.waitgroup.Add(1)
+	go c.consumeRoutine()
 }
 
 func (c *QueueConsumer[T]) Stop() {
@@ -42,11 +48,20 @@ func (c *QueueConsumer[T]) Stop() {
 		return
 	}
 
+	close(c.stopChannel)
+	c.waitgroup.Wait()
+
 	c.status = Status.Stoped
 }
 
 func (c *QueueConsumer[T]) consumeRoutine() {
+	defer c.waitgroup.Done()
 	for {
-		c.handler(c.queue.PopBlocking())
+		select {
+		case <-c.stopChannel:
+			return
+		default:
+			c.handler(c.queue.PopBlocking())
+		}
 	}
 }
