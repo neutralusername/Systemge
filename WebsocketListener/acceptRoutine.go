@@ -43,6 +43,7 @@ func (listener *WebsocketListener) acceptRoutine() {
 		select {
 		case <-listener.acceptRoutineStopChannel:
 			return
+
 		case <-listener.acceptRoutineSemaphore.GetChannel():
 			listener.waitgroup.Add(1)
 			go func() {
@@ -54,6 +55,7 @@ func (listener *WebsocketListener) acceptRoutine() {
 				select {
 				case <-listener.acceptRoutineStopChannel:
 					return
+
 				default:
 					client, err := listener.accept(listener.acceptRoutineStopChannel)
 					if err != nil {
