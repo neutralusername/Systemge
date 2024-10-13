@@ -42,7 +42,7 @@ func (client *WebsocketListener) StopAcceptRoutine() error {
 	return err
 }
 
-func (listener *WebsocketListener) IsReadRoutineRunning() bool {
+func (listener *WebsocketListener) IsAcceptRoutineRunning() bool {
 	listener.acceptMutex.RLock()
 	defer listener.acceptMutex.RUnlock()
 
