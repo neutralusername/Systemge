@@ -52,13 +52,13 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
 ) ReceptionHandlerFactory[C] {
 
-	/* byteHandlers := []ByteHandler[C]{}
+	byteHandlers := []ByteHandler[C]{}
 	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, NewByteRateLimitByteHandler[C](NewTokenBucketRateLimiter(byteRateLimiterConfig)))
+		byteHandlers = append(byteHandlers, NewTokenBucketRateLimitHandler[C](byteRateLimiterConfig))
 	}
 	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, NewMessageRateLimitByteHandler[C](NewTokenBucketRateLimiter(messageRateLimiterConfig)))
-	} */
+		byteHandlers = append(byteHandlers, NewTokenBucketRateLimitHandler[C](messageRateLimiterConfig))
+	}
 
 	objectHandlers := []ObjectHandler[O, C]{}
 	if messageValidator != nil {
@@ -146,16 +146,10 @@ func NewChainByteHandler[C any](handlers ...ByteHandler[C]) ByteHandler[C] {
 	}
 }
 
-func NewByteRateLimitByteHandler[C any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[C] {
+func NewTokenBucketRateLimitHandler[C any](tokenBucketRateLimiterConfig *Config.TokenBucketRateLimiter) ByteHandler[C] {
+	tokenBucketRateLimiter := NewTokenBucketRateLimiter(tokenBucketRateLimiterConfig)
 	return func(bytes []byte, caller C) error {
 		tokenBucketRateLimiter.Consume(uint64(len(bytes)))
-		return nil
-	}
-}
-
-func NewMessageRateLimitByteHandler[C any](tokenBucketRateLimiter *TokenBucketRateLimiter) ByteHandler[C] {
-	return func(bytes []byte, caller C) error {
-		tokenBucketRateLimiter.Consume(1)
 		return nil
 	}
 }
