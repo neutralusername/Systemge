@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-type RoutineHandler func()
+type routineFunc func()
 
 type Routine struct {
 	status      int
@@ -17,13 +17,13 @@ type Routine struct {
 	delayNs   int64
 	timeoutNs int64
 
-	handler     RoutineHandler
+	routineFunc routineFunc
 	stopChannel chan struct{}
 	waitgroup   sync.WaitGroup
 	semaphore   *Semaphore[struct{}]
 }
 
-func NewRoutine(handler RoutineHandler, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
+func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
 	semaphore, err := NewSemaphore[struct{}](maxConcurrentHandlers, nil)
 	if err != nil {
 		return nil
@@ -32,7 +32,7 @@ func NewRoutine(handler RoutineHandler, maxConcurrentHandlers uint32, delayNs in
 		status:      0,
 		delayNs:     delayNs,
 		timeoutNs:   timeoutNs,
-		handler:     handler,
+		routineFunc: routineFunc,
 		stopChannel: make(chan struct{}),
 		semaphore:   semaphore,
 	}
@@ -103,7 +103,7 @@ func (routine *Routine) routine() {
 					routine.waitgroup.Done()
 				}()
 
-				routine.handler()
+				routine.routineFunc()
 				close(done)
 			}()
 
