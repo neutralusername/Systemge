@@ -3,9 +3,6 @@ package Tools
 type AcceptHandler[C any] func(C)
 
 func NewDefaultAcceptHandler[C any](
-	ipRateLimiter *IpRateLimiter,
-	blacklist *AccessControlList,
-	whitelist *AccessControlList,
 	handshakeHandler func(C) (string, error),
 	sessionManager *SessionManager,
 	acceptHandler func(C),
