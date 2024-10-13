@@ -22,6 +22,9 @@ func (client *WebsocketClient) Read() ([]byte, error) {
 func (client *WebsocketClient) read() ([]byte, error) {
 	_, messageBytes, err := client.websocketConn.ReadMessage()
 	if err != nil {
+		if isWebsocketConnClosedErr(err) {
+			client.Close()
+		}
 		return nil, err
 	}
 	client.BytesReceived.Add(uint64(len(messageBytes)))
@@ -31,9 +34,6 @@ func (client *WebsocketClient) read() ([]byte, error) {
 
 // can be used to cancel an ongoing read operation
 func (client *WebsocketClient) SetReadDeadline(timeoutMs uint64) error {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
-
 	if client.receptionHandler != nil {
 		return errors.New("receptionHandler is already running")
 	}
