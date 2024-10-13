@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) SetReceptionHandler(receptionHandler Tools.ReadHandler[*WebsocketClient]) error {
+func (client *WebsocketClient) StartReceptionHandler(receptionHandler Tools.ReadHandler[*WebsocketClient]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -21,7 +21,7 @@ func (client *WebsocketClient) SetReceptionHandler(receptionHandler Tools.ReadHa
 	return nil
 }
 
-func (client *WebsocketClient) RemoveReceptionHandler() error {
+func (client *WebsocketClient) StopReceptionHandler() error {
 
 }
 
