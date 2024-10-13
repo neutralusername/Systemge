@@ -10,8 +10,8 @@ import (
 
 // if acceptRoutine is started and all already acceptRoutineSemaphore are taken, it won't do anything until they free up
 func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
-	client.mutex.Lock()
-	defer client.mutex.Unlock()
+	client.acceptMutex.Lock()
+	defer client.acceptMutex.Unlock()
 
 	if client.status != Status.Started {
 		return errors.New("listener not started")
@@ -30,8 +30,8 @@ func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHa
 }
 
 func (listener *WebsocketListener) StopAcceptRoutine() error {
-	listener.mutex.Lock()
-	defer listener.mutex.Unlock()
+	listener.acceptMutex.Lock()
+	defer listener.acceptMutex.Unlock()
 
 	return listener.stopAcceptRoutine()
 }
@@ -48,8 +48,8 @@ func (listener *WebsocketListener) stopAcceptRoutine() error {
 }
 
 func (listener *WebsocketListener) IsAcceptRoutineRunning() bool {
-	listener.mutex.RLock()
-	defer listener.mutex.RUnlock()
+	listener.acceptMutex.RLock()
+	defer listener.acceptMutex.RUnlock()
 
 	return listener.acceptHandler != nil
 }

@@ -7,8 +7,8 @@ import (
 )
 
 func (listener *WebsocketListener) Stop() error {
-	listener.mutex.Lock()
-	defer listener.mutex.Unlock()
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
 
 	if listener.status == Status.Stoped {
 		return errors.New("websocketListener is already stopped")

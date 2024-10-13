@@ -22,8 +22,11 @@ type WebsocketListener struct {
 	instanceId string
 	sessionId  string
 
+	statusMutex sync.Mutex
 	status      int
-	mutex       sync.RWMutex
+
+	acceptMutex sync.RWMutex
+
 	stopChannel chan struct{}
 
 	acceptHandler            Tools.AcceptHandler[*WebsocketClient.WebsocketClient]
@@ -60,10 +63,11 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 		config.MaxSimultaneousAccepts = 1
 	}
 	listener := &WebsocketListener{
-		name:       name,
-		config:     config,
-		status:     Status.Stoped,
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:           name,
+		config:         config,
+		status:         Status.Stoped,
+		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		upgadeRequests: make(chan (<-chan *upgraderResponse)),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{

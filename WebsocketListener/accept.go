@@ -4,20 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
 func (listener *WebsocketListener) accept(cancel chan struct{}) (*WebsocketClient.WebsocketClient, error) {
-
-	listener.mutex.RLock()
-	if listener.status != Status.Started {
-		listener.mutex.RUnlock()
-		return nil, errors.New("listener not started")
-	}
-	listener.waitgroup.Add(1)
-	defer listener.waitgroup.Done()
-	listener.mutex.RUnlock()
 
 	select {
 	case <-listener.stopChannel:
