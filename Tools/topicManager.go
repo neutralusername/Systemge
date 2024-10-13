@@ -8,6 +8,11 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 )
 
+/*
+type AsyncObjectHandler[O any, C any] func(object O, caller C) error
+type SyncObjectHandler[O any, C any] func(object O, caller C, syncToken string) (O, error)
+*/
+
 type TopicHandler[P any, R any] func(P) (R, error)
 type TopicHandlers[P any, R any] map[string]TopicHandler[P, R]
 
