@@ -2,6 +2,7 @@ package WebsocketListener
 
 import (
 	"errors"
+	"time"
 
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
@@ -47,14 +48,10 @@ func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, e
 	defer listener.waitgroup.Done()
 	listener.mutex.RUnlock()
 
-	return listener.accept()
+	return listener.accept(make(chan struct{}))
 }
 
 func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
-	/* 	var deadline <-chan time.Time
-	   	if timeoutMs > 0 {
-	   		deadline = time.After(time.Duration(timeoutMs) * time.Millisecond)
-	   	} */
 
 	listener.mutex.RLock()
 	if listener.status != Status.Started {
@@ -65,6 +62,17 @@ func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketCl
 	defer listener.waitgroup.Done()
 	listener.mutex.RUnlock()
 
-	listener.SetAcceptDeadline(timeoutMs)
-	return listener.accept()
+	var deadline <-chan time.Time = time.After(time.Duration(timeoutMs) * time.Millisecond)
+	var cancel chan struct{} = make(chan struct{})
+	go func() {
+		select {
+		case <-deadline:
+			close(cancel)
+		case <-cancel:
+			close(cancel)
+		}
+	}()
+	websocketConnection, err := listener.accept(cancel)
+	close(cancel)
+	return websocketConnection, err
 }
