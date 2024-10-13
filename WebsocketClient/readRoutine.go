@@ -15,7 +15,9 @@ func (client *WebsocketClient) StartReadRoutine(delayNs int64, maxActiveHandlers
 	}
 
 	client.readRoutine = Tools.NewRoutine(func() {
+		client.readMutex.Lock()
 		bytes, err := client.read()
+		client.readMutex.Unlock()
 		if err != nil {
 			return
 		}
