@@ -9,6 +9,7 @@ func NewDefaultAcceptHandler[C any](
 	handshakeHandler func(C) (string, error),
 	sessionManager *SessionManager,
 ) AcceptHandler[C] {
+
 	return func(caller C) {
 
 	}
