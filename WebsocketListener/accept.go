@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) accept(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) accept(timeoutMs uint64) (*WebsocketClient.WebsocketClient, error) {
 	var deadline <-chan time.Time
 	if timeoutMs > 0 {
 		deadline = time.After(time.Duration(timeoutMs) * time.Millisecond)
