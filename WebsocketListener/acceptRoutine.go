@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (client *WebsocketListener) StartReadRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
+func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
 
@@ -23,7 +23,7 @@ func (client *WebsocketListener) StartReadRoutine(acceptHandler Tools.AcceptHand
 	return nil
 }
 
-func (listener *WebsocketListener) StopReadRoutine() error {
+func (listener *WebsocketListener) StopAcceptRoutine() error {
 	listener.mutex.Lock()
 	defer listener.mutex.Unlock()
 
@@ -32,7 +32,6 @@ func (listener *WebsocketListener) StopReadRoutine() error {
 	}
 
 	close(listener.acceptRoutineStopChannel)
-	// cancel ongoing accept operation(s?)
 	listener.acceptRoutineWaitGroup.Wait()
 	listener.acceptHandler = nil
 	return nil
