@@ -31,11 +31,12 @@ func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs i
 		return nil
 	}
 	return &Routine{
-		status:      0,
-		delayNs:     delayNs,
-		timeoutNs:   timeoutNs,
-		routineFunc: routineFunc,
-		semaphore:   semaphore,
+		status:       0,
+		delayNs:      delayNs,
+		timeoutNs:    timeoutNs,
+		routineFunc:  routineFunc,
+		semaphore:    semaphore,
+		interceptors: make(chan func(), 1),
 	}
 }
 
