@@ -5,16 +5,16 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/neutralusername/Systemge/Config"
 )
 
 type PriorityTokenQueue[T any] struct {
+	config        *Config.PriorityTokenQueue
 	elements      map[string]*priorityQueueElement[*tokenItem[T]]
 	mutex         sync.Mutex
 	priorityQueue priorityQueue[*tokenItem[T]]
 	waiting       []chan T
-
-	maxElements   uint32
-	replaceIfFull bool
 }
 
 type tokenItem[T any] struct {
@@ -23,12 +23,11 @@ type tokenItem[T any] struct {
 	isRetrievedChannel chan struct{}
 }
 
-func NewPriorityTokenQueue[T any](maxElements uint32, replaceIfFull bool) *PriorityTokenQueue[T] {
+func NewPriorityTokenQueue[T any](config *Config.PriorityTokenQueue) *PriorityTokenQueue[T] {
 	queue := &PriorityTokenQueue[T]{
+		config:        config,
 		elements:      make(map[string]*priorityQueueElement[*tokenItem[T]]),
 		priorityQueue: make(priorityQueue[*tokenItem[T]], 0),
-		maxElements:   maxElements,
-		replaceIfFull: replaceIfFull,
 	}
 	heap.Init(&queue.priorityQueue)
 	return queue
@@ -58,8 +57,8 @@ func (queue *PriorityTokenQueue[T]) Push(token string, value T, priority uint32,
 		return nil
 	}
 
-	if queue.maxElements > 0 && uint32(len(queue.priorityQueue)) >= queue.maxElements {
-		if !queue.replaceIfFull {
+	if queue.config.MaxElements > 0 && uint32(len(queue.priorityQueue)) >= queue.config.MaxElements {
+		if !queue.config.ReplaceIfFull {
 			return errors.New("priority queue is full")
 		}
 		heap.Pop(&queue.priorityQueue)
