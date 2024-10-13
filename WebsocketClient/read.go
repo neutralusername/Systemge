@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
+func (client *WebsocketClient) Read() ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -16,15 +16,30 @@ func (client *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
 		return nil, errors.New("receptionHandler is already running")
 	}
 
-	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
+	return client.read()
+}
+
+func (client *WebsocketClient) read() ([]byte, error) {
 	_, messageBytes, err := client.websocketConn.ReadMessage()
 	if err != nil {
 		return nil, err
 	}
 	client.BytesReceived.Add(uint64(len(messageBytes)))
 	client.MessagesReceived.Add(1)
-
 	return messageBytes, nil
+}
+
+// can be used to cancel an ongoing read operation
+func (client *WebsocketClient) SetReadDeadline(timeoutMs uint64) error {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
+
+	if client.receptionHandler != nil {
+		return errors.New("receptionHandler is already running")
+	}
+
+	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
+	return nil
 }
 
 func (client *WebsocketClient) StartReadHandler(receptionHandler Tools.ReadHandler[*WebsocketClient]) error {
