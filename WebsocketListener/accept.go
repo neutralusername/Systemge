@@ -16,15 +16,18 @@ func (listener *WebsocketListener) accept(timeoutMs uint32) (*WebsocketClient.We
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")
+
 	case <-deadline:
 		return nil, errors.New("accept timeout")
-	case upgraderResponseChannel := <-listener.upgadeRequests:
 
+	case upgraderResponseChannel := <-listener.upgadeRequests:
 		select {
 		case <-listener.stopChannel:
 			return nil, errors.New("listener stopped")
+
 		case <-deadline:
 			return nil, errors.New("accept timeout")
+
 		case upgraderResponse := <-upgraderResponseChannel:
 			if upgraderResponse.err != nil {
 				return nil, upgraderResponse.err
