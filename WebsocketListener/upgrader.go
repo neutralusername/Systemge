@@ -33,9 +33,10 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 				err:           err,
 				websocketConn: websocketConn,
 			}:
-
 			default:
-
+				if websocketConn != nil {
+					websocketConn.Close()
+				}
 			}
 		}
 	}
