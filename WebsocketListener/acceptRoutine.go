@@ -32,7 +32,7 @@ func (listener *WebsocketListener) StopReadRoutine() error {
 	}
 
 	close(listener.acceptRoutineStopChannel)
-	// cancel ongoing accept operation
+	// cancel ongoing accept operation(s?)
 	listener.acceptRoutineWaitGroup.Wait()
 	listener.acceptHandler = nil
 	return nil
