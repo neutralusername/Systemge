@@ -8,27 +8,27 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-type RoutineHandler[T any] func(T)
+type RoutineHandler func()
 
-type Routine[T any] struct {
+type Routine struct {
 	status      int
 	statusMutex sync.RWMutex
 
 	delayNs   int64
 	timeoutNs int64
 
-	handler                  RoutineHandler[T]
+	handler                  RoutineHandler
 	acceptRoutineStopChannel chan struct{}
 	acceptRoutineWaitGroup   sync.WaitGroup
 	acceptRoutineSemaphore   *Semaphore[struct{}]
 }
 
-func NewRoutine[T any](handler RoutineHandler[T], maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine[T] {
+func NewRoutine(handler RoutineHandler, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
 	semaphore, err := NewSemaphore[struct{}](maxConcurrentHandlers, nil)
 	if err != nil {
 		return nil
 	}
-	return &Routine[T]{
+	return &Routine{
 		status:                   0,
 		delayNs:                  delayNs,
 		timeoutNs:                timeoutNs,
@@ -38,7 +38,7 @@ func NewRoutine[T any](handler RoutineHandler[T], maxConcurrentHandlers uint32, 
 	}
 }
 
-func (routine *Routine[T]) StartRoutine(data T) error {
+func (routine *Routine) StartRoutine() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
@@ -49,12 +49,12 @@ func (routine *Routine[T]) StartRoutine(data T) error {
 	routine.status = Status.Started
 
 	routine.acceptRoutineWaitGroup.Add(1)
-	go routine.routine(data)
+	go routine.routine()
 
 	return nil
 }
 
-func (routine *Routine[T]) StopRoutine() error {
+func (routine *Routine) StopRoutine() error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
@@ -70,14 +70,14 @@ func (routine *Routine[T]) StopRoutine() error {
 	return nil
 }
 
-func (routine *Routine[T]) IsRoutineRunning() bool {
+func (routine *Routine) IsRoutineRunning() bool {
 	routine.statusMutex.RLock()
 	defer routine.statusMutex.RUnlock()
 
 	return routine.status == Status.Started
 }
 
-func (routine *Routine[T]) routine(data T) {
+func (routine *Routine) routine() {
 	defer routine.acceptRoutineWaitGroup.Done()
 	for {
 		if routine.delayNs > 0 {
@@ -103,7 +103,7 @@ func (routine *Routine[T]) routine(data T) {
 					routine.acceptRoutineWaitGroup.Done()
 				}()
 
-				routine.handler(data)
+				routine.handler()
 				close(done)
 			}()
 
