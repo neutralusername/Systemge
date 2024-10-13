@@ -1,10 +1,8 @@
 package Tools
 
 import (
-	"container/heap"
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/neutralusername/Systemge/Config"
 )
@@ -42,22 +40,44 @@ func (queue *SimpleQueue[T]) Push(value T) error {
 	}
 
 	queue.queue = append(queue.queue, value)
-	heap.Push(&queue.queue, element)
 
-	if timeoutMs > 0 {
-		go func() {
-			select {
-			case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
-				queue.mutex.Lock()
-				defer queue.mutex.Unlock()
-				select {
-				case <-element.value.isRetrievedChannel:
-				default:
-					queue.remove(element)
-				}
-			case <-element.value.isRetrievedChannel:
-			}
-		}()
-	}
 	return nil
+}
+
+func (queue *SimpleQueue[T]) Pop() (T, error) {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
+
+	if len(queue.queue) == 0 {
+		var nilValue T
+		return nilValue, errors.New("queue is empty")
+	}
+	item := queue.queue[0]
+	queue.queue = queue.queue[1:]
+	return item, nil
+}
+
+func (queue *SimpleQueue[T]) PopBlocking() T {
+	return <-queue.PopChannel()
+}
+
+func (queue *SimpleQueue[T]) PopChannel() <-chan T {
+	c := make(chan T)
+	go func() {
+
+		queue.mutex.Lock()
+		if len(queue.queue) == 0 {
+			queue.waiting = append(queue.waiting, c)
+			queue.mutex.Unlock()
+			return
+		}
+
+		item := queue.queue[0]
+		queue.queue = queue.queue[1:]
+		queue.mutex.Unlock()
+
+		c <- item
+		close(c)
+	}()
+	return c
 }
