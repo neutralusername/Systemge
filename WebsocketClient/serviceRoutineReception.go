@@ -3,26 +3,34 @@ package WebsocketClient
 import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient) {
+func (client *WebsocketClient) SetReceptionHandler(receptionHandler Tools.ReceptionHandler[*WebsocketClient]) {
+	client.receptionHandler = receptionHandler
+	go client.receptionRoutine()
+}
+
+func (client *WebsocketClient) receptionRoutine() {
 	defer func() {
-		if server.eventHandler != nil {
-			server.eventHandler.Handle(Event.New(
+		if client.eventHandler != nil {
+			client.eventHandler.Handle(Event.New(
 				Event.ReceptionRoutineEnds,
-				Event.Context{},
+				Event.Context{
+					Event.Address: client.GetAddress(),
+				},
 				Event.Continue,
 				Event.Cancel,
 			))
 		}
-		server.waitGroup.Done()
+		client.waitGroup.Done()
 	}()
 
-	if server.eventHandler != nil {
-		event := server.eventHandler.Handle(Event.New(
+	if client.eventHandler != nil {
+		event := client.eventHandler.Handle(Event.New(
 			Event.ReceptionRoutineBegins,
-			Event.Context{},
+			Event.Context{
+				Event.Address: client.GetAddress(),
+			},
 			Event.Continue,
 			Event.Cancel,
 		))
@@ -31,50 +39,35 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 		}
 	}
 
-	caller := &WebsocketReceptionCaller{
-		Client:    websocketClient,
-		SessionId: session.GetId(),
-		Identity:  session.GetIdentity(),
-	}
-	receptionHandler := server.receptionHandlerFactory()
-	handleReceptionWrapper := func(session *Tools.Session, websocketClient *WebsocketClient.WebsocketClient, bytes []byte) {
-		// event
-		if err := receptionHandler(bytes, caller); err != nil {
-			server.FailedReceptions.Add(1)
-			if server.eventHandler != nil {
-				event := server.eventHandler.Handle(Event.New(
+	handleReceptionWrapper := func(bytes []byte) {
+		if err := client.receptionHandler(bytes, client); err != nil {
+			if client.eventHandler != nil {
+				event := client.eventHandler.Handle(Event.New(
 					Event.ReceptionHandlerFailed,
 					Event.Context{
-						Event.SessionId: session.GetId(),
-						Event.Identity:  session.GetIdentity(),
-						Event.Address:   websocketClient.GetAddress(),
-						Event.Error:     err.Error(),
-						Event.Bytes:     string(bytes),
+						Event.Address: client.GetAddress(),
+						Event.Error:   err.Error(),
+						Event.Bytes:   string(bytes),
 					},
 					Event.Skip,
 					Event.Cancel,
 				))
 				if event.GetAction() == Event.Cancel {
-					websocketClient.Close()
+					client.Close()
 				}
 			}
-		} else {
-			server.SuccessfulReceptions.Add(1)
 		}
-		// event
 	}
 
 	for {
-		messageBytes, err := websocketClient.Read(server.config.ReadTimeoutMs)
+		messageBytes, err := client.Read(client.config.ReadTimeoutMs)
 		if err != nil {
-			if server.eventHandler != nil {
-				event := server.eventHandler.Handle(Event.New(
+			if client.eventHandler != nil {
+				event := client.eventHandler.Handle(Event.New(
 					Event.ReadMessageFailed,
 					Event.Context{
-						Event.SessionId: session.GetId(),
-						Event.Identity:  session.GetIdentity(),
-						Event.Address:   websocketClient.GetAddress(),
-						Event.Error:     err.Error(),
+						Event.Address: client.GetAddress(),
+						Event.Error:   err.Error(),
 					},
 					Event.Cancel,
 					Event.Skip,
@@ -83,18 +76,18 @@ func (server *WebsocketServer[O]) receptionRoutine(session *Tools.Session, webso
 					continue
 				}
 			}
-			websocketClient.Close()
+			client.Close()
 			break
 		}
 
-		if server.config.HandleMessagesSequentially {
-			handleReceptionWrapper(session, websocketClient, messageBytes)
+		if client.config.HandleMessagesSequentially {
+			handleReceptionWrapper(messageBytes)
 		} else {
-			server.waitGroup.Add(1)
+			client.waitGroup.Add(1)
 			go func(websocketClient *WebsocketClient.WebsocketClient) {
-				handleReceptionWrapper(session, websocketClient, messageBytes)
-				server.waitGroup.Done()
-			}(websocketClient)
+				handleReceptionWrapper(messageBytes)
+				client.waitGroup.Done()
+			}(client)
 		}
 	}
 }

@@ -22,6 +22,8 @@ type WebsocketClient struct {
 	closedMutex  sync.Mutex
 	closeChannel chan bool
 
+	receptionHandler Tools.ReceptionHandler[*WebsocketClient]
+
 	sendMutex sync.Mutex
 	readMutex sync.Mutex
 
