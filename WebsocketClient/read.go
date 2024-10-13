@@ -36,7 +36,7 @@ func (client *WebsocketClient) StartReadHandler(receptionHandler Tools.ReadHandl
 	}
 
 	client.receptionHandler = receptionHandler
-	go client.receptionRoutine()
+	go client.readRoutine()
 
 	return nil
 }
@@ -45,7 +45,7 @@ func (client *WebsocketClient) StopReadHandler() error {
 
 }
 
-func (client *WebsocketClient) receptionRoutine() {
+func (client *WebsocketClient) readRoutine() {
 	defer func() {
 		if client.eventHandler != nil {
 			client.eventHandler.Handle(Event.New(
