@@ -81,6 +81,25 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 		}
 
 		// ip rate limiting
+		if server.GetIpRateLimiter() != nil {
+			if !server.GetIpRateLimiter().RegisterConnectionAttempt(ip) {
+				if event := server.onEvent(Event.NewWarning(
+					Event.RateLimited,
+					"Client not accepted",
+					Event.Cancel,
+					Event.Cancel,
+					Event.Continue,
+					Event.Context{
+						Event.RateLimiterType: Event.Ip,
+						Event.Pattern:         pattern,
+						Event.Address:         r.RemoteAddr,
+					},
+				)); !event.IsWarning() {
+					Send403(w, r)
+					return
+				}
+			}
+		}
 
 		if server.GetBlacklist() != nil {
 			if server.GetBlacklist().Contains(ip) {

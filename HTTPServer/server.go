@@ -24,10 +24,11 @@ type HTTPServer struct {
 	status      int
 	statusMutex sync.RWMutex
 
-	config     *Config.HTTPServer
-	httpServer *http.Server
-	blacklist  *Tools.AccessControlList
-	whitelist  *Tools.AccessControlList
+	config        *Config.HTTPServer
+	httpServer    *http.Server
+	blacklist     *Tools.AccessControlList
+	whitelist     *Tools.AccessControlList
+	ipRateLimiter *Tools.IpRateLimiter
 
 	eventHandler Event.Handler
 
@@ -38,7 +39,7 @@ type HTTPServer struct {
 	requestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, handlers Handlers, eventHandler *Event.Handler) *HTTPServer {
+func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handlers Handlers, eventHandler *Event.Handler) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -46,12 +47,13 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 		panic("config.TcpListenerConfig is nil")
 	}
 	server := &HTTPServer{
-		name:       name,
-		mux:        NewCustomMux(),
-		config:     config,
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		blacklist:  blacklist,
-		whitelist:  whitelist,
+		name:          name,
+		mux:           NewCustomMux(),
+		config:        config,
+		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		blacklist:     blacklist,
+		whitelist:     whitelist,
+		ipRateLimiter: ipRateLimiter,
 
 		eventHandler: eventHandler,
 	}
@@ -123,6 +125,10 @@ func (server *HTTPServer) GetBlacklist() *Tools.AccessControlList {
 
 func (server *HTTPServer) GetWhitelist() *Tools.AccessControlList {
 	return server.whitelist
+}
+
+func (server *HTTPServer) GetIpRateLimiter() *Tools.IpRateLimiter {
+	return server.ipRateLimiter
 }
 
 func (server *HTTPServer) GetName() string {
