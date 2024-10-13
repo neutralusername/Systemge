@@ -14,14 +14,14 @@ type QueueConsumer[T any] struct {
 	waitgroup   sync.WaitGroup
 	stopChannel chan struct{}
 
-	queue   *PriorityTokenQueue[T]
-	handler QueueConsumerFunc[T]
+	prioritytokenQueue *PriorityTokenQueue[T]
+	handler            QueueConsumerFunc[T]
 }
 
 func NewQueueConsumer[T any](queue *PriorityTokenQueue[T], handler QueueConsumerFunc[T]) *QueueConsumer[T] {
 	return &QueueConsumer[T]{
-		queue:   queue,
-		handler: handler,
+		prioritytokenQueue: queue,
+		handler:            handler,
 	}
 }
 
@@ -61,7 +61,7 @@ func (c *QueueConsumer[T]) consumeRoutine() {
 		case <-c.stopChannel:
 			return
 		default:
-			c.handler(c.queue.PopBlocking())
+			c.handler(c.prioritytokenQueue.PopBlocking())
 		}
 	}
 }

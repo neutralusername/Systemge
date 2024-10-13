@@ -104,7 +104,7 @@ type MessageValidator struct {
 	MinPayloadSize   int `json:"minPayloadSize"`   // default: <=0 == no limit
 }
 
-type PriorityTokenQueue struct {
+type Queue struct {
 	MaxElements   uint32 `json:"maxElements"`   // default: 0 == no limit
 	ReplaceIfFull bool   `json:"replaceIfFull"` // default: false
 }
