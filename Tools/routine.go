@@ -33,7 +33,6 @@ func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs i
 		delayNs:     delayNs,
 		timeoutNs:   timeoutNs,
 		routineFunc: routineFunc,
-		stopChannel: make(chan struct{}),
 		semaphore:   semaphore,
 	}
 }
@@ -50,6 +49,7 @@ func (routine *Routine) StartRoutine() error {
 		return errors.New("routine already started")
 	}
 
+	routine.stopChannel = make(chan struct{})
 	routine.status = Status.Started
 
 	routine.waitgroup.Add(1)
