@@ -109,7 +109,6 @@ func (routine *Routine[T]) routine(data T) {
 
 			select {
 			case <-deadline:
-				close(done)
 			case <-done:
 			}
 		}
