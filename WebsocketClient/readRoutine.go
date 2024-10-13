@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) StartReadRoutine(delayNs int64, asyncHandling bool, readHandler Tools.ReadHandler[*WebsocketClient]) error {
+func (client *WebsocketClient) StartReadRoutine(delayNs int64, maxActiveHandlers uint32, readHandler Tools.ReadHandler[*WebsocketClient]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -18,7 +18,7 @@ func (client *WebsocketClient) StartReadRoutine(delayNs int64, asyncHandling boo
 	client.readHandler = readHandler
 	client.readRoutineStopChannel = make(chan struct{})
 	client.readRoutineWaitGroup.Add(1)
-	go client.readRoutine(delayNs, asyncHandling)
+	go client.readRoutine(delayNs, maxActiveHandlers)
 
 	return nil
 }
@@ -45,7 +45,7 @@ func (client *WebsocketClient) IsReadRoutineRunning() bool {
 	return client.readHandler != nil
 }
 
-func (client *WebsocketClient) readRoutine(delayNs int64, asyncHandling bool) {
+func (client *WebsocketClient) readRoutine(delayNs int64, asyncHandling uint32) {
 	defer client.readRoutineWaitGroup.Done()
 	for {
 		if delayNs > 0 {
