@@ -143,7 +143,7 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 	priorityQueue *PriorityTokenQueue[O],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
 
-	// topicManager *Tools.TopicManager,
+	//topicManager *TopicManager[O, O], pondering...
 ) ReceptionManagerFactory[C] {
 
 	byteHandlers := []ByteHandler[C]{}
