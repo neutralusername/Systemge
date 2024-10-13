@@ -18,11 +18,8 @@ func (listener *WebsocketListener) Stop() error {
 	close(listener.stopChannel)
 
 	if err := listener.httpServer.Stop(); err != nil {
-
+		// something
 	}
-	/* if err := listener.StopAcceptRoutine(); err != nil {
-
-	} */
 	listener.waitgroup.Wait()
 
 	listener.status = Status.Stoped
