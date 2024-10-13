@@ -81,3 +81,9 @@ func (queue *SimpleQueue[T]) PopChannel() <-chan T {
 	}()
 	return c
 }
+
+func (queue *SimpleQueue[T]) Len() int {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
+	return len(queue.queue)
+}
