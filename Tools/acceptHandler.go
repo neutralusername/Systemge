@@ -8,12 +8,10 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-type AcceptionHandler[O any] func(*WebsocketServer[O], *WebsocketClient.WebsocketClient) (string, error)
+type AcceptHandler[C any] func(C)
 
-func NewDefaultAcceptionHandler[O any]() AcceptionHandler[O] {
-	return func(websocketServer *WebsocketServer[O], websocketClient *WebsocketClient.WebsocketClient) (string, error) {
-		return "", nil
-	}
+func NewAcceptHandler[C any](handler func(C)) AcceptHandler[C] {
+	return handler
 }
 
 func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[O] {
