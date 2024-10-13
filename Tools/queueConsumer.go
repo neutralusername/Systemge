@@ -12,11 +12,11 @@ type QueueConsumer[T any] struct {
 	status      int
 	statusMutex sync.Mutex
 
-	queue   PriorityTokenQueue[T]
+	queue   *PriorityTokenQueue[T]
 	handler QueueConsumerFunc[T]
 }
 
-func NewQueueConsumer[T any](queue PriorityTokenQueue[T], handler QueueConsumerFunc[T]) *QueueConsumer[T] {
+func NewQueueConsumer[T any](queue *PriorityTokenQueue[T], handler QueueConsumerFunc[T]) *QueueConsumer[T] {
 	return &QueueConsumer[T]{
 		queue:   queue,
 		handler: handler,
