@@ -2,6 +2,7 @@ package WebsocketListener
 
 import (
 	"errors"
+	"time"
 
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -50,9 +51,12 @@ func (listener *WebsocketListener) IsAcceptRoutineRunning() bool {
 	return listener.acceptHandler != nil
 }
 
-func (listener *WebsocketListener) acceptRoutine() {
+func (listener *WebsocketListener) acceptRoutine(delayNs int64) {
 	defer listener.acceptRoutineWaitGroup.Done()
 	for {
+		if delayNs > 0 {
+			time.Sleep(time.Duration(delayNs) * time.Nanosecond)
+		}
 		select {
 		case <-listener.acceptRoutineStopChannel:
 			return

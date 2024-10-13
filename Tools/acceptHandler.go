@@ -16,6 +16,15 @@ func NewDefaultAcceptHandler[C any](
 	}
 }
 
+// executes all handlers in order, return error if any handler returns an error
+func NewAcceptHandler[C any](handlers ...AcceptHandler[C]) AcceptHandler[C] {
+	return func(caller C) {
+		for _, handler := range handlers {
+			handler(caller)
+		}
+	}
+}
+
 /*
 func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[O] {
 	return func(websocketServer *WebsocketServer[O], websocketClient *WebsocketClient.WebsocketClient) (string, error) {

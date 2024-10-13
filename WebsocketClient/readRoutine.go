@@ -39,8 +39,8 @@ func (client *WebsocketClient) StopReadRoutine() error {
 }
 
 func (client *WebsocketClient) IsReadRoutineRunning() bool {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
+	client.readMutex.RLock()
+	defer client.readMutex.RUnlock()
 
 	return client.readHandler != nil
 }

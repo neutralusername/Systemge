@@ -27,7 +27,7 @@ type WebsocketClient struct {
 	readRoutineWaitGroup   sync.WaitGroup
 
 	writeMutex sync.Mutex
-	readMutex  sync.Mutex
+	readMutex  sync.RWMutex
 
 	// metrics
 
