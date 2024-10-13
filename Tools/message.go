@@ -1,4 +1,4 @@
-package Message
+package Tools
 
 import (
 	"encoding/json"
@@ -132,7 +132,7 @@ func (message *Message) Serialize() []byte {
 	return bytes
 }
 
-func Deserialize(bytes []byte) (*Message, error) {
+func DeserializeMessage(bytes []byte) (*Message, error) {
 	var messageData messageData
 	err := json.Unmarshal(bytes, &messageData)
 	if err != nil {

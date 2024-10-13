@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -16,8 +15,8 @@ func NewWebsocketMessageValidator(
 	maxTopicSize int,
 	minPayloadSize int,
 	maxPayloadSize int,
-) Tools.ObjectHandler[*Message.Message, *websocketServerReceptionManagerCaller] {
-	return Tools.NewValidationObjectHandler(func(message *Message.Message, caller *websocketServerReceptionManagerCaller) error {
+) Tools.ObjectHandler[*Tools.Message, *websocketServerReceptionManagerCaller] {
+	return Tools.NewValidationObjectHandler(func(message *Tools.Message, caller *websocketServerReceptionManagerCaller) error {
 		if minSyncTokenSize >= 0 && len(message.GetSyncToken()) < minSyncTokenSize {
 			return errors.New("message contains sync token")
 		}
@@ -41,9 +40,9 @@ func NewWebsocketMessageValidator(
 }
 
 // consider approaches to get rid of this (in this package)
-func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Message.Message, *websocketServerReceptionManagerCaller] {
-	return func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Message.Message, error) {
-		return Message.Deserialize(bytes)
+func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Tools.Message, *websocketServerReceptionManagerCaller] {
+	return func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Tools.Message, error) {
+		return Tools.DeserializeMessage(bytes)
 	}
 }
 
