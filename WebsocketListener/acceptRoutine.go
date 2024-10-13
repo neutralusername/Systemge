@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
+func (listener *WebsocketListener) StartAcceptRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
