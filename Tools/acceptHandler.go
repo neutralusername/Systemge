@@ -2,8 +2,10 @@ package Tools
 
 type AcceptHandler[C any] func(C)
 
-func NewAcceptHandler[C any](handler func(C)) AcceptHandler[C] {
-	return handler
+func NewDefaultAcceptHandler[C any]() AcceptHandler[C] {
+	return func(caller C) {
+
+	}
 }
 
 /*

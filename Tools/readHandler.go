@@ -17,7 +17,7 @@ type QueueWrapper[O any, C any] struct {
 	caller C
 }
 
-func NewReadHandler[O any, C any](
+func NewDefaultReadHandler[O any, C any](
 	byteHandler ByteHandler[C],
 	deserializer ObjectDeserializer[O, C],
 	objectHandler ObjectHandler[O, C],
