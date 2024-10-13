@@ -47,7 +47,7 @@ func (server *WebsocketServer[O]) GetDefaultCommands() Commands.Handlers {
 		}
 		return string(json), nil
 	}
-	commands["asyncMessage"] = func(args []string) (string, error) {
+	commands["sendMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {
 			return "", errors.New("invalid number of arguments")
 		}
@@ -56,25 +56,11 @@ func (server *WebsocketServer[O]) GetDefaultCommands() Commands.Handlers {
 			return "", err
 		}
 		ids := args[1:]
-		err = server.AsyncMessage(bytes, ids...)
+		err = server.SendMessage(bytes, ids...)
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
-	/* 	commands["syncMessage"] = func(args []string) (string, error) {
-		if len(args) < 2 {
-			return "", errors.New("invalid number of arguments")
-		}
-		topic := args[0]
-		payload := args[1]
-		syncToken := args[2]
-		ids := args[3:]
-		responses, err := server.SyncRequestBlocking(topic, payload, syncToken, ids...)
-		if err != nil {
-			return "", err
-		}
-		return Helpers.JsonMarshal(responses), nil
-	} */
 	return commands
 }

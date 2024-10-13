@@ -9,14 +9,9 @@ import (
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-// out message may be any type/structure of data. incoming must correlate to the websocketServers T type (may be any...)
-func (server *WebsocketServer[O]) SyncMessage(token string, messageBytes []byte, ids ...string) (*Tools.Request[O], error) {
-
-}
-
-func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...string) error {
+func (server *WebsocketServer[O]) SendMessage(bytes []byte, ids ...string) error {
 	if len(ids) == 0 {
-		return server.broadcast(messageBytes)
+		return server.broadcast(bytes)
 	}
 
 	targetsMarshalled := Helpers.JsonMarshal(ids)
@@ -26,7 +21,7 @@ func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...strin
 			Event.Context{
 				Event.Circumstance: Event.Multicast,
 				Event.Targets:      targetsMarshalled,
-				Event.Bytes:        string(messageBytes),
+				Event.Bytes:        string(bytes),
 			},
 			Event.Continue,
 			Event.Cancel,
@@ -46,7 +41,7 @@ func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...strin
 						Event.Circumstance: Event.Multicast,
 						Event.Target:       id,
 						Event.Targets:      targetsMarshalled,
-						Event.Bytes:        string(messageBytes),
+						Event.Bytes:        string(bytes),
 					},
 					Event.Skip,
 					Event.Cancel,
@@ -68,7 +63,7 @@ func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...strin
 						Event.Circumstance: Event.Multicast,
 						Event.Target:       id,
 						Event.Targets:      targetsMarshalled,
-						Event.Bytes:        string(messageBytes),
+						Event.Bytes:        string(bytes),
 					},
 					Event.Skip,
 					Event.Cancel,
@@ -88,7 +83,7 @@ func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...strin
 						Event.Circumstance: Event.Multicast,
 						Event.Target:       id,
 						Event.Targets:      targetsMarshalled,
-						Event.Bytes:        string(messageBytes),
+						Event.Bytes:        string(bytes),
 					},
 					Event.Continue,
 					Event.Skip,
@@ -104,7 +99,7 @@ func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...strin
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.(*WebsocketClient.WebsocketClient).Write(messageBytes, server.config.WriteTimeoutMs)
+			websocketClient.(*WebsocketClient.WebsocketClient).Write(bytes, server.config.WriteTimeoutMs)
 		})
 	}
 
@@ -116,7 +111,7 @@ func (server *WebsocketServer[O]) AsyncMessage(messageBytes []byte, ids ...strin
 			Event.Context{
 				Event.Circumstance: Event.Multicast,
 				Event.Targets:      targetsMarshalled,
-				Event.Bytes:        string(messageBytes),
+				Event.Bytes:        string(bytes),
 			},
 			Event.Continue,
 		))
