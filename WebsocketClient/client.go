@@ -26,8 +26,8 @@ type WebsocketClient struct {
 
 	receptionHandler Tools.ReadHandler[*WebsocketClient]
 
-	sendMutex sync.Mutex
-	readMutex sync.Mutex
+	writeMutex sync.Mutex
+	readMutex  sync.Mutex
 
 	// metrics
 

@@ -7,8 +7,8 @@ import (
 )
 
 func (client *WebsocketClient) Write(messageBytes []byte) error {
-	client.sendMutex.Lock()
-	defer client.sendMutex.Unlock()
+	client.writeMutex.Lock()
+	defer client.writeMutex.Unlock()
 
 	err := client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
