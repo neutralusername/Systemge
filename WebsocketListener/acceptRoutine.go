@@ -42,6 +42,8 @@ func (listener *WebsocketListener) acceptRoutine() {
 	defer listener.acceptRoutineWaitGroup.Done()
 	for {
 		select {
+		case <-listener.acceptRoutineStopChannel:
+			return
 		case <-listener.acceptRoutineSemaphore.GetChannel():
 			listener.waitgroup.Add(1)
 			go func() {
@@ -60,10 +62,6 @@ func (listener *WebsocketListener) acceptRoutine() {
 					listener.acceptHandler(client)
 				}
 			}()
-
-		case <-listener.acceptRoutineStopChannel:
-			return
 		}
-
 	}
 }
