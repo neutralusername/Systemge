@@ -9,8 +9,8 @@ import (
 )
 
 func (listener *WebsocketListener) Start() error {
-	listener.statusMutex.Lock()
-	defer listener.statusMutex.Unlock()
+	listener.mutex.Lock()
+	defer listener.mutex.Unlock()
 
 	if listener.status == Status.Started {
 		return errors.New("tcpSystemgeListener is already started")
