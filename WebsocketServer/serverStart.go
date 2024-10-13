@@ -41,8 +41,6 @@ func (server *WebsocketServer[O]) Start() error {
 	server.websocketListener.Start()
 	server.stopChannel = make(chan struct{})
 
-	server.waitGroup.Add(1)
-	go server.acceptionRoutine()
 	server.status = Status.Started
 
 	if server.eventHandler != nil {
