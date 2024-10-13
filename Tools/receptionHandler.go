@@ -17,11 +17,38 @@ type QueueWrapper[O any, C any] struct {
 	caller C
 }
 
-func NewReceptionHandlerFactory[C any](
-	receptionHandler ReceptionHandler[C],
+func NewReceptionHandlerFactory[O any, C any](
+	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
+	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
+
+	messageValidator ObjectHandler[O, C],
+	deserializer ObjectDeserializer[O, C],
+
+	priorityQueue *PriorityTokenQueue[*QueueWrapper[O, C]],
+	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
 ) ReceptionHandlerFactory[C] {
 	return func() ReceptionHandler[C] {
-		return receptionHandler
+		byteHandlers := []ByteHandler[C]{}
+		if byteRateLimiterConfig != nil {
+			byteHandlers = append(byteHandlers, NewTokenBucketRateLimitHandler[C](byteRateLimiterConfig))
+		}
+		if messageRateLimiterConfig != nil {
+			byteHandlers = append(byteHandlers, NewTokenBucketRateLimitHandler[C](messageRateLimiterConfig))
+		}
+
+		objectHandlers := []ObjectHandler[O, C]{}
+		if messageValidator != nil {
+			objectHandlers = append(objectHandlers, messageValidator)
+		}
+		if priorityQueue != nil && obtainEnqueueConfigs != nil {
+			objectHandlers = append(objectHandlers, NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+		}
+
+		return NewReceptionHandler[O, C](
+			NewChainByteHandler[C](byteHandlers...),
+			deserializer,
+			NewChainObjectHandler[O, C](objectHandlers...),
+		)
 	}
 }
 
