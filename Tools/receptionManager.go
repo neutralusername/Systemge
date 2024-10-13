@@ -53,7 +53,7 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 	messageValidator ObjectHandler[O, C],
 	deserializer ObjectDeserializer[O, C],
 
-	priorityQueue *PriorityTokenQueue[O],
+	priorityQueue *PriorityTokenQueue[*QueueWrapper[O, C]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
 ) ReceptionHandlerFactory[C] {
 
@@ -101,12 +101,16 @@ func NewChainObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) Object
 type ObtainEnqueueConfigs[O any, C any] func(O, C) (token string, priority uint32, timeout uint32)
 
 func NewQueueObjectHandler[O any, C any](
-	priorityTokenQueue *PriorityTokenQueue[O],
+	priorityTokenQueue *PriorityTokenQueue[*QueueWrapper[O, C]],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
 ) ObjectHandler[O, C] {
 	return func(object O, caller C) error {
 		token, priority, timeoutMs := obtainEnqueueConfigs(object, caller)
-		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
+		queueWrapper := &QueueWrapper[O, C]{
+			object,
+			caller,
+		}
+		return priorityTokenQueue.Push(token, queueWrapper, priority, timeoutMs)
 	}
 }
 
