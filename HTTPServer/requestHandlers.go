@@ -79,7 +79,6 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Send403(w, r)
 			return
 		}
-
 		// ip rate limiting
 		if server.GetIpRateLimiter() != nil {
 			if !server.GetIpRateLimiter().RegisterConnectionAttempt(ip) {
