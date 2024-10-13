@@ -22,7 +22,6 @@ func (client *WebsocketClient) Write(messageBytes []byte) error {
 	return nil
 }
 
-func (client *WebsocketClient) SetWriteDeadline(timeoutMs uint64) error {
+func (client *WebsocketClient) SetWriteDeadline(timeoutMs uint64) {
 	client.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
-	return nil
 }
