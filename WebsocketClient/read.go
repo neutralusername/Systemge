@@ -10,7 +10,7 @@ func (client *WebsocketClient) Read(timeoutMs uint32) ([]byte, error) {
 	defer client.readMutex.Unlock()
 
 	if client.receptionHandler != nil {
-		return nil, errors.New("receptionHandler is running")
+		return nil, errors.New("receptionHandler is already running")
 	}
 
 	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))

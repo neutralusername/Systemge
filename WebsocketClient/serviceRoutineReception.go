@@ -21,6 +21,10 @@ func (client *WebsocketClient) SetReceptionHandler(receptionHandler Tools.ReadHa
 	return nil
 }
 
+func (client *WebsocketClient) RemoveReceptionHandler() error {
+
+}
+
 func (client *WebsocketClient) receptionRoutine() {
 	defer func() {
 		if client.eventHandler != nil {
