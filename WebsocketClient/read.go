@@ -95,7 +95,7 @@ func (client *WebsocketClient) readRoutine() {
 	}
 
 	for {
-		messageBytes, err := client.Read(client.config.ReadTimeoutMs)
+		messageBytes, err := client.Read(client.config.ReadTimeoutMs) // pondering how best to handle timeoutMs / corresponding behavior
 		if err != nil {
 			if client.eventHandler != nil {
 				event := client.eventHandler.Handle(Event.New(
