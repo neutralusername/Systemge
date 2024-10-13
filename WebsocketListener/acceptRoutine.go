@@ -48,8 +48,8 @@ func (listener *WebsocketListener) acceptRoutine() {
 			listener.waitgroup.Add(1)
 			go func() {
 				defer func() {
-					listener.waitgroup.Done()
 					listener.acceptRoutineSemaphore.Release()
+					listener.waitgroup.Done()
 				}()
 
 				select {
