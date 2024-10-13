@@ -15,7 +15,7 @@ func (listener *WebsocketListener) accept(cancel chan struct{}) (*WebsocketClien
 	case <-cancel:
 		return nil, errors.New("accept canceled")
 
-	case upgraderResponseChannel := <-listener.upgadeRequests:
+	case upgraderResponseChannel := <-listener.upgradeRequests:
 		select {
 		case <-listener.stopChannel:
 			return nil, errors.New("listener stopped")

@@ -38,7 +38,7 @@ type WebsocketListener struct {
 
 	httpServer *HTTPServer.HTTPServer
 
-	upgadeRequests chan (<-chan *upgraderResponse)
+	upgradeRequests chan (<-chan *upgraderResponse)
 
 	// metrics
 
@@ -63,11 +63,11 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 		config.MaxSimultaneousAccepts = 1
 	}
 	listener := &WebsocketListener{
-		name:           name,
-		config:         config,
-		status:         Status.Stoped,
-		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		upgadeRequests: make(chan (<-chan *upgraderResponse)),
+		name:            name,
+		config:          config,
+		status:          Status.Stoped,
+		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		upgradeRequests: make(chan (<-chan *upgraderResponse)),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",
 		&Config.HTTPServer{

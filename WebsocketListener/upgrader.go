@@ -25,7 +25,7 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 			listener.ClientsRejected.Add(1)
 			return
 
-		case listener.upgadeRequests <- upgradeResponseChannel:
+		case listener.upgradeRequests <- upgradeResponseChannel:
 			websocketConn, err := listener.config.Upgrader.Upgrade(responseWriter, httpRequest, nil)
 
 			select {
