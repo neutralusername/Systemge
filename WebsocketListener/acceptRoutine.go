@@ -3,12 +3,11 @@ package WebsocketListener
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (client *WebsocketListener) StartReadRoutine(config *Config.WebsocketClient, acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
+func (client *WebsocketListener) StartReadRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
 
@@ -19,7 +18,7 @@ func (client *WebsocketListener) StartReadRoutine(config *Config.WebsocketClient
 	client.acceptHandler = acceptHandler
 	client.acceptRoutineStopChannel = make(chan struct{})
 	client.acceptRoutineWaitGroup.Add(1)
-	go client.acceptRoutine(config)
+	go client.acceptRoutine()
 
 	return nil
 }
@@ -39,14 +38,14 @@ func (listener *WebsocketListener) StopReadRoutine() error {
 	return nil
 }
 
-func (listener *WebsocketListener) acceptRoutine(config *Config.WebsocketClient) {
+func (listener *WebsocketListener) acceptRoutine() {
 	defer listener.acceptRoutineWaitGroup.Done()
 	for {
 		select {
 		case <-listener.acceptRoutineStopChannel:
 			return
 		default:
-			client, err := listener.accept(config)
+			client, err := listener.accept()
 			if err != nil {
 				continue
 			}

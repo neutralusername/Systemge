@@ -5,12 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) accept(config *Config.WebsocketClient) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) accept() (*WebsocketClient.WebsocketClient, error) {
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
 		triggered:               sync.WaitGroup{},
@@ -39,7 +38,7 @@ func (listener *WebsocketListener) accept(config *Config.WebsocketClient) (*Webs
 		if upgraderResponse.err != nil {
 			return nil, upgraderResponse.err
 		}
-		websocketClient, err := WebsocketClient.New(config, upgraderResponse.websocketConn)
+		websocketClient, err := WebsocketClient.New(upgraderResponse.websocketConn)
 		if err != nil {
 			listener.ClientsFailed.Add(1)
 			upgraderResponse.websocketConn.Close()
@@ -54,7 +53,7 @@ func (listener *WebsocketListener) SetAcceptDeadline(timeoutMs uint32) {
 
 }
 
-func (listener *WebsocketListener) Accept(config *Config.WebsocketClient) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, error) {
 	listener.mutex.RLock()
 	if listener.status != Status.Started {
 		listener.mutex.RUnlock()
@@ -64,10 +63,10 @@ func (listener *WebsocketListener) Accept(config *Config.WebsocketClient) (*Webs
 	defer listener.waitgroup.Done()
 	listener.mutex.RUnlock()
 
-	return listener.accept(config)
+	return listener.accept()
 }
 
-func (listener *WebsocketListener) AcceptTimeout(config *Config.WebsocketClient, timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
 	listener.mutex.RLock()
 	if listener.status != Status.Started {
 		listener.mutex.RUnlock()
@@ -78,5 +77,5 @@ func (listener *WebsocketListener) AcceptTimeout(config *Config.WebsocketClient,
 	listener.mutex.RUnlock()
 
 	listener.SetAcceptDeadline(timeoutMs)
-	return listener.accept(config)
+	return listener.accept()
 }

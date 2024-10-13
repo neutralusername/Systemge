@@ -41,3 +41,7 @@ func (client *WebsocketClient) ReadTimeout(timeoutMs uint64) ([]byte, error) {
 func (client *WebsocketClient) SetReadDeadline(timeoutMs uint64) {
 	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }
+
+func (client *WebsocketClient) SetReadLimit(maxBytes uint64) {
+	client.websocketConn.SetReadLimit(int64(maxBytes))
+}

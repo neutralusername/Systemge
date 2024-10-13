@@ -8,14 +8,12 @@ import (
 	"sync/atomic"
 
 	"github.com/gorilla/websocket"
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type WebsocketClient struct {
-	config        *Config.WebsocketClient
 	websocketConn *websocket.Conn
 
 	instanceId string
@@ -40,21 +38,16 @@ type WebsocketClient struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *Config.WebsocketClient, websocketConn *websocket.Conn) (*WebsocketClient, error) {
-	if config == nil {
-		return nil, errors.New("config is nil")
-	}
+func New(websocketConn *websocket.Conn) (*WebsocketClient, error) {
 	if websocketConn == nil {
 		return nil, errors.New("websocketConn is nil")
 	}
 
 	client := &WebsocketClient{
-		config:        config,
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
-	websocketConn.SetReadLimit(int64(client.config.IncomingMessageByteLimit))
 
 	return client, nil
 }
