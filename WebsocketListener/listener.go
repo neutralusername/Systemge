@@ -44,11 +44,6 @@ type WebsocketListener struct {
 	ClientsRejected atomic.Uint64
 }
 
-type acceptRequest struct {
-	upgraderResponseChannel chan *upgraderResponse
-	triggered               sync.WaitGroup
-}
-
 type upgraderResponse struct {
 	err           error
 	websocketConn *websocket.Conn
