@@ -21,7 +21,6 @@ func (listener *WebsocketListener) Stop() error {
 		// something
 	}
 	listener.StopAcceptRoutine()
-	listener.waitgroup.Wait()
 
 	listener.status = Status.Stopped
 	return nil

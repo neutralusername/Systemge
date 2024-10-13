@@ -30,8 +30,6 @@ type WebsocketListener struct {
 
 	acceptRoutine *Tools.Routine
 
-	waitgroup sync.WaitGroup
-
 	httpServer *HTTPServer.HTTPServer
 
 	upgradeRequests chan (<-chan *upgraderResponse)
