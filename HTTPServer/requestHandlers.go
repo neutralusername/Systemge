@@ -79,6 +79,9 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			Send403(w, r)
 			return
 		}
+
+		// ip rate limiting
+
 		if server.GetBlacklist() != nil {
 			if server.GetBlacklist().Contains(ip) {
 				if event := server.onEvent(Event.NewWarning(
@@ -99,6 +102,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 				}
 			}
 		}
+
 		if server.GetWhitelist() != nil && server.GetWhitelist().ElementCount() > 0 {
 			if !server.GetWhitelist().Contains(ip) {
 				if event := server.onEvent(Event.NewWarning(
