@@ -24,9 +24,14 @@ func NewReceptionHandlerFactory[O any, C any](
 	messageValidator ObjectHandler[O, C],
 	deserializer ObjectDeserializer[O, C],
 
-	priorityQueue *PriorityTokenQueue[*QueueWrapper[O, C]],
+	sharedQueue bool,
+	priorityTokenQueueConfig *Config.PriorityTokenQueue,
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
 ) ReceptionHandlerFactory[C] {
+	var sharedPriorityQueue *PriorityTokenQueue[*QueueWrapper[O, C]]
+	if sharedQueue {
+		sharedPriorityQueue = NewPriorityTokenQueue[*QueueWrapper[O, C]](priorityTokenQueueConfig)
+	}
 	return func() ReceptionHandler[C] {
 		byteHandlers := []ByteHandler[C]{}
 		if byteRateLimiterConfig != nil {
@@ -40,8 +45,10 @@ func NewReceptionHandlerFactory[O any, C any](
 		if messageValidator != nil {
 			objectHandlers = append(objectHandlers, messageValidator)
 		}
-		if priorityQueue != nil && obtainEnqueueConfigs != nil {
-			objectHandlers = append(objectHandlers, NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
+		if sharedPriorityQueue != nil {
+			objectHandlers = append(objectHandlers, NewQueueObjectHandler(sharedPriorityQueue, obtainEnqueueConfigs))
+		} else {
+			objectHandlers = append(objectHandlers, NewQueueObjectHandler(NewPriorityTokenQueue[*QueueWrapper[O, C]](priorityTokenQueueConfig), obtainEnqueueConfigs))
 		}
 
 		return NewReceptionHandler[O, C](
