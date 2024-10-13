@@ -21,6 +21,8 @@ type Routine struct {
 	stopChannel chan struct{}
 	waitgroup   sync.WaitGroup
 	semaphore   *Semaphore[struct{}]
+
+	interceptors chan func()
 }
 
 func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
@@ -50,6 +52,7 @@ func (routine *Routine) StartRoutine() error {
 	}
 
 	routine.stopChannel = make(chan struct{})
+	routine.interceptors = make(chan func(), 1)
 	routine.status = Status.Started
 
 	routine.waitgroup.Add(1)
@@ -72,6 +75,10 @@ func (routine *Routine) StopRoutine() error {
 	routine.status = Status.Stopped
 
 	return nil
+}
+
+func (routine *Routine) AddInterceptor(interceptor func()) {
+	routine.interceptors <- interceptor
 }
 
 func (routine *Routine) IsRoutineRunning() bool {
@@ -106,7 +113,11 @@ func (routine *Routine) routine() {
 					routine.semaphore.Signal(struct{}{})
 					routine.waitgroup.Done()
 				}()
-
+				select {
+				case interceptor := <-routine.interceptors:
+					interceptor()
+				default:
+				}
 				routine.routineFunc()
 				close(done)
 			}()
