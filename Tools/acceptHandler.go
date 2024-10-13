@@ -8,6 +8,7 @@ func NewDefaultAcceptHandler[C any](
 	whitelist *AccessControlList,
 	handshakeHandler func(C) (string, error),
 	sessionManager *SessionManager,
+	acceptHandler func(C),
 ) AcceptHandler[C] {
 
 	return func(caller C) {
