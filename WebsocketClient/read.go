@@ -5,17 +5,6 @@ import (
 	"time"
 )
 
-func (client *WebsocketClient) Read() ([]byte, error) {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
-
-	if client.readHandler != nil {
-		return nil, errors.New("receptionHandler is already running")
-	}
-
-	return client.read()
-}
-
 func (client *WebsocketClient) read() ([]byte, error) {
 	_, messageBytes, err := client.websocketConn.ReadMessage()
 	if err != nil {
@@ -27,6 +16,17 @@ func (client *WebsocketClient) read() ([]byte, error) {
 	client.BytesReceived.Add(uint64(len(messageBytes)))
 	client.MessagesReceived.Add(1)
 	return messageBytes, nil
+}
+
+func (client *WebsocketClient) Read() ([]byte, error) {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
+
+	if client.readHandler != nil {
+		return nil, errors.New("receptionHandler is already running")
+	}
+
+	return client.read()
 }
 
 // can be used to cancel an ongoing read operation

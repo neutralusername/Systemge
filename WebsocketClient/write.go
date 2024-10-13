@@ -6,20 +6,32 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (client *WebsocketClient) Write(messageBytes []byte) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
-
+func (client *WebsocketClient) write(messageBytes []byte) error {
 	err := client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		if isWebsocketConnClosedErr(err) {
 			client.Close()
 		}
+		return err
 	}
 	client.BytesSent.Add(uint64(len(messageBytes)))
 	client.MessagesSent.Add(1)
-
 	return nil
+}
+
+func (client *WebsocketClient) Write(messageBytes []byte) error {
+	client.writeMutex.Lock()
+	defer client.writeMutex.Unlock()
+
+	return client.write(messageBytes)
+}
+
+func (client *WebsocketClient) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
+	client.writeMutex.Lock()
+	defer client.writeMutex.Unlock()
+
+	client.SetWriteDeadline(timeoutMs)
+	return client.write(messageBytes)
 }
 
 func (client *WebsocketClient) SetWriteDeadline(timeoutMs uint64) {
