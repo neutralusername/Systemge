@@ -39,7 +39,7 @@ func NewDefaultReadHandler[O any, C any](
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
+func NewObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
 	return func(object O, caller C) error {
 		for _, handler := range handlers {
 			if err := handler(object, caller); err != nil {
@@ -75,7 +75,7 @@ func NewValidationObjectHandler[O any, C any](validator ObjectValidator[O, C]) O
 }
 
 // executes all handlers in order, return error if any handler returns an error
-func NewChainByteHandler[C any](handlers ...ByteHandler[C]) ByteHandler[C] {
+func NewByteHandler[C any](handlers ...ByteHandler[C]) ByteHandler[C] {
 	return func(bytes []byte, caller C) error {
 		for _, handler := range handlers {
 			if err := handler(bytes, caller); err != nil {
