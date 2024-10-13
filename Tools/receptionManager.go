@@ -46,46 +46,6 @@ func NewReceptionHandler[O any, C any](
 	}
 }
 
-func AssembleNewReceptionManagerFactory[O any, C any](
-	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
-	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
-
-	messageValidator ObjectHandler[O, C],
-	deserializer ObjectDeserializer[O, C],
-
-	priorityQueue *PriorityTokenQueue[*QueueWrapper[O, C]],
-	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
-) ReceptionHandlerFactory[C] {
-
-	byteHandlers := []ByteHandler[C]{}
-	if byteRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, NewTokenBucketRateLimitHandler[C](byteRateLimiterConfig))
-	}
-	if messageRateLimiterConfig != nil {
-		byteHandlers = append(byteHandlers, NewTokenBucketRateLimitHandler[C](messageRateLimiterConfig))
-	}
-
-	objectHandlers := []ObjectHandler[O, C]{}
-	if messageValidator != nil {
-		objectHandlers = append(objectHandlers, messageValidator)
-	}
-	if priorityQueue != nil && obtainEnqueueConfigs != nil {
-		objectHandlers = append(objectHandlers, NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
-	}
-
-	return NewReceptionHandlerFactory(
-		NewReceptionHandler(
-			NewChainByteHandler(
-				byteHandlers...,
-			),
-			deserializer,
-			NewChainObjectHandler(
-				objectHandlers...,
-			),
-		),
-	)
-}
-
 // executes all handlers in order, return error if any handler returns an error
 func NewChainObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandler[O, C] {
 	return func(object O, caller C) error {

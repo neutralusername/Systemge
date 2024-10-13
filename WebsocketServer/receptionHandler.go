@@ -3,7 +3,6 @@ package WebsocketServer
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -15,8 +14,8 @@ func NewWebsocketMessageValidator(
 	maxTopicSize int,
 	minPayloadSize int,
 	maxPayloadSize int,
-) Tools.ObjectHandler[*Tools.Message, *websocketServerReceptionManagerCaller] {
-	return Tools.NewValidationObjectHandler(func(message *Tools.Message, caller *websocketServerReceptionManagerCaller) error {
+) Tools.ObjectHandler[*Tools.Message, *WebsocketReceptionCaller] {
+	return Tools.NewValidationObjectHandler(func(message *Tools.Message, caller *WebsocketReceptionCaller) error {
 		if minSyncTokenSize >= 0 && len(message.GetSyncToken()) < minSyncTokenSize {
 			return errors.New("message contains sync token")
 		}
@@ -37,57 +36,4 @@ func NewWebsocketMessageValidator(
 		}
 		return nil
 	})
-}
-
-// consider approaches to get rid of this (in this package)
-func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Tools.Message, *websocketServerReceptionManagerCaller] {
-	return func(bytes []byte, caller *websocketServerReceptionManagerCaller) (*Tools.Message, error) {
-		return Tools.DeserializeMessage(bytes)
-	}
-}
-
-// consider approaches to get rid of this
-func NewReceptionManagerFactory(
-	onStart Tools.OnReceptionManagerStart[*websocketServerReceptionManagerCaller],
-	onStop Tools.OnReceptionManagerStop[*websocketServerReceptionManagerCaller],
-	onHandle Tools.ReceptionHandler[*websocketServerReceptionManagerCaller],
-) Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller] {
-	return Tools.NewReceptionManagerFactory[*websocketServerReceptionManagerCaller](
-		onStart,
-		onStop,
-		onHandle,
-	)
-}
-
-// consider approaches to get rid of this
-func AssembleNewReceptionManagerFactory[O any](
-	byteRateLimiterConfig *Config.TokenBucketRateLimiter,
-	messageRateLimiterConfig *Config.TokenBucketRateLimiter,
-
-	messageValidator Tools.ObjectHandler[O, *websocketServerReceptionManagerCaller],
-	deserializer Tools.ObjectDeserializer[O, *websocketServerReceptionManagerCaller],
-
-	requestResponseManager *Tools.RequestResponseManager[O],
-	obtainResponseToken Tools.ObtainResponseToken[O, *websocketServerReceptionManagerCaller],
-
-	priorityQueue *Tools.PriorityTokenQueue[O],
-	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
-
-	// topicManager *Tools.TopicManager,
-) Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller] {
-	return Tools.AssembleNewReceptionManagerFactory[O, *websocketServerReceptionManagerCaller](
-		byteRateLimiterConfig,
-		messageRateLimiterConfig,
-
-		messageValidator,
-		deserializer,
-
-		requestResponseManager,
-		obtainResponseToken,
-
-		priorityQueue,
-		obtainEnqueueConfigs,
-
-		// topicManager,
-	)
 }

@@ -8,14 +8,13 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
-type websocketServerReceptionManagerCaller struct {
+type WebsocketReceptionCaller struct {
 	Client    *WebsocketClient.WebsocketClient
 	SessionId string
 	Identity  string
@@ -36,9 +35,8 @@ type WebsocketServer[O any] struct {
 
 	eventHandler *Event.Handler
 
-	receptionManagerFactory Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller]
+	receptionHandlerFactory Tools.ReceptionHandlerFactory[*WebsocketReceptionCaller]
 	acceptionHandler        AcceptionHandler[O]
-	//requestResponseManager  *Tools.RequestResponseManager[T]
 
 	websocketListener *WebsocketListener.WebsocketListener
 
@@ -67,7 +65,7 @@ type WebsocketServer[O any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc /*  requestResponseManager *Tools.RequestResponseManager[T],  */, acceptionHandler AcceptionHandler[O], receptionManagerFactory Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller]) (*WebsocketServer[O], error) {
+func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandleFunc Event.HandleFunc, acceptionHandler AcceptionHandler[O], receptionHandlerFactory Tools.ReceptionHandlerFactory[*WebsocketReceptionCaller]) (*WebsocketServer[O], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -80,9 +78,12 @@ func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 	if config.WebsocketListenerConfig == nil {
 		return nil, errors.New("config.WebsocketListenerConfig is nil")
 	}
-	/* if requestResponseManager == nil {
-		return nil, errors.New("requestResponseManager is nil")
-	} */
+	if acceptionHandler == nil {
+		return nil, errors.New("acceptionHandler is nil")
+	}
+	if receptionHandlerFactory == nil {
+		return nil, errors.New("receptionHandlerFactory is nil")
+	}
 
 	server := &WebsocketServer[O]{
 		config:     config,
@@ -90,14 +91,7 @@ func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		acceptionHandler:        acceptionHandler,
-		receptionManagerFactory: receptionManagerFactory,
-		//requestResponseManager:  requestResponseManager,
-	}
-	if server.acceptionHandler == nil {
-		server.acceptionHandler = NewDefaultAcceptionHandler[O]()
-	}
-	if server.receptionManagerFactory == nil {
-		server.receptionManagerFactory = AssembleNewReceptionManagerFactory[*Message.Message](nil, nil, nil, nil, nil, nil, nil, nil)
+		receptionHandlerFactory: receptionHandlerFactory,
 	}
 	if eventHandleFunc != nil {
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
@@ -139,13 +133,9 @@ func (server *WebsocketServer[O]) SetAcceptionHandler(acceptionHandler Acception
 	server.acceptionHandler = acceptionHandler
 }
 
-func (server *WebsocketServer[O]) SetReceptionManagerFactory(receptionManagerFactory Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller]) {
-	server.receptionManagerFactory = receptionManagerFactory
+func (server *WebsocketServer[O]) SetReceptionHandlerFactory(receptionHandlerFactory Tools.ReceptionHandlerFactory[*WebsocketReceptionCaller]) {
+	server.receptionHandlerFactory = receptionHandlerFactory
 }
-
-/* func (server *WebsocketServer[T]) GetRequestResponseManager() *Tools.RequestResponseManager[T] {
-	return server.requestResponseManager
-} */
 
 func (server *WebsocketServer[O]) GetServerContext() Event.Context {
 	return Event.Context{
