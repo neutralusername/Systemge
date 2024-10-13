@@ -258,7 +258,7 @@ func (manager *SessionManager) GetStatus() int {
 	if manager.isStarted {
 		return Status.Started
 	}
-	return Status.Stopped
+	return Status.Stoped
 }
 
 func (identity *Identity) GetId() string {

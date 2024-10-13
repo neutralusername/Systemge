@@ -26,7 +26,7 @@ func (client *SystemgeClient) Start() error {
 		return event.GetError()
 	}
 
-	if client.status != Status.Stopped {
+	if client.status != Status.Stoped {
 		client.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"systemgeServer not stopped",

@@ -61,7 +61,7 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 	listener := &WebsocketListener{
 		name:       name,
 		config:     config,
-		status:     Status.Stopped,
+		status:     Status.Stoped,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	listener.httpServer = HTTPServer.New(listener.name+"_httpServer",

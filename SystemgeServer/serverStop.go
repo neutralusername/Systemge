@@ -58,7 +58,7 @@ func (server *SystemgeServer) Stop() error {
 		}
 	}
 	server.waitGroup.Wait()
-	server.status = Status.Stopped
+	server.status = Status.Stoped
 
 	server.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStoped,

@@ -104,13 +104,13 @@ func (app *Client) Start() error {
 func (app *Client) Stop() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
-	if app.status == Status.Stopped {
+	if app.status == Status.Stoped {
 		return errors.New("Already stopped")
 	}
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil
 	app.messageHandler.Close()
 	app.messageHandler = nil
-	app.status = Status.Stopped
+	app.status = Status.Stoped
 	return nil
 }

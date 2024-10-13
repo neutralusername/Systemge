@@ -160,7 +160,7 @@ func (connection *TcpSystemgeConnection) GetStatus() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 	if connection.closed {
-		return Status.Stopped
+		return Status.Stoped
 	} else {
 		return Status.Started
 	}
