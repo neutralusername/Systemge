@@ -59,7 +59,7 @@ func (client *WebsocketClient) readRoutine(delayNs int64) {
 			if err != nil {
 				continue
 			}
-			client.readHandler(bytes, client) // side effect to note: if a sub-goroutine is started in here, the .Stop() method will not wait for it to finish as was previously the case
+			client.readHandler(bytes, client) // side effect to note: if a sub-goroutine is started in here, the .Stop() method will not wait for it to finish as was previously the case with "async handling"
 		}
 	}
 }
