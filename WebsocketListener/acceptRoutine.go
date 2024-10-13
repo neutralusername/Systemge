@@ -3,6 +3,7 @@ package WebsocketListener
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
@@ -11,6 +12,10 @@ import (
 func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
+
+	if client.status != Status.Started {
+		return errors.New("listener not started")
+	}
 
 	if client.acceptHandler != nil {
 		return errors.New("receptionHandler is already running")
@@ -36,6 +41,13 @@ func (listener *WebsocketListener) StopAcceptRoutine() error {
 	listener.acceptRoutineWaitGroup.Wait()
 	listener.acceptHandler = nil
 	return nil
+}
+
+func (listener *WebsocketListener) IsAcceptRoutineRunning() bool {
+	listener.mutex.RLock()
+	defer listener.mutex.RUnlock()
+
+	return listener.acceptHandler != nil
 }
 
 func (listener *WebsocketListener) acceptRoutine() {
