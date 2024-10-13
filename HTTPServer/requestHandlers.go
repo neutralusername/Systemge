@@ -80,8 +80,8 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			return
 		}
 
-		if server.GetIpRateLimiter() != nil {
-			if !server.GetIpRateLimiter().RegisterConnectionAttempt(ip) {
+		if ipRateLimiter := server.GetIpRateLimiter(); ipRateLimiter != nil {
+			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
 				if event := server.onEvent(Event.NewWarning(
 					Event.RateLimited,
 					"Client not accepted",
