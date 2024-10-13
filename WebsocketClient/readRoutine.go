@@ -17,7 +17,6 @@ func (client *WebsocketClient) StartReadRoutine(delayNs int64, maxActiveHandlers
 	client.readRoutine = Tools.NewRoutine(func() {
 		if bytes, err := client.Read(); err == nil {
 			readHandler(bytes, client)
-
 		}
 	}, 1, 0, 0)
 
