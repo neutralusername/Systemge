@@ -48,7 +48,7 @@ func (listener *WebsocketListener) acceptRoutine() {
 			listener.waitgroup.Add(1)
 			go func() {
 				defer func() {
-					listener.acceptRoutineSemaphore.Release()
+					listener.acceptRoutineSemaphore.Signal(struct{}{})
 					listener.waitgroup.Done()
 				}()
 
