@@ -119,10 +119,10 @@ func (client *WebsocketClient) receptionRoutine() {
 			handleReceptionWrapper(messageBytes)
 		} else {
 			client.waitGroup.Add(1)
-			go func(websocketClient *WebsocketClient.WebsocketClient) {
+			go func() {
 				handleReceptionWrapper(messageBytes)
 				client.waitGroup.Done()
-			}(client)
+			}()
 		}
 	}
 }
