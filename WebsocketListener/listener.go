@@ -34,7 +34,7 @@ type WebsocketListener struct {
 
 	httpServer *HTTPServer.HTTPServer
 
-	upgadeRequests chan chan *upgraderResponse
+	upgadeRequests chan<- chan *upgraderResponse
 
 	pool *Tools.Pool[*acceptRequest]
 
