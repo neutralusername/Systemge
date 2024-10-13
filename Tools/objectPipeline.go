@@ -8,21 +8,24 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 )
 
-type TopicHandler[P any, R any] func(P) (R, error)
-type TopicHandlers[P any, R any] map[string]TopicHandler[P, R]
+type AsyncObjectHandler[O any, C any] func(object O, caller C) error
+type SyncObjectHandler[O any, C any] func(object O, caller C, syncToken string) (O, error)
 
-type TopicManager[P any, R any] struct {
+type ObjectPipeline[O any, C any] struct {
 	config *Config.TopicManager
 
-	topicHandlers       TopicHandlers[P, R]
-	unknownTopicHandler TopicHandler[P, R]
+	asyncObjectHandlers map[string]AsyncObjectHandler[O, C]
+	syncObjectHandlers  map[string]SyncObjectHandler[O, C]
+
+	unknownAsyncObjectHandler AsyncObjectHandler[O, C]
+	unknownSyncObjectHandler  SyncObjectHandler[O, C]
 
 	isClosed bool
 	mutex    sync.Mutex
 
-	queue             chan *queueStruct[P, R]
-	topicQueues       map[string]chan *queueStruct[P, R]
-	unknownTopicQueue chan *queueStruct[P, R]
+	queue             chan *queueStruct[O, C]
+	topicQueues       map[string]chan *queueStruct[O, C]
+	unknownTopicQueue chan *queueStruct[O, C]
 }
 
 type queueStruct[P any, R any] struct {
