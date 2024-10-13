@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) StartReadRoutine(delayNs int64, readHandler Tools.ReadHandler[*WebsocketClient]) error {
+func (client *WebsocketClient) StartReadRoutine(delayNs int64, asyncHandling bool, readHandler Tools.ReadHandler[*WebsocketClient]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -18,7 +18,7 @@ func (client *WebsocketClient) StartReadRoutine(delayNs int64, readHandler Tools
 	client.readHandler = readHandler
 	client.readRoutineStopChannel = make(chan struct{})
 	client.readRoutineWaitGroup.Add(1)
-	go client.readRoutine(delayNs)
+	go client.readRoutine(delayNs, asyncHandling)
 
 	return nil
 }
@@ -45,7 +45,7 @@ func (client *WebsocketClient) IsReadRoutineRunning() bool {
 	return client.readHandler != nil
 }
 
-func (client *WebsocketClient) readRoutine(delayNs int64) {
+func (client *WebsocketClient) readRoutine(delayNs int64, asyncHandling bool) {
 	defer client.readRoutineWaitGroup.Done()
 	for {
 		if delayNs > 0 {
@@ -59,7 +59,16 @@ func (client *WebsocketClient) readRoutine(delayNs int64) {
 			if err != nil {
 				continue
 			}
-			client.readHandler(bytes, client) // side effect to note: if a sub-goroutine is started in here, the .Stop() method will not wait for it to finish as was previously the case with "async handling"
+
+			if asyncHandling {
+				client.readRoutineWaitGroup.Add(1)
+				go func(bytes []byte) {
+					defer client.readRoutineWaitGroup.Done()
+					client.readHandler(bytes, client)
+				}(bytes)
+			} else {
+				client.readHandler(bytes, client)
+			}
 		}
 	}
 }
