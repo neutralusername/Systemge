@@ -44,3 +44,9 @@ func (c *QueueConsumer[T]) Stop() {
 
 	c.status = Status.Stoped
 }
+
+func (c *QueueConsumer[T]) consumeRoutine() {
+	for {
+		c.handler(c.queue.PopBlocking())
+	}
+}
