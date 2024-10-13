@@ -5,13 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/WebsocketClient"
 )
 
-func (listener *WebsocketListener) accept() (*websocket.Conn, error) {
+func (listener *WebsocketListener) accept(config *Config.WebsocketClient) (*WebsocketClient.WebsocketClient, error) {
 	acceptRequest := &acceptRequest{
 		upgraderResponseChannel: make(chan *upgraderResponse),
 		triggered:               sync.WaitGroup{},
