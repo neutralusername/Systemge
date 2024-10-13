@@ -9,9 +9,9 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		upgradeResponseChannel := make(chan *upgraderResponse)
 
-		var deadline <-chan time.Time
+		var requestDeadline <-chan time.Time
 		if listener.config.UpgradeRequestTimeoutMs > 0 {
-			deadline = time.After(time.Duration(listener.config.UpgradeRequestTimeoutMs) * time.Millisecond)
+			requestDeadline = time.After(time.Duration(listener.config.UpgradeRequestTimeoutMs) * time.Millisecond)
 		}
 
 		select {
@@ -20,7 +20,7 @@ func (listener *WebsocketListener) getHTTPWebsocketUpgradeHandler() http.Handler
 			listener.ClientsRejected.Add(1)
 			return
 
-		case <-deadline:
+		case <-requestDeadline:
 			http.Error(responseWriter, "Request timeout", http.StatusRequestTimeout)
 			listener.ClientsRejected.Add(1)
 			return
