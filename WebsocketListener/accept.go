@@ -9,6 +9,16 @@ import (
 )
 
 func (listener *WebsocketListener) accept(cancel chan struct{}) (*WebsocketClient.WebsocketClient, error) {
+
+	listener.mutex.RLock()
+	if listener.status != Status.Started {
+		listener.mutex.RUnlock()
+		return nil, errors.New("listener not started")
+	}
+	listener.waitgroup.Add(1)
+	defer listener.waitgroup.Done()
+	listener.mutex.RUnlock()
+
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")
@@ -39,29 +49,10 @@ func (listener *WebsocketListener) accept(cancel chan struct{}) (*WebsocketClien
 }
 
 func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, error) {
-	listener.mutex.RLock()
-	if listener.status != Status.Started {
-		listener.mutex.RUnlock()
-		return nil, errors.New("listener not started")
-	}
-	listener.waitgroup.Add(1)
-	defer listener.waitgroup.Done()
-	listener.mutex.RUnlock()
-
 	return listener.accept(make(chan struct{}))
 }
 
 func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
-
-	listener.mutex.RLock()
-	if listener.status != Status.Started {
-		listener.mutex.RUnlock()
-		return nil, errors.New("listener not started")
-	}
-	listener.waitgroup.Add(1)
-	defer listener.waitgroup.Done()
-	listener.mutex.RUnlock()
-
 	var deadline <-chan time.Time = time.After(time.Duration(timeoutMs) * time.Millisecond)
 	var cancel chan struct{} = make(chan struct{})
 	go func() {
