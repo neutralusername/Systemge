@@ -33,6 +33,10 @@ func (listener *WebsocketListener) StopAcceptRoutine() error {
 	listener.mutex.Lock()
 	defer listener.mutex.Unlock()
 
+	return listener.stopAcceptRoutine()
+}
+
+func (listener *WebsocketListener) stopAcceptRoutine() error {
 	if listener.acceptHandler == nil {
 		return errors.New("receptionHandler is not running")
 	}
@@ -61,11 +65,11 @@ func (listener *WebsocketListener) acceptRoutine() {
 			return
 
 		case <-listener.acceptRoutineSemaphore.GetChannel():
-			listener.waitgroup.Add(1)
+			listener.acceptRoutineWaitGroup.Add(1)
 			go func() {
 				defer func() {
 					listener.acceptRoutineSemaphore.Signal(struct{}{})
-					listener.waitgroup.Done()
+					listener.acceptRoutineWaitGroup.Done()
 				}()
 
 				select {
