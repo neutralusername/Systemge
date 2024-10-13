@@ -1,4 +1,4 @@
-package WebsocketServer
+package WebsocketClient
 
 import (
 	"github.com/neutralusername/Systemge/Event"

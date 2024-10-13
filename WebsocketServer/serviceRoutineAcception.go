@@ -39,9 +39,8 @@ func (server *WebsocketServer[O]) acceptionRoutine() {
 				return
 			}
 			server.ClientsAccepted.Add(1)
-			server.waitGroup.Add(2)
+			server.waitGroup.Add(1)
 			go server.websocketClientDisconnect(session, websocketClient)
-			go server.receptionRoutine(session, websocketClient)
 		} else {
 			server.ClientsRejected.Add(1)
 			websocketClient.Close()
