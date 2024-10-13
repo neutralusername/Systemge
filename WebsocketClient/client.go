@@ -24,7 +24,9 @@ type WebsocketClient struct {
 	closedMutex  sync.Mutex
 	closeChannel chan bool
 
-	receptionHandler Tools.ReadHandler[*WebsocketClient]
+	readHandler            Tools.ReadHandler[*WebsocketClient]
+	readRoutineStopChannel chan struct{}
+	readRoutineWaitGroup   sync.WaitGroup
 
 	writeMutex sync.Mutex
 	readMutex  sync.Mutex

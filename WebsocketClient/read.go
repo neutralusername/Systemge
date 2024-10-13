@@ -9,7 +9,7 @@ func (client *WebsocketClient) Read() ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
-	if client.receptionHandler != nil {
+	if client.readHandler != nil {
 		return nil, errors.New("receptionHandler is already running")
 	}
 

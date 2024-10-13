@@ -7,15 +7,17 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) StartReadRoutine(receptionHandler Tools.ReadHandler[*WebsocketClient]) error {
+func (client *WebsocketClient) StartReadRoutine(readHandler Tools.ReadHandler[*WebsocketClient]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
-	if client.receptionHandler != nil {
+	if client.readHandler != nil {
 		return errors.New("receptionHandler is already running")
 	}
 
-	client.receptionHandler = receptionHandler
+	client.readHandler = readHandler
+	client.readRoutineStopChannel = make(chan struct{})
+	client.readRoutineWaitGroup.Add(1)
 	go client.readRoutine()
 
 	return nil
@@ -25,24 +27,29 @@ func (client *WebsocketClient) StopReadRoutine() error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
-	if client.receptionHandler == nil {
+	if client.readHandler == nil {
 		return errors.New("receptionHandler is not running")
 	}
 
-	// close(readRoutineChannel)
+	close(client.readRoutineStopChannel)
 	client.websocketConn.SetReadDeadline(time.Now())
-	// wg.Wait()
-	client.receptionHandler = nil
+	client.readRoutineWaitGroup.Wait()
+	client.readHandler = nil
 	return nil
 }
 
 func (client *WebsocketClient) readRoutine() {
+	defer client.readRoutineWaitGroup.Done()
 	for {
-		bytes, err := client.read()
-		if err != nil {
-			continue
+		select {
+		case <-client.readRoutineStopChannel:
+			return
+		default:
+			bytes, err := client.read()
+			if err != nil {
+				continue
+			}
+			client.readHandler(bytes, client)
 		}
-
-		client.receptionHandler(bytes, client)
 	}
 }
