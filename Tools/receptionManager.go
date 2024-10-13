@@ -137,13 +137,11 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 	messageValidator ObjectHandler[O, C],
 	deserializer ObjectDeserializer[O, C],
 
-	requestResponseManager *RequestResponseManager[O],
-	obtainResponseToken ObtainResponseToken[O, C],
+	/* 	requestResponseManager *RequestResponseManager[O],
+	   	obtainResponseToken ObtainResponseToken[O, C], */
 
 	priorityQueue *PriorityTokenQueue[O],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
-
-	//topicManager *TopicManager[O, O], pondering...
 ) ReceptionManagerFactory[C] {
 
 	byteHandlers := []ByteHandler[C]{}
@@ -158,9 +156,9 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 	if messageValidator != nil {
 		objectHandlers = append(objectHandlers, messageValidator)
 	}
-	if requestResponseManager != nil && obtainResponseToken != nil {
+	/* 	if requestResponseManager != nil && obtainResponseToken != nil {
 		objectHandlers = append(objectHandlers, NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
-	}
+	} */
 	if priorityQueue != nil && obtainEnqueueConfigs != nil {
 		objectHandlers = append(objectHandlers, NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
@@ -206,7 +204,7 @@ func NewQueueObjectHandler[O any, C any](
 	}
 }
 
-type ObtainResponseToken[O any, C any] func(O, C) string
+/* type ObtainResponseToken[O any, C any] func(O, C) string
 
 func NewResponseObjectHandler[O any, C any](
 	requestResponseManager *RequestResponseManager[O],
@@ -221,7 +219,7 @@ func NewResponseObjectHandler[O any, C any](
 		}
 		return nil
 	}
-}
+} */
 
 type ObjectValidator[O any, C any] func(O, C) error
 
