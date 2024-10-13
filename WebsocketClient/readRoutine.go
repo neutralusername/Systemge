@@ -22,3 +22,17 @@ func (client *WebsocketClient) StartReadRoutine(delayNs int64, maxActiveHandlers
 
 	return client.readRoutine.StartRoutine()
 }
+
+func (client *WebsocketClient) StopReadRoutine() error {
+	client.readMutex.Lock()
+	defer client.readMutex.Unlock()
+
+	if client.readRoutine == nil {
+		return errors.New("receptionHandler is not running")
+	}
+
+	err := client.readRoutine.StopRoutine()
+	client.readRoutine = nil
+
+	return err
+}
