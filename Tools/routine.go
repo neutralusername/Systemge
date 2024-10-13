@@ -22,7 +22,7 @@ type Routine[T any] struct {
 	acceptRoutineSemaphore   *Semaphore[struct{}]
 }
 
-func NewRoutine[T any](handler RoutineHandler[T], maxConcurrentHandlers uint32, delayNs int64) *Routine[T] {
+func NewRoutine[T any](handler RoutineHandler[T], maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine[T] {
 	semaphore, err := NewSemaphore[struct{}](maxConcurrentHandlers, nil)
 	if err != nil {
 		return nil
