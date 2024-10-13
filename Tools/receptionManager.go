@@ -1,119 +1,30 @@
 package Tools
 
 import (
-	"errors"
-	"sync"
-
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Status"
 )
 
-type ReceptionManager[C any] struct {
-	onStart     OnReceptionManagerStart[C]
-	onStop      OnReceptionManagerStop[C]
-	onReception OnReceptionManagerHandle[C]
-	status      int
-	statusMutex sync.RWMutex
-}
+type ReceptionHandlerFactory[C any] func() ReceptionHandler[C]
 
-func NewReceptionManager[C any](
-	onStart OnReceptionManagerStart[C],
-	onStop OnReceptionManagerStop[C],
-	OnReception OnReceptionManagerHandle[C],
-) *ReceptionManager[C] {
-	return &ReceptionManager[C]{
-		onStart:     onStart,
-		onStop:      onStop,
-		onReception: OnReception,
-		status:      Status.Stopped,
-	}
-}
-
-func (manager *ReceptionManager[C]) Handle(bytes []byte, caller C) error {
-	manager.statusMutex.RLock()
-	defer manager.statusMutex.RUnlock()
-
-	if manager.status == Status.Stopped {
-		return errors.New("handler is stopped")
-	}
-	if manager.onReception == nil {
-		return errors.New("onHandle is nil")
-	}
-	return manager.onReception(bytes, caller)
-}
-
-func (handler *ReceptionManager[C]) Start(caller C) error {
-	handler.statusMutex.Lock()
-	defer handler.statusMutex.Unlock()
-
-	if handler.status != Status.Stopped {
-		return errors.New("handler is not stopped")
-	}
-	handler.status = Status.Pending
-	if handler.onStart != nil {
-		err := handler.onStart(caller)
-		if err != nil {
-			handler.status = Status.Stopped
-			return err
-		}
-	}
-	handler.status = Status.Started
-	return nil
-}
-
-func (handler *ReceptionManager[C]) Stop(caller C) error {
-	handler.statusMutex.Lock()
-	defer handler.statusMutex.Unlock()
-
-	if handler.status != Status.Started {
-		return errors.New("handler is not started")
-	}
-	handler.status = Status.Pending
-	if handler.onStop != nil {
-		err := handler.onStop(caller)
-		if err != nil {
-			handler.status = Status.Started
-			return err
-		}
-	}
-	handler.status = Status.Stopped
-	return nil
-}
-
-func (handler *ReceptionManager[C]) GetStatus(lock bool) int {
-	if lock {
-		handler.statusMutex.RLock()
-		defer handler.statusMutex.RUnlock()
-	}
-	return handler.status
-}
-
-type ReceptionManagerFactory[C any] func() *ReceptionManager[C]
-
-type OnReceptionManagerStart[C any] func(C) error
-type OnReceptionManagerStop[C any] func(C) error
-
-type OnReceptionManagerHandle[C any] func([]byte, C) error
+type ReceptionHandler[C any] func([]byte, C) error
 
 type ByteHandler[C any] func([]byte, C) error
 type ObjectDeserializer[O any, C any] func([]byte, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
 
-func NewReceptionManagerFactory[C any](
-	onStart OnReceptionManagerStart[C],
-	onStop OnReceptionManagerStop[C],
-	onReception OnReceptionManagerHandle[C],
-) ReceptionManagerFactory[C] {
-	return func() *ReceptionManager[C] {
-		return NewReceptionManager[C](onStart, onStop, onReception)
+func NewReceptionHandlerFactory[C any](
+	receptionHandler ReceptionHandler[C],
+) ReceptionHandlerFactory[C] {
+	return func() ReceptionHandler[C] {
+		return receptionHandler
 	}
 }
 
-func NewOnReceptionManagerHandle[O any, C any](
+func NewReceptionHandler[O any, C any](
 	byteHandler ByteHandler[C],
 	deserializer ObjectDeserializer[O, C],
 	objectHandler ObjectHandler[O, C],
-) OnReceptionManagerHandle[C] {
+) ReceptionHandler[C] {
 	return func(bytes []byte, caller C) error {
 
 		err := byteHandler(bytes, caller)
@@ -137,38 +48,28 @@ func AssembleNewReceptionManagerFactory[O any, C any](
 	messageValidator ObjectHandler[O, C],
 	deserializer ObjectDeserializer[O, C],
 
-	/* 	requestResponseManager *RequestResponseManager[O],
-	   	obtainResponseToken ObtainResponseToken[O, C], */
-
 	priorityQueue *PriorityTokenQueue[O],
 	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
-) ReceptionManagerFactory[C] {
+) ReceptionHandlerFactory[C] {
 
-	byteHandlers := []ByteHandler[C]{}
+	/* byteHandlers := []ByteHandler[C]{}
 	if byteRateLimiterConfig != nil {
 		byteHandlers = append(byteHandlers, NewByteRateLimitByteHandler[C](NewTokenBucketRateLimiter(byteRateLimiterConfig)))
 	}
 	if messageRateLimiterConfig != nil {
 		byteHandlers = append(byteHandlers, NewMessageRateLimitByteHandler[C](NewTokenBucketRateLimiter(messageRateLimiterConfig)))
-	}
+	} */
 
 	objectHandlers := []ObjectHandler[O, C]{}
 	if messageValidator != nil {
 		objectHandlers = append(objectHandlers, messageValidator)
 	}
-	/* 	if requestResponseManager != nil && obtainResponseToken != nil {
-		objectHandlers = append(objectHandlers, NewResponseObjectHandler(requestResponseManager, obtainResponseToken))
-	} */
 	if priorityQueue != nil && obtainEnqueueConfigs != nil {
 		objectHandlers = append(objectHandlers, NewQueueObjectHandler(priorityQueue, obtainEnqueueConfigs))
 	}
 
-	// todo handle topicManager parameter and corresponding start/stop functions
-
-	return NewReceptionManagerFactory(
-		nil,
-		nil,
-		NewOnReceptionManagerHandle(
+	return NewReceptionHandlerFactory(
+		NewReceptionHandler(
 			NewChainByteHandler(
 				byteHandlers...,
 			),
@@ -203,23 +104,6 @@ func NewQueueObjectHandler[O any, C any](
 		return priorityTokenQueue.Push(token, object, priority, timeoutMs)
 	}
 }
-
-/* type ObtainResponseToken[O any, C any] func(O, C) string
-
-func NewResponseObjectHandler[O any, C any](
-	requestResponseManager *RequestResponseManager[O],
-	obtainResponseToken ObtainResponseToken[O, C],
-) ObjectHandler[O, C] {
-	return func(object O, caller C) error {
-		responseToken := obtainResponseToken(object, caller)
-		if responseToken != "" {
-			if requestResponseManager != nil {
-				return requestResponseManager.AddResponse(responseToken, object)
-			}
-		}
-		return nil
-	}
-} */
 
 type ObjectValidator[O any, C any] func(O, C) error
 

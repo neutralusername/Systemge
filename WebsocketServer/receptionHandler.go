@@ -50,8 +50,8 @@ func NewWebsocketMessageDeserializer() Tools.ObjectDeserializer[*Tools.Message, 
 func NewReceptionManagerFactory(
 	onStart Tools.OnReceptionManagerStart[*websocketServerReceptionManagerCaller],
 	onStop Tools.OnReceptionManagerStop[*websocketServerReceptionManagerCaller],
-	onHandle Tools.OnReceptionManagerHandle[*websocketServerReceptionManagerCaller],
-) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
+	onHandle Tools.ReceptionHandler[*websocketServerReceptionManagerCaller],
+) Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller] {
 	return Tools.NewReceptionManagerFactory[*websocketServerReceptionManagerCaller](
 		onStart,
 		onStop,
@@ -74,7 +74,7 @@ func AssembleNewReceptionManagerFactory[O any](
 	obtainEnqueueConfigs Tools.ObtainEnqueueConfigs[O, *websocketServerReceptionManagerCaller],
 
 	// topicManager *Tools.TopicManager,
-) Tools.ReceptionManagerFactory[*websocketServerReceptionManagerCaller] {
+) Tools.ReceptionHandlerFactory[*websocketServerReceptionManagerCaller] {
 	return Tools.AssembleNewReceptionManagerFactory[O, *websocketServerReceptionManagerCaller](
 		byteRateLimiterConfig,
 		messageRateLimiterConfig,
