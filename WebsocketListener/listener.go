@@ -34,6 +34,8 @@ type WebsocketListener struct {
 
 	httpServer *HTTPServer.HTTPServer
 
+	upgadeRequests chan chan *websocket.Conn
+
 	pool *Tools.Pool[*acceptRequest]
 
 	// metrics
