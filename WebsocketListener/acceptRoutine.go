@@ -47,7 +47,10 @@ func (listener *WebsocketListener) acceptRoutine() {
 		case <-listener.acceptRoutineSemaphore.GetChannel():
 			listener.waitgroup.Add(1)
 			go func() {
-				defer listener.acceptRoutineSemaphore.Signal(struct{}{})
+				defer func() {
+					listener.waitgroup.Done()
+					listener.acceptRoutineSemaphore.Release()
+				}()
 
 				select {
 				case <-listener.acceptRoutineStopChannel:
