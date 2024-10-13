@@ -14,7 +14,8 @@ type Routine[T any] struct {
 	status      int
 	statusMutex sync.RWMutex
 
-	delayNs int64
+	delayNs   int64
+	timeoutNs int64
 
 	handler                  RoutineHandler[T]
 	acceptRoutineStopChannel chan struct{}
