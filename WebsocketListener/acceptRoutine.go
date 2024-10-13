@@ -10,7 +10,7 @@ import (
 )
 
 // if acceptRoutine is started and all already acceptRoutineSemaphore are taken, it won't do anything until they free up
-func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
+func (client *WebsocketListener) StartAcceptRoutine(delayNs int64, acceptHandler Tools.AcceptHandler[*WebsocketClient.WebsocketClient]) error {
 	client.acceptMutex.Lock()
 	defer client.acceptMutex.Unlock()
 
@@ -25,7 +25,7 @@ func (client *WebsocketListener) StartAcceptRoutine(acceptHandler Tools.AcceptHa
 	client.acceptHandler = acceptHandler
 	client.acceptRoutineStopChannel = make(chan struct{})
 	client.acceptRoutineWaitGroup.Add(1)
-	go client.acceptRoutine()
+	go client.acceptRoutine(delayNs)
 
 	return nil
 }
