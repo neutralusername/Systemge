@@ -48,7 +48,7 @@ func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, e
 	defer listener.waitgroup.Done()
 	listener.mutex.RUnlock()
 
-	return listener.accept(make(chan struct{}))
+	return listener.accept(make(chan struct{})) // if acceptRoutine is started and all acceptRoutineSemaphore are taken, it won't do anything until they free up
 }
 
 func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
