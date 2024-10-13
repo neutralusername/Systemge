@@ -3,12 +3,14 @@ package WebsocketClient
 import (
 	"errors"
 	"time"
+
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 func (client *WebsocketClient) read() ([]byte, error) {
 	_, messageBytes, err := client.websocketConn.ReadMessage()
 	if err != nil {
-		if isWebsocketConnClosedErr(err) {
+		if Helpers.IsWebsocketConnClosedErr(err) {
 			client.Close()
 		}
 		return nil, err

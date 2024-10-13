@@ -2,8 +2,6 @@ package WebsocketClient
 
 import (
 	"errors"
-	"io"
-	"net"
 	"sync"
 	"sync/atomic"
 
@@ -73,32 +71,4 @@ func (connclientction *WebsocketClient) GetCloseChannel() <-chan bool {
 
 func (client *WebsocketClient) GetAddress() string {
 	return client.websocketConn.RemoteAddr().String()
-}
-
-func isWebsocketConnClosedErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-		return true
-	}
-
-	if websocket.IsUnexpectedCloseError(err) {
-		return true
-	}
-
-	if errors.Is(err, websocket.ErrCloseSent) {
-		return true
-	}
-
-	if errors.Is(err, net.ErrClosed) || errors.Is(err, io.EOF) {
-		return true
-	}
-
-	if nErr, ok := err.(net.Error); ok && !nErr.Timeout() {
-		return true
-	}
-
-	return false
 }
