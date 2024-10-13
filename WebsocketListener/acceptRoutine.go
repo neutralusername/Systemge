@@ -71,7 +71,6 @@ func (listener *WebsocketListener) acceptRoutine() {
 				}()
 
 				select {
-
 				case <-listener.acceptRoutineStopChannel:
 					return
 
