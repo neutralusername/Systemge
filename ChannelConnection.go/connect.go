@@ -9,7 +9,6 @@ func EstablishConnection[T any](connectionChannel ConnectionChannel[T], timeoutN
 	connectionRequest := &ConnectionRequest[T]{
 		SendToListener:      make(chan T),
 		ReceiveFromListener: make(chan T),
-		Response:            make(chan bool),
 	}
 	var deadline <-chan time.Time
 	if timeoutNs > 0 {
