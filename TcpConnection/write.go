@@ -1,20 +1,27 @@
 package TcpConnection
 
 import (
+	"errors"
+	"net"
 	"time"
 
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpConnection) SendHeartbeat() error {
+const ENDOFMESSAGE = '\x04'
+const HEARTBEAT = '\x05'
+
+func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
-	err := Tcp.SendHeartbeat(connection.netConn, connection.config.TcpSendTimeoutMs)
+	if timeoutNs > 0 {
+		connection.netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutNs) * time.Nanosecond))
+	} else {
+		connection.netConn.SetWriteDeadline(time.Time{})
+	}
+	_, err := connection.netConn.Write([]byte{HEARTBEAT})
 	if err != nil {
-		if Tcp.IsConnectionClosed(err) {
-			connection.Close()
-		}
 		return err
 	}
 	connection.BytesSent.Add(1)
@@ -23,8 +30,16 @@ func (connection *TcpConnection) SendHeartbeat() error {
 	return nil
 }
 
+func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
+	if netConn == nil {
+		return errors.New("net.Conn is nil")
+	}
+
+	return nil
+}
+
 func (client *TcpConnection) write(messageBytes []byte) error {
-	_, err := client.netConn.Write(messageBytes)
+	_, err := client.netConn.Write(append(messageBytes, ENDOFMESSAGE))
 	if err != nil {
 		if Tcp.IsConnectionClosed(err) {
 			client.Close()
