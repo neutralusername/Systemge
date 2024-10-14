@@ -4,7 +4,7 @@ type AcceptHandler[C any] func(C)
 
 type InternalAcceptHandler[C any] func(C) error
 
-// executes all handlers in order, return error if any handler returns an error
+/* // executes all handlers in order, return error if any handler returns an error
 func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler[C] {
 	return func(caller C) {
 		for _, handler := range handlers {
@@ -13,7 +13,7 @@ func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler
 			}
 		}
 	}
-}
+} */
 
 /*
 type ObtainAcceptHandlerEnqueueConfigs[C any] func(C) (token string, priority uint32, timeout uint32)
