@@ -31,7 +31,7 @@ type ChannelConnection[T any] struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New[T any](something something) (*ChannelConnection[T], error) {
+func New[T any](something something) *ChannelConnection[T] {
 
 	client := &ChannelConnection[T]{
 		closeChannel: make(chan bool),

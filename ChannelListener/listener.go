@@ -27,7 +27,7 @@ type ChannelListener[T any] struct {
 
 	acceptRoutine *Tools.Routine
 
-	connectionChannel chan (chan *upgraderResponse[T])
+	connectionChannel chan (connectionRequest[T])
 
 	// metrics
 
@@ -36,8 +36,8 @@ type ChannelListener[T any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-type upgraderResponse[T any] struct {
-	err               error
+type connectionRequest[T any] struct {
+	errChannel        chan error
 	toClientChannel   chan T
 	fromClientChannel chan T
 }
@@ -49,14 +49,12 @@ func New[T any](name string, config *Config.WebsocketListener) (*ChannelListener
 	if config.TcpServerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
-	if config.MaxSimultaneousAccepts == 0 {
-		config.MaxSimultaneousAccepts = 1
-	}
 	listener := &ChannelListener[T]{
-		name:       name,
-		config:     config,
-		status:     Status.Stopped,
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:              name,
+		config:            config,
+		status:            Status.Stopped,
+		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		connectionChannel: make(chan (connectionRequest[T])),
 	}
 
 	return listener, nil
