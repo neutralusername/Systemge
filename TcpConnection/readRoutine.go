@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *TcpConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[*TcpConnection]) error {
+func (client *TcpConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[[]byte, *TcpConnection]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
