@@ -5,7 +5,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
@@ -28,6 +27,8 @@ type ChannelListener[T any] struct {
 
 	acceptRoutine *Tools.Routine
 
+	connectionChannel chan (chan *upgraderResponse[T])
+
 	// metrics
 
 	ClientsAccepted atomic.Uint64
@@ -35,9 +36,10 @@ type ChannelListener[T any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-type upgraderResponse struct {
-	err           error
-	websocketConn *websocket.Conn
+type upgraderResponse[T any] struct {
+	err               error
+	toClientChannel   chan T
+	fromClientChannel chan T
 }
 
 func New[T any](name string, config *Config.WebsocketListener) (*ChannelListener[T], error) {
