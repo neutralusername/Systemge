@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
@@ -15,6 +16,8 @@ import (
 
 type TcpListener struct {
 	name string
+
+	instanceId string
 
 	isClosed    bool
 	closedMutex sync.Mutex
@@ -49,6 +52,7 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 		blacklist:     blacklist,
 		whitelist:     whitelist,
 		ipRateLimiter: ipRateLimiter,
+		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
 	if err != nil {
@@ -100,4 +104,8 @@ func (server *TcpListener) GetIpRateLimiter() *Tools.IpRateLimiter {
 
 func (server *TcpListener) GetName() string {
 	return server.name
+}
+
+func (server *TcpListener) GetInstanceId() string {
+	return server.instanceId
 }

@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
@@ -17,6 +18,8 @@ type TcpConnection struct {
 	config     *Config.TcpSystemgeConnection
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
+
+	instanceId string
 
 	readMutex  sync.RWMutex
 	writeMutex sync.Mutex
@@ -52,6 +55,7 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection
 		messageReceiver: Tcp.NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes),
 		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:    make(chan bool),
+		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	if config.TcpBufferBytes <= 0 {
 		config.TcpBufferBytes = 1024 * 4
@@ -98,4 +102,8 @@ func (connection *TcpConnection) GetCloseChannel() <-chan bool {
 
 func (connection *TcpConnection) GetAddress() string {
 	return connection.netConn.RemoteAddr().String()
+}
+
+func (connection *TcpConnection) GetInstanceId() string {
+	return connection.instanceId
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type SystemgeConnection interface {
+type SystemgeConnection[B any] interface {
 	Close() error
 	GetInstanceId() string
 	GetAddress() string
@@ -19,11 +19,11 @@ type SystemgeConnection interface {
 	SetReadDeadline(uint64)
 	SetWriteDeadline(uint64)
 
-	Read() ([]byte, error)
-	ReadTimeout(uint64) ([]byte, error)
+	Read() (B, error)
+	ReadTimeout(uint64) (B, error)
 
-	Write([]byte) error
-	WriteTimeout([]byte, uint64) error
+	Write(B) error
+	WriteTimeout(B, uint64) error
 
 	GetDefaultCommands() Commands.Handlers
 
