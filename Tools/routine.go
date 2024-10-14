@@ -17,11 +17,11 @@ type Routine struct {
 	delayNs   int64
 	timeoutNs int64
 
-	routineFunc          routineFunc
-	stopChannel          chan struct{}
-	waitgroup            sync.WaitGroup
-	semaphore            *Semaphore[struct{}]
-	abortOngoingRequests chan struct{}
+	routineFunc              routineFunc
+	stopChannel              chan struct{}
+	waitgroup                sync.WaitGroup
+	semaphore                *Semaphore[struct{}]
+	abortOngoingCallsChannel chan struct{}
 }
 
 func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
@@ -51,7 +51,7 @@ func (routine *Routine) StartRoutine() error {
 	}
 
 	routine.stopChannel = make(chan struct{})
-	routine.abortOngoingRequests = make(chan struct{})
+	routine.abortOngoingCallsChannel = make(chan struct{})
 	routine.status = Status.Started
 
 	routine.waitgroup.Add(1)
@@ -60,7 +60,7 @@ func (routine *Routine) StartRoutine() error {
 	return nil
 }
 
-func (routine *Routine) StopRoutine(abortOngoingRequests bool) error {
+func (routine *Routine) StopRoutine(abortOngoingCalls bool) error {
 	routine.statusMutex.Lock()
 	defer routine.statusMutex.Unlock()
 
@@ -69,8 +69,8 @@ func (routine *Routine) StopRoutine(abortOngoingRequests bool) error {
 	}
 
 	close(routine.stopChannel)
-	if abortOngoingRequests {
-		close(routine.abortOngoingRequests)
+	if abortOngoingCalls {
+		close(routine.abortOngoingCallsChannel)
 	}
 	routine.waitgroup.Wait()
 
@@ -121,7 +121,7 @@ func (routine *Routine) routine() {
 			case <-done:
 			case <-deadline:
 				close(stopChannel)
-			case <-routine.abortOngoingRequests:
+			case <-routine.abortOngoingCallsChannel:
 				close(stopChannel)
 			}
 		}
