@@ -48,5 +48,5 @@ func EstablishConnection(tcpClientConfig *Config.TcpClient) (*WebsocketConnectio
 		return nil, err
 	}
 
-	return WebsocketConnection.New(conn)
+	return New(conn)
 }
