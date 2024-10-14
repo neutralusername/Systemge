@@ -41,37 +41,37 @@ type ChannelConnection[T any] struct {
 
 func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T] {
 
-	client := &ChannelConnection[T]{
+	connection := &ChannelConnection[T]{
 		closeChannel:   make(chan bool),
 		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		receiveChannel: receiveChannel,
 		sendChannel:    sendChannel,
 	}
 
-	return client
+	return connection
 }
 
-func (client *ChannelConnection[T]) GetStatus() int {
-	client.closedMutex.Lock()
-	defer client.closedMutex.Unlock()
-	if client.closed {
+func (connection *ChannelConnection[T]) GetStatus() int {
+	connection.closedMutex.Lock()
+	defer connection.closedMutex.Unlock()
+	if connection.closed {
 		return Status.Stopped
 	} else {
 		return Status.Started
 	}
 }
 
-func (client *ChannelConnection[T]) GetInstanceId() string {
-	return client.instanceId
+func (connection *ChannelConnection[T]) GetInstanceId() string {
+	return connection.instanceId
 }
 
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connclientction *ChannelConnection[T]) GetCloseChannel() <-chan bool {
-	return connclientction.closeChannel
+func (connection *ChannelConnection[T]) GetCloseChannel() <-chan bool {
+	return connection.closeChannel
 }
 
-func (client *ChannelConnection[T]) GetAddress() string {
-	return client.instanceId
+func (connection *ChannelConnection[T]) GetAddress() string {
+	return connection.instanceId
 }

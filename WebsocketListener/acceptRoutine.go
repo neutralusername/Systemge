@@ -27,16 +27,16 @@ func (listener *WebsocketListener) StartAcceptRoutine(maxConcurrentHandlers uint
 	return listener.acceptRoutine.StartRoutine()
 }
 
-func (client *WebsocketListener) StopAcceptRoutine() error {
-	client.acceptMutex.Lock()
-	defer client.acceptMutex.Unlock()
+func (listener *WebsocketListener) StopAcceptRoutine() error {
+	listener.acceptMutex.Lock()
+	defer listener.acceptMutex.Unlock()
 
-	if client.acceptRoutine == nil {
+	if listener.acceptRoutine == nil {
 		return errors.New("receptionHandler is not running")
 	}
 
-	err := client.acceptRoutine.StopRoutine()
-	client.acceptRoutine = nil
+	err := listener.acceptRoutine.StopRoutine()
+	listener.acceptRoutine = nil
 
 	return err
 }

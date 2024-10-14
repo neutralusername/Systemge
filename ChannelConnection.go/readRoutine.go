@@ -6,40 +6,40 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *ChannelConnection[T]) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[T, *ChannelConnection[T]]) error {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
+func (connection *ChannelConnection[T]) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[T, *ChannelConnection[T]]) error {
+	connection.readMutex.Lock()
+	defer connection.readMutex.Unlock()
 
-	if client.readRoutine != nil {
+	if connection.readRoutine != nil {
 		return errors.New("receptionHandler is already running")
 	}
 
-	client.readRoutine = Tools.NewRoutine(func(<-chan struct{}) {
-		if bytes, err := client.Read(); err == nil {
-			readHandler(bytes, client)
+	connection.readRoutine = Tools.NewRoutine(func(<-chan struct{}) {
+		if bytes, err := connection.Read(); err == nil {
+			readHandler(bytes, connection)
 		}
 	}, maxConcurrentHandlers, delayNs, timeoutNs)
 
-	return client.readRoutine.StartRoutine()
+	return connection.readRoutine.StartRoutine()
 }
 
-func (client *ChannelConnection[T]) StopReadRoutine() error {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
+func (connection *ChannelConnection[T]) StopReadRoutine() error {
+	connection.readMutex.Lock()
+	defer connection.readMutex.Unlock()
 
-	if client.readRoutine == nil {
+	if connection.readRoutine == nil {
 		return errors.New("receptionHandler is not running")
 	}
 
-	err := client.readRoutine.StopRoutine()
-	client.readRoutine = nil
+	err := connection.readRoutine.StopRoutine()
+	connection.readRoutine = nil
 
 	return err
 }
 
-func (client *ChannelConnection[T]) IsReadRoutineRunning() bool {
-	client.readMutex.RLock()
-	defer client.readMutex.RUnlock()
+func (connection *ChannelConnection[T]) IsReadRoutineRunning() bool {
+	connection.readMutex.RLock()
+	defer connection.readMutex.RUnlock()
 
-	return client.readRoutine != nil
+	return connection.readRoutine != nil
 }

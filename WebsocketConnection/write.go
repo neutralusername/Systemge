@@ -7,34 +7,34 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (client *WebsocketConnection) write(messageBytes []byte) error {
-	err := client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
+func (connection *WebsocketConnection) write(messageBytes []byte) error {
+	err := connection.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		if Helpers.IsWebsocketConnClosedErr(err) {
-			client.Close()
+			connection.Close()
 		}
 		return err
 	}
-	client.BytesSent.Add(uint64(len(messageBytes)))
-	client.MessagesSent.Add(1)
+	connection.BytesSent.Add(uint64(len(messageBytes)))
+	connection.MessagesSent.Add(1)
 	return nil
 }
 
-func (client *WebsocketConnection) Write(messageBytes []byte) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
+func (connection *WebsocketConnection) Write(messageBytes []byte) error {
+	connection.writeMutex.Lock()
+	defer connection.writeMutex.Unlock()
 
-	return client.write(messageBytes)
+	return connection.write(messageBytes)
 }
 
-func (client *WebsocketConnection) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
+func (connection *WebsocketConnection) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
+	connection.writeMutex.Lock()
+	defer connection.writeMutex.Unlock()
 
-	client.SetWriteDeadline(timeoutMs)
-	return client.write(messageBytes)
+	connection.SetWriteDeadline(timeoutMs)
+	return connection.write(messageBytes)
 }
 
-func (client *WebsocketConnection) SetWriteDeadline(timeoutMs uint64) {
-	client.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
+func (connection *WebsocketConnection) SetWriteDeadline(timeoutMs uint64) {
+	connection.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }

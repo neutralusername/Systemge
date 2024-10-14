@@ -4,22 +4,22 @@ import (
 	"errors"
 )
 
-func (client *ChannelConnection[T]) Close() error {
-	if !client.closedMutex.TryLock() {
+func (connection *ChannelConnection[T]) Close() error {
+	if !connection.closedMutex.TryLock() {
 		return errors.New("websocketClient already closing")
 	}
-	defer client.closedMutex.Unlock()
+	defer connection.closedMutex.Unlock()
 
-	if client.closed {
+	if connection.closed {
 		return errors.New("websocketClient already closed")
 	}
 
-	client.closed = true
+	connection.closed = true
 
-	close(client.closeChannel)
+	close(connection.closeChannel)
 
-	if client.readRoutine != nil {
-		client.StopReadRoutine()
+	if connection.readRoutine != nil {
+		connection.StopReadRoutine()
 	}
 
 	return nil

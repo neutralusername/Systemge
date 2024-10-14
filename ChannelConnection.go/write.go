@@ -1,27 +1,27 @@
 package ChannelConnection
 
-func (client *ChannelConnection[T]) write(messageBytes T) error {
-	client.sendChannel <- messageBytes
-	client.MessagesSent.Add(1)
+func (connection *ChannelConnection[T]) write(messageBytes T) error {
+	connection.sendChannel <- messageBytes
+	connection.MessagesSent.Add(1)
 	return nil
 }
 
-func (client *ChannelConnection[T]) Write(messageBytes T) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
+func (connection *ChannelConnection[T]) Write(messageBytes T) error {
+	connection.writeMutex.Lock()
+	defer connection.writeMutex.Unlock()
 
-	return client.write(messageBytes)
+	return connection.write(messageBytes)
 }
 
-func (client *ChannelConnection[T]) WriteTimeout(messageBytes T, timeoutMs uint64) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
+func (connection *ChannelConnection[T]) WriteTimeout(messageBytes T, timeoutMs uint64) error {
+	connection.writeMutex.Lock()
+	defer connection.writeMutex.Unlock()
 
-	client.SetWriteDeadline(timeoutMs)
-	return client.write(messageBytes)
+	connection.SetWriteDeadline(timeoutMs)
+	return connection.write(messageBytes)
 
 }
 
-func (client *ChannelConnection[T]) SetWriteDeadline(timeoutMs uint64) {
+func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutMs uint64) {
 	/* client.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond)) */
 }

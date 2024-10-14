@@ -7,43 +7,43 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (client *WebsocketConnection) read() ([]byte, error) {
-	_, messageBytes, err := client.websocketConn.ReadMessage()
+func (connection *WebsocketConnection) read() ([]byte, error) {
+	_, messageBytes, err := connection.websocketConn.ReadMessage()
 	if err != nil {
 		if Helpers.IsWebsocketConnClosedErr(err) {
-			client.Close()
+			connection.Close()
 		}
 		return nil, err
 	}
-	client.BytesReceived.Add(uint64(len(messageBytes)))
-	client.MessagesReceived.Add(1)
+	connection.BytesReceived.Add(uint64(len(messageBytes)))
+	connection.MessagesReceived.Add(1)
 	return messageBytes, nil
 }
 
-func (client *WebsocketConnection) Read() ([]byte, error) {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
+func (connection *WebsocketConnection) Read() ([]byte, error) {
+	connection.readMutex.Lock()
+	defer connection.readMutex.Unlock()
 
-	if client.readRoutine != nil {
+	if connection.readRoutine != nil {
 		return nil, errors.New("receptionHandler is already running")
 	}
 
-	return client.read()
+	return connection.read()
 }
 
-func (client *WebsocketConnection) ReadTimeout(timeoutMs uint64) ([]byte, error) {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
+func (connection *WebsocketConnection) ReadTimeout(timeoutMs uint64) ([]byte, error) {
+	connection.readMutex.Lock()
+	defer connection.readMutex.Unlock()
 
-	client.SetReadDeadline(timeoutMs)
-	return client.read()
+	connection.SetReadDeadline(timeoutMs)
+	return connection.read()
 }
 
 // can be used to cancel an ongoing read operation
-func (client *WebsocketConnection) SetReadDeadline(timeoutMs uint64) {
-	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
+func (connection *WebsocketConnection) SetReadDeadline(timeoutMs uint64) {
+	connection.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }
 
-func (client *WebsocketConnection) SetReadLimit(maxBytes int64) { // i do not comprehend why this is a int64 rather than a uint64
-	client.websocketConn.SetReadLimit(maxBytes)
+func (connection *WebsocketConnection) SetReadLimit(maxBytes int64) { // i do not comprehend why this is a int64 rather than a uint64
+	connection.websocketConn.SetReadLimit(maxBytes)
 }
