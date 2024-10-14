@@ -9,6 +9,8 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+type ConnectionChannel[T any] chan (*ChannelConnection[T])
+
 // implements SystemgeConnection
 type ChannelConnection[T any] struct {
 	instanceId string
