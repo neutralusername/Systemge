@@ -12,7 +12,7 @@ type ByteHandler[C any] func([]byte, C) error
 type ObjectDeserializer[O any, C any] func([]byte, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
 
-type QueueWrapper[O any, C any] struct {
+type ReadHandlerQueueWrapper[O any, C any] struct {
 	object O
 	caller C
 }
@@ -50,15 +50,15 @@ func NewObjectHandler[O any, C any](handlers ...ObjectHandler[O, C]) ObjectHandl
 	}
 }
 
-type ObtainEnqueueConfigs[O any, C any] func(O, C) (token string, priority uint32, timeout uint32)
+type ObtainReadHandlerEnqueueConfigs[O any, C any] func(O, C) (token string, priority uint32, timeout uint32)
 
 func NewQueueObjectHandler[O any, C any](
-	priorityTokenQueue *PriorityTokenQueue[*QueueWrapper[O, C]],
-	obtainEnqueueConfigs ObtainEnqueueConfigs[O, C],
+	priorityTokenQueue *PriorityTokenQueue[*ReadHandlerQueueWrapper[O, C]],
+	obtainEnqueueConfigs ObtainReadHandlerEnqueueConfigs[O, C],
 ) ObjectHandler[O, C] {
 	return func(object O, caller C) error {
 		token, priority, timeoutMs := obtainEnqueueConfigs(object, caller)
-		queueWrapper := &QueueWrapper[O, C]{
+		queueWrapper := &ReadHandlerQueueWrapper[O, C]{
 			object,
 			caller,
 		}

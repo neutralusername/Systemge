@@ -1,27 +1,54 @@
 package Tools
 
+import "errors"
+
 type AcceptHandler[C any] func(C)
 
-func NewDefaultAcceptHandler[C any](
-	ipRateLimiter *IpRateLimiter,
-	blacklist *AccessControlList,
-	whitelist *AccessControlList,
-	handshakeHandler func(C) (string, error),
-	sessionManager *SessionManager,
-	acceptHandler func(C),
-) AcceptHandler[C] {
+type InternalAcceptHandler[C any] func(C) error
 
+// executes all handlers in order, return error if any handler returns an error
+func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler[C] {
 	return func(caller C) {
-
+		for _, handler := range handlers {
+			if err := handler(caller); err != nil {
+				return
+			}
+		}
 	}
 }
 
-// executes all handlers in order, return error if any handler returns an error
-func NewAcceptHandler[C any](handlers ...AcceptHandler[C]) AcceptHandler[C] {
-	return func(caller C) {
-		for _, handler := range handlers {
-			handler(caller)
+type ObtainAcceptHandlerEnqueueConfigs[C any] func(C) (token string, priority uint32, timeout uint32)
+
+func NewQueueAcceptHandler[C any](
+	priorityTokenQueue *PriorityTokenQueue[C],
+	obtainEnqueueConfigs ObtainAcceptHandlerEnqueueConfigs[C],
+) InternalAcceptHandler[C] {
+	return func(caller C) error {
+		token, priority, timeoutMs := obtainEnqueueConfigs(caller)
+		return priorityTokenQueue.Push(token, caller, priority, timeoutMs)
+	}
+}
+
+type ObtainIp[C any] func(C) string
+
+func NewControlledAcceptHandler[C any](
+	ipRateLimiter *IpRateLimiter,
+	blacklist *AccessControlList,
+	whitelist *AccessControlList,
+	obtainIp ObtainIp[C],
+) InternalAcceptHandler[C] {
+	return func(caller C) error {
+		ip := obtainIp(caller)
+		if !ipRateLimiter.RegisterConnectionAttempt(ip) {
+			return errors.New("rate limited")
 		}
+		if blacklist != nil && blacklist.Contains(ip) {
+			return errors.New("blacklisted")
+		}
+		if whitelist != nil && whitelist.ElementCount() > 0 && !whitelist.Contains(ip) {
+			return errors.New("not whitelisted")
+		}
+		return nil
 	}
 }
 
