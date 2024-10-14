@@ -11,8 +11,8 @@ import (
 )
 
 func (connection *TcpSystemgeConnection) write(messageBytes []byte, circumstance string) error {
-	connection.sendMutex.Lock()
-	defer connection.sendMutex.Unlock()
+	connection.readMutex.Lock()
+	defer connection.readMutex.Unlock()
 
 	if event := connection.onEvent(Event.NewInfo(
 		Event.WritingMessage,

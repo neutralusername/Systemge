@@ -8,7 +8,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
@@ -20,7 +19,10 @@ type TcpSystemgeConnection struct {
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
 
-	sendMutex sync.Mutex
+	readMutex  sync.Mutex
+	writeMutex sync.Mutex
+
+	readRoutine *Tools.Routine
 
 	closed       bool
 	closedMutex  sync.Mutex
@@ -29,33 +31,12 @@ type TcpSystemgeConnection struct {
 
 	messageReceiver *Tcp.BufferedMessageReader
 
-	syncRequests map[string]*syncRequestStruct
-	syncMutex    sync.Mutex
-
-	eventHandler Event.Handler
-
-	messageHandlingLoopStopChannel chan<- bool
-	messageMutex                   sync.Mutex
-	messageChannel                 chan *Message.Message
-	messageChannelSemaphore        *Tools.Semaphore
-
-	rateLimiterBytes    *Tools.TokenBucketRateLimiter
-	rateLimiterMessages *Tools.TokenBucketRateLimiter
-
 	// metrics
-	bytesSent atomic.Uint64
+	BytesSent     atomic.Uint64
+	BytesReceived atomic.Uint64
 
-	asyncMessagesSent atomic.Uint64
-	syncRequestsSent  atomic.Uint64
-	syncResponsesSent atomic.Uint64
-
-	messagesReceived         atomic.Uint64
-	invalidMessagesReceived  atomic.Uint64
-	rejectedMessagesReceived atomic.Uint64
-
-	syncSuccessResponsesReceived atomic.Uint64
-	syncFailureResponsesReceived atomic.Uint64
-	noSyncResponseReceived       atomic.Uint64
+	MessagesSent     atomic.Uint64
+	MessagesReceived atomic.Uint64
 }
 
 func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReader, eventHandler Event.Handler) (*TcpSystemgeConnection, error) {
@@ -70,22 +51,12 @@ func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, me
 	}
 
 	connection := &TcpSystemgeConnection{
-		name:                    name,
-		config:                  config,
-		netConn:                 netConn,
-		messageReceiver:         messageReceiver,
-		randomizer:              Tools.NewRandomizer(config.RandomizerSeed),
-		closeChannel:            make(chan bool),
-		syncRequests:            make(map[string]*syncRequestStruct),
-		messageChannel:          make(chan *Message.Message, config.MessageChannelCapacity+1), // +1 so that the receive loop is never blocking while adding a message to the processing channel
-		messageChannelSemaphore: Tools.NewSemaphore(config.MessageChannelCapacity+1, config.MessageChannelCapacity+1),
-		eventHandler:            eventHandler,
-	}
-	if config.RateLimiterBytes != nil {
-		connection.rateLimiterBytes = Tools.NewTokenBucketRateLimiter(config.RateLimiterBytes)
-	}
-	if config.RateLimiterMessages != nil {
-		connection.rateLimiterMessages = Tools.NewTokenBucketRateLimiter(config.RateLimiterMessages)
+		name:            name,
+		config:          config,
+		netConn:         netConn,
+		messageReceiver: messageReceiver,
+		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
+		closeChannel:    make(chan bool),
 	}
 	if config.TcpBufferBytes <= 0 {
 		config.TcpBufferBytes = 1024 * 4
