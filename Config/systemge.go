@@ -60,8 +60,7 @@ func UnmarshalSystemgeServer(data string) *SystemgeServer {
 type TcpSystemgeListener struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 
-	IpRateLimiter       *IpRateLimiter `json:"ipRateLimiter"`       // *optional* (rate limiter for incoming connections) (allows to limit the number of incoming connection attempts from the same IP) (it is more efficient to use a firewall for this purpose)
-	MaxClientNameLength uint64         `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
+	MaxClientNameLength uint64 `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 func UnmarshalTcpSystemgeListener(data string) *TcpSystemgeListener {

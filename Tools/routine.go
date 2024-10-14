@@ -100,6 +100,7 @@ func (routine *Routine) routine() {
 			}
 
 			var done chan struct{} = make(chan struct{})
+			stopChannel := routine.stopChannel
 
 			go func() {
 				defer func() {
@@ -107,12 +108,13 @@ func (routine *Routine) routine() {
 					routine.waitgroup.Done()
 				}()
 
-				routine.routineFunc(routine.stopChannel)
+				routine.routineFunc(stopChannel)
 				close(done)
 			}()
 
 			select {
 			case <-deadline:
+				close(stopChannel)
 			case <-done:
 			}
 		}

@@ -38,7 +38,7 @@ type TcpSystemgeListener struct {
 	tcpSystemgeConnectionAttemptsAccepted atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*TcpSystemgeListener, error) {
+func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*TcpSystemgeListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -46,20 +46,17 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpSystemgeListener{
-		name:         name,
-		config:       config,
-		blacklist:    blacklist,
-		whitelist:    whitelist,
-		eventHandler: eventHandler,
+		name:          name,
+		config:        config,
+		blacklist:     blacklist,
+		whitelist:     whitelist,
+		ipRateLimiter: ipRateLimiter,
 	}
 	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
 	if err != nil {
 		return nil, err
 	}
 	server.tcpListener = tcpListener
-	if config.IpRateLimiter != nil {
-		server.ipRateLimiter = Tools.NewIpRateLimiter(config.IpRateLimiter)
-	}
 	return server, nil
 }
 
@@ -68,27 +65,7 @@ func (listener *TcpSystemgeListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 
-	if event := listener.onEvent(Event.NewInfo(
-		Event.ServiceStoping,
-		"stopping tcpSystemgeListener",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.ServiceStoping,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
 	if listener.isClosed {
-		listener.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStoped,
-			"tcpSystemgeListener is already closed",
-			Event.Context{
-				Event.Circumstance: Event.ServiceStoping,
-			},
-		))
 		return errors.New("tcpSystemgeListener is already closed")
 	}
 
@@ -98,20 +75,13 @@ func (listener *TcpSystemgeListener) Close() error {
 		listener.ipRateLimiter.Close()
 	}
 
-	listener.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStoped,
-		"tcpSystemgeListener stopped",
-		Event.Context{
-			Event.Circumstance: Event.ServiceStoping,
-		},
-	))
-
 	return nil
 }
 
 func (listener *TcpSystemgeListener) GetStatus() int {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
+
 	if listener.isClosed {
 		return Status.Stopped
 	}
@@ -126,22 +96,10 @@ func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *TcpSystemgeListener) GetName() string {
-	return server.name
+func (server *TcpSystemgeListener) GetIpRateLimiter() *Tools.IpRateLimiter {
+	return server.ipRateLimiter
 }
 
-func (server *TcpSystemgeListener) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler != nil {
-		server.eventHandler(event)
-	}
-	return event
-}
-func (server *TcpSystemgeListener) GetServerContext() Event.Context {
-	return Event.Context{
-		Event.ServiceType:   Event.TcpSystemgeListener,
-		Event.ServiceName:   server.name,
-		Event.ServiceStatus: Status.ToString(server.GetStatus()),
-		Event.Function:      Event.GetCallerFuncName(2),
-	}
+func (server *TcpSystemgeListener) GetName() string {
+	return server.name
 }
