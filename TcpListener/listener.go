@@ -26,8 +26,10 @@ type TcpListener struct {
 	config        *Config.TcpSystemgeListener
 	ipRateLimiter *Tools.IpRateLimiter
 
+	acceptRoutine *Tools.Routine
+
 	tcpListener net.Listener
-	acceptMutex sync.Mutex
+	acceptMutex sync.RWMutex
 
 	blacklist *Tools.AccessControlList
 	whitelist *Tools.AccessControlList
