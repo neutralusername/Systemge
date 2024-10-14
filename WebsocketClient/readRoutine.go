@@ -14,7 +14,7 @@ func (client *WebsocketClient) StartReadRoutine(maxConcurrentHandlers uint32, de
 		return errors.New("receptionHandler is already running")
 	}
 
-	client.readRoutine = Tools.NewRoutine(func() {
+	client.readRoutine = Tools.NewRoutine(func(<-chan struct{}) {
 		if bytes, err := client.Read(); err == nil {
 			readHandler(bytes, client)
 		}
