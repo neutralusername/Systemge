@@ -91,9 +91,6 @@ type TcpSystemgeConnection struct {
 	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*
 
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-	MaxPayloadSize           int    `json:"maxPayloadSize"`           // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxTopicSize             int    `json:"maxTopicSize"`             // default: <=0 == unlimited (messages that exceed this limit will be skipped)
-	MaxSyncTokenSize         int    `json:"maxSyncTokenSize"`         // default: <=0 == unlimited (messages that exceed this limit will be skipped)
 }
 
 func UnmarshalTcpSystemgeConnection(data string) *TcpSystemgeConnection {

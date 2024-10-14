@@ -7,14 +7,12 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type TcpSystemgeConnection struct {
-	name       string
 	config     *Config.TcpSystemgeConnection
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
@@ -39,22 +37,18 @@ type TcpSystemgeConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeConnection, netConn net.Conn, messageReceiver *Tcp.BufferedMessageReader, eventHandler Event.Handler) (*TcpSystemgeConnection, error) {
+func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
 	if netConn == nil {
 		return nil, errors.New("netConn is nil")
 	}
-	if messageReceiver == nil {
-		return nil, errors.New("messageReceiver is nil")
-	}
 
 	connection := &TcpSystemgeConnection{
-		name:            name,
 		config:          config,
 		netConn:         netConn,
-		messageReceiver: messageReceiver,
+		messageReceiver: Tcp.NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes),
 		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:    make(chan bool),
 	}
@@ -92,10 +86,6 @@ func (connection *TcpSystemgeConnection) GetStatus() int {
 	} else {
 		return Status.Started
 	}
-}
-
-func (connection *TcpSystemgeConnection) GetName() string {
-	return connection.name
 }
 
 // GetCloseChannel returns a channel that will be closed when the connection is closed.

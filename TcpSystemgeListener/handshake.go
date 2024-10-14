@@ -1,17 +1,6 @@
 package TcpSystemgeListener
 
-import (
-	"errors"
-	"net"
-
-	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Tcp"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
-)
-
-func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn, eventHandler Event.Handler) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
+/* func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn, eventHandler Event.Handler) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	if event := listener.onEvent(Event.NewInfo(
 		Event.ServerHandshakeStarted,
 		"starting handshake",
@@ -156,3 +145,4 @@ func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.Tc
 
 	return TcpSystemgeConnection.New(message.GetPayload(), connectionConfig, netConn, messageReceiver, eventHandler)
 }
+*/

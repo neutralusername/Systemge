@@ -2,26 +2,25 @@ package TcpSystemgeListener
 
 import (
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.TcpSystemgeConnection) (SystemgeConnection.SystemgeConnection, error) {
+func (listener *TcpSystemgeListener) AcceptConnection(connectionConfig *Config.TcpSystemgeConnection) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
 	netConn, err := listener.tcpListener.Accept()
 	if err != nil {
-		listener.tcpSystemgeConnectionAttemptsFailed.Add(1)
+		listener.ClientsFailed.Add(1)
 		return nil, err
 	}
 
-	connection, err := listener.serverHandshake(connectionConfig, netConn, eventHandler)
+	tcpSystemgeConnection, err := TcpSystemgeConnection.New(connectionConfig, netConn)
 	if err != nil {
-		listener.tcpSystemgeConnectionAttemptsRejected.Add(1)
+		listener.ClientsFailed.Add(1)
 		netConn.Close()
 		return nil, err
 	}
 
-	listener.tcpSystemgeConnectionAttemptsAccepted.Add(1)
-	return connection, nil
+	return tcpSystemgeConnection, nil
 }
