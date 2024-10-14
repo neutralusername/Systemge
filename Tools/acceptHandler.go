@@ -39,7 +39,7 @@ func NewControlledAcceptHandler[C any](
 ) InternalAcceptHandler[C] {
 	return func(caller C) error {
 		ip := obtainIp(caller)
-		if !ipRateLimiter.RegisterConnectionAttempt(ip) {
+		if ipRateLimiter != nil && !ipRateLimiter.RegisterConnectionAttempt(ip) {
 			return errors.New("rate limited")
 		}
 		if blacklist != nil && blacklist.Contains(ip) {
