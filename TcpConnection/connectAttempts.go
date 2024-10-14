@@ -1,4 +1,4 @@
-package Tcp
+package TcpConnection
 
 import (
 	"errors"
@@ -45,7 +45,7 @@ func (connectionAttempt *ConnectionAttempt) connectionAttempts(name string) {
 			return
 		}
 		connectionAttempt.attempts++
-		connection, err := EstablishConnection(connectionAttempt.config.TcpSystemgeConnectionConfig, connectionAttempt.config.TcpClientConfig, name, connectionAttempt.config.MaxServerNameLength, connectionAttempt.eventHandler)
+		connection, err := EstablishConnection(connectionAttempt.config.TcpSystemgeConnectionConfig, connectionAttempt.config.TcpClientConfig)
 		if err != nil {
 			select {
 			case <-time.After(time.Duration(connectionAttempt.config.RetryIntervalMs) * time.Millisecond):
