@@ -76,7 +76,7 @@ type TcpSystemgeConnection struct {
 	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
 
 	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeoutMs"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	TcpReceiveTimeoutMs  uint64 `json:"tcpReceiveTimeoutMs"`  // default: 0 == block forever
+	TcpReceiveTimeoutNs  int64  `json:"tcpReceiveTimeoutMs"`  // default: 0 == block forever
 	TcpSendTimeoutMs     uint64 `json:"tcpSendTimeoutMs"`     // default: 0 == block forever
 
 	HeartbeatIntervalMs uint64 `json:"heartbeatIntervalMs"` // default: 0 == no heartbeat (a disconnect will definitely be detected after this interval) (if 0, a disconnect might be detected but there is no guarantee)

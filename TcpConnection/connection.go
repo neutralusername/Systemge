@@ -51,7 +51,7 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection
 	connection := &TcpConnection{
 		config:          config,
 		netConn:         netConn,
-		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes),
+		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutNs, config.TcpBufferBytes),
 		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:    make(chan bool),
 		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
