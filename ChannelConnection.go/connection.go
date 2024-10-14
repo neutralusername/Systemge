@@ -12,9 +12,9 @@ import (
 type ConnectionChannel[T any] chan *ConnectionRequest[T]
 
 type ConnectionRequest[T any] struct {
-	sendToListener      chan T
-	receiveFromListener chan T
-	response            chan bool
+	SendToListener      chan T
+	ReceiveFromListener chan T
+	Response            chan bool
 }
 
 // implements SystemgeConnection
