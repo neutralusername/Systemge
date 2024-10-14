@@ -9,9 +9,17 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type ConnectionChannel[T any] chan /* MessageChannel[T] */
+type ConnectionChannel[T any] chan *ConnectionRequest[T]
 
-type MessageChannel[T any] chan T
+type ConnectionRequest[T any] struct {
+	messageChannel         *MessageChannel[T]
+	responseMessageChannel chan *MessageChannel[T]
+}
+
+type MessageChannel[T any] struct {
+	sendChannel           chan T
+	receiveChannelChannel chan T
+}
 
 // implements SystemgeConnection
 type ChannelConnection[T any] struct {
