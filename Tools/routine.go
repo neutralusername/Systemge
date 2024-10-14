@@ -108,11 +108,6 @@ func (routine *Routine) routine() {
 			stopChannel := routine.stopChannel
 
 			go func() {
-				defer func() {
-					routine.semaphore.Signal(struct{}{})
-					routine.waitgroup.Done()
-				}()
-
 				routine.routineFunc(stopChannel)
 				close(done)
 			}()
@@ -124,6 +119,8 @@ func (routine *Routine) routine() {
 			case <-routine.abortOngoingCallsChannel:
 				close(stopChannel)
 			}
+			routine.semaphore.Signal(struct{}{})
+			routine.waitgroup.Done()
 		}
 	}
 }
