@@ -19,7 +19,7 @@ type TcpSystemgeConnection struct {
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
 
-	readMutex  sync.Mutex
+	readMutex  sync.RWMutex
 	writeMutex sync.Mutex
 
 	readRoutine *Tools.Routine
