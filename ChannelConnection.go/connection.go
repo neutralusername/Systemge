@@ -35,9 +35,6 @@ type ChannelConnection[T any] struct {
 
 	// metrics
 
-	BytesSent     atomic.Uint64
-	BytesReceived atomic.Uint64
-
 	MessagesSent     atomic.Uint64
 	MessagesReceived atomic.Uint64
 }
