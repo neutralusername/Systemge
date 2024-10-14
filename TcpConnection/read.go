@@ -35,6 +35,10 @@ func (client *TcpConnection) ReadTimeout(timeoutMs uint64) ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
+	if client.readRoutine != nil {
+		return nil, errors.New("receptionHandler is already running")
+	}
+
 	client.SetReadDeadline(timeoutMs)
 	return client.read()
 }

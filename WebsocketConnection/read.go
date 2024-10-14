@@ -35,6 +35,10 @@ func (connection *WebsocketConnection) ReadTimeout(timeoutMs uint64) ([]byte, er
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
+	if connection.readRoutine != nil {
+		return nil, errors.New("receptionHandler is already running")
+	}
+
 	connection.SetReadDeadline(timeoutMs)
 	return connection.read()
 }
