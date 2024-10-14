@@ -5,16 +5,7 @@ import (
 )
 
 func (client *ChannelConnection[T]) read() (T, error) {
-	/* _, messageBytes, err := client.websocketConn.ReadMessage()
-	if err != nil {
-		if Helpers.IsWebsocketConnClosedErr(err) {
-			client.Close()
-		}
-		return nil, err
-	} */
-	client.BytesReceived.Add(uint64(len(messageBytes)))
-	client.MessagesReceived.Add(1)
-	return messageBytes, nil
+	return <-client.receiveChannel, nil
 }
 
 func (client *ChannelConnection[T]) Read() (T, error) {
@@ -22,11 +13,12 @@ func (client *ChannelConnection[T]) Read() (T, error) {
 	defer client.readMutex.Unlock()
 
 	if client.readRoutine != nil {
-		return nil, errors.New("receptionHandler is already running")
+		var nilValue T
+		return nilValue, errors.New("receptionHandler is already running")
 	}
-	/*
-		return client.read()
-	*/
+
+	return client.read()
+
 }
 
 func (client *ChannelConnection[T]) ReadTimeout(timeoutMs uint64) (T, error) {
