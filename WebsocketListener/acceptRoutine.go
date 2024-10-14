@@ -16,13 +16,13 @@ func (listener *WebsocketListener) StartAcceptRoutine(maxConcurrentHandlers uint
 	}
 
 	listener.acceptRoutine = Tools.NewRoutine(func() {
-		client, err := listener.accept(listener.acceptRoutine.GetStopChannel())
-		if err != nil {
-			listener.ClientsFailed.Add(1)
-			return
+
+		if client, err := listener.accept(listener.acceptRoutine.GetStopChannel()); err == nil {
+			listener.ClientsAccepted.Add(1)
+			acceptHandler(client)
 		}
-		listener.ClientsAccepted.Add(1)
-		acceptHandler(client)
+		listener.ClientsFailed.Add(1)
+
 	}, maxConcurrentHandlers, delayNs, timeoutNs)
 
 	return listener.acceptRoutine.StartRoutine()
