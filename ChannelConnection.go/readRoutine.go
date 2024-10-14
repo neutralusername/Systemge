@@ -23,7 +23,7 @@ func (client *ChannelConnection[T]) StartReadRoutine(maxConcurrentHandlers uint3
 	return client.readRoutine.StartRoutine()
 }
 
-func (client *ChannelConnection) StopReadRoutine() error {
+func (client *ChannelConnection[T]) StopReadRoutine() error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -37,7 +37,7 @@ func (client *ChannelConnection) StopReadRoutine() error {
 	return err
 }
 
-func (client *ChannelConnection) IsReadRoutineRunning() bool {
+func (client *ChannelConnection[T]) IsReadRoutineRunning() bool {
 	client.readMutex.RLock()
 	defer client.readMutex.RUnlock()
 
