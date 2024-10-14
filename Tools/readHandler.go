@@ -1,13 +1,10 @@
 package Tools
 
-import (
-	"github.com/neutralusername/Systemge/Config"
-)
+type ReadHandlerFactory[O any, C any] func() ReadHandler[O, C]
 
-type ReadHandlerFactory[B any, C any] func() ReadHandler[B, C]
+type ReadHandler[O any, C any] func(O, C)
 
-type ReadHandler[B any, C any] func(B, C)
-
+/*
 type ByteHandler[B any, C any] func(B, C) error
 type ObjectDeserializer[B any, O any, C any] func(B, C) (O, error)
 type ObjectHandler[O any, C any] func(O, C) error
@@ -96,3 +93,4 @@ func NewTokenBucketRateLimitHandler[B any, C any](obtainTokensFromBytes ObtainTo
 		return nil
 	}
 }
+*/

@@ -1,7 +1,5 @@
 package Tools
 
-import "errors"
-
 type AcceptHandler[C any] func(C)
 
 type InternalAcceptHandler[C any] func(C) error
@@ -17,6 +15,7 @@ func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler
 	}
 }
 
+/*
 type ObtainAcceptHandlerEnqueueConfigs[C any] func(C) (token string, priority uint32, timeout uint32)
 
 func NewQueueAcceptHandler[C any](
@@ -50,7 +49,7 @@ func NewControlledAcceptHandler[C any](
 		}
 		return nil
 	}
-}
+} */
 
 /*
 func NewAccessControlAcceptionHandler[O any](blacklist *Tools.AccessControlList, whitelist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handshakeHandler func(*WebsocketClient.WebsocketClient) (string, error)) AcceptionHandler[O] {
