@@ -3,6 +3,7 @@ package Tools
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/neutralusername/Systemge/Status"
@@ -22,6 +23,7 @@ type Routine struct {
 	waitgroup                sync.WaitGroup
 	semaphore                *Semaphore[struct{}]
 	abortOngoingCallsChannel chan struct{}
+	openCallGoroutines       atomic.Int32
 }
 
 func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64) *Routine {
@@ -86,6 +88,11 @@ func (routine *Routine) IsRoutineRunning() bool {
 	return routine.status == Status.Started
 }
 
+// if >0 after stopping the routine, it means that there are zombie goroutines
+func (routine *Routine) OpenCallGoroutines() int32 {
+	return routine.openCallGoroutines.Load()
+}
+
 func (routine *Routine) routine() {
 	defer routine.waitgroup.Done()
 	for {
@@ -108,6 +115,9 @@ func (routine *Routine) routine() {
 			stopChannel := routine.stopChannel
 
 			go func() {
+				routine.openCallGoroutines.Add(1)
+				defer routine.openCallGoroutines.Add(-1)
+
 				routine.routineFunc(stopChannel)
 				close(done)
 			}()
