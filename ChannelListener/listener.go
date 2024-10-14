@@ -1,20 +1,17 @@
 package WebsocketListener
 
 import (
-	"errors"
 	"sync"
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/ChannelConnection.go"
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type ChannelListener[T any] struct {
-	config *Config.ChannelListener
-	name   string
+	name string
 
 	instanceId string
 	sessionId  string
@@ -37,13 +34,9 @@ type ChannelListener[T any] struct {
 	ClientsRejected atomic.Uint64
 }
 
-func New[T any](name string, config *Config.ChannelListener) (*ChannelListener[T], error) {
-	if config == nil {
-		return nil, errors.New("config is nil")
-	}
+func New[T any](name string) (*ChannelListener[T], error) {
 	listener := &ChannelListener[T]{
 		name:              name,
-		config:            config,
 		status:            Status.Stopped,
 		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		connectionChannel: make(ChannelConnection.ConnectionChannel[T]),
