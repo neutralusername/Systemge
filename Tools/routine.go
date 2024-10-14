@@ -115,10 +115,9 @@ func (routine *Routine) routine() {
 			select {
 			case <-done:
 			case <-deadline:
-				close(stopChannel)
 			case <-routine.abortOngoingCallsChannel:
-				close(stopChannel)
 			}
+			close(stopChannel)
 			routine.semaphore.Signal(struct{}{})
 			routine.waitgroup.Done()
 		}
