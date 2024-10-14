@@ -12,6 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+// implements SystemgeConnection
 type TcpConnection struct {
 	config     *Config.TcpSystemgeConnection
 	netConn    net.Conn

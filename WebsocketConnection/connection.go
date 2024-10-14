@@ -11,6 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+// implements SystemgeConnection
 type WebsocketConnection struct {
 	websocketConn *websocket.Conn
 
