@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type ConnectionChannel[T any] chan MessageChannel[T]
+type ConnectionChannel[T any] chan /* MessageChannel[T] */
 
 type MessageChannel[T any] chan T
 
