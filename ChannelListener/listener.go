@@ -12,7 +12,7 @@ import (
 )
 
 type ChannelListener[T any] struct {
-	config *Config.WebsocketListener
+	config *Config.ChannelListener
 	name   string
 
 	instanceId string
@@ -42,12 +42,9 @@ type connectionRequest[T any] struct {
 	fromClientChannel chan T
 }
 
-func New[T any](name string, config *Config.WebsocketListener) (*ChannelListener[T], error) {
+func New[T any](name string, config *Config.ChannelListener) (*ChannelListener[T], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
-	}
-	if config.TcpServerConfig == nil {
-		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	listener := &ChannelListener[T]{
 		name:              name,
