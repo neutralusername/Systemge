@@ -9,7 +9,9 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type ConnectionChannel[T any] chan (*ChannelConnection[T])
+type ConnectionChannel[T any] chan MessageChannel[T]
+
+type MessageChannel[T any] chan T
 
 // implements SystemgeConnection
 type ChannelConnection[T any] struct {
@@ -18,6 +20,8 @@ type ChannelConnection[T any] struct {
 	closed       bool
 	closedMutex  sync.Mutex
 	closeChannel chan bool
+
+	messageChannel MessageChannel[T]
 
 	readRoutine *Tools.Routine
 
@@ -33,11 +37,12 @@ type ChannelConnection[T any] struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New[T any]() *ChannelConnection[T] {
+func New[T any](messageChannel MessageChannel[T]) *ChannelConnection[T] {
 
 	client := &ChannelConnection[T]{
-		closeChannel: make(chan bool),
-		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		closeChannel:   make(chan bool),
+		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		messageChannel: messageChannel,
 	}
 
 	return client
@@ -65,5 +70,5 @@ func (connclientction *ChannelConnection[T]) GetCloseChannel() <-chan bool {
 }
 
 func (client *ChannelConnection[T]) GetAddress() string {
-	return client.websocketConn.RemoteAddr().String()
+	return client.instanceId
 }

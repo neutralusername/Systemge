@@ -15,7 +15,7 @@ func (client *ChannelConnection[T]) Close() error {
 	}
 
 	client.closed = true
-	client.websocketConn.Close()
+
 	close(client.closeChannel)
 
 	if client.readRoutine != nil {

@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[*WebsocketConnection]) error {
+func (client *WebsocketConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[[]byte, *WebsocketConnection]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 

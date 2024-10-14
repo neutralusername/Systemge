@@ -28,7 +28,7 @@ type ChannelListener[T any] struct {
 
 	acceptRoutine *Tools.Routine
 
-	connectionChannel chan (*ChannelConnection.ChannelConnection[T])
+	connectionChannel ChannelConnection.ConnectionChannel[T]
 
 	// metrics
 
@@ -46,7 +46,7 @@ func New[T any](name string, config *Config.ChannelListener) (*ChannelListener[T
 		config:            config,
 		status:            Status.Stopped,
 		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		connectionChannel: make(chan (*ChannelConnection.ChannelConnection[T])),
+		connectionChannel: make(ChannelConnection.ConnectionChannel[T]),
 	}
 
 	return listener, nil

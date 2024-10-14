@@ -16,7 +16,7 @@ func (listener *ChannelListener[T]) accept(cancel <-chan struct{}) (*ChannelConn
 		return nil, errors.New("accept canceled")
 
 	case connection := <-listener.connectionChannel:
-		return connection, nil
+		return ChannelConnection.New(connection), nil
 	}
 }
 
