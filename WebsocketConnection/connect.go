@@ -1,4 +1,4 @@
-package WebsocketConnect
+package WebsocketConnection
 
 import (
 	"crypto/tls"
@@ -8,10 +8,10 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/WebsocketConnection"
 )
 
-func EstablishConnection(tcpClientConfig *Config.TcpClient) (*WebsocketConnection.WebsocketConnection, error) {
+// wip
+func EstablishConnection(tcpClientConfig *Config.TcpClient) (*WebsocketConnection, error) {
 	dialer := websocket.DefaultDialer
 
 	if tcpClientConfig.TlsCert != "" {
