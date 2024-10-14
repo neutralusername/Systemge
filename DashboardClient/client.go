@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
+	"github.com/neutralusername/Systemge/TcpConnect"
 )
 
 type Client struct {
@@ -59,7 +59,7 @@ func (app *Client) Start() error {
 	if app.status == Status.Started {
 		return errors.New("Already started")
 	}
-	connection, err := TcpSystemgeConnect.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength, app.eventHandler)
+	connection, err := TcpConnect.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength, app.eventHandler)
 	if err != nil {
 		return err
 	}

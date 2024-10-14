@@ -3,11 +3,11 @@ package SingleRequestServer
 import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
+	"github.com/neutralusername/Systemge/TcpConnect"
 )
 
 func AsyncMessage(name string, config *Config.SingleRequestClient, topic string, payload string) error {
-	connection, err := TcpSystemgeConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
+	connection, err := TcpConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func AsyncMessage(name string, config *Config.SingleRequestClient, topic string,
 }
 
 func SyncRequest(name string, config *Config.SingleRequestClient, topic string, payload string) (*Message.Message, error) {
-	connection, err := TcpSystemgeConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
+	connection, err := TcpConnect.EstablishConnection(config.TcpSystemgeConnectionConfig, config.TcpClientConfig, name, config.MaxServerNameLength, nil)
 	if err != nil {
 		return nil, err
 	}

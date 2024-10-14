@@ -1,14 +1,14 @@
-package TcpSystemgeConnect
+package Tcp
 
 import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Tcp"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
-func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
+func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (*TcpConnection.TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -20,7 +20,7 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 	if err != nil {
 		return nil, err
 	}
-	connection, err := TcpSystemgeConnection.New(config, netConn)
+	connection, err := TcpConnection.New(config, netConn)
 	if err != nil {
 		netConn.Close()
 		return nil, err

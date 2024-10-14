@@ -1,10 +1,10 @@
-package TcpSystemgeListener
+package TcpListener
 
 import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (listener *TcpSystemgeListener) CheckMetrics() Metrics.MetricsTypes {
+func (listener *TcpListener) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
 		map[string]uint64{
@@ -16,7 +16,7 @@ func (listener *TcpSystemgeListener) CheckMetrics() Metrics.MetricsTypes {
 	)
 	return metricsTypes
 }
-func (listener *TcpSystemgeListener) GetMetrics() Metrics.MetricsTypes {
+func (listener *TcpListener) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
 		map[string]uint64{

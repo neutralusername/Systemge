@@ -1,10 +1,10 @@
-package TcpSystemgeConnection
+package TcpConnection
 
 import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (connection *TcpSystemgeConnection) CheckMetrics() Metrics.MetricsTypes {
+func (connection *TcpConnection) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("tcpSystemgeConnection_byteTransmissions", Metrics.New(
 		map[string]uint64{
@@ -36,7 +36,7 @@ func (connection *TcpSystemgeConnection) CheckMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-func (connection *TcpSystemgeConnection) GetMetrics() Metrics.MetricsTypes {
+func (connection *TcpConnection) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("tcpSystemgeConnection_byteTransmissions", Metrics.New(
 		map[string]uint64{

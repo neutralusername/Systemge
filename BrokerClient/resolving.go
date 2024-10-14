@@ -6,13 +6,13 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
+	"github.com/neutralusername/Systemge/TcpConnection"
 )
 
 func (messageBrokerclient *Client) resolveBrokerTcpClientConfigs(topic string, isSyncTopic bool) []*Config.TcpClient {
 	tcpClientConfigs := []*Config.TcpClient{}
 	for _, resolverTcpClientConfig := range messageBrokerclient.config.ResolverTcpClientConfigs {
-		resolverConnection, err := TcpSystemgeConnection.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverTcpClientConfig, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
+		resolverConnection, err := TcpConnection.EstablishConnection(messageBrokerclient.config.ResolverTcpSystemgeConnectionConfig, resolverTcpClientConfig, messageBrokerclient.GetName(), messageBrokerclient.config.MaxServerNameLength)
 		if err != nil {
 			if messageBrokerclient.warningLogger != nil {
 				messageBrokerclient.warningLogger.Log(Event.New("Failed to establish connection to resolver \""+resolverTcpClientConfig.Address+"\"", err).Error())

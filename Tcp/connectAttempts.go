@@ -1,4 +1,4 @@
-package TcpSystemgeConnect
+package Tcp
 
 import (
 	"errors"

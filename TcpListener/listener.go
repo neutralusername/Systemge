@@ -1,4 +1,4 @@
-package TcpSystemgeListener
+package TcpListener
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type TcpSystemgeListener struct {
+type TcpListener struct {
 	name string
 
 	isClosed    bool
@@ -36,14 +36,14 @@ type TcpSystemgeListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*TcpSystemgeListener, error) {
+func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*TcpListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
 	if config.TcpServerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
-	server := &TcpSystemgeListener{
+	server := &TcpListener{
 		name:          name,
 		config:        config,
 		blacklist:     blacklist,
@@ -59,7 +59,7 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 }
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *TcpSystemgeListener) Close() error {
+func (listener *TcpListener) Close() error {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 
@@ -76,7 +76,7 @@ func (listener *TcpSystemgeListener) Close() error {
 	return nil
 }
 
-func (listener *TcpSystemgeListener) GetStatus() int {
+func (listener *TcpListener) GetStatus() int {
 	listener.closedMutex.Lock()
 	defer listener.closedMutex.Unlock()
 
@@ -86,18 +86,18 @@ func (listener *TcpSystemgeListener) GetStatus() int {
 	return Status.Started
 }
 
-func (server *TcpSystemgeListener) GetWhitelist() *Tools.AccessControlList {
+func (server *TcpListener) GetWhitelist() *Tools.AccessControlList {
 	return server.whitelist
 }
 
-func (server *TcpSystemgeListener) GetBlacklist() *Tools.AccessControlList {
+func (server *TcpListener) GetBlacklist() *Tools.AccessControlList {
 	return server.blacklist
 }
 
-func (server *TcpSystemgeListener) GetIpRateLimiter() *Tools.IpRateLimiter {
+func (server *TcpListener) GetIpRateLimiter() *Tools.IpRateLimiter {
 	return server.ipRateLimiter
 }
 
-func (server *TcpSystemgeListener) GetName() string {
+func (server *TcpListener) GetName() string {
 	return server.name
 }

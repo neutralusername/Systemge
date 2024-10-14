@@ -1,4 +1,4 @@
-package TcpSystemgeConnection
+package TcpConnection
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
-func (connection *TcpSystemgeConnection) SendHeartbeat() error {
+func (connection *TcpConnection) SendHeartbeat() error {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
@@ -23,7 +23,7 @@ func (connection *TcpSystemgeConnection) SendHeartbeat() error {
 	return nil
 }
 
-func (client *TcpSystemgeConnection) write(messageBytes []byte) error {
+func (client *TcpConnection) write(messageBytes []byte) error {
 	_, err := client.netConn.Write(messageBytes)
 	if err != nil {
 		if Tcp.IsConnectionClosed(err) {
@@ -36,14 +36,14 @@ func (client *TcpSystemgeConnection) write(messageBytes []byte) error {
 	return nil
 }
 
-func (client *TcpSystemgeConnection) Write(messageBytes []byte) error {
+func (client *TcpConnection) Write(messageBytes []byte) error {
 	client.writeMutex.Lock()
 	defer client.writeMutex.Unlock()
 
 	return client.write(messageBytes)
 }
 
-func (client *TcpSystemgeConnection) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
+func (client *TcpConnection) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
 	client.writeMutex.Lock()
 	defer client.writeMutex.Unlock()
 
@@ -51,6 +51,6 @@ func (client *TcpSystemgeConnection) WriteTimeout(messageBytes []byte, timeoutMs
 	return client.write(messageBytes)
 }
 
-func (client *TcpSystemgeConnection) SetWriteDeadline(timeoutMs uint64) {
+func (client *TcpConnection) SetWriteDeadline(timeoutMs uint64) {
 	client.netConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }

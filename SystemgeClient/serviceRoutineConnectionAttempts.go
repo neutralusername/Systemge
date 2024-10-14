@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/TcpSystemgeConnect"
+	"github.com/neutralusername/Systemge/TcpConnect"
 )
 
 func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {
@@ -68,7 +68,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 		return errors.New("connection attempt already in progress")
 	}
 
-	connectionAttempt, err := TcpSystemgeConnect.EstablishConnectionAttempts(client.name,
+	connectionAttempt, err := TcpConnect.EstablishConnectionAttempts(client.name,
 		&Config.SystemgeConnectionAttempt{
 			MaxServerNameLength:         client.config.MaxServerNameLength,
 			MaxConnectionAttempts:       client.config.MaxConnectionAttempts,
@@ -106,7 +106,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 	return nil
 }
 
-func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpSystemgeConnect.ConnectionAttempt) {
+func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpConnect.ConnectionAttempt) {
 	if client.ongoingConnectionAttempts.Add(1) == 1 {
 		client.status = Status.Pending
 	}

@@ -1,4 +1,4 @@
-package TcpSystemgeConnection
+package TcpConnection
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type TcpSystemgeConnection struct {
+type TcpConnection struct {
 	config     *Config.TcpSystemgeConnection
 	netConn    net.Conn
 	randomizer *Tools.Randomizer
@@ -37,7 +37,7 @@ type TcpSystemgeConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeConnection, error) {
+func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -45,7 +45,7 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeCo
 		return nil, errors.New("netConn is nil")
 	}
 
-	connection := &TcpSystemgeConnection{
+	connection := &TcpConnection{
 		config:          config,
 		netConn:         netConn,
 		messageReceiver: Tcp.NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes),
@@ -60,7 +60,7 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpSystemgeCo
 	return connection, nil
 }
 
-func (connection *TcpSystemgeConnection) Close() error {
+func (connection *TcpConnection) Close() error {
 	if !connection.closedMutex.TryLock() {
 		return errors.New("connection already closing")
 	}
@@ -78,7 +78,7 @@ func (connection *TcpSystemgeConnection) Close() error {
 	return nil
 }
 
-func (connection *TcpSystemgeConnection) GetStatus() int {
+func (connection *TcpConnection) GetStatus() int {
 	connection.closedMutex.Lock()
 	defer connection.closedMutex.Unlock()
 	if connection.closed {
@@ -91,10 +91,10 @@ func (connection *TcpSystemgeConnection) GetStatus() int {
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *TcpSystemgeConnection) GetCloseChannel() <-chan bool {
+func (connection *TcpConnection) GetCloseChannel() <-chan bool {
 	return connection.closeChannel
 }
 
-func (connection *TcpSystemgeConnection) GetAddress() string {
+func (connection *TcpConnection) GetAddress() string {
 	return connection.netConn.RemoteAddr().String()
 }

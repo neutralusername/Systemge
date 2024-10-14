@@ -1,4 +1,4 @@
-package TcpSystemgeConnection
+package TcpConnection
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (client *TcpSystemgeConnection) read() ([]byte, error) {
+func (client *TcpConnection) read() ([]byte, error) {
 	messageBytes, err := client.messageReceiver.ReadNextMessage()
 	if err != nil {
 		if Helpers.IsWebsocketConnClosedErr(err) {
@@ -20,7 +20,7 @@ func (client *TcpSystemgeConnection) read() ([]byte, error) {
 	return messageBytes, nil
 }
 
-func (client *TcpSystemgeConnection) Read() ([]byte, error) {
+func (client *TcpConnection) Read() ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -31,7 +31,7 @@ func (client *TcpSystemgeConnection) Read() ([]byte, error) {
 	return client.read()
 }
 
-func (client *TcpSystemgeConnection) ReadTimeout(timeoutMs uint64) ([]byte, error) {
+func (client *TcpConnection) ReadTimeout(timeoutMs uint64) ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -40,6 +40,6 @@ func (client *TcpSystemgeConnection) ReadTimeout(timeoutMs uint64) ([]byte, erro
 }
 
 // can be used to cancel an ongoing read operation
-func (client *TcpSystemgeConnection) SetReadDeadline(timeoutMs uint64) {
+func (client *TcpConnection) SetReadDeadline(timeoutMs uint64) {
 	client.netConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }

@@ -1,10 +1,10 @@
-package TcpSystemgeConnection
+package TcpConnection
 
 import (
 	"github.com/neutralusername/Systemge/Commands"
 )
 
-func (connection *TcpSystemgeConnection) GetDefaultCommands() Commands.Handlers {
+func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{}
 	/* 	commands["close"] = func(args []string) (string, error) {
 	   		err := connection.Close()

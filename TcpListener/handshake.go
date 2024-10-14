@@ -1,4 +1,4 @@
-package TcpSystemgeListener
+package TcpListener
 
 /* func (listener *TcpSystemgeListener) serverHandshake(connectionConfig *Config.TcpSystemgeConnection, netConn net.Conn, eventHandler Event.Handler) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	if event := listener.onEvent(Event.NewInfo(

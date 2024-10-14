@@ -1,4 +1,4 @@
-package TcpSystemgeConnection
+package TcpConnection
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *TcpSystemgeConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[*TcpSystemgeConnection]) error {
+func (client *TcpConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[*TcpConnection]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -23,7 +23,7 @@ func (client *TcpSystemgeConnection) StartReadRoutine(maxConcurrentHandlers uint
 	return client.readRoutine.StartRoutine()
 }
 
-func (client *TcpSystemgeConnection) StopReadRoutine() error {
+func (client *TcpConnection) StopReadRoutine() error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -37,7 +37,7 @@ func (client *TcpSystemgeConnection) StopReadRoutine() error {
 	return err
 }
 
-func (client *TcpSystemgeConnection) IsReadRoutineRunning() bool {
+func (client *TcpConnection) IsReadRoutineRunning() bool {
 	client.readMutex.RLock()
 	defer client.readMutex.RUnlock()
 

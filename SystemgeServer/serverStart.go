@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/TcpSystemgeListener"
+	"github.com/neutralusername/Systemge/TcpListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -40,7 +40,7 @@ func (server *SystemgeServer) Start() error {
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	server.status = Status.Pending
 
-	listener, err := TcpSystemgeListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
+	listener, err := TcpListener.New(server.name, server.config.TcpSystemgeListenerConfig, server.whitelist, server.blacklist, server.eventHandler)
 	if err != nil {
 		server.onEvent(Event.NewErrorNoOption(
 			Event.ServiceStartFailed,
