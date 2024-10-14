@@ -12,8 +12,8 @@ import (
 type ConnectionChannel[T any] chan *ConnectionRequest[T]
 
 type ConnectionRequest[T any] struct {
-	messageChannel         *MessageChannel[T]
-	responseMessageChannel chan *MessageChannel[T]
+	messageChannel *MessageChannel[T]
+	response       chan bool
 }
 
 type MessageChannel[T any] struct {
