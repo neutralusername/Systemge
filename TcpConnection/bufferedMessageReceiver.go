@@ -10,7 +10,7 @@ import (
 type BufferedMessageReader struct {
 	buffer                   []byte
 	incomingMessageByteLimit uint64
-	tcpReceiveTimeoutMs      uint64
+	tcpReceiveTimeoutNs      int64
 	bufferSize               uint32
 	netConn                  net.Conn
 
@@ -26,7 +26,7 @@ func (buffer *BufferedMessageReader) CheckBytesReceived() uint64 {
 	return buffer.bytesReceived.Load()
 }
 
-func NewBufferedMessageReader(netConn net.Conn, incomingMessageByteLimit uint64, tcpReceiveTimeoutMs uint64, bufferSize uint32) *BufferedMessageReader {
+func NewBufferedMessageReader(netConn net.Conn, incomingMessageByteLimit uint64, tcpReceiveTimeoutNs int64, bufferSize uint32) *BufferedMessageReader {
 	if bufferSize == 0 {
 		bufferSize = 1024 * 4
 	}
@@ -34,7 +34,7 @@ func NewBufferedMessageReader(netConn net.Conn, incomingMessageByteLimit uint64,
 		buffer:                   []byte{},
 		incomingMessageByteLimit: incomingMessageByteLimit,
 		netConn:                  netConn,
-		tcpReceiveTimeoutMs:      tcpReceiveTimeoutMs,
+		tcpReceiveTimeoutNs:      tcpReceiveTimeoutNs,
 		bufferSize:               bufferSize,
 	}
 }
@@ -60,7 +60,7 @@ func (messageReceiver *BufferedMessageReader) ReadNextMessage() ([]byte, error) 
 			completedMsgBytes = append(completedMsgBytes, b)
 		}
 
-		messageReceiver.netConn.SetReadDeadline(time.Now().Add(time.Duration(messageReceiver.tcpReceiveTimeoutMs) * time.Millisecond))
+		messageReceiver.netConn.SetReadDeadline(time.Now().Add(time.Duration(messageReceiver.tcpReceiveTimeoutNs) * time.Nanosecond))
 		buffer := make([]byte, messageReceiver.bufferSize)
 		newBytesReceived, err := messageReceiver.netConn.Read(buffer)
 		if err != nil {
