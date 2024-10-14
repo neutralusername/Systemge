@@ -5,6 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/neutralusername/Systemge/ChannelConnection.go"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
@@ -27,19 +28,13 @@ type ChannelListener[T any] struct {
 
 	acceptRoutine *Tools.Routine
 
-	connectionChannel chan (connectionRequest[T])
+	connectionChannel chan (*ChannelConnection.ChannelConnection[T])
 
 	// metrics
 
 	ClientsAccepted atomic.Uint64
 	ClientsFailed   atomic.Uint64
 	ClientsRejected atomic.Uint64
-}
-
-type connectionRequest[T any] struct {
-	errChannel        chan error
-	toClientChannel   chan T
-	fromClientChannel chan T
 }
 
 func New[T any](name string, config *Config.ChannelListener) (*ChannelListener[T], error) {
@@ -51,7 +46,7 @@ func New[T any](name string, config *Config.ChannelListener) (*ChannelListener[T
 		config:            config,
 		status:            Status.Stopped,
 		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		connectionChannel: make(chan (connectionRequest[T])),
+		connectionChannel: make(chan (*ChannelConnection.ChannelConnection[T])),
 	}
 
 	return listener, nil

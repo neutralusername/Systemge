@@ -31,14 +31,14 @@ type ChannelConnection[T any] struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New[T any](something something) *ChannelConnection[T] {
+func New[T any]() *ChannelConnection[T] {
 
 	client := &ChannelConnection[T]{
 		closeChannel: make(chan bool),
 		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 
-	return client, nil
+	return client
 }
 
 func (client *ChannelConnection[T]) GetStatus() int {
