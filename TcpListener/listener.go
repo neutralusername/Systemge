@@ -1,6 +1,7 @@
 package TcpListener
 
 import (
+	"crypto/tls"
 	"errors"
 	"net"
 	"sync"
@@ -9,8 +10,8 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -54,7 +55,7 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 		ipRateLimiter: ipRateLimiter,
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
-	tcpListener, err := Tcp.NewListener(config.TcpServerConfig)
+	tcpListener, err := NewTcpListener(config.TcpServerConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -108,4 +109,27 @@ func (server *TcpListener) GetName() string {
 
 func (server *TcpListener) GetInstanceId() string {
 	return server.instanceId
+}
+
+func NewTcpListener(config *Config.TcpServer) (net.Listener, error) {
+	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
+		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
+		if err != nil {
+			return nil, err
+		}
+		return listener, nil
+	} else {
+		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+		return listener, nil
+	}
 }

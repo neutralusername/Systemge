@@ -1,4 +1,4 @@
-package Tcp
+package Helpers
 
 import (
 	"errors"
@@ -6,25 +6,7 @@ import (
 	"net"
 	"os"
 	"syscall"
-	"time"
 )
-
-func Read(netConn net.Conn, timeoutMs uint64, bufferSize uint32) ([]byte, int, error) {
-	if netConn == nil {
-		return nil, 0, errors.New("net.Conn is nil")
-	}
-	buffer := make([]byte, bufferSize)
-	if timeoutMs > 0 {
-		netConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
-	} else {
-		netConn.SetReadDeadline(time.Time{})
-	}
-	bytesRead, err := netConn.Read(buffer)
-	if err != nil {
-		return nil, bytesRead, err
-	}
-	return buffer[:bytesRead], bytesRead, nil
-}
 
 func IsConnectionClosed(err error) bool {
 	if err == nil {

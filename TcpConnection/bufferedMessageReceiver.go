@@ -1,9 +1,10 @@
-package Tcp
+package TcpConnection
 
 import (
 	"errors"
 	"net"
 	"sync/atomic"
+	"time"
 )
 
 type BufferedMessageReader struct {
@@ -58,11 +59,14 @@ func (messageReceiver *BufferedMessageReader) ReadNextMessage() ([]byte, error) 
 			}
 			completedMsgBytes = append(completedMsgBytes, b)
 		}
-		receivedMessageBytes, newBytesReceived, err := Read(messageReceiver.netConn, messageReceiver.tcpReceiveTimeoutMs, messageReceiver.bufferSize)
+
+		messageReceiver.netConn.SetReadDeadline(time.Now().Add(time.Duration(messageReceiver.tcpReceiveTimeoutMs) * time.Millisecond))
+		buffer := make([]byte, messageReceiver.bufferSize)
+		newBytesReceived, err := messageReceiver.netConn.Read(buffer)
 		if err != nil {
 			return nil, err
 		}
-		messageReceiver.buffer = receivedMessageBytes
+		messageReceiver.buffer = buffer
 		messageReceiver.bytesReceived.Add(uint64(newBytesReceived))
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/neutralusername/Systemge/Tcp"
+	"github.com/neutralusername/Systemge/Helpers"
 )
 
 const ENDOFMESSAGE = '\x04'
@@ -41,7 +41,7 @@ func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
 func (client *TcpConnection) write(messageBytes []byte) error {
 	_, err := client.netConn.Write(append(messageBytes, ENDOFMESSAGE))
 	if err != nil {
-		if Tcp.IsConnectionClosed(err) {
+		if Helpers.IsConnectionClosed(err) {
 			client.Close()
 		}
 		return err

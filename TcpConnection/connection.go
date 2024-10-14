@@ -9,7 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -31,7 +30,7 @@ type TcpConnection struct {
 	closeChannel chan bool
 	waitGroup    sync.WaitGroup
 
-	messageReceiver *Tcp.BufferedMessageReader
+	messageReceiver *BufferedMessageReader
 
 	// metrics
 	BytesSent     atomic.Uint64
@@ -52,7 +51,7 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection
 	connection := &TcpConnection{
 		config:          config,
 		netConn:         netConn,
-		messageReceiver: Tcp.NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes),
+		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutMs, config.TcpBufferBytes),
 		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:    make(chan bool),
 		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),

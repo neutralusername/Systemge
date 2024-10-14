@@ -1,10 +1,12 @@
 package TcpConnection
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
+	"net"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Tcp"
 )
 
 func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (*TcpConnection, error) {
@@ -15,7 +17,7 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 		return nil, errors.New("tcpClientConfig is nil")
 	}
 
-	netConn, err := Tcp.NewClient(tcpClientConfig)
+	netConn, err := NewTcpClient(tcpClientConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -25,6 +27,20 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 		return nil, err
 	}
 	return connection, nil
+}
+
+func NewTcpClient(config *Config.TcpClient) (net.Conn, error) {
+	if config.TlsCert == "" {
+		return net.Dial("tcp", config.Address)
+	}
+	rootCAs := x509.NewCertPool()
+	if !rootCAs.AppendCertsFromPEM([]byte(config.TlsCert)) {
+		return nil, errors.New("error adding certificate to root CAs")
+	}
+	return tls.Dial("tcp", config.Address, &tls.Config{
+		RootCAs:    rootCAs,
+		ServerName: config.Domain,
+	})
 }
 
 /* _, err := Tcp.Write(netConn, Message.NewAsync(Message.TOPIC_NAME).Serialize(), config.TcpSendTimeoutMs)
