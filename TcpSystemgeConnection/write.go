@@ -3,7 +3,6 @@ package TcpSystemgeConnection
 import (
 	"time"
 
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Tcp"
 )
 
@@ -11,13 +10,23 @@ func (connection *TcpSystemgeConnection) SendHeartbeat() error {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
-	return Tcp.SendHeartbeat(connection.netConn, connection.config.TcpSendTimeoutMs)
+	err := Tcp.SendHeartbeat(connection.netConn, connection.config.TcpSendTimeoutMs)
+	if err != nil {
+		if Tcp.IsConnectionClosed(err) {
+			connection.Close()
+		}
+		return err
+	}
+	connection.BytesSent.Add(1)
+	connection.MessagesSent.Add(1)
+
+	return nil
 }
 
 func (client *TcpSystemgeConnection) write(messageBytes []byte) error {
 	_, err := client.netConn.Write(messageBytes)
 	if err != nil {
-		if Helpers.IsWebsocketConnClosedErr(err) {
+		if Tcp.IsConnectionClosed(err) {
 			client.Close()
 		}
 		return err
