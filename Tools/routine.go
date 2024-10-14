@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-type routineFunc func()
+type routineFunc func(stopChannel <-chan struct{})
 
 type Routine struct {
 	status      int
@@ -107,7 +107,7 @@ func (routine *Routine) routine() {
 					routine.waitgroup.Done()
 				}()
 
-				routine.routineFunc()
+				routine.routineFunc(routine.stopChannel)
 				close(done)
 			}()
 

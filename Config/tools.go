@@ -108,3 +108,9 @@ type Queue struct {
 	MaxElements   uint32 `json:"maxElements"`   // default: 0 == no limit
 	ReplaceIfFull bool   `json:"replaceIfFull"` // default: false
 }
+
+type Routine struct {
+	MaxConcurrentHandlers uint32 `json:"maxConcurrentHandlers"` // default: 1
+	DelayNs               int64  `json:"delayNs"`               // default: 0
+	TimeoutNs             int64  `json:"timeoutNs"`             // default: 0
+}
