@@ -1,4 +1,4 @@
-package WebsocketClient
+package WebsocketConnection
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type WebsocketClient struct {
+type WebsocketConnection struct {
 	websocketConn *websocket.Conn
 
 	instanceId string
@@ -34,12 +34,12 @@ type WebsocketClient struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(websocketConn *websocket.Conn) (*WebsocketClient, error) {
+func New(websocketConn *websocket.Conn) (*WebsocketConnection, error) {
 	if websocketConn == nil {
 		return nil, errors.New("websocketConn is nil")
 	}
 
-	client := &WebsocketClient{
+	client := &WebsocketConnection{
 		websocketConn: websocketConn,
 		closeChannel:  make(chan bool),
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
@@ -48,7 +48,7 @@ func New(websocketConn *websocket.Conn) (*WebsocketClient, error) {
 	return client, nil
 }
 
-func (client *WebsocketClient) GetStatus() int {
+func (client *WebsocketConnection) GetStatus() int {
 	client.closedMutex.Lock()
 	defer client.closedMutex.Unlock()
 	if client.closed {
@@ -58,17 +58,17 @@ func (client *WebsocketClient) GetStatus() int {
 	}
 }
 
-func (client *WebsocketClient) GetInstanceId() string {
+func (client *WebsocketConnection) GetInstanceId() string {
 	return client.instanceId
 }
 
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connclientction *WebsocketClient) GetCloseChannel() <-chan bool {
+func (connclientction *WebsocketConnection) GetCloseChannel() <-chan bool {
 	return connclientction.closeChannel
 }
 
-func (client *WebsocketClient) GetAddress() string {
+func (client *WebsocketConnection) GetAddress() string {
 	return client.websocketConn.RemoteAddr().String()
 }

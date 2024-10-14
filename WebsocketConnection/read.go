@@ -1,4 +1,4 @@
-package WebsocketClient
+package WebsocketConnection
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (client *WebsocketClient) read() ([]byte, error) {
+func (client *WebsocketConnection) read() ([]byte, error) {
 	_, messageBytes, err := client.websocketConn.ReadMessage()
 	if err != nil {
 		if Helpers.IsWebsocketConnClosedErr(err) {
@@ -20,7 +20,7 @@ func (client *WebsocketClient) read() ([]byte, error) {
 	return messageBytes, nil
 }
 
-func (client *WebsocketClient) Read() ([]byte, error) {
+func (client *WebsocketConnection) Read() ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -31,7 +31,7 @@ func (client *WebsocketClient) Read() ([]byte, error) {
 	return client.read()
 }
 
-func (client *WebsocketClient) ReadTimeout(timeoutMs uint64) ([]byte, error) {
+func (client *WebsocketConnection) ReadTimeout(timeoutMs uint64) ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -40,10 +40,10 @@ func (client *WebsocketClient) ReadTimeout(timeoutMs uint64) ([]byte, error) {
 }
 
 // can be used to cancel an ongoing read operation
-func (client *WebsocketClient) SetReadDeadline(timeoutMs uint64) {
+func (client *WebsocketConnection) SetReadDeadline(timeoutMs uint64) {
 	client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }
 
-func (client *WebsocketClient) SetReadLimit(maxBytes int64) { // i do not comprehend why this is a int64 rather than a uint64
+func (client *WebsocketConnection) SetReadLimit(maxBytes int64) { // i do not comprehend why this is a int64 rather than a uint64
 	client.websocketConn.SetReadLimit(maxBytes)
 }

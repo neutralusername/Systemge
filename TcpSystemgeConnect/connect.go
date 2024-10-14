@@ -4,12 +4,11 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tcp"
 	"github.com/neutralusername/Systemge/TcpSystemgeConnection"
 )
 
-func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (SystemgeConnection.SystemgeConnection, error) {
+func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (*TcpSystemgeConnection.TcpSystemgeConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

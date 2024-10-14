@@ -1,10 +1,10 @@
-package WebsocketClient
+package WebsocketConnection
 
 import (
 	"errors"
 )
 
-func (client *WebsocketClient) Close() error {
+func (client *WebsocketConnection) Close() error {
 	if !client.closedMutex.TryLock() {
 		return errors.New("websocketClient already closing")
 	}

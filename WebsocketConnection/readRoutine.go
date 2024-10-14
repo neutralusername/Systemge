@@ -1,4 +1,4 @@
-package WebsocketClient
+package WebsocketConnection
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *WebsocketClient) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[*WebsocketClient]) error {
+func (client *WebsocketConnection) StartReadRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, readHandler Tools.ReadHandler[*WebsocketConnection]) error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -23,7 +23,7 @@ func (client *WebsocketClient) StartReadRoutine(maxConcurrentHandlers uint32, de
 	return client.readRoutine.StartRoutine()
 }
 
-func (client *WebsocketClient) StopReadRoutine() error {
+func (client *WebsocketConnection) StopReadRoutine() error {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
 
@@ -37,7 +37,7 @@ func (client *WebsocketClient) StopReadRoutine() error {
 	return err
 }
 
-func (client *WebsocketClient) IsReadRoutineRunning() bool {
+func (client *WebsocketConnection) IsReadRoutineRunning() bool {
 	client.readMutex.RLock()
 	defer client.readMutex.RUnlock()
 

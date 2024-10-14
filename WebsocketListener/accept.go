@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/neutralusername/Systemge/WebsocketClient"
+	"github.com/neutralusername/Systemge/WebsocketConnection"
 )
 
-func (listener *WebsocketListener) accept(cancel <-chan struct{}) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) accept(cancel <-chan struct{}) (*WebsocketConnection.WebsocketConnection, error) {
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")
@@ -27,7 +27,7 @@ func (listener *WebsocketListener) accept(cancel <-chan struct{}) (*WebsocketCli
 			if upgraderResponse.err != nil {
 				return nil, upgraderResponse.err
 			}
-			websocketClient, err := WebsocketClient.New(upgraderResponse.websocketConn)
+			websocketClient, err := WebsocketConnection.New(upgraderResponse.websocketConn)
 			if err != nil {
 				upgraderResponse.websocketConn.Close()
 				return nil, err
@@ -37,11 +37,11 @@ func (listener *WebsocketListener) accept(cancel <-chan struct{}) (*WebsocketCli
 	}
 }
 
-func (listener *WebsocketListener) Accept() (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) Accept() (*WebsocketConnection.WebsocketConnection, error) {
 	return listener.accept(make(chan struct{}))
 }
 
-func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketClient.WebsocketClient, error) {
+func (listener *WebsocketListener) AcceptTimeout(timeoutMs uint32) (*WebsocketConnection.WebsocketConnection, error) {
 	var deadline <-chan time.Time = time.After(time.Duration(timeoutMs) * time.Millisecond)
 	var cancel chan struct{} = make(chan struct{})
 	go func() {

@@ -1,4 +1,4 @@
-package WebsocketClient
+package WebsocketConnection
 
 import (
 	"time"
@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
-func (client *WebsocketClient) write(messageBytes []byte) error {
+func (client *WebsocketConnection) write(messageBytes []byte) error {
 	err := client.websocketConn.WriteMessage(websocket.TextMessage, messageBytes)
 	if err != nil {
 		if Helpers.IsWebsocketConnClosedErr(err) {
@@ -20,14 +20,14 @@ func (client *WebsocketClient) write(messageBytes []byte) error {
 	return nil
 }
 
-func (client *WebsocketClient) Write(messageBytes []byte) error {
+func (client *WebsocketConnection) Write(messageBytes []byte) error {
 	client.writeMutex.Lock()
 	defer client.writeMutex.Unlock()
 
 	return client.write(messageBytes)
 }
 
-func (client *WebsocketClient) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
+func (client *WebsocketConnection) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
 	client.writeMutex.Lock()
 	defer client.writeMutex.Unlock()
 
@@ -35,6 +35,6 @@ func (client *WebsocketClient) WriteTimeout(messageBytes []byte, timeoutMs uint6
 	return client.write(messageBytes)
 }
 
-func (client *WebsocketClient) SetWriteDeadline(timeoutMs uint64) {
+func (client *WebsocketConnection) SetWriteDeadline(timeoutMs uint64) {
 	client.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 }

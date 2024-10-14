@@ -1,8 +1,8 @@
-package WebsocketClient
+package WebsocketConnection
 
 import "github.com/neutralusername/Systemge/Metrics"
 
-func (client *WebsocketClient) GetMetrics() Metrics.MetricsTypes {
+func (client *WebsocketConnection) GetMetrics() Metrics.MetricsTypes {
 	return Metrics.MetricsTypes{
 		"websocketClient": Metrics.New(map[string]uint64{
 			"bytesSent":        client.BytesSent.Swap(0),
@@ -13,7 +13,7 @@ func (client *WebsocketClient) GetMetrics() Metrics.MetricsTypes {
 	}
 }
 
-func (client *WebsocketClient) CheckMetrics() Metrics.MetricsTypes {
+func (client *WebsocketConnection) CheckMetrics() Metrics.MetricsTypes {
 	return Metrics.MetricsTypes{
 		"websocketClient": Metrics.New(map[string]uint64{
 			"bytesSent":        client.BytesSent.Load(),
