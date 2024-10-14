@@ -12,13 +12,9 @@ import (
 type ConnectionChannel[T any] chan *ConnectionRequest[T]
 
 type ConnectionRequest[T any] struct {
-	messageChannel *MessageChannel[T]
-	response       chan bool
-}
-
-type MessageChannel[T any] struct {
 	sendChannel           chan T
 	receiveChannelChannel chan T
+	response              chan bool
 }
 
 // implements SystemgeConnection
@@ -29,7 +25,8 @@ type ChannelConnection[T any] struct {
 	closedMutex  sync.Mutex
 	closeChannel chan bool
 
-	messageChannel MessageChannel[T]
+	receiveChannel chan T
+	sendChannel    chan T
 
 	readRoutine *Tools.Routine
 
@@ -45,12 +42,13 @@ type ChannelConnection[T any] struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New[T any](messageChannel MessageChannel[T]) *ChannelConnection[T] {
+func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T] {
 
 	client := &ChannelConnection[T]{
 		closeChannel:   make(chan bool),
 		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		messageChannel: messageChannel,
+		receiveChannel: receiveChannel,
+		sendChannel:    sendChannel,
 	}
 
 	return client
