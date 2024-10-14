@@ -34,7 +34,6 @@ type TcpSystemgeListener struct {
 
 	ClientsAccepted atomic.Uint64
 	ClientsFailed   atomic.Uint64
-	ClientsRejected atomic.Uint64
 }
 
 func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*TcpSystemgeListener, error) {
