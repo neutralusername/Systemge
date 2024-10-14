@@ -9,8 +9,6 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type ConnectionChannel[T any] chan *ConnectionRequest[T]
-
 type ConnectionRequest[T any] struct {
 	SendToListener      chan T
 	ReceiveFromListener chan T
