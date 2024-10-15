@@ -2,13 +2,12 @@ package ListenerTcp
 
 import (
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Status"
 )
 
 func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
-	blacklistCommands := listener.blacklist.GetDefaultCommands()
-	whitelistCommands := listener.whitelist.GetDefaultCommands()
 	commands := Commands.Handlers{}
+	/* blacklistCommands := listener.blacklist.GetDefaultCommands()
+	whitelistCommands := listener.whitelist.GetDefaultCommands()
 	for key, value := range blacklistCommands {
 		commands["blacklist_"+key] = value
 	}
@@ -27,6 +26,6 @@ func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
 	}
 	commands["getMetrics"] = func(args []string) (string, error) {
 		return listener.GetMetrics().Marshal(), nil
-	}
+	} */
 	return commands
 }

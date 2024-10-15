@@ -23,16 +23,12 @@ type TcpListener struct {
 	isClosed    bool
 	closedMutex sync.Mutex
 
-	config        *Config.TcpSystemgeListener
-	ipRateLimiter *Tools.IpRateLimiter
+	config *Config.TcpSystemgeListener
 
 	acceptRoutine *Tools.Routine
 
 	tcpListener net.Listener
 	acceptMutex sync.RWMutex
-
-	blacklist *Tools.AccessControlList
-	whitelist *Tools.AccessControlList
 
 	eventHandler Event.Handler
 
@@ -42,7 +38,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*TcpListener, error) {
+func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -50,12 +46,9 @@ func New(name string, config *Config.TcpSystemgeListener, whitelist *Tools.Acces
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpListener{
-		name:          name,
-		config:        config,
-		blacklist:     blacklist,
-		whitelist:     whitelist,
-		ipRateLimiter: ipRateLimiter,
-		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:       name,
+		config:     config,
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	tcpListener, err := NewTcpListener(config.TcpServerConfig)
 	if err != nil {
@@ -76,9 +69,6 @@ func (listener *TcpListener) Close() error {
 
 	listener.isClosed = true
 	listener.tcpListener.Close()
-	if listener.ipRateLimiter != nil {
-		listener.ipRateLimiter.Close()
-	}
 	if listener.acceptRoutine != nil {
 		listener.StopAcceptRoutine(false)
 	}
@@ -94,18 +84,6 @@ func (listener *TcpListener) GetStatus() int {
 		return Status.Stopped
 	}
 	return Status.Started
-}
-
-func (server *TcpListener) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
-func (server *TcpListener) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *TcpListener) GetIpRateLimiter() *Tools.IpRateLimiter {
-	return server.ipRateLimiter
 }
 
 func (server *TcpListener) GetName() string {

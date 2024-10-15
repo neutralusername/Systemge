@@ -46,15 +46,12 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter) (*WebsocketListener, error) {
+func New(name string, config *Config.WebsocketListener) (*WebsocketListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
 	if config.TcpServerConfig == nil {
 		return nil, errors.New("tcpServiceConfig is nil")
-	}
-	if config.MaxSimultaneousAccepts == 0 {
-		config.MaxSimultaneousAccepts = 1
 	}
 	listener := &WebsocketListener{
 		name:            name,
@@ -67,11 +64,9 @@ func New(name string, config *Config.WebsocketListener, whitelist *Tools.AccessC
 		&Config.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
-		whitelist, blacklist, ipRateLimiter,
 		map[string]http.HandlerFunc{
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
-		nil,
 	)
 
 	return listener, nil

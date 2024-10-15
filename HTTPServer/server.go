@@ -38,7 +38,7 @@ type HTTPServer struct {
 	requestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, ipRateLimiter *Tools.IpRateLimiter, handlers Handlers, eventHandler *Event.Handler) *HTTPServer {
+func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -46,13 +46,10 @@ func New(name string, config *Config.HTTPServer, whitelist *Tools.AccessControlL
 		panic("config.TcpListenerConfig is nil")
 	}
 	server := &HTTPServer{
-		name:          name,
-		mux:           NewCustomMux(config.DelayNs),
-		config:        config,
-		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		blacklist:     blacklist,
-		whitelist:     whitelist,
-		ipRateLimiter: ipRateLimiter,
+		name:       name,
+		mux:        NewCustomMux(config.DelayNs),
+		config:     config,
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	for pattern, handler := range handlers {
 		server.AddRoute(pattern, handler)
@@ -70,18 +67,6 @@ func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc)
 
 func (server *HTTPServer) RemoveRoute(pattern string) {
 	server.mux.RemoveRoute(pattern)
-}
-
-func (server *HTTPServer) GetBlacklist() *Tools.AccessControlList {
-	return server.blacklist
-}
-
-func (server *HTTPServer) GetWhitelist() *Tools.AccessControlList {
-	return server.whitelist
-}
-
-func (server *HTTPServer) GetIpRateLimiter() *Tools.IpRateLimiter {
-	return server.ipRateLimiter
 }
 
 func (server *HTTPServer) GetName() string {

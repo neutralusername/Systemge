@@ -59,8 +59,6 @@ func UnmarshalSystemgeServer(data string) *SystemgeServer {
 
 type TcpSystemgeListener struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
-
-	MaxClientNameLength uint64 `json:"maxClientNameLength"` // default: 0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 func UnmarshalTcpSystemgeListener(data string) *TcpSystemgeListener {

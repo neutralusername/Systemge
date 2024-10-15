@@ -13,9 +13,9 @@ import (
 
 // implements SystemgeConnection
 type WebsocketConnection struct {
-	websocketConn *websocket.Conn
-
 	instanceId string
+
+	websocketConn *websocket.Conn
 
 	closed       bool
 	closedMutex  sync.Mutex

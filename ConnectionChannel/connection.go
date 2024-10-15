@@ -18,12 +18,12 @@ type ConnectionRequest[T any] struct {
 type ChannelConnection[T any] struct {
 	instanceId string
 
+	receiveChannel chan T
+	sendChannel    chan T
+
 	closed       bool
 	closedMutex  sync.Mutex
 	closeChannel chan bool
-
-	receiveChannel chan T
-	sendChannel    chan T
 
 	readRoutine *Tools.Routine
 

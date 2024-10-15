@@ -33,7 +33,6 @@ type WebsocketListener struct {
 
 	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
 
-	MaxSimultaneousAccepts  uint32 `json:"maxSimultaneousAccepts"`  // default: 1 (>0)
 	UpgradeRequestTimeoutMs uint32 `json:"upgradeRequestTimeoutMs"` // default: 0 (no timeout)
 }
 

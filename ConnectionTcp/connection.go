@@ -15,21 +15,19 @@ import (
 // implements SystemgeConnection
 type TcpConnection struct {
 	config     *Config.TcpSystemgeConnection
-	netConn    net.Conn
-	randomizer *Tools.Randomizer
-
 	instanceId string
 
-	readMutex  sync.RWMutex
-	writeMutex sync.Mutex
-
-	readRoutine *Tools.Routine
+	netConn         net.Conn
+	messageReceiver *BufferedMessageReader
 
 	closed       bool
 	closedMutex  sync.Mutex
 	closeChannel chan bool
 
-	messageReceiver *BufferedMessageReader
+	readRoutine *Tools.Routine
+
+	readMutex  sync.RWMutex
+	writeMutex sync.Mutex
 
 	// metrics
 	BytesSent     atomic.Uint64
@@ -51,7 +49,6 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection
 		config:          config,
 		netConn:         netConn,
 		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutNs, config.TcpBufferBytes),
-		randomizer:      Tools.NewRandomizer(config.RandomizerSeed),
 		closeChannel:    make(chan bool),
 		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
