@@ -109,6 +109,7 @@ func NewTcpListener(config *Config.TcpServer) (net.Listener, error) {
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		}
+		tlsNetListener := tls.NewListener(netListener, tlsConfig) // alows me to type assert to *net.TCPListener which supports SetDeadline
 		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
 		if err != nil {
 			return nil, err
