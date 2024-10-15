@@ -7,6 +7,9 @@ import (
 )
 
 type SystemgeListener[B any] interface {
+	Start() error
+	Stop() error
+
 	GetInstanceId() string
 	GetSessionId() string
 	GetName() string
@@ -20,9 +23,6 @@ type SystemgeListener[B any] interface {
 	*/
 
 	Accept(timeoutNs int64) (SystemgeConnection.SystemgeConnection[B], error)
-
-	Start() error
-	Stop() error
 
 	GetDefaultCommands() Commands.Handlers
 

@@ -7,6 +7,7 @@ import (
 
 type SystemgeConnection[B any] interface {
 	Close() error
+
 	GetInstanceId() string
 	GetAddress() string
 	GetStatus() int
