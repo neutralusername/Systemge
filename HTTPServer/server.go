@@ -9,6 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -61,6 +62,29 @@ func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, 
 
 func (server *HTTPServer) AddRoute(pattern string, handlerFunc http.HandlerFunc) {
 	server.mux.AddRoute(pattern, server.httpRequestWrapper(pattern, handlerFunc))
+}
+func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		server.statusMutex.RLock()
+		defer server.statusMutex.RUnlock()
+		if server.status != Status.Started {
+			Send403(w, r)
+			return
+		}
+
+		server.requestCounter.Add(1)
+		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
+
+		if server.wrapperHandler != nil {
+			if err := server.wrapperHandler(w, r); err != nil {
+				// do something with the error
+				return
+			}
+		}
+
+		handler(w, r)
+
+	}
 }
 
 func (server *HTTPServer) RemoveRoute(pattern string) {

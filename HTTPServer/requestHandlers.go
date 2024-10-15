@@ -3,7 +3,6 @@ package HTTPServer
 import (
 	"net/http"
 
-	"github.com/neutralusername/Systemge/Status"
 	"golang.org/x/oauth2"
 )
 
@@ -31,29 +30,6 @@ func Oauth2AuthRedirect(oauth2Config *oauth2.Config, oauth2State string, redirec
 			url = oauth2Config.AuthCodeURL(oauth2State)
 		}
 		http.Redirect(responseWriter, httpRequest, url, http.StatusTemporaryRedirect)
-	}
-}
-
-func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		server.statusMutex.RLock()
-		defer server.statusMutex.RUnlock()
-		if server.status != Status.Started {
-			Send403(w, r)
-			return
-		}
-
-		server.requestCounter.Add(1)
-		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
-
-		if server.wrapperHandler != nil {
-			if err := server.wrapperHandler(w, r); err != nil {
-				return
-			}
-		}
-
-		handler(w, r)
-
 	}
 }
 
