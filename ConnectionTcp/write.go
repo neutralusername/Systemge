@@ -1,8 +1,6 @@
 package ConnectionTcp
 
 import (
-	"errors"
-	"net"
 	"time"
 
 	"github.com/neutralusername/Systemge/Helpers"
@@ -30,15 +28,11 @@ func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	return nil
 }
 
-func SendHeartbeat(netConn net.Conn, timeoutMs uint64) error {
-	if netConn == nil {
-		return errors.New("net.Conn is nil")
-	}
+func (client *TcpConnection) Write(messageBytes []byte, timeoutMs uint64) error {
+	client.writeMutex.Lock()
+	defer client.writeMutex.Unlock()
 
-	return nil
-}
-
-func (client *TcpConnection) write(messageBytes []byte) error {
+	client.SetWriteDeadline(timeoutMs)
 	_, err := client.netConn.Write(append(messageBytes, ENDOFMESSAGE))
 	if err != nil {
 		if Helpers.IsConnectionClosed(err) {
@@ -49,21 +43,6 @@ func (client *TcpConnection) write(messageBytes []byte) error {
 	client.BytesSent.Add(uint64(len(messageBytes)))
 	client.MessagesSent.Add(1)
 	return nil
-}
-
-func (client *TcpConnection) Write(messageBytes []byte) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
-
-	return client.write(messageBytes)
-}
-
-func (client *TcpConnection) WriteTimeout(messageBytes []byte, timeoutMs uint64) error {
-	client.writeMutex.Lock()
-	defer client.writeMutex.Unlock()
-
-	client.SetWriteDeadline(timeoutMs)
-	return client.write(messageBytes)
 }
 
 func (client *TcpConnection) SetWriteDeadline(timeoutMs uint64) {
