@@ -105,6 +105,7 @@ func (timeout *Timeout) GetIsExpiredChannel() <-chan struct{} {
 	return timeout.isExpiredChannel
 }
 
+// t+timeoutNs == new deadline
 func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
