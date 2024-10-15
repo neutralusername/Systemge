@@ -48,7 +48,7 @@ func (timeout *Timeout) handleTrigger() {
 			timeout.triggerTimestamp = time.Time{}
 		}
 
-		select { // will stay alive if triggered manually as of now
+		select {
 		case newTimeoutNs := <-timeout.interactionChannel:
 			if newTimeoutNs > 0 {
 				timeout.timeoutNs = newTimeoutNs
@@ -85,7 +85,8 @@ func (timeout *Timeout) IsExpired() bool {
 	}
 }
 
-func (timeout *Timeout) GetExpiredChannel() <-chan struct{} {
+// channel will be closed once the timeout is either triggered or cancelled
+func (timeout *Timeout) GetIsExpiredChannel() <-chan struct{} {
 	return timeout.isExpiredChannel
 }
 
@@ -99,9 +100,8 @@ func (timeout *Timeout) Trigger() error {
 	default:
 	}
 
+	close(timeout.interactionChannel)
 	timeout.onTrigger()
-	close(timeout.isExpiredChannel)
-
 	return nil
 }
 
@@ -133,6 +133,6 @@ func (timeout *Timeout) Cancel() error {
 	default:
 	}
 
-	timeout.interactionChannel <- 0
+	close(timeout.interactionChannel)
 	return nil
 }
