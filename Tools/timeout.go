@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ErrAlreadyTriggered = errors.New("timeout already triggered")
+var ErrAlreadyExpired = errors.New("timeout already expired")
 
 type Timeout struct {
 	onTrigger func()
@@ -95,7 +95,7 @@ func (timeout *Timeout) Refresh(timeoutNs int64) error {
 
 	select {
 	case <-timeout.isExpiredChannel:
-		return ErrAlreadyTriggered
+		return ErrAlreadyExpired
 	default:
 	}
 
@@ -109,7 +109,7 @@ func (timeout *Timeout) Trigger() error {
 
 	select {
 	case <-timeout.isExpiredChannel:
-		return ErrAlreadyTriggered
+		return ErrAlreadyExpired
 	default:
 	}
 
@@ -129,7 +129,7 @@ func (timeout *Timeout) Cancel() error {
 
 	select {
 	case <-timeout.isExpiredChannel:
-		return ErrAlreadyTriggered
+		return ErrAlreadyExpired
 	default:
 	}
 
