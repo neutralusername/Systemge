@@ -8,30 +8,30 @@ import (
 
 var ErrAlreadyTriggered = errors.New("timeout already triggered")
 
-const (
-	cancelTimeout = iota
-	refreshTimeout
-	triggerTimeout
-)
-
 type Timeout struct {
-	durationMs         uint64
-	onTrigger          func()
-	interactionChannel chan uint64
-	triggered          bool
-	mutex              sync.Mutex
-	mayBeCancelled     bool
+	onTrigger func()
+
+	timeoutNs int64
+
+	triggerAt time.Time
+
+	cancellable bool
+
+	interactionChannel chan int64
 	triggeredChannel   chan struct{}
+
+	isExpired bool
+	mutex     sync.Mutex
 }
 
 // duration 0 == must be triggered manually
-func NewTimeout(durationMs uint64, onTrigger func(), mayBeCancelled bool) *Timeout {
+func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 	timeout := &Timeout{
-		durationMs:         durationMs,
+		timeoutNs:          timeoutNs,
 		onTrigger:          onTrigger,
-		triggered:          false,
-		interactionChannel: make(chan uint64),
-		mayBeCancelled:     mayBeCancelled,
+		isExpired:          false,
+		interactionChannel: make(chan int64),
+		cancellable:        cancellable,
 		triggeredChannel:   make(chan struct{}),
 	}
 	go timeout.handleTrigger()
@@ -41,28 +41,27 @@ func NewTimeout(durationMs uint64, onTrigger func(), mayBeCancelled bool) *Timeo
 func (timeout *Timeout) handleTrigger() {
 	for {
 		var timeoutChannel <-chan time.Time
-		if timeout.durationMs > 0 {
-			timeoutChannel = time.After(time.Duration(timeout.durationMs) * time.Millisecond)
+		triggerTimestamp := time.Now().UnixNano() + timeout.timeoutNs
+		if timeout.timeoutNs > 0 {
+			timeoutChannel = time.After(time.Duration(triggerTimestamp - time.Now().UnixNano()))
 		}
+		timeout.triggerAt = time.Unix(0, triggerTimestamp)
+
 		select {
 		case val := <-timeout.interactionChannel:
-			switch val {
-			case triggerTimeout:
-				timeout.onTrigger()
-				close(timeout.triggeredChannel)
-				return
-			case refreshTimeout:
-			case cancelTimeout:
-				close(timeout.triggeredChannel)
+			if val > 0 {
+				timeout.timeoutNs = val
+			} else {
+				timeout.isExpired = true
 				return
 			}
 		case <-timeoutChannel:
 			timeout.mutex.Lock()
-			if timeout.triggered {
+			if timeout.isExpired {
 				timeout.mutex.Unlock()
 				return
 			}
-			timeout.triggered = true
+			timeout.isExpired = true
 			timeout.mutex.Unlock()
 
 			timeout.onTrigger()
@@ -72,18 +71,22 @@ func (timeout *Timeout) handleTrigger() {
 	}
 }
 
-func (timeout *Timeout) GetDuration() uint64 {
-	return timeout.durationMs
+func (timeout *Timeout) GetTimeoutNs() int64 {
+	return timeout.timeoutNs
 }
 
-func (timeout *Timeout) SetDuration(duration uint64) {
-	timeout.durationMs = duration
-}
-
-func (timeout *Timeout) IsTriggered() bool {
+func (timeout *Timeout) TriggerAt() int64 {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
-	return timeout.triggered
+
+	return timeout.triggerAt.UnixNano()
+}
+
+func (timeout *Timeout) IsExpired() bool {
+	timeout.mutex.Lock()
+	defer timeout.mutex.Unlock()
+
+	return timeout.isExpired
 }
 
 func (timeout *Timeout) GetTriggeredChannel() <-chan struct{} {
@@ -93,34 +96,37 @@ func (timeout *Timeout) GetTriggeredChannel() <-chan struct{} {
 func (timeout *Timeout) Trigger() error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
-	if timeout.triggered {
+
+	if timeout.isExpired {
 		return ErrAlreadyTriggered
 	}
-	timeout.triggered = true
-	timeout.interactionChannel <- triggerTimeout
+	timeout.isExpired = true
+	close(timeout.triggeredChannel)
 	return nil
 }
 
-func (timeout *Timeout) Refresh() error {
+func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
-	if timeout.triggered {
+
+	if timeout.isExpired {
 		return ErrAlreadyTriggered
 	}
-	timeout.interactionChannel <- refreshTimeout
+	timeout.interactionChannel <- timeoutNs
 	return nil
 }
 
 func (timeout *Timeout) Cancel() error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
-	if timeout.triggered {
+
+	if timeout.isExpired {
 		return ErrAlreadyTriggered
 	}
-	if !timeout.mayBeCancelled {
+	if !timeout.cancellable {
 		return errors.New("timeout cannot be cancelled")
 	}
-	timeout.triggered = true
-	timeout.interactionChannel <- cancelTimeout
+	timeout.isExpired = true
+	timeout.interactionChannel <- 0
 	return nil
 }
