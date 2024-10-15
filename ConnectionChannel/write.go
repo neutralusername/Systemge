@@ -2,44 +2,38 @@ package ConnectionChannel
 
 import (
 	"errors"
-	"time"
+
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) error {
 	connection.writeMutex.Lock()
 	defer connection.writeMutex.Unlock()
 
-	connection.SetWriteDeadline(timeoutNs)
+	connection.writeTimeout = Tools.NewTimeout(
+		timeoutNs,
+		func() {},
+		false,
+	)
 
 	for {
 		select {
 		case connection.sendChannel <- messageBytes:
-			connection.writeDeadline = nil
 			connection.MessagesSent.Add(1)
+			connection.writeTimeout.Trigger()
+			connection.writeTimeout = nil
 			return nil
 
-		case <-connection.writeDeadline:
-			connection.writeDeadline = nil
+		case <-connection.writeTimeout.GetIsExpiredChannel():
+			connection.writeTimeout = nil
 			return errors.New("timeout")
-
-		case <-connection.writeDeadlineChange:
-			continue
 		}
 	}
 
 }
 
 func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutNs int64) {
-	writeDeadlineChange := connection.writeDeadlineChange
-
-	if timeoutNs > 0 {
-		connection.writeDeadline = time.After(time.Duration(timeoutNs) * time.Nanosecond)
-	} else {
-		connection.writeDeadline = nil
+	if writeTimeout := connection.writeTimeout; writeTimeout != nil {
+		writeTimeout.Refresh(timeoutNs)
 	}
-
-	connection.writeDeadlineChange = make(chan struct{})
-	close(writeDeadlineChange)
-
-	return
 }

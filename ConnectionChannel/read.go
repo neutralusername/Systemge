@@ -2,7 +2,8 @@ package ConnectionChannel
 
 import (
 	"errors"
-	"time"
+
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
@@ -14,37 +15,30 @@ func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 		return nilValue, errors.New("receptionHandler is already running")
 	}
 
-	connection.SetReadDeadline(timeoutNs)
+	connection.readTimeout = Tools.NewTimeout(
+		timeoutNs,
+		func() {},
+		false,
+	)
 
 	for {
 		select {
 		case item := <-connection.receiveChannel:
-			connection.readDeadline = nil
 			connection.MessagesReceived.Add(1)
+			connection.readTimeout.Trigger()
+			connection.readTimeout = nil
 			return item, nil
 
-		case <-connection.readDeadline:
-			connection.readDeadline = nil
+		case <-connection.readTimeout.GetIsExpiredChannel():
+			connection.readTimeout = nil
 			var nilValue T
 			return nilValue, errors.New("timeout")
-
-		case <-connection.readDeadlineChange:
-			continue
 		}
 	}
 }
 
 func (connection *ChannelConnection[T]) SetReadDeadline(timeoutNs int64) {
-	readDeadlineChange := connection.readDeadlineChange
-
-	if timeoutNs > 0 {
-		connection.readDeadline = time.After(time.Duration(timeoutNs) * time.Nanosecond)
-	} else {
-		connection.readDeadline = nil
+	if readTimeout := connection.readTimeout; readTimeout != nil {
+		readTimeout.Refresh(timeoutNs)
 	}
-
-	connection.readDeadlineChange = make(chan struct{})
-	close(readDeadlineChange)
-
-	return
 }

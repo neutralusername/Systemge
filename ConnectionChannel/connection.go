@@ -3,7 +3,6 @@ package ConnectionChannel
 import (
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
@@ -31,11 +30,8 @@ type ChannelConnection[T any] struct {
 	writeMutex sync.Mutex
 	readMutex  sync.RWMutex
 
-	readDeadline       <-chan time.Time
-	readDeadlineChange chan struct{}
-
-	writeDeadline       <-chan time.Time
-	writeDeadlineChange chan struct{}
+	readTimeout  *Tools.Timeout
+	writeTimeout *Tools.Timeout
 
 	// metrics
 
@@ -46,12 +42,10 @@ type ChannelConnection[T any] struct {
 func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T] {
 
 	connection := &ChannelConnection[T]{
-		closeChannel:        make(chan bool),
-		instanceId:          Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		receiveChannel:      receiveChannel,
-		sendChannel:         sendChannel,
-		writeDeadlineChange: make(chan struct{}),
-		readDeadlineChange:  make(chan struct{}),
+		closeChannel:   make(chan bool),
+		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		receiveChannel: receiveChannel,
+		sendChannel:    sendChannel,
 	}
 
 	return connection
