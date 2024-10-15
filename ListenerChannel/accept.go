@@ -10,10 +10,10 @@ import (
 func (listener *ChannelListener[T]) Accept(timeoutNs int64) (*ConnectionChannel.ChannelConnection[T], error) {
 
 	timeout := Tools.NewTimeout(timeoutNs, nil, false)
-	websocketConnection, err := listener.accept(timeout.GetIsExpiredChannel())
+	connection, err := listener.accept(timeout.GetIsExpiredChannel())
 	timeout.Trigger()
 
-	return websocketConnection, err
+	return connection, err
 }
 
 func (listener *ChannelListener[T]) accept(cancel <-chan struct{}) (*ConnectionChannel.ChannelConnection[T], error) {

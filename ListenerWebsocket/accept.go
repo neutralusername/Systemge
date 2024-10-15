@@ -2,25 +2,17 @@ package ListenerWebsocket
 
 import (
 	"errors"
-	"time"
 
 	"github.com/neutralusername/Systemge/ConnectionWebsocket"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (listener *WebsocketListener) Accept(timeoutMs uint32) (*ConnectionWebsocket.WebsocketConnection, error) {
-	var deadline <-chan time.Time = time.After(time.Duration(timeoutMs) * time.Millisecond)
-	var cancel chan struct{} = make(chan struct{})
-	go func() {
-		select {
-		case <-deadline:
-			close(cancel)
-		case <-cancel:
-			close(cancel)
-		}
-	}()
-	websocketConnection, err := listener.accept(cancel)
-	close(cancel)
-	return websocketConnection, err
+func (listener *WebsocketListener) Accept(timeoutNs int64) (*ConnectionWebsocket.WebsocketConnection, error) {
+	timeout := Tools.NewTimeout(timeoutNs, nil, false)
+	connection, err := listener.accept(timeout.GetIsExpiredChannel())
+	timeout.Trigger()
+
+	return connection, err
 }
 
 func (listener *WebsocketListener) accept(cancel <-chan struct{}) (*ConnectionWebsocket.WebsocketConnection, error) {
