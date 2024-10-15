@@ -10,7 +10,7 @@ type SystemgeConnection[B any] interface {
 	GetInstanceId() string
 	GetAddress() string
 	GetStatus() int
-	GetCloseChannel() <-chan bool
+	GetCloseChannel() <-chan struct{}
 
 	/* 	StartReadRoutine(uint32, int64, int64, Tools.ReadHandler[O, C]) error
 	   	StopReadRoutine() error
