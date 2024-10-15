@@ -175,7 +175,7 @@ func (manager *SessionManager) CreateSession(identityString string, keyValuePair
 
 	session.accepted = true
 	session.timeout = NewTimeout(
-		manager.config.SessionLifetimeMs,
+		manager.config.SessionLifetimeNs,
 		func() {
 			manager.cleanupSession(session)
 			if manager.onRemoveSession != nil {

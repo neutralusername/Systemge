@@ -53,7 +53,7 @@ func UnmarshalIpRateLimiter(data string) *IpRateLimiter {
 }
 
 type SessionManager struct {
-	SessionLifetimeMs      uint64 `json:"sessionLifetimeMs"`      // default: 0 == no expiration
+	SessionLifetimeNs      int64  `json:"sessionLifetimeNs"`      // default: 0 == no expiration
 	SessionIdLength        uint32 `json:"sessionIdLength"`        // default: 32
 	MaxSessionsPerIdentity uint32 `json:"maxSessionsPerIdentity"` // default: 0 == no limit
 	MaxIdentities          uint32 `json:"maxIdentities"`          // default: 0 == no limit
