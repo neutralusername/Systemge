@@ -24,7 +24,6 @@ func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	}
 	connection.BytesSent.Add(1)
 	connection.MessagesSent.Add(1)
-
 	return nil
 }
 
@@ -35,7 +34,7 @@ func (client *TcpConnection) Write(messageBytes []byte, timeoutMs uint64) error 
 	client.SetWriteDeadline(timeoutMs)
 	_, err := client.netConn.Write(append(messageBytes, ENDOFMESSAGE))
 	if err != nil {
-		if Helpers.IsConnectionClosed(err) {
+		if Helpers.IsNetConnClosedErr(err) {
 			client.Close()
 		}
 		return err

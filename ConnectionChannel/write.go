@@ -29,7 +29,6 @@ func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) e
 			return errors.New("timeout")
 		}
 	}
-
 }
 
 func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutNs int64) {

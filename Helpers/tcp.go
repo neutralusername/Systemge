@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func IsConnectionClosed(err error) bool {
+func IsNetConnClosedErr(err error) bool {
 	if err == nil {
 		return false
 	}

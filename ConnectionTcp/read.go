@@ -18,7 +18,7 @@ func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {
 	client.SetReadDeadline(timeoutNs)
 	messageBytes, err := client.messageReceiver.ReadNextMessage()
 	if err != nil {
-		if Helpers.IsWebsocketConnClosedErr(err) {
+		if Helpers.IsNetConnClosedErr(err) {
 			client.Close()
 		}
 		return nil, err
