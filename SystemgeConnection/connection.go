@@ -16,12 +16,11 @@ type SystemgeConnection[B any] interface {
 	   	StopReadRoutine() error
 	   	IsReadRoutineRunning() bool */
 
-	SetReadDeadline(int64)
-	SetWriteDeadline(int64)
-
 	Read(int64) (B, error)
+	SetReadDeadline(int64)
 
 	Write(B, int64) error
+	SetWriteDeadline(int64)
 
 	GetDefaultCommands() Commands.Handlers
 
