@@ -43,7 +43,6 @@ func (timeout *Timeout) handleTrigger() {
 		if timeout.timeoutNs > 0 {
 			timeout.triggerTimestamp = time.Now().Add(time.Duration(timeout.timeoutNs))
 			timeoutChannel = time.After(timeout.triggerTimestamp.Sub(time.Now()))
-
 		} else {
 			timeout.triggerTimestamp = time.Time{}
 		}
