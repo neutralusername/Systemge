@@ -1,11 +1,10 @@
 package ListenerTcp
 
 import (
-	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/ConnectionTcp"
 )
 
-func (listener *TcpListener) Accept(connectionConfig *Config.TcpSystemgeConnection) (*ConnectionTcp.TcpConnection, error) {
+func (listener *TcpListener) Accept( /* connectionConfig *Config.TcpSystemgeConnection */ timeoutNs int64) (*ConnectionTcp.TcpConnection, error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
@@ -16,7 +15,7 @@ func (listener *TcpListener) Accept(connectionConfig *Config.TcpSystemgeConnecti
 		return nil, err
 	}
 
-	tcpSystemgeConnection, err := ConnectionTcp.New(connectionConfig, netConn)
+	tcpSystemgeConnection, err := ConnectionTcp.New( /* connectionConfig, */ netConn)
 	if err != nil {
 		listener.ClientsFailed.Add(1)
 		netConn.Close()

@@ -16,11 +16,14 @@ func (listener *TcpListener) StartAcceptRoutine(config *Config.TcpSystemgeConnec
 		return errors.New("receptionHandler is already running")
 	}
 
-	listener.acceptRoutine = Tools.NewRoutine(func(<-chan struct{}) {
-		if client, err := listener.Accept(config); err == nil {
-			acceptHandler(client)
-		}
-	}, maxConcurrentHandlers, delayNs, timeoutNs)
+	listener.acceptRoutine = Tools.NewRoutine(
+		func(<-chan struct{}) {
+			if client, err := listener.Accept(config); err == nil {
+				acceptHandler(client)
+			}
+		},
+		maxConcurrentHandlers, delayNs, timeoutNs,
+	)
 
 	return listener.acceptRoutine.StartRoutine()
 }

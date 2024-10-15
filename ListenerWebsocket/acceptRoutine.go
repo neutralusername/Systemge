@@ -15,11 +15,14 @@ func (listener *WebsocketListener) StartAcceptRoutine(maxConcurrentHandlers uint
 		return errors.New("receptionHandler is already running")
 	}
 
-	listener.acceptRoutine = Tools.NewRoutine(func(<-chan struct{}) {
-		if client, err := listener.accept(listener.acceptRoutine.GetStopChannel()); err == nil {
-			acceptHandler(client)
-		}
-	}, maxConcurrentHandlers, delayNs, timeoutNs)
+	listener.acceptRoutine = Tools.NewRoutine(
+		func(stopChannel <-chan struct{}) {
+			if client, err := listener.accept(stopChannel); err == nil {
+				acceptHandler(client)
+			}
+		},
+		maxConcurrentHandlers, delayNs, timeoutNs,
+	)
 
 	return listener.acceptRoutine.StartRoutine()
 }
