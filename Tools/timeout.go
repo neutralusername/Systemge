@@ -24,7 +24,7 @@ type Timeout struct {
 	mutex     sync.Mutex
 }
 
-// duration 0 == must be triggered manually
+// timeoutNs 0 == must be triggered manually
 func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 	timeout := &Timeout{
 		timeoutNs:          timeoutNs,
@@ -41,11 +41,14 @@ func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 func (timeout *Timeout) handleTrigger() {
 	for {
 		var timeoutChannel <-chan time.Time
-		triggerTimestamp := time.Now().UnixNano() + timeout.timeoutNs
+
 		if timeout.timeoutNs > 0 {
+			triggerTimestamp := time.Now().UnixNano() + timeout.timeoutNs
 			timeoutChannel = time.After(time.Duration(triggerTimestamp - time.Now().UnixNano()))
+			timeout.triggerAt = time.Unix(0, triggerTimestamp)
+		} else {
+			timeout.triggerAt = time.Time{}
 		}
-		timeout.triggerAt = time.Unix(0, triggerTimestamp)
 
 		select {
 		case val := <-timeout.interactionChannel:
