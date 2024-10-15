@@ -13,15 +13,14 @@ type Timeout struct {
 
 	timeoutNs int64
 
-	triggerAt time.Time
+	triggerTimestamp time.Time
 
 	cancellable bool
 
 	interactionChannel chan int64
-	triggeredChannel   chan struct{}
+	expiredChannel     chan struct{}
 
-	isExpired bool
-	mutex     sync.Mutex
+	mutex sync.Mutex
 }
 
 // timeoutNs 0 == must be triggered manually
@@ -29,10 +28,9 @@ func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 	timeout := &Timeout{
 		timeoutNs:          timeoutNs,
 		onTrigger:          onTrigger,
-		isExpired:          false,
 		interactionChannel: make(chan int64),
 		cancellable:        cancellable,
-		triggeredChannel:   make(chan struct{}),
+		expiredChannel:     make(chan struct{}),
 	}
 	go timeout.handleTrigger()
 	return timeout
@@ -45,30 +43,23 @@ func (timeout *Timeout) handleTrigger() {
 		if timeout.timeoutNs > 0 {
 			triggerTimestamp := time.Now().UnixNano() + timeout.timeoutNs
 			timeoutChannel = time.After(time.Duration(triggerTimestamp - time.Now().UnixNano()))
-			timeout.triggerAt = time.Unix(0, triggerTimestamp)
+			timeout.triggerTimestamp = time.Unix(0, triggerTimestamp)
 		} else {
-			timeout.triggerAt = time.Time{}
+			timeout.triggerTimestamp = time.Time{}
 		}
 
 		select {
-		case val := <-timeout.interactionChannel:
-			if val > 0 {
-				timeout.timeoutNs = val
+		case newTimeoutNs := <-timeout.interactionChannel:
+			if newTimeoutNs > 0 {
+				timeout.timeoutNs = newTimeoutNs
+				continue
 			} else {
-				timeout.isExpired = true
+				close(timeout.expiredChannel)
 				return
 			}
-		case <-timeoutChannel:
-			timeout.mutex.Lock()
-			if timeout.isExpired {
-				timeout.mutex.Unlock()
-				return
-			}
-			timeout.isExpired = true
-			timeout.mutex.Unlock()
 
-			timeout.onTrigger()
-			close(timeout.triggeredChannel)
+		case <-timeoutChannel:
+			timeout.Trigger()
 			return
 		}
 	}
@@ -78,33 +69,42 @@ func (timeout *Timeout) GetTimeoutNs() int64 {
 	return timeout.timeoutNs
 }
 
-func (timeout *Timeout) TriggerAt() int64 {
+func (timeout *Timeout) TriggerTimestamp() time.Time {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
 
-	return timeout.triggerAt.UnixNano()
+	return timeout.triggerTimestamp
 }
 
 func (timeout *Timeout) IsExpired() bool {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
 
-	return timeout.isExpired
+	select {
+	case <-timeout.expiredChannel:
+		return true
+	default:
+		return false
+	}
 }
 
-func (timeout *Timeout) GetTriggeredChannel() <-chan struct{} {
-	return timeout.triggeredChannel
+func (timeout *Timeout) GetExpiredChannel() <-chan struct{} {
+	return timeout.expiredChannel
 }
 
 func (timeout *Timeout) Trigger() error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
 
-	if timeout.isExpired {
+	select {
+	case <-timeout.expiredChannel:
 		return ErrAlreadyTriggered
+	default:
 	}
-	timeout.isExpired = true
-	close(timeout.triggeredChannel)
+
+	timeout.onTrigger()
+	close(timeout.expiredChannel)
+
 	return nil
 }
 
@@ -112,9 +112,12 @@ func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
 
-	if timeout.isExpired {
+	select {
+	case <-timeout.expiredChannel:
 		return ErrAlreadyTriggered
+	default:
 	}
+
 	timeout.interactionChannel <- timeoutNs
 	return nil
 }
@@ -123,13 +126,16 @@ func (timeout *Timeout) Cancel() error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
 
-	if timeout.isExpired {
-		return ErrAlreadyTriggered
-	}
 	if !timeout.cancellable {
 		return errors.New("timeout cannot be cancelled")
 	}
-	timeout.isExpired = true
+
+	select {
+	case <-timeout.expiredChannel:
+		return ErrAlreadyTriggered
+	default:
+	}
+
 	timeout.interactionChannel <- 0
 	return nil
 }
