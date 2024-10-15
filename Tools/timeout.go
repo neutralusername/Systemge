@@ -48,8 +48,8 @@ func (timeout *Timeout) handleTrigger() {
 		}
 
 		select {
-		case newTimeoutNs := <-timeout.interactionChannel:
-			if newTimeoutNs > 0 {
+		case newTimeoutNs, ok := <-timeout.interactionChannel:
+			if ok {
 				timeout.timeoutNs = newTimeoutNs
 				continue
 			} else {
