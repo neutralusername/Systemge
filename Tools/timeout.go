@@ -9,13 +9,13 @@ import (
 var ErrAlreadyExpired = errors.New("timeout already expired")
 
 type Timeout struct {
-	onTrigger func()
-
 	timeoutNs int64
 
-	triggerTimestamp time.Time
+	onTrigger func()
 
 	cancellable bool
+
+	triggerTimestamp time.Time
 
 	interactionChannel chan struct{}
 	isExpiredChannel   chan struct{}
@@ -28,8 +28,8 @@ func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 	timeout := &Timeout{
 		timeoutNs:          timeoutNs,
 		onTrigger:          onTrigger,
-		interactionChannel: make(chan struct{}),
 		cancellable:        cancellable,
+		interactionChannel: make(chan struct{}),
 		isExpiredChannel:   make(chan struct{}),
 	}
 	go timeout.handleTrigger()
