@@ -134,7 +134,9 @@ func (timeout *Timeout) Trigger() error {
 
 	close(timeout.interactionChannel)
 	close(timeout.isExpiredChannel)
-	timeout.onTrigger()
+	if timeout.onTrigger != nil {
+		timeout.onTrigger()
+	}
 	return nil
 }
 

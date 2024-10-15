@@ -12,9 +12,11 @@ type SystemgeConnection[B any] interface {
 	GetStatus() int
 	GetCloseChannel() <-chan struct{}
 
-	/* 	StartReadRoutine(uint32, int64, int64, Tools.ReadHandler[O, C]) error
-	   	StopReadRoutine() error
-	   	IsReadRoutineRunning() bool */
+	/*
+		StartReadRoutine(uint32, int64, int64, Tools.ReadHandler[O, C]) error
+		StopReadRoutine() error
+		IsReadRoutineRunning() bool
+	*/
 
 	Read(int64) (B, error)
 	SetReadDeadline(int64)

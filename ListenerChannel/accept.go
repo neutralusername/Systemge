@@ -2,10 +2,19 @@ package ListenerChannel
 
 import (
 	"errors"
-	"time"
 
 	"github.com/neutralusername/Systemge/ConnectionChannel"
+	"github.com/neutralusername/Systemge/Tools"
 )
+
+func (listener *ChannelListener[T]) Accept(timeoutNs int64) (*ConnectionChannel.ChannelConnection[T], error) {
+
+	timeout := Tools.NewTimeout(timeoutNs, nil, false)
+	websocketConnection, err := listener.accept(timeout.GetIsExpiredChannel())
+	timeout.Trigger()
+
+	return websocketConnection, err
+}
 
 func (listener *ChannelListener[T]) accept(cancel <-chan struct{}) (*ConnectionChannel.ChannelConnection[T], error) {
 	select {
@@ -21,24 +30,4 @@ func (listener *ChannelListener[T]) accept(cancel <-chan struct{}) (*ConnectionC
 		listener.ClientsAccepted.Add(1)
 		return ConnectionChannel.New(connectionRequest.SendToListener, connectionRequest.ReceiveFromListener), nil
 	}
-}
-
-func (listener *ChannelListener[T]) Accept() (*ConnectionChannel.ChannelConnection[T], error) {
-	return listener.accept(make(chan struct{}))
-}
-
-func (listener *ChannelListener[T]) AcceptTimeout(timeoutMs uint32) (*ConnectionChannel.ChannelConnection[T], error) {
-	var deadline <-chan time.Time = time.After(time.Duration(timeoutMs) * time.Millisecond)
-	var cancel chan struct{} = make(chan struct{})
-	go func() {
-		select {
-		case <-deadline:
-			close(cancel)
-		case <-cancel:
-			close(cancel)
-		}
-	}()
-	websocketConnection, err := listener.accept(cancel)
-	close(cancel)
-	return websocketConnection, err
 }

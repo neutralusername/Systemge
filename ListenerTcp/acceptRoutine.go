@@ -17,7 +17,7 @@ func (listener *TcpListener) StartAcceptRoutine(config *Config.TcpSystemgeConnec
 	}
 
 	listener.acceptRoutine = Tools.NewRoutine(func(<-chan struct{}) {
-		if client, err := listener.AcceptConnection(config); err == nil {
+		if client, err := listener.Accept(config); err == nil {
 			acceptHandler(client)
 		}
 	}, maxConcurrentHandlers, delayNs, timeoutNs)

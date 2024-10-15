@@ -12,7 +12,7 @@ func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) e
 
 	connection.writeTimeout = Tools.NewTimeout(
 		timeoutNs,
-		func() {},
+		nil,
 		false,
 	)
 

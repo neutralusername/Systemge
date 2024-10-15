@@ -17,7 +17,7 @@ func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 
 	connection.readTimeout = Tools.NewTimeout(
 		timeoutNs,
-		func() {},
+		nil,
 		false,
 	)
 
