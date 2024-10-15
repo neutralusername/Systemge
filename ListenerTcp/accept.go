@@ -22,5 +22,6 @@ func (listener *TcpListener) AcceptConnection(connectionConfig *Config.TcpSystem
 		return nil, err
 	}
 
+	listener.ClientsAccepted.Add(1)
 	return tcpSystemgeConnection, nil
 }

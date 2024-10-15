@@ -60,7 +60,6 @@ func (server *HTTPServer) Start() error {
 	case err := <-errorChannel:
 		server.status = Status.Stopped
 		server.httpServer = nil
-		server.status = Status.Stopped
 		return err
 	default:
 	}
