@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type Handlers map[string]http.HandlerFunc
+type HandlerFuncs map[string]http.HandlerFunc
 
 type WrapperHandler func(http.ResponseWriter, *http.Request) error
 
@@ -35,7 +35,7 @@ type HTTPServer struct {
 	requestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, handlers Handlers) *HTTPServer {
+func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, requestHandlers HandlerFuncs) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -49,7 +49,7 @@ func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, 
 		wrapperHandler: wrapperHandler,
 		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
-	for pattern, handler := range handlers {
+	for pattern, handler := range requestHandlers {
 		server.AddRoute(pattern, handler)
 	}
 	if config.HttpErrorLogPath != "" {
