@@ -31,7 +31,6 @@ type ChannelListener[T any] struct {
 
 	ClientsAccepted atomic.Uint64
 	ClientsFailed   atomic.Uint64
-	ClientsRejected atomic.Uint64
 }
 
 func New[T any](name string) (*ChannelListener[T], error) {

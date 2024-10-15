@@ -10,12 +10,15 @@ import (
 func (listener *ChannelListener[T]) accept(cancel <-chan struct{}) (*ConnectionChannel.ChannelConnection[T], error) {
 	select {
 	case <-listener.stopChannel:
+		listener.ClientsFailed.Add(1)
 		return nil, errors.New("listener stopped")
 
 	case <-cancel:
+		listener.ClientsFailed.Add(1)
 		return nil, errors.New("accept canceled")
 
 	case connectionRequest := <-listener.connectionChannel:
+		listener.ClientsAccepted.Add(1)
 		return ConnectionChannel.New(connectionRequest.SendToListener, connectionRequest.ReceiveFromListener), nil
 	}
 }

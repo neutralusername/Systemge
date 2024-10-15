@@ -20,8 +20,6 @@ func (listener *TcpListener) StartAcceptRoutine(config *Config.TcpSystemgeConnec
 		if client, err := listener.AcceptConnection(config); err == nil {
 			acceptHandler(client)
 		}
-		listener.ClientsFailed.Add(1)
-
 	}, maxConcurrentHandlers, delayNs, timeoutNs)
 
 	return listener.acceptRoutine.StartRoutine()

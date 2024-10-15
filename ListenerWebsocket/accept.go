@@ -25,13 +25,16 @@ func (listener *WebsocketListener) accept(cancel <-chan struct{}) (*ConnectionWe
 
 		case upgraderResponse := <-upgraderResponseChannel:
 			if upgraderResponse.err != nil {
+				listener.ClientsFailed.Add(1)
 				return nil, upgraderResponse.err
 			}
 			websocketClient, err := ConnectionWebsocket.New(upgraderResponse.websocketConn)
 			if err != nil {
+				listener.ClientsFailed.Add(1)
 				upgraderResponse.websocketConn.Close()
 				return nil, err
 			}
+			listener.ClientsAccepted.Add(1)
 			return websocketClient, nil
 		}
 	}
