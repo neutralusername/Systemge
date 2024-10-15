@@ -28,6 +28,8 @@ type TcpListener struct {
 	acceptRoutine *Tools.Routine
 
 	tcpListener net.Listener
+	tlsListener net.Listener
+
 	acceptMutex sync.RWMutex
 
 	eventHandler Event.Handler
@@ -94,26 +96,23 @@ func (server *TcpListener) GetInstanceId() string {
 	return server.instanceId
 }
 
+// testing required
 func NewTcpListener(config *Config.TcpServer) (net.Listener, error) {
-	if config.TlsCertPath == "" || config.TlsKeyPath == "" {
-		listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
-		if err != nil {
-			return nil, err
-		}
-		return listener, nil
-	} else {
-		cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
-		if err != nil {
-			return nil, err
-		}
-		tlsConfig := &tls.Config{
-			Certificates: []tls.Certificate{cert},
-		}
-		//tlsNetListener := tls.NewListener(netListener, tlsConfig) // alows me to type assert to *net.TCPListener which supports SetDeadline
-		listener, err := tls.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)), tlsConfig)
-		if err != nil {
-			return nil, err
-		}
+	listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
+	if err != nil {
+		return nil, err
+	}
+
+	if config.TlsCertPath != "" && config.TlsKeyPath != "" {
 		return listener, nil
 	}
+
+	cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	return tls.NewListener(listener, tlsConfig), nil
 }
