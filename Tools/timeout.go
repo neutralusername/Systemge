@@ -83,6 +83,24 @@ func (timeout *Timeout) IsExpired() bool {
 	}
 }
 
+func (timeout *Timeout) IsCancellable() bool {
+	return timeout.cancellable
+}
+
+func (timeout *Timeout) SetOnTrigger(onTrigger func()) error {
+	timeout.mutex.Lock()
+	defer timeout.mutex.Unlock()
+
+	select {
+	case <-timeout.isExpiredChannel:
+		return ErrAlreadyExpired
+	default:
+	}
+
+	timeout.onTrigger = onTrigger
+	return nil
+}
+
 // channel will be closed once the timeout is either triggered or cancelled
 func (timeout *Timeout) GetIsExpiredChannel() <-chan struct{} {
 	return timeout.isExpiredChannel
