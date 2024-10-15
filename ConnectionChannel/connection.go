@@ -34,6 +34,9 @@ type ChannelConnection[T any] struct {
 	readDeadline       <-chan time.Time
 	readDeadlineChange chan struct{}
 
+	writeDeadline       <-chan time.Time
+	writeDeadlineChange chan struct{}
+
 	// metrics
 
 	MessagesSent     atomic.Uint64

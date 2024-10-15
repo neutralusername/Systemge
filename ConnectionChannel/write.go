@@ -1,27 +1,51 @@
 package ConnectionChannel
 
-func (connection *ChannelConnection[T]) write(messageBytes T) error {
-	connection.sendChannel <- messageBytes
-	connection.MessagesSent.Add(1)
-	return nil
-}
+import (
+	"errors"
+	"time"
+)
 
-func (connection *ChannelConnection[T]) Write(messageBytes T) error {
+func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) error {
 	connection.writeMutex.Lock()
 	defer connection.writeMutex.Unlock()
 
-	return connection.write(messageBytes)
+	connection.writeDeadlineChange = make(chan struct{})
+	connection.SetWriteDeadline(timeoutNs)
+
+	for {
+		select {
+		case connection.sendChannel <- messageBytes:
+			connection.writeDeadline = nil
+			connection.writeDeadlineChange = nil
+			connection.MessagesSent.Add(1)
+			return nil
+
+		case <-connection.writeDeadline:
+			connection.writeDeadline = nil
+			connection.writeDeadlineChange = nil
+			return errors.New("timeout")
+
+		case <-connection.writeDeadlineChange:
+			continue
+		}
+	}
+
 }
 
-func (connection *ChannelConnection[T]) WriteTimeout(messageBytes T, timeoutMs uint64) error {
-	connection.writeMutex.Lock()
-	defer connection.writeMutex.Unlock()
+func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutNs int64) {
+	writeDeadlineChange := connection.writeDeadlineChange
+	if writeDeadlineChange == nil {
+		return
+	}
 
-	connection.SetWriteDeadline(timeoutMs)
-	return connection.write(messageBytes)
+	if timeoutNs > 0 {
+		connection.writeDeadline = time.After(time.Duration(timeoutNs) * time.Nanosecond)
+	} else {
+		connection.writeDeadline = nil
+	}
 
-}
+	connection.writeDeadlineChange = make(chan struct{})
+	close(writeDeadlineChange)
 
-func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutMs uint64) {
-	/* client.websocketConn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond)) */
+	return
 }

@@ -22,12 +22,15 @@ func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 		case item := <-connection.receiveChannel:
 			connection.readDeadline = nil
 			connection.readDeadlineChange = nil
+			connection.MessagesReceived.Add(1)
 			return item, nil
+
 		case <-connection.readDeadline:
 			connection.readDeadline = nil
 			connection.readDeadlineChange = nil
 			var nilValue T
 			return nilValue, errors.New("timeout")
+
 		case <-connection.readDeadlineChange:
 			continue
 		}
