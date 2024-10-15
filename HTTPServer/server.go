@@ -8,37 +8,34 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Handlers map[string]http.HandlerFunc
 
+type WrapperHandler func(http.ResponseWriter, *http.Request) error
+
 type HTTPServer struct {
+	config *Config.HTTPServer
+
+	name       string
 	instanceId string
 	sessionId  string
-	name       string
 
 	status      int
 	statusMutex sync.RWMutex
 
-	config        *Config.HTTPServer
-	httpServer    *http.Server
-	blacklist     *Tools.AccessControlList
-	whitelist     *Tools.AccessControlList
-	ipRateLimiter *Tools.IpRateLimiter
-
-	eventHandler Event.Handler
-
-	mux *CustomMux
+	httpServer     *http.Server
+	wrapperHandler WrapperHandler
+	mux            *CustomMux
 
 	// metrics
 
 	requestCounter atomic.Uint64
 }
 
-func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer {
+func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, handlers Handlers) *HTTPServer {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -46,16 +43,17 @@ func New(name string, config *Config.HTTPServer, handlers Handlers) *HTTPServer 
 		panic("config.TcpListenerConfig is nil")
 	}
 	server := &HTTPServer{
-		name:       name,
-		mux:        NewCustomMux(config.DelayNs),
-		config:     config,
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:           name,
+		mux:            NewCustomMux(config.DelayNs),
+		config:         config,
+		wrapperHandler: wrapperHandler,
+		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	for pattern, handler := range handlers {
 		server.AddRoute(pattern, handler)
 	}
-	if config.HttpErrorPath != "" {
-		file := Helpers.OpenFileAppend(config.HttpErrorPath)
+	if config.HttpErrorLogPath != "" {
+		file := Helpers.OpenFileAppend(config.HttpErrorLogPath)
 		server.httpServer.ErrorLog = log.New(file, "[Error: \""+server.GetName()+"\"] ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 	return server

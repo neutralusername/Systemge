@@ -1,7 +1,6 @@
 package HTTPServer
 
 import (
-	"net"
 	"net/http"
 
 	"github.com/neutralusername/Systemge/Status"
@@ -47,29 +46,8 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 		server.requestCounter.Add(1)
 		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
 
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			Send403(w, r)
-			return
-		}
-
-		if ipRateLimiter := server.GetIpRateLimiter(); ipRateLimiter != nil {
-			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
-				Send403(w, r)
-				return
-			}
-		}
-
-		if server.GetBlacklist() != nil {
-			if server.GetBlacklist().Contains(ip) {
-				Send403(w, r)
-				return
-			}
-		}
-
-		if server.GetWhitelist() != nil && server.GetWhitelist().ElementCount() > 0 {
-			if !server.GetWhitelist().Contains(ip) {
-				Send403(w, r)
+		if server.wrapperHandler != nil {
+			if err := server.wrapperHandler(w, r); err != nil {
 				return
 			}
 		}

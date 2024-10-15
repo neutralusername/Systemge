@@ -46,7 +46,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, config *Config.WebsocketListener) (*WebsocketListener, error) {
+func New(name string, httpWrapperHandler HTTPServer.WrapperHandler, config *Config.WebsocketListener) (*WebsocketListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -64,6 +64,7 @@ func New(name string, config *Config.WebsocketListener) (*WebsocketListener, err
 		&Config.HTTPServer{
 			TcpServerConfig: listener.config.TcpServerConfig,
 		},
+		httpWrapperHandler,
 		map[string]http.HandlerFunc{
 			listener.config.Pattern: listener.getHTTPWebsocketUpgradeHandler(),
 		},
