@@ -17,7 +17,7 @@ type Timeout struct {
 
 	cancellable bool
 
-	interactionChannel chan int64
+	interactionChannel chan struct{}
 	isExpiredChannel   chan struct{}
 
 	mutex sync.Mutex
@@ -28,7 +28,7 @@ func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 	timeout := &Timeout{
 		timeoutNs:          timeoutNs,
 		onTrigger:          onTrigger,
-		interactionChannel: make(chan int64),
+		interactionChannel: make(chan struct{}),
 		cancellable:        cancellable,
 		isExpiredChannel:   make(chan struct{}),
 	}
@@ -48,9 +48,8 @@ func (timeout *Timeout) handleTrigger() {
 		}
 
 		select {
-		case newTimeoutNs, ok := <-timeout.interactionChannel:
+		case _, ok := <-timeout.interactionChannel:
 			if ok {
-				timeout.timeoutNs = newTimeoutNs
 				continue
 			} else {
 				return
@@ -116,7 +115,8 @@ func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	default:
 	}
 
-	timeout.interactionChannel <- timeoutNs
+	timeout.timeoutNs = timeoutNs
+	timeout.interactionChannel <- struct{}{}
 	return nil
 }
 
