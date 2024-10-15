@@ -27,11 +27,11 @@ type ChannelConnection[T any] struct {
 
 	readRoutine *Tools.Routine
 
-	writeMutex sync.Mutex
-	readMutex  sync.RWMutex
-
-	readTimeout  *Tools.Timeout
+	writeMutex   sync.Mutex
 	writeTimeout *Tools.Timeout
+
+	readMutex   sync.RWMutex
+	readTimeout *Tools.Timeout
 
 	// metrics
 
