@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
@@ -18,27 +17,7 @@ func (server *HTTPServer) Start() error {
 
 	server.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 
-	if event := server.onEvent(Event.NewInfo(
-		Event.ServiceStarting,
-		"Starting http server",
-		Event.Cancel,
-		Event.Cancel,
-		Event.Continue,
-		Event.Context{
-			Event.Circumstance: Event.ServiceStart,
-		},
-	)); !event.IsInfo() {
-		return event.GetError()
-	}
-
 	if server.status != Status.Stopped {
-		server.onEvent(Event.NewWarningNoOption(
-			Event.ServiceAlreadyStarted,
-			"http server not stopped",
-			Event.Context{
-				Event.Circumstance: Event.ServiceStart,
-			},
-		))
 		return errors.New("failed to start http server")
 	}
 	server.status = Status.Pending
@@ -61,18 +40,7 @@ func (server *HTTPServer) Start() error {
 				if !ended {
 					errorChannel <- err
 				} else if http.ErrServerClosed != err {
-					if event := server.onEvent(Event.NewError(
-						Event.UnexpectedClosure,
-						err.Error(),
-						Event.Panic,
-						Event.Panic,
-						Event.Cancel,
-						Event.Context{
-							Event.Circumstance: Event.ServiceStart,
-						},
-					)); !event.IsInfo() {
-						panic(err)
-					}
+					panic(err)
 				}
 			}
 		} else {
@@ -81,18 +49,7 @@ func (server *HTTPServer) Start() error {
 				if !ended {
 					errorChannel <- err
 				} else if http.ErrServerClosed != err {
-					if event := server.onEvent(Event.NewError(
-						Event.UnexpectedClosure,
-						err.Error(),
-						Event.Panic,
-						Event.Panic,
-						Event.Cancel,
-						Event.Context{
-							Event.Circumstance: Event.ServiceStart,
-						},
-					)); !event.IsInfo() {
-						panic(err)
-					}
+					panic(err)
 				}
 			}
 		}
@@ -102,27 +59,12 @@ func (server *HTTPServer) Start() error {
 	select {
 	case err := <-errorChannel:
 		server.status = Status.Stopped
-		server.onEvent(Event.NewErrorNoOption(
-			Event.ServiceStartFailed,
-			err.Error(),
-			Event.Context{
-				Event.Circumstance: Event.ServiceStart,
-			},
-		))
 		server.httpServer = nil
 		server.status = Status.Stopped
 		return err
 	default:
 	}
 	server.status = Status.Started
-
-	server.onEvent(Event.NewInfoNoOption(
-		Event.ServiceStarted,
-		"http server started",
-		Event.Context{
-			Event.Circumstance: Event.ServiceStart,
-		},
-	))
 
 	return nil
 }

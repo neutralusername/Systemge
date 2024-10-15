@@ -8,13 +8,15 @@ import (
 )
 
 type CustomMux struct {
-	routes map[string]http.Handler
-	mutex  sync.RWMutex
+	routes  map[string]http.Handler
+	mutex   sync.RWMutex
+	delayNs int64
 }
 
-func NewCustomMux() *CustomMux {
+func NewCustomMux(delayNs int64) *CustomMux {
 	return &CustomMux{
-		routes: make(map[string]http.Handler),
+		routes:  make(map[string]http.Handler),
+		delayNs: delayNs,
 	}
 }
 
@@ -33,9 +35,7 @@ func (c *CustomMux) RemoveRoute(pattern string) {
 
 func (c *CustomMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	if c.delayNs > 0 {
-		time.Sleep(time.Duration(c.delayNs) * time.Nanosecond)
-	}
+	time.Sleep(time.Duration(c.delayNs) * time.Nanosecond)
 
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()

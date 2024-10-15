@@ -4,7 +4,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Status"
 	"golang.org/x/oauth2"
 )
@@ -45,115 +44,38 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			return
 		}
 
-		if event := server.onEvent(Event.NewInfo(
-			Event.HandlingHttpRequest,
-			"Handling http request",
-			Event.Cancel,
-			Event.Cancel,
-			Event.Continue,
-			Event.Context{
-				Event.Circumstance: Event.HttpRequest,
-				Event.Pattern:      pattern,
-				Event.IdentityType: Event.HttpRequest,
-				Event.Address:      r.RemoteAddr,
-			},
-		)); !event.IsInfo() {
-			Send403(w, r)
-			return
-		}
-
 		server.requestCounter.Add(1)
 		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
 
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
-			server.onEvent(Event.NewWarningNoOption(
-				Event.SplittingHostPortFailed,
-				err.Error(),
-				Event.Context{
-					Event.Circumstance: Event.HttpRequest,
-					Event.IdentityType: Event.HttpRequest,
-					Event.Address:      r.RemoteAddr,
-				}),
-			)
 			Send403(w, r)
 			return
 		}
 
 		if ipRateLimiter := server.GetIpRateLimiter(); ipRateLimiter != nil {
 			if !ipRateLimiter.RegisterConnectionAttempt(ip) {
-				if event := server.onEvent(Event.NewWarning(
-					Event.RateLimited,
-					"Client not accepted",
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
-					Event.Context{
-						Event.RateLimiterType: Event.Ip,
-						Event.Pattern:         pattern,
-						Event.Address:         r.RemoteAddr,
-					},
-				)); !event.IsWarning() {
-					Send403(w, r)
-					return
-				}
+				Send403(w, r)
+				return
 			}
 		}
 
 		if server.GetBlacklist() != nil {
 			if server.GetBlacklist().Contains(ip) {
-				if event := server.onEvent(Event.NewWarning(
-					Event.Blacklisted,
-					"Client not accepted",
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
-					Event.Context{
-						Event.Circumstance: Event.HttpRequest,
-						Event.Pattern:      pattern,
-						Event.IdentityType: Event.HttpRequest,
-						Event.Address:      r.RemoteAddr,
-					},
-				)); !event.IsWarning() {
-					Send403(w, r)
-					return
-				}
+				Send403(w, r)
+				return
 			}
 		}
 
 		if server.GetWhitelist() != nil && server.GetWhitelist().ElementCount() > 0 {
 			if !server.GetWhitelist().Contains(ip) {
-				if event := server.onEvent(Event.NewWarning(
-					Event.NotWhitelisted,
-					"Client not accepted",
-					Event.Cancel,
-					Event.Cancel,
-					Event.Continue,
-					Event.Context{
-						Event.Circumstance: Event.HttpRequest,
-						Event.Pattern:      pattern,
-						Event.IdentityType: Event.HttpRequest,
-						Event.Address:      r.RemoteAddr,
-					},
-				)); !event.IsWarning() {
-					Send403(w, r)
-					return
-				}
+				Send403(w, r)
+				return
 			}
 		}
 
 		handler(w, r)
 
-		server.onEvent(Event.NewInfoNoOption(
-			Event.HandledHttpRequest,
-			"Handled http request",
-			Event.Context{
-				Event.Circumstance: Event.HttpRequest,
-				Event.Pattern:      pattern,
-				Event.IdentityType: Event.HttpRequest,
-				Event.Address:      r.RemoteAddr,
-			},
-		))
 	}
 }
 
