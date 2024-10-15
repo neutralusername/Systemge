@@ -62,6 +62,7 @@ func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) 
 	if config.TcpServerConfig.TlsCertPath != "" && config.TcpServerConfig.TlsKeyPath != "" {
 		tlsListener, err := NewTlsListener(tcpListener, config.TcpServerConfig.TlsCertPath, config.TcpServerConfig.TlsKeyPath)
 		if err != nil {
+			tcpListener.Close()
 			return nil, err
 		}
 		server.tlsListener = tlsListener
