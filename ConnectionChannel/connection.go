@@ -46,10 +46,12 @@ type ChannelConnection[T any] struct {
 func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T] {
 
 	connection := &ChannelConnection[T]{
-		closeChannel:   make(chan bool),
-		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		receiveChannel: receiveChannel,
-		sendChannel:    sendChannel,
+		closeChannel:        make(chan bool),
+		instanceId:          Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		receiveChannel:      receiveChannel,
+		sendChannel:         sendChannel,
+		writeDeadlineChange: make(chan struct{}),
+		readDeadlineChange:  make(chan struct{}),
 	}
 
 	return connection
