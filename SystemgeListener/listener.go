@@ -1,20 +1,31 @@
 package SystemgeListener
 
-type SystemgeListener interface {
-	/* AcceptConnection(connectionConfig *Config.TcpSystemgeConnection, eventHandler Event.Handler) (SystemgeConnection.SystemgeConnection, error)
-	Close() error
+import (
+	"github.com/neutralusername/Systemge/Commands"
+	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
+)
+
+type SystemgeListener[B any] interface {
+	GetInstanceId() string
+	GetSessionId() string
+	GetName() string
+	GetStatus() int
+	GetStopChannel() <-chan struct{}
+
+	/*
+	   func (listener *WebsocketListener) IsAcceptRoutineRunning() bool
+	   func (listener *WebsocketListener) StartAcceptRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[*ConnectionWebsocket.WebsocketConnection]) error
+	   func (listener *WebsocketListener) StopAcceptRoutine(abortOngoingCalls bool) error
+	*/
+
+	Accept(timeoutNs int64) (SystemgeConnection.SystemgeConnection[B], error)
+
+	Start() error
+	Stop() error
 
 	GetDefaultCommands() Commands.Handlers
 
-	GetConnectionAttempts() uint64
-	GetAcceptedConnectionAttempts() uint64
-	GetFailedConnectionAttempts() uint64
-	GetRejectedConnectionAttempts() uint64
+	CheckMetrics() Metrics.MetricsTypes
 	GetMetrics() Metrics.MetricsTypes
-
-	CheckConnectionAttempts() uint64
-	CheckAcceptedConnectionAttempts() uint64
-	CheckFailedConnectionAttempts() uint64
-	CheckRejectedConnectionAttempts() uint64
-	CheckMetrics() Metrics.MetricsTypes */
 }
