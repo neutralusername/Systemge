@@ -48,7 +48,7 @@ func (timeout *Timeout) handleTrigger() {
 			timeout.triggerTimestamp = time.Time{}
 		}
 
-		select {
+		select { // will keep alive if triggered manually as of now
 		case newTimeoutNs := <-timeout.interactionChannel:
 			if newTimeoutNs > 0 {
 				timeout.timeoutNs = newTimeoutNs
@@ -70,9 +70,6 @@ func (timeout *Timeout) GetTimeoutNs() int64 {
 }
 
 func (timeout *Timeout) TriggerTimestamp() time.Time {
-	timeout.mutex.Lock()
-	defer timeout.mutex.Unlock()
-
 	return timeout.triggerTimestamp
 }
 
