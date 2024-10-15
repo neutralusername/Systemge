@@ -6,16 +6,16 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/ConnectionWebsocket"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/ListenerWebsocket"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketConnection"
-	"github.com/neutralusername/Systemge/WebsocketListener"
 )
 
 type WebsocketReceptionCaller struct {
-	Client    *WebsocketConnection.WebsocketConnection
+	Client    *ConnectionWebsocket.WebsocketConnection
 	SessionId string
 	Identity  string
 }
@@ -35,7 +35,7 @@ type WebsocketServer[O any] struct {
 
 	eventHandler *Event.Handler
 
-	websocketListener *WebsocketListener.WebsocketListener
+	websocketListener *ListenerWebsocket.WebsocketListener
 
 	sessionManager *Tools.SessionManager
 
@@ -85,7 +85,7 @@ func New[O any](name string, config *Config.WebsocketServer, whitelist *Tools.Ac
 		server.eventHandler = Event.NewHandler(eventHandleFunc, server.GetServerContext)
 	}
 	server.sessionManager = Tools.NewSessionManager(config.SessionManagerConfig, nil, nil)
-	websocketListener, err := WebsocketListener.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, whitelist, blacklist)
+	websocketListener, err := ListenerWebsocket.New(server.name+"_websocketListener", server.config.WebsocketListenerConfig, whitelist, blacklist)
 	if err != nil {
 		return nil, err
 	}

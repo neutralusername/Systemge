@@ -3,10 +3,10 @@ package WebsocketServer
 import (
 	"errors"
 
+	"github.com/neutralusername/Systemge/ConnectionWebsocket"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Tools"
-	"github.com/neutralusername/Systemge/WebsocketConnection"
 )
 
 func (server *WebsocketServer[O]) SendMessage(bytes []byte, ids ...string) error {
@@ -99,7 +99,7 @@ func (server *WebsocketServer[O]) SendMessage(bytes []byte, ids ...string) error
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.(*WebsocketConnection.WebsocketConnection).WriteTimeout(bytes, server.config.WriteTimeoutMs)
+			websocketClient.(*ConnectionWebsocket.WebsocketConnection).WriteTimeout(bytes, server.config.WriteTimeoutMs)
 		})
 	}
 
@@ -182,7 +182,7 @@ func (server *WebsocketServer[O]) broadcast(messageBytes []byte) error {
 		}
 
 		waitGroup.AddTask(func() {
-			websocketClient.(*WebsocketConnection.WebsocketConnection).WriteTimeout(messageBytes, server.config.WriteTimeoutMs)
+			websocketClient.(*ConnectionWebsocket.WebsocketConnection).WriteTimeout(messageBytes, server.config.WriteTimeoutMs)
 		})
 	}
 
