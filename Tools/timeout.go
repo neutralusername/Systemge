@@ -41,9 +41,9 @@ func (timeout *Timeout) handleTrigger() {
 		var timeoutChannel <-chan time.Time
 
 		if timeout.timeoutNs > 0 {
-			triggerTimestamp := time.Now().UnixNano() + timeout.timeoutNs
-			timeoutChannel = time.After(time.Duration(triggerTimestamp - time.Now().UnixNano()))
-			timeout.triggerTimestamp = time.Unix(0, triggerTimestamp)
+			timeout.triggerTimestamp = time.Now().Add(time.Duration(timeout.timeoutNs))
+			timeoutChannel = time.After(timeout.triggerTimestamp.Sub(time.Now()))
+
 		} else {
 			timeout.triggerTimestamp = time.Time{}
 		}
