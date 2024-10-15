@@ -14,11 +14,14 @@ func (connection *WebsocketConnection) StartReadRoutine(maxConcurrentHandlers ui
 		return errors.New("receptionHandler is already running")
 	}
 
-	connection.readRoutine = Tools.NewRoutine(func(<-chan struct{}) {
-		if bytes, err := connection.Read(); err == nil {
-			readHandler(bytes, connection)
-		}
-	}, maxConcurrentHandlers, delayNs, timeoutNs)
+	connection.readRoutine = Tools.NewRoutine(
+		func(<-chan struct{}) {
+			if bytes, err := connection.Read(timeoutNs); err == nil {
+				readHandler(bytes, connection)
+			}
+		},
+		maxConcurrentHandlers, delayNs, timeoutNs,
+	)
 
 	return connection.readRoutine.StartRoutine()
 }

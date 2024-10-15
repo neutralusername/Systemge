@@ -3,6 +3,7 @@ package ConnectionChannel
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
@@ -29,6 +30,9 @@ type ChannelConnection[T any] struct {
 
 	writeMutex sync.Mutex
 	readMutex  sync.RWMutex
+
+	readDeadline       <-chan time.Time
+	readDeadlineChange chan struct{}
 
 	// metrics
 

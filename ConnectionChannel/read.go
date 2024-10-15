@@ -2,13 +2,10 @@ package ConnectionChannel
 
 import (
 	"errors"
+	"time"
 )
 
-func (connection *ChannelConnection[T]) read() (T, error) {
-	return <-connection.receiveChannel, nil
-}
-
-func (connection *ChannelConnection[T]) Read() (T, error) {
+func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
@@ -17,23 +14,40 @@ func (connection *ChannelConnection[T]) Read() (T, error) {
 		return nilValue, errors.New("receptionHandler is already running")
 	}
 
-	return connection.read()
+	connection.readDeadlineChange = make(chan struct{})
+	connection.SetReadDeadline(timeoutNs)
 
+	for {
+		select {
+		case item := <-connection.receiveChannel:
+			connection.readDeadline = nil
+			connection.readDeadlineChange = nil
+			return item, nil
+		case <-connection.readDeadline:
+			connection.readDeadline = nil
+			connection.readDeadlineChange = nil
+			var nilValue T
+			return nilValue, errors.New("timeout")
+		case <-connection.readDeadlineChange:
+			continue
+		}
+	}
 }
 
-func (client *ChannelConnection[T]) ReadTimeout(timeoutMs uint64) (T, error) {
-	client.readMutex.Lock()
-	defer client.readMutex.Unlock()
+func (connection *ChannelConnection[T]) SetReadDeadline(timeoutNs int64) {
+	readDeadlineChange := connection.readDeadlineChange
+	if readDeadlineChange == nil {
+		return
+	}
 
-	client.SetReadDeadline(timeoutMs)
-	return client.read()
-}
+	if timeoutNs > 0 {
+		connection.readDeadline = time.After(time.Duration(timeoutNs) * time.Nanosecond)
+	} else {
+		connection.readDeadline = nil
+	}
 
-// can be used to cancel an ongoing read operation
-func (connection *ChannelConnection[T]) SetReadDeadline(timeoutMs uint64) {
-	/* client.websocketConn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond)) */
-}
+	connection.readDeadlineChange = make(chan struct{})
+	close(readDeadlineChange)
 
-func (connection *ChannelConnection[T]) SetReadLimit(maxBytes int64) {
-	/* 	client.websocketConn.SetReadLimit(maxBytes) */
+	return
 }

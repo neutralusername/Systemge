@@ -14,11 +14,14 @@ func (client *TcpConnection) StartReadRoutine(maxConcurrentHandlers uint32, dela
 		return errors.New("receptionHandler is already running")
 	}
 
-	client.readRoutine = Tools.NewRoutine(func(<-chan struct{}) {
-		if bytes, err := client.Read(); err == nil {
-			readHandler(bytes, client)
-		}
-	}, maxConcurrentHandlers, delayNs, timeoutNs)
+	client.readRoutine = Tools.NewRoutine(
+		func(<-chan struct{}) {
+			if bytes, err := client.Read(timeoutNs); err == nil {
+				readHandler(bytes, client)
+			}
+		},
+		maxConcurrentHandlers, delayNs, timeoutNs,
+	)
 
 	return client.readRoutine.StartRoutine()
 }
