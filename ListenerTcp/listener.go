@@ -96,18 +96,16 @@ func (server *TcpListener) GetInstanceId() string {
 	return server.instanceId
 }
 
-// testing required
-func NewTcpListener(config *Config.TcpServer) (net.Listener, error) {
-	listener, err := net.Listen("tcp", ":"+Helpers.IntToString(int(config.Port)))
+func NewTcpListener(port uint16) (net.Listener, error) {
+	listener, err := net.Listen("tcp", ":"+Helpers.Uint16ToString(port))
 	if err != nil {
 		return nil, err
 	}
+	return listener, nil
+}
 
-	if config.TlsCertPath != "" && config.TlsKeyPath != "" {
-		return listener, nil
-	}
-
-	cert, err := tls.LoadX509KeyPair(config.TlsCertPath, config.TlsKeyPath)
+func NewTlsListener(listener net.Listener, tlsCertPath, tlsKeyPath string) (net.Listener, error) {
+	cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
 	if err != nil {
 		return nil, err
 	}
