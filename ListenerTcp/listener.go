@@ -52,11 +52,21 @@ func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) 
 		config:     config,
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
-	tcpListener, err := NewTcpListener(config.TcpServerConfig)
+
+	tcpListener, err := NewTcpListener(config.TcpServerConfig.Port)
 	if err != nil {
 		return nil, err
 	}
 	server.tcpListener = tcpListener
+
+	if config.TcpServerConfig.TlsCertPath != "" && config.TcpServerConfig.TlsKeyPath != "" {
+		tlsListener, err := NewTlsListener(tcpListener, config.TcpServerConfig.TlsCertPath, config.TcpServerConfig.TlsKeyPath)
+		if err != nil {
+			return nil, err
+		}
+		server.tlsListener = tlsListener
+	}
+
 	return server, nil
 }
 
