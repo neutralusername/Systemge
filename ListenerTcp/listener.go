@@ -20,8 +20,9 @@ type TcpListener struct {
 
 	instanceId string
 
-	isClosed    bool
-	closedMutex sync.Mutex
+	status      int
+	stopChannel chan struct{}
+	statusMutex sync.Mutex
 
 	config *Config.TcpSystemgeListener
 
@@ -71,10 +72,14 @@ func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) 
 	return server, nil
 }
 
+func (listener *TcpListener) Start() error {
+
+}
+
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *TcpListener) Close() error {
-	listener.closedMutex.Lock()
-	defer listener.closedMutex.Unlock()
+func (listener *TcpListener) Stop() error {
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
 
 	if listener.isClosed {
 		return errors.New("tcpSystemgeListener is already closed")
@@ -90,8 +95,8 @@ func (listener *TcpListener) Close() error {
 }
 
 func (listener *TcpListener) GetStatus() int {
-	listener.closedMutex.Lock()
-	defer listener.closedMutex.Unlock()
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
 
 	if listener.isClosed {
 		return Status.Stopped
