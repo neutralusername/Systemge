@@ -22,7 +22,7 @@ type TcpConnection struct {
 
 	closed       bool
 	closedMutex  sync.Mutex
-	closeChannel chan bool
+	closeChannel chan struct{}
 
 	readRoutine *Tools.Routine
 
@@ -49,7 +49,7 @@ func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection
 		config:          config,
 		netConn:         netConn,
 		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutNs, config.TcpBufferBytes),
-		closeChannel:    make(chan bool),
+		closeChannel:    make(chan struct{}),
 		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 	if config.TcpBufferBytes <= 0 {
@@ -72,7 +72,7 @@ func (connection *TcpConnection) GetStatus() int {
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *TcpConnection) GetCloseChannel() <-chan bool {
+func (connection *TcpConnection) GetCloseChannel() <-chan struct{} {
 	return connection.closeChannel
 }
 

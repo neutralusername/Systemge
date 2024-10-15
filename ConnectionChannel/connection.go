@@ -23,7 +23,7 @@ type ChannelConnection[T any] struct {
 
 	closed       bool
 	closedMutex  sync.Mutex
-	closeChannel chan bool
+	closeChannel chan struct{}
 
 	readRoutine *Tools.Routine
 
@@ -42,7 +42,7 @@ type ChannelConnection[T any] struct {
 func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T] {
 
 	connection := &ChannelConnection[T]{
-		closeChannel:   make(chan bool),
+		closeChannel:   make(chan struct{}),
 		instanceId:     Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 		receiveChannel: receiveChannel,
 		sendChannel:    sendChannel,
@@ -68,7 +68,7 @@ func (connection *ChannelConnection[T]) GetInstanceId() string {
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *ChannelConnection[T]) GetCloseChannel() <-chan bool {
+func (connection *ChannelConnection[T]) GetCloseChannel() <-chan struct{} {
 	return connection.closeChannel
 }
 

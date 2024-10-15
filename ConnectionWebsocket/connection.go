@@ -19,7 +19,7 @@ type WebsocketConnection struct {
 
 	closed       bool
 	closedMutex  sync.Mutex
-	closeChannel chan bool
+	closeChannel chan struct{}
 
 	readRoutine *Tools.Routine
 
@@ -42,7 +42,7 @@ func New(websocketConn *websocket.Conn) (*WebsocketConnection, error) {
 
 	connection := &WebsocketConnection{
 		websocketConn: websocketConn,
-		closeChannel:  make(chan bool),
+		closeChannel:  make(chan struct{}),
 		instanceId:    Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 
@@ -66,7 +66,7 @@ func (connection *WebsocketConnection) GetInstanceId() string {
 // GetCloseChannel returns a channel that will be closed when the connection is closed.
 // Blocks until the connection is closed.
 // This can be used to trigger an event when the connection is closed.
-func (connection *WebsocketConnection) GetCloseChannel() <-chan bool {
+func (connection *WebsocketConnection) GetCloseChannel() <-chan struct{} {
 	return connection.closeChannel
 }
 
