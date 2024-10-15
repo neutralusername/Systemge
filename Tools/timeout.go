@@ -54,7 +54,6 @@ func (timeout *Timeout) handleTrigger() {
 				timeout.timeoutNs = newTimeoutNs
 				continue
 			} else {
-				close(timeout.isExpiredChannel)
 				return
 			}
 
@@ -90,21 +89,6 @@ func (timeout *Timeout) GetIsExpiredChannel() <-chan struct{} {
 	return timeout.isExpiredChannel
 }
 
-func (timeout *Timeout) Trigger() error {
-	timeout.mutex.Lock()
-	defer timeout.mutex.Unlock()
-
-	select {
-	case <-timeout.isExpiredChannel:
-		return ErrAlreadyTriggered
-	default:
-	}
-
-	close(timeout.interactionChannel)
-	timeout.onTrigger()
-	return nil
-}
-
 func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	timeout.mutex.Lock()
 	defer timeout.mutex.Unlock()
@@ -116,6 +100,22 @@ func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	}
 
 	timeout.interactionChannel <- timeoutNs
+	return nil
+}
+
+func (timeout *Timeout) Trigger() error {
+	timeout.mutex.Lock()
+	defer timeout.mutex.Unlock()
+
+	select {
+	case <-timeout.isExpiredChannel:
+		return ErrAlreadyTriggered
+	default:
+	}
+
+	close(timeout.interactionChannel)
+	close(timeout.isExpiredChannel)
+	timeout.onTrigger()
 	return nil
 }
 
@@ -134,5 +134,6 @@ func (timeout *Timeout) Cancel() error {
 	}
 
 	close(timeout.interactionChannel)
+	close(timeout.isExpiredChannel)
 	return nil
 }
