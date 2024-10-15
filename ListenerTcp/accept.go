@@ -1,21 +1,31 @@
 package ListenerTcp
 
 import (
+	"net"
+	"time"
+
 	"github.com/neutralusername/Systemge/ConnectionTcp"
 )
 
-func (listener *TcpListener) Accept( /* connectionConfig *Config.TcpSystemgeConnection */ timeoutNs int64) (*ConnectionTcp.TcpConnection, error) {
+func (listener *TcpListener) Accept(timeoutNs int64) (*ConnectionTcp.TcpConnection, error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
-	// net.Listener does not implement a timeout for Accept... lf solution
-	netConn, err := listener.tcpListener.Accept()
+	l := listener.tcpListener
+	tcpListener := l.(*net.TCPListener)
+	tcpListener.SetDeadline(time.Now().Add(time.Duration(timeoutNs)))
+
+	if listener.tlsListener != nil {
+		l = listener.tlsListener
+	}
+
+	netConn, err := l.Accept()
 	if err != nil {
 		listener.ClientsFailed.Add(1)
 		return nil, err
 	}
 
-	tcpSystemgeConnection, err := ConnectionTcp.New( /* connectionConfig, */ netConn)
+	tcpSystemgeConnection, err := ConnectionTcp.New(netConn)
 	if err != nil {
 		listener.ClientsFailed.Add(1)
 		netConn.Close()
