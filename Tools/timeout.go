@@ -18,7 +18,7 @@ type Timeout struct {
 	cancellable bool
 
 	interactionChannel chan int64
-	expiredChannel     chan struct{}
+	isExpiredChannel   chan struct{}
 
 	mutex sync.Mutex
 }
@@ -30,7 +30,7 @@ func NewTimeout(timeoutNs int64, onTrigger func(), cancellable bool) *Timeout {
 		onTrigger:          onTrigger,
 		interactionChannel: make(chan int64),
 		cancellable:        cancellable,
-		expiredChannel:     make(chan struct{}),
+		isExpiredChannel:   make(chan struct{}),
 	}
 	go timeout.handleTrigger()
 	return timeout
@@ -48,13 +48,13 @@ func (timeout *Timeout) handleTrigger() {
 			timeout.triggerTimestamp = time.Time{}
 		}
 
-		select { // will keep alive if triggered manually as of now
+		select { // will stay alive if triggered manually as of now
 		case newTimeoutNs := <-timeout.interactionChannel:
 			if newTimeoutNs > 0 {
 				timeout.timeoutNs = newTimeoutNs
 				continue
 			} else {
-				close(timeout.expiredChannel)
+				close(timeout.isExpiredChannel)
 				return
 			}
 
@@ -78,7 +78,7 @@ func (timeout *Timeout) IsExpired() bool {
 	defer timeout.mutex.Unlock()
 
 	select {
-	case <-timeout.expiredChannel:
+	case <-timeout.isExpiredChannel:
 		return true
 	default:
 		return false
@@ -86,7 +86,7 @@ func (timeout *Timeout) IsExpired() bool {
 }
 
 func (timeout *Timeout) GetExpiredChannel() <-chan struct{} {
-	return timeout.expiredChannel
+	return timeout.isExpiredChannel
 }
 
 func (timeout *Timeout) Trigger() error {
@@ -94,13 +94,13 @@ func (timeout *Timeout) Trigger() error {
 	defer timeout.mutex.Unlock()
 
 	select {
-	case <-timeout.expiredChannel:
+	case <-timeout.isExpiredChannel:
 		return ErrAlreadyTriggered
 	default:
 	}
 
 	timeout.onTrigger()
-	close(timeout.expiredChannel)
+	close(timeout.isExpiredChannel)
 
 	return nil
 }
@@ -110,7 +110,7 @@ func (timeout *Timeout) Refresh(timeoutNs int64) error {
 	defer timeout.mutex.Unlock()
 
 	select {
-	case <-timeout.expiredChannel:
+	case <-timeout.isExpiredChannel:
 		return ErrAlreadyTriggered
 	default:
 	}
@@ -128,7 +128,7 @@ func (timeout *Timeout) Cancel() error {
 	}
 
 	select {
-	case <-timeout.expiredChannel:
+	case <-timeout.isExpiredChannel:
 		return ErrAlreadyTriggered
 	default:
 	}
