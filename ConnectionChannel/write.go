@@ -32,6 +32,7 @@ func (connection *ChannelConnection[T]) Write(messageBytes T, timeoutNs int64) e
 
 }
 
+// insignificant edge case where write/read-deadlineChange will not be set to nil if the timeout is triggered during this method call. causes no unwanted side effects
 func (connection *ChannelConnection[T]) SetWriteDeadline(timeoutNs int64) {
 	writeDeadlineChange := connection.writeDeadlineChange
 	if writeDeadlineChange == nil {
