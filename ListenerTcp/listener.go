@@ -54,26 +54,36 @@ func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) 
 		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 
-	tcpListener, err := NewTcpListener(config.TcpServerConfig.Port)
-	if err != nil {
-		return nil, err
-	}
-	server.tcpListener = tcpListener
-
-	if config.TcpServerConfig.TlsCertPath != "" && config.TcpServerConfig.TlsKeyPath != "" {
-		tlsListener, err := NewTlsListener(tcpListener, config.TcpServerConfig.TlsCertPath, config.TcpServerConfig.TlsKeyPath)
-		if err != nil {
-			tcpListener.Close()
-			return nil, err
-		}
-		server.tlsListener = tlsListener
-	}
-
 	return server, nil
 }
 
 func (listener *TcpListener) Start() error {
+	listener.statusMutex.Lock()
+	defer listener.statusMutex.Unlock()
 
+	if listener.status != Status.Stopped {
+		return errors.New("tcpSystemgeListener is already started")
+	}
+
+	tcpListener, err := NewTcpListener(listener.config.TcpServerConfig.Port)
+	if err != nil {
+		return err
+	}
+	listener.tcpListener = tcpListener
+
+	if listener.config.TcpServerConfig.TlsCertPath != "" && listener.config.TcpServerConfig.TlsKeyPath != "" {
+		tlsListener, err := NewTlsListener(tcpListener, listener.config.TcpServerConfig.TlsCertPath, listener.config.TcpServerConfig.TlsKeyPath)
+		if err != nil {
+			tcpListener.Close()
+			return err
+		}
+		listener.tlsListener = tlsListener
+	}
+
+	listener.stopChannel = make(chan struct{})
+
+	listener.status = Status.Started
+	return nil
 }
 
 // closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
@@ -81,27 +91,25 @@ func (listener *TcpListener) Stop() error {
 	listener.statusMutex.Lock()
 	defer listener.statusMutex.Unlock()
 
-	if listener.isClosed {
-		return errors.New("tcpSystemgeListener is already closed")
+	if listener.status != Status.Started {
+		return errors.New("tcpSystemgeListener is already stopped")
 	}
 
-	listener.isClosed = true
 	listener.tcpListener.Close()
 	if listener.acceptRoutine != nil {
 		listener.StopAcceptRoutine(false)
 	}
 
+	if listener.tlsListener != nil {
+		listener.tlsListener.Close()
+	}
+
+	listener.status = Status.Stopped
 	return nil
 }
 
 func (listener *TcpListener) GetStatus() int {
-	listener.statusMutex.Lock()
-	defer listener.statusMutex.Unlock()
-
-	if listener.isClosed {
-		return Status.Stopped
-	}
-	return Status.Started
+	return listener.status
 }
 
 func (server *TcpListener) GetName() string {
@@ -110,6 +118,14 @@ func (server *TcpListener) GetName() string {
 
 func (server *TcpListener) GetInstanceId() string {
 	return server.instanceId
+}
+
+func (listener *TcpListener) GetAddress() string {
+	return listener.tcpListener.Addr().String()
+}
+
+func (listener *TcpListener) GetStopChannel() <-chan struct{} {
+	return listener.stopChannel
 }
 
 func NewTcpListener(port uint16) (net.Listener, error) {

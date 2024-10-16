@@ -3,11 +3,11 @@ package ListenerChannel
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/ConnectionChannel"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (listener *ChannelListener[T]) StartAcceptRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[*ConnectionChannel.ChannelConnection[T]]) error {
+func (listener *ChannelListener[T]) StartAcceptRoutine(maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[SystemgeConnection.SystemgeConnection[T]]) error {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 
