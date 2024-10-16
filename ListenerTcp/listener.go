@@ -36,7 +36,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (Systemge.Listener[[]byte], error) {
+func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (Systemge.Listener[[]byte, Systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

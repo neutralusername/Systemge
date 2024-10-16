@@ -29,12 +29,12 @@ type ChannelListener[T any] struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New[T any](name string) (Systemge.Listener[T], error) {
-	listener := &ChannelListener[T]{
+func New[B any](name string) (Systemge.Listener[B, Systemge.Connection[B]], error) {
+	listener := &ChannelListener[B]{
 		name:              name,
 		status:            Status.Stopped,
 		instanceId:        Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-		connectionChannel: make(chan *ConnectionChannel.ConnectionRequest[T]),
+		connectionChannel: make(chan *ConnectionChannel.ConnectionRequest[B]),
 	}
 
 	return listener, nil

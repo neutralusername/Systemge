@@ -42,7 +42,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, httpWrapperHandler HTTPServer.WrapperHandler, config *Config.WebsocketListener) (Systemge.Listener[[]byte], error) {
+func New(name string, httpWrapperHandler HTTPServer.WrapperHandler, config *Config.WebsocketListener) (Systemge.Listener[[]byte, Systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
