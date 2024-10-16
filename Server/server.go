@@ -6,8 +6,6 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Systemge"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -31,7 +29,6 @@ type Server[B any, C Systemge.Connection[B]] struct {
 	readHandler   Tools.ReadHandler[B, C] // ?
 	listener      Systemge.Listener[B, C] // ?
 
-	eventHandler Event.Handler
 }
 
 func New[B any, C Systemge.Connection[B]](
@@ -39,7 +36,6 @@ func New[B any, C Systemge.Connection[B]](
 	listener Systemge.Listener[B, C], // ?
 	acceptHandler Tools.AcceptHandler[C], // ?
 	readHandler Tools.ReadHandler[B, C], // ?
-	eventHandler Event.Handler, // probably redundant at this place if server only provides the managing of accept and read routines and those handlers are provided by the caller (more appropriate in the handlers) (could have its place if server automatically provides those handlers)
 ) (*Server[B, C], error) {
 
 	if config == nil {
@@ -47,9 +43,8 @@ func New[B any, C Systemge.Connection[B]](
 	}
 
 	server := &Server[B, C]{
-		config:       config,
-		eventHandler: eventHandler,
-		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		config:     config,
+		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
 		acceptHandler: acceptHandler,
 		readHandler:   readHandler,
@@ -67,22 +62,4 @@ func (server *Server) GetInstanceId() string {
 
 func (server *Server) GetSessionId() string {
 	return server.sessionId
-}
-
-func (server *Server) onEvent(event *Event.Event) *Event.Event {
-	event.GetContext().Merge(server.GetServerContext())
-	if server.eventHandler != nil {
-		server.eventHandler(event)
-	}
-	return event
-}
-func (server *Server) GetServerContext() Event.Context {
-	return Event.Context{
-		Event.ServiceType:       Event.SystemgeServer,
-		Event.ServiceName:       server.name,
-		Event.ServiceStatus:     Status.ToString(server.status),
-		Event.Function:          Event.GetCallerFuncName(2),
-		Event.ServiceInstanceId: server.instanceId,
-		Event.SessionId:         server.sessionId,
-	}
 }
