@@ -7,9 +7,10 @@ import (
 	"net"
 
 	"github.com/neutralusername/Systemge/Config"
+	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (*TcpConnection, error) {
+func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (SystemgeConnection.SystemgeConnection[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -21,7 +22,7 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 	if err != nil {
 		return nil, err
 	}
-	connection, err := New(config, netConn)
+	connection, err := New(netConn)
 	if err != nil {
 		netConn.Close()
 		return nil, err
