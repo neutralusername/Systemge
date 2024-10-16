@@ -22,7 +22,6 @@ type Server[B any, C Systemge.Connection[B]] struct {
 	status      int
 	statusMutex sync.RWMutex
 	stopChannel chan bool
-	waitGroup   sync.WaitGroup
 
 	config *Config.Server
 
@@ -32,19 +31,6 @@ type Server[B any, C Systemge.Connection[B]] struct {
 	acceptHandler Tools.AcceptHandler[C]  // ?
 	readHandler   Tools.ReadHandler[B, C] // ?
 	listener      Systemge.Listener[B, C] // ?
-
-	/*
-		sessionManager         *Tools.SessionManager            // ?
-		requestResponseManager *Tools.RequestResponseManager[B] // ?
-
-		priorityTokenQueue *Tools.PriorityTokenQueue[O] // ?
-		queueConsumer      *Tools.IQueueConsumer[O]     // ?
-
-		topicManager  *Tools.TopicManager[O, O] // ?
-		blacklist     *Tools.AccessControlList  // ?
-		whitelist     *Tools.AccessControlList  // ?
-		ipRateLimiter *Tools.IpRateLimiter      // ? (would be pointless when using channel communication)
-	*/
 
 	eventHandler Event.Handler
 }
