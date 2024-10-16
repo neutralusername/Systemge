@@ -28,7 +28,6 @@ type Server[B any, C Systemge.Connection[B]] struct {
 	acceptHandler Tools.AcceptHandler[C]  // ?
 	readHandler   Tools.ReadHandler[B, C] // ?
 	listener      Systemge.Listener[B, C] // ?
-
 }
 
 func New[B any, C Systemge.Connection[B]](
