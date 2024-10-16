@@ -20,7 +20,6 @@ func (listener *WebsocketListener) Stop() error {
 	if err := listener.httpServer.Stop(); err != nil {
 		// something
 	}
-	listener.StopAcceptRoutine(false)
 
 	listener.status = Status.Stopped
 	return nil

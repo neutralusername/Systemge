@@ -17,8 +17,6 @@ func (listener *ChannelListener[T]) Stop() error {
 	listener.status = Status.Pending
 	close(listener.stopChannel)
 
-	listener.StopAcceptRoutine(false)
-
 	listener.status = Status.Stopped
 	return nil
 }

@@ -16,9 +16,5 @@ func (connection *TcpConnection) Close() error {
 	connection.netConn.Close()
 	close(connection.closeChannel)
 
-	if connection.readRoutine != nil {
-		connection.StopReadRoutine(false)
-	}
-
 	return nil
 }

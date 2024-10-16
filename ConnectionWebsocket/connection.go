@@ -21,8 +21,6 @@ type WebsocketConnection struct {
 	closedMutex  sync.Mutex
 	closeChannel chan struct{}
 
-	readRoutine *Tools.Routine
-
 	writeMutex sync.Mutex
 	readMutex  sync.RWMutex
 

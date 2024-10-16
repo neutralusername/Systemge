@@ -24,8 +24,6 @@ type TcpConnection struct {
 	closedMutex  sync.Mutex
 	closeChannel chan struct{}
 
-	readRoutine *Tools.Routine
-
 	readMutex  sync.RWMutex
 	writeMutex sync.Mutex
 

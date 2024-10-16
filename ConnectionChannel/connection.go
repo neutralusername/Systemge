@@ -25,8 +25,6 @@ type ChannelConnection[T any] struct {
 	closedMutex  sync.Mutex
 	closeChannel chan struct{}
 
-	readRoutine *Tools.Routine
-
 	writeMutex   sync.Mutex
 	writeTimeout *Tools.Timeout
 

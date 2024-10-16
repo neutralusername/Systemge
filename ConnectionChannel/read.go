@@ -10,11 +10,6 @@ func (connection *ChannelConnection[T]) Read(timeoutNs int64) (T, error) {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
 
-	if connection.readRoutine != nil {
-		var nilValue T
-		return nilValue, errors.New("receptionHandler is already running")
-	}
-
 	connection.readTimeout = Tools.NewTimeout(
 		timeoutNs,
 		nil,

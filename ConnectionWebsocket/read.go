@@ -1,7 +1,6 @@
 package ConnectionWebsocket
 
 import (
-	"errors"
 	"time"
 
 	"github.com/neutralusername/Systemge/Helpers"
@@ -10,10 +9,6 @@ import (
 func (connection *WebsocketConnection) Read(timeoutNs int64) ([]byte, error) {
 	connection.readMutex.Lock()
 	defer connection.readMutex.Unlock()
-
-	if connection.readRoutine != nil {
-		return nil, errors.New("receptionHandler is already running")
-	}
 
 	connection.SetReadDeadline(timeoutNs)
 	_, messageBytes, err := connection.websocketConn.ReadMessage()

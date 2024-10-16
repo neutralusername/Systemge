@@ -18,9 +18,5 @@ func (connection *ChannelConnection[T]) Close() error {
 
 	close(connection.closeChannel)
 
-	if connection.readRoutine != nil {
-		connection.StopReadRoutine(false)
-	}
-
 	return nil
 }

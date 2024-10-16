@@ -19,12 +19,7 @@ type ChannelListener[T any] struct {
 
 	statusMutex sync.Mutex
 	status      int
-
-	acceptMutex sync.RWMutex
-
 	stopChannel chan struct{}
-
-	acceptRoutine *Tools.Routine
 
 	connectionChannel chan *ConnectionChannel.ConnectionRequest[T]
 

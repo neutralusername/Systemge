@@ -1,7 +1,6 @@
 package ConnectionTcp
 
 import (
-	"errors"
 	"time"
 
 	"github.com/neutralusername/Systemge/Helpers"
@@ -10,10 +9,6 @@ import (
 func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {
 	client.readMutex.Lock()
 	defer client.readMutex.Unlock()
-
-	if client.readRoutine != nil {
-		return nil, errors.New("receptionHandler is already running")
-	}
 
 	client.SetReadDeadline(timeoutNs)
 	messageBytes, err := client.messageReceiver.ReadNextMessage()

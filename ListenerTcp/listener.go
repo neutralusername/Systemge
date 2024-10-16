@@ -9,9 +9,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Constants"
-	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/Systemge"
 	"github.com/neutralusername/Systemge/Tools"
 )
@@ -29,14 +27,8 @@ type TcpListener struct {
 	config           *Config.TcpSystemgeListener
 	connectionConfig *Config.TcpSystemgeConnection
 
-	acceptRoutine *Tools.Routine
-
 	tcpListener net.Listener
 	tlsListener net.Listener
-
-	acceptMutex sync.RWMutex
-
-	eventHandler Event.Handler
 
 	// metrics
 
@@ -59,58 +51,6 @@ func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Conf
 	}
 
 	return server, nil
-}
-
-func (listener *TcpListener) Start() error {
-	listener.statusMutex.Lock()
-	defer listener.statusMutex.Unlock()
-
-	if listener.status != Status.Stopped {
-		return errors.New("tcpSystemgeListener is already started")
-	}
-
-	listener.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
-	tcpListener, err := NewTcpListener(listener.config.TcpServerConfig.Port)
-	if err != nil {
-		return err
-	}
-	listener.tcpListener = tcpListener
-
-	if listener.config.TcpServerConfig.TlsCertPath != "" && listener.config.TcpServerConfig.TlsKeyPath != "" {
-		tlsListener, err := NewTlsListener(tcpListener, listener.config.TcpServerConfig.TlsCertPath, listener.config.TcpServerConfig.TlsKeyPath)
-		if err != nil {
-			tcpListener.Close()
-			return err
-		}
-		listener.tlsListener = tlsListener
-	}
-
-	listener.stopChannel = make(chan struct{})
-
-	listener.status = Status.Started
-	return nil
-}
-
-// closing this will not automatically close all connections accepted by this listener. use SystemgeServer if this functionality is desired.
-func (listener *TcpListener) Stop() error {
-	listener.statusMutex.Lock()
-	defer listener.statusMutex.Unlock()
-
-	if listener.status != Status.Started {
-		return errors.New("tcpSystemgeListener is already stopped")
-	}
-
-	listener.tcpListener.Close()
-	if listener.acceptRoutine != nil {
-		listener.StopAcceptRoutine(false)
-	}
-
-	if listener.tlsListener != nil {
-		listener.tlsListener.Close()
-	}
-
-	listener.status = Status.Stopped
-	return nil
 }
 
 func (listener *TcpListener) SetConnectionConfig(connectionConfig *Config.TcpSystemgeConnection) {
