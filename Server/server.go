@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type Server struct {
+type Server[B any, O any] struct {
 	instanceId string
 	sessionId  string
 	name       string
@@ -27,7 +27,7 @@ type Server struct {
 	whitelist *Tools.AccessControlList
 	blacklist *Tools.AccessControlList
 
-	listener       Systemge.Listener
+	listener       Systemge.Listener[B]
 	sessionManager *SessionManager.Manager
 
 	eventHandler Event.Handler
