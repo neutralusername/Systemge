@@ -47,7 +47,6 @@ func New[B any, C Systemge.Connection[B]](
 	}
 
 	server := &Server[B, C]{
-		name:         name,
 		config:       config,
 		eventHandler: eventHandler,
 		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
