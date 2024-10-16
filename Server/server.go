@@ -27,8 +27,9 @@ type Server[B any, O any] struct {
 	acceptHandler    Tools.AcceptHandler[Systemge.Connection[B]]
 	receptionHandler Tools.ReadHandler[O, Systemge.Connection[B]]
 
-	listener       Systemge.Listener[B]
-	sessionManager *Tools.SessionManager
+	listener               Systemge.Listener[B]
+	sessionManager         *Tools.SessionManager
+	requestResponseManager *Tools.RequestResponseManager[B]
 
 	eventHandler Event.Handler
 }
