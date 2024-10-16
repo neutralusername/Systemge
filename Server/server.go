@@ -33,30 +33,23 @@ type Server[B any, O any] struct {
 	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.Server, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
+func New[B any, O any](
+	name string,
+	config *Config.Server,
+	eventHandler Event.Handler,
+) (*Server[B, O], error) {
+
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
-	if config.TcpSystemgeConnectionConfig == nil {
-		return nil, errors.New("config.ConnectionConfig is nil")
-	}
-	if config.TcpSystemgeListenerConfig == nil {
-		return nil, errors.New("config.ListenerConfig is nil")
-	}
-	if config.TcpSystemgeListenerConfig.TcpServerConfig == nil {
-		return nil, errors.New("config.ListenerConfig.ServerConfig is nil")
-	}
 
-	server := &Server{
+	server := &Server[B, O]{
 		name:         name,
 		config:       config,
 		eventHandler: eventHandler,
 		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		whitelist: whitelist,
-		blacklist: blacklist,
-
-		sessionManager: SessionManager.New(name+"_sessionManager", config.SessionManagerConfig, eventHandler),
+		sessionManager: Tools.NewSessionManager(config.SessionManagerConfig, nil, nil),
 	}
 	return server, nil
 }

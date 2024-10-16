@@ -43,9 +43,7 @@ func UnmarshalSystemgeClient(data string) *SystemgeClient {
 }
 
 type Server struct {
-	TcpSystemgeListenerConfig   *TcpSystemgeListener   `json:"tcpSystemgeListenerConfig"`   // *required*
-	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
-	SessionManagerConfig        *SessionManager        `json:"sessionManagerConfig"`        // *required*
+	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
 }
 
 func UnmarshalSystemgeServer(data string) *Server {
