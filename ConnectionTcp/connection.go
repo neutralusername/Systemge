@@ -44,6 +44,9 @@ func New(netConn net.Conn) (*TcpConnection, error) {
 	if netConn == nil {
 		return nil, errors.New("netConn is nil")
 	}
+	if config.TcpBufferBytes <= 0 {
+		config.TcpBufferBytes = 1024 * 4
+	}
 
 	connection := &TcpConnection{
 		config:          config,
@@ -51,9 +54,6 @@ func New(netConn net.Conn) (*TcpConnection, error) {
 		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutNs, config.TcpBufferBytes),
 		closeChannel:    make(chan struct{}),
 		instanceId:      Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
-	}
-	if config.TcpBufferBytes <= 0 {
-		config.TcpBufferBytes = 1024 * 4
 	}
 
 	return connection, nil
