@@ -22,18 +22,18 @@ type Server[B any, O any] struct {
 	stopChannel chan bool
 	waitGroup   sync.WaitGroup
 
-	config *Config.SystemgeServer
+	config *Config.Server
 
-	whitelist *Tools.AccessControlList
-	blacklist *Tools.AccessControlList
+	acceptHandler    Tools.AcceptHandler[Systemge.Connection[B]]
+	receptionHandler Tools.ReadHandler[O, Systemge.Connection[B]]
 
 	listener       Systemge.Listener[B]
-	sessionManager *SessionManager.Manager
+	sessionManager *Tools.SessionManager
 
 	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
+func New(name string, config *Config.Server, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
