@@ -12,6 +12,8 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
+// ? == might not make it
+
 type Server[B any, O any] struct {
 	instanceId string
 	sessionId  string
@@ -38,7 +40,7 @@ type Server[B any, O any] struct {
 	topicManager  *Tools.TopicManager[O, O] // ?
 	blacklist     *Tools.AccessControlList  // ?
 	whitelist     *Tools.AccessControlList  // ?
-	ipRateLimiter *Tools.IpRateLimiter      // ?
+	ipRateLimiter *Tools.IpRateLimiter      // ? (would be pointless when using a channel communication)
 
 	eventHandler Event.Handler
 }
