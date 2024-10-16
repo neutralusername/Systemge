@@ -58,10 +58,6 @@ func New[B any, C Systemge.Connection[B]](
 	return server, nil
 }
 
-func (server *Server) GetName() string {
-	return server.listener.GetName()
-}
-
 func (server *Server) GetStatus() int {
 	return server.status
 }
