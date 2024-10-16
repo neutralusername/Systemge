@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type SystemgeListener[B any] interface {
+type Listener[B any] interface {
 	Start() error
 	Stop() error
 
@@ -21,7 +21,7 @@ type SystemgeListener[B any] interface {
 	   func (listener *WebsocketListener) StopAcceptRoutine(abortOngoingCalls bool) error
 	*/
 
-	Accept(timeoutNs int64) (SystemgeConnection[B], error)
+	Accept(timeoutNs int64) (Connection[B], error)
 
 	GetDefaultCommands() Commands.Handlers
 
@@ -29,7 +29,7 @@ type SystemgeListener[B any] interface {
 	GetMetrics() Metrics.MetricsTypes
 }
 
-type SystemgeConnection[B any] interface {
+type Connection[B any] interface {
 	Close() error
 
 	GetInstanceId() string

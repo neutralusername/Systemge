@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (listener *TcpListener) StartAcceptRoutine(config *Config.TcpSystemgeConnection, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[Systemge.SystemgeConnection[[]byte]]) error {
+func (listener *TcpListener) StartAcceptRoutine(config *Config.TcpSystemgeConnection, maxConcurrentHandlers uint32, delayNs int64, timeoutNs int64, acceptHandler Tools.AcceptHandler[Systemge.Connection[[]byte]]) error {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 

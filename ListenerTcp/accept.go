@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/Systemge"
 )
 
-func (listener *TcpListener) Accept(timeoutNs int64) (Systemge.SystemgeConnection[[]byte], error) {
+func (listener *TcpListener) Accept(timeoutNs int64) (Systemge.Connection[[]byte], error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 

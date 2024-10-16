@@ -12,7 +12,7 @@ import (
 )
 
 // wip
-func EstablishConnection(tcpClientConfig *Config.TcpClient) (Systemge.SystemgeConnection[[]byte], error) {
+func EstablishConnection(tcpClientConfig *Config.TcpClient) (Systemge.Connection[[]byte], error) {
 	dialer := websocket.DefaultDialer
 
 	if tcpClientConfig.TlsCert != "" {

@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Systemge"
 )
 
-func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (Systemge.SystemgeConnection[[]byte], error) {
+func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *Config.TcpClient) (Systemge.Connection[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

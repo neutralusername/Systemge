@@ -34,7 +34,7 @@ type ChannelListener[T any] struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New[T any](name string) (Systemge.SystemgeListener[T], error) {
+func New[T any](name string) (Systemge.Listener[T], error) {
 	listener := &ChannelListener[T]{
 		name:              name,
 		status:            Status.Stopped,
