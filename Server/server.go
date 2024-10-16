@@ -27,14 +27,18 @@ type Server[B any, O any] struct {
 	acceptHandler    Tools.AcceptHandler[Systemge.Connection[B]]
 	receptionHandler Tools.ReadHandler[O, Systemge.Connection[B]]
 
-	listener               Systemge.Listener[B]
+	listener Systemge.Listener[B]
+
 	sessionManager         *Tools.SessionManager            // ?
 	requestResponseManager *Tools.RequestResponseManager[B] // ?
-	priorityTokenQueue     *Tools.PriorityTokenQueue[O]     // ?
-	topicManager           *Tools.TopicManager[O, O]        // ?
-	blacklist              *Tools.AccessControlList         // ?
-	whitelist              *Tools.AccessControlList         // ?
-	ipRateLimiter          *Tools.IpRateLimiter             // ?
+
+	priorityTokenQueue *Tools.PriorityTokenQueue[O] // ?
+	queueConsumer      *Tools.IQueueConsumer[O]     // ?
+
+	topicManager  *Tools.TopicManager[O, O] // ?
+	blacklist     *Tools.AccessControlList  // ?
+	whitelist     *Tools.AccessControlList  // ?
+	ipRateLimiter *Tools.IpRateLimiter      // ?
 
 	eventHandler Event.Handler
 }

@@ -1,6 +1,6 @@
 package Tools
 
-type IQueueConsumption[T any] interface {
+type IQueueConsumer[T any] interface {
 	Pop() (T, error)
 	PopBlocking() T
 	PopChannel() <-chan T
