@@ -71,23 +71,9 @@ func UnmarshalTcpSystemgeListener(data string) *TcpSystemgeListener {
 }
 
 type TcpSystemgeConnection struct {
-	RandomizerSeed int64 `json:"randomizerSeed"` // *optional*
-
-	SyncRequestTimeoutMs uint64 `json:"syncRequestTimeoutMs"` // default: 0 == infinite, which means SyncRequestChannel's need to be closed manually by the application or else there will be a memory leak
-	TcpReceiveTimeoutNs  int64  `json:"tcpReceiveTimeoutMs"`  // default: 0 == block forever
-	TcpSendTimeoutMs     uint64 `json:"tcpSendTimeoutMs"`     // default: 0 == block forever
-
-	HeartbeatIntervalMs uint64 `json:"heartbeatIntervalMs"` // default: 0 == no heartbeat (a disconnect will definitely be detected after this interval) (if 0, a disconnect might be detected but there is no guarantee)
-
-	TcpBufferBytes uint32 `json:"tcpBufferBytes"` // default: 0 == default (4KB)
-
-	MessageChannelCapacity uint32 `json:"messageChannelCapacity"` // default: 0 (how many messages can be received before being processed (n+1))
-
-	HandleMessageReceptionSequentially bool `json:"handleMessagesSequentially"` // default: false (if true, the server will handle messages from the same connection sequentially)
-
-	RateLimiterBytes    *TokenBucketRateLimiter `json:"rateLimiterBytes"`    // *optional*
-	RateLimiterMessages *TokenBucketRateLimiter `json:"rateLimiterMessages"` // *optional*
-
+	TcpReceiveTimeoutNs      int64  `json:"tcpReceiveTimeoutMs"`      // default: 0 == block forever
+	TcpSendTimeoutMs         uint64 `json:"tcpSendTimeoutMs"`         // default: 0 == block forever
+	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 }
 
