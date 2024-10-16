@@ -11,6 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -46,7 +47,7 @@ type upgraderResponse struct {
 	websocketConn *websocket.Conn
 }
 
-func New(name string, httpWrapperHandler HTTPServer.WrapperHandler, config *Config.WebsocketListener) (*WebsocketListener, error) {
+func New(name string, httpWrapperHandler HTTPServer.WrapperHandler, config *Config.WebsocketListener) (SystemgeListener.SystemgeListener[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/ConnectionChannel"
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -33,7 +34,7 @@ type ChannelListener[T any] struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New[T any](name string) (*ChannelListener[T], error) {
+func New[T any](name string) (SystemgeListener.SystemgeListener[T], error) {
 	listener := &ChannelListener[T]{
 		name:              name,
 		status:            Status.Stopped,

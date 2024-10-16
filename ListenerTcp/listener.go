@@ -12,6 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/SystemgeListener"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -19,6 +20,7 @@ type TcpListener struct {
 	name string
 
 	instanceId string
+	sessionId  string
 
 	status      int
 	stopChannel chan struct{}
@@ -42,7 +44,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (*TcpListener, error) {
+func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (SystemgeListener.SystemgeListener[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -67,6 +69,7 @@ func (listener *TcpListener) Start() error {
 		return errors.New("tcpSystemgeListener is already started")
 	}
 
+	listener.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
 	tcpListener, err := NewTcpListener(listener.config.TcpServerConfig.Port)
 	if err != nil {
 		return err
@@ -124,6 +127,10 @@ func (server *TcpListener) GetName() string {
 
 func (server *TcpListener) GetInstanceId() string {
 	return server.instanceId
+}
+
+func (server *TcpListener) GetSessionId() string {
+	return server.sessionId
 }
 
 func (listener *TcpListener) GetAddress() string {
