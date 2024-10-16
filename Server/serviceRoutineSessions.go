@@ -1,4 +1,4 @@
-package SystemgeServer
+package Server
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) sessionRoutine() {
+func (server *Server) sessionRoutine() {
 	defer func() {
 		server.onEvent(Event.NewInfoNoOption(
 			Event.AcceptionRoutineEnds,
@@ -37,7 +37,7 @@ func (server *SystemgeServer) sessionRoutine() {
 	}
 }
 
-func (server *SystemgeServer) handleNewSession() error {
+func (server *Server) handleNewSession() error {
 	select {
 	case <-server.stopChannel:
 		return errors.New("systemgeServer stopped")
@@ -86,7 +86,7 @@ func (server *SystemgeServer) handleNewSession() error {
 	return nil
 }
 
-func (server *SystemgeServer) handleSystemgeDisconnect(session *SessionManager.Session, connection SystemgeConnection.SystemgeConnection) {
+func (server *Server) handleSystemgeDisconnect(session *SessionManager.Session, connection SystemgeConnection.SystemgeConnection) {
 	defer server.waitGroup.Done()
 
 	select {

@@ -10,8 +10,8 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/HTTPServer"
 	"github.com/neutralusername/Systemge/Helpers"
+	Server1 "github.com/neutralusername/Systemge/Server"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketServer"
 )
@@ -35,7 +35,7 @@ type Server struct {
 	connectedClients         map[string]*connectedClient                     // name/location -> connectedClient
 	websocketClientLocations map[*WebsocketServer.WebsocketConnection]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
-	systemgeServer  *SystemgeServer.SystemgeServer
+	systemgeServer  *Server1.Server
 	httpServer      *HTTPServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
@@ -124,7 +124,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		server.mailer = Tools.NewMailer(config.MailerConfig)
 	}
 
-	server.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+	server.systemgeServer = Server1.New(name+"_systemgeServer",
 		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
 		server.onSystemgeConnectHandler, server.onSystemgeDisconnectHandler,

@@ -1,4 +1,4 @@
-package SystemgeServer
+package Server
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...string) error {
+func (server *Server) AsyncMessage(topic, payload string, identities ...string) error {
 	targetIdentities := Helpers.JsonMarshal(identities)
 	server.statusMutex.RLock()
 
@@ -147,7 +147,7 @@ func (server *SystemgeServer) AsyncMessage(topic, payload string, identities ...
 	return nil
 }
 
-func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...string) (<-chan *Message.Message, error) {
+func (server *Server) SyncRequest(topic, payload string, identities ...string) (<-chan *Message.Message, error) {
 	targetIdentities := Helpers.JsonMarshal(identities)
 	server.statusMutex.RLock()
 
@@ -272,7 +272,7 @@ func (server *SystemgeServer) SyncRequest(topic, payload string, identities ...s
 	return SystemgeConnection.MultiSyncRequest(topic, payload, connections...), nil
 }
 
-func (server *SystemgeServer) SyncRequestBlocking(topic, payload string, clientNames ...string) ([]*Message.Message, error) {
+func (server *Server) SyncRequestBlocking(topic, payload string, clientNames ...string) ([]*Message.Message, error) {
 	responseChannel, err := server.SyncRequest(topic, payload, clientNames...)
 	if err != nil {
 		return nil, err

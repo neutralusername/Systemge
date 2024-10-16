@@ -7,8 +7,8 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Server"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -17,7 +17,7 @@ type Resolver struct {
 
 	config *Config.MessageBrokerResolver
 
-	systemgeServer *SystemgeServer.SystemgeServer
+	systemgeServer *Server.Server
 
 	asyncTopicTcpClientConfigs map[string]*Config.TcpClient
 	syncTopicTcpClientConfigs  map[string]*Config.TcpClient
@@ -95,7 +95,7 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 		Message.TOPIC_RESOLVE_SYNC:  resolver.resolveSync,
 	}, nil, nil)
 
-	resolver.systemgeServer = SystemgeServer.New(name+"_systemgeServer",
+	resolver.systemgeServer = Server.New(name+"_systemgeServer",
 		config.SystemgeServerConfig,
 		whitelist, blacklist,
 		resolver.onConnect, nil,

@@ -1,4 +1,4 @@
-package SystemgeServer
+package Server
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"github.com/neutralusername/Systemge/Commands"
 )
 
-func (server *SystemgeServer) GetDefaultCommands() Commands.Handlers {
+func (server *Server) GetDefaultCommands() Commands.Handlers {
 	serverCommands := Commands.Handlers{}
 	if server.blacklist != nil {
 		blacklistCommands := server.blacklist.GetDefaultCommands()

@@ -1,4 +1,4 @@
-package SystemgeServer
+package Server
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 )
 
-func (server *SystemgeServer) Stop() error {
+func (server *Server) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 

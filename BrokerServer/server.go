@@ -8,8 +8,8 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Message"
+	Server1 "github.com/neutralusername/Systemge/Server"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -17,7 +17,7 @@ type Server struct {
 	name string
 
 	config         *Config.MessageBrokerServer
-	systemgeServer *SystemgeServer.SystemgeServer
+	systemgeServer *Server1.Server
 
 	eventHandler Event.Handler
 
@@ -66,7 +66,7 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 		connectionsSyncSubscriptions: make(map[SystemgeConnection.SystemgeConnection]map[string]bool),
 	}
 
-	systemgeServer, err := SystemgeServer.New(name+"_systemgeServer",
+	systemgeServer, err := Server1.New(name+"_systemgeServer",
 		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
 		func(event *Event.Event) {

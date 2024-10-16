@@ -1,4 +1,4 @@
-package SystemgeServer
+package Server
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type SystemgeServer struct {
+type Server struct {
 	instanceId string
 	sessionId  string
 	name       string
@@ -33,7 +33,7 @@ type SystemgeServer struct {
 	eventHandler Event.Handler
 }
 
-func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*SystemgeServer, error) {
+func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -47,7 +47,7 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 		return nil, errors.New("config.ListenerConfig.ServerConfig is nil")
 	}
 
-	server := &SystemgeServer{
+	server := &Server{
 		name:         name,
 		config:       config,
 		eventHandler: eventHandler,
@@ -61,30 +61,30 @@ func New(name string, config *Config.SystemgeServer, whitelist *Tools.AccessCont
 	return server, nil
 }
 
-func (server *SystemgeServer) GetName() string {
+func (server *Server) GetName() string {
 	return server.name
 }
 
-func (server *SystemgeServer) GetStatus() int {
+func (server *Server) GetStatus() int {
 	return server.status
 }
 
-func (server *SystemgeServer) GetInstanceId() string {
+func (server *Server) GetInstanceId() string {
 	return server.instanceId
 }
 
-func (server *SystemgeServer) GetSessionId() string {
+func (server *Server) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *SystemgeServer) onEvent(event *Event.Event) *Event.Event {
+func (server *Server) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetServerContext())
 	if server.eventHandler != nil {
 		server.eventHandler(event)
 	}
 	return event
 }
-func (server *SystemgeServer) GetServerContext() Event.Context {
+func (server *Server) GetServerContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.SystemgeServer,
 		Event.ServiceName:       server.name,
