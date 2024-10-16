@@ -20,7 +20,7 @@ type Server[B any, C Systemge.Connection[B]] struct {
 	statusMutex sync.RWMutex
 	stopChannel chan bool
 
-	config *Config.Server
+	config *Config.Server // ?
 
 	readRoutine   *Tools.Routine
 	acceptRoutine *Tools.Routine
@@ -31,7 +31,7 @@ type Server[B any, C Systemge.Connection[B]] struct {
 }
 
 func New[B any, C Systemge.Connection[B]](
-	config *Config.Server,
+	config *Config.Server, // ?
 	listener Systemge.Listener[B, C], // ?
 	acceptHandler Tools.AcceptHandler[C], // ?
 	readHandler Tools.ReadHandler[B, C], // ?
