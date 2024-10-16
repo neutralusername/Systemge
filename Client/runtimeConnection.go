@@ -1,4 +1,4 @@
-package SystemgeClient
+package Client
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 
 // AddConnection adds an active connection to the client.
 // if reconnectTcpClientConfig is not nil, the connection will attempt to reconnect
-func (client *SystemgeClient) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectTcpClientConfig *Config.TcpClient) error {
+func (client *Client) AddConnection(connection SystemgeConnection.SystemgeConnection, reconnectTcpClientConfig *Config.TcpClient) error {
 	if connection == nil {
 		return errors.New("connection is nil")
 	}
@@ -34,7 +34,7 @@ func (client *SystemgeClient) AddConnection(connection SystemgeConnection.System
 }
 
 // AddConnectionAttempt attempts to connect to a server and add it to the client
-func (client *SystemgeClient) AddConnectionAttempt(tcpClientConfig *Config.TcpClient) error {
+func (client *Client) AddConnectionAttempt(tcpClientConfig *Config.TcpClient) error {
 	if tcpClientConfig == nil {
 		return errors.New("tcpClientConfig is nil")
 	}
@@ -50,7 +50,7 @@ func (client *SystemgeClient) AddConnectionAttempt(tcpClientConfig *Config.TcpCl
 }
 
 // RemoveConnection attempts to remove a connection from the client
-func (client *SystemgeClient) RemoveConnection(address string) error {
+func (client *Client) RemoveConnection(address string) error {
 	if address == "" {
 		return errors.New("address is empty")
 	}
@@ -73,7 +73,7 @@ func (client *SystemgeClient) RemoveConnection(address string) error {
 	return errors.New("connection not found")
 }
 
-func (client *SystemgeClient) GetConnectionByName(name string) SystemgeConnection.SystemgeConnection {
+func (client *Client) GetConnectionByName(name string) SystemgeConnection.SystemgeConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -86,7 +86,7 @@ func (client *SystemgeClient) GetConnectionByName(name string) SystemgeConnectio
 	return client.nameConnections[name]
 }
 
-func (client *SystemgeClient) GetConnectionByAddress(address string) SystemgeConnection.SystemgeConnection {
+func (client *Client) GetConnectionByAddress(address string) SystemgeConnection.SystemgeConnection {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -99,7 +99,7 @@ func (client *SystemgeClient) GetConnectionByAddress(address string) SystemgeCon
 	return client.addressConnections[address]
 }
 
-func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string {
+func (client *Client) GetConnectionNamesAndAddresses() map[string]string {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -116,7 +116,7 @@ func (client *SystemgeClient) GetConnectionNamesAndAddresses() map[string]string
 	return names
 }
 
-func (client *SystemgeClient) GetConnectionName(address string) string {
+func (client *Client) GetConnectionName(address string) string {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -133,7 +133,7 @@ func (client *SystemgeClient) GetConnectionName(address string) string {
 	return connection.GetName()
 }
 
-func (client *SystemgeClient) GetConnectionAddress(name string) string {
+func (client *Client) GetConnectionAddress(name string) string {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -150,7 +150,7 @@ func (client *SystemgeClient) GetConnectionAddress(name string) string {
 	return connection.GetAddress()
 }
 
-func (client *SystemgeClient) GetConnectionCount() int {
+func (client *Client) GetConnectionCount() int {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {

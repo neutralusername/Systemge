@@ -1,4 +1,4 @@
-package SystemgeClient
+package Client
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (client *SystemgeClient) Start() error {
+func (client *Client) Start() error {
 	client.statusMutex.Lock()
 	defer client.statusMutex.Unlock()
 

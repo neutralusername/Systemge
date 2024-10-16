@@ -1,4 +1,4 @@
-package SystemgeClient
+package Client
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 	"github.com/neutralusername/Systemge/TcpConnect"
 )
 
-func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {
+func (client *Client) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {
 	if event := client.onEvent(Event.NewInfo(
 		Event.StartingConnectionAttempts,
 		"starting connection attempts",
@@ -106,7 +106,7 @@ func (client *SystemgeClient) startConnectionAttempts(tcpClientConfig *Config.Tc
 	return nil
 }
 
-func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpConnect.ConnectionAttempt) {
+func (client *Client) handleConnectionAttempt(connectionAttempt *TcpConnect.ConnectionAttempt) {
 	if client.ongoingConnectionAttempts.Add(1) == 1 {
 		client.status = Status.Pending
 	}
@@ -170,7 +170,7 @@ func (client *SystemgeClient) handleConnectionAttempt(connectionAttempt *TcpConn
 	}
 }
 
-func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection, clientConfig *Config.TcpClient) error {
+func (client *Client) handleAcception(systemgeConnection SystemgeConnection.SystemgeConnection, clientConfig *Config.TcpClient) error {
 
 	if event := client.onEvent(Event.NewInfo(
 		Event.HandlingAcception,
@@ -242,7 +242,7 @@ func (client *SystemgeClient) handleAcception(systemgeConnection SystemgeConnect
 	return nil
 }
 
-func (client *SystemgeClient) handleDisconnect(connection SystemgeConnection.SystemgeConnection, tcpClientConfig *Config.TcpClient) {
+func (client *Client) handleDisconnect(connection SystemgeConnection.SystemgeConnection, tcpClientConfig *Config.TcpClient) {
 	select {
 	case <-connection.GetCloseChannel():
 	case <-client.stopChannel:

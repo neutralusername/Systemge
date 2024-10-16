@@ -1,10 +1,10 @@
-package SystemgeClient
+package Client
 
 import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-func (client *SystemgeClient) CheckMetrics() Metrics.MetricsTypes {
+func (client *Client) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("systemgeClient_connectionAttempts", Metrics.New(
 		map[string]uint64{
@@ -42,7 +42,7 @@ func (client *SystemgeClient) CheckMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-func (client *SystemgeClient) GetMetrics() Metrics.MetricsTypes {
+func (client *Client) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("systemgeClient_connectionAttempts", Metrics.New(
 		map[string]uint64{
@@ -80,21 +80,21 @@ func (client *SystemgeClient) GetMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-func (client *SystemgeClient) CheckConnectionAttemptsFailed() uint64 {
+func (client *Client) CheckConnectionAttemptsFailed() uint64 {
 	return client.connectionAttemptsFailed.Load()
 }
-func (client *SystemgeClient) GetConnectionAttemptsFailed() uint64 {
+func (client *Client) GetConnectionAttemptsFailed() uint64 {
 	return client.connectionAttemptsFailed.Swap(0)
 }
 
-func (client *SystemgeClient) CheckConnectionAttemptsSuccess() uint64 {
+func (client *Client) CheckConnectionAttemptsSuccess() uint64 {
 	return client.connectionAttemptsSuccess.Load()
 }
-func (client *SystemgeClient) GetConnectionAttemptsSuccess() uint64 {
+func (client *Client) GetConnectionAttemptsSuccess() uint64 {
 	return client.connectionAttemptsSuccess.Swap(0)
 }
 
-func (client *SystemgeClient) CheckBytesSent() uint64 {
+func (client *Client) CheckBytesSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -108,7 +108,7 @@ func (client *SystemgeClient) CheckBytesSent() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetBytesSent() uint64 {
+func (client *Client) GetBytesSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -123,7 +123,7 @@ func (client *SystemgeClient) GetBytesSent() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckBytesReceived() uint64 {
+func (client *Client) CheckBytesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -137,7 +137,7 @@ func (client *SystemgeClient) CheckBytesReceived() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetBytesReceived() uint64 {
+func (client *Client) GetBytesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -152,7 +152,7 @@ func (client *SystemgeClient) GetBytesReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckAsyncMessagesSent() uint64 {
+func (client *Client) CheckAsyncMessagesSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -166,7 +166,7 @@ func (client *SystemgeClient) CheckAsyncMessagesSent() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetAsyncMessagesSent() uint64 {
+func (client *Client) GetAsyncMessagesSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -181,7 +181,7 @@ func (client *SystemgeClient) GetAsyncMessagesSent() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckSyncRequestsSent() uint64 {
+func (client *Client) CheckSyncRequestsSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -195,7 +195,7 @@ func (client *SystemgeClient) CheckSyncRequestsSent() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetSyncRequestsSent() uint64 {
+func (client *Client) GetSyncRequestsSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -210,7 +210,7 @@ func (client *SystemgeClient) GetSyncRequestsSent() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckSyncResponsesSent() uint64 {
+func (client *Client) CheckSyncResponsesSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -224,7 +224,7 @@ func (client *SystemgeClient) CheckSyncResponsesSent() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetSyncResponsesSent() uint64 {
+func (client *Client) GetSyncResponsesSent() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -239,7 +239,7 @@ func (client *SystemgeClient) GetSyncResponsesSent() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckSyncSuccessResponsesReceived() uint64 {
+func (client *Client) CheckSyncSuccessResponsesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -253,7 +253,7 @@ func (client *SystemgeClient) CheckSyncSuccessResponsesReceived() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetSyncSuccessResponsesReceived() uint64 {
+func (client *Client) GetSyncSuccessResponsesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -268,7 +268,7 @@ func (client *SystemgeClient) GetSyncSuccessResponsesReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckSyncFailureResponsesReceived() uint64 {
+func (client *Client) CheckSyncFailureResponsesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -282,7 +282,7 @@ func (client *SystemgeClient) CheckSyncFailureResponsesReceived() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetSyncFailureResponsesReceived() uint64 {
+func (client *Client) GetSyncFailureResponsesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -297,7 +297,7 @@ func (client *SystemgeClient) GetSyncFailureResponsesReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckNoSyncResponseReceived() uint64 {
+func (client *Client) CheckNoSyncResponseReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -311,7 +311,7 @@ func (client *SystemgeClient) CheckNoSyncResponseReceived() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetNoSyncResponseReceived() uint64 {
+func (client *Client) GetNoSyncResponseReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -326,7 +326,7 @@ func (client *SystemgeClient) GetNoSyncResponseReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckInvalidMessagesReceived() uint64 {
+func (client *Client) CheckInvalidMessagesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -340,7 +340,7 @@ func (client *SystemgeClient) CheckInvalidMessagesReceived() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetInvalidMessagesReceived() uint64 {
+func (client *Client) GetInvalidMessagesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -355,7 +355,7 @@ func (client *SystemgeClient) GetInvalidMessagesReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckMessagesReceived() uint64 {
+func (client *Client) CheckMessagesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -369,7 +369,7 @@ func (client *SystemgeClient) CheckMessagesReceived() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetMessagesReceived() uint64 {
+func (client *Client) GetMessagesReceived() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -384,7 +384,7 @@ func (client *SystemgeClient) GetMessagesReceived() uint64 {
 	return sum
 }
 
-func (client *SystemgeClient) CheckRejectedMessages() uint64 {
+func (client *Client) CheckRejectedMessages() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {
@@ -398,7 +398,7 @@ func (client *SystemgeClient) CheckRejectedMessages() uint64 {
 	}
 	return sum
 }
-func (client *SystemgeClient) GetRejectedMessages() uint64 {
+func (client *Client) GetRejectedMessages() uint64 {
 	client.statusMutex.RLock()
 	client.mutex.Lock()
 	defer func() {

@@ -1,4 +1,4 @@
-package SystemgeClient
+package Client
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-type SystemgeClient struct {
+type Client struct {
 	name string
 
 	instanceId string
@@ -40,7 +40,7 @@ type SystemgeClient struct {
 	connectionAttemptsSuccess  atomic.Uint64
 }
 
-func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler) (*SystemgeClient, error) {
+func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler) (*Client, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -51,7 +51,7 @@ func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler)
 		return nil, errors.New("config.TcpSystemgeConnectionConfig is nil")
 	}
 
-	client := &SystemgeClient{
+	client := &Client{
 		name:   name,
 		config: config,
 
@@ -65,30 +65,30 @@ func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler)
 	return client, nil
 }
 
-func (client *SystemgeClient) GetName() string {
+func (client *Client) GetName() string {
 	return client.name
 }
 
-func (client *SystemgeClient) GetStatus() int {
+func (client *Client) GetStatus() int {
 	return client.status
 }
 
-func (server *SystemgeClient) GetInstanceId() string {
+func (server *Client) GetInstanceId() string {
 	return server.instanceId
 }
 
-func (server *SystemgeClient) GetSessionId() string {
+func (server *Client) GetSessionId() string {
 	return server.sessionId
 }
 
-func (server *SystemgeClient) onEvent(event *Event.Event) *Event.Event {
+func (server *Client) onEvent(event *Event.Event) *Event.Event {
 	event.GetContext().Merge(server.GetContext())
 	if server.eventHandler != nil {
 		server.eventHandler(event)
 	}
 	return event
 }
-func (server *SystemgeClient) GetContext() Event.Context {
+func (server *Client) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.SystemgeClient,
 		Event.ServiceName:       server.name,

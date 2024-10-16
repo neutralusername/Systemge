@@ -1,4 +1,4 @@
-package SystemgeClient
+package Client
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Status"
 )
 
-func (client *SystemgeClient) GetDefaultCommands() Commands.Handlers {
+func (client *Client) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{}
 	commands["start"] = func(args []string) (string, error) {
 		if err := client.Start(); err != nil {
