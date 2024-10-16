@@ -1,15 +1,4 @@
 
-add some default message handlers for websocketServer and sysServer
-add "enable event handling"-flag if overhead from event handling is measureable
-specifier field is pretty redundant
-create a bunch of wrapper functions with events (commands, httpRequests etc)
-make sure http server stop only returns after all its http requests finished!!
-only create events where some sort of state is altered (or error occurs)
-go once again over events/circumstances/context in general and search for patterns
-add onDisconnectHandler that can be optionally set for SystemgeConnections, that is triggered on close (instead of acquiring the close Channel and doing this manually)
-
-add ip rate limiter to http server
-
 build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
 -allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
 -systemgeConnectionDashboard X
