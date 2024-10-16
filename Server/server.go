@@ -36,6 +36,8 @@ type Server[B any, O any] struct {
 func New[B any, O any](
 	name string,
 	config *Config.Server,
+	acceptHandler Tools.AcceptHandler[Systemge.Connection[B]],
+	readHandler Tools.ReadHandler[O, Systemge.Connection[B]],
 	eventHandler Event.Handler,
 ) (*Server[B, O], error) {
 
@@ -48,6 +50,9 @@ func New[B any, O any](
 		config:       config,
 		eventHandler: eventHandler,
 		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+
+		acceptHandler:    acceptHandler,
+		receptionHandler: readHandler,
 
 		sessionManager: Tools.NewSessionManager(config.SessionManagerConfig, nil, nil),
 	}
