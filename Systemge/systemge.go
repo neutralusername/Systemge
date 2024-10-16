@@ -5,7 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Metrics"
 )
 
-type Listener[B any] interface {
+type Listener[B any, C Connection[B]] interface {
 	Start() error
 	Stop() error
 
@@ -15,7 +15,7 @@ type Listener[B any] interface {
 	GetStatus() int
 	GetStopChannel() <-chan struct{}
 
-	Accept(timeoutNs int64) (Connection[B], error)
+	Accept(timeoutNs int64) (C, error)
 
 	GetDefaultCommands() Commands.Handlers
 

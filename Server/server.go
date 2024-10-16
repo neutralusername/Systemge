@@ -14,7 +14,7 @@ import (
 
 // ? == might not make it
 
-type Server[B any, O any] struct {
+type Server[B any, C Systemge.Connection[B]] struct {
 	instanceId string
 	sessionId  string
 	name       string
@@ -26,46 +26,46 @@ type Server[B any, O any] struct {
 
 	config *Config.Server
 
-	acceptHandler    Tools.AcceptHandler[Systemge.Connection[B]]  // ? (not preventing a mismatch in communication type atm)
-	receptionHandler Tools.ReadHandler[O, Systemge.Connection[B]] // ? (not preventing a mismatch in communication type atm)
-	listener         Systemge.Listener[B]                         // ? (not preventing a mismatch in communication type atm)
+	acceptHandler Tools.AcceptHandler[C]  // ?
+	readHandler   Tools.ReadHandler[B, C] // ?
+	listener      Systemge.Listener[B, C] // ?
 
-	sessionManager         *Tools.SessionManager            // ?
-	requestResponseManager *Tools.RequestResponseManager[B] // ?
+	/*
+		sessionManager         *Tools.SessionManager            // ?
+		requestResponseManager *Tools.RequestResponseManager[B] // ?
 
-	priorityTokenQueue *Tools.PriorityTokenQueue[O] // ?
-	queueConsumer      *Tools.IQueueConsumer[O]     // ?
+		priorityTokenQueue *Tools.PriorityTokenQueue[O] // ?
+		queueConsumer      *Tools.IQueueConsumer[O]     // ?
 
-	topicManager  *Tools.TopicManager[O, O] // ?
-	blacklist     *Tools.AccessControlList  // ?
-	whitelist     *Tools.AccessControlList  // ?
-	ipRateLimiter *Tools.IpRateLimiter      // ? (would be pointless when using channel communication)
+		topicManager  *Tools.TopicManager[O, O] // ?
+		blacklist     *Tools.AccessControlList  // ?
+		whitelist     *Tools.AccessControlList  // ?
+		ipRateLimiter *Tools.IpRateLimiter      // ? (would be pointless when using channel communication)
+	*/
 
 	eventHandler Event.Handler
 }
 
-func New[B any, O any](
+func New[B any, C Systemge.Connection[B]](
 	name string,
 	config *Config.Server,
-	acceptHandler Tools.AcceptHandler[Systemge.Connection[B]], // ?
-	readHandler Tools.ReadHandler[O, Systemge.Connection[B]], // ?
+	acceptHandler Tools.AcceptHandler[C], // ?
+	readHandler Tools.ReadHandler[B, C], // ?
 	eventHandler Event.Handler,
-) (*Server[B, O], error) {
+) (*Server[B, C], error) {
 
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
 
-	server := &Server[B, O]{
+	server := &Server[B, C]{
 		name:         name,
 		config:       config,
 		eventHandler: eventHandler,
 		instanceId:   Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 
-		acceptHandler:    acceptHandler,
-		receptionHandler: readHandler,
-
-		sessionManager: Tools.NewSessionManager(config.SessionManagerConfig, nil, nil),
+		acceptHandler: acceptHandler,
+		readHandler:   readHandler,
 	}
 	return server, nil
 }

@@ -1,8 +1,8 @@
 package Tools
 
-type ReadHandlerFactory[O any, C any] func() ReadHandler[O, C]
+type ReadHandlerFactory[B any, C any] func() ReadHandler[B, C]
 
-type ReadHandler[O any, C any] func(O, C)
+type ReadHandler[B any, C any] func(B, C)
 
 /*
 type ByteHandler[B any, C any] func(B, C) error
