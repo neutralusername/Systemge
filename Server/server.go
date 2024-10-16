@@ -41,7 +41,7 @@ func New[B any, C Systemge.Connection[B]](
 	listener Systemge.Listener[B, C], // ?
 	acceptHandler Tools.AcceptHandler[C], // ?
 	readHandler Tools.ReadHandler[B, C], // ?
-	eventHandler Event.Handler,
+	eventHandler Event.Handler, // probably redundant at this place if server only prrovides the managing of accept and read routines and those are provided (more appropriate in the handlers)
 ) (*Server[B, C], error) {
 
 	if config == nil {
