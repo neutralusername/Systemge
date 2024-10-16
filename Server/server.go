@@ -26,10 +26,9 @@ type Server[B any, O any] struct {
 
 	config *Config.Server
 
-	acceptHandler    Tools.AcceptHandler[Systemge.Connection[B]]
-	receptionHandler Tools.ReadHandler[O, Systemge.Connection[B]]
-
-	listener Systemge.Listener[B]
+	acceptHandler    Tools.AcceptHandler[Systemge.Connection[B]]  // ? (not preventing a mismatch in communication type atm)
+	receptionHandler Tools.ReadHandler[O, Systemge.Connection[B]] // ? (not preventing a mismatch in communication type atm)
+	listener         Systemge.Listener[B]                         // ? (not preventing a mismatch in communication type atm)
 
 	sessionManager         *Tools.SessionManager            // ?
 	requestResponseManager *Tools.RequestResponseManager[B] // ?
