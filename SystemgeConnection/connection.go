@@ -19,6 +19,8 @@ type SystemgeConnection[B any] interface {
 		IsReadRoutineRunning() bool
 	*/
 
+	// SetReadLimit(int64)
+
 	Read(int64) (B, error)
 	SetReadDeadline(int64)
 
