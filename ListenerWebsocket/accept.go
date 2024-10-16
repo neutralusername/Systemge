@@ -4,11 +4,11 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/ConnectionWebsocket"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Systemge"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (listener *WebsocketListener) Accept(timeoutNs int64) (SystemgeConnection.SystemgeConnection[[]byte], error) {
+func (listener *WebsocketListener) Accept(timeoutNs int64) (Systemge.SystemgeConnection[[]byte], error) {
 	timeout := Tools.NewTimeout(timeoutNs, nil, false)
 	connection, err := listener.accept(timeout.GetIsExpiredChannel())
 	timeout.Trigger()
@@ -16,7 +16,7 @@ func (listener *WebsocketListener) Accept(timeoutNs int64) (SystemgeConnection.S
 	return connection, err
 }
 
-func (listener *WebsocketListener) accept(cancel <-chan struct{}) (SystemgeConnection.SystemgeConnection[[]byte], error) {
+func (listener *WebsocketListener) accept(cancel <-chan struct{}) (Systemge.SystemgeConnection[[]byte], error) {
 	select {
 	case <-listener.stopChannel:
 		return nil, errors.New("listener stopped")

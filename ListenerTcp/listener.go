@@ -12,7 +12,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/SystemgeListener"
+	"github.com/neutralusername/Systemge/Systemge"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -44,7 +44,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (SystemgeListener.SystemgeListener[[]byte], error) {
+func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (Systemge.SystemgeListener[[]byte], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

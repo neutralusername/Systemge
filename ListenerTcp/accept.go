@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/neutralusername/Systemge/ConnectionTcp"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Systemge"
 )
 
-func (listener *TcpListener) Accept(timeoutNs int64) (SystemgeConnection.SystemgeConnection[[]byte], error) {
+func (listener *TcpListener) Accept(timeoutNs int64) (Systemge.SystemgeConnection[[]byte], error) {
 	listener.acceptMutex.Lock()
 	defer listener.acceptMutex.Unlock()
 

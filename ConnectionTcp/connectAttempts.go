@@ -7,13 +7,13 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Systemge"
 )
 
 type ConnectionAttempt struct {
 	config             *Config.SystemgeConnectionAttempt
 	eventHandler       Event.Handler
-	systemgeConnection SystemgeConnection.SystemgeConnection[[]byte]
+	systemgeConnection Systemge.SystemgeConnection[[]byte]
 
 	attempts   uint32
 	ongoing    chan bool
@@ -99,7 +99,7 @@ func (connectionAttempt *ConnectionAttempt) IsOngoing() bool {
 	}
 }
 
-func (connectionAttempt *ConnectionAttempt) GetResultBlocking() SystemgeConnection.SystemgeConnection[[]byte] {
+func (connectionAttempt *ConnectionAttempt) GetResultBlocking() Systemge.SystemgeConnection[[]byte] {
 	<-connectionAttempt.ongoing
 	return connectionAttempt.systemgeConnection
 }

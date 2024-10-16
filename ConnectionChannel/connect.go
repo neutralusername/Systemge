@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Systemge"
 )
 
-func EstablishConnection[T any](connectionChannel chan<- *ConnectionRequest[T], timeoutNs int64) (SystemgeConnection.SystemgeConnection[T], error) {
+func EstablishConnection[T any](connectionChannel chan<- *ConnectionRequest[T], timeoutNs int64) (Systemge.SystemgeConnection[T], error) {
 	connectionRequest := &ConnectionRequest[T]{
 		SendToListener:      make(chan T),
 		ReceiveFromListener: make(chan T),

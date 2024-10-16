@@ -8,11 +8,11 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/Systemge"
 )
 
 // wip
-func EstablishConnection(tcpClientConfig *Config.TcpClient) (SystemgeConnection.SystemgeConnection[[]byte], error) {
+func EstablishConnection(tcpClientConfig *Config.TcpClient) (Systemge.SystemgeConnection[[]byte], error) {
 	dialer := websocket.DefaultDialer
 
 	if tcpClientConfig.TlsCert != "" {
