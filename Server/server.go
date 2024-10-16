@@ -40,7 +40,7 @@ type Server[B any, O any] struct {
 	topicManager  *Tools.TopicManager[O, O] // ?
 	blacklist     *Tools.AccessControlList  // ?
 	whitelist     *Tools.AccessControlList  // ?
-	ipRateLimiter *Tools.IpRateLimiter      // ? (would be pointless when using a channel communication)
+	ipRateLimiter *Tools.IpRateLimiter      // ? (would be pointless when using channel communication)
 
 	eventHandler Event.Handler
 }
