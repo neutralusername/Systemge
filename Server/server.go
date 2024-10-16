@@ -32,6 +32,9 @@ type Server[B any, O any] struct {
 	requestResponseManager *Tools.RequestResponseManager[B] // ?
 	priorityTokenQueue     *Tools.PriorityTokenQueue[O]     // ?
 	topicManager           *Tools.TopicManager[O, O]        // ?
+	blacklist              *Tools.AccessControlList         // ?
+	whitelist              *Tools.AccessControlList         // ?
+	ipRateLimiter          *Tools.IpRateLimiter             // ?
 
 	eventHandler Event.Handler
 }
