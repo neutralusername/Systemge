@@ -12,7 +12,7 @@ import (
 
 // ? == might not make it
 
-type Server[B any, C Systemge.Connection[B]] struct {
+type Server[B any, C Systemge.Connection[B]] struct { // this whole struct might be redundant
 	instanceId string
 	sessionId  string
 
