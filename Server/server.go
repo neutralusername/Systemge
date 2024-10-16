@@ -17,7 +17,6 @@ import (
 type Server[B any, C Systemge.Connection[B]] struct {
 	instanceId string
 	sessionId  string
-	name       string
 
 	status      int
 	statusMutex sync.RWMutex
@@ -36,7 +35,6 @@ type Server[B any, C Systemge.Connection[B]] struct {
 }
 
 func New[B any, C Systemge.Connection[B]](
-	name string,
 	config *Config.Server,
 	listener Systemge.Listener[B, C], // ?
 	acceptHandler Tools.AcceptHandler[C], // ?
@@ -61,7 +59,7 @@ func New[B any, C Systemge.Connection[B]](
 }
 
 func (server *Server) GetName() string {
-	return server.name
+	return server.listener.GetName()
 }
 
 func (server *Server) GetStatus() int {
