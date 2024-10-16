@@ -14,7 +14,7 @@ import (
 
 // implements SystemgeConnection
 type TcpConnection struct {
-	config     *Config.TcpSystemgeConnection
+	config     *Config.TcpConnection
 	instanceId string
 
 	netConn         net.Conn
@@ -35,7 +35,7 @@ type TcpConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *Config.TcpSystemgeConnection, netConn net.Conn) (*TcpConnection, error) {
+func New(config *Config.TcpConnection, netConn net.Conn) (*TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}

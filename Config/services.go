@@ -69,9 +69,9 @@ func UnmarshalWebsocketServer(data string) *WebsocketServer {
 }
 
 type SingleRequestClient struct {
-	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
-	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
-	MaxServerNameLength         int                    `json:"maxServerNameLength"`         // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
+	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfig             *TcpClient     `json:"tcpClientConfig"`             // *required*
+	MaxServerNameLength         int            `json:"maxServerNameLength"`         // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
 }
 
 func UnmarshalCommandClient(data string) *SingleRequestClient {

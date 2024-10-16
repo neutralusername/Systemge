@@ -23,8 +23,8 @@ func UnmarshalMessageBrokerServer(data string) *MessageBrokerServer {
 }
 
 type MessageBrokerClient struct {
-	ServerTcpSystemgeConnectionConfig   *TcpSystemgeConnection `json:"serverTcpSystemgeConnectionConfig"`   // *required*
-	ResolverTcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"resolverTcpSystemgeConnectionConfig"` // *required*
+	ServerTcpSystemgeConnectionConfig   *TcpConnection `json:"serverTcpSystemgeConnectionConfig"`   // *required*
+	ResolverTcpSystemgeConnectionConfig *TcpConnection `json:"resolverTcpSystemgeConnectionConfig"` // *required*
 
 	ResolverTcpClientConfigs []*TcpClient `json:"resolverTcpClientConfigs"`
 

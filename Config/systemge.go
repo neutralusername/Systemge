@@ -7,8 +7,8 @@ type SystemgeConnectionAttempt struct {
 	MaxConnectionAttempts uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
 	RetryIntervalMs       uint32 `json:"connectionAttemptDelayMs"` // default: 0 == no delay (the delay between reconnection attempts)
 
-	TcpClientConfig             *TcpClient             `json:"tcpClientConfig"`             // *required*
-	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfig             *TcpClient     `json:"tcpClientConfig"`             // *required*
+	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 
 func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt {
@@ -21,8 +21,8 @@ func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt 
 }
 
 type SystemgeClient struct {
-	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
-	TcpClientConfigs            []*TcpClient           `json:"tcpClientConfigs"`
+	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfigs            []*TcpClient   `json:"tcpClientConfigs"`
 
 	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
 
@@ -55,12 +55,12 @@ func UnmarshalSystemgeServer(data string) *Server {
 	return &systemgeServer
 }
 
-type TcpSystemgeListener struct {
+type TcpListener struct {
 	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
 }
 
-func UnmarshalTcpSystemgeListener(data string) *TcpSystemgeListener {
-	var tcpSystemgeListener TcpSystemgeListener
+func UnmarshalTcpSystemgeListener(data string) *TcpListener {
+	var tcpSystemgeListener TcpListener
 	err := json.Unmarshal([]byte(data), &tcpSystemgeListener)
 	if err != nil {
 		return nil
@@ -68,15 +68,15 @@ func UnmarshalTcpSystemgeListener(data string) *TcpSystemgeListener {
 	return &tcpSystemgeListener
 }
 
-type TcpSystemgeConnection struct {
+type TcpConnection struct {
 	TcpReceiveTimeoutNs      int64  `json:"tcpReceiveTimeoutMs"`      // default: 0 == block forever
 	TcpSendTimeoutMs         uint64 `json:"tcpSendTimeoutMs"`         // default: 0 == block forever
 	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
 	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
 }
 
-func UnmarshalTcpSystemgeConnection(data string) *TcpSystemgeConnection {
-	var tcpSystemgeConnection TcpSystemgeConnection
+func UnmarshalTcpSystemgeConnection(data string) *TcpConnection {
+	var tcpSystemgeConnection TcpConnection
 	err := json.Unmarshal([]byte(data), &tcpSystemgeConnection)
 	if err != nil {
 		return nil
