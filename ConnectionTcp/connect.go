@@ -22,7 +22,7 @@ func EstablishConnection(config *Config.TcpSystemgeConnection, tcpClientConfig *
 	if err != nil {
 		return nil, err
 	}
-	connection, err := New(netConn)
+	connection, err := New(config, netConn)
 	if err != nil {
 		netConn.Close()
 		return nil, err

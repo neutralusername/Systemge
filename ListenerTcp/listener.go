@@ -24,7 +24,8 @@ type TcpListener struct {
 	stopChannel chan struct{}
 	statusMutex sync.Mutex
 
-	config *Config.TcpSystemgeListener
+	config           *Config.TcpSystemgeListener
+	connectionConfig *Config.TcpSystemgeConnection
 
 	acceptRoutine *Tools.Routine
 
@@ -41,7 +42,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) {
+func New(name string, config *Config.TcpSystemgeListener, connectionConfig *Config.TcpSystemgeConnection) (*TcpListener, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -49,9 +50,10 @@ func New(name string, config *Config.TcpSystemgeListener) (*TcpListener, error) 
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpListener{
-		name:       name,
-		config:     config,
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		name:             name,
+		config:           config,
+		connectionConfig: connectionConfig,
+		instanceId:       Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
 	}
 
 	return server, nil

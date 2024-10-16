@@ -26,7 +26,7 @@ func (listener *TcpListener) Accept(timeoutNs int64) (SystemgeConnection.Systemg
 		return nil, err
 	}
 
-	tcpSystemgeConnection, err := ConnectionTcp.New(netConn)
+	tcpSystemgeConnection, err := ConnectionTcp.New(listener.connectionConfig, netConn)
 	if err != nil {
 		listener.ClientsFailed.Add(1)
 		netConn.Close()
