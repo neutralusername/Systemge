@@ -5,7 +5,7 @@ import "encoding/json"
 type DashboardServer struct {
 	HTTPServerConfig      *HTTPServer      `json:"httpServerConfig"`      // *required*
 	WebsocketServerConfig *WebsocketServer `json:"websocketServerConfig"` // *required*
-	SystemgeServerConfig  *SystemgeServer  `json:"systemgeServerConfig"`  // *required*
+	SystemgeServerConfig  *Server          `json:"systemgeServerConfig"`  // *required*
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*

@@ -42,14 +42,14 @@ func UnmarshalSystemgeClient(data string) *SystemgeClient {
 	return &systemgeClient
 }
 
-type SystemgeServer struct {
+type Server struct {
 	TcpSystemgeListenerConfig   *TcpSystemgeListener   `json:"tcpSystemgeListenerConfig"`   // *required*
 	TcpSystemgeConnectionConfig *TcpSystemgeConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	SessionManagerConfig        *SessionManager        `json:"sessionManagerConfig"`        // *required*
 }
 
-func UnmarshalSystemgeServer(data string) *SystemgeServer {
-	var systemgeServer SystemgeServer
+func UnmarshalSystemgeServer(data string) *Server {
+	var systemgeServer Server
 	err := json.Unmarshal([]byte(data), &systemgeServer)
 	if err != nil {
 		return nil

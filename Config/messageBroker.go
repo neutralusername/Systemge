@@ -3,7 +3,7 @@ package Config
 import "encoding/json"
 
 type MessageBrokerServer struct {
-	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
+	SystemgeServerConfig *Server `json:"systemgeServerConfig"` // *required*
 
 	MessageHandlerQueueSize uint32 `json:"messageHandlerQueueSize"` // default: 0 == no limit
 
@@ -49,7 +49,7 @@ func UnmarshalMessageBrokerClient(data string) *MessageBrokerClient {
 }
 
 type MessageBrokerResolver struct {
-	SystemgeServerConfig *SystemgeServer `json:"systemgeServerConfig"` // *required*
+	SystemgeServerConfig *Server `json:"systemgeServerConfig"` // *required*
 
 	InfoLoggerPath    string  `json:"infoLoggerPath"`    // *optional*
 	WarningLoggerPath string  `json:"warningLoggerPath"` // *optional*
