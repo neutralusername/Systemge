@@ -31,7 +31,7 @@ type Connection[B any] interface {
 	GetStatus() int
 	GetCloseChannel() <-chan struct{}
 
-	// SetReadLimit(int64)
+	// SetReadLimit(int64) would be nice but redundant for channel communication
 
 	Read(int64) (B, error)
 	SetReadDeadline(int64)
