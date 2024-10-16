@@ -110,6 +110,10 @@ func (listener *TcpListener) Stop() error {
 	return nil
 }
 
+func (listener *TcpListener) SetConnectionConfig(connectionConfig *Config.TcpSystemgeConnection) {
+	listener.connectionConfig = connectionConfig
+}
+
 func (listener *TcpListener) GetStatus() int {
 	return listener.status
 }
