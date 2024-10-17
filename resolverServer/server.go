@@ -14,8 +14,6 @@ import (
 )
 
 type Resolver[B any, O any] struct {
-	config *configs.MessageBrokerResolver
-
 	topicObjects map[string]O
 	mutex        sync.RWMutex
 
