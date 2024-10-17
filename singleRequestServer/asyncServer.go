@@ -66,16 +66,8 @@ func NewSingleRequestServerAsync[B any](
 	return server, nil
 }
 
-func (server *SingleRequestServerAsync[B]) Start() error {
-	return server.acceptRoutine.StartRoutine()
-}
-
-func (server *SingleRequestServerAsync[B]) Stop() error {
-	return server.acceptRoutine.StopRoutine(true)
-}
-
-func (server *SingleRequestServerAsync[B]) GetStatus() int {
-	return server.acceptRoutine.GetStatus()
+func (server *SingleRequestServerAsync[B]) GetRoutine() *tools.Routine {
+	return server.acceptRoutine
 }
 
 func (server *SingleRequestServerAsync[B]) CheckMetrics() tools.MetricsTypes {
@@ -104,14 +96,14 @@ func (server *SingleRequestServerAsync[B]) GetMetrics() tools.MetricsTypes {
 func (server *SingleRequestServerAsync[B]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
-		err := server.Start()
+		err := server.GetRoutine().StartRoutine()
 		if err != nil {
 			return "", err
 		}
 		return "success", nil
 	}
 	commands["stop"] = func(args []string) (string, error) {
-		err := server.Stop()
+		err := server.GetRoutine().StopRoutine(true)
 		if err != nil {
 			return "", err
 		}

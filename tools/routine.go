@@ -94,7 +94,7 @@ func (routine *Routine) GetStatus() int {
 }
 
 // if >0 after stopping the routine, it means that there are zombie goroutines
-func (routine *Routine) OpenCallGoroutines() int32 {
+func (routine *Routine) SpawnedGoroutines() int32 {
 	return routine.openCallGoroutines.Load()
 }
 
