@@ -14,7 +14,7 @@ type TokenBucketRateLimiter struct {
 	bucket           uint64
 	maxBucketSize    uint64
 	refillRate       uint64
-	refillIntervalMs uint64
+	refillIntervalNs int64
 	active           bool
 	mutex            sync.Mutex
 }
@@ -24,10 +24,10 @@ func NewTokenBucketRateLimiter(config *Config.TokenBucketRateLimiter) *TokenBuck
 		bucket:           config.InitialBucketSize,
 		maxBucketSize:    config.MaxBucketSize,
 		refillRate:       config.RefillRate,
-		refillIntervalMs: config.RefillIntervalMs,
+		refillIntervalNs: config.RefillIntervalNs,
 		active:           true,
 	}
-	if config.RefillIntervalMs > 0 && config.RefillRate > 0 {
+	if config.RefillIntervalNs > 0 && config.RefillRate > 0 {
 		go rateLimiter.refillRoutine()
 	}
 	return rateLimiter
@@ -38,7 +38,7 @@ func (rateLimiter *TokenBucketRateLimiter) Close() {
 }
 
 func (rateLimiter *TokenBucketRateLimiter) refillRoutine() {
-	time.Sleep(time.Duration(rateLimiter.refillIntervalMs) * time.Millisecond)
+	time.Sleep(time.Duration(rateLimiter.refillIntervalNs) * time.Nanosecond)
 	for rateLimiter.active {
 		rateLimiter.mutex.Lock()
 		rateLimiter.bucket += rateLimiter.refillRate
@@ -46,7 +46,7 @@ func (rateLimiter *TokenBucketRateLimiter) refillRoutine() {
 			rateLimiter.bucket = rateLimiter.maxBucketSize
 		}
 		rateLimiter.mutex.Unlock()
-		time.Sleep(time.Duration(rateLimiter.refillIntervalMs) * time.Millisecond)
+		time.Sleep(time.Duration(rateLimiter.refillIntervalNs) * time.Nanosecond)
 	}
 }
 
@@ -77,15 +77,15 @@ func (rateLimiter *TokenBucketRateLimiter) SetRefillRate(rate uint64) {
 	rateLimiter.refillRate = rate
 }
 
-func (rateLimiter *TokenBucketRateLimiter) GetRefillInterval() uint64 {
+func (rateLimiter *TokenBucketRateLimiter) GetRefillIntervalNs() int64 {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
-	return rateLimiter.refillIntervalMs
+	return rateLimiter.refillIntervalNs
 }
-func (rateLimiter *TokenBucketRateLimiter) SetRefillInterval(interval uint64) {
+func (rateLimiter *TokenBucketRateLimiter) SetRefillIntervalNs(intervalNs int64) {
 	rateLimiter.mutex.Lock()
 	defer rateLimiter.mutex.Unlock()
-	rateLimiter.refillIntervalMs = interval
+	rateLimiter.refillIntervalNs = intervalNs
 }
 
 func (rateLimiter *TokenBucketRateLimiter) GetMaxBucketSize() uint64 {
@@ -125,13 +125,13 @@ func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handler
 		return "success", nil
 	}
 	commands["getRefillInterval"] = func(args []string) (string, error) {
-		return Helpers.Uint64ToString(rateLimiter.GetRefillInterval()), nil
+		return Helpers.Int64ToString(rateLimiter.GetRefillIntervalNs()), nil
 	}
 	commands["setRefillInterval"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("setRefillInterval expects 1 argument")
 		}
-		rateLimiter.SetRefillInterval(Helpers.StringToUint64(args[0]))
+		rateLimiter.SetRefillIntervalNs(Helpers.StringToInt64(args[0]))
 		return "success", nil
 	}
 	commands["getMaxBucketSize"] = func(args []string) (string, error) {

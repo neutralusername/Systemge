@@ -82,8 +82,8 @@ func (pool *Pool[T]) GetItems() map[T]bool {
 // AcquireItem returns an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
 // If the timeout is reached, it will return an error.
-// timeoutMs == 0 means no timeout.
-func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
+// timeoutNs == 0 means no timeout.
+func (pool *Pool[T]) AcquireItem(timeoutNs int64) (T, error) {
 	pool.mutex.Lock()
 
 	for item := range pool.availableItems {
@@ -97,13 +97,13 @@ func (pool *Pool[T]) AcquireItem(timeoutMs uint32) (T, error) {
 	pool.waiters.Push(waiter, true)
 	pool.mutex.Unlock()
 
-	if timeoutMs == 0 {
+	if timeoutNs == 0 {
 		return <-waiter, nil
 	} else {
 		select {
 		case item := <-waiter:
 			return item, nil
-		case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
+		case <-time.After(time.Duration(timeoutNs) * time.Nanosecond):
 			pool.mutex.Lock()
 			defer pool.mutex.Unlock()
 
@@ -141,11 +141,11 @@ func (pool *Pool[T]) TryAcquireItem() (T, error) {
 // AcquireItemChannel returns a channel that will return an item from the pool.
 // If the pool is empty, it will block until a item becomes available.
 // If the timeout is reached, the channel will be closed without sending an item.
-// timeoutMs == 0 means no timeout.
-func (pool *Pool[T]) AcquireItemChannel(timeoutMs uint32) <-chan T {
+// timeoutNs == 0 means no timeout.
+func (pool *Pool[T]) AcquireItemChannel(timeoutNs int64) <-chan T {
 	channel := make(chan T, 1)
 	go func() {
-		item, err := pool.AcquireItem(timeoutMs)
+		item, err := pool.AcquireItem(timeoutNs)
 		if err == nil {
 			channel <- item
 		}
@@ -193,8 +193,7 @@ func (pool *Pool[T]) Clear() map[T]bool {
 }
 
 // ReturnItem returns an item from the pool.
-// If the item does not exist, it will return an error.
-// If the item is available, it will return a error.
+// Returns an error if the item is not acquired.
 func (pool *Pool[T]) ReturnItem(item T) error {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()

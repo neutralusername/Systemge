@@ -24,18 +24,18 @@ func NewIpRateLimiter(config *Config.IpRateLimiter) *IpRateLimiter {
 	if config.MaxAttempts < 1 {
 		config.MaxAttempts = 1
 	}
-	if config.AttemptTimeWindowMs < 1 {
-		config.AttemptTimeWindowMs = 1
+	if config.AttemptTimeWindowNs < 1 {
+		config.AttemptTimeWindowNs = 1
 	}
-	if config.CleanupIntervalMs < 1 {
-		config.CleanupIntervalMs = 1000
+	if config.CleanupIntervalNs < 1 {
+		config.CleanupIntervalNs = 1000
 	}
 	rl := &IpRateLimiter{
 		connections:     make(map[string][]time.Time),
 		active:          true,
-		timeWindow:      time.Duration(config.AttemptTimeWindowMs) * time.Millisecond,
+		timeWindow:      time.Duration(config.AttemptTimeWindowNs) * time.Nanosecond,
 		maxAttempts:     config.MaxAttempts,
-		cleanupInterval: time.Duration(config.CleanupIntervalMs) * time.Millisecond,
+		cleanupInterval: time.Duration(config.CleanupIntervalNs) * time.Nanosecond,
 	}
 	go rl.cleanupOldEntries()
 	return rl

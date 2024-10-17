@@ -32,7 +32,7 @@ func NewRequestResponseManager[T any](config *Config.RequestResponseManager) *Re
 	}
 }
 
-// NewRequest creates a new request with the given token, response limit and timeout in milliseconds.
+// NewRequest creates a new request with the given token, response limit and timeout in nanoseconds.
 // If responseLimit is 0, it will be set to 1.
 // If the token is too short or too long, an error will be returned.
 // If the maximum number of active requests is reached, an error will be returned.

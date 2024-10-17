@@ -25,7 +25,7 @@ type TokenBucketRateLimiter struct {
 	InitialBucketSize uint64 `json:"initialBucketSize"` // default: 0
 	MaxBucketSize     uint64 `json:"maxBucketSize"`     // default: 0
 	RefillRate        uint64 `json:"refillRate"`        // default: 0 == no refill
-	RefillIntervalMs  uint64 `json:"refillIntervalMs"`  // default: 0 == no refill
+	RefillIntervalNs  int64  `json:"refillIntervalNs"`  // default: 0 == no refill
 }
 
 func UnmarshalRateLimiter(data string) *TokenBucketRateLimiter {
@@ -39,8 +39,8 @@ func UnmarshalRateLimiter(data string) *TokenBucketRateLimiter {
 
 type IpRateLimiter struct {
 	MaxAttempts         uint32 `json:"maxAttempts"`         // default: 1
-	AttemptTimeWindowMs uint32 `json:"attemptTimeWindowMs"` // default: 1
-	CleanupIntervalMs   uint32 `json:"cleanupIntervalMs"`   // default: 1000ms
+	AttemptTimeWindowNs int64  `json:"attemptTimeWindowNs"` // default: 1
+	CleanupIntervalNs   int64  `json:"cleanupIntervalNs"`   // default: 1000ms
 }
 
 func UnmarshalIpRateLimiter(data string) *IpRateLimiter {
@@ -77,7 +77,7 @@ type TopicManager struct {
 	ConcurrentCalls    bool   `json:"concurrentCalls"`    // default: false
 	QueueBlocking      bool   `json:"queueBlocking"`      // default: false // if false, will drop calls if queue is full. will wait if true
 	TopicQueueBlocking bool   `json:"topicQueueBlocking"` // default: false // if false, will drop calls if topicQueue is full. will wait if true
-	TimeoutMs          uint64 `json:"timeoutMs"`          // default: 0 == no timeout
+	TimeoutNs          int64  `json:"timeoutNs"`          // default: 0 == no timeout
 }
 
 func UnmarshalTopicManager(data string) *TopicManager {
