@@ -23,7 +23,7 @@ type SyncSingleRequestServer[B any] struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSyncSingleRequestServer[B any](routineConfig configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
+func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
 
 	server := &SyncSingleRequestServer[B]{
 		listener:      listener,
@@ -31,34 +31,36 @@ func NewSyncSingleRequestServer[B any](routineConfig configs.Routine, listener s
 		readHandler:   readHandler,
 	}
 
-	server.acceptRoutine = tools.NewRoutine(func() {
-		connection, err := listener.Accept(acceptTimeoutNs)
-		if err != nil {
-			// do smthg with the error
-			return
-		}
-		err = server.acceptHandler(connection)
-		if err != nil {
-			// do smthg with the error
+	server.acceptRoutine = tools.NewRoutine(
+		func(stopChannel <-chan struct{}) {
+			connection, err := listener.Accept(acceptTimeoutNs)
+			if err != nil {
+				// do smthg with the error
+				return
+			}
+			err = server.acceptHandler(connection)
+			if err != nil {
+				// do smthg with the error
+				connection.Close()
+				return
+			}
+			object, err := connection.Read(readTimeoutNs)
+			if err != nil {
+				// do smthg with the error
+				connection.Close()
+				return
+			}
+			result := server.readHandler(object, connection)
+			err = connection.Write(result, writeTimeoutNs)
+			if err != nil {
+				// do smthg with the error
+				connection.Close()
+				return
+			}
 			connection.Close()
-			return
-		}
-		object, err := connection.Read(readTimeoutNs)
-		if err != nil {
-			// do smthg with the error
-			connection.Close()
-			return
-		}
-		result := server.readHandler(object, connection)
-		err = connection.Write(result, writeTimeoutNs)
-		if err != nil {
-			// do smthg with the error
-			connection.Close()
-			return
-		}
-		connection.Close()
-
-	})
+		},
+		routineConfig,
+	)
 	return server, nil
 }
 
@@ -85,7 +87,7 @@ type AsyncSingleRequestServer[B any] struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewAsyncSingleRequestServer[B any](listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandler[B, systemge.Connection[B]]) (*AsyncSingleRequestServer[B], error) {
+func NewAsyncSingleRequestServer[B any](routineConfig *configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandler[B, systemge.Connection[B]]) (*AsyncSingleRequestServer[B], error) {
 
 	server := &AsyncSingleRequestServer[B]{
 		listener:      listener,
@@ -93,27 +95,30 @@ func NewAsyncSingleRequestServer[B any](listener systemge.Listener[B, systemge.C
 		readHandler:   readHandler,
 	}
 
-	server.acceptRoutine = tools.NewRoutine(func() {
-		connection, err := listener.Accept(acceptTimeoutNs)
-		if err != nil {
-			// do smthg with the error
-			return
-		}
-		err = server.acceptHandler(connection)
-		if err != nil {
-			// do smthg with the error
+	server.acceptRoutine = tools.NewRoutine(
+		func(stopChannel <-chan struct{}) {
+			connection, err := listener.Accept(acceptTimeoutNs)
+			if err != nil {
+				// do smthg with the error
+				return
+			}
+			err = server.acceptHandler(connection)
+			if err != nil {
+				// do smthg with the error
+				connection.Close()
+				return
+			}
+			object, err := connection.Read(readTimeoutNs)
+			if err != nil {
+				// do smthg with the error
+				connection.Close()
+				return
+			}
+			server.readHandler(object, connection)
 			connection.Close()
-			return
-		}
-		object, err := connection.Read(readTimeoutNs)
-		if err != nil {
-			// do smthg with the error
-			connection.Close()
-			return
-		}
-		server.readHandler(object, connection)
-		connection.Close()
-	})
+		},
+		routineConfig,
+	)
 	return server, nil
 }
 
