@@ -74,6 +74,10 @@ func (server *SingleRequestServerAsync[B]) Stop() error {
 	return server.acceptRoutine.StopRoutine(true)
 }
 
+func (server *SingleRequestServerAsync[B]) GetStatus() int {
+	return server.acceptRoutine.GetStatus()
+}
+
 func (server *SingleRequestServerAsync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(

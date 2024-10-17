@@ -81,6 +81,10 @@ func (server *SingleRequestServerSync[B]) Stop() error {
 	return server.acceptRoutine.StopRoutine(true)
 }
 
+func (server *SingleRequestServerSync[B]) GetStatus() int {
+	return server.acceptRoutine.GetStatus()
+}
+
 func (server *SingleRequestServerSync[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
