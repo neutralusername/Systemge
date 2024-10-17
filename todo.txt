@@ -12,7 +12,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -oauth2ServerDashboard
 
 single request server - will work based on systemge.Connection and IMessage i think (similar to existing functionality)
-(same for broker-system)
+(same for broker-system) (refactor brokerResolver to use singleRequestServer)
 
 make dashboard less repetitive (implementation-/code wise) ..
 
@@ -45,13 +45,10 @@ implement manual metrics update in some form (especially in regards to ranges of
 option to create csv file based on update routine and response messages
 maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
 
-refactor brokerResolver to use singleRequestServer
-
 update readme
 
 re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
 
-add ChannelConnection and channelListener as more performant alternative for systems within a single process
 consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
 
 write something that takes in configs and creates an executable, that can be used to easily perform systemge-operations through the (os-)command line (such as sending messages) i.e. through the provided args
