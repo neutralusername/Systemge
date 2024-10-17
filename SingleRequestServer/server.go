@@ -3,6 +3,7 @@ package SingleRequestServer
 import (
 	"sync/atomic"
 
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
@@ -22,7 +23,7 @@ type SyncSingleRequestServer[B any] struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSyncSingleRequestServer[B any](listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
+func NewSyncSingleRequestServer[B any](routineConfig configs.Routine, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
 
 	server := &SyncSingleRequestServer[B]{
 		listener:      listener,

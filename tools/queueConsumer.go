@@ -16,7 +16,7 @@ func NewQueueConsumer[T any](config *configs.Routine, queue IQueueConsumer[T], h
 				handler(item)
 			}
 		},
-		config.MaxConcurrentHandlers, config.DelayNs, config.TimeoutNs,
+		config,
 	)
 	return routine
 }

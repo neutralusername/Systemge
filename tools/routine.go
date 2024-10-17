@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/status"
 )
 
@@ -15,8 +16,7 @@ type Routine struct {
 	status      int
 	statusMutex sync.RWMutex
 
-	delayNs   int64
-	timeoutNs int64
+	config *configs.Routine
 
 	routineFunc              routineFunc
 	stopChannel              chan struct{}
@@ -26,15 +26,13 @@ type Routine struct {
 	openCallGoroutines       atomic.Int32
 }
 
-func NewRoutine(routineFunc routineFunc, maxConcurrentHandlers int, delayNs int64, timeoutNs int64) *Routine {
-	semaphore, err := NewSemaphore[struct{}](maxConcurrentHandlers, nil)
+func NewRoutine(routineFunc routineFunc, config *configs.Routine) *Routine {
+	semaphore, err := NewSemaphore[struct{}](config.MaxConcurrentHandlers, nil)
 	if err != nil {
 		return nil
 	}
 	return &Routine{
 		status:      0,
-		delayNs:     delayNs,
-		timeoutNs:   timeoutNs,
 		routineFunc: routineFunc,
 		semaphore:   semaphore,
 	}
@@ -96,8 +94,8 @@ func (routine *Routine) OpenCallGoroutines() int32 {
 func (routine *Routine) routine() {
 	defer routine.waitgroup.Done()
 	for {
-		if routine.delayNs > 0 {
-			time.Sleep(time.Duration(routine.delayNs) * time.Nanosecond)
+		if routine.config.DelayNs > 0 {
+			time.Sleep(time.Duration(routine.config.DelayNs) * time.Nanosecond)
 		}
 		select {
 		case <-routine.stopChannel:
@@ -107,8 +105,8 @@ func (routine *Routine) routine() {
 			routine.waitgroup.Add(1)
 
 			var deadline <-chan time.Time
-			if routine.timeoutNs > 0 {
-				deadline = time.After(time.Duration(routine.timeoutNs) * time.Nanosecond)
+			if routine.config.TimeoutNs > 0 {
+				deadline = time.After(time.Duration(routine.config.TimeoutNs) * time.Nanosecond)
 			}
 
 			var done chan struct{} = make(chan struct{})
