@@ -44,21 +44,18 @@ func NewSingleRequestServerAsync[B any](
 				// do smthg with the error
 				return
 			}
+			defer connection.Close()
 			if err = server.acceptHandler(connection); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
-				connection.Close()
 				return
 			}
 			object, err := connection.Read(config.ReadTimeoutNs)
 			if err != nil {
 				server.FailedCalls.Add(1)
-				// do smthg with the error
-				connection.Close()
 				return
 			}
 			server.readHandler(object, connection)
-			connection.Close()
 			server.SucceededCalls.Add(1)
 		},
 		routineConfig,

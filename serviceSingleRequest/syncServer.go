@@ -45,33 +45,29 @@ func NewSingleRequestServerSync[B any](
 				// do smthg with the error
 				return
 			}
+			defer connection.Close()
 			if err = server.AcceptHandler(connection); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
-				connection.Close()
 				return
 			}
 			object, err := connection.Read(config.ReadTimeoutNs)
 			if err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
-				connection.Close()
 				return
 			}
 			result, err := server.ReadHandler(object, connection)
 			if err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
-				connection.Close()
 				return
 			}
 			if err = connection.Write(result, config.WriteTimeoutNs); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
-				connection.Close()
 				return
 			}
-			connection.Close()
 			server.SucceededCalls.Add(1)
 		},
 		routineConfig,
