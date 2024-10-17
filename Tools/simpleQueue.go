@@ -32,7 +32,7 @@ func (queue *SimpleQueue[T]) Push(value T) error {
 		return nil
 	}
 
-	if queue.config.MaxElements > 0 && uint32(len(queue.queue)) >= queue.config.MaxElements {
+	if queue.config.MaxElements > 0 && len(queue.queue) >= queue.config.MaxElements {
 		if !queue.config.ReplaceIfFull {
 			return errors.New("priority queue is full")
 		}

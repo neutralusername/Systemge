@@ -105,8 +105,8 @@ type MessageValidator struct {
 }
 
 type Queue struct {
-	MaxElements   uint32 `json:"maxElements"`   // default: 0 == no limit
-	ReplaceIfFull bool   `json:"replaceIfFull"` // default: false
+	MaxElements   int  `json:"maxElements"`   // default: 0 == no limit
+	ReplaceIfFull bool `json:"replaceIfFull"` // default: false
 }
 
 type Routine struct {
