@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
 )
@@ -51,7 +51,7 @@ func New(config *Config.TcpConnection, netConn net.Conn) (*TcpConnection, error)
 		netConn:         netConn,
 		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutNs, config.TcpBufferBytes),
 		closeChannel:    make(chan struct{}),
-		instanceId:      tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId:      tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
 	return connection, nil

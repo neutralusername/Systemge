@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 )
 
@@ -59,7 +59,7 @@ func NewSessionManager(config *Config.SessionManager, onCreateSession func(*Sess
 	return &SessionManager{
 		config: config,
 
-		instanceId: GenerateRandomString(Constants.InstanceIdLength, ALPHA_NUMERIC),
+		instanceId: GenerateRandomString(constants.InstanceIdLength, ALPHA_NUMERIC),
 
 		sessions:   make(map[string]*Session),
 		identities: make(map[string]*Identity),

@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/httpServer"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/systemge"
@@ -53,7 +53,7 @@ func New(name string, httpWrapperHandler httpServer.WrapperHandler, config *Conf
 		name:            name,
 		config:          config,
 		status:          status.Stopped,
-		instanceId:      tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId:      tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		upgradeRequests: make(chan (<-chan *upgraderResponse)),
 	}
 	listener.httpServer = httpServer.New(listener.name+"_httpServer",

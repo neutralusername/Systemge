@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/helpers"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
@@ -15,7 +15,7 @@ func (server *HTTPServer) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
 
-	server.sessionId = tools.GenerateRandomString(Constants.SessionIdLength, tools.ALPHA_NUMERIC)
+	server.sessionId = tools.GenerateRandomString(constants.SessionIdLength, tools.ALPHA_NUMERIC)
 
 	if server.status != status.Stopped {
 		return errors.New("failed to start http server")

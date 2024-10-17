@@ -3,8 +3,8 @@ package Client
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
 )
@@ -36,7 +36,7 @@ func (client *Client) Start() error {
 		))
 		return errors.New("failed to start systemge server")
 	}
-	client.sessionId = tools.GenerateRandomString(Constants.SessionIdLength, tools.ALPHA_NUMERIC)
+	client.sessionId = tools.GenerateRandomString(constants.SessionIdLength, tools.ALPHA_NUMERIC)
 	client.status = status.Pending
 
 	client.stopChannel = make(chan bool)

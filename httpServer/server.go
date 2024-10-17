@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/helpers"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
@@ -48,7 +48,7 @@ func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, 
 		mux:            NewCustomMux(config.DelayNs),
 		config:         config,
 		wrapperHandler: wrapperHandler,
-		instanceId:     tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId:     tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 	for pattern, handler := range requestHandlers {
 		server.AddRoute(pattern, handler)

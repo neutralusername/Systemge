@@ -6,9 +6,9 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/SessionManager"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
 )
@@ -57,7 +57,7 @@ func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler)
 
 		sessionManager: SessionManager.New(name+"_sessionManager", config.SessionManagerConfig, eventHandler),
 
-		instanceId: tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId: tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 
 		eventHandler: eventHandler,
 	}

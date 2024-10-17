@@ -3,7 +3,7 @@ package listenerTcp
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
 )
@@ -16,7 +16,7 @@ func (listener *TcpListener) Start() error {
 		return errors.New("tcpSystemgeListener is already started")
 	}
 
-	listener.sessionId = tools.GenerateRandomString(Constants.SessionIdLength, tools.ALPHA_NUMERIC)
+	listener.sessionId = tools.GenerateRandomString(constants.SessionIdLength, tools.ALPHA_NUMERIC)
 	tcpListener, err := NewTcpListener(listener.config.TcpServerConfig.Port)
 	if err != nil {
 		return err

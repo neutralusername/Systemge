@@ -3,7 +3,7 @@ package listenerChannel
 import (
 	"errors"
 
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
 )
@@ -15,7 +15,7 @@ func (listener *ChannelListener[T]) Start() error {
 	if listener.status == status.Started {
 		return errors.New("tcpSystemgeListener is already started")
 	}
-	listener.sessionId = tools.GenerateRandomString(Constants.SessionIdLength, tools.ALPHA_NUMERIC)
+	listener.sessionId = tools.GenerateRandomString(constants.SessionIdLength, tools.ALPHA_NUMERIC)
 	listener.status = status.Pending
 	listener.stopChannel = make(chan struct{})
 

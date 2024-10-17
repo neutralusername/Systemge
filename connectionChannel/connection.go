@@ -4,7 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/tools"
 )
@@ -41,7 +41,7 @@ func New[T any](receiveChannel chan T, sendChannel chan T) *ChannelConnection[T]
 
 	connection := &ChannelConnection[T]{
 		closeChannel:   make(chan struct{}),
-		instanceId:     tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId:     tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		receiveChannel: receiveChannel,
 		sendChannel:    sendChannel,
 	}

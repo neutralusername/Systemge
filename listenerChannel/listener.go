@@ -4,8 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/connectionChannel"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/status"
 	"github.com/neutralusername/Systemge/systemge"
 	"github.com/neutralusername/Systemge/tools"
@@ -33,7 +33,7 @@ func New[B any](name string) (systemge.Listener[B, systemge.Connection[B]], erro
 	listener := &ChannelListener[B]{
 		name:              name,
 		status:            status.Stopped,
-		instanceId:        tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 		connectionChannel: make(chan *connectionChannel.ConnectionRequest[B]),
 	}
 

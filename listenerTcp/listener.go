@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Constants"
+	"github.com/neutralusername/Systemge/constants"
 	"github.com/neutralusername/Systemge/helpers"
 	"github.com/neutralusername/Systemge/systemge"
 	"github.com/neutralusername/Systemge/tools"
@@ -47,7 +47,7 @@ func New(name string, config *Config.TcpListener, connectionConfig *Config.TcpCo
 		name:             name,
 		config:           config,
 		connectionConfig: connectionConfig,
-		instanceId:       tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		instanceId:       tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
 	return server, nil
