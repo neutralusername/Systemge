@@ -11,7 +11,7 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
-single reuqest server - will work based on systemge.Connection and IMessage i think (similar to existing functionality)
+single request server - will work based on systemge.Connection and IMessage i think (similar to existing functionality)
 (same for broker-system)
 
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
