@@ -32,8 +32,7 @@ func New[B any](
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
-	readHandler tools.ReadHandlerWithError[B, systemge.Connection[B]], // responsible for validating the topic/request
-	deserializeTopic func(B) (string, error),
+	deserializeTopic func(B, systemge.Connection[B]) (string, error), // responsible for validating the request and retrieving the topic
 	serializeResolution func(*configs.TcpClient) (B, error),
 ) (*Resolver[B], error) {
 
@@ -51,11 +50,7 @@ func New[B any](
 	}
 
 	readHandlerWrapper := func(data B, connection systemge.Connection[B]) (B, error) {
-		if err := readHandler(data, connection); err != nil {
-			var nilValue B
-			return nilValue, err
-		}
-		topic, err := deserializeTopic(data)
+		topic, err := deserializeTopic(data, connection)
 		if err != nil {
 			var nilValue B
 			return nilValue, err
