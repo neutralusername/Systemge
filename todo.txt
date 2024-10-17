@@ -11,18 +11,19 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
-single request server - will work based on systemge.Connection and IMessage i think (similar to existing functionality)
-(same for broker-system) (refactor brokerResolver to use singleRequestServer)
+single request server and broker-system - will work based on systemge.Connection and IMessage i think (similar to existing functionality)
+
+(refactor brokerResolver to use singleRequestServer)
+
+"systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
+    +(group of clients connected to various listeners that can be messaged conveniently)
+    +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
+(generalize this and use it for broker client somehow)
 
 make dashboard less repetitive (implementation-/code wise) ..
 
 consider/support config changes at runtime.
 right now this is not officially supported and works for some fields, but not for others.
-
-"systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
-    +(group of clients connected to various listeners that can be messaged conveniently)
-    +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
-(generalize this and use it for broker client somehow )
 
 add sample how systemge can be used as a proxy
 
