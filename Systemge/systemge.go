@@ -1,7 +1,6 @@
 package Systemge
 
 import (
-	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -17,7 +16,7 @@ type Listener[B any, C Connection[B]] interface {
 
 	Accept(timeoutNs int64) (C, error)
 
-	GetDefaultCommands() Commands.Handlers
+	GetDefaultCommands() Tools.Handlers
 
 	CheckMetrics() Tools.MetricsTypes
 	GetMetrics() Tools.MetricsTypes
@@ -39,7 +38,7 @@ type Connection[B any] interface {
 	Write(B, int64) error
 	SetWriteDeadline(int64)
 
-	GetDefaultCommands() Commands.Handlers
+	GetDefaultCommands() Tools.Handlers
 
 	GetMetrics() Tools.MetricsTypes
 	CheckMetrics() Tools.MetricsTypes

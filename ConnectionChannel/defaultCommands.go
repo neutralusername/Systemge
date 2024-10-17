@@ -1,7 +1,7 @@
 package ConnectionChannel
 
-import "github.com/neutralusername/Systemge/Commands"
+import "github.com/neutralusername/Systemge/Tools"
 
-func (connection *ChannelConnection[T]) GetDefaultCommands() Commands.Handlers {
+func (connection *ChannelConnection[T]) GetDefaultCommands() Tools.Handlers {
 	return nil
 }

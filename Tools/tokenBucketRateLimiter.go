@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Helpers"
 )
@@ -99,8 +98,8 @@ func (rateLimiter *TokenBucketRateLimiter) SetMaxBucketSize(size uint64) {
 	rateLimiter.maxBucketSize = size
 }
 
-func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Commands.Handlers {
-	commands := Commands.Handlers{}
+func (rateLimiter *TokenBucketRateLimiter) GetDefaultCommands() Handlers {
+	commands := Handlers{}
 	commands["consume"] = func(args []string) (string, error) {
 		if len(args) != 1 {
 			return "", errors.New("consume expects 1 argument")

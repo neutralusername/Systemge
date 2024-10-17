@@ -1,11 +1,11 @@
 package ConnectionTcp
 
 import (
-	"github.com/neutralusername/Systemge/Commands"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func (connection *TcpConnection) GetDefaultCommands() Commands.Handlers {
-	commands := Commands.Handlers{}
+func (connection *TcpConnection) GetDefaultCommands() Tools.Handlers {
+	commands := Tools.Handlers{}
 	/* 	commands["close"] = func(args []string) (string, error) {
 	   		err := connection.Close()
 	   		if err != nil {

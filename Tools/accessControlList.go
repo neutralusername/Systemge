@@ -4,7 +4,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Helpers"
 )
 
@@ -58,8 +57,8 @@ func (acl *AccessControlList) GetElements() []string {
 	return items
 }
 
-func (acl *AccessControlList) GetDefaultCommands() Commands.Handlers {
-	return Commands.Handlers{
+func (acl *AccessControlList) GetDefaultCommands() Handlers {
+	return Handlers{
 		"add": func(args []string) (string, error) {
 			acl.Add(args[0])
 			return "success", nil

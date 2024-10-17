@@ -1,11 +1,9 @@
 package ListenerTcp
 
-import (
-	"github.com/neutralusername/Systemge/Commands"
-)
+import "github.com/neutralusername/Systemge/Tools"
 
-func (listener *TcpListener) GetDefaultCommands() Commands.Handlers {
-	commands := Commands.Handlers{}
+func (listener *TcpListener) GetDefaultCommands() Tools.Handlers {
+	commands := Tools.Handlers{}
 	/* blacklistCommands := listener.blacklist.GetDefaultCommands()
 	whitelistCommands := listener.whitelist.GetDefaultCommands()
 	for key, value := range blacklistCommands {
