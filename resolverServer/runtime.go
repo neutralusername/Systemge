@@ -1,4 +1,4 @@
-package resolver
+package resolverServer
 
 import "github.com/neutralusername/systemge/configs"
 
