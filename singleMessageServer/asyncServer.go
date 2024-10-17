@@ -17,7 +17,7 @@ func NewSingleMessageServerAsync[B any](
 	messageHandler systemge.AsyncMessageHandler[B],
 	deserialize func(B) (tools.IMessage, error),
 ) (*singleRequestServer.SingleRequestServerAsync[B], error) {
-	wrapperReadHandler := func(data B, connection systemge.Connection[B]) {
+	readHandlerWrapper := func(data B, connection systemge.Connection[B]) {
 		if err := readHandler(data, connection); err != nil {
 			connection.Close()
 		}
@@ -33,6 +33,6 @@ func NewSingleMessageServerAsync[B any](
 		routineConfig,
 		listener,
 		acceptHandler,
-		wrapperReadHandler,
+		readHandlerWrapper,
 	)
 }
