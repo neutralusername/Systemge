@@ -1,10 +1,9 @@
-package SystemgeConnection
+package Tools
 
 import (
 	"sync"
 
 	"github.com/neutralusername/Systemge/Systemge"
-	"github.com/neutralusername/Systemge/Tools"
 )
 
 func MultiWrite[B any](data B, timeoutNs int64, connections ...Systemge.Connection[B]) {
@@ -19,7 +18,7 @@ func MultiWrite[B any](data B, timeoutNs int64, connections ...Systemge.Connecti
 	waitgroup.Wait()
 }
 
-func MultiSyncRequest[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
+func MultiSyncRequest[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Request[B], error) {
 	request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
 	if err != nil {
 		return nil, err
@@ -28,7 +27,7 @@ func MultiSyncRequest[B any](data B, responseLimit uint64, timeoutNs int64, sync
 	return request, nil
 }
 
-func MultiSyncRequestBlocking[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
+func MultiSyncRequestBlocking[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Request[B], error) {
 	request, err := MultiSyncRequest(data, responseLimit, timeoutNs, syncToken, requestResponseManager, connections...)
 	if err != nil {
 		return nil, err
