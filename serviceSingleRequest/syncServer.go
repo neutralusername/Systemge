@@ -1,4 +1,4 @@
-package singleRequestServer
+package serviceSingleRequest
 
 import (
 	"encoding/json"

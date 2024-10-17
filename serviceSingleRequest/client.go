@@ -1,4 +1,4 @@
-package singleRequestServer
+package serviceSingleRequest
 
 import (
 	"github.com/neutralusername/systemge/configs"

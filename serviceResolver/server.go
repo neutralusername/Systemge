@@ -1,4 +1,4 @@
-package resolverServer
+package serviceResolver
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/singleRequestServer"
+	"github.com/neutralusername/systemge/serviceSingleRequest"
 	"github.com/neutralusername/systemge/status"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
@@ -17,7 +17,7 @@ type Resolver[B any, O any] struct {
 	topicObjects map[string]O
 	mutex        sync.RWMutex
 
-	singleRequestServerSync *singleRequestServer.SingleRequestServerSync[B]
+	singleRequestServerSync *serviceSingleRequest.SingleRequestServerSync[B]
 
 	deserializeTopic func(B, systemge.Connection[B]) (string, error)
 
@@ -64,7 +64,7 @@ func New[B any, O any](
 		return serializeObject(object)
 	}
 
-	singleRequestServerSync, err := singleRequestServer.NewSingleRequestServerSync(singleRequestServerConfig, routineConfig, listener, acceptHandler, readHandlerWrapper)
+	singleRequestServerSync, err := serviceSingleRequest.NewSingleRequestServerSync(singleRequestServerConfig, routineConfig, listener, acceptHandler, readHandlerWrapper)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func New[B any, O any](
 	return resolver, nil
 }
 
-func (resolver *Resolver[B, O]) GetSingleRequestServerSync() *singleRequestServer.SingleRequestServerSync[B] {
+func (resolver *Resolver[B, O]) GetSingleRequestServerSync() *serviceSingleRequest.SingleRequestServerSync[B] {
 	return resolver.singleRequestServerSync
 }
 
