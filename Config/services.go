@@ -1,74 +1,6 @@
 package Config
 
-import (
-	"encoding/json"
-
-	"github.com/gorilla/websocket"
-)
-
-type HTTPServer struct {
-	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
-
-	HttpErrorLogPath string `json:"httpErrorPath"` // *optional* (logged to standard output if empty)
-
-	DelayNs             int64 `json:"delayNs"`             // default: 0 (no delay)
-	MaxHeaderBytes      int   `json:"maxHeaderBytes"`      // default: <=0 == 1 MB (whichever value you choose, golangs http package will add 4096 bytes on top of it....)
-	ReadHeaderTimeoutMs int   `json:"readHeaderTimeoutMs"` // default: 0 (no timeout)
-	WriteTimeoutMs      int   `json:"writeTimeoutMs"`      // default: 0 (no timeout)
-	MaxBodyBytes        int64 `json:"maxBodyBytes"`        // default: 0 (no limit)
-}
-
-func UnmarshalHTTPServer(data string) *HTTPServer {
-	var http HTTPServer
-	err := json.Unmarshal([]byte(data), &http)
-	if err != nil {
-		return nil
-	}
-	return &http
-}
-
-type WebsocketListener struct {
-	TcpServerConfig *TcpServer `json:"tcpServerConfig"` // *required*
-	Pattern         string     `json:"pattern"`         // *required* (the pattern that the underlying http server will listen to) (e.g. "/ws")
-
-	Upgrader *websocket.Upgrader `json:"upgrader"` // *required*
-
-	UpgradeRequestTimeoutMs uint32 `json:"upgradeRequestTimeoutMs"` // default: 0 (no timeout)
-}
-
-func UnmarshalWebsocketListener(data string) *WebsocketListener {
-	var ws WebsocketListener
-	err := json.Unmarshal([]byte(data), &ws)
-	if err != nil {
-		return nil
-	}
-	return &ws
-}
-
-type WebsocketServer struct {
-	WebsocketListenerConfig *WebsocketListener `json:"websocketListenerConfig"`   // *required*
-	WebsocketClientConfig   *WebsocketClient   `json:"websocketConnectionConfig"` // *required*
-
-	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
-
-	HandleClientsSequentially  bool `json:"handleClientsSequentially"`  // default: false
-	HandleMessagesSequentially bool `json:"handleMessagesSequentially"` // default: false
-
-	AcceptTimeoutMs uint32 `json:"acceptTimeoutMs"` // default: 0 (no timeout)
-	ReadTimeoutMs   uint32 `json:"readTimeoutMs"`   // default: 0 (no timeout)
-	WriteTimeoutMs  uint64 `json:"writeTimeoutMs"`  // default: 0 (no timeout)
-}
-
-func UnmarshalWebsocketServer(data string) *WebsocketServer {
-	var ws WebsocketServer
-	err := json.Unmarshal([]byte(data), &ws)
-	if err != nil {
-		return nil
-	}
-	return &ws
-}
-
-type SingleRequestClient struct {
+/* type SingleRequestClient struct {
 	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
 	TcpClientConfig             *TcpClient     `json:"tcpClientConfig"`             // *required*
 	MaxServerNameLength         int            `json:"maxServerNameLength"`         // default: <=0 == unlimited (clients that attempt to send a name larger than this will be rejected)
@@ -95,3 +27,28 @@ func UnmarshalSingleRequestServer(data string) *SingleRequestServer {
 	}
 	return &singleRequestServer
 }
+*/
+
+/*
+type SystemgeClient struct {
+	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfigs            []*TcpClient   `json:"tcpClientConfigs"`
+
+	SessionManagerConfig *SessionManager `json:"sessionManagerConfig"` // *required*
+
+	MaxServerNameLength int `json:"maxServerNameLength"` // default: 0 == unlimited (servers that attempt to send a name larger than this will be rejected)
+
+	AutoReconnectAttempts    bool   `json:"autoReconnectAttempts"`    // default: false (if true, the client will attempt to reconnect if the connection is lost)
+	ConnectionAttemptDelayMs uint32 `json:"connectionAttemptDelayMs"` // default: 1000 (the delay between reconnection attempts in milliseconds)
+	MaxConnectionAttempts    uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
+}
+
+func UnmarshalSystemgeClient(data string) *SystemgeClient {
+	var systemgeClient SystemgeClient
+	err := json.Unmarshal([]byte(data), &systemgeClient)
+	if err != nil {
+		return nil
+	}
+	return &systemgeClient
+}
+*/
