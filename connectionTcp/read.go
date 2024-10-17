@@ -11,14 +11,14 @@ func (client *TcpConnection) Read(timeoutNs int64) ([]byte, error) {
 	defer client.readMutex.Unlock()
 
 	client.SetReadDeadline(timeoutNs)
-	messageBytes, err := client.messageReceiver.ReadNextMessage()
+	messageBytes, newBytesRead, err := client.tcpBufferedReader.Read()
 	if err != nil {
 		if helpers.IsNetConnClosedErr(err) {
 			client.Close()
 		}
 		return nil, err
 	}
-	client.BytesReceived.Add(uint64(len(messageBytes)))
+	client.BytesReceived.Add(uint64(newBytesRead))
 	client.MessagesReceived.Add(1)
 	return messageBytes, nil
 }

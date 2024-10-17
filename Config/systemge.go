@@ -11,8 +11,8 @@ type SystemgeConnectionAttempt struct {
 	MaxConnectionAttempts uint32 `json:"maxConnectionAttempts"`    // default: 0 == unlimited (the maximum number of reconnection attempts, after which the client will stop trying to reconnect)
 	RetryIntervalMs       uint32 `json:"connectionAttemptDelayMs"` // default: 0 == no delay (the delay between reconnection attempts)
 
-	TcpClientConfig             *TcpClient     `json:"tcpClientConfig"`             // *required*
-	TcpSystemgeConnectionConfig *TcpConnection `json:"tcpSystemgeConnectionConfig"` // *required*
+	TcpClientConfig         *TcpClient         `json:"tcpClientConfig"`             // *required*
+	TcpBufferedReaderConfig *TcpBufferedReader `json:"tcpSystemgeConnectionConfig"` // *required*
 }
 
 func UnmarshalSystemgeConnectionAttempt(data string) *SystemgeConnectionAttempt {
@@ -35,21 +35,6 @@ func UnmarshalTcpSystemgeListener(data string) *TcpListener {
 		return nil
 	}
 	return &tcpSystemgeListener
-}
-
-type TcpConnection struct {
-	TcpReceiveTimeoutNs      int64  `json:"tcpReceiveTimeoutMs"`      // default: 0 == block forever
-	TcpBufferBytes           uint32 `json:"tcpBufferBytes"`           // default: 0 == default (4KB)
-	IncomingMessageByteLimit uint64 `json:"incomingMessageByteLimit"` // default: 0 == unlimited (connections that attempt to send messages larger than this will be disconnected)
-}
-
-func UnmarshalTcpSystemgeConnection(data string) *TcpConnection {
-	var tcpSystemgeConnection TcpConnection
-	err := json.Unmarshal([]byte(data), &tcpSystemgeConnection)
-	if err != nil {
-		return nil
-	}
-	return &tcpSystemgeConnection
 }
 
 type WebsocketListener struct {

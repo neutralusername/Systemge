@@ -24,8 +24,8 @@ type TcpListener struct {
 	stopChannel chan struct{}
 	statusMutex sync.Mutex
 
-	config           *Config.TcpListener
-	connectionConfig *Config.TcpConnection
+	config               *Config.TcpListener
+	bufferedReaderConfig *Config.TcpBufferedReader
 
 	tcpListener net.Listener
 	tlsListener net.Listener
@@ -36,7 +36,7 @@ type TcpListener struct {
 	ClientsFailed   atomic.Uint64
 }
 
-func New(name string, config *Config.TcpListener, connectionConfig *Config.TcpConnection) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
+func New(name string, config *Config.TcpListener, bufferedReaderConfig *Config.TcpBufferedReader) (systemge.Listener[[]byte, systemge.Connection[[]byte]], error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -44,17 +44,17 @@ func New(name string, config *Config.TcpListener, connectionConfig *Config.TcpCo
 		return nil, errors.New("tcpServiceConfig is nil")
 	}
 	server := &TcpListener{
-		name:             name,
-		config:           config,
-		connectionConfig: connectionConfig,
-		instanceId:       tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		name:                 name,
+		config:               config,
+		bufferedReaderConfig: bufferedReaderConfig,
+		instanceId:           tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
 	return server, nil
 }
 
-func (listener *TcpListener) SetConnectionConfig(connectionConfig *Config.TcpConnection) {
-	listener.connectionConfig = connectionConfig
+func (listener *TcpListener) SetBufferedReaderConfig(connectionConfig *Config.TcpBufferedReader) {
+	listener.bufferedReaderConfig = connectionConfig
 }
 
 func (listener *TcpListener) GetStatus() int {

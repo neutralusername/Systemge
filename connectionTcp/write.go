@@ -4,10 +4,8 @@ import (
 	"time"
 
 	"github.com/neutralusername/systemge/helpers"
+	"github.com/neutralusername/systemge/tools"
 )
-
-const ENDOFMESSAGE = '\x04'
-const HEARTBEAT = '\x05'
 
 func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	connection.readMutex.Lock()
@@ -18,7 +16,7 @@ func (connection *TcpConnection) SendHeartbeat(timeoutNs int64) error {
 	} else {
 		connection.netConn.SetWriteDeadline(time.Time{})
 	}
-	_, err := connection.netConn.Write([]byte{HEARTBEAT})
+	_, err := connection.netConn.Write([]byte{tools.HEARTBEAT})
 	if err != nil {
 		return err
 	}
@@ -32,7 +30,7 @@ func (client *TcpConnection) Write(messageBytes []byte, timeoutNs int64) error {
 	defer client.writeMutex.Unlock()
 
 	client.SetWriteDeadline(timeoutNs)
-	_, err := client.netConn.Write(append(messageBytes, ENDOFMESSAGE))
+	_, err := client.netConn.Write(append(messageBytes, tools.ENDOFMESSAGE))
 	if err != nil {
 		if helpers.IsNetConnClosedErr(err) {
 			client.Close()

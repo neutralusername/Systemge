@@ -29,11 +29,11 @@ func (messageBrokerClient *Client) getBrokerConnection(tcpClientConfig *Config.T
 	messageBrokerClient.mutex.Unlock()
 
 	connectionAttempt := connectionTcp.EstablishConnectionAttempts(messageBrokerClient.name, &Config.SystemgeConnectionAttempt{
-		MaxServerNameLength:         messageBrokerClient.config.MaxServerNameLength,
-		TcpClientConfig:             tcpClientConfig,
-		TcpSystemgeConnectionConfig: messageBrokerClient.config.ServerTcpSystemgeConnectionConfig,
-		RetryIntervalMs:             messageBrokerClient.config.ResolutionAttemptRetryIntervalMs,
-		MaxConnectionAttempts:       messageBrokerClient.config.ResolutionMaxAttempts,
+		MaxServerNameLength:     messageBrokerClient.config.MaxServerNameLength,
+		TcpClientConfig:         tcpClientConfig,
+		TcpBufferedReaderConfig: messageBrokerClient.config.ServerTcpSystemgeConnectionConfig,
+		RetryIntervalMs:         messageBrokerClient.config.ResolutionAttemptRetryIntervalMs,
+		MaxConnectionAttempts:   messageBrokerClient.config.ResolutionMaxAttempts,
 	})
 	select {
 	case <-connectionAttempt.GetOngoingChannel():

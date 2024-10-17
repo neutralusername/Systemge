@@ -14,11 +14,11 @@ import (
 
 // implements SystemgeConnection
 type TcpConnection struct {
-	config     *Config.TcpConnection
+	config     *Config.TcpBufferedReader
 	instanceId string
 
-	netConn         net.Conn
-	messageReceiver *BufferedMessageReader
+	netConn           net.Conn
+	tcpBufferedReader *tools.TcpBufferedReader
 
 	closed       bool
 	closedMutex  sync.Mutex
@@ -35,23 +35,20 @@ type TcpConnection struct {
 	MessagesReceived atomic.Uint64
 }
 
-func New(config *Config.TcpConnection, netConn net.Conn) (*TcpConnection, error) {
+func New(config *Config.TcpBufferedReader, netConn net.Conn) (*TcpConnection, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
 	if netConn == nil {
 		return nil, errors.New("netConn is nil")
 	}
-	if config.TcpBufferBytes <= 0 {
-		config.TcpBufferBytes = 1024 * 4
-	}
 
 	connection := &TcpConnection{
-		config:          config,
-		netConn:         netConn,
-		messageReceiver: NewBufferedMessageReader(netConn, config.IncomingMessageByteLimit, config.TcpReceiveTimeoutNs, config.TcpBufferBytes),
-		closeChannel:    make(chan struct{}),
-		instanceId:      tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
+		config:            config,
+		netConn:           netConn,
+		tcpBufferedReader: tools.NewTcpBufferedReader(netConn, config),
+		closeChannel:      make(chan struct{}),
+		instanceId:        tools.GenerateRandomString(constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 	}
 
 	return connection, nil
