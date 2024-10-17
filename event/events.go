@@ -1,4 +1,4 @@
-package Event
+package event
 
 const ServiceStarting = "serviceStarting" // at the beginning of the service start
 const ServiceStoping = "serviceStopping"  // at the beginning of the service stop

@@ -1,4 +1,4 @@
-package Event
+package event
 
 const WebsocketUpgrade = "websocketUpgrade" // during the upgrade of a http request to a websocket connection
 
