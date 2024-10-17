@@ -167,6 +167,7 @@ func (request *Request[T]) GetNextResponse() (T, error) {
 	return response, nil
 }
 
+// GetResponses returns all responses received.
 func (request *Request[T]) GetResponses() []T {
 	responses := make([]T, 0, request.responseCount)
 	for response := range request.responseChannel {
@@ -185,6 +186,7 @@ func (request *Request[T]) GetResponseLimit() uint64 {
 	return request.responseLimit
 }
 
+// Wait blocks until the request is done.
 func (request *Request[T]) Wait() {
 	<-request.doneChannel
 }
