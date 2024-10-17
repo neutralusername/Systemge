@@ -26,7 +26,7 @@ type Resolver[B any, T any] struct {
 }
 
 func New[B any, T any](
-	topicClientConfigs map[string]T,
+	topicObject map[string]T,
 	singleRequestServerConfig *configs.SingleRequestServerSync,
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
@@ -39,8 +39,8 @@ func New[B any, T any](
 		topicTcpClientConfigs: make(map[string]T),
 	}
 
-	for topic, tcpClientConfig := range topicClientConfigs {
-		resolver.topicTcpClientConfigs[topic] = tcpClientConfig
+	for topic, object := range topicObject {
+		resolver.topicTcpClientConfigs[topic] = object
 	}
 
 	readHandlerWrapper := func(data B, connection systemge.Connection[B]) (B, error) {
@@ -51,7 +51,7 @@ func New[B any, T any](
 		}
 
 		resolver.mutex.RLock()
-		tcpClientConfig, ok := topicClientConfigs[topic]
+		tcpClientConfig, ok := topicObject[topic]
 		resolver.mutex.RUnlock()
 
 		if !ok {
