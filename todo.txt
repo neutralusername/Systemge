@@ -25,8 +25,6 @@ right now this is not officially supported and works for some fields, but not fo
 
 add sample how systemge can be used as a proxy
 
-add sync messaging system between websocketServer and its clients
-
 add authentication/key mechanism for listeners
 
 display error responses somehow on dashboard
