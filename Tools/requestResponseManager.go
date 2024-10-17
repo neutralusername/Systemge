@@ -39,7 +39,7 @@ func NewRequestResponseManager[T any](config *Config.RequestResponseManager) *Re
 // If a request with the same token already exists, an error will be returned.
 // If a timeout is set, the request will be aborted after the timeout.
 // The request will be removed from the manager when the response limit is reached.
-func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit uint64, timeoutMs uint64) (*Request[T], error) {
+func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit uint64, timeoutNs int64) (*Request[T], error) {
 	if responseLimit == 0 {
 		responseLimit = 1
 	}
@@ -67,10 +67,10 @@ func (manager *RequestResponseManager[T]) NewRequest(token string, responseLimit
 	}
 	manager.requests[token] = request
 
-	if timeoutMs > 0 {
+	if timeoutNs > 0 {
 		go func() {
 			select {
-			case <-time.After(time.Duration(timeoutMs) * time.Millisecond):
+			case <-time.After(time.Duration(timeoutNs) * time.Nanosecond):
 				manager.AbortRequest(token)
 			case <-request.doneChannel:
 			}
@@ -167,6 +167,14 @@ func (request *Request[T]) GetNextResponse() (T, error) {
 	return response, nil
 }
 
+func (request *Request[T]) GetResponses() []T {
+	responses := make([]T, 0, request.responseCount)
+	for response := range request.responseChannel {
+		responses = append(responses, response)
+	}
+	return responses
+}
+
 // GetResponseCount returns the number of responses received.
 func (request *Request[T]) GetResponseCount() uint64 {
 	return request.responseCount
@@ -175,4 +183,8 @@ func (request *Request[T]) GetResponseCount() uint64 {
 // GetResponseLimit returns the response limit of the request.
 func (request *Request[T]) GetResponseLimit() uint64 {
 	return request.responseLimit
+}
+
+func (request *Request[T]) Wait() {
+	<-request.doneChannel
 }

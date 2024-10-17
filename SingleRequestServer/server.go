@@ -6,9 +6,9 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	Server1 "github.com/neutralusername/Systemge/Server"
 	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/SystemgeServer"
 	"github.com/neutralusername/Systemge/Tools"
 )
 
@@ -16,7 +16,7 @@ type Server struct {
 	name           string
 	config         *Config.SingleRequestServer
 	messageHandler SystemgeConnection.MessageHandler
-	systemgeServer *Server1.Server
+	systemgeServer *SystemgeServer.Server
 
 	eventHandler Event.Handler
 
@@ -52,7 +52,7 @@ func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whi
 		messageHandler: messageHandler,
 		eventHandler:   eventHandler,
 	}
-	systemgeServer, err := Server1.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
+	systemgeServer, err := SystemgeServer.New(name, config.SystemgeServerConfig, whitelist, blacklist, func(event *Event.Event) {
 		if eventHandler != nil {
 			eventHandler(event)
 		}

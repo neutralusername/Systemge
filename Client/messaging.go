@@ -117,7 +117,7 @@ func (client *Client) AsyncMessage(topic, payload string, clientNames ...string)
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	SystemgeConnection.MultiAsyncMessage(topic, payload, connections...)
+	SystemgeConnection.MultiWrite(topic, payload, connections...)
 
 	client.onEvent(Event.NewInfoNoOption(
 		Event.SentMultiMessage,
@@ -239,7 +239,7 @@ func (client *Client) SyncRequest(topic, payload string, clientNames ...string) 
 	client.mutex.Unlock()
 	client.statusMutex.RUnlock()
 
-	return SystemgeConnection.MultiSyncRequest(topic, payload, connections...), nil
+	return SystemgeConnection.MultiSyncReuqest(topic, payload, connections...), nil
 }
 
 func (client *Client) SyncRequestBlocking(topic, payload string, clientNames ...string) ([]*Message.Message, error) {

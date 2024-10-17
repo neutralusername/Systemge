@@ -3,60 +3,37 @@ package SystemgeConnection
 import (
 	"sync"
 
-	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/Systemge"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
-func MultiAsyncMessage(topic, payload string, connections ...SystemgeConnection) {
+func MultiWrite[B any](data B, timeoutNs int64, connections ...Systemge.Connection[B]) {
 	waitgroup := sync.WaitGroup{}
 	for _, connection := range connections {
 		waitgroup.Add(1)
-		go func(connection SystemgeConnection) {
+		go func(connection Systemge.Connection[B]) {
 			defer waitgroup.Done()
-			connection.AsyncMessage(topic, payload)
+			connection.Write(data, timeoutNs)
 		}(connection)
 	}
 	waitgroup.Wait()
 }
 
-func MultiSyncRequest(topic, payload string, connections ...SystemgeConnection) <-chan *Message.Message {
-	responsesChannel := make(chan *Message.Message, len(connections))
-	responseWaitGroup := sync.WaitGroup{}
-	sendWaitGroup := sync.WaitGroup{}
-	for _, connection := range connections {
-		sendWaitGroup.Add(1)
-		go func(connection SystemgeConnection) {
-			defer sendWaitGroup.Done()
-			responseChannel, err := connection.SyncRequest(topic, payload)
-			if err != nil {
-				return
-			}
-			responseWaitGroup.Add(1)
-			go func(connection SystemgeConnection, responseChannel <-chan *Message.Message) {
-				defer responseWaitGroup.Done()
-				responsesChannel <- <-responseChannel
-			}(connection, responseChannel)
-		}(connection)
+func MultiSyncReuqest[B any](data B, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
+	request, err := requestResponseManager.NewRequest(syncToken, uint64(len(connections)), timeoutNs)
+	if err != nil {
+		return nil, err
 	}
-	go func() {
-		responseWaitGroup.Wait()
-		close(responsesChannel)
-	}()
-	return responsesChannel
+	MultiWrite(data, timeoutNs, connections...)
+	return request, nil
 }
 
-func MultiSyncRequestBlocking(topic, payload string, connections ...SystemgeConnection) []*Message.Message {
-	responses := []*Message.Message{}
-	waitgroup := sync.WaitGroup{}
-	for _, connection := range connections {
-		waitgroup.Add(1)
-		go func(connection SystemgeConnection) {
-			defer waitgroup.Done()
-			response, err := connection.SyncRequestBlocking(topic, payload)
-			if err != nil {
-				return
-			}
-			responses = append(responses, response)
-		}(connection)
+func MultiSyncRequestBlocking[B any](data B, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
+	request, err := MultiSyncReuqest(data, timeoutNs, syncToken, requestResponseManager, connections...)
+	if err != nil {
+		return nil, err
 	}
-	return responses
+	request.Wait()
+	return request, nil
+
 }
