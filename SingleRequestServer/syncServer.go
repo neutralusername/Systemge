@@ -12,9 +12,10 @@ import (
 
 type SyncSingleRequestServer[B any] struct {
 	listener      systemge.Listener[B, systemge.Connection[B]]
-	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]]
-	readHandler   tools.ReadHandlerWithResult[B, systemge.Connection[B]]
 	acceptRoutine *tools.Routine
+
+	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]]
+	ReadHandler   tools.ReadHandlerWithResult[B, systemge.Connection[B]]
 
 	// metrics
 
@@ -26,8 +27,8 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener 
 
 	server := &SyncSingleRequestServer[B]{
 		listener:      listener,
-		acceptHandler: acceptHandler,
-		readHandler:   readHandler,
+		AcceptHandler: acceptHandler,
+		ReadHandler:   readHandler,
 	}
 
 	server.acceptRoutine = tools.NewRoutine(
@@ -38,7 +39,7 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener 
 				// do smthg with the error
 				return
 			}
-			if err = server.acceptHandler(connection); err != nil {
+			if err = server.AcceptHandler(connection); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
 				connection.Close()
@@ -51,7 +52,7 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener 
 				connection.Close()
 				return
 			}
-			result := server.readHandler(object, connection)
+			result := server.ReadHandler(object, connection)
 			if err = connection.Write(result, writeTimeoutNs); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
