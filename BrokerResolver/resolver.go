@@ -18,7 +18,7 @@ type Resolver[B any] struct {
 	topicTcpClientConfigs map[string]*configs.TcpClient
 	mutex                 sync.RWMutex
 
-	singleRequestServer *singleRequestServer.SingleRequestServerSync[B]
+	singleRequestServerSync *singleRequestServer.SingleRequestServerSync[B]
 
 	// metrics
 
@@ -76,7 +76,40 @@ func New[B any](
 	if err != nil {
 		return nil, err
 	}
-	resolver.singleRequestServer = singleRequestServerSync
+	resolver.singleRequestServerSync = singleRequestServerSync
 
 	return resolver, nil
+}
+
+func (resolver *Resolver[B]) GetSingleRequestServerSync() *singleRequestServer.SingleRequestServerSync[B] {
+	return resolver.singleRequestServerSync
+}
+
+func (resolver *Resolver[B]) CheckMetrics() tools.MetricsTypes {
+	metricsTypes := tools.NewMetricsTypes()
+	resolver.mutex.RLock()
+	metricsTypes.AddMetrics("brokerResolver_resolutions", tools.NewMetrics(
+		map[string]uint64{
+			"successes": resolver.SucessfulResolutions.Load(),
+			"failures":  resolver.FailedResolutions.Load(),
+			"topics":    uint64(len(resolver.topicTcpClientConfigs)),
+		},
+	))
+	resolver.mutex.RUnlock()
+	metricsTypes.Merge(resolver.singleRequestServerSync.CheckMetrics())
+	return metricsTypes
+}
+func (resolver *Resolver[B]) GetMetrics() tools.MetricsTypes {
+	metricsTypes := tools.NewMetricsTypes()
+	resolver.mutex.RLock()
+	metricsTypes.AddMetrics("brokerResolver", tools.NewMetrics(
+		map[string]uint64{
+			"successes": resolver.SucessfulResolutions.Swap(0),
+			"failures":  resolver.FailedResolutions.Swap(0),
+			"topics":    uint64(len(resolver.topicTcpClientConfigs)),
+		},
+	))
+	resolver.mutex.RUnlock()
+	metricsTypes.Merge(resolver.singleRequestServerSync.GetMetrics())
+	return metricsTypes
 }

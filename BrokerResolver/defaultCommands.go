@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/systemge/Commands"
-	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/Event"
+	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/status"
 )
 
