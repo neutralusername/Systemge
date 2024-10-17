@@ -38,8 +38,7 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener 
 				// do smthg with the error
 				return
 			}
-			err = server.acceptHandler(connection)
-			if err != nil {
+			if err = server.acceptHandler(connection); err != nil {
 				// do smthg with the error
 				connection.Close()
 				return
@@ -51,8 +50,7 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, listener 
 				return
 			}
 			result := server.readHandler(object, connection)
-			err = connection.Write(result, writeTimeoutNs)
-			if err != nil {
+			if err = connection.Write(result, writeTimeoutNs); err != nil {
 				// do smthg with the error
 				connection.Close()
 				return
@@ -102,8 +100,7 @@ func NewAsyncSingleRequestServer[B any](routineConfig *configs.Routine, listener
 				// do smthg with the error
 				return
 			}
-			err = server.acceptHandler(connection)
-			if err != nil {
+			if err = server.acceptHandler(connection); err != nil {
 				// do smthg with the error
 				connection.Close()
 				return
