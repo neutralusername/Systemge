@@ -20,8 +20,6 @@ type Resolver[B any] struct {
 	topicTcpClientConfigs map[string]*configs.TcpClient
 	mutex                 sync.RWMutex
 
-	ongoingResolutions atomic.Int64
-
 	singleRequestServer *singleRequestServer.SingleRequestServerSync[B]
 
 	// metrics
