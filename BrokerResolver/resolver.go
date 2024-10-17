@@ -11,10 +11,10 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Resolver[B any, T any] struct {
+type Resolver[B any, O any] struct {
 	config *configs.MessageBrokerResolver
 
-	topicTcpClientConfigs map[string]T
+	topicTcpClientConfigs map[string]O
 	mutex                 sync.RWMutex
 
 	singleRequestServerSync *singleRequestServer.SingleRequestServerSync[B]
