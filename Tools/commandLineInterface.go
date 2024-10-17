@@ -1,13 +1,11 @@
-package CLI
+package Tools
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/neutralusername/Systemge/Tools"
 )
 
-func Start(commandHandlers Tools.Handlers) {
+func StartCLI(commandHandlers Handlers) {
 	println("Welcome to the Systemge command line interface")
 	println("Type 'exit' to exit")
 	println("Type your command followed by arguments separated by spaces")
