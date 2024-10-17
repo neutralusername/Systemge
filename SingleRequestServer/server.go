@@ -61,6 +61,14 @@ func NewSyncSingleRequestServer[B any](listener systemge.Listener[B, systemge.Co
 	return server, nil
 }
 
+func (server *SyncSingleRequestServer[B]) Start() error {
+	return server.acceptRoutine.StartRoutine()
+}
+
+func (server *SyncSingleRequestServer[B]) Stop() error {
+	return server.acceptRoutine.StopRoutine(true)
+}
+
 type AsyncSingleRequestServer[B any] struct {
 	listener      systemge.Listener[B, systemge.Connection[B]]
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]]
@@ -108,14 +116,10 @@ func NewAsyncSingleRequestServer[B any](listener systemge.Listener[B, systemge.C
 	return server, nil
 }
 
-func (server *AsyncSingleRequestServer) Start() error {
-	return server.systemgeServer.Start()
+func (server *AsyncSingleRequestServer[B]) Start() error {
+	return server.acceptRoutine.StartRoutine()
 }
 
-func (server *AsyncSingleRequestServer) Stop() error {
-	return server.systemgeServer.Stop()
-}
-
-func (server *AsyncSingleRequestServer) GetStatus() int {
-	return server.systemgeServer.GetStatus()
+func (server *AsyncSingleRequestServer[B]) Stop() error {
+	return server.acceptRoutine.StopRoutine(true)
 }
