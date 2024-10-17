@@ -1,6 +1,6 @@
 cd ../SystemgeSampleChat/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -9,7 +9,7 @@ git push
 
 cd ../SystemgeSampleConwaysGameOfLife/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -18,7 +18,7 @@ git push
 
 cd ../SystemgeSamplePingSpawner/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -27,7 +27,7 @@ git push
 
 cd ../SystemgeSampleChessServerSpawner/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -36,7 +36,7 @@ git push
 
 cd ../SystemgeSampleChessServerMap/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -45,7 +45,7 @@ git push
 
 cd ../SystemgeSampleChessServerMapOneNode/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -54,7 +54,7 @@ git push
 
 cd ../SystemgeSampleDiscordAuth/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -63,7 +63,7 @@ git push
 
 cd ../SystemgeMessagingPerformanceTest/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
@@ -72,7 +72,7 @@ git push
 
 cd ../SystemgeSpawnerTest/main
 export GOPROXY=direct
-go get -u github.com/neutralusername/Systemge
+go get -u github.com/neutralusername/systemge
 cd ..
 go mod tidy
 git add go.mod go.sum
