@@ -4,7 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/neutralusername/systemge/configs"
@@ -12,8 +14,15 @@ import (
 )
 
 // wip
-func EstablishConnection(tcpClientConfig *configs.TcpClient) (systemge.Connection[[]byte], error) {
+func EstablishConnection(tcpClientConfig *configs.TcpClient, handshakeTimoeutNs int64) (systemge.Connection[[]byte], error) {
 	dialer := websocket.DefaultDialer
+
+	dialer.HandshakeTimeout = time.Duration(handshakeTimoeutNs) * time.Nanosecond
+
+	netDialer := &net.Dialer{
+		Timeout: time.Duration(tcpClientConfig.DialTimeoutNs),
+	}
+	dialer.NetDialContext = netDialer.DialContext
 
 	if tcpClientConfig.TlsCert != "" {
 		roots := x509.NewCertPool()

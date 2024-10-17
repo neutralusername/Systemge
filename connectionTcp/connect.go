@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"net"
+	"time"
 
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/systemge"
@@ -38,10 +39,16 @@ func NewTcpClient(config *configs.TcpClient) (net.Conn, error) {
 	if !rootCAs.AppendCertsFromPEM([]byte(config.TlsCert)) {
 		return nil, errors.New("error adding certificate to root CAs")
 	}
-	return tls.Dial("tcp", config.Address, &tls.Config{
-		RootCAs:    rootCAs,
-		ServerName: config.Domain,
-	})
+	dialer := &tls.Dialer{
+		NetDialer: &net.Dialer{
+			Timeout: time.Duration(config.DialTimeoutNs) * time.Nanosecond,
+		},
+		Config: &tls.Config{
+			RootCAs:    rootCAs,
+			ServerName: config.Domain,
+		},
+	}
+	return dialer.Dial("tcp", config.Address)
 }
 
 /* _, err := Tcp.Write(netConn, Message.NewAsync(Message.TOPIC_NAME).Serialize(), config.TcpSendTimeoutMs)

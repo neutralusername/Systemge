@@ -18,9 +18,10 @@ func UnmarshalTcpServer(data string) *TcpServer {
 }
 
 type TcpClient struct {
-	Address string `json:"address"` // *required* (e.g. "127.0.0.1:60009")
-	Domain  string `json:"domain"`  // *optional* (e.g. "example.com")
-	TlsCert string `json:"tlsCert"` // *optional* cert, NOT path!
+	Address       string `json:"address"`     // *required* (e.g. "127.0.0.1:60009")
+	Domain        string `json:"domain"`      // *optional* (e.g. "example.com")
+	TlsCert       string `json:"tlsCert"`     // *optional* cert, NOT path!
+	DialTimeoutNs int64  `json:"dialTimeout"` // *optional* (e.g. 1000000000)
 }
 
 func UnmarshalTcpClient(data string) *TcpClient {
