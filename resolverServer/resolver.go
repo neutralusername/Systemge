@@ -19,6 +19,8 @@ type Resolver[B any, O any] struct {
 
 	singleRequestServerSync *singleRequestServer.SingleRequestServerSync[B]
 
+	deserializeTopic func(B, systemge.Connection[B]) (string, error)
+
 	// metrics
 
 	SucessfulResolutions atomic.Uint64
@@ -36,7 +38,8 @@ func New[B any, O any](
 ) (*Resolver[B, O], error) {
 
 	resolver := &Resolver[B, O]{
-		topicObjects: make(map[string]O),
+		topicObjects:     make(map[string]O),
+		deserializeTopic: deserializeTopic,
 	}
 
 	for topic, object := range topicObject {

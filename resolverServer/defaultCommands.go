@@ -2,36 +2,36 @@ package resolverServer
 
 import (
 	"encoding/json"
+	"errors"
 
-	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/status"
+	"github.com/neutralusername/systemge/tools"
 )
 
-func (server *Resolver) GetDefaultCommands() Commands.Handlers {
-	commands := Commands.Handlers{
+func (server *Resolver[B, O]) GetDefaultCommands() tools.CommandHandlers {
+	commands := tools.CommandHandlers{
 		"start": func(args []string) (string, error) {
-			err := server.Start()
+			err := server.singleRequestServerSync.GetRoutine().StartRoutine()
 			if err != nil {
-				return "", Event.New("failed to start message broker server", err)
+				return "", err
 			}
 			return "success", nil
 		},
 		"stop": func(args []string) (string, error) {
-			err := server.Stop()
+			err := server.singleRequestServerSync.GetRoutine().StopRoutine(true)
 			if err != nil {
-				return "", Event.New("failed to stop message broker server", err)
+				return "", err
 			}
 			return "success", nil
 		},
 		"getStatus": func(args []string) (string, error) {
-			return status.ToString(server.GetStatus()), nil
+			return status.ToString(server.singleRequestServerSync.GetRoutine().GetStatus()), nil
 		},
 		"checkMetrics": func(args []string) (string, error) {
 			metrics := server.CheckMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
-				return "", Event.New("failed to marshal metrics to json", err)
+				return "", err
 			}
 			return string(json), nil
 		},
@@ -39,48 +39,30 @@ func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 			metrics := server.GetMetrics()
 			json, err := json.Marshal(metrics)
 			if err != nil {
-				return "", Event.New("failed to marshal metrics to json", err)
+				return "", err
 			}
 			return string(json), nil
 		},
-		"addAsyncResolution": func(args []string) (string, error) {
+		/* "addResolution": func(args []string) (string, error) {
 			if len(args) != 2 {
-				return "", Event.New("expected 2 arguments", nil)
+				return "", nil
 			}
 			tcpClientConfig := configs.UnmarshalTcpClient(args[1])
 			if tcpClientConfig == nil {
-				return "", Event.New("failed unmarshalling tcpClientConfig", nil)
+				return "", nil
 			}
-			server.AddAsyncResolution(args[0], tcpClientConfig)
+			server.AddResolution(args[0], tcpClientConfig)
 			return "success", nil
-		},
-		"removeAsyncResolution": func(args []string) (string, error) {
+		}, */
+		"removeResolution": func(args []string) (string, error) {
 			if len(args) != 1 {
-				return "", Event.New("expected 1 argument", nil)
+				return "", errors.New("expected 1 argument")
 			}
-			server.RemoveAsyncResolution(args[0])
-			return "success", nil
-		},
-		"addSyncResolution": func(args []string) (string, error) {
-			if len(args) != 2 {
-				return "", Event.New("expected 2 arguments", nil)
-			}
-			tcpClientConfig := configs.UnmarshalTcpClient(args[1])
-			if tcpClientConfig == nil {
-				return "", Event.New("failed unmarshalling tcpClientConfig", nil)
-			}
-			server.AddSyncResolution(args[0], tcpClientConfig)
-			return "success", nil
-		},
-		"removeSyncResolution": func(args []string) (string, error) {
-			if len(args) != 1 {
-				return "", Event.New("expected 1 argument", nil)
-			}
-			server.RemoveSyncResolution(args[0])
+			server.RemnoveResolution(args[0])
 			return "success", nil
 		},
 	}
-	systemgeServerCommands := server.systemgeServer.GetDefaultCommands()
+	systemgeServerCommands := server.singleRequestServerSync.GetDefaultCommands()
 	for key, value := range systemgeServerCommands {
 		commands["systemgeServer_"+key] = value
 	}
