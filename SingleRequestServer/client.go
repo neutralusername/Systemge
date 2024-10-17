@@ -20,8 +20,8 @@ func AsyncMessageTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig
 	return connection.Write(data, sendTimeoutNs)
 }
 
-func AsyncMessageWebsocket(websocketClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs int64) error {
-	connection, err := connectionWebsocket.EstablishConnection(websocketClientConfig, handshakeTimeoutNs)
+func AsyncMessageWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs int64) error {
+	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs)
 	if err != nil {
 		return err
 	}
@@ -60,8 +60,8 @@ func SyncRequestTcp(tcpClientConfig *configs.TcpClient, tcpBufferedReaderConfig 
 	return response, nil
 }
 
-func SyncRequestWebsocket(websocketClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
-	connection, err := connectionWebsocket.EstablishConnection(websocketClientConfig, handshakeTimeoutNs)
+func SyncRequestWebsocket(tcpClientConfig *configs.TcpClient, handshakeTimeoutNs int64, data []byte, sendTimeoutNs, readTimeoutNs int64) ([]byte, error) {
+	connection, err := connectionWebsocket.EstablishConnection(tcpClientConfig, handshakeTimeoutNs)
 	if err != nil {
 		return nil, err
 	}
