@@ -4,9 +4,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/neutralusername/systemge/Message"
-	"github.com/neutralusername/systemge/Server"
-	"github.com/neutralusername/systemge/SystemgeConnection"
 	"github.com/neutralusername/systemge/configs"
 	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/systemge"
@@ -18,26 +15,17 @@ type Resolver[B any] struct {
 
 	config *configs.MessageBrokerResolver
 
-	systemgeServer *Server.Server
-
 	asyncTopicTcpClientConfigs map[string]*configs.TcpClient
 	syncTopicTcpClientConfigs  map[string]*configs.TcpClient
 	mutex                      sync.Mutex
-
-	messageHandler SystemgeConnection.MessageHandler
-
-	infoLogger    *tools.Logger
-	warningLogger *tools.Logger
-	errorLogger   *tools.Logger
-	mailer        *tools.Mailer
 
 	ongoingResolutions atomic.Int64
 
 	// metrics
 
-	sucessfulAsyncResolutions atomic.Uint64
-	sucessfulSyncResolutions  atomic.Uint64
-	failedResolutions         atomic.Uint64
+	SucessfulAsyncResolutions atomic.Uint64
+	SucessfulSyncResolutions  atomic.Uint64
+	FailedResolutions         atomic.Uint64
 }
 
 func New[B any](
@@ -71,26 +59,5 @@ func New[B any](
 		resolver.syncTopicTcpClientConfigs[topic] = tcpClientConfig
 	}
 
-	resolver.messageHandler = SystemgeConnection.NewConcurrentMessageHandler(nil, SystemgeConnection.SyncMessageHandlers{
-		Message.TOPIC_RESOLVE_ASYNC: resolver.resolveAsync,
-		Message.TOPIC_RESOLVE_SYNC:  resolver.resolveSync,
-	}, nil, nil)
-
 	return resolver, nil
-}
-
-func (resolver *Resolver) Start() error {
-	return resolver.systemgeServer.Start()
-}
-
-func (resolver *Resolver) Stop() error {
-	return resolver.systemgeServer.Stop()
-}
-
-func (resolver *Resolver) GetStatus() int {
-	return resolver.systemgeServer.GetStatus()
-}
-
-func (resolver *Resolver) GetName() string {
-	return resolver.name
 }
