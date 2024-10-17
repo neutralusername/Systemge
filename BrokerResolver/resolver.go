@@ -15,22 +15,19 @@ type Resolver[B any] struct {
 
 	config *configs.MessageBrokerResolver
 
-	asyncTopicTcpClientConfigs map[string]*configs.TcpClient
-	syncTopicTcpClientConfigs  map[string]*configs.TcpClient
-	mutex                      sync.Mutex
+	topicTcpClientConfigs map[string]*configs.TcpClient
+	mutex                 sync.Mutex
 
 	ongoingResolutions atomic.Int64
 
 	// metrics
 
-	SucessfulAsyncResolutions atomic.Uint64
-	SucessfulSyncResolutions  atomic.Uint64
-	FailedResolutions         atomic.Uint64
+	SucessfulResolutions atomic.Uint64
+	FailedResolutions    atomic.Uint64
 }
 
 func New[B any](
-	asyncTopicClientConfigs map[string]*configs.TcpClient,
-	syncTopicClientConfigs map[string]*configs.TcpClient,
+	TopicClientConfigs map[string]*configs.TcpClient,
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
@@ -38,25 +35,16 @@ func New[B any](
 ) (*Resolver[B], error) {
 
 	resolver := &Resolver[B]{
-		asyncTopicTcpClientConfigs: make(map[string]*configs.TcpClient),
-		syncTopicTcpClientConfigs:  make(map[string]*configs.TcpClient),
+		topicTcpClientConfigs: make(map[string]*configs.TcpClient),
 	}
 
-	for topic, tcpClientConfig := range asyncTopicClientConfigs {
+	for topic, tcpClientConfig := range TopicClientConfigs {
 		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
 			return nil, err
 		}
 		tcpClientConfig.Address = normalizedAddress
-		resolver.asyncTopicTcpClientConfigs[topic] = tcpClientConfig
-	}
-	for topic, tcpClientConfig := range syncTopicClientConfigs {
-		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
-		if err != nil {
-			return nil, err
-		}
-		tcpClientConfig.Address = normalizedAddress
-		resolver.syncTopicTcpClientConfigs[topic] = tcpClientConfig
+		resolver.topicTcpClientConfigs[topic] = tcpClientConfig
 	}
 
 	return resolver, nil
