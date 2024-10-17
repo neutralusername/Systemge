@@ -19,8 +19,8 @@ func MultiWrite[B any](data B, timeoutNs int64, connections ...Systemge.Connecti
 	waitgroup.Wait()
 }
 
-func MultiSyncRequest[B any](data B, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
-	request, err := requestResponseManager.NewRequest(syncToken, uint64(len(connections)), timeoutNs)
+func MultiSyncRequest[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
+	request, err := requestResponseManager.NewRequest(syncToken, responseLimit, timeoutNs)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +28,8 @@ func MultiSyncRequest[B any](data B, timeoutNs int64, syncToken string, requestR
 	return request, nil
 }
 
-func MultiSyncRequestBlocking[B any](data B, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
-	request, err := MultiSyncRequest(data, timeoutNs, syncToken, requestResponseManager, connections...)
+func MultiSyncRequestBlocking[B any](data B, responseLimit uint64, timeoutNs int64, syncToken string, requestResponseManager *Tools.RequestResponseManager[B], connections ...Systemge.Connection[B]) (*Tools.Request[B], error) {
+	request, err := MultiSyncRequest(data, responseLimit, timeoutNs, syncToken, requestResponseManager, connections...)
 	if err != nil {
 		return nil, err
 	}
