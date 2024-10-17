@@ -1,76 +1,76 @@
-single request server and broker-system will work based on systemge.Connection and IMessage i think (similar to existing functionality)
-
-(refactor brokerResolver to use singleRequestServer)
-
-"systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
-    +(group of clients connected to various listeners that can be messaged conveniently)
-    +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
-(generalize this and use it for broker client somehow)
-
-consider/support config changes at runtime.
-right now this is not officially supported and works for some fields, but not for others.
-
-add tool to support clustering/load balancing
-
-consider systemge listener and connection utilizing grpc (figure out what the benefits would be)
-
-make dashboard less repetitive (implementation-/code wise) ..
-
-build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
--allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
--systemgeConnectionDashboard X
--systemgeServerDashboard X
--brokerResolverDashboard
--brokerClientDashboard  (include visual elements that represent subscribed topics and whether they are successfully connected to)
--brokerServerDashboard
--singleRequestServerDashboard
--websocketServerDashboard
--httpServerDashboard
--oauth2ServerDashboard
-
-add sample how systemge can be used as a proxy
-
-add authentication/key mechanism for listeners
-
-display error responses somehow on dashboard
-hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
-add status for non-landing pages
-more expressive response messages (so it becomes clear what the underlying request/command was)
-make content less ugly (style for input elements, status, metrics)
-
-create some sort of menu to view selected metrics-types
-
-add http calls for dashboard commands somehow
-
-add dashboard chat/notes
-
-implement different types of data visualizations
-implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
-
-option to create csv file based on update routine and response messages
-maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
-
-update readme
-
-re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
-
-consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
-
-write something that takes in configs and creates an executable, that can be used to easily perform systemge-operations through the (os-)command line (such as sending messages) i.e. through the provided args
-
-possibly create a way to access systemge-operations (i.e. operations from a structs like systemgeServer) through os-level shared memory and synchronization (syscall package)
-
-support the option for custom dashboard clients and frontend pages (react components)
-
-extend syncToken functionality so that you can register/manage syncTokens/responses more independetly of sync requests 
-sync request/responses api will stay virtually unchanged (the connection.SyncResponse() method will change slightly to work based on token instead based on message)
-in addition it will be possible to register syncTokens on receiver side, and gather manual sync responses (connection.SyncResponse())
-with the effect, that one connection can send multiple responses for one sync token (while leaving everything else as easy to use as it is now)
-Add SyncResponses struct that is returned instead of a message channel. the struct can be used to receive response messages or cancel the token. (also make it possible to get the response channel)
-change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)
-
-add some functionality to visualize how clients of a dashboardServer are connected to each other (ask them for connected names)
+offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
 
 give option to use custom marshallers (idk about implementation details yet)
 
-offer some kind of support/guidance for implementing distributed transactions (aka multi part operations that can be reversed if one sub operation fails)
+add some functionality to visualize how clients of a dashboardServer are connected to each other (ask them for connected names)
+
+change syncRequests/tokens to either stay alive until a certain time passed, or a certain number of responses was received (or was manually cancelled)
+Add SyncResponses struct that is returned instead of a message channel. the struct can be used to receive response messages or cancel the token. (also make it possible to get the response channel)
+with the effect, that one connection can send multiple responses for one sync token (while leaving everything else as easy to use as it is now)
+in addition it will be possible to register syncTokens on receiver side, and gather manual sync responses (connection.SyncResponse())
+sync request/responses api will stay virtually unchanged (the connection.SyncResponse() method will change slightly to work based on token instead based on message)
+extend syncToken functionality so that you can register/manage syncTokens/responses more independetly of sync requests 
+
+support the option for custom dashboard clients and frontend pages (react components)
+
+possibly create a way to access systemge-operations (i.e. operations from a structs like systemgeServer) through os-level shared memory and synchronization (syscall package)
+
+write something that takes in configs and creates an executable, that can be used to easily perform systemge-operations through the (os-)command line (such as sending messages) i.e. through the provided args
+
+consider adding PipeConnection and PipeListener as more performant alternative for systems within a single device
+
+re-create "nodes" consisting of messageBrokerClient, httpServer, websocketServer and dashboardClient
+
+update readme
+
+maybe other types of csv files as well (e.g. connects/disconnects, message timestamps, topics and senders?)
+option to create csv file based on update routine and response messages
+
+implement manual metrics update in some form (especially in regards to ranges of average values (e.g. bytes sent not together with messages sent))
+implement different types of data visualizations
+
+add dashboard chat/notes
+
+add http calls for dashboard commands somehow
+
+create some sort of menu to view selected metrics-types
+
+make content less ugly (style for input elements, status, metrics)
+more expressive response messages (so it becomes clear what the underlying request/command was)
+add status for non-landing pages
+hide password input on dashboard (will create a custom password-mask and remove the usage of prompt-popup)
+display error responses somehow on dashboard
+
+add authentication/key mechanism for listeners
+
+add sample how systemge can be used as a proxy
+
+-oauth2ServerDashboard
+-httpServerDashboard
+-websocketServerDashboard
+-singleRequestServerDashboard
+-brokerServerDashboard
+-brokerClientDashboard  (include visual elements that represent subscribed topics and whether they are successfully connected to)
+-brokerResolverDashboard
+-systemgeServerDashboard X
+-systemgeConnectionDashboard X
+-allow the systemgeServerDashboard and systemgeClientDashboard the ability to manage all its connections like through the systemgeConnectionDashboard
+build specialized "dashboards" for various packages. for example to add topics to broker server/resolver through a web mask, manage clients on sytemge server, etc
+
+make dashboard less repetitive (implementation-/code wise) ..
+
+consider systemge listener and connection utilizing grpc (figure out what the benefits would be)
+
+add tool to support clustering/load balancing
+
+right now this is not officially supported and works for some fields, but not for others.
+consider/support config changes at runtime.
+
+(generalize this and use it for broker client somehow)
+    +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
+    +(group of clients connected to various listeners that can be messaged conveniently)
+"systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
+
+(refactor brokerResolver to use singleRequestServer)
+
+single request server and broker-system will work based on systemge.Connection and IMessage i think (similar to existing functionality)
