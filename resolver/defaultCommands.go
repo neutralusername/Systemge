@@ -1,4 +1,4 @@
-package BrokerResolver
+package resolver
 
 import (
 	"encoding/json"

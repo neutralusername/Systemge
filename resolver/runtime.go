@@ -1,4 +1,4 @@
-package BrokerResolver
+package resolver
 
 import "github.com/neutralusername/systemge/configs"
 
