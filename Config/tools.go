@@ -95,6 +95,15 @@ type RequestResponseManager struct {
 	MaxActiveRequests int `json:"maxActiveRequests"` // default: 0 == no limit
 }
 
+func UnmarshalRequestResponseManager(data string) *RequestResponseManager {
+	var requestResponseManagerConfig RequestResponseManager
+	err := json.Unmarshal([]byte(data), &requestResponseManagerConfig)
+	if err != nil {
+		return nil
+	}
+	return &requestResponseManagerConfig
+}
+
 type MessageValidator struct {
 	MaxSyncTokenSize int `json:"maxSyncTokenSize"` // default: <=0 == no limit
 	MinSyncTokenSize int `json:"minSyncTokenSize"` // default: <=0 == no limit
@@ -104,13 +113,40 @@ type MessageValidator struct {
 	MinPayloadSize   int `json:"minPayloadSize"`   // default: <=0 == no limit
 }
 
+func UnmarshalMessageValidator(data string) *MessageValidator {
+	var messageValidatorConfig MessageValidator
+	err := json.Unmarshal([]byte(data), &messageValidatorConfig)
+	if err != nil {
+		return nil
+	}
+	return &messageValidatorConfig
+}
+
 type Queue struct {
 	MaxElements   int  `json:"maxElements"`   // default: 0 == no limit
 	ReplaceIfFull bool `json:"replaceIfFull"` // default: false
+}
+
+func UnmarshalQueue(data string) *Queue {
+	var queueConfig Queue
+	err := json.Unmarshal([]byte(data), &queueConfig)
+	if err != nil {
+		return nil
+	}
+	return &queueConfig
 }
 
 type Routine struct {
 	MaxConcurrentHandlers int   `json:"maxConcurrentHandlers"` // default: 1
 	DelayNs               int64 `json:"delayNs"`               // default: 0
 	TimeoutNs             int64 `json:"timeoutNs"`             // default: 0
+}
+
+func UnmarshalRoutine(data string) *Routine {
+	var routineConfig Routine
+	err := json.Unmarshal([]byte(data), &routineConfig)
+	if err != nil {
+		return nil
+	}
+	return &routineConfig
 }
