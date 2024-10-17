@@ -5,7 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (server *Server) CheckMetrics() Metrics.MetricsTypes {
@@ -88,7 +88,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 		return "success", nil
 	}
 	commands["getStatus"] = func(args []string) (string, error) {
-		return Status.ToString(server.GetStatus()), nil
+		return status.ToString(server.GetStatus()), nil
 	}
 	commands["checkMetrics"] = func(args []string) (string, error) {
 		metrics := server.CheckMetrics()

@@ -3,7 +3,7 @@ package DashboardHelpers
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 type Command struct {
@@ -26,5 +26,5 @@ func UnmarshalCommand(data string) (*Command, error) {
 }
 
 func (command *Command) Marshal() string {
-	return Helpers.JsonMarshal(command)
+	return helpers.JsonMarshal(command)
 }

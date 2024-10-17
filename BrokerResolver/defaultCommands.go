@@ -6,7 +6,7 @@ import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (server *Resolver) GetDefaultCommands() Commands.Handlers {
@@ -26,7 +26,7 @@ func (server *Resolver) GetDefaultCommands() Commands.Handlers {
 			return "success", nil
 		},
 		"getStatus": func(args []string) (string, error) {
-			return Status.ToString(server.GetStatus()), nil
+			return status.ToString(server.GetStatus()), nil
 		},
 		"checkMetrics": func(args []string) (string, error) {
 			metrics := server.CheckMetrics()

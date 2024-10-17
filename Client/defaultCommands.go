@@ -6,8 +6,8 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (client *Client) GetDefaultCommands() Commands.Handlers {
@@ -25,7 +25,7 @@ func (client *Client) GetDefaultCommands() Commands.Handlers {
 		return "success", nil
 	}
 	commands["getStatus"] = func(args []string) (string, error) {
-		return Status.ToString(client.GetStatus()), nil
+		return status.ToString(client.GetStatus()), nil
 	}
 	commands["checkMetrics"] = func(args []string) (string, error) {
 		metrics := client.CheckMetrics()
@@ -94,7 +94,7 @@ func (client *Client) GetDefaultCommands() Commands.Handlers {
 		return connectionAddress, nil
 	}
 	commands["getConnectionCount"] = func(args []string) (string, error) {
-		return Helpers.IntToString(client.GetConnectionCount()), nil
+		return helpers.IntToString(client.GetConnectionCount()), nil
 	}
 	commands["asyncMessage"] = func(args []string) (string, error) {
 		if len(args) < 2 {

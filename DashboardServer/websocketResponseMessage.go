@@ -3,14 +3,14 @@ package DashboardServer
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 func (server *Server) handleWebsocketResponseMessage(responseMessage, page string) error {
 	server.mutex.Lock()
-	responseId := Tools.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+	responseId := tools.GenerateRandomString(16, tools.ALPHA_NUMERIC)
 	for server.responseMessageCache[responseId] != nil {
-		responseId = Tools.GenerateRandomString(16, Tools.ALPHA_NUMERIC)
+		responseId = tools.GenerateRandomString(16, tools.ALPHA_NUMERIC)
 	}
 	responseMessageStruct := DashboardHelpers.NewResponseMessage(responseId, page, responseMessage)
 	server.responseMessageCache[responseId] = responseMessageStruct

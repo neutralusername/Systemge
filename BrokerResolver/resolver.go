@@ -5,11 +5,11 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Server"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type Resolver struct {
@@ -25,10 +25,10 @@ type Resolver struct {
 
 	messageHandler SystemgeConnection.MessageHandler
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+	infoLogger    *tools.Logger
+	warningLogger *tools.Logger
+	errorLogger   *tools.Logger
+	mailer        *tools.Mailer
 
 	ongoingResolutions atomic.Int64
 
@@ -39,7 +39,7 @@ type Resolver struct {
 	failedResolutions         atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Resolver {
+func New(name string, config *Config.MessageBrokerResolver, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Resolver {
 	if config == nil {
 		panic("Config is required")
 	}
@@ -61,20 +61,20 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 	}
 
 	if config.InfoLoggerPath != "" {
-		resolver.infoLogger = Tools.NewLogger("[Info: \""+name+"\"]", config.InfoLoggerPath)
+		resolver.infoLogger = tools.NewLogger("[Info: \""+name+"\"]", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		resolver.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"]", config.WarningLoggerPath)
+		resolver.warningLogger = tools.NewLogger("[Warning: \""+name+"\"]", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		resolver.errorLogger = Tools.NewLogger("[Error: \""+name+"\"]", config.ErrorLoggerPath)
+		resolver.errorLogger = tools.NewLogger("[Error: \""+name+"\"]", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
-		resolver.mailer = Tools.NewMailer(config.MailerConfig)
+		resolver.mailer = tools.NewMailer(config.MailerConfig)
 	}
 
 	for topic, tcpClientConfig := range config.AsyncTopicClientConfigs {
-		normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
+		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
 			panic(err)
 		}
@@ -82,7 +82,7 @@ func New(name string, config *Config.MessageBrokerResolver, whitelist *Tools.Acc
 		resolver.asyncTopicTcpClientConfigs[topic] = tcpClientConfig
 	}
 	for topic, tcpClientConfig := range config.SyncTopicClientConfigs {
-		normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
+		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
 		if err != nil {
 			panic(err)
 		}

@@ -1,6 +1,6 @@
 package DashboardHelpers
 
-import "github.com/neutralusername/Systemge/Helpers"
+import "github.com/neutralusername/Systemge/helpers"
 
 type PageUpdate struct {
 	Data interface{} `json:"data"`
@@ -15,5 +15,5 @@ func NewPageUpdate(data interface{}, name string) *PageUpdate {
 }
 
 func (pageUpdate *PageUpdate) Marshal() string {
-	return Helpers.JsonMarshal(pageUpdate)
+	return helpers.JsonMarshal(pageUpdate)
 }

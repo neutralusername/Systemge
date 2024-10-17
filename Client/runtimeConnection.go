@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/status"
 )
 
 // AddConnection adds an active connection to the client.
@@ -20,7 +20,7 @@ func (client *Client) AddConnection(connection SystemgeConnection.SystemgeConnec
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status == Status.Stopped {
+	if client.status == status.Stopped {
 		return errors.New("client stopped")
 	}
 	if _, ok := client.addressConnections[connection.GetAddress()]; ok {
@@ -43,7 +43,7 @@ func (client *Client) AddConnectionAttempt(tcpClientConfig *Config.TcpClient) er
 	}
 	client.statusMutex.RLock()
 	defer client.statusMutex.RUnlock()
-	if client.status == Status.Stopped {
+	if client.status == status.Stopped {
 		return errors.New("client stopped")
 	}
 	return client.startConnectionAttempts(tcpClientConfig)
@@ -60,7 +60,7 @@ func (client *Client) RemoveConnection(address string) error {
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status == Status.Stopped {
+	if client.status == status.Stopped {
 		return errors.New("client stopped")
 	}
 	if connection, ok := client.addressConnections[address]; ok {
@@ -80,7 +80,7 @@ func (client *Client) GetConnectionByName(name string) SystemgeConnection.System
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status != Status.Started {
+	if client.status != status.Started {
 		return nil
 	}
 	return client.nameConnections[name]
@@ -93,7 +93,7 @@ func (client *Client) GetConnectionByAddress(address string) SystemgeConnection.
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status != Status.Started {
+	if client.status != status.Started {
 		return nil
 	}
 	return client.addressConnections[address]
@@ -106,7 +106,7 @@ func (client *Client) GetConnectionNamesAndAddresses() map[string]string {
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status != Status.Started {
+	if client.status != status.Started {
 		return nil
 	}
 	names := make(map[string]string, len(client.addressConnections))
@@ -123,7 +123,7 @@ func (client *Client) GetConnectionName(address string) string {
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status != Status.Started {
+	if client.status != status.Started {
 		return ""
 	}
 	connection, ok := client.addressConnections[address]
@@ -140,7 +140,7 @@ func (client *Client) GetConnectionAddress(name string) string {
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status != Status.Started {
+	if client.status != status.Started {
 		return ""
 	}
 	connection, ok := client.nameConnections[name]
@@ -157,7 +157,7 @@ func (client *Client) GetConnectionCount() int {
 		client.mutex.Unlock()
 		client.statusMutex.RUnlock()
 	}()
-	if client.status != Status.Started {
+	if client.status != status.Started {
 		return 0
 	}
 	return len(client.addressConnections)

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (page *Page) GetCachedCommands() map[string]bool {
@@ -49,7 +49,7 @@ func (page *Page) GetCachedStatus() int {
 	case CLIENT_TYPE_SYSTEMGESERVER:
 		return page.Data.(*SystemgeServerClient).Status
 	default:
-		return Status.Non_Existant
+		return status.Non_Existant
 	}
 }
 func (page *Page) SetCachedStatus(status int) error {

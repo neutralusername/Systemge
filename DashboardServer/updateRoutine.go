@@ -9,12 +9,13 @@ import (
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (server *Server) updateRoutine() {
 	defer server.waitGroup.Done()
-	for server.status == Status.Started {
+	for server.status == status.Started {
 		for _, connectedClient := range server.connectedClients {
 			switch connectedClient.page.Type {
 			case DashboardHelpers.CLIENT_TYPE_COMMAND:
@@ -87,12 +88,12 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 	if err != nil {
 		return Event.New("Failed to execute get status request", err)
 	}
-	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
+	err = connectedClient.page.SetCachedStatus(helpers.StringToInt(resultPayload))
 	if err != nil {
 		return Event.New("Failed to set status", err)
 	}
 	server.mutex.Lock()
-	server.dashboardClient.ClientStatuses[connectedClient.connection.GetName()] = Helpers.StringToInt(resultPayload)
+	server.dashboardClient.ClientStatuses[connectedClient.connection.GetName()] = helpers.StringToInt(resultPayload)
 	server.mutex.Unlock()
 
 	server.websocketServer.Multicast(
@@ -115,7 +116,7 @@ func (server *Server) updateConnectedClientStatus(connectedClient *connectedClie
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_STATUS: Helpers.StringToInt(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_STATUS: helpers.StringToInt(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -171,7 +172,7 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 	if err != nil {
 		return Event.New("Failed to execute unprocessed message count request", err)
 	}
-	err = connectedClient.page.SetCachedUnprocessedMessageCount(Helpers.StringToUint32(resultPayload))
+	err = connectedClient.page.SetCachedUnprocessedMessageCount(helpers.StringToUint32(resultPayload))
 	if err != nil {
 		return Event.New("Failed to set unprocessed message count", err)
 	}
@@ -181,7 +182,7 @@ func (server *Server) updateConnectedClientUnprocessedMessageCount(connectedClie
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT: helpers.StringToUint32(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -195,14 +196,14 @@ func (server *Server) updateConnectedClientIsProcessingLoopRunning(connectedClie
 	if err != nil {
 		return Event.New("Failed to execute is processing loop running request", err)
 	}
-	connectedClient.page.SetCachedIsProcessingLoopRunning(Helpers.StringToBool(resultPayload))
+	connectedClient.page.SetCachedIsProcessingLoopRunning(helpers.StringToBool(resultPayload))
 	server.websocketServer.Multicast(
 		server.GetWebsocketClientIdsOnPage(connectedClient.connection.GetName()),
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED: Helpers.StringToBool(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_IS_MESSAGE_HANDLING_LOOP_STARTED: helpers.StringToBool(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),

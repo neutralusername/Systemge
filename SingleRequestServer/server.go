@@ -6,10 +6,10 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/SystemgeServer"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type Server struct {
@@ -29,7 +29,7 @@ type Server struct {
 	failedSyncMessages    atomic.Uint64
 }
 
-func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
+func NewSingleRequestServer(name string, config *Config.SingleRequestServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList, messageHandler SystemgeConnection.MessageHandler, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is required")
 	}
@@ -166,7 +166,7 @@ func (server *Server) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.SingleRequestServer,
 		Event.ServiceName:       server.name,
-		Event.ServiceStatus:     Status.ToString(server.systemgeServer.GetStatus()),
+		Event.ServiceStatus:     status.ToString(server.systemgeServer.GetStatus()),
 		Event.Function:          Event.GetCallerFuncName(2),
 		Event.ServiceInstanceId: server.systemgeServer.GetInstanceId(),
 		Event.SessionId:         server.systemgeServer.GetSessionId(),

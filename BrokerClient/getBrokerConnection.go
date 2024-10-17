@@ -2,7 +2,7 @@ package BrokerClient
 
 import (
 	"github.com/neutralusername/Systemge/Config"
-	"github.com/neutralusername/Systemge/ConnectionTcp"
+	"github.com/neutralusername/Systemge/connectionTcp"
 )
 
 type getBrokerConnectionAttempt struct {
@@ -28,7 +28,7 @@ func (messageBrokerClient *Client) getBrokerConnection(tcpClientConfig *Config.T
 	messageBrokerClient.ongoingGetBrokerConnections[getTcpClientConfigString(tcpClientConfig)] = getBrokerAttempt
 	messageBrokerClient.mutex.Unlock()
 
-	connectionAttempt := ConnectionTcp.EstablishConnectionAttempts(messageBrokerClient.name, &Config.SystemgeConnectionAttempt{
+	connectionAttempt := connectionTcp.EstablishConnectionAttempts(messageBrokerClient.name, &Config.SystemgeConnectionAttempt{
 		MaxServerNameLength:         messageBrokerClient.config.MaxServerNameLength,
 		TcpClientConfig:             tcpClientConfig,
 		TcpSystemgeConnectionConfig: messageBrokerClient.config.ServerTcpSystemgeConnectionConfig,

@@ -3,9 +3,9 @@ package DashboardServer
 import (
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/WebsocketServer"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer.WebsocketConnection) error {
@@ -36,7 +36,7 @@ func (server *Server) onWebsocketConnectHandler(websocketClient *WebsocketServer
 	err := websocketClient.Send(
 		Message.NewAsync(
 			DashboardHelpers.TOPIC_GET_RESPONSE_MESSAGE_CACHE,
-			Helpers.JsonMarshal(server.responseMessageCacheOrder),
+			helpers.JsonMarshal(server.responseMessageCacheOrder),
 		).Serialize(),
 	)
 	if err != nil {

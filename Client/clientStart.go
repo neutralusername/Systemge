@@ -5,8 +5,8 @@ import (
 
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 func (client *Client) Start() error {
@@ -26,7 +26,7 @@ func (client *Client) Start() error {
 		return event.GetError()
 	}
 
-	if client.status != Status.Stopped {
+	if client.status != status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStarted,
 			"systemgeServer not stopped",
@@ -36,8 +36,8 @@ func (client *Client) Start() error {
 		))
 		return errors.New("failed to start systemge server")
 	}
-	client.sessionId = Tools.GenerateRandomString(Constants.SessionIdLength, Tools.ALPHA_NUMERIC)
-	client.status = Status.Pending
+	client.sessionId = tools.GenerateRandomString(Constants.SessionIdLength, tools.ALPHA_NUMERIC)
+	client.status = status.Pending
 
 	client.stopChannel = make(chan bool)
 	for _, tcpClientConfig := range client.config.TcpClientConfigs {

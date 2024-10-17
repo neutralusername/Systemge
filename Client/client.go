@@ -9,8 +9,8 @@ import (
 	"github.com/neutralusername/Systemge/Constants"
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/SessionManager"
-	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type Client struct {
@@ -57,7 +57,7 @@ func New(name string, config *Config.SystemgeClient, eventHandler Event.Handler)
 
 		sessionManager: SessionManager.New(name+"_sessionManager", config.SessionManagerConfig, eventHandler),
 
-		instanceId: Tools.GenerateRandomString(Constants.InstanceIdLength, Tools.ALPHA_NUMERIC),
+		instanceId: tools.GenerateRandomString(Constants.InstanceIdLength, tools.ALPHA_NUMERIC),
 
 		eventHandler: eventHandler,
 	}
@@ -92,7 +92,7 @@ func (server *Client) GetContext() Event.Context {
 	return Event.Context{
 		Event.ServiceType:       Event.SystemgeClient,
 		Event.ServiceName:       server.name,
-		Event.ServiceStatus:     Status.ToString(server.status),
+		Event.ServiceStatus:     status.ToString(server.status),
 		Event.Function:          Event.GetCallerFuncName(2),
 		Event.ServiceInstanceId: server.instanceId,
 		Event.SessionId:         server.sessionId,

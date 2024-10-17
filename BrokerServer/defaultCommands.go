@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (server *Server) GetDefaultCommands() Commands.Handlers {
@@ -24,7 +24,7 @@ func (server *Server) GetDefaultCommands() Commands.Handlers {
 			return "success", nil
 		},
 		"getStatus": func(args []string) (string, error) {
-			return Status.ToString(server.GetStatus()), nil
+			return status.ToString(server.GetStatus()), nil
 		},
 		"checkMetrics": func(args []string) (string, error) {
 			metrics := server.CheckMetrics()

@@ -1,7 +1,7 @@
 package DashboardHelpers
 
 import (
-	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 type WebsocketConnectResponse struct {
@@ -17,5 +17,5 @@ func NewWebsocketConnectResponse(page *Page, cachedResponseMessages []ResponseMe
 }
 
 func (response *WebsocketConnectResponse) Marshal() string {
-	return Helpers.JsonMarshal(response)
+	return helpers.JsonMarshal(response)
 }

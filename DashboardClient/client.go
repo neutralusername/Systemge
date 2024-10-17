@@ -7,9 +7,9 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpConnect"
+	"github.com/neutralusername/Systemge/status"
 )
 
 type Client struct {
@@ -56,7 +56,7 @@ func New(name string, config *Config.DashboardClient, asyncMessageHandlerFuncs S
 func (app *Client) Start() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
-	if app.status == Status.Started {
+	if app.status == status.Started {
 		return errors.New("Already started")
 	}
 	connection, err := TcpConnect.EstablishConnection(app.config.TcpSystemgeConnectionConfig, app.config.TcpClientConfig, app.name, app.config.MaxServerNameLength, app.eventHandler)
@@ -97,20 +97,20 @@ func (app *Client) Start() error {
 		connection.Close()
 		return err
 	}
-	app.status = Status.Started
+	app.status = status.Started
 	return nil
 }
 
 func (app *Client) Stop() error {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
-	if app.status == Status.Stopped {
+	if app.status == status.Stopped {
 		return errors.New("Already stopped")
 	}
 	app.dashboardServerSystemgeConnection.Close()
 	app.dashboardServerSystemgeConnection = nil
 	app.messageHandler.Close()
 	app.messageHandler = nil
-	app.status = Status.Stopped
+	app.status = status.Stopped
 	return nil
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type resolutionAttempt struct {
@@ -66,7 +66,7 @@ func (messageBrokerClient *Client) resolutionAttempt(resolutionAttempt *resoluti
 				messageBrokerClient.errorLogger.Log(Event.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())
 			}
 			if messageBrokerClient.mailer != nil {
-				if err := messageBrokerClient.mailer.Send(Tools.NewMail(nil, "error", Event.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
+				if err := messageBrokerClient.mailer.Send(tools.NewMail(nil, "error", Event.New("Failed to get connection to resolved tcpClientConfig \""+tcpClientConfig.Address+"\" for topic \""+resolutionAttempt.topic+"\"", err).Error())); err != nil {
 					if messageBrokerClient.errorLogger != nil {
 						messageBrokerClient.errorLogger.Log(Event.New("Failed to send email", err).Error())
 					}

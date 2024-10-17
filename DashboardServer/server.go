@@ -8,12 +8,12 @@ import (
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/HTTPServer"
-	"github.com/neutralusername/Systemge/Helpers"
 	Server1 "github.com/neutralusername/Systemge/Server"
-	"github.com/neutralusername/Systemge/Status"
-	"github.com/neutralusername/Systemge/Tools"
 	"github.com/neutralusername/Systemge/WebsocketServer"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/httpServer"
+	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type Server struct {
@@ -36,19 +36,19 @@ type Server struct {
 	websocketClientLocations map[*WebsocketServer.WebsocketConnection]string // websocketId -> location ("/" == dashboard/landing page) ("" == no location)
 
 	systemgeServer  *Server1.Server
-	httpServer      *HTTPServer.HTTPServer
+	httpServer      *httpServer.HTTPServer
 	websocketServer *WebsocketServer.WebsocketServer
 
 	responseMessageCache      map[string]*DashboardHelpers.ResponseMessage
 	responseMessageCacheOrder []*DashboardHelpers.ResponseMessage // has the purpose, to easily remove the oldest response message without iterating over the whole map
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+	infoLogger    *tools.Logger
+	warningLogger *tools.Logger
+	errorLogger   *tools.Logger
+	mailer        *tools.Mailer
 }
 
-func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList) *Server {
+func New(name string, config *Config.DashboardServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList) *Server {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -91,7 +91,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 
 	_, callerPath, _, _ := runtime.Caller(0)
 	frontendPath := callerPath[:len(callerPath)-len("server.go")] + "frontend/"
-	Helpers.CreateFile(frontendPath+"configs.js", "export const configs = "+Helpers.JsonMarshal(map[string]interface{}{
+	helpers.CreateFile(frontendPath+"configs.js", "export const configs = "+helpers.JsonMarshal(map[string]interface{}{
 		"WS_PORT":                     config.WebsocketServerConfig.TcpServerConfig.Port,
 		"WS_PATTERN":                  config.WebsocketServerConfig.Pattern,
 		"FRONTEND_HEARTBEAT_INTERVAL": config.FrontendHeartbeatIntervalMs,
@@ -112,16 +112,16 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 	}
 
 	if config.InfoLoggerPath != "" {
-		server.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
+		server.infoLogger = tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		server.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
+		server.warningLogger = tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		server.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
+		server.errorLogger = tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
-		server.mailer = Tools.NewMailer(config.MailerConfig)
+		server.mailer = tools.NewMailer(config.MailerConfig)
 	}
 
 	server.systemgeServer = Server1.New(name+"_systemgeServer",
@@ -138,12 +138,12 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 		},
 		server.onWebsocketConnectHandler, server.onWebsocketDisconnectHandler,
 	)
-	server.httpServer = HTTPServer.New(name+"_httpServer",
+	server.httpServer = httpServer.New(name+"_httpServer",
 		server.config.HTTPServerConfig,
 		whitelist, blacklist,
 		nil,
 	)
-	server.httpServer.AddRoute("/", HTTPServer.SendDirectory(server.frontendPath))
+	server.httpServer.AddRoute("/", httpServer.SendDirectory(server.frontendPath))
 
 	server.dashboardCommandHandlers = server.GetDefaultCommands()
 	return server
@@ -152,7 +152,7 @@ func New(name string, config *Config.DashboardServer, whitelist *Tools.AccessCon
 func (server *Server) Start() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status == Status.Started {
+	if server.status == status.Started {
 		return Event.New("Already started", nil)
 	}
 	if err := server.systemgeServer.Start(); err != nil {
@@ -179,7 +179,7 @@ func (server *Server) Start() error {
 		}
 		return err
 	}
-	server.status = Status.Started
+	server.status = status.Started
 
 	if server.config.UpdateIntervalMs > 0 {
 		server.waitGroup.Add(1)
@@ -192,10 +192,10 @@ func (server *Server) Start() error {
 func (server *Server) Stop() error {
 	server.statusMutex.Lock()
 	defer server.statusMutex.Unlock()
-	if server.status == Status.Stopped {
+	if server.status == status.Stopped {
 		return Event.New("Already stopped", nil)
 	}
-	server.status = Status.Pending
+	server.status = status.Pending
 	server.waitGroup.Wait()
 	if err := server.systemgeServer.Stop(); err != nil {
 		if server.errorLogger != nil {
@@ -212,7 +212,7 @@ func (server *Server) Stop() error {
 			server.errorLogger.Log(Event.New("Failed to stop HTTP server", err).Error())
 		}
 	}
-	server.status = Status.Stopped
+	server.status = status.Stopped
 	return nil
 }
 

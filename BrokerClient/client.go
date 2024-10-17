@@ -7,9 +7,9 @@ import (
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/status"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type Client struct {
@@ -20,10 +20,10 @@ type Client struct {
 
 	config *Config.MessageBrokerClient
 
-	infoLogger    *Tools.Logger
-	warningLogger *Tools.Logger
-	errorLogger   *Tools.Logger
-	mailer        *Tools.Mailer
+	infoLogger    *tools.Logger
+	warningLogger *tools.Logger
+	errorLogger   *tools.Logger
+	mailer        *tools.Mailer
 
 	waitGroup sync.WaitGroup
 
@@ -88,19 +88,19 @@ func New(name string, config *Config.MessageBrokerClient, messageHandler Systemg
 		subscribedAsyncTopics: make(map[string]bool),
 		subscribedSyncTopics:  make(map[string]bool),
 
-		status: Status.Stopped,
+		status: status.Stopped,
 	}
 	if config.InfoLoggerPath != "" {
-		messageBrokerClient.infoLogger = Tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
+		messageBrokerClient.infoLogger = tools.NewLogger("[Info: \""+name+"\"] ", config.InfoLoggerPath)
 	}
 	if config.WarningLoggerPath != "" {
-		messageBrokerClient.warningLogger = Tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
+		messageBrokerClient.warningLogger = tools.NewLogger("[Warning: \""+name+"\"] ", config.WarningLoggerPath)
 	}
 	if config.ErrorLoggerPath != "" {
-		messageBrokerClient.errorLogger = Tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
+		messageBrokerClient.errorLogger = tools.NewLogger("[Error: \""+name+"\"] ", config.ErrorLoggerPath)
 	}
 	if config.MailerConfig != nil {
-		messageBrokerClient.mailer = Tools.NewMailer(config.MailerConfig)
+		messageBrokerClient.mailer = tools.NewMailer(config.MailerConfig)
 	}
 
 	for _, asyncTopic := range config.AsyncTopics {
@@ -117,10 +117,10 @@ func New(name string, config *Config.MessageBrokerClient, messageHandler Systemg
 func (messageBrokerClient *Client) Start() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
-	if messageBrokerClient.status != Status.Stopped {
+	if messageBrokerClient.status != status.Stopped {
 		return Event.New("Already started", nil)
 	}
-	messageBrokerClient.status = Status.Pending
+	messageBrokerClient.status = status.Pending
 	stopChannel := make(chan bool)
 	messageBrokerClient.stopChannel = stopChannel
 
@@ -130,7 +130,7 @@ func (messageBrokerClient *Client) Start() error {
 	for topic := range messageBrokerClient.subscribedSyncTopics {
 		messageBrokerClient.startResolutionAttempt(topic, true, stopChannel)
 	}
-	messageBrokerClient.status = Status.Started
+	messageBrokerClient.status = status.Started
 	return nil
 }
 
@@ -138,15 +138,15 @@ func (messageBrokerClient *Client) stop() {
 	close(messageBrokerClient.stopChannel)
 	messageBrokerClient.stopChannel = nil
 	messageBrokerClient.waitGroup.Wait()
-	messageBrokerClient.status = Status.Stopped
+	messageBrokerClient.status = status.Stopped
 }
 func (messageBrokerClient *Client) Stop() error {
 	messageBrokerClient.statusMutex.Lock()
 	defer messageBrokerClient.statusMutex.Unlock()
-	if messageBrokerClient.status != Status.Started {
+	if messageBrokerClient.status != status.Started {
 		return Event.New("Already started", nil)
 	}
-	messageBrokerClient.status = Status.Pending
+	messageBrokerClient.status = status.Pending
 	messageBrokerClient.stop()
 	return nil
 }

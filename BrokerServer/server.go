@@ -10,7 +10,7 @@ import (
 	"github.com/neutralusername/Systemge/Message"
 	Server1 "github.com/neutralusername/Systemge/Server"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
-	"github.com/neutralusername/Systemge/Tools"
+	"github.com/neutralusername/Systemge/tools"
 )
 
 type Server struct {
@@ -38,7 +38,7 @@ type Server struct {
 	syncRequestsPropagated atomic.Uint64
 }
 
-func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.AccessControlList, blacklist *Tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
+func New(name string, config *Config.MessageBrokerServer, whitelist *tools.AccessControlList, blacklist *tools.AccessControlList, eventHandler Event.Handler) (*Server, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -69,12 +69,12 @@ func New(name string, config *Config.MessageBrokerServer, whitelist *Tools.Acces
 	systemgeServer, err := Server1.New(name+"_systemgeServer",
 		server.config.SystemgeServerConfig,
 		whitelist, blacklist,
-		func(event *Event.Event) {
+		func(evt *Event.Event) {
 			if eventHandler != nil {
 				eventHandler(event)
 			}
 
-			switch event.GetEvent() {
+			switch evt.GetEvent() {
 			case Event.HandledAcception:
 				server.mutex.Lock()
 				err := connection.StartMessageHandlingLoop(server.messageHandler, true)

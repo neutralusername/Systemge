@@ -2,7 +2,7 @@ package BrokerClient
 
 import (
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (messageBrokerClient *Client) getTopicResolutions(topic string, isSyncTopic bool) ([]*connection, error) {
@@ -12,7 +12,7 @@ func (messageBrokerClient *Client) getTopicResolutions(topic string, isSyncTopic
 
 	if topicResolutions == nil {
 		messageBrokerClient.statusMutex.Lock()
-		if messageBrokerClient.status != Status.Started {
+		if messageBrokerClient.status != status.Started {
 			messageBrokerClient.statusMutex.Unlock()
 			return nil, Event.New("Not started", nil)
 		}

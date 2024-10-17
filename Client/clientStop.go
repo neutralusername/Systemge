@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (client *Client) Stop() error {
@@ -30,7 +30,7 @@ func (client *Client) stop(lock bool) error {
 		return event.GetError()
 	}
 
-	if client.status == Status.Stopped {
+	if client.status == status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStoped,
 			"systemgeClient already stopped",
@@ -43,7 +43,7 @@ func (client *Client) stop(lock bool) error {
 
 	close(client.stopChannel)
 	client.waitGroup.Wait()
-	client.status = Status.Stopped
+	client.status = status.Stopped
 
 	client.onEvent(Event.NewInfoNoOption(
 		Event.ServiceStoped,

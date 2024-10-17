@@ -5,6 +5,7 @@ import (
 	"github.com/neutralusername/Systemge/Event"
 	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 func (server *Server) handleClientCommandRequest(request *Message.Message, connectedClient *connectedClient) error {
@@ -25,7 +26,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 	if err != nil {
 		return Event.New("Failed to start client", err)
 	}
-	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
+	err = connectedClient.page.SetCachedStatus(helpers.StringToInt(resultPayload))
 	if err != nil {
 		// should never happen
 		return Event.New("Failed to update status", err)
@@ -50,7 +51,7 @@ func (server *Server) handleClientStartRequest(connectedClient *connectedClient)
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_STATUS: Helpers.StringToInt(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_STATUS: helpers.StringToInt(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -64,7 +65,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 	if err != nil {
 		return Event.New("Failed to stop client", err)
 	}
-	err = connectedClient.page.SetCachedStatus(Helpers.StringToInt(resultPayload))
+	err = connectedClient.page.SetCachedStatus(helpers.StringToInt(resultPayload))
 	if err != nil {
 		// should never happen
 		return Event.New("Failed to update status", err)
@@ -89,7 +90,7 @@ func (server *Server) handleClientStopRequest(connectedClient *connectedClient) 
 			DashboardHelpers.TOPIC_UPDATE_PAGE_MERGE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_STATUS: Helpers.StringToInt(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_STATUS: helpers.StringToInt(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),
@@ -371,7 +372,7 @@ func (server *Server) handleClientHandleNextMessageRequest(connectedClient *conn
 			DashboardHelpers.TOPIC_UPDATE_PAGE_REPLACE,
 			DashboardHelpers.NewPageUpdate(
 				map[string]interface{}{
-					DashboardHelpers.CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT: Helpers.StringToUint32(resultPayload),
+					DashboardHelpers.CLIENT_FIELD_UNHANDLED_MESSAGE_COUNT: helpers.StringToUint32(resultPayload),
 				},
 				connectedClient.connection.GetName(),
 			).Marshal(),

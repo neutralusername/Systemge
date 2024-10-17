@@ -6,10 +6,10 @@ import (
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
@@ -29,7 +29,7 @@ func New(name string, config *Config.DashboardClient, getMetricsFunc func() map[
 				if getMetricsFunc == nil {
 					return "", nil
 				}
-				return Helpers.JsonMarshal(getMetricsFunc()), nil
+				return helpers.JsonMarshal(getMetricsFunc()), nil
 			},
 
 			DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {

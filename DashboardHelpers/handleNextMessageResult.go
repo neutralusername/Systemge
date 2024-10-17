@@ -3,8 +3,8 @@ package DashboardHelpers
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 type HandleNextMessageResult struct {
@@ -16,7 +16,7 @@ type HandleNextMessageResult struct {
 }
 
 func (handleNextMessageResult *HandleNextMessageResult) Marshal() string {
-	return Helpers.JsonMarshal(handleNextMessageResult)
+	return helpers.JsonMarshal(handleNextMessageResult)
 }
 
 func UnmarshalHandleNextMessageResult(bytes []byte) (*HandleNextMessageResult, error) {

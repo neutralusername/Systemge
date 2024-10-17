@@ -4,14 +4,14 @@ import (
 	"errors"
 
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (client *Client) AsyncMessage(topic, payload string, clientNames ...string) error {
-	targetClientIds := Helpers.JsonMarshal(clientNames)
+	targetClientIds := helpers.JsonMarshal(clientNames)
 	client.statusMutex.RLock()
 	client.mutex.RLock()
 
@@ -33,7 +33,7 @@ func (client *Client) AsyncMessage(topic, payload string, clientNames ...string)
 		return event.GetError()
 	}
 
-	if client.status == Status.Stopped {
+	if client.status == status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStoped,
 			"systemgeClient already stopped",
@@ -133,7 +133,7 @@ func (client *Client) AsyncMessage(topic, payload string, clientNames ...string)
 }
 
 func (client *Client) SyncRequest(topic, payload string, clientNames ...string) (<-chan *Message.Message, error) {
-	targetClientIds := Helpers.JsonMarshal(clientNames)
+	targetClientIds := helpers.JsonMarshal(clientNames)
 	client.statusMutex.RLock()
 	client.mutex.RLock()
 
@@ -155,7 +155,7 @@ func (client *Client) SyncRequest(topic, payload string, clientNames ...string) 
 		return nil, event.GetError()
 	}
 
-	if client.status == Status.Stopped {
+	if client.status == status.Stopped {
 		client.onEvent(Event.NewWarningNoOption(
 			Event.ServiceAlreadyStoped,
 			"systemgeClient already stopped",

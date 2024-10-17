@@ -2,16 +2,16 @@ package BrokerResolver
 
 import (
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 func (resolver *Resolver) resolveAsync(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	if resolution, ok := resolver.asyncTopicTcpClientConfigs[message.GetPayload()]; ok {
-		return Helpers.JsonMarshal(resolution), nil
+		return helpers.JsonMarshal(resolution), nil
 	} else {
 		return "", Event.New("Unkown async topic", nil)
 	}
@@ -21,7 +21,7 @@ func (resolver *Resolver) resolveSync(connection SystemgeConnection.SystemgeConn
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()
 	if resolution, ok := resolver.syncTopicTcpClientConfigs[message.GetPayload()]; ok {
-		return Helpers.JsonMarshal(resolution), nil
+		return helpers.JsonMarshal(resolution), nil
 	} else {
 		return "", Event.New("Unkown sync topic", nil)
 	}

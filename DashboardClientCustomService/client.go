@@ -6,10 +6,10 @@ import (
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 func New_(name string, config *Config.DashboardClient, startFunc func() error, stopFunc func() error, getStatusFunc func() int, getMetricsFunc func() Metrics.MetricsTypes, commands Commands.Handlers, eventHandler Event.Handler) (*DashboardClient.Client, error) {
@@ -61,10 +61,10 @@ func New(name string, config *Config.DashboardClient, customService customServic
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return Helpers.IntToString(customService.GetStatus()), nil
+				return helpers.IntToString(customService.GetStatus()), nil
 			},
 			DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return Helpers.JsonMarshal(customService.GetMetrics()), nil
+				return helpers.JsonMarshal(customService.GetMetrics()), nil
 			},
 
 			DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -79,14 +79,14 @@ func New(name string, config *Config.DashboardClient, customService customServic
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(customService.GetStatus()), nil
+				return helpers.IntToString(customService.GetStatus()), nil
 			},
 			DashboardHelpers.TOPIC_STOP: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := customService.Stop()
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(customService.GetStatus()), nil
+				return helpers.IntToString(customService.GetStatus()), nil
 			},
 		},
 		func() (string, error) {

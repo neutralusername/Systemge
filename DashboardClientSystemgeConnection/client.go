@@ -6,11 +6,11 @@ import (
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
@@ -31,7 +31,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return Helpers.IntToString(systemgeConnection.GetStatus()), nil
+				return helpers.IntToString(systemgeConnection.GetStatus()), nil
 			},
 			DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				metricsTypes := Metrics.NewMetricsTypes()
@@ -39,13 +39,13 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 					metricsTypes.Merge(getMetricsFunc())
 				}
 				metricsTypes.Merge(systemgeConnection.GetMetrics())
-				return Helpers.JsonMarshal(metricsTypes), nil
+				return helpers.JsonMarshal(metricsTypes), nil
 			},
 			DashboardHelpers.TOPIC_IS_MESSAGE_HANDLING_LOOP_STARTED: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return Helpers.BoolToString(systemgeConnection.IsMessageHandlingLoopStarted()), nil
+				return helpers.BoolToString(systemgeConnection.IsMessageHandlingLoopStarted()), nil
 			},
 			DashboardHelpers.TOPIC_UNHANDLED_MESSAGE_COUNT: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return Helpers.Uint32ToString(systemgeConnection.AvailableMessageCount()), nil
+				return helpers.Uint32ToString(systemgeConnection.AvailableMessageCount()), nil
 			},
 
 			DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -60,7 +60,7 @@ func New(name string, config *Config.DashboardClient, systemgeConnection Systemg
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.Stopped), nil
+				return helpers.IntToString(status.Stopped), nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeConnection.StartMessageHandlingLoop(messageHandler, true)

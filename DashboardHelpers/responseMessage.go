@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/neutralusername/Systemge/Helpers"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 type ResponseMessage struct {
@@ -24,7 +24,7 @@ func NewResponseMessage(id, page string, responseMessage string) *ResponseMessag
 }
 
 func (responseMessage *ResponseMessage) Marshal() string {
-	return Helpers.JsonMarshal(responseMessage)
+	return helpers.JsonMarshal(responseMessage)
 }
 
 func UnmarshalResponseMessage(payload []byte) (*ResponseMessage, error) {

@@ -8,12 +8,12 @@ import (
 	"github.com/neutralusername/Systemge/DashboardClient"
 	"github.com/neutralusername/Systemge/DashboardHelpers"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
 	"github.com/neutralusername/Systemge/Metrics"
 	"github.com/neutralusername/Systemge/Server"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 // frontend not implemented nor is this tested (use DashboardClientCustomService for now)
@@ -38,7 +38,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *Server.Ser
 		nil,
 		SystemgeConnection.SyncMessageHandlers{
 			DashboardHelpers.TOPIC_GET_STATUS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
-				return Helpers.IntToString(systemgeServer.GetStatus()), nil
+				return helpers.IntToString(systemgeServer.GetStatus()), nil
 			},
 			DashboardHelpers.TOPIC_GET_METRICS: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				metricsTypes := Metrics.NewMetricsTypes()
@@ -46,14 +46,14 @@ func New(name string, config *Config.DashboardClient, systemgeServer *Server.Ser
 					metricsTypes.Merge(getMetricsFunc())
 				}
 				metricsTypes.Merge(systemgeServer.GetMetrics())
-				return Helpers.JsonMarshal(metricsTypes), nil
+				return helpers.JsonMarshal(metricsTypes), nil
 			},
 			DashboardHelpers.TOPIC_GET_SYSTEMGE_CONNECTION_CHILDREN: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnectionChildren := map[string]*DashboardHelpers.SystemgeConnectionChild{}
 				for _, systemgeConnection := range systemgeServer.GetConnections() {
 					systemgeConnectionChildren[systemgeConnection.GetName()] = DashboardHelpers.NewSystemgeConnectionChild(systemgeConnection.GetName(), systemgeConnection.IsMessageHandlingLoopStarted(), systemgeConnection.AvailableMessageCount())
 				}
-				return Helpers.JsonMarshal(systemgeConnectionChildren), nil
+				return helpers.JsonMarshal(systemgeConnectionChildren), nil
 			},
 
 			DashboardHelpers.TOPIC_COMMAND: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -68,14 +68,14 @@ func New(name string, config *Config.DashboardClient, systemgeServer *Server.Ser
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.Stopped), nil
+				return helpers.IntToString(status.Stopped), nil
 			},
 			DashboardHelpers.TOPIC_START: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				err := systemgeServer.Start()
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.Started), nil
+				return helpers.IntToString(status.Started), nil
 			},
 
 			DashboardHelpers.TOPIC_MULTI_SYNC_REQUEST: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
@@ -87,7 +87,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *Server.Ser
 				if err != nil {
 					return "", err
 				}
-				return string(Helpers.JsonMarshal(responses)), nil
+				return string(helpers.JsonMarshal(responses)), nil
 			},
 			DashboardHelpers.TOPIC_MULTI_ASYNC_MESSAGE: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				messageWithRecipients, err := DashboardHelpers.UnmarshalMultiMessage([]byte(message.GetPayload()))
@@ -110,7 +110,7 @@ func New(name string, config *Config.DashboardClient, systemgeServer *Server.Ser
 				if err != nil {
 					return "", err
 				}
-				return Helpers.IntToString(Status.Stopped), nil
+				return helpers.IntToString(status.Stopped), nil
 			},
 			DashboardHelpers.TOPIC_START_MESSAGE_HANDLING_LOOP_SEQUENTIALLY_CHILD: func(connection SystemgeConnection.SystemgeConnection, message *Message.Message) (string, error) {
 				systemgeConnection := systemgeServer.GetConnection(message.GetPayload())

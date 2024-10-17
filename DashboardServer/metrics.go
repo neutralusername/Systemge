@@ -1,16 +1,16 @@
 package DashboardServer
 
 import (
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 func (server *Server) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("resource_usage", Metrics.New(
 		map[string]uint64{
-			"heap_usage":      Helpers.HeapUsage(),
-			"goroutine_count": uint64(Helpers.GoroutineCount()),
+			"heap_usage":      helpers.HeapUsage(),
+			"goroutine_count": uint64(helpers.GoroutineCount()),
 		},
 	))
 	metricsTypes.Merge(server.websocketServer.GetMetrics())
@@ -23,8 +23,8 @@ func (server *Server) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("resource_usage", Metrics.New(
 		map[string]uint64{
-			"heap_usage":      Helpers.HeapUsage(),
-			"goroutine_count": uint64(Helpers.GoroutineCount()),
+			"heap_usage":      helpers.HeapUsage(),
+			"goroutine_count": uint64(helpers.GoroutineCount()),
 		},
 	))
 	metricsTypes.Merge(server.websocketServer.CheckMetrics())

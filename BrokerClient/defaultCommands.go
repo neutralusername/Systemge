@@ -5,8 +5,8 @@ import (
 
 	"github.com/neutralusername/Systemge/Commands"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Status"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
@@ -26,7 +26,7 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 			return "success", nil
 		},
 		"getStatus": func(args []string) (string, error) {
-			return Status.ToString(messageBrokerClient.GetStatus()), nil
+			return status.ToString(messageBrokerClient.GetStatus()), nil
 		},
 		"checkMetrics": func(args []string) (string, error) {
 			metrics := messageBrokerClient.CheckMetrics()
@@ -49,11 +49,11 @@ func (messageBrokerClient *Client) GetDefaultCommands() Commands.Handlers {
 		},
 		"getAsyncSubscribeTopics": func(args []string) (string, error) {
 			topics := messageBrokerClient.GetAsyncSubscribeTopics()
-			return Helpers.JsonMarshal(topics), nil
+			return helpers.JsonMarshal(topics), nil
 		},
 		"getSyncSubscribeTopics": func(args []string) (string, error) {
 			topics := messageBrokerClient.GetSyncSubscribeTopics()
-			return Helpers.JsonMarshal(topics), nil
+			return helpers.JsonMarshal(topics), nil
 		},
 		"addAsyncSubscribeTopic": func(args []string) (string, error) {
 			if len(args) != 1 {

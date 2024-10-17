@@ -5,10 +5,10 @@ import (
 
 	"github.com/neutralusername/Systemge/Config"
 	"github.com/neutralusername/Systemge/Event"
-	"github.com/neutralusername/Systemge/Helpers"
-	"github.com/neutralusername/Systemge/Status"
 	"github.com/neutralusername/Systemge/SystemgeConnection"
 	"github.com/neutralusername/Systemge/TcpConnect"
+	"github.com/neutralusername/Systemge/helpers"
+	"github.com/neutralusername/Systemge/status"
 )
 
 func (client *Client) startConnectionAttempts(tcpClientConfig *Config.TcpClient) error {
@@ -26,7 +26,7 @@ func (client *Client) startConnectionAttempts(tcpClientConfig *Config.TcpClient)
 		return event.GetError()
 	}
 
-	normalizedAddress, err := Helpers.NormalizeAddress(tcpClientConfig.Address)
+	normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
 	if err != nil {
 		client.onEvent(Event.NewWarningNoOption(
 			Event.NormalizingAddressFailed,
@@ -108,11 +108,11 @@ func (client *Client) startConnectionAttempts(tcpClientConfig *Config.TcpClient)
 
 func (client *Client) handleConnectionAttempt(connectionAttempt *TcpConnect.ConnectionAttempt) {
 	if client.ongoingConnectionAttempts.Add(1) == 1 {
-		client.status = Status.Pending
+		client.status = status.Pending
 	}
 	defer func() {
 		if client.ongoingConnectionAttempts.Add(-1) == 0 {
-			client.status = Status.Started
+			client.status = status.Started
 		}
 		client.waitGroup.Done()
 	}()

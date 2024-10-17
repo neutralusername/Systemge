@@ -3,8 +3,8 @@ package DashboardHelpers
 import (
 	"encoding/json"
 
-	"github.com/neutralusername/Systemge/Helpers"
 	"github.com/neutralusername/Systemge/Message"
+	"github.com/neutralusername/Systemge/helpers"
 )
 
 type MultiMessage struct {
@@ -20,7 +20,7 @@ func NewMultiMessage(message *Message.Message, recipients []string) *MultiMessag
 }
 
 func (m *MultiMessage) Marshal() string {
-	return Helpers.JsonMarshal(m)
+	return helpers.JsonMarshal(m)
 }
 
 func UnmarshalMultiMessage(bytes []byte) (*MultiMessage, error) {
