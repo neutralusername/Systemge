@@ -2,7 +2,7 @@ package Tools
 
 import "errors"
 
-type Semaphore[T comparable] struct {
+type Semaphore[T any] struct {
 	channel chan T
 }
 
@@ -10,7 +10,7 @@ func (semaphore *Semaphore[T]) AvailableAcquires() uint32 {
 	return uint32(cap(semaphore.channel)) - uint32(len(semaphore.channel))
 }
 
-func NewSemaphore[T comparable](maxAvailableAcquires uint32, initialItems []T) (*Semaphore[T], error) {
+func NewSemaphore[T any](maxAvailableAcquires uint32, initialItems []T) (*Semaphore[T], error) {
 	if maxAvailableAcquires == 0 {
 		return nil, errors.New("maxAvailableAcquires must be greater than 0")
 	}
