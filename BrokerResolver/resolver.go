@@ -31,11 +31,17 @@ type Resolver[B any] struct {
 
 func New[B any](
 	TopicClientConfigs map[string]*configs.TcpClient,
+	singleRequestServerConfig *configs.SingleRequestServerSync,
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
-	readHandler tools.ReadHandler[B, systemge.Connection[B]],
+	readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]],
 ) (*Resolver[B], error) {
+
+	singleRequestServerSync, err := singleRequestServer.NewSingleRequestServerSync(singleRequestServerConfig, routineConfig, listener, acceptHandler, readHandler)
+	if err != nil {
+		return nil, err
+	}
 
 	resolver := &Resolver[B]{
 		topicTcpClientConfigs: make(map[string]*configs.TcpClient),
