@@ -1,4 +1,4 @@
-package SingleRequestServer
+package singleRequestServer
 
 import (
 	"encoding/json"
@@ -10,12 +10,11 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-type SyncSingleRequestServer[B any] struct {
+type AsyncSingleRequestServer[B any] struct {
 	listener      systemge.Listener[B, systemge.Connection[B]]
+	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]]
+	readHandler   tools.ReadHandler[B, systemge.Connection[B]]
 	acceptRoutine *tools.Routine
-
-	AcceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]]
-	ReadHandler   tools.ReadHandlerWithResult[B, systemge.Connection[B]]
 
 	// metrics
 
@@ -23,12 +22,12 @@ type SyncSingleRequestServer[B any] struct {
 	FailedCalls    atomic.Uint64
 }
 
-func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, acceptTimeoutNs, readTimeoutNs, writeTimeoutNs int64, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandlerWithResult[B, systemge.Connection[B]]) (*SyncSingleRequestServer[B], error) {
+func NewAsyncSingleRequestServer[B any](routineConfig *configs.Routine, acceptTimeoutNs, readTimeoutNs int64, listener systemge.Listener[B, systemge.Connection[B]], acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]], readHandler tools.ReadHandler[B, systemge.Connection[B]]) (*AsyncSingleRequestServer[B], error) {
 
-	server := &SyncSingleRequestServer[B]{
+	server := &AsyncSingleRequestServer[B]{
 		listener:      listener,
-		AcceptHandler: acceptHandler,
-		ReadHandler:   readHandler,
+		acceptHandler: acceptHandler,
+		readHandler:   readHandler,
 	}
 
 	server.acceptRoutine = tools.NewRoutine(
@@ -39,7 +38,7 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, acceptTim
 				// do smthg with the error
 				return
 			}
-			if err = server.AcceptHandler(connection); err != nil {
+			if err = server.acceptHandler(connection); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
 				connection.Close()
@@ -52,13 +51,7 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, acceptTim
 				connection.Close()
 				return
 			}
-			result := server.ReadHandler(object, connection)
-			if err = connection.Write(result, writeTimeoutNs); err != nil {
-				server.FailedCalls.Add(1)
-				// do smthg with the error
-				connection.Close()
-				return
-			}
+			server.readHandler(object, connection)
 			connection.Close()
 			server.SucceededCalls.Add(1)
 		},
@@ -67,17 +60,17 @@ func NewSyncSingleRequestServer[B any](routineConfig *configs.Routine, acceptTim
 	return server, nil
 }
 
-func (server *SyncSingleRequestServer[B]) Start() error {
+func (server *AsyncSingleRequestServer[B]) Start() error {
 	return server.acceptRoutine.StartRoutine()
 }
 
-func (server *SyncSingleRequestServer[B]) Stop() error {
+func (server *AsyncSingleRequestServer[B]) Stop() error {
 	return server.acceptRoutine.StopRoutine(true)
 }
 
-func (server *SyncSingleRequestServer[B]) CheckMetrics() tools.MetricsTypes {
+func (server *AsyncSingleRequestServer[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
-	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
+	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(
 		map[string]uint64{
 			"successes": server.SucceededCalls.Load(),
 			"fails":     server.FailedCalls.Load(),
@@ -86,9 +79,9 @@ func (server *SyncSingleRequestServer[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(server.listener.CheckMetrics())
 	return metricsTypes
 }
-func (server *SyncSingleRequestServer[B]) GetMetrics() tools.MetricsTypes {
+func (server *AsyncSingleRequestServer[B]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
-	metricsTypes.AddMetrics("single_request_server_sync", tools.NewMetrics(
+	metricsTypes.AddMetrics("single_request_server_async", tools.NewMetrics(
 		map[string]uint64{
 			"successes": server.SucceededCalls.Swap(0),
 			"fails":     server.FailedCalls.Swap(0),
@@ -98,7 +91,7 @@ func (server *SyncSingleRequestServer[B]) GetMetrics() tools.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *SyncSingleRequestServer[B]) GetDefaultCommands() tools.CommandHandlers {
+func (server *AsyncSingleRequestServer[B]) GetDefaultCommands() tools.CommandHandlers {
 	commands := tools.CommandHandlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()
