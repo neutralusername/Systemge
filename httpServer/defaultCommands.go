@@ -2,8 +2,8 @@ package httpServer
 
 import "github.com/neutralusername/systemge/tools"
 
-func (server *HTTPServer) GetDefaultCommands() tools.Handlers {
-	commands := tools.Handlers{}
+func (server *HTTPServer) GetDefaultCommands() tools.CommandHandlers {
+	commands := tools.CommandHandlers{}
 	/* 	if server.blacklist != nil {
 	   		blacklistCommands := server.blacklist.GetDefaultCommands()
 	   		for key, value := range blacklistCommands {

@@ -4,8 +4,8 @@ import (
 	"github.com/neutralusername/systemge/tools"
 )
 
-func (connection *TcpConnection) GetDefaultCommands() tools.Handlers {
-	commands := tools.Handlers{}
+func (connection *TcpConnection) GetDefaultCommands() tools.CommandHandlers {
+	commands := tools.CommandHandlers{}
 	/* 	commands["close"] = func(args []string) (string, error) {
 	   		err := connection.Close()
 	   		if err != nil {

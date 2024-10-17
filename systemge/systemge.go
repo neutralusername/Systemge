@@ -16,7 +16,7 @@ type Listener[B any, C Connection[B]] interface {
 
 	Accept(timeoutNs int64) (C, error)
 
-	GetDefaultCommands() tools.Handlers
+	GetDefaultCommands() tools.CommandHandlers
 
 	CheckMetrics() tools.MetricsTypes
 	GetMetrics() tools.MetricsTypes
@@ -38,7 +38,7 @@ type Connection[B any] interface {
 	Write(B, int64) error
 	SetWriteDeadline(int64)
 
-	GetDefaultCommands() tools.Handlers
+	GetDefaultCommands() tools.CommandHandlers
 
 	GetMetrics() tools.MetricsTypes
 	CheckMetrics() tools.MetricsTypes

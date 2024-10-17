@@ -86,6 +86,13 @@ func (routine *Routine) IsRoutineRunning() bool {
 	return routine.status == status.Started
 }
 
+func (routine *Routine) GetStatus() int {
+	routine.statusMutex.RLock()
+	defer routine.statusMutex.RUnlock()
+
+	return routine.status
+}
+
 // if >0 after stopping the routine, it means that there are zombie goroutines
 func (routine *Routine) OpenCallGoroutines() int32 {
 	return routine.openCallGoroutines.Load()

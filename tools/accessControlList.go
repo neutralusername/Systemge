@@ -57,8 +57,8 @@ func (acl *AccessControlList) GetElements() []string {
 	return items
 }
 
-func (acl *AccessControlList) GetDefaultCommands() Handlers {
-	return Handlers{
+func (acl *AccessControlList) GetDefaultCommands() CommandHandlers {
+	return CommandHandlers{
 		"add": func(args []string) (string, error) {
 			acl.Add(args[0])
 			return "success", nil

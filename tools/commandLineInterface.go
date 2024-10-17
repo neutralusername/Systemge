@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func StartCLI(commandHandlers Handlers) {
+func StartCLI(commandHandlers CommandHandlers) {
 	println("Welcome to the Systemge command line interface")
 	println("Type 'exit' to exit")
 	println("Type your command followed by arguments separated by spaces")
