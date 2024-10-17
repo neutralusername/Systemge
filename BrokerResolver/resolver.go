@@ -6,16 +6,15 @@ import (
 	"sync/atomic"
 
 	"github.com/neutralusername/systemge/configs"
-	"github.com/neutralusername/systemge/helpers"
 	"github.com/neutralusername/systemge/singleRequestServer"
 	"github.com/neutralusername/systemge/systemge"
 	"github.com/neutralusername/systemge/tools"
 )
 
-type Resolver[B any] struct {
+type Resolver[B any, T any] struct {
 	config *configs.MessageBrokerResolver
 
-	topicTcpClientConfigs map[string]*configs.TcpClient
+	topicTcpClientConfigs map[string]T
 	mutex                 sync.RWMutex
 
 	singleRequestServerSync *singleRequestServer.SingleRequestServerSync[B]
@@ -26,26 +25,21 @@ type Resolver[B any] struct {
 	FailedResolutions    atomic.Uint64
 }
 
-func New[B any](
-	topicClientConfigs map[string]*configs.TcpClient,
+func New[B any, T any](
+	topicClientConfigs map[string]T,
 	singleRequestServerConfig *configs.SingleRequestServerSync,
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
 	deserializeTopic func(B, systemge.Connection[B]) (string, error), // responsible for validating the request and retrieving the topic
-	serializeResolution func(*configs.TcpClient) (B, error),
-) (*Resolver[B], error) {
+	serializeResolution func(T) (B, error),
+) (*Resolver[B, T], error) {
 
-	resolver := &Resolver[B]{
-		topicTcpClientConfigs: make(map[string]*configs.TcpClient),
+	resolver := &Resolver[B, T]{
+		topicTcpClientConfigs: make(map[string]T),
 	}
 
 	for topic, tcpClientConfig := range topicClientConfigs {
-		normalizedAddress, err := helpers.NormalizeAddress(tcpClientConfig.Address)
-		if err != nil {
-			return nil, err
-		}
-		tcpClientConfig.Address = normalizedAddress
 		resolver.topicTcpClientConfigs[topic] = tcpClientConfig
 	}
 
@@ -76,11 +70,11 @@ func New[B any](
 	return resolver, nil
 }
 
-func (resolver *Resolver[B]) GetSingleRequestServerSync() *singleRequestServer.SingleRequestServerSync[B] {
+func (resolver *Resolver[B, T]) GetSingleRequestServerSync() *singleRequestServer.SingleRequestServerSync[B] {
 	return resolver.singleRequestServerSync
 }
 
-func (resolver *Resolver[B]) CheckMetrics() tools.MetricsTypes {
+func (resolver *Resolver[B, T]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	resolver.mutex.RLock()
 	metricsTypes.AddMetrics("brokerResolver_resolutions", tools.NewMetrics(
@@ -94,7 +88,7 @@ func (resolver *Resolver[B]) CheckMetrics() tools.MetricsTypes {
 	metricsTypes.Merge(resolver.singleRequestServerSync.CheckMetrics())
 	return metricsTypes
 }
-func (resolver *Resolver[B]) GetMetrics() tools.MetricsTypes {
+func (resolver *Resolver[B, T]) GetMetrics() tools.MetricsTypes {
 	metricsTypes := tools.NewMetricsTypes()
 	resolver.mutex.RLock()
 	metricsTypes.AddMetrics("brokerResolver", tools.NewMetrics(
