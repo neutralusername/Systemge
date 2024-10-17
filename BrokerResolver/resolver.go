@@ -32,7 +32,7 @@ func New[B any](
 	routineConfig *configs.Routine,
 	listener systemge.Listener[B, systemge.Connection[B]],
 	acceptHandler tools.AcceptHandlerWithError[systemge.Connection[B]],
-	readHandler tools.ReadHandlerWithError[B, systemge.Connection[B]],
+	readHandler tools.ReadHandlerWithError[B, systemge.Connection[B]], // responsible for validating the topic/request
 	deserializeTopic func(B) (string, error),
 	serializeResolution func(*configs.TcpClient) (B, error),
 ) (*Resolver[B], error) {
