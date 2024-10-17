@@ -1,3 +1,5 @@
+grpc?
+
 single request server and broker-system will work based on systemge.Connection and IMessage i think (similar to existing functionality)
 
 (refactor brokerResolver to use singleRequestServer)
