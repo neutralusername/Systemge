@@ -58,7 +58,13 @@ func NewSingleRequestServerSync[B any](
 				connection.Close()
 				return
 			}
-			result := server.ReadHandler(object, connection)
+			result, err := server.ReadHandler(object, connection)
+			if err != nil {
+				server.FailedCalls.Add(1)
+				// do smthg with the error
+				connection.Close()
+				return
+			}
 			if err = connection.Write(result, config.WriteTimeoutNs); err != nil {
 				server.FailedCalls.Add(1)
 				// do smthg with the error
