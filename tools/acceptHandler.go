@@ -2,7 +2,7 @@ package tools
 
 type AcceptHandler[C any] func(C)
 
-type InternalAcceptHandler[C any] func(C) error
+type AcceptHandlerWithError[C any] func(C) error
 
 /* // executes all handlers in order, return error if any handler returns an error
 func NewAcceptHandler[C any](handlers ...InternalAcceptHandler[C]) AcceptHandler[C] {

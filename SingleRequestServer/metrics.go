@@ -8,7 +8,7 @@ import (
 	"github.com/neutralusername/systemge/status"
 )
 
-func (server *Server) CheckMetrics() Metrics.MetricsTypes {
+func (server *AsyncSingleRequestServer) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_syncMessages", Metrics.New(
 		map[string]uint64{
@@ -25,7 +25,7 @@ func (server *Server) CheckMetrics() Metrics.MetricsTypes {
 	metricsTypes.Merge(server.systemgeServer.GetMetrics())
 	return metricsTypes
 }
-func (server *Server) GetMetrics() Metrics.MetricsTypes {
+func (server *AsyncSingleRequestServer) GetMetrics() Metrics.MetricsTypes {
 	metricsTypes := Metrics.NewMetricsTypes()
 	metricsTypes.AddMetrics("single_request_syncMessages", Metrics.New(
 		map[string]uint64{
@@ -43,35 +43,35 @@ func (server *Server) GetMetrics() Metrics.MetricsTypes {
 	return metricsTypes
 }
 
-func (server *Server) CheckSucceededAsyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) CheckSucceededAsyncMessages() uint64 {
 	return server.succeededAsyncMessages.Load()
 }
-func (server *Server) GetSucceededAsyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) GetSucceededAsyncMessages() uint64 {
 	return server.succeededAsyncMessages.Swap(0)
 }
 
-func (server *Server) CheckFailedAsyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) CheckFailedAsyncMessages() uint64 {
 	return server.failedAsyncMessages.Load()
 }
-func (server *Server) GetFailedAsyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) GetFailedAsyncMessages() uint64 {
 	return server.failedAsyncMessages.Swap(0)
 }
 
-func (server *Server) CheckSucceededSyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) CheckSucceededSyncMessages() uint64 {
 	return server.succeededSyncMessages.Load()
 }
-func (server *Server) GetSucceededSyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) GetSucceededSyncMessages() uint64 {
 	return server.succeededSyncMessages.Swap(0)
 }
 
-func (server *Server) CheckFailedSyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) CheckFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Load()
 }
-func (server *Server) GetFailedSyncMessages() uint64 {
+func (server *AsyncSingleRequestServer) GetFailedSyncMessages() uint64 {
 	return server.failedSyncMessages.Swap(0)
 }
 
-func (server *Server) GetDefaultCommands() Commands.Handlers {
+func (server *AsyncSingleRequestServer) GetDefaultCommands() Commands.Handlers {
 	commands := Commands.Handlers{}
 	commands["start"] = func(args []string) (string, error) {
 		err := server.Start()

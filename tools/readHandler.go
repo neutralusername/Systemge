@@ -4,6 +4,10 @@ type ReadHandlerFactory[B any, C any] func() ReadHandler[B, C]
 
 type ReadHandler[B any, C any] func(B, C)
 
+type ReadHandlerWithResult[B any, C any] func(B, C) B
+
+type ReadHandlerWithError[B any, C any] func(B, C) error
+
 /*
 type ByteHandler[B any, C any] func(B, C) error
 type ObjectDeserializer[B any, O any, C any] func(B, C) (O, error)
