@@ -75,4 +75,4 @@ consider/support config changes at runtime.
 
 single request server and broker-system will work based on systemge.Connection and IMessage i think (similar to existing functionality)
 
-add connection lifetime config to listeners
+add connection lifetime config to listeners (also to establish connection?)
