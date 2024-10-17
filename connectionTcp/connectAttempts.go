@@ -6,13 +6,11 @@ import (
 	"time"
 
 	"github.com/neutralusername/systemge/Config"
-	"github.com/neutralusername/systemge/Event"
 	"github.com/neutralusername/systemge/systemge"
 )
 
 type ConnectionAttempt struct {
 	config             *Config.SystemgeConnectionAttempt
-	eventHandler       Event.Handler
 	systemgeConnection systemge.Connection[[]byte]
 
 	attempts   uint32
@@ -20,15 +18,14 @@ type ConnectionAttempt struct {
 	abortMutex sync.Mutex
 }
 
-func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt, eventHandler Event.Handler) (*ConnectionAttempt, error) {
+func EstablishConnectionAttempts(name string, config *Config.SystemgeConnectionAttempt) (*ConnectionAttempt, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
 	connectionAttempts := &ConnectionAttempt{
-		config:       config,
-		attempts:     0,
-		ongoing:      make(chan bool),
-		eventHandler: eventHandler,
+		config:   config,
+		attempts: 0,
+		ongoing:  make(chan bool),
 	}
 	go connectionAttempts.connectionAttempts(name)
 	return connectionAttempts, nil
