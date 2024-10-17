@@ -1,12 +1,10 @@
 package ListenerTcp
 
-import (
-	"github.com/neutralusername/Systemge/Metrics"
-)
+import "github.com/neutralusername/Systemge/Tools"
 
-func (listener *TcpListener) CheckMetrics() Metrics.MetricsTypes {
-	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
+func (listener *TcpListener) CheckMetrics() Tools.MetricsTypes {
+	metricsTypes := Tools.NewMetricsTypes()
+	metricsTypes.AddMetrics("tcp_systemge_listener", Tools.NewMetrics(
 		map[string]uint64{
 			/* 	"total_connection_attempts":    listener.CheckConnectionAttempts(),
 			"failed_connection_attempts":   listener.CheckFailedConnectionAttempts(),
@@ -16,9 +14,9 @@ func (listener *TcpListener) CheckMetrics() Metrics.MetricsTypes {
 	)
 	return metricsTypes
 }
-func (listener *TcpListener) GetMetrics() Metrics.MetricsTypes {
-	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("tcp_systemge_listener", Metrics.New(
+func (listener *TcpListener) GetMetrics() Tools.MetricsTypes {
+	metricsTypes := Tools.NewMetricsTypes()
+	metricsTypes.AddMetrics("tcp_systemge_listener", Tools.NewMetrics(
 		map[string]uint64{
 			/* 		"total_connection_attempts":    listener.GetConnectionAttempts(),
 			"failed_connection_attempts":   listener.GetFailedConnectionAttempts(),

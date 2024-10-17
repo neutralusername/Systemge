@@ -1,13 +1,11 @@
-package Tools
+package Systemge
 
-import (
-	"github.com/neutralusername/Systemge/Systemge"
-)
+import "github.com/neutralusername/Systemge/Tools"
 
-type AsyncMessageHandler[B any] func(Systemge.Connection[B], IMessage)
+type AsyncMessageHandler[B any] func(Connection[B], Tools.IMessage)
 type AsyncMessageHandlers[B any] map[string]AsyncMessageHandler[B]
 
-type SyncMessageHandler[B any] func(Systemge.Connection[B], IMessage) (string, error)
+type SyncMessageHandler[B any] func(Connection[B], Tools.IMessage) (string, error)
 type SyncMessageHandlers[B any] map[string]SyncMessageHandler[B]
 
 func NewAsyncMessageHandlers[B any]() AsyncMessageHandlers[B] {

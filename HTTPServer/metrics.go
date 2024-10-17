@@ -1,32 +1,22 @@
 package HTTPServer
 
-import (
-	"github.com/neutralusername/Systemge/Metrics"
-)
+import "github.com/neutralusername/Systemge/Tools"
 
-func (server *HTTPServer) CheckMetrics() Metrics.MetricsTypes {
-	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("http_server", Metrics.New(
+func (server *HTTPServer) CheckMetrics() Tools.MetricsTypes {
+	metricsTypes := Tools.NewMetricsTypes()
+	metricsTypes.AddMetrics("http_server", Tools.NewMetrics(
 		map[string]uint64{
-			"request_counter": server.CheckHTTPRequestCounter(),
+			"request_counter": server.RequestCounter.Load(),
 		},
 	))
 	return metricsTypes
 }
-func (server *HTTPServer) GetMetrics() Metrics.MetricsTypes {
-	metricsTypes := Metrics.NewMetricsTypes()
-	metricsTypes.AddMetrics("http_server", Metrics.New(
+func (server *HTTPServer) GetMetrics() Tools.MetricsTypes {
+	metricsTypes := Tools.NewMetricsTypes()
+	metricsTypes.AddMetrics("http_server", Tools.NewMetrics(
 		map[string]uint64{
-			"request_counter": server.GetTTPRequestCounter(),
+			"request_counter": server.RequestCounter.Swap(0),
 		},
 	))
 	return metricsTypes
-}
-
-func (server *HTTPServer) GetTTPRequestCounter() uint64 {
-	return server.requestCounter.Swap(0)
-}
-
-func (server *HTTPServer) CheckHTTPRequestCounter() uint64 {
-	return server.requestCounter.Load()
 }

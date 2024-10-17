@@ -59,7 +59,7 @@ func (message *Message) IsResponse() bool {
 	return message.response
 }
 
-func New(topic, payload, syncToken string) *Message {
+func NewMessage(topic, payload, syncToken string) *Message {
 	return &Message{
 		topic:     topic,
 		syncToken: syncToken,

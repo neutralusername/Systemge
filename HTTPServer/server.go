@@ -33,7 +33,7 @@ type HTTPServer struct {
 
 	// metrics
 
-	requestCounter atomic.Uint64
+	RequestCounter atomic.Uint64
 }
 
 func New(name string, config *Config.HTTPServer, wrapperHandler WrapperHandler, requestHandlers HandlerFuncs) *HTTPServer {
@@ -72,7 +72,7 @@ func (server *HTTPServer) httpRequestWrapper(pattern string, handler func(w http
 			return
 		}
 
-		server.requestCounter.Add(1)
+		server.RequestCounter.Add(1)
 		r.Body = http.MaxBytesReader(w, r.Body, server.config.MaxBodyBytes)
 
 		if server.wrapperHandler != nil {

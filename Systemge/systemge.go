@@ -2,7 +2,7 @@ package Systemge
 
 import (
 	"github.com/neutralusername/Systemge/Commands"
-	"github.com/neutralusername/Systemge/Metrics"
+	"github.com/neutralusername/Systemge/Tools"
 )
 
 type Listener[B any, C Connection[B]] interface {
@@ -19,8 +19,8 @@ type Listener[B any, C Connection[B]] interface {
 
 	GetDefaultCommands() Commands.Handlers
 
-	CheckMetrics() Metrics.MetricsTypes
-	GetMetrics() Metrics.MetricsTypes
+	CheckMetrics() Tools.MetricsTypes
+	GetMetrics() Tools.MetricsTypes
 }
 
 type Connection[B any] interface {
@@ -41,6 +41,6 @@ type Connection[B any] interface {
 
 	GetDefaultCommands() Commands.Handlers
 
-	GetMetrics() Metrics.MetricsTypes
-	CheckMetrics() Metrics.MetricsTypes
+	GetMetrics() Tools.MetricsTypes
+	CheckMetrics() Tools.MetricsTypes
 }
