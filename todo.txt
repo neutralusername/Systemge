@@ -14,6 +14,8 @@ build specialized "dashboards" for various packages. for example to add topics t
 single request server - will work based on systemge.Connection and IMessage i think (similar to existing functionality)
 (same for broker-system)
 
+make dashboard less repetitive (implementation-/code wise) ..
+
 "systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
     +(group of clients connected to various listeners that can be messaged conveniently)
     +(insights whether all listeners are connected to currently (was handled through the services status (started/pending)))
