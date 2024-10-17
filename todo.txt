@@ -11,6 +11,9 @@ build specialized "dashboards" for various packages. for example to add topics t
 -httpServerDashboard
 -oauth2ServerDashboard
 
+"systemge client" - a mechanism that receives a list of listeners that it will attempt to connect to and maintain that connection through reconnect attempts
+    +(group of clients connected to various listener that can be messages to conveniently)
+
 add sample how systemge can be used as a proxy
 
 consider/support config changes at runtime.
