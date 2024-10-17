@@ -51,14 +51,14 @@ func New[B any, O any](
 		}
 
 		resolver.mutex.RLock()
-		tcpClientConfig, ok := topicObject[topic]
+		object, ok := topicObject[topic]
 		resolver.mutex.RUnlock()
 
 		if !ok {
 			var nilValue B
 			return nilValue, errors.New("topic not found")
 		}
-		return serializeObject(tcpClientConfig)
+		return serializeObject(object)
 	}
 
 	singleRequestServerSync, err := singleRequestServer.NewSingleRequestServerSync(singleRequestServerConfig, routineConfig, listener, acceptHandler, readHandlerWrapper)
